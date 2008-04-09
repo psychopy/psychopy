@@ -9,7 +9,7 @@ import string, sys
 try: import numpy
 except: pass
 
-__version__ = '0.93.4'#string.split('$Branch: 1.19 $')[1]
+__version__ = '0.94.0'#string.split('$Branch: 1.19 $')[1]
 __date__ = string.join(string.split('$Date: 2005/08/01 15:05:34 $')[1:3], ' ')
 __author__ = 'Jon Peirce'
 __author_email__='jon@peirce.org.uk'
