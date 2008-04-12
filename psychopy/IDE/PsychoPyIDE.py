@@ -1,4 +1,4 @@
-import wx, sys, time, types
+import wx, sys, time, types, re
 #check wx version - wx.aui was only introduced in wx2.8
 if wx.__version__<'2.8':
     wx.PySimpleApp()
@@ -889,13 +889,55 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
         
 class stdOutCtrl(wx.TextCtrl):
-    def OnInit(self):
-        self.SetReadOnly(True)
     def write(self,string):
         self.WriteText(string)
     def flush(self):
         pass
-    
+        
+class stdOutRich(wx.richtext.RichTextCtrl):
+    def __init__(self, parent, style):
+        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
+        self.parent=parent
+    def write(self,inStr):
+        self.MoveEnd()#always 'append' text rather than 'writing' it
+        if inStr[:34] == "Traceback (most recent call last):":
+            """tracebacks have the form:
+            Traceback (most recent call last):
+            File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 21, in <module>
+                class WordFetcher:
+            File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
+            """
+            #define style for filename links (URLS)
+            urlStyle = wx.richtext.TextAttrEx()
+            urlStyle.SetTextColour(wx.BLUE)
+            #urlStyle.SetFontWeight(wx.BOLD)
+            urlStyle.SetFontUnderlined(True)
+            #make line numbers into URL
+            URLS = re.findall('".*", line.*,',inStr)#retrieves file and line number
+            nonURLS = re.split('".*", line.*,',inStr)
+            for n in range(len(URLS)):#not sure why enumerate doesn't work here
+                self.WriteText(nonURLS[n])
+                
+                self.BeginStyle(urlStyle)
+                self.BeginURL(URLS[n])
+                self.WriteText(URLS[n])
+                self.EndURL()
+                self.EndStyle()
+            self.WriteText(nonURLS[-1])#there will be one more nonURL message than URL
+            
+        else:
+            self.WriteText(inStr)
+            
+    def OnURL(self, evt):
+        """decompose the URL of a file and line number"""
+        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
+        filename = evt.GetString().split('"')[1]
+        lineNumber = int(evt.GetString().split(',')[1][5:])
+        self.parent.gotoLine(filename,lineNumber)
+    def flush(self):
+        pass
+            
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
@@ -1061,18 +1103,18 @@ class StationMainFrame(wx.Frame):
         self.options['prevFiles'].extend(files)
         if len(self.options['prevFiles'])==0:
             #then no files previously opened
-            self.createNewPage('')#a dummy page to start
+            self.setCurrentDoc('')#a dummy page to start
         else:
             #re-open previous files
             for filename in self.options['prevFiles']: 
                 if not os.path.isfile(filename): continue
-                self.createNewPage(filename)      
+                self.setCurrentDoc(filename)      
                 
         
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = stdOutCtrl(self,-1, size=wx.Size(600,600), style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.outputWindow = stdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.paneManager.AddPane(self.outputWindow, 
                                  wx.aui.AuiPaneInfo().
                                  Name("Output").Caption("Output").
@@ -1288,11 +1330,11 @@ class StationMainFrame(wx.Frame):
             if self.scriptProcess.IsInputAvailable():
                 stream = self.scriptProcess.GetInputStream()
                 text = stream.read()
-                self.outputWindow.AppendText(text)
+                self.outputWindow.write(text)
             if self.scriptProcess.IsErrorAvailable():
                 stream = self.scriptProcess.GetErrorStream()
                 text = stream.read()
-                self.outputWindow.AppendText(text)
+                self.outputWindow.write(text)
         
     def pageChanged(self,event):
         old = event.GetOldSelection()
@@ -1305,7 +1347,7 @@ class StationMainFrame(wx.Frame):
         fileList = event.GetFiles()
         for filename in fileList:
             if os.path.isfile(filename):
-                self.createNewPage(filename)
+                self.setCurrentDoc(filename)
     def showAbout(self, event):
         msg = """PsychoPy %s \nWritten by Jon Peirce.\n
         It has a liberal license; basically, do what you like with it, 
@@ -1351,7 +1393,7 @@ class StationMainFrame(wx.Frame):
         # get the file based on the menu ID
         fileNum = evt.GetId() - wx.ID_FILE1
         path = self.filehistory.GetHistoryFile(fileNum)
-        self.createNewPage(path)#load the file
+        self.setCurrentDoc(path)#load the file
         # add it back to the history so it will be moved up the list
         self.filehistory.AddFileToHistory(path)
         
@@ -1359,6 +1401,17 @@ class StationMainFrame(wx.Frame):
         if event.GetId()==ID_PSYCHO_HOME: wx.LaunchDefaultBrowser('http://www.psychopy.org/')
         if event.GetId()==ID_PSYCHO_TUTORIAL: wx.LaunchDefaultBrowser('http://www.psychopy.org/home.php/Docs/Tutorials')
         if event.GetId()==ID_PSYCHO_REFERENCE: wx.LaunchDefaultBrowser('http://www.psychopy.org/reference/')
+    def gotoLine(self, filename=None, line=0):
+        #goto a specific line in a specific file and select all text in it
+        self.setCurrentDoc(filename)
+        
+        self.currentDoc.GotoLine(line)
+        endPos = self.currentDoc.GetCurrentPos()
+        
+        self.currentDoc.GotoLine(line-1)
+        stPos = self.currentDoc.GetCurrentPos()
+        
+        self.currentDoc.SetSelection(stPos,endPos)
     def quit(self, event):
         #undo
         sys.stdout = self._origStdOut#discovered during __init__
@@ -1387,52 +1440,64 @@ class StationMainFrame(wx.Frame):
         misc.toFile(optionsPath, self.options)
         self.Destroy()
     def fileNew(self, event):
-        self.createNewPage("")
-    def createNewPage(self, filename):
+        self.setCurrentDoc("")
         
-        #if there is only a placeholder document then close it
-        if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
-            self.fileClose(self.currentDoc)
+    
+    def findDocID(self, filename):
+        #find the ID of the current doc in self.allDocs list and the notebook panel (returns -1 if not found)
+        for n in range(len(self.allDocs)):
+            if self.allDocs[n].filename == filename:
+                return n
+        return -1
+        
+    def setCurrentDoc(self, filename):       
             
         #check if this file is already open
-        if filename in self.allDocs:
-            self.currentDoc=xxx
-        
-        #create an editor window to put the text in
-        if USE_NOTEBOOK_PANEL: #use a panel
-            p = wx.Panel(self.notebook, -1, style = wx.NO_FULL_REPAINT_ON_RESIZE)
-            self.currentDoc = CodeEditor(p, -1, frame=self)
-            self.allDocs.append(self.currentDoc)
+        docID=self.findDocID(filename)
+        if docID>=0:
+            print docID
+            self.currentDoc = self.allDocs[docID]
+            self.notebook.ChangeSelection(docID)
+        else:#create new page and load document
+            #if there is only a placeholder document then close it
+            if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
+                self.fileClose(self.currentDoc)            
             
-            #arrange in window
-            s = wx.BoxSizer()
-            s.Add(self.currentDoc, 1, wx.EXPAND)
-            p.SetSizer(s)
-            p.SetAutoLayout(True)
-        else:
-            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
-            self.allDocs.append(self.currentDoc)
+            #create an editor window to put the text in
+            if USE_NOTEBOOK_PANEL: #use a panel
+                p = wx.Panel(self.notebook, -1, style = wx.NO_FULL_REPAINT_ON_RESIZE)
+                self.currentDoc = CodeEditor(p, -1, frame=self)
+                self.allDocs.append(self.currentDoc)
+                
+                #arrange in window
+                s = wx.BoxSizer()
+                s.Add(self.currentDoc, 1, wx.EXPAND)
+                p.SetSizer(s)
+                p.SetAutoLayout(True)
+            else:
+                p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
+                self.allDocs.append(self.currentDoc)
+                
+            #load text from document
+            if os.path.isfile(filename):
+                self.currentDoc.SetText(open(filename).read())
+                self.filehistory.AddFileToHistory(filename)
+            else:
+                self.currentDoc.SetText("")
+            self.currentDoc.EmptyUndoBuffer()
+            self.currentDoc.Colourise(0, -1)
             
-        #load text from document
-        if os.path.isfile(filename):
-            self.currentDoc.SetText(open(filename).read())
-            self.filehistory.AddFileToHistory(filename)
-        else:
-            self.currentDoc.SetText("")
-        self.currentDoc.EmptyUndoBuffer()
-        self.currentDoc.Colourise(0, -1)
-        
-        # line numbers in the margin
-        self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
-        self.currentDoc.SetMarginWidth(1, 25)
-        if filename=="":
-            filename=shortName='untitled.py'
-        else:
-            path, shortName = os.path.split(filename)
-        self.notebook.AddPage(p, shortName)   
-        self.notebook.SetSelection(len(self.allDocs)-1)     
-        self.currentDoc.filename=filename
-        self.setFileModified(False)
+            # line numbers in the margin
+            self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+            self.currentDoc.SetMarginWidth(1, 25)
+            if filename=="":
+                filename=shortName='untitled.py'
+            else:
+                path, shortName = os.path.split(filename)
+            self.notebook.AddPage(p, shortName)   
+            self.notebook.ChangeSelection(len(self.allDocs)-1)     
+            self.currentDoc.filename=filename
+            self.setFileModified(False)
         
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
         if self.options['analyseAuto'] and len(self.allDocs)>0:
@@ -1455,7 +1520,7 @@ class StationMainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.SetStatusText('Loading file')
-            self.createNewPage(newPath)
+            self.setCurrentDoc(newPath)
             self.setFileModified(False)        
                     
         self.SetStatusText('')
@@ -1611,7 +1676,10 @@ class StationMainFrame(wx.Frame):
             if self.ignoreErrors:
                 pass
             else:
-                traceback.print_exc()
+                #traceback.print_exc()
+                #tb = traceback.extract_tb(sys.last_traceback)
+                #for err in tb:
+                #    print '%s, line:%i,function:%s\n%s' %tuple(err)
                 print ''#print a new line 
              
         self.SetEvtHandlerEnabled(True)  
@@ -1698,7 +1766,7 @@ class StationMainFrame(wx.Frame):
         frame = MonitorCenter.MainFrame(None,'PsychoPy Monitor Centre')
         frame.Show(True)
     def loadDemo(self, event):
-        self.createNewPage( demos[event.GetId()] )
+        self.setCurrentDoc( demos[event.GetId()] )
     def tabKeyPressed(self,event):
         #if several chars are selected then smartIndent
         #if we're at the start of the line then smartIndent
