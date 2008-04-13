@@ -888,46 +888,42 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 findDlg.Close()
 
         
-class stdOutCtrl(wx.TextCtrl):
-    def write(self,string):
-        self.WriteText(string)
-    def flush(self):
-        pass
         
 class stdOutRich(wx.richtext.RichTextCtrl):
     def __init__(self, parent, style):
         wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.parent=parent
+        
+        #define style for filename links (URLS)
+        self.urlStyle = wx.richtext.TextAttrEx()
+        self.urlStyle.SetTextColour(wx.BLUE)
+        self.urlStyle.SetFontWeight(wx.BOLD)
+        self.urlStyle.SetFontUnderlined(False)
+        
+        self.write('Welcome to the Integrated Development Environment (IDE) for PsychoPy!\n')
+        self.write("v%s\n" %psychopy.__version__)
+        
     def write(self,inStr):
         self.MoveEnd()#always 'append' text rather than 'writing' it
-        if inStr[:34] == "Traceback (most recent call last):":
-            """tracebacks have the form:
-            Traceback (most recent call last):
-            File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 21, in <module>
-                class WordFetcher:
-            File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
-            """
-            #define style for filename links (URLS)
-            urlStyle = wx.richtext.TextAttrEx()
-            urlStyle.SetTextColour(wx.BLUE)
-            #urlStyle.SetFontWeight(wx.BOLD)
-            urlStyle.SetFontUnderlined(True)
-            #make line numbers into URL
-            URLS = re.findall('".*", line.*,',inStr)#retrieves file and line number
-            nonURLS = re.split('".*", line.*,',inStr)
-            for n in range(len(URLS)):#not sure why enumerate doesn't work here
-                self.WriteText(nonURLS[n])
-                
-                self.BeginStyle(urlStyle)
-                self.BeginURL(URLS[n])
-                self.WriteText(URLS[n])
+        """tracebacks have the form:
+        Traceback (most recent call last):
+        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 21, in <module>
+            class WordFetcher:
+        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
+        """
+        for thisLine in inStr.splitlines(True):
+            if len(re.findall('".*", line.*,',thisLine))>0:
+                #this line contains a file/line location so write as URL 
+                self.BeginStyle(self.urlStyle)
+                self.BeginURL(thisLine)
+                self.WriteText(thisLine)
                 self.EndURL()
-                self.EndStyle()
-            self.WriteText(nonURLS[-1])#there will be one more nonURL message than URL
-            
-        else:
-            self.WriteText(inStr)
+                self.EndStyle()            
+            else:
+                #line to write as simple text
+                self.WriteText(thisLine)
+        self.MoveEnd()#go to end of stdout so user can see updated text
             
     def OnURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -936,8 +932,8 @@ class stdOutRich(wx.richtext.RichTextCtrl):
         lineNumber = int(evt.GetString().split(',')[1][5:])
         self.parent.gotoLine(filename,lineNumber)
     def flush(self):
-        pass
-            
+        pass#not needed?
+        
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
@@ -1455,7 +1451,6 @@ class StationMainFrame(wx.Frame):
         #check if this file is already open
         docID=self.findDocID(filename)
         if docID>=0:
-            print docID
             self.currentDoc = self.allDocs[docID]
             self.notebook.ChangeSelection(docID)
         else:#create new page and load document
@@ -1643,7 +1638,7 @@ class StationMainFrame(wx.Frame):
         #check syntax by compiling - errors printed (not raised as error)
         py_compile.compile(fullPath, doraise=False)
         
-        print 'Running %s' %self.currentDoc.filename 
+        print '\nRunning %s' %self.currentDoc.filename 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)
         wx.EVT_IDLE(self, None)

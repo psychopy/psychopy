@@ -7,6 +7,10 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 PsychoPy 0.94.0:
 * working on a application-deployable version 
 
+PsychoPy 0.93.5:
+* added rich text ctrl to IDE output, including links to lines of errors
+* IDE now only opens one copy of a given text file
+
 PsychoPy 0.93.4:
 * improved (chances of) sync-to-vertical blank on windows without adjusting driver settings
     (on windows it's still better to set driver to force sync to be safe!)
