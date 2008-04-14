@@ -21,6 +21,29 @@ from core import *
 # from psychopy import *
 __all__ = ["gui", "misc", "visual", "core", "event", "sound", "data", "filters"]
 
+#set and create (if necess) the application data folder
+#this will be the 
+#   Linux/Mac:  ~/PsychoPy
+#   win32:   <UserDocs>/Application Data/.PsychoPy
+join = os.path.join
+if sys.platform=='win32':
+    appDataLoc = join(os.environ['USERPROFILE'],'.PsychoPy') #this is the folder that this file is stored in
+else:
+    appDataLoc = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
+if not os.path.isdir(appDataLoc):
+    os.mkdir(appDataLoc)
+    
+    #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
+    import glob, shutil #these are just to copy old calib files across
+    try: 
+        calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
+        for thisFile in calibFiles:
+            thisPath, fileName = os.path.split(thisFile)
+            shutil.copyfile(thisFile, join(appDataLoc,fileName))
+    except:
+        pass #never mind - the user will have to do it!
+
+
 #force stdout to flush after every print statement.
 #this is useful for PsychoPy IDE but may slow things down for fast drawing if you 
 #print a lot. 

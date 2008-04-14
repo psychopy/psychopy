@@ -14,13 +14,13 @@ xx=[]
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, cStringIO, glob
 import threading, traceback, bdb
-import psychopy, pygame
+import psychopy
 from psychopy import misc
 import psychoParser
 import introspect, py_compile
 
 ## global variables
-homeDir = os.getcwd()
+appDataLoc = psychopy.appDataLoc
 #on mac __file__ might be a local path
 fullAppPath= os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)

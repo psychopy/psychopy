@@ -13,7 +13,7 @@ thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
 cExtensions = []
-
+packageData = []
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
     #cExtensions.append(Extension('psychopy.ext._bits',
@@ -23,30 +23,26 @@ if platform=='win32':
     cExtensions.append(Extension('psychopy.ext._win32',
     sources = [os.path.join('psychopy','ext','_win32.c')],
     library_dirs=[os.path.join('psychopy','ext')]))
+    files = glob.glob('Resources/*')
+    for file in files:
+        loc, name = os.path.split(file)
+        packageData.append( ['Resources', [file]])
 elif platform=='darwin':
     cExtensions.append(Extension('psychopy.ext._darwin',
     sources = [os.path.join('psychopy','ext','_darwin.m')],
     extra_link_args=['-framework','OpenGL']))
 
     resources = glob.glob('Resources/*')
-
 elif platform=='posix':
     pass
 ##    cExtensions.append(Extension('psychopy.ext.posix',
 ##                 sources = [os.path.join('psychopy','ext','posix.c')]))
 
-#<key>CFBundleDocumentTypes</key>
-#<array>
-#<dict>
-#<key>CFBundleTypeExtensions</key> <array>
-#<string>html</string> <string>htm</string>
-#</array> <key>CFBundleTypeName</key> <string>HTML Document</string> <key>CFBundleTypeRole</key> <string>Viewer</string>
-#</dict>
-#</array>
 
 if platform == 'win32':
 #    requires.extend(['pymedia'])
-    setup(console=["PsychoCentral.py"])
+    setup(console=["PsychoPyIDE.py"],      
+          data_files=packageData)
 else:
     setup(app=['PsychoPyIDE.py'],
         options=dict(py2app=dict( excludes=['PIL','pygame','monitors','psychopy'],

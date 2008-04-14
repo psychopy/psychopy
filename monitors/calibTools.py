@@ -15,7 +15,28 @@ from scipy import interpolate
 
 DEBUG= False
 
-monitorFolder = os.path.dirname(__file__) #this is the folder that this file is stored in
+#set and create (if necess) the data folder
+#this will be the 
+#   Linux/Mac:  ~/PsychoPy
+#   win32:   <UserDocs>/Application Data/.PsychoPy
+join = os.path.join
+if sys.platform=='win32':
+    appDataLoc = join(os.environ['USERPROFILE'],'.PsychoPy') #this is the folder that this file is stored in
+else:
+    appDataLoc = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
+if not os.path.isdir(appDataLoc):
+    os.mkdir(appDataLoc)
+    
+    #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
+    import glob, shutil #these are just to copy old calib files across
+    try: 
+        calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
+        for thisFile in calibFiles:
+            thisPath, fileName = os.path.split(thisFile)
+            shutil.copyfile(thisFile, join(appDataLoc,fileName))
+    except:
+        pass #never mind - the user will have to do it!
+
 
 pr650code={'OK':'000\r\n',#this is returned after measure
     '18':'Light Low',#these is returned at beginning of data
@@ -464,7 +485,7 @@ class Monitor:
         as self.calibs"""
 
         thisFileName = os.path.join(\
-            monitorFolder,
+            appDataLoc,
             self.name+".calib")     #the name of the actual file
 
         if not os.path.exists(thisFileName):
@@ -551,7 +572,7 @@ class Monitor:
 
     def saveMon(self):
         """saves the current dict of calibs to disk"""
-        thisFileName = os.path.join(monitorFolder,self.name+".calib")
+        thisFileName = os.path.join(appDataLoc,self.name+".calib")
         thisFile = open(thisFileName,'w')
         cPickle.dump(self.calibs, thisFile)
         thisFile.close()
@@ -988,7 +1009,7 @@ def DACrange(n):
     return numpy.arange(0.0,256.0,255.0/(n-1)).astype(numpy.uint8)
 def getAllMonitors():
     currDir = os.getcwd()
-    os.chdir(monitorFolder)
+    os.chdir(appDataLoc)
     monitorList=glob.glob('*.calib')
     for monitorN,thisName in enumerate(monitorList):
         monitorList[monitorN] = monitorList[monitorN][:-6]
