@@ -15,12 +15,8 @@ from numpy import sin, cos, pi
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
-    #deliberate error so we DON't use pyglet
     import ctypes
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media       
-    #import pyglet.gl as GL
-    #GLU = GL#under pygame GLU was a separate package, under pyglet it's all one
-    #GL_multitexture = GL
     havePyglet=True    
 except:
     havePyglet=False    
