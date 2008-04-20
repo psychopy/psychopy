@@ -1,26 +1,20 @@
 import wx, sys, time, types, re
 #check wx version - wx.aui was only introduced in wx2.8
 if wx.__version__<'2.8':
-    wx.PySimpleApp()
     print   'PsychoPyIDE requires wxPython v2.8. Please install that before running'
-    time.sleep(0.5)
-    dlg = wx.MessageDialog(None, 'PsychoPyIDE requires wxPython v2.8. Please install that before running',
-        'Warning', wx.OK )
-    resp = dlg.ShowModal()
-    dlg.Destroy()
+    time.sleep(1.5)
     sys.exit()
-xx=[]
 
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, cStringIO, glob
 import threading, traceback, bdb
-import psychopy
+import psychopy, pygame
 from psychopy import misc
 import psychoParser
 import introspect, py_compile
 
 ## global variables
-appDataLoc = psychopy.appDataLoc
+homeDir = os.getcwd()
 #on mac __file__ might be a local path
 fullAppPath= os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)
@@ -895,11 +889,11 @@ class stdOutRich(wx.richtext.RichTextCtrl):
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.parent=parent
         
-        #define style for filename links (URLS)
-        self.urlStyle = wx.richtext.TextAttrEx()
-        self.urlStyle.SetTextColour(wx.BLUE)
-        self.urlStyle.SetFontWeight(wx.BOLD)
-        self.urlStyle.SetFontUnderlined(False)
+        #define style for filename links (URLS) needs wx as late as 2.8.4.0
+        #self.urlStyle = wx.richtext.RichTextAttr()
+        #self.urlStyle.SetTextColour(wx.BLUE)
+        #self.urlStyle.SetFontWeight(wx.BOLD)
+        #self.urlStyle.SetFontUnderlined(False)
         
         self.write('Welcome to the Integrated Development Environment (IDE) for PsychoPy!\n')
         self.write("v%s\n" %psychopy.__version__)
@@ -913,18 +907,21 @@ class stdOutRich(wx.richtext.RichTextCtrl):
         File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
         """
         for thisLine in inStr.splitlines(True):
-            if len(re.findall('".*", line.*,',thisLine))>0:
+            if len(re.findall('".*", line.*',thisLine))>0:
                 #this line contains a file/line location so write as URL 
-                self.BeginStyle(self.urlStyle)
+                #self.BeginStyle(self.urlStyle) #this should be done with styles, but they don't exist in wx as late as 2.8.4.0
+                self.BeginBold()
+                self.BeginTextColour(wx.BLUE)
                 self.BeginURL(thisLine)
                 self.WriteText(thisLine)
                 self.EndURL()
-                self.EndStyle()            
+                self.EndBold()
+                self.EndTextColour()
             else:
                 #line to write as simple text
                 self.WriteText(thisLine)
         self.MoveEnd()#go to end of stdout so user can see updated text
-            
+        self.ShowPosition(self.GetLastPosition() )
     def OnURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
