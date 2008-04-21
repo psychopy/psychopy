@@ -5,30 +5,28 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 !!Changelog
 
 PsychoPy 0.94.0:
-* working on a application-deployable version 
+* working on a application-deployable version (not ready yet...)
 
 PsychoPy 0.93.5:
 * added rich text ctrl to IDE output, including links to lines of errors
 * IDE now only opens one copy of a given text file
-
-PsychoPy 0.93.4:
 * improved (chances of) sync-to-vertical blank on windows without adjusting driver settings
-    (on windows it's still better to set driver to force sync to be safe!)
+(on windows it's still better to set driver to force sync to be safe!)
 * added center and radius arguments to filters.makeMask and filters.makeRadialMatrix
 * implemented pyglet backend for;
-    - better screen handling (can specify which screen a window should appear in)
-    - fewer dependencies (takes care of pygame and opengl)
-    - is in current development
-    - faster sound production
-    - TextStims can be multi-line
-    - NO GAMMA-SETTING as yet. Don't use this backend if you 
+-> -better screen handling (can specify which screen a window should appear in)
+-> -fewer dependencies (takes care of pygame and opengl)
+-> -is in current development
+-> -faster sound production
+-> -TextStims can be multi-line
+-> -NO GAMMA-SETTING as yet. Don't use this backend if you need a gamma-corrected window and aren't using Bits++.
 * changed the behaviour of Window winTypes
-    If you leave winType as None PsychoPy tries to use Pygame, Pyglet, GLUT in that order 
-    (when Pyglet can handle gamma funcs it will become default). Can be overridden by specifying winType.
+If you leave winType as None PsychoPy tries to use Pygame, Pyglet, GLUT in that order 
+(when Pyglet can handle gamma funcs it will become default). Can be overridden by specifying winType.
 * turned off depth testing for drawing of text (will simply be overlaid in the order called) 
 * changes to TextStim: pyglet fonts are loaded by name only, not filename. PsychoPy TextStim now has an
-    additional argument called 'fontFiles=[]' to allow the adding of custom ttf fonts, but the font name should be used
-    as the font=" " argument.    
+additional argument called 'fontFiles=[]' to allow the adding of custom ttf fonts, but the font name should be used
+as the font=" " argument.    
 * updated some of the Reference docs
 
 PsychoPy 0.93.3:
@@ -37,11 +35,11 @@ PsychoPy 0.93.3:
 PsychoPy 0.93.2:
 * improved detection of non-OpenGL2.0 drivers
 
-!!!PsychoPy 0.93.1:
+PsychoPy 0.93.1:
 * now automatically uses shaders only if available (older machines can use this version but will not benefit from the speed up)
 * slight speed improvement for TextStim rendering (on all machines)
 
-PsychoPy 0.93.0:
+!!!PsychoPy 0.93.0:
 * new requirement of PyOpenGL3.0+ (and a graphics card with OpenGL2.0 drivers?)
 * much faster implementation of setRGB, setContrast and setOpacity (using fragment shaders)
 * images (and other textures) need not be square. They will be automatically resampled if they arent. Square power-of-two image textures are still recommended
