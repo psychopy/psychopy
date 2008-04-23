@@ -1,0 +1,12 @@
+Source: psychopy
+Section: unknown
+Priority: extra
+Maintainer: Michael Hanke <michael.hanke@gmail.com>
+Build-Depends: cdbs, debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: psychopy
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
