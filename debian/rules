@@ -23,6 +23,6 @@ install/python-psychopy::
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
 # -doc package contents
-#DEB_INSTALL_DOCS_python-mvpa-doc := build/html build/pdf/*.pdf doc/*.txt
-#DEB_INSTALL_EXAMPLES_python-mvpa-doc := doc/examples/* data
+DEB_INSTALL_DOCS_python-psychopy := psychopy/{README,TODO,CHANGELOG}.txt
+DEB_INSTALL_EXAMPLES_python-psychopy := psychopy/demos/*
 
