@@ -7,22 +7,14 @@ DEB_PYTHON_MODULE_PACKAGE = python-psychopy
 DEB_PYTHON_MODULE_PACKAGES = python-psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-#clean::
-#	$(MAKE) distclean
-
 # Correct interpreter lines
 install/python-psychopy::
 	find $(DEB_DESTDIR) -name \*.py \
     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
-#build/python-mvpa-doc::
-#	$(MAKE) doc
-
-# install directly into package directory (despite multiple packages)
-#DEB_DESTDIR = $(CURDIR)/debian/python-mvpa
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
-# -doc package contents
-DEB_INSTALL_DOCS_python-psychopy := psychopy/{README,TODO,CHANGELOG}.txt
+DEB_INSTALL_CHANGELOGS_ALL := psychopy/CHANGELOG.txt
+DEB_INSTALL_DOCS_python-psychopy := psychopy/{README,TODO}.txt
 DEB_INSTALL_EXAMPLES_python-psychopy := psychopy/demos/*
 
