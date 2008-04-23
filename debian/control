@@ -10,7 +10,7 @@ Standards-Version: 3.8.1
 Homepage: http://www.psychopy.org
 
 Package: python-psychopy
-Architecture: any
+Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pygame, python-wxgtk2.6, python-opengl, python-numpy
 Recommends: python-imaging
 Provides: ${python:Provides}
