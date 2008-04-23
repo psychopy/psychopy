@@ -1,12 +1,35 @@
 Source: psychopy
-Section: unknown
-Priority: extra
-Maintainer: Michael Hanke <michael.hanke@gmail.com>
-Build-Depends: cdbs, debhelper (>= 5)
-Standards-Version: 3.7.2
+Section: python
+Priority: optional
+Maintainer: Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
+Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
+Build-Depends: cdbs, debhelper (>= 5.0.38), python-all-dev (>= 2.4), python-support (>= 0.6), python-setuptools, python-pygame, python-scipy, python-imaging, python-opengl, libxi6, libxmu6
+XS-Python-Version: >= 2.4
+XS-Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
+XS-Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
+Standards-Version: 3.7.3
+Homepage: http://www.psychopy.org
 
-Package: psychopy
+Package: python-psychopy
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${python:Depends}, python-pygame, ${shlibs:Depends}
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: package for creating psychology stimuli in Python
+ A package for creating psychology stimuli in Python. PsychoPy
+ combines the graphical strengths of OpenGL with the easy Python
+ syntax to give psychophysics a free and simple stimulus presentation
+ and control package.
+ .
+ The goal is to provide, for the busy scientist, tools
+ to control timing and windowing and a simple set of pre-packaged
+ stimuli and methods. It features
+  - High-level powerful scripting language (Python)
+  - Simple syntax (see the demo code)
+  - Uses hardware-accelerated graphics (OpenGL)
+  - Integration with CRS Bits++(for 14bit luminance resolution)
+  - Integration with Spectrascan PR650 for easy monitor calibration
+  - Simple routines for staircase and constant stimuli experimental
+    methods as well as curve-fitting and bootstrapping
+  - Simple (or complex) GUIs via wxPython
+  - Easy interfaces to joysticks, mice, sound cards etc. via PyGame

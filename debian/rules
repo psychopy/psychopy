@@ -1,6 +1,22 @@
 #!/usr/bin/make -f
-  
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/makefile.mk
+# -*- mode: makefile; coding: utf-8 -*-
 
-# Add here any variable or target overrides you need.
+include /usr/share/cdbs/1/rules/debhelper.mk
+DEB_PYTHON_SYSTEM = pysupport
+DEB_PYTHON_MODULE_PACKAGE = python-psychopy
+include /usr/share/cdbs/1/class/python-distutils.mk
+
+#clean::
+#	$(MAKE) distclean
+
+#build/python-mvpa-doc::
+#	$(MAKE) doc
+
+# install directly into package directory (despite multiple packages)
+#DEB_DESTDIR = $(CURDIR)/debian/python-mvpa
+# immediately useable documentation
+#DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
+# -doc package contents
+#DEB_INSTALL_DOCS_python-mvpa-doc := build/html build/pdf/*.pdf doc/*.txt
+#DEB_INSTALL_EXAMPLES_python-mvpa-doc := doc/examples/* data
+
