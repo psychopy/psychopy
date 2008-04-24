@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from psychopy.hardware import CedrusPad
 from psychopy import core
 import sys

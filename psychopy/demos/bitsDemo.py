@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from psychopy import visual, core, event
 import numpy
 
@@ -25,7 +26,11 @@ while True:
         break
     event.clearEvents()
 
+
 #reset the bits++ (and update the window so that this is done properly)
+
 win.bits.setContrast(1)
+
 win.update()
+
 core.quit()

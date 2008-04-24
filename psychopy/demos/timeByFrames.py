@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from psychopy import visual, core, log
 #often you should synchronise your stimulus to the frame
 

@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from psychopy import sound,wait
 from sys import platform
 

@@ -1,3 +1,4 @@
+#! /usr/local/bin/python
 from psychopy import *
 
 #create a window to draw in

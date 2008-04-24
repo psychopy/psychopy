@@ -18,15 +18,20 @@ try:
     import ctypes
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media       
     havePyglet=True    
+    cTypesOpenGL = True
 except:
     havePyglet=False    
 
 try:
     import pygame
-    import OpenGL.GL
+    import OpenGL, OpenGL.GL
     import OpenGL.GLU
     import OpenGL.GL.ARB.multitexture
     havePygame=True
+    if OpenGL.__version__ > '3':
+        cTypesOpenGL = True
+    else:
+        cTypesOpenGL = False
 except:
     havePygame=False
 global GL, GLU, GL_multitexture #will use these later to assign the pyglet or pyopengl equivs
@@ -412,6 +417,7 @@ class Window:
 
     def _setupGlut(self):
         self.winType="glut"
+        print 'configured glut'
         #initialise a window
         GLUT.glutInit(sys.argv)
         iconFile = os.path.join(psychopy.__path__[0], 'psychopy.gif')
@@ -425,6 +431,7 @@ class Window:
         GLUT.glutDisplayFunc(self.update)
     def _setupPyglet(self):
         self.winType = "pyglet"
+        print 'configured pyglet'
         #setup the global use of pyglet.gl
         global GL, GLU, GL_multitexture
         GL = pyglet.gl
@@ -456,7 +463,7 @@ class Window:
 
     def _setupPygame(self):
         self.winType = "pygame"
-        
+        print 'configured pygame'
         #setup the global use of PyOpenGL (rather than pyglet.gl)
         global GL, GLU, GL_multitexture
         GL = OpenGL.GL
@@ -499,7 +506,7 @@ class Window:
             #self.scrWidthCM = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH_MM)/10.0
         #print 'screen width: ', self.scrWidthCM, 'cm, ', self.scrWidthPIX, 'pixels'
     def _setupGL(self):
-        global haveShaders
+        global haveShaders, GL, GLU, GL_multitexture
         #do settings for openGL
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
         GL.glClearDepth(1.0)
@@ -549,7 +556,11 @@ class Window:
         FB.glRenderbufferStorageEXT (FB.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
 
         # Create texture to render to
-        self.frameTexture = GL.glGenTextures (1)
+        if self.win.winType=="pyglet" or cTypesOpenGL:
+            self.frameTexture=GL.GLuint()
+            GL.glGenTextures(1, ctypes.byref(self.frameTexture))
+        else:
+            self.frameTexture = GL.glGenTextures (1)
         GL.glBindTexture (GL.GL_TEXTURE_2D, self.frameTexture)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
@@ -1016,7 +1027,7 @@ class PatchStim:
         self.depth=depth
 
         #initialise textures for stimulus
-        if self.win.winType=="pyglet":
+        if self.win.winType=="pyglet" or cTypesOpenGL:
             self.texID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
@@ -1782,7 +1793,7 @@ class RadialStim(PatchStim):
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms:
             self.lms = lms
-            #warn('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
+            #log.warning('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
             self.rgb = psychopy.misc.lms2rgb(lms, win.lms_rgb)
 
         self.depth=depth
@@ -1793,7 +1804,7 @@ class RadialStim(PatchStim):
         else:
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
         #initialise textures for stimulus
-        if self.win.winType=="pyglet":
+        if self.win.winType=="pyglet" or cTypesOpenGL:
             self.texID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
@@ -2457,8 +2468,8 @@ class TextStimGLUT:
         self.depth=depth
 
         self._listID = GL.glGenLists(1)
-        #initialise textures for stimulus
-        if self.win.winType=="pyglet":
+        #initialise textures for stimulus        
+        if self.win.winType=="pyglet" or cTypesOpenGL:
             self.texID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.texID))
         else:
@@ -2790,7 +2801,7 @@ class TextStim:
 
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
-        if not self.win.winType=="pyglet":
+        if not self.win.winType=="pyglet": #pyglet won't use it, so don't need it
             self._texID = GL.glGenTextures(1)
         #render the text surfaces and build drawing list
         self.setText(text) #some additional things get set with text
@@ -2856,7 +2867,7 @@ class TextStim:
                     #trhen check if we were successful
                     if self.fontname == None and font!="":
                         #we didn't find a ttf filename
-                        log.warn("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
+                        log.warning("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
                         self.fontname = pygame.font.get_default_font()
 
             if self.fontname is not None and os.path.isfile(self.fontname):

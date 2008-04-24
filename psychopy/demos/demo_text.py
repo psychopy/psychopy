@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from psychopy import *
 from psychopy import _shaders
 import sys

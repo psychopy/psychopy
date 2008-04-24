@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 from random import random
 from psychopy import *
 

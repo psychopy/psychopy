@@ -1,3 +1,4 @@
+#! /usr/local/bin/python2.5
 
 from psychopy import core, visual, event
 #create a window to draw in
