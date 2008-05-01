@@ -1027,11 +1027,15 @@ class PatchStim:
         self.depth=depth
 
         #initialise textures for stimulus
-        if self.win.winType=="pyglet" or cTypesOpenGL:
+        if self.win.winType=="pyglet":
             self.texID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.maskID))
+        elif cTypesOpenGL:
+            (tID, mID) = GL.glGenTextures(2)
+            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
+            self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
         self._setTex(tex)
@@ -1804,11 +1808,15 @@ class RadialStim(PatchStim):
         else:
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
         #initialise textures for stimulus
-        if self.win.winType=="pyglet" or cTypesOpenGL:
+        if self.win.winType=="pyglet":
             self.texID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.maskID))
+        elif cTypesOpenGL:
+            (tID, mID) = GL.glGenTextures(2)
+            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
+            self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
         self._setTex(tex)
@@ -2469,11 +2477,14 @@ class TextStimGLUT:
 
         self._listID = GL.glGenLists(1)
         #initialise textures for stimulus        
-        if self.win.winType=="pyglet" or cTypesOpenGL:
+        if self.win.winType=="pyglet":
             self.texID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.texID))
+            GL.glGenTextures(1, ctypes.byref(self.texID))#pyglet.GL works with pointers indtead
+        elif cTypesOpenGL:
+            tID = GL.glGenTextures(1)
+            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
         else:
-            self._texID = GL.glGenTextures(1)
+            self.texID = GL.glGenTextures(1)
         #self._setColorTex()
 
         self.ori=ori
@@ -2803,6 +2814,9 @@ class TextStim:
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet": #pyglet won't use it, so don't need it
             self._texID = GL.glGenTextures(1)
+        if cTypesOpenGL:
+            self.texID = GL.GLuint(int(self._texID))#need to convert to GLUint (via ints!!)
+
         #render the text surfaces and build drawing list
         self.setText(text) #some additional things get set with text
 
