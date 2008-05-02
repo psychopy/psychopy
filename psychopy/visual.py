@@ -556,11 +556,14 @@ class Window:
         FB.glRenderbufferStorageEXT (FB.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
 
         # Create texture to render to
-        if self.win.winType=="pyglet" or cTypesOpenGL:
+        if self.win.winType=="pyglet":
             self.frameTexture=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.frameTexture))
+        elif cTypesOpenGL:
+            self.frameTexture = GL.GLuint(GL.glGenTextures (1))            
         else:
             self.frameTexture = GL.glGenTextures (1)
+            
         GL.glBindTexture (GL.GL_TEXTURE_2D, self.frameTexture)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
