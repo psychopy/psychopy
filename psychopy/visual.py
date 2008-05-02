@@ -560,7 +560,7 @@ class Window:
             self.frameTexture=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.frameTexture))
         elif cTypesOpenGL:
-            self.frameTexture = GL.GLuint(GL.glGenTextures (1))            
+            self.frameTexture = GL.GLuint(int(GL.glGenTextures(1)))            
         else:
             self.frameTexture = GL.glGenTextures (1)
             
