@@ -91,7 +91,7 @@ def makeRadialMatrix(matrixSize, center=[0.0,0.0], radius=1.0):
             - **radius** :  scale factor to be applied to the mask (circle with radius of [1,1] will extend just to the edge of the matrix). Radius can asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
 	    - **center** :  the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
 	"""
-	if len(radius)==1: radius = [radius,radius]
+	if type(radius) in [int, float]: radius = [radius,radius]
 	
 	yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]#NB need to add one step length because
 	xx = ((1.0- 2.0/matrixSize*xx)+center[0])/radius[0]
