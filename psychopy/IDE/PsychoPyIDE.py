@@ -6,7 +6,7 @@ if wx.__version__<'2.8':
     sys.exit()
 
 import  wx.stc, wx.aui, wx.richtext
-import keyword, os, sys, string, cStringIO, glob
+import keyword, os, sys, string, StringIO, glob
 import threading, traceback, bdb
 import psychopy, pygame
 from psychopy import misc
@@ -738,7 +738,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         
     def analyseScript(self):
         #analyse the file
-        buffer = cStringIO.StringIO()
+        buffer = StringIO.StringIO()
         buffer.write(self.GetText())
         buffer.seek(0)
         try:
@@ -1525,7 +1525,7 @@ class StationMainFrame(wx.Frame):
         else:
             self.SetStatusText('Saving file')
             f = open(filename,'w')
-            f.write( self.currentDoc.GetText() )
+            f.write( self.currentDoc.GetText().encode('utf-8'))
             f.close()
         self.setFileModified(False)
             
