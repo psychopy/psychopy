@@ -273,9 +273,9 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
         yuvFrame= bmpFrame.convert( vcodec.formats.PIX_FMT_YUV420P, im.size )
         d = encoder.encode( yuvFrame )
         try:
-            fw.write( d )#this is what pymedia demo recommends
-        except:
             fw.write( d.data )#this is what works!
+        except:
+            fw.write( d )#this is what pymedia demo recommends
     else:
         log.info('%d frames written in %.2f secs' % ( len(images), time.time()- t))
         i= 0
