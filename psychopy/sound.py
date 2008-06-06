@@ -54,8 +54,9 @@ if havePyglet:
     
 def init(rate=44100, bits=-16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
-    function before creating the sounds. Format cannot be changed once
-    initialised. 
+    function. Run this *before creating your visual.Window*.
+    
+    The format cannot be changed once initialised or once a Window has been created. 
     
     If a Sound object is created before this function is run it will be
     executed with default format (signed 16bit stereo at 44KHz).

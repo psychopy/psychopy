@@ -13,6 +13,14 @@ import makeMovies
 import numpy
 from numpy import sin, cos, pi
 
+#import platform specific C++ libs for controlling gamma
+if sys.platform=='win32':
+    from ctypes import windll 
+elif sys.platform=='darwin':
+    carbon = pyglet.lib.load_library(framework='/System/Library/Frameworks/Carbon.framework')
+elif sys.platform=='linux':
+    pass
+
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
     import ctypes
@@ -414,7 +422,47 @@ class Window:
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
             pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
-
+        elif self.winType=='pyglet':
+            self._setHardwareGamma()
+        else:
+            log.warning('Cannot control gamma for a %s window' %self.winType)
+    def _setHardwareGamma(self, gammaVal=None):
+        """
+        Internal function for setting the gamma value in a hardware-specific manner 
+        (for use with pyglet contexts). 
+        
+        Users should use .setGamma() instead (which will select the best method to set 
+        gamma (e.g. will use bits++ if available)
+              
+        If no gammaVal is given then the monitor settings will be used.
+        """
+        ramp = numpy.tile(numpy.arange(0,1.0,1.0/256),(3,1)).transpose()# (256x3) array
+        if isinstance(self.monitor, monitors.Monitor):
+            newLUT = self.monitor.lineariseLums(ramp)
+        else:
+            newLUT = ramp**(1/numpy.array(self.gamma))# correctly handles 1 or 1x3 gamma vals
+        self._setHardwareGammaRamp(newLUT)
+        
+    def _setHardwareGammaRamp(self, newRamp):
+        """
+        Internal function for setting the gamma ramp in a hardware-specific manner 
+        (for use with pyglet contexts).
+        
+        Ramp should be provided in range 0:1
+        """           
+        newRamp= (255*newRamp).astype(numpy.uint16)
+        if sys.platform=='win32':  
+            newRamp.byteswap(True)#necessary, according to pyglet post from Martin Spacek
+            success = windll.gdi32.SetDeviceGammaRamp(win.winHandle._dc, ramps.ctypes)
+            if not success: raise AssertionError, 'SetDeviceGammaRamp failed'
+        if sys.platform=='darwin':            
+            error =CGSetDisplayTransferByTable(win.winHandle._dc, ramps.ctypes);
+            if error: raise AssertionError, 'SetDeviceGammaRamp failed'
+        if sys.platform=='linux':            
+            success = windll.gdi32.SetDeviceGammaRamp(win._dc, ramps.ctypes)
+            if not success: raise AssertionError, 'SetDeviceGammaRamp failed'
+               
+        
     def _setupGlut(self):
         self.winType="glut"
         print 'configured glut'
