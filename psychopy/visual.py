@@ -4,7 +4,6 @@ import psychopy.misc
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log
 import event
-from psychopy.event import _openWindows
 import monitors
 import Image
 import sys, os, time, glob, copy
@@ -31,6 +30,10 @@ try:
     import OpenGL.GLU
     import OpenGL.GL.ARB.multitexture
     havePygame=True
+    if OpenGL.__version__ > '3':
+        cTypesOpenGL = True
+    else:
+        cTypesOpenGL = False
 except:
     havePygame=False
 global GL, GLU, GL_multitexture #will use these later to assign the pyglet or pyopengl equivs
@@ -168,7 +171,7 @@ class Window:
         elif monitor.getGamma()!=None:
             self.gamma = monitor.getGamma()
         else: self.gamma = [1.0,1.0,1.0] #gamma wasn't set anywhere
-
+        
         #colour conversions
         dkl_rgb = monitor.getDKL_RGB()
         if dkl_rgb!=None:
@@ -182,8 +185,8 @@ class Window:
         #setup context and openGL()
         self.allowGUI = allowGUI
         if winType is None:#choose the default windowing
-            if havePygame: winType="pygame"
-            elif havePyglet: winType="pyglet"
+            if havePyglet: winType="pyglet"
+            elif havePygame: winType="pygame"
             else: winType='glut'
         if winType is "glut": self._setupGlut()
         elif winType is "pygame": self._setupPygame()
@@ -446,11 +449,14 @@ class Window:
                                               config=config,
                                               screen=thisScreen,
                                           )
+        self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = event._onPygletKey
+        self.winHandle.on_mouse_press = event._onPygletMousePress
+        self.winHandle.on_mouse_release = event._onPygletMouseRelease
+        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
         self.winHandle.on_resize = self.onResize
         #self.winHandle.set_location(self.pos[0],self.pos[1])
         print 'configured pyglet'
-        _openWindows.append(self.winHandle)
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pyglet.image.load(filename=iconFile)
@@ -582,9 +588,10 @@ class Window:
             ``setMouseVisible(False)``
             ``setMouseVisible(True)``
         """
-        wasVisible = pygame.mouse.set_visible(visibility)
+        if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
+        elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-
+    
 #############################################################################
 
 class DotStim:
@@ -1025,6 +1032,10 @@ class PatchStim:
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.maskID))
+        elif cTypesOpenGL:
+            (tID, mID) = GL.glGenTextures(2)
+            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
+            self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
         self._setTex(tex)
@@ -2887,7 +2898,6 @@ class TextStim:
             if self._pygletTextObj==None: 
                 self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       #halign=pygletAlign[self.alignHoriz], valign=pygletAlign[self.alignVert],
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
                                                        )#width of the frame
             else: self._pygletTextObj.text= self.text
@@ -2940,9 +2950,10 @@ class TextStim:
 
         if self.win.winType=="pyglet":
             #unbind the main texture
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
             GL.glEnable(GL.GL_TEXTURE_2D)
-            #GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
         else:
             #bind the appropriate main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -3034,10 +3045,14 @@ class TextStim:
         Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
 
         if self.win.winType=="pyglet":
-            #unbind the main texture
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            #unbind the mask texture 
+            GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
-            #GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            #unbind the main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            
         else:
             #bind the appropriate main texture
             GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
