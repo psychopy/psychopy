@@ -15,22 +15,9 @@ thisVersion=psychopy.__version__
 cExtensions = []
 
 if platform=='win32':
-    #you need the c extension for bits++ if you want to change bits modes, but not otherwise
-    #cExtensions.append(Extension('psychopy.ext._bits',
-    #sources = [os.path.join('psychopy','ext','_bits.c')],
-    #libraries=['bits']))
     import py2exe
 elif platform=='darwin':
-    cExtensions.append(Extension('psychopy.ext._darwin',
-    sources = [os.path.join('psychopy','ext','_darwin.m')],
-    extra_link_args=['-framework','OpenGL']))
-
     resources = glob.glob('psychopy/IDE/Resources/*')
-
-elif platform=='posix':
-    pass
-##    cExtensions.append(Extension('psychopy.ext.posix',
-##                 sources = [os.path.join('psychopy','ext','posix.c')]))
 
 dependencies = ['numpy','scipy','matplotlib',
     'pygame','wxPython>2.4',#pyopengl

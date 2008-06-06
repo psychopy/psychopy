@@ -18,25 +18,7 @@ try:
 except:
     thisVersion='0.94.0'
 #define the extensions to compile if necess
-cExtensions = []
-
-if platform=='win32':
-    #you need the c extension for bits++ if you want to change bits modes, but not otherwise
-    #cExtensions.append(Extension('psychopy.ext._bits',
-                                     #sources = [os.path.join('psychopy','ext','_bits.c')],
-                                     #libraries=['bits'])) 
-    pass
-                                 
-elif platform=='darwin':
-    cExtensions.append(Extension('psychopy.ext._darwin',
-                                 sources = [os.path.join('psychopy','ext','_darwin.m')],
-                                 extra_link_args=['-framework','OpenGL']))
-    
-elif platform=='posix':
-    pass
-##    cExtensions.append(Extension('psychopy.ext.posix',
-##                                 sources = [os.path.join('psychopy','ext','posix.c')]))
-    
+  
 setup(name="PsychoPy",
       version = thisVersion,
       description = "Psychophysics toolkit for Python",
@@ -47,7 +29,6 @@ setup(name="PsychoPy",
         'psychopy.IDE','psychopy.IDE.Resources',
         'psychopy.ext','psychopy.serial',
         'monitors'],
-      ext_modules = cExtensions,
       scripts = ['psychopy_post_inst.py'],
       package_data={ 'psychopy': ['*.txt'],
         'psychopy.demos':['*.jpg'],
