@@ -5,6 +5,9 @@ Also imported is pygame's JOYSTICK package:
 
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
+from psychopy import core
+import string, numpy
+
 #try to import pyglet & pygame and hope the user has at least one of them!
 try:
     from pygame import mouse, locals, joystick, display
@@ -15,20 +18,21 @@ except:
     havePygame = False
     
 try:
+    import pyglet.window
     from pyglet.window import key
-    havePyglet = False
+    havePyglet = True
 except:
     havePyglet = False
-    pass
+if havePygame: usePygame=True#will become false later if win not initialised
+else: usePygame=False   
 
-from psychopy import core
-import string
-
-global _openWindows
-_openWindows=[]
-global _keyBuffer
-_keyBuffer = []
-
+if havePyglet:
+    global _keyBuffer
+    _keyBuffer = []
+    global mouseButtons
+    mouseButtons = [0,0,0]
+    global mouseWheelRel
+    mouseWheelRel = numpy.array([0.0,0.0])
 def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet
     Adds a key event to global _keyBuffer which can then be accessed as normal
@@ -38,15 +42,28 @@ def _onPygletKey(symbol, modifiers):
     thisKey = thisKey.lstrip('_').lstrip('NUM_')
     _keyBuffer.append(thisKey)
 
+def _onPygletMousePress(x,y, button, modifiers):
+    global mouseButtons
+    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1
+    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=1
+    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=1
+def _onPygletMouseRelease(x,y, button, modifiers):
+    global mouseButtons
+    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=0
+    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=0
+    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=0
+def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
+    global mouseWheelRel
+    mouseWheelRel = mouseWheelRel+numpy.array([scroll_x, scroll_y])
 def getKeys():
     """Returns a list of names of recently pressed keys
     """
     keyNames=[]
     
-    #for each (pyglet) window, dispatch its events before checking event buffer
-    global _openWindows
-    for win in _openWindows: win.dispatch_events()
-            
+    #for each (pyglet) window, dispatch its events before checking event buffer    
+    wins = pyglet.window.get_platform().get_default_display().get_windows()
+    for win in wins: win.dispatch_events()#pump events on pyglet windows
+    
     global _keyBuffer
     if len(_keyBuffer)>0:
         #then pyglet is running - just use this
@@ -78,7 +95,8 @@ def waitKeys(maxWait = None, keyList=None):
         #check keylist AND timer
         timer = core.Clock()
         while key==None and timer.getTime()<maxWait:            
-            for win in _openWindows: win.dispatch_events()#pump events on pyglet windows
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0 and (keys[0] in keyList): 
@@ -86,8 +104,9 @@ def waitKeys(maxWait = None, keyList=None):
             
     elif keyList!=None:
         #check the keyList each time there's a press
-        while key==None:
-            for win in _openWindows: win.dispatch_events()#pump events on pyglet windows
+        while key==None:            
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0 and (keys[0] in keyList): 
@@ -96,17 +115,18 @@ def waitKeys(maxWait = None, keyList=None):
     elif maxWait!=None:
         #onyl wait for the maxWait 
         timer = core.Clock()
-        while key==None and timer.getTime()<maxWait:
-            for win in _openWindows: win.dispatch_events()#pump events on pyglet windows
+        while key==None and timer.getTime()<maxWait:            
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0: 
                 key = keys[0]
             
     else: #simply take the first key we get
-        while key==None:
-            for win in _openWindows: 
-                win.dispatch_events()#pump events on pyglet windows
+        while key==None:            
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0: 
@@ -123,50 +143,90 @@ class Mouse:
     It needn't be a class, but since Joystick works better
     as a class this may as well be one too for consistency
     
-    Simple wrapper for the pygame mouse package
+    Create your `visual.Window` before creating a Mouse.
+    
+    If using multiple visual.Windows, pass the win that you want
+    this mouse coordinates to refer to. Otherwise it will use the 
+    first window found as the relevant context.
     """
     def __init__(self,
                  visible=True,
-                 newPos=None):
+                 newPos=None,
+                 win=None):
         self.visible=visible
+        self.lastPos = None
+        self.win=win
+        #if pygame isn't initialised then we must use pyglet
+        if (havePygame and not pygame.display.get_init()):
+            global usePygame
+            usePygame=False
+        
         if newPos is not None: self.setPos(newPos)
         
     def setPos(self,newPos=(0,0)):
         """Sets the current postiion of the mouse
         """
-        mouse.set_pos(newPos)
+        if usePygame: mouse.set_pos(newPos)
+        else: print "pyglet does not support setting the mouse position yet"
         
     def getPos(self):
-        """Returns the current postiion of the mouse
+        """Returns the current postion of the mouse
         """
-        return mouse.get_pos()
-    
+        if usePygame: return mouse.get_pos()
+        else: 
+            #use default window if we don't have one
+            if self.win: w = self.win
+            else: w=pyglet.window.get_platform().get_default_display().get_windows()[0]       
+            #get position in window
+            self.lastPos= numpy.array([w._mouse_x,-w._mouse_y])
+            return self.lastPos
+        
     def getRel(self):
         """Returns the new postiion of the mouse relative to the
-        last call to getRel
+        last call to getRel or getPos
         """
-        return mouse.get_rel()
+        if usePygame: return mouse.get_rel()
+        else: 
+            #NB getPost() resets lastPos so must retrieve lastPos first
+            if self.lastPos is None: relPos = self.getPos()
+            else: relPos = -self.lastPos+self.getPos()
+            return relPos
     
+    def getWheelRel(self):
+        """Returns the travel of the mouse scroll wheel since last call.
+        Returns a numpy.array(x,y) but for most wheels y is the only
+        value that will change (except mac mighty mice?)
+        """
+        global mouseWheelRel
+        rel = mouseWheelRel
+        mouseWheelRel = numpy.array([0.0,0.0])
+        return rel
     def getVisible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
-        mouse.get_visible()
+        if usePygame: return mouse.get_visible()
+        else: print "Getting the mouse visibility is not supported under pyglet, but you can set it anyway"
         
-    def setVisible(self,nowVisible):
+    def setVisible(self,visible):
         """Sets the visibility of the mouse to 1 or 0
         
         NB when the mouse is not visible its absolute position is held
         at (0,0) to prevent it from going off the screen and getting lost!
         You can still use getRel() in that case.
         """
-        mouse.set_visible(nowVisible)
+        if usePygame: mouse.set_visible(visible)
+        else: 
+            #use default window if we don't have one
+            if self.win: w = self.win
+            else: w=pyglet.window.get_platform().get_default_display().get_windows()[0]  
+            w.set_mouse_visible(visible)
     
     def getPressed(self):
         """Returns a 3-item list indicating whether or not buttons
         1,2,3 are currently pressed
         """
-        return mouse.get_pressed()
-
+        if usePygame: return mouse.get_pressed()
+        else: return mouseButtons
         
              
 

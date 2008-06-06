@@ -7,6 +7,10 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 PsychoPy 0.94.0:
 * working on a application-deployable version (not ready yet...)
 
+PsychoPy 0.93.8:
+* pyglet window.setGamma and setGammaRamp working
+* pyglet event.Mouse complete (and supports wheel as well as buttons)
+
 PsychoPy 0.93.6:
 * bug fixes for OS X 10.5 and ctypes OpenGL
 * new improved OS X installer for dependencies
@@ -21,11 +25,11 @@ PsychoPy 0.93.5:
 * implemented pyglet backend for;
 -> -better screen handling (can specify which screen a window should appear in)
 -> -fewer dependencies (takes care of pygame and opengl)
--> -is in current development
 -> -faster sound production
 -> -TextStims can be multi-line
 -> -NO GAMMA-SETTING as yet. Don't use this backend if you need a gamma-corrected window and aren't using Bits++.
 * changed the behaviour of Window winTypes
+-> -is in current development
 If you leave winType as None PsychoPy tries to use Pygame, Pyglet, GLUT in that order 
 (when Pyglet can handle gamma funcs it will become default). Can be overridden by specifying winType.
 * turned off depth testing for drawing of text (will simply be overlaid in the order called) 

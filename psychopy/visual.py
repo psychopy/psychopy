@@ -3011,10 +3011,13 @@ class TextStim:
         Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
 
         if self.win.winType=="pyglet":
-            #unbind the main texture
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            #unbind the mask texture 
+            GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
-            #GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            #unbind the main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)            
         else:
             #bind the appropriate main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
