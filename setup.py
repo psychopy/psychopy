@@ -16,7 +16,7 @@ try:
     #thisVersion = '0.51'
     thisVersion=psychopy.__version__ #automatically increments if permitted
 except:
-    thisVersion='0.93.0'
+    thisVersion='0.94.0'
 #define the extensions to compile if necess
 cExtensions = []
 
@@ -25,9 +25,7 @@ if platform=='win32':
     #cExtensions.append(Extension('psychopy.ext._bits',
                                      #sources = [os.path.join('psychopy','ext','_bits.c')],
                                      #libraries=['bits'])) 
-    cExtensions.append(Extension('psychopy.ext._win32',
-                                 sources = [os.path.join('psychopy','ext','_win32.c')],
-                                 library_dirs=[os.path.join('psychopy','ext')]))
+    pass
                                  
 elif platform=='darwin':
     cExtensions.append(Extension('psychopy.ext._darwin',

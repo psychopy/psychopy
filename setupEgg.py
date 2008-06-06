@@ -24,9 +24,7 @@ if platform=='win32':
     #cExtensions.append(Extension('psychopy.ext._bits',
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
-    cExtensions.append(Extension('psychopy.ext._win32',
-    sources = [os.path.join('psychopy','ext','_win32.c')],
-    library_dirs=[os.path.join('psychopy','ext')]))    
+    pass  
 elif platform=='darwin':
     cExtensions.append(Extension('psychopy.ext._darwin',
     sources = [os.path.join('psychopy','ext','_darwin.m')],

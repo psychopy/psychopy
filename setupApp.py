@@ -20,9 +20,6 @@ if platform=='win32':
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
     import py2exe
-    cExtensions.append(Extension('psychopy.ext._win32',
-    sources = [os.path.join('psychopy','ext','_win32.c')],
-    library_dirs=[os.path.join('psychopy','ext')]))
 elif platform=='darwin':
     cExtensions.append(Extension('psychopy.ext._darwin',
     sources = [os.path.join('psychopy','ext','_darwin.m')],

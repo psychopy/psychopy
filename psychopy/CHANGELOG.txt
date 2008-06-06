@@ -6,6 +6,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 PsychoPy 0.94.0:
 * working on a application-deployable version (not ready yet...)
+* removed the win32 C code (discovered pywin32 can handle thread priorities)
 
 PsychoPy 0.93.5:
 * added rich text ctrl to IDE output, including links to lines of errors
