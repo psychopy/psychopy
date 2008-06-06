@@ -17,23 +17,24 @@ DEBUG= False
 
 #set and create (if necess) the data folder
 #this will be the 
-#   Linux/Mac:  ~/PsychoPy
-#   win32:   <UserDocs>/Application Data/.PsychoPy
+#   Linux/Mac:  ~/.PsychoPy/monitors
+#   win32:   <UserDocs>/Application Data/.PsychoPy/monitors
 join = os.path.join
 if sys.platform=='win32':
-    appDataLoc = join(os.environ['USERPROFILE'],'.PsychoPy') #this is the folder that this file is stored in
+    monitorFolder = os.path.join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
 else:
-    appDataLoc = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
-if not os.path.isdir(appDataLoc):
-    os.mkdir(appDataLoc)
+    monitorFolder = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
+if not os.path.isdir(monitorFolder):
+    os.mkdir(monitorFolder)
     
     #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
+    #this only gets done if there was no existing .psychopy folder (and so no calib files)
     import glob, shutil #these are just to copy old calib files across
     try: 
         calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
         for thisFile in calibFiles:
             thisPath, fileName = os.path.split(thisFile)
-            shutil.copyfile(thisFile, join(appDataLoc,fileName))
+            shutil.copyfile(thisFile, join(monitorFolder,fileName))
     except:
         pass #never mind - the user will have to do it!
 
@@ -485,7 +486,7 @@ class Monitor:
         as self.calibs"""
 
         thisFileName = os.path.join(\
-            appDataLoc,
+            monitorFolder,
             self.name+".calib")     #the name of the actual file
 
         if not os.path.exists(thisFileName):
@@ -572,7 +573,7 @@ class Monitor:
 
     def saveMon(self):
         """saves the current dict of calibs to disk"""
-        thisFileName = os.path.join(appDataLoc,self.name+".calib")
+        thisFileName = os.path.join(monitorFolder,self.name+".calib")
         thisFile = open(thisFileName,'w')
         cPickle.dump(self.calibs, thisFile)
         thisFile.close()
@@ -1009,7 +1010,7 @@ def DACrange(n):
     return numpy.arange(0.0,256.0,255.0/(n-1)).astype(numpy.uint8)
 def getAllMonitors():
     currDir = os.getcwd()
-    os.chdir(appDataLoc)
+    os.chdir(monitorFolder)
     monitorList=glob.glob('*.calib')
     for monitorN,thisName in enumerate(monitorList):
         monitorList[monitorN] = monitorList[monitorN][:-6]
