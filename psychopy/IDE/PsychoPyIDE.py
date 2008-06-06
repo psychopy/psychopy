@@ -1397,7 +1397,7 @@ class StationMainFrame(wx.Frame):
     def gotoLine(self, filename=None, line=0):
         #goto a specific line in a specific file and select all text in it
         self.setCurrentDoc(filename)
-        
+        self.currentDoc.EnsureVisible(line)
         self.currentDoc.GotoLine(line)
         endPos = self.currentDoc.GetCurrentPos()
         
