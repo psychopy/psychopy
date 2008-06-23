@@ -194,9 +194,9 @@ class Window:
             if havePygame: winType="pygame"
             elif havePyglet: winType="pyglet"
             else: winType='glut'
-        if winType is "glut": self._setupGlut()
-        elif winType is "pygame": self._setupPygame()
-        elif winType is "pyglet": self._setupPyglet()
+        if winType == "glut": self._setupGlut()
+        elif winType == "pygame": self._setupPygame()
+        elif winType == "pyglet": self._setupPyglet()
         self._setupGL()
 
         self.frameClock = core.Clock()#from psycho/core
@@ -340,7 +340,7 @@ class Window:
         Fullscreen mode for PyGame contexts must be set during initialisation
         of the Window() class
         """
-        if self.winType is 'glut':
+        if self.winType=='glut':
             if self._isFullScr:
                 GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
                 self._isFullScr=0
@@ -352,9 +352,9 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
-        if self.winType is 'GLUT':
+        if self.winType=='GLUT':
             GLUT.glutDestroyWindow(self.handle)
-        elif self.winType is 'pyglet':
+        elif self.winType=='pyglet':
             _openWindows.remove(self.winHandle)
             self.winHandle.close()
         else:
@@ -385,18 +385,18 @@ class Window:
         The **units** can be 'norm'(normalised),'pix'(pixels),'cm' or
         'stroke_font'. The **font** argument is only used if units='stroke_font'
         """
-        if units is "norm":
+        if units=="norm":
             thisScale = numpy.array([1.0,1.0])
-        elif units in ["pix", "pixels"]:
+        elif units=="pix" or units=="pixels":
             thisScale = 2.0/numpy.array(self.size)
-        elif units is "cm":
+        elif units=="cm":
             #windowPerCM = windowPerPIX / CMperPIX
             #                       = (window      /winPIX)        / (scrCm                               /scrPIX)
             if (self.scrWidthCM in [0,None]) or (self.scrWidthPIX in [0, None]):
                 log.error('you didnt give me the width of the screen (pixels and cm). Check settings in MonitorCentre.')
                 core.wait(1.0); core.quit()
             thisScale = (numpy.array([2.0,2.0])/self.size)/(float(self.scrWidthCM)/float(self.scrWidthPIX))
-        elif units in ["deg", "degs"]:
+        elif units=="deg" or units=="degs":
             #windowPerDeg = winPerCM*CMperDEG
             #               = winPerCM              * tan(pi/180) * distance
             if (self.scrWidthCM in [0,None]) or (self.scrWidthPIX in [0, None]):
@@ -404,7 +404,7 @@ class Window:
                 core.wait(1.0); core.quit()
             cmScale = (numpy.array([2.0,2.0])/self.size)/(float(self.scrWidthCM)/float(self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
-        elif units is "stroke_font":
+        elif units=="stroke_font":
             thisScale = numpy.array([2*font.letterWidth,2*font.letterWidth]/self.size/38.0)
         #actually set the scale as appropriate
         thisScale = thisScale/numpy.asarray(prevScale)#allows undoing of a previous scaling procedure
@@ -872,11 +872,11 @@ class DotStim:
         self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self._nDotsTotal,))
         self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self._nDotsTotal,))# 0 radians=East!
         #handle boundaries of the field: square for now - circles not quite working
-        if self.fieldShape is 'sqr':
+        if self.fieldShape == 'sqr':
             #gone outside the square
             self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
             self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
-        elif self.fieldShape is 'circle':
+        elif self.fieldShape == 'circle':
             #gone outside the square
             self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
             self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
@@ -1388,14 +1388,14 @@ class PatchStim:
             #handle a numpy array
             intensity = 255*maskName.astype(float)
             fromFile=0
-        elif maskName is "circle":
+        elif maskName == "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName is "gauss":
+        elif maskName == "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName is "radRamp":#a radial ramp
+        elif maskName == "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -1631,14 +1631,14 @@ class PatchStim:
             intensity = 255*maskName.astype(float)
             res=maskName.shape[0]
             fromFile=0
-        elif maskName is "circle":
+        elif maskName == "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName is "gauss":
+        elif maskName == "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName is "radRamp":#a radial ramp
+        elif maskName == "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -2189,14 +2189,14 @@ class RadialStim(PatchStim):
             intensity = 255*numpy.array(maskName, 'f')
             res = len(intensity)
             fromFile=0
-        elif maskName is "circle":
+        elif maskName == "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName is "gauss":
+        elif maskName == "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName is "radRamp":#a radial ramp
+        elif maskName == "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -2428,14 +2428,14 @@ class RadialStim(PatchStim):
             intensity = 255*numpy.array(maskName, 'f')
             res = len(intensity)
             fromFile=0
-        elif maskName is "circle":
+        elif maskName == "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName is "gauss":
+        elif maskName == "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName is "radRamp":#a radial ramp
+        elif maskName == "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
