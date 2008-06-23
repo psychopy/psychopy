@@ -13,26 +13,21 @@ import makeMovies
 import numpy
 from numpy import sin, cos, pi
 
-#import platform specific C++ libs for controlling gamma
-if sys.platform=='win32':
-    from ctypes import windll 
-elif sys.platform=='darwin':
-    carbon = pyglet.lib.load_library(framework='/System/Library/Frameworks/Carbon.framework')
-elif sys.platform=='linux':
-    pass
-
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
+    #deliberate error so we DON't use pyglet
     import ctypes
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media       
+    #import pyglet.gl as GL
+    #GLU = GL#under pygame GLU was a separate package, under pyglet it's all one
+    #GL_multitexture = GL
     havePyglet=True    
-    cTypesOpenGL = True
 except:
     havePyglet=False    
 
 try:
     import pygame
-    import OpenGL, OpenGL.GL
+    import OpenGL.GL
     import OpenGL.GLU
     import OpenGL.GL.ARB.multitexture
     havePygame=True
@@ -177,7 +172,7 @@ class Window:
         elif monitor.getGamma()!=None:
             self.gamma = monitor.getGamma()
         else: self.gamma = [1.0,1.0,1.0] #gamma wasn't set anywhere
-
+        
         #colour conversions
         dkl_rgb = monitor.getDKL_RGB()
         if dkl_rgb!=None:
@@ -191,12 +186,12 @@ class Window:
         #setup context and openGL()
         self.allowGUI = allowGUI
         if winType is None:#choose the default windowing
-            if havePygame: winType="pygame"
-            elif havePyglet: winType="pyglet"
+            if havePyglet: winType="pyglet"
+            elif havePygame: winType="pygame"
             else: winType='glut'
-        if winType == "glut": self._setupGlut()
-        elif winType == "pygame": self._setupPygame()
-        elif winType == "pyglet": self._setupPyglet()
+        if winType is "glut": self._setupGlut()
+        elif winType is "pygame": self._setupPygame()
+        elif winType is "pyglet": self._setupPyglet()
         self._setupGL()
 
         self.frameClock = core.Clock()#from psycho/core
@@ -340,7 +335,7 @@ class Window:
         Fullscreen mode for PyGame contexts must be set during initialisation
         of the Window() class
         """
-        if self.winType=='glut':
+        if self.winType is 'glut':
             if self._isFullScr:
                 GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
                 self._isFullScr=0
@@ -352,9 +347,9 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
-        if self.winType=='GLUT':
+        if self.winType is 'GLUT':
             GLUT.glutDestroyWindow(self.handle)
-        elif self.winType=='pyglet':
+        elif self.winType is 'pyglet':
             _openWindows.remove(self.winHandle)
             self.winHandle.close()
         else:
@@ -385,18 +380,18 @@ class Window:
         The **units** can be 'norm'(normalised),'pix'(pixels),'cm' or
         'stroke_font'. The **font** argument is only used if units='stroke_font'
         """
-        if units=="norm":
+        if units is "norm":
             thisScale = numpy.array([1.0,1.0])
-        elif units=="pix" or units=="pixels":
+        elif units in ["pix", "pixels"]:
             thisScale = 2.0/numpy.array(self.size)
-        elif units=="cm":
+        elif units is "cm":
             #windowPerCM = windowPerPIX / CMperPIX
             #                       = (window      /winPIX)        / (scrCm                               /scrPIX)
             if (self.scrWidthCM in [0,None]) or (self.scrWidthPIX in [0, None]):
                 log.error('you didnt give me the width of the screen (pixels and cm). Check settings in MonitorCentre.')
                 core.wait(1.0); core.quit()
             thisScale = (numpy.array([2.0,2.0])/self.size)/(float(self.scrWidthCM)/float(self.scrWidthPIX))
-        elif units=="deg" or units=="degs":
+        elif units in ["deg", "degs"]:
             #windowPerDeg = winPerCM*CMperDEG
             #               = winPerCM              * tan(pi/180) * distance
             if (self.scrWidthCM in [0,None]) or (self.scrWidthPIX in [0, None]):
@@ -404,7 +399,7 @@ class Window:
                 core.wait(1.0); core.quit()
             cmScale = (numpy.array([2.0,2.0])/self.size)/(float(self.scrWidthCM)/float(self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
-        elif units=="stroke_font":
+        elif units is "stroke_font":
             thisScale = numpy.array([2*font.letterWidth,2*font.letterWidth]/self.size/38.0)
         #actually set the scale as appropriate
         thisScale = thisScale/numpy.asarray(prevScale)#allows undoing of a previous scaling procedure
@@ -422,50 +417,9 @@ class Window:
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
             pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
-        elif self.winType=='pyglet':
-            self._setHardwareGamma()
-        else:
-            log.warning('Cannot control gamma for a %s window' %self.winType)
-    def _setHardwareGamma(self, gammaVal=None):
-        """
-        Internal function for setting the gamma value in a hardware-specific manner 
-        (for use with pyglet contexts). 
-        
-        Users should use .setGamma() instead (which will select the best method to set 
-        gamma (e.g. will use bits++ if available)
-              
-        If no gammaVal is given then the monitor settings will be used.
-        """
-        ramp = numpy.tile(numpy.arange(0,1.0,1.0/256),(3,1)).transpose()# (256x3) array
-        if isinstance(self.monitor, monitors.Monitor):
-            newLUT = self.monitor.lineariseLums(ramp)
-        else:
-            newLUT = ramp**(1/numpy.array(self.gamma))# correctly handles 1 or 1x3 gamma vals
-        self._setHardwareGammaRamp(newLUT)
-        
-    def _setHardwareGammaRamp(self, newRamp):
-        """
-        Internal function for setting the gamma ramp in a hardware-specific manner 
-        (for use with pyglet contexts).
-        
-        Ramp should be provided in range 0:1
-        """           
-        newRamp= (255*newRamp).astype(numpy.uint16)
-        if sys.platform=='win32':  
-            newRamp.byteswap(True)#necessary, according to pyglet post from Martin Spacek
-            success = windll.gdi32.SetDeviceGammaRamp(win.winHandle._dc, ramps.ctypes)
-            if not success: raise AssertionError, 'SetDeviceGammaRamp failed'
-        if sys.platform=='darwin':            
-            error =CGSetDisplayTransferByTable(win.winHandle._dc, ramps.ctypes);
-            if error: raise AssertionError, 'SetDeviceGammaRamp failed'
-        if sys.platform=='linux':            
-            success = windll.gdi32.SetDeviceGammaRamp(win._dc, ramps.ctypes)
-            if not success: raise AssertionError, 'SetDeviceGammaRamp failed'
-               
-        
+
     def _setupGlut(self):
         self.winType="glut"
-        print 'configured glut'
         #initialise a window
         GLUT.glutInit(sys.argv)
         iconFile = os.path.join(psychopy.__path__[0], 'psychopy.gif')
@@ -479,7 +433,6 @@ class Window:
         GLUT.glutDisplayFunc(self.update)
     def _setupPyglet(self):
         self.winType = "pyglet"
-        print 'configured pyglet'
         #setup the global use of pyglet.gl
         global GL, GLU, GL_multitexture
         GL = pyglet.gl
@@ -497,7 +450,11 @@ class Window:
                                               config=config,
                                               screen=thisScreen,
                                           )
+        self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = event._onPygletKey
+        self.winHandle.on_mouse_press = event._onPygletMousePress
+        self.winHandle.on_mouse_release = event._onPygletMouseRelease
+        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
         self.winHandle.on_resize = self.onResize
         #self.winHandle.set_location(self.pos[0],self.pos[1])
         print 'configured pyglet'
@@ -511,7 +468,7 @@ class Window:
 
     def _setupPygame(self):
         self.winType = "pygame"
-        print 'configured pygame'
+        
         #setup the global use of PyOpenGL (rather than pyglet.gl)
         global GL, GLU, GL_multitexture
         GL = OpenGL.GL
@@ -554,7 +511,7 @@ class Window:
             #self.scrWidthCM = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH_MM)/10.0
         #print 'screen width: ', self.scrWidthCM, 'cm, ', self.scrWidthPIX, 'pixels'
     def _setupGL(self):
-        global haveShaders, GL, GLU, GL_multitexture
+        global haveShaders
         #do settings for openGL
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
         GL.glClearDepth(1.0)
@@ -604,14 +561,7 @@ class Window:
         FB.glRenderbufferStorageEXT (FB.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
 
         # Create texture to render to
-        if self.win.winType=="pyglet":
-            self.frameTexture=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.frameTexture))
-        elif cTypesOpenGL:
-            self.frameTexture = GL.GLuint(int(GL.glGenTextures(1)))            
-        else:
-            self.frameTexture = GL.glGenTextures (1)
-            
+        self.frameTexture = GL.glGenTextures (1)
         GL.glBindTexture (GL.GL_TEXTURE_2D, self.frameTexture)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
@@ -640,9 +590,10 @@ class Window:
             ``setMouseVisible(False)``
             ``setMouseVisible(True)``
         """
-        wasVisible = pygame.mouse.set_visible(visibility)
+        if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
+        elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-
+    
 #############################################################################
 
 class DotStim:
@@ -872,11 +823,11 @@ class DotStim:
         self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self._nDotsTotal,))
         self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self._nDotsTotal,))# 0 radians=East!
         #handle boundaries of the field: square for now - circles not quite working
-        if self.fieldShape == 'sqr':
+        if self.fieldShape is 'sqr':
             #gone outside the square
             self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
             self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
-        elif self.fieldShape == 'circle':
+        elif self.fieldShape is 'circle':
             #gone outside the square
             self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
             self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
@@ -1388,14 +1339,14 @@ class PatchStim:
             #handle a numpy array
             intensity = 255*maskName.astype(float)
             fromFile=0
-        elif maskName == "circle":
+        elif maskName is "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName == "gauss":
+        elif maskName is "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName == "radRamp":#a radial ramp
+        elif maskName is "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -1631,14 +1582,14 @@ class PatchStim:
             intensity = 255*maskName.astype(float)
             res=maskName.shape[0]
             fromFile=0
-        elif maskName == "circle":
+        elif maskName is "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName == "gauss":
+        elif maskName is "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName == "radRamp":#a radial ramp
+        elif maskName is "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -1848,7 +1799,7 @@ class RadialStim(PatchStim):
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms:
             self.lms = lms
-            #log.warning('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
+            #warn('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
             self.rgb = psychopy.misc.lms2rgb(lms, win.lms_rgb)
 
         self.depth=depth
@@ -1864,10 +1815,6 @@ class RadialStim(PatchStim):
             GL.glGenTextures(1, ctypes.byref(self.texID))
             self.maskID=GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self.maskID))
-        elif cTypesOpenGL:
-            (tID, mID) = GL.glGenTextures(2)
-            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
-            self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
         self._setTex(tex)
@@ -2189,14 +2136,14 @@ class RadialStim(PatchStim):
             intensity = 255*numpy.array(maskName, 'f')
             res = len(intensity)
             fromFile=0
-        elif maskName == "circle":
+        elif maskName is "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName == "gauss":
+        elif maskName is "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName == "radRamp":#a radial ramp
+        elif maskName is "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -2428,14 +2375,14 @@ class RadialStim(PatchStim):
             intensity = 255*numpy.array(maskName, 'f')
             res = len(intensity)
             fromFile=0
-        elif maskName == "circle":
+        elif maskName is "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif maskName == "gauss":
+        elif maskName is "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif maskName == "radRamp":#a radial ramp
+        elif maskName is "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
@@ -2527,15 +2474,12 @@ class TextStimGLUT:
         self.depth=depth
 
         self._listID = GL.glGenLists(1)
-        #initialise textures for stimulus        
+        #initialise textures for stimulus
         if self.win.winType=="pyglet":
             self.texID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.texID))#pyglet.GL works with pointers indtead
-        elif cTypesOpenGL:
-            tID = GL.glGenTextures(1)
-            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
+            GL.glGenTextures(1, ctypes.byref(self.texID))
         else:
-            self.texID = GL.glGenTextures(1)
+            self._texID = GL.glGenTextures(1)
         #self._setColorTex()
 
         self.ori=ori
@@ -2863,11 +2807,8 @@ class TextStim:
 
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
-        if not self.win.winType=="pyglet": #pyglet won't use it, so don't need it
+        if not self.win.winType=="pyglet":
             self._texID = GL.glGenTextures(1)
-        if cTypesOpenGL:
-            self.texID = GL.GLuint(int(self._texID))#need to convert to GLUint (via ints!!)
-
         #render the text surfaces and build drawing list
         self.setText(text) #some additional things get set with text
 
@@ -2932,7 +2873,7 @@ class TextStim:
                     #trhen check if we were successful
                     if self.fontname == None and font!="":
                         #we didn't find a ttf filename
-                        log.warning("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
+                        log.warn("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
                         self.fontname = pygame.font.get_default_font()
 
             if self.fontname is not None and os.path.isfile(self.fontname):
@@ -2959,7 +2900,6 @@ class TextStim:
             if self._pygletTextObj==None: 
                 self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       #halign=pygletAlign[self.alignHoriz], valign=pygletAlign[self.alignVert],
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
                                                        )#width of the frame
             else: self._pygletTextObj.text= self.text
@@ -3011,13 +2951,11 @@ class TextStim:
         Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
 
         if self.win.winType=="pyglet":
-            #unbind the mask texture 
-            GL.glActiveTexture(GL.GL_TEXTURE1)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             #unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)            
+#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
         else:
             #bind the appropriate main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -3109,10 +3047,14 @@ class TextStim:
         Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
 
         if self.win.winType=="pyglet":
-            #unbind the main texture
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            #unbind the mask texture 
+            GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
-            #GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            #unbind the main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            
         else:
             #bind the appropriate main texture
             GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)

@@ -15,7 +15,29 @@ from scipy import interpolate
 
 DEBUG= False
 
-monitorFolder = os.path.dirname(__file__) #this is the folder that this file is stored in
+#set and create (if necess) the data folder
+#this will be the 
+#   Linux/Mac:  ~/.PsychoPy/monitors
+#   win32:   <UserDocs>/Application Data/.PsychoPy/monitors
+join = os.path.join
+if sys.platform=='win32':
+    monitorFolder = os.path.join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
+else:
+    monitorFolder = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
+if not os.path.isdir(monitorFolder):
+    os.mkdir(monitorFolder)
+    
+    #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
+    #this only gets done if there was no existing .psychopy folder (and so no calib files)
+    import glob, shutil #these are just to copy old calib files across
+    try: 
+        calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
+        for thisFile in calibFiles:
+            thisPath, fileName = os.path.split(thisFile)
+            shutil.copyfile(thisFile, join(monitorFolder,fileName))
+    except:
+        pass #never mind - the user will have to do it!
+
 
 pr650code={'OK':'000\r\n',#this is returned after measure
     '18':'Light Low',#these is returned at beginning of data

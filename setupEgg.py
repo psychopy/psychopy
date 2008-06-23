@@ -12,7 +12,6 @@ import psychopy, monitors
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-cExtensions = []
 packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
               'psychopy.IDE','psychopy.IDE.Resources',
               'monitors']
@@ -24,20 +23,12 @@ if platform=='win32':
     #cExtensions.append(Extension('psychopy.ext._bits',
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
-    cExtensions.append(Extension('psychopy.ext._win32',
-    sources = [os.path.join('psychopy','ext','_win32.c')],
-    library_dirs=[os.path.join('psychopy','ext')]))    
+    pass  
 elif platform=='darwin':
-    cExtensions.append(Extension('psychopy.ext._darwin',
-    sources = [os.path.join('psychopy','ext','_darwin.m')],
-    extra_link_args=['-framework','OpenGL']))
     dataExtensions.extend(['*.icns'])
-
 elif platform=='posix':
     pass
-##    cExtensions.append(Extension('psychopy.ext.posix',
-##                 sources = [os.path.join('psychopy','ext','posix.c')]))
-
+    
 setup(name="PsychoPy",
     version = thisVersion,
     description = "Psychophysics toolkit for Python",
@@ -47,7 +38,6 @@ setup(name="PsychoPy",
     url="http://www.psychopy.org/",
     download_url="http://sourceforge.net/project/showfiles.php?group_id=48949",
     packages=packages,
-    ext_modules = cExtensions,
     scripts = ['psychopy_post_inst.py'],
     include_package_data =True,
     package_data = {

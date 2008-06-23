@@ -37,5 +37,3 @@ while True:
             myWin.close()
             core.quit()
     event.clearEvents()
-
-

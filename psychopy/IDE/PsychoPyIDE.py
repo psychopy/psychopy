@@ -1394,6 +1394,7 @@ class StationMainFrame(wx.Frame):
         if event.GetId()==ID_PSYCHO_HOME: wx.LaunchDefaultBrowser('http://www.psychopy.org/')
         if event.GetId()==ID_PSYCHO_TUTORIAL: wx.LaunchDefaultBrowser('http://www.psychopy.org/home.php/Docs/Tutorials')
         if event.GetId()==ID_PSYCHO_REFERENCE: wx.LaunchDefaultBrowser('http://www.psychopy.org/reference/')
+<<<<<<< .working
     def gotoLine(self, filename=None, line=0):
         #goto a specific line in a specific file and select all text in it
         self.setCurrentDoc(filename)
@@ -1405,6 +1406,19 @@ class StationMainFrame(wx.Frame):
         stPos = self.currentDoc.GetCurrentPos()
         
         self.currentDoc.SetSelection(stPos,endPos)
+=======
+    def gotoLine(self, filename=None, line=0):
+        #goto a specific line in a specific file and select all text in it
+        self.setCurrentDoc(filename)
+        
+        self.currentDoc.GotoLine(line)
+        endPos = self.currentDoc.GetCurrentPos()
+        
+        self.currentDoc.GotoLine(line-1)
+        stPos = self.currentDoc.GetCurrentPos()
+        
+        self.currentDoc.SetSelection(stPos,endPos)
+>>>>>>> .merge-right.r80
     def quit(self, event):
         #undo
         sys.stdout = self._origStdOut#discovered during __init__
