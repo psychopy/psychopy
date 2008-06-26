@@ -1,20 +1,22 @@
 todo:
 
 pyglet back-end
- - handle win.mouse positions, using on_mouse_motion and on_mouse_button_down/up
- - need a .setGamma function
+ - sound bits and bytes
+ - sound from file
+ - window fixed aspect ratio
  - fontstim, 
      - handle text frames (wrapping)
  - _shaders.py needs to know whether to use pyglet.GL or pygame?
- - glReadPixels needs changing (uses a buffer argument rather than returning array)
  
+clean up _parallel.py to make parallel.py
+getInfo script
+redwrite the stimulus scaling code
+create a BaseStimulus class?
+
 debugging (test if pyglet allows - pygame on Mac didn't)
-non-clearing win.update()
 GUI script generator
 LineStim
 SecondOrderStim
 framebuffer
 color++
-getInfo script
 Cedrus support
-clean up _parallel.py to make parallel.py

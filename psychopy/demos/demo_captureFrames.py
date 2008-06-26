@@ -8,8 +8,14 @@ n=10
 for frameN in range(n): #for n frames
   myStim.setPhase(0.1, '+')
   myStim.draw()
-  myWin.update()
-  myWin.getMovieFrame()
+  #you can either read from the back buffer BEFORE win.flip() or 
+  #from the front buffer just AFTER the flip. The former has the
+  #advantage that it won't be affected by other windows whereas
+  #latter can be.
+  myWin.getMovieFrame(buffer='back')
+  myWin.flip()
+  
+#save the movie in the format of your choice
 #myWin.saveMovieFrames('frame.jpg')
 #myWin.saveMovieFrames('myMovie.gif')
 myWin.saveMovieFrames('myMovie.mpg')

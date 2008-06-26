@@ -1,5 +1,6 @@
 import os, sys
-import calibTools
+#import calibTools
+from calibTools import *
 
 #create a test monitor if there isn't one already
 print calibTools.__file__

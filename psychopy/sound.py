@@ -4,6 +4,7 @@
 try:
     import pyglet.media.procedural
     import pyglet.media
+    import ctypes, math
     havePyglet=True
 except:
     havePyglet=False
@@ -23,6 +24,7 @@ import numpy
 import logging #will be the psychopy.logging module
 from os import path 
 from string import capitalize
+from psychopy import event
 
 mediaLocation="C:\\Windows\Media"
 
@@ -31,28 +33,33 @@ if havePyglet:
         """
         Create a pyglet.StaticSource from a numpy array. 
         """
-        def __init__(self, data, sample_rate=44800, sample_size=16):
+        def __init__(self, data, sample_rate=44100, sample_size=16):
             """Array data should be float (-+1.0)
             sample_size (16 or 8) determines the number of bits used for internal storage"""
             duration = data.shape[1]/float(sample_rate) #determine duration from data
-            super(_pygletArrSound, self).__init__(duration,sample_rate, sample_size)
+            super(_pygletArrSound, self).__init__(duration,sample_rate, abs(sample_size))
             self.sample_rate = sample_rate
-            
-            if sample_size==8:          #ubyte
+            print 'minmax', data.min(), data.max()
+            if abs(sample_size)==8:          #ubyte
                 self.allData = (data*127+127).astype(numpy.uint8)
-            elif sample_size == 16:      #signed int16
+            elif abs(sample_size) == 16:      #signed int16
                 self.allData = (data*32767).astype(numpy.int16)
-            print "create pyglet sound"
+            print "created pyglet sound"
         def _generate_data(self, bytes, offset):
+            #print 'bps', self._bytes_per_sample, bytes
             if self._bytes_per_sample == 1:#ubyte
                 start = offset
                 samples = bytes
-            else:			            #signed int16
-                start = offset >> 1
-                samples = bytes >> 1
-            return (self.allData[start:(start+samples)]).tostring()   
+                data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_ubyte))
+            else: #signed int16
+                start = (offset >> 1)#half as many entries for same number of bytes
+                samples = (bytes >> 1)
+                data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
+            print 'start:stop', self.allData[:,start], self.allData[:,start+samples]
+            return data
+
     
-def init(rate=44100, bits=-16, stereo=True, buffer=1024):
+def init(rate=44100, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
     
@@ -77,7 +84,7 @@ def init(rate=44100, bits=-16, stereo=True, buffer=1024):
 class Sound:
     """Create a sound object, from one of MANY ways.
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44800, bits=-16):
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
         """
         value: can be a number, string or an array.
         
@@ -101,7 +108,7 @@ class Sound:
             output sounds in the bottom octave (1) and the top
             octave (8) is generally painful
             
-        sampleRate(=44800): only used for sounds using pyglet. Pygame uses the same
+        sampleRate(=44100): only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised) 
         
         bits(=16): Only 8- and 16-bits supported so far.
@@ -110,18 +117,23 @@ class Sound:
         """
         global mediaLocation, usePygame
         #check initialisation of the 
-        if (usePygame and mixer.get_init()) or not havePyglet:
+        if havePyglet and (mixer.get_init() is None):
+            #we have pyglet and no pygame window so use pyglet
+            usePygame=False
+            
+        if usePygame:
             inits = mixer.get_init()
             if inits is None:
                 init()
                 inits = mixer.get_init()                
             self.sampleRate, self.format, self.isStereo = inits
+            print "using pygame sound"
         else:
             usePygame=False
             self.sampleRate=sampleRate
             self.format = bits
             self.isStereo = True
-        
+            self._player=pyglet.media.ManagedSoundPlayer()
         #try to determine what the sound is
         self._snd=None
         if type(value) is str:
@@ -150,7 +162,11 @@ class Sound:
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
-        self._snd.play()
+        global usePygame
+        if usePygame:
+            self._snd.play()
+        else:
+            self._player.play()
         
     def stop(self):
         """Stops the sound immediately"""
@@ -169,7 +185,11 @@ class Sound:
     
     def setVolume(self,newVol):
         """Sets the current volume of the sound (0.0:1.0)"""
-        self._snd.set_volume(newVol)
+        global usePygame
+        if usePygame:
+            self._snd.set_volume(newVol)
+        else:
+            self._player.volume = newVol
     def _fromFile(self, fileName):
         global usePygame
         
@@ -261,7 +281,8 @@ class Sound:
             
         else:
             #use pyglet
-            self._snd = _pygletArrSound(thisArray, sample_rate=self.sampleRate, sample_size=self.format)
+            self._snd = _pygletArrSound(data=thisArray, sample_rate=self.sampleRate, sample_size=-self.format)
+            self._player.queue(self._snd)
         return True
 
         

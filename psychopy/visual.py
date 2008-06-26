@@ -4,7 +4,6 @@ import psychopy.misc
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log
 import event
-from psychopy.event import _openWindows
 import monitors
 import Image
 import sys, os, time, glob, copy
@@ -15,12 +14,8 @@ from numpy import sin, cos, pi
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
-    #deliberate error so we DON't use pyglet
     import ctypes
-    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media       
-    #import pyglet.gl as GL
-    #GLU = GL#under pygame GLU was a separate package, under pyglet it's all one
-    #GL_multitexture = GL
+    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
     havePyglet=True    
 except:
     havePyglet=False    
@@ -111,7 +106,7 @@ class Window:
         """
         global haveShaders
         self.size = numpy.array(size, numpy.int)
-        self.pos = pos
+        self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
         else:
@@ -228,9 +223,13 @@ class Window:
         #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
-
-    def update(self):
-        """Do a screen refresh (after drawing each frame)
+    
+    def flip(self, clearBuffer=True):
+        """Flip the front and back buffers after drawing everything for your frame.
+        (This replaces the win.update() method, better reflecting what is happening underneath).
+        
+        win.flip(clearBuffer=True)#results in a clear screen after flipping        
+        win.flip(clearBuffer=False)#the screen is not cleared (so represent the previous screen)
         """
         if haveFB:
             #need blit the frambuffer object to the actual back buffer
@@ -255,7 +254,9 @@ class Window:
         if self.winType == "glut": GLUT.glutSwapBuffers()
         elif self.winType =="pyglet":
             #print "updating pyglet"
-
+            #make sure this is current context            
+            self.winHandle.switch_to()
+            
             GL.glTranslatef(0.0,0.0,-5.0)
 
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
@@ -275,16 +276,21 @@ class Window:
         deltaT = now - self.lastFrameT; self.lastFrameT=now
         if deltaT>1/60.0: log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
 
-
         if haveFB:
             #set rendering back to the framebuffer object
             FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
         #reset returned buffer for next frame
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
-
-    def getMovieFrame(self):
+        
+    def update(self):
+        """Deprecated: use Window.flip() instead        
+        """
+        self.flip(clearBuffer=True)#clearBuffer was the original behaviour for win.update()
+        
+    def getMovieFrame(self, buffer='front'):
         """
         Capture the current Window as an image.
         This can be done at any time (usually after a .update() command).
@@ -295,12 +301,25 @@ class Window:
         """
         #GL.glLoadIdentity()
         #do the reading of the pixels
-        GL.glReadBuffer(GL.GL_FRONT)
-        im = Image.fromstring(mode='RGBA',size=self.size,
+        if buffer=='back':
+            GL.glReadBuffer(GL.GL_BACK)            
+        else:
+            GL.glReadBuffer(GL.GL_FRONT)
+        
+            #fetch the data with glReadPixels
+        if self.winType=='pyglet':
+            #pyglet.gl stores the data in a ctypes buffer
+            bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
+            GL.glReadPixels(0,0,self.size[0],self.size[1], GL.GL_RGBA,GL.GL_UNSIGNED_BYTE,bufferDat)
+            im = Image.fromstring(mode='RGBA',size=self.size, data=bufferDat)
+        else:
+            #pyopengl returns the data
+            im = Image.fromstring(mode='RGBA',size=self.size,
                               data=GL.glReadPixels(0,0,self.size[0],self.size[1], GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),
                           )
+            
+        im=im.transpose(Image.FLIP_TOP_BOTTOM)            
         im=im.convert('RGB')
-        im=im.transpose(Image.FLIP_TOP_BOTTOM)
         self.movieFrames.append(im)
 
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video'):
@@ -350,7 +369,6 @@ class Window:
         if self.winType is 'GLUT':
             GLUT.glutDestroyWindow(self.handle)
         elif self.winType is 'pyglet':
-            _openWindows.remove(self.winHandle)
             self.winHandle.close()
         else:
             #pygame.quit()
@@ -417,7 +435,7 @@ class Window:
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
             pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
-
+            
     def _setupGlut(self):
         self.winType="glut"
         #initialise a window
@@ -443,11 +461,13 @@ class Window:
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
-        else: print "Requested an unavailable screen number"
-        self.winHandle = pyglet.window.Window(width=self.size[0], height=self.size[1],
+            print 'configured pyglet screen %i' %self.screen
+        else: 
+            print "Requested an unavailable screen number"
+        self.winHandle = pyglet.window.Window(#width=self.size[0], height=self.size[1],
                                               caption="PsychoPy", 
                                               fullscreen=self._isFullScr,
-                                              config=config,
+                                              #config=config,
                                               screen=thisScreen,
                                           )
         self.winHandle.set_vsync(True)
@@ -456,9 +476,9 @@ class Window:
         self.winHandle.on_mouse_release = event._onPygletMouseRelease
         self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
         self.winHandle.on_resize = self.onResize
-        #self.winHandle.set_location(self.pos[0],self.pos[1])
-        print 'configured pyglet'
-        _openWindows.append(self.winHandle)
+        if self.pos is not None:
+            self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
+        
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pyglet.image.load(filename=iconFile)
@@ -758,13 +778,16 @@ class DotStim:
         self._set(attrib, val, op)
 
 
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         self._update_dotsXY()
         if self.depth==0:
             thisDepth = self.win._defDepth
@@ -1078,13 +1101,17 @@ class PatchStim:
     def setDepth(self,value, operation=None):
         self._set('depth', value, operation)
 
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         #work out next default depth
         if self.depth==0:
             thisDepth = self.win._defDepth
@@ -1861,13 +1888,18 @@ class RadialStim(PatchStim):
         exec('self.radialPhase' + operation+ '=value')
         self.needUpdate=True
 
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
+        
+        If win is specified then override the normal window of this stimulus.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
 
         #work out next default depth
         if self.depth==0:
@@ -2661,13 +2693,19 @@ class TextStimGLUT:
         GL.glEndList()
         self.needUpdate=0
 
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
+        
+        If win is specified then override the normal window of this stimulus.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+
         #work out next default depth
         if self.depth==0:
             thisDepth = self.win._defDepth
@@ -3090,13 +3128,19 @@ class TextStim:
         GL.glEndList()
         self.needUpdate=0
 
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
+        
+        If win is specified then override the normal window of this stimulus.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         #work out next default depth
         if self.depth==0:
             thisDepth = self.win._defDepth

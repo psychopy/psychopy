@@ -1,12 +1,10 @@
-"""To handle events such as keyboard and mouse.
-Also imported is pygame's JOYSTICK package:
-    
-    http://www.pygame.org/docs/ref/pygame_joystick.html
-
+"""To handle from keyboard, mouse and joystick (joysticks require pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
-from psychopy import core
+import sys, time
+import psychopy.core
 import string, numpy
+import threading
 
 #try to import pyglet & pygame and hope the user has at least one of them!
 try:
@@ -18,7 +16,7 @@ except:
     havePygame = False
     
 try:
-    import pyglet.window
+    import pyglet.window, pyglet.event, pyglet.media
     from pyglet.window import key
     havePyglet = True
 except:
@@ -27,12 +25,63 @@ if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False   
 
 if havePyglet:
+    class _EventDispatchThread(threading.Thread):    
+        #a thread that will periodically call to dispatch events
+        def __init__(self, pollingPeriod=0.01):
+            threading.Thread.__init__ ( self )
+            self.running=-1 # -1:stopped, 0:stopping, 1:running
+            self.pollingPeriod=0.01
+        def run(self):
+            self.running=1
+            while self.running>0:
+                pyglet.media.dispatch_events()
+                time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
+            self.running=-1#shows that it is fully stopped
+        def stop(self):
+            self.running=0#make a request to stop on next entry
+        def setPollingPeriod(self, period):
+            self.pollingPeriod=period
+        
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
     mouseButtons = [0,0,0]
     global mouseWheelRel
     mouseWheelRel = numpy.array([0.0,0.0])
+    global eventThread
+    eventThread = _EventDispatchThread()
+    eventThread.start()
+
+def setEventPollingPeriod(period):
+    """For pylget contexts this sets the frequency that events (mouse, keyboard,
+    sound production) are processed in seconds. 
+    
+    A long period will allow more time to be spent on drawing functions and computations,
+    whereas a very short time will allow more precise starting/stopping of audio stimuli and 
+    retrieval of mouse and keyboard events.
+    
+    Events will always be polled on every screen refresh anyway, and repeatedly during 
+    calls to event.waitKeys() so this will have no effect on those.
+    """
+    global eventThread
+    eventThread.setPollingPeriod(period)
+def stopEventPolling():    
+    """Stop all polling of events in a pyglet context. Events will still be dispatched on every
+    flip of a visual.Window (every 10-15ms depending on frame rate).
+    
+    The user can then dispatch events manually using 
+    pyglet.event.dispatch_events()
+    """
+    global eventThread
+    eventThread.stop()
+def startEventPolling():    
+    """Restart automated event polling if it has been suspended.
+    This call does nothing if the polling had been 
+    """
+    global eventThread
+    if eventThread.stopping:
+        eventThread.start()
+
 def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet
     Adds a key event to global _keyBuffer which can then be accessed as normal
@@ -93,7 +142,7 @@ def waitKeys(maxWait = None, keyList=None):
     clearEvents('keyboard')#so that we only take presses from here onwards.
     if maxWait!=None and keyList!=None:
         #check keylist AND timer
-        timer = core.Clock()
+        timer = psychopy.core.Clock()
         while key==None and timer.getTime()<maxWait:            
             wins = pyglet.window.get_platform().get_default_display().get_windows()
             for win in wins: win.dispatch_events()#pump events on pyglet windows
@@ -114,7 +163,7 @@ def waitKeys(maxWait = None, keyList=None):
             
     elif maxWait!=None:
         #onyl wait for the maxWait 
-        timer = core.Clock()
+        timer = psychopy.core.Clock()
         while key==None and timer.getTime()<maxWait:            
             wins = pyglet.window.get_platform().get_default_display().get_windows()
             for win in wins: win.dispatch_events()#pump events on pyglet windows
@@ -145,9 +194,10 @@ class Mouse:
     
     Create your `visual.Window` before creating a Mouse.
     
-    If using multiple visual.Windows, pass the win that you want
-    this mouse coordinates to refer to. Otherwise it will use the 
-    first window found as the relevant context.
+    If using multiple visual.Windows, use the *win* argumetn to specify 
+    which Window you want this mouse coordinates to refer to. 
+    Otherwise it will use the first window found as the relevant 
+    context.
     """
     def __init__(self,
                  visible=True,

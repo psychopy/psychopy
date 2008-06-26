@@ -1,9 +1,10 @@
 #! /usr/local/bin/python2.5
-
 from psychopy import core, visual, event
 #create a window to draw in
-myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1))
+myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1), winType='pyglet')
 print 'building stimuli'
+
+event.setEventPollingPeriod(0.001)
 #INITIALISE SOME STIMULI
 faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     mask=None,
@@ -26,7 +27,12 @@ while True:
 
     faceALPHA.setPhase(0.01,"+")#advance phase by 1/100th of a cycle
     faceALPHA.draw()
-
+    
+    #update fps every second
+    if t-lastFPSupdate>1.0:
+        lastFPS = myWin.fps()
+        lastFPSupdate=t
+        message.setText("%ifps, [Esc] to quit" %lastFPS)
     message.draw()
 
     myWin.update()
@@ -34,6 +40,8 @@ while True:
     #handle key presses each frame
     for keys in event.getKeys():
         if keys in ['escape','q']:
+            print myWin.fps()
             myWin.close()
             core.quit()
+            th.stop()
     event.clearEvents()

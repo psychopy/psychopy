@@ -1,11 +1,15 @@
 """Basic timing functions
 """
 import sys, os, time
+import psychopy.event
 
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
     #pygame.quit() #safe even if pygame was never initialised
+    psychopy.event.stopEventPolling()
+    while psychopy.event.eventThread.running==0:
+        pass#wait until it has properly finished polling
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism
@@ -43,6 +47,6 @@ class Clock:
 def wait(secs):
     """Wait for a given time period (simple wrap of time.sleep()
     which comes with Python)
-    """
+    """    
     time.sleep(secs)
     
