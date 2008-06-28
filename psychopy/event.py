@@ -27,13 +27,15 @@ else: usePygame=False
 if havePyglet:
     class _EventDispatchThread(threading.Thread):    
         #a thread that will periodically call to dispatch events
-        def __init__(self, pollingPeriod=0.01):
+        def __init__(self, runTime, pollingPeriod=0.01):
             threading.Thread.__init__ ( self )
             self.running=-1 # -1:stopped, 0:stopping, 1:running
-            self.pollingPeriod=0.01
+            self.pollingPeriod=pollingPeriod
+            self.t0 = time.time()
+            self.runTime = runTime
         def run(self):
             self.running=1
-            while self.running>0:
+            while self.running>0 and (time.time()-self.t0)<self.runTime:
                 pyglet.media.dispatch_events()
                 time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
             self.running=-1#shows that it is fully stopped
@@ -41,46 +43,48 @@ if havePyglet:
             self.running=0#make a request to stop on next entry
         def setPollingPeriod(self, period):
             self.pollingPeriod=period
-        
+        def setRunTime(self, time):
+            self.runTime=time
+            
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
     mouseButtons = [0,0,0]
     global mouseWheelRel
     mouseWheelRel = numpy.array([0.0,0.0])
-    global eventThread
-    eventThread = _EventDispatchThread()
-    eventThread.start()
+    #global eventThread
+    #eventThread = _EventDispatchThread()
+    #eventThread.start()
 
-def setEventPollingPeriod(period):
-    """For pylget contexts this sets the frequency that events (mouse, keyboard,
-    sound production) are processed in seconds. 
+#def setEventPollingPeriod(period):
+    #"""For pylget contexts this sets the frequency that events (mouse, keyboard,
+    #sound production) are processed in seconds. 
     
-    A long period will allow more time to be spent on drawing functions and computations,
-    whereas a very short time will allow more precise starting/stopping of audio stimuli and 
-    retrieval of mouse and keyboard events.
+    #A long period will allow more time to be spent on drawing functions and computations,
+    #whereas a very short time will allow more precise starting/stopping of audio stimuli and 
+    #retrieval of mouse and keyboard events.
     
-    Events will always be polled on every screen refresh anyway, and repeatedly during 
-    calls to event.waitKeys() so this will have no effect on those.
-    """
-    global eventThread
-    eventThread.setPollingPeriod(period)
-def stopEventPolling():    
-    """Stop all polling of events in a pyglet context. Events will still be dispatched on every
-    flip of a visual.Window (every 10-15ms depending on frame rate).
+    #Events will always be polled on every screen refresh anyway, and repeatedly during 
+    #calls to event.waitKeys() so this will have no effect on those.
+    #"""
+    #global eventThread
+    #eventThread.setPollingPeriod(period)
+#def stopEventPolling():    
+    #"""Stop all polling of events in a pyglet context. Events will still be dispatched on every
+    #flip of a visual.Window (every 10-15ms depending on frame rate).
     
-    The user can then dispatch events manually using 
-    pyglet.event.dispatch_events()
-    """
-    global eventThread
-    eventThread.stop()
-def startEventPolling():    
-    """Restart automated event polling if it has been suspended.
-    This call does nothing if the polling had been 
-    """
-    global eventThread
-    if eventThread.stopping:
-        eventThread.start()
+    #The user can then dispatch events manually using 
+    #pyglet.event.dispatch_events()
+    #"""
+    #global eventThread
+    #eventThread.stop()
+#def startEventPolling():    
+    #"""Restart automated event polling if it has been suspended.
+    #This call does nothing if the polling had been 
+    #"""
+    #global eventThread
+    #if eventThread.stopping:
+        #eventThread.start()
 
 def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet

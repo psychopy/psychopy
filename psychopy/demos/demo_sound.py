@@ -14,7 +14,7 @@ print 'imported'; sys.stdout.flush()
 tick = sound.Sound(800,secs=0.05)
 tick.setVolume(1.0)
 tock = sound.Sound(900,secs=0.8)
-tock.setVolume(0.1)
+tock.setVolume(1.0)
 tick.play()
 core.wait(1.4)
 tock.play()
@@ -23,6 +23,7 @@ core.wait(1)
 
 if sys.platform=='win32':
     ding = sound.Sound('ding')
+    ding.setVolume(2.0)
     ding.play()
 
     core.wait(1)

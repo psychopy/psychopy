@@ -3,7 +3,7 @@
 
 try:
     import pyglet.media.procedural
-    import pyglet.media
+    import pyglet.media, pyglet.resource
     import ctypes, math
     havePyglet=True
 except:
@@ -24,9 +24,13 @@ import numpy
 import logging #will be the psychopy.logging module
 from os import path 
 from string import capitalize
+from sys import platform
 from psychopy import event
 
-mediaLocation="C:\\Windows\Media"
+if platform=='win32':
+    mediaLocation="C:\\Windows\Media"
+else:
+    mediaLocation=""
 
 if havePyglet:
     class _pygletArrSound(pyglet.media.procedural.ProceduralSource):
@@ -39,7 +43,6 @@ if havePyglet:
             duration = data.shape[1]/float(sample_rate) #determine duration from data
             super(_pygletArrSound, self).__init__(duration,sample_rate, abs(sample_size))
             self.sample_rate = sample_rate
-            print 'minmax', data.min(), data.max()
             if abs(sample_size)==8:          #ubyte
                 self.allData = (data*127+127).astype(numpy.uint8)
             elif abs(sample_size) == 16:      #signed int16
@@ -55,7 +58,6 @@ if havePyglet:
                 start = (offset >> 1)#half as many entries for same number of bytes
                 samples = (bytes >> 1)
                 data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
-            print 'start:stop', self.allData[:,start], self.allData[:,start+samples]
             return data
 
     
@@ -116,7 +118,7 @@ class Sound:
             sample rate for all sounds (once initialised) 
         """
         global mediaLocation, usePygame
-        #check initialisation of the 
+        #check initialisation
         if havePyglet and (mixer.get_init() is None):
             #we have pyglet and no pygame window so use pyglet
             usePygame=False
@@ -133,7 +135,10 @@ class Sound:
             self.sampleRate=sampleRate
             self.format = bits
             self.isStereo = True
+            self.secs=secs
             self._player=pyglet.media.ManagedSoundPlayer()
+            self._eventThread = event._EventDispatchThread(runTime = secs+0.1)#give ourselves an extra 100ms
+            
         #try to determine what the sound is
         self._snd=None
         if type(value) is str:
@@ -166,6 +171,7 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
+            self._eventThread.start()
             self._player.play()
         
     def stop(self):
@@ -208,6 +214,12 @@ class Sound:
             self._snd = mixer.Sound(self.fileName)
         else:
             self._snd = pyglet.media.load(self.fileName, streaming=False)
+            #for files we need to find the length of the file and 
+            if self._snd.duration is not None: #will return none if not determined in the file
+                self.secs=self._snd.duration
+            self._eventThread.setRunTime(self.secs+0.1)
+            #add to our player queue
+            self._player.queue(self._snd)
         return True
     def _fromNoteName(self, name, secs, octave):		
         #get a mixer.Sound object from an note name

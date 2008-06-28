@@ -7,9 +7,9 @@ def quit():
     """Close everything and exit nicely (ending the experiment)
     """
     #pygame.quit() #safe even if pygame was never initialised
-    psychopy.event.stopEventPolling()
-    while psychopy.event.eventThread.running==0:
-        pass#wait until it has properly finished polling
+    #psychopy.event.stopEventPolling()
+    #while psychopy.event.eventThread.running==0:
+        #pass#wait until it has properly finished polling
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism

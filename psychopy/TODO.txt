@@ -1,9 +1,6 @@
 todo:
 
 pyglet back-end
- - sound bits and bytes
- - sound from file
- - window fixed aspect ratio
  - fontstim, 
      - handle text frames (wrapping)
  - _shaders.py needs to know whether to use pyglet.GL or pygame?

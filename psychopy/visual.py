@@ -464,11 +464,18 @@ class Window:
             print 'configured pyglet screen %i' %self.screen
         else: 
             print "Requested an unavailable screen number"
-        self.winHandle = pyglet.window.Window(#width=self.size[0], height=self.size[1],
+        if self._isFullScr:
+            w,h = None,None
+        else:
+            w,h = self.size
+        if self.allowGUI: style=None
+        else: style='borderless'
+        self.winHandle = pyglet.window.Window(width=w, height=h,
                                               caption="PsychoPy", 
                                               fullscreen=self._isFullScr,
-                                              #config=config,
+                                              config=config,
                                               screen=thisScreen,
+                                              style=style
                                           )
         self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = event._onPygletKey

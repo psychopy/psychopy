@@ -5,7 +5,7 @@
 from psychopy import visual, event, core
 from numpy import sin, pi#numeric python for doing some maths
 
-if False: #use two positions on one screen
+if True: #use two positions on one screen
     winL = visual.Window(size=[400,300], pos=[100,200], screen=0, allowGUI=False)#, fullscr=True)
     winR = visual.Window(size=[400,300], pos=[400,200], screen=0, allowGUI=False)#, fullscr=True)#same screen diff place
 else:
