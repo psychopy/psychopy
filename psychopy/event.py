@@ -27,24 +27,30 @@ else: usePygame=False
 if havePyglet:
     class _EventDispatchThread(threading.Thread):    
         #a thread that will periodically call to dispatch events
-        def __init__(self, runTime, pollingPeriod=0.01):
+        def __init__(self, pollingPeriod=0.01):
             threading.Thread.__init__ ( self )
-            self.running=-1 # -1:stopped, 0:stopping, 1:running
             self.pollingPeriod=pollingPeriod
-            self.t0 = time.time()
-            self.runTime = runTime
+            self.runUntil = 0
+            self.start()
         def run(self):
-            self.running=1
-            while self.running>0 and (time.time()-self.t0)<self.runTime:
+            print 'started'
+            while time.time()<self.runUntil:
+                print "%.1f" %(self.runUntil%30), 
                 pyglet.media.dispatch_events()
                 time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
-            self.running=-1#shows that it is fully stopped
+            print '\nstopped'
+            self.runUntil=-1#shows that it is fully stopped
+        def runFor(self, runTime):
+            """start (or continue) running for the given time"""
+            print 'updating runfor...'
+            prevRunUntil = self.runUntil
+            self.runUntil = max([self.runUntil, runTime+time.time()])
+            if prevRunUntil<=0:#we aren't running so start
+                self.run()
         def stop(self):
-            self.running=0#make a request to stop on next entry
+            self.runUntil=0#make a request to stop on next entry
         def setPollingPeriod(self, period):
             self.pollingPeriod=period
-        def setRunTime(self, time):
-            self.runTime=time
             
     global _keyBuffer
     _keyBuffer = []
@@ -229,7 +235,7 @@ class Mouse:
         if usePygame: return mouse.get_pos()
         else: 
             #use default window if we don't have one
-            if self.win: w = self.win
+            if self.win: w = self.win.winHandle
             else: w=pyglet.window.get_platform().get_default_display().get_windows()[0]       
             #get position in window
             self.lastPos= numpy.array([w._mouse_x,-w._mouse_y])

@@ -482,6 +482,9 @@ class Window:
         self.winHandle.on_mouse_press = event._onPygletMousePress
         self.winHandle.on_mouse_release = event._onPygletMouseRelease
         self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
+        if not self.allowGUI: 
+            #make mouse invisible. Could go further and make it 'exclusive' (but need to alter x,y handling then)
+            self.winHandle._mouse_visible=False
         self.winHandle.on_resize = self.onResize
         if self.pos is None:
             #work out where the centre should be
@@ -493,7 +496,6 @@ class Window:
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except: pass#doesn't matter
-
 
     def _setupPygame(self):
         self.winType = "pygame"
@@ -823,7 +825,12 @@ class DotStim:
 
             visible = (self._opacity>0)
             visibleXY = self._dotsXY[visible,:]
-            GL.glVertexPointerd(visibleXY)
+            if self.win.winType == 'pyglet':
+                #visibleXY = numpy.transpose(visibleXY)
+                #visibleXY=visibleXY.flat
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, visibleXY.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+            else:
+                GL.glVertexPointerd(visibleXY)
 
             GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
@@ -835,7 +842,7 @@ class DotStim:
             initialDepth=self.element.depth
             for pointN in range(0,self._nDotsTotal):
                 if self._opacity[pointN]>0.0:
-                    #self.element.setDepth(0.0001,'-') #not necessary - handled by the element draw method
+#                    self.element.setDepth(0.0001,'-')# this will be done in the draw routine
                     self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
                     self.element.draw()
 

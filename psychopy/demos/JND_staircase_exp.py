@@ -9,12 +9,13 @@ try:#try to get a previous parameters file
 except:#if not there then use a default set
     expInfo = {'observer':'jwp', 'refOrientation':0}
 dateStr = time.strftime("%b_%d_%H%M", time.localtime())#add the current time
+
 #present a dialogue to change params
-dlg = gui.DlgFromDict(expInfo, title='simple JND Exp', fixed=['date'])
-if dlg.OK:
-    misc.toFile('lastParams.pickle', expInfo)#save params to file for next time
-else:
-    core.quit()#the user hit cancel so exit
+#dlg = gui.DlgFromDict(expInfo, title='simple JND Exp', fixed=['date'])
+#if dlg.OK:
+#    misc.toFile('lastParams.pickle', expInfo)#save params to file for next time
+#else:
+#    core.quit()#the user hit cancel so exit
 
 #make a text file to save data
 fileName = expInfo['observer'] + dateStr

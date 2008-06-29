@@ -1,10 +1,9 @@
 #! /usr/local/bin/python2.5
-
 from psychopy import visual, core, event
     
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False,
-                      monitor='testMonitor', units='deg', winType='pyglet')
+                      monitor='testMonitor', units='deg')
 
 #INITIALISE SOME STIMULI
 myDotShape = visual.PatchStim(myWin, mask='gauss',sf=3)
