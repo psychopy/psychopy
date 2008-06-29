@@ -4,7 +4,7 @@ import calibTools
 #create a test monitor if there isn't one already
 print calibTools.__file__
 if 'testMonitor' not in calibTools.getAllMonitors():
-    defMon = Monitor('testMonitor',
+    defMon = calibTools.Monitor('testMonitor',
         width=30,
         distance=57,
         gamma=1.0,

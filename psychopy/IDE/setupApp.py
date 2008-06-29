@@ -20,18 +20,11 @@ if platform=='win32':
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
     import py2exe
-    cExtensions.append(Extension('psychopy.ext._win32',
-    sources = [os.path.join('psychopy','ext','_win32.c')],
-    library_dirs=[os.path.join('psychopy','ext')]))
     files = glob.glob('Resources/*')
     for file in files:
         loc, name = os.path.split(file)
         packageData.append( ['Resources', [file]])
 elif platform=='darwin':
-    cExtensions.append(Extension('psychopy.ext._darwin',
-    sources = [os.path.join('psychopy','ext','_darwin.m')],
-    extra_link_args=['-framework','OpenGL']))
-
     resources = glob.glob('Resources/*')
 elif platform=='posix':
     pass

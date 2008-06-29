@@ -8,7 +8,7 @@ if platform=='darwin':
     #package_data_path='/Library/Python/2.3/psychopy'
     import bdist_mpkg, py2app
 
-import psychopy, monitors
+import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
@@ -25,7 +25,7 @@ dependencies = ['numpy','scipy','matplotlib',
 
 if platform == 'win32':
 #    requires.extend(['pymedia'])
-    setup(console=["PsychoCentral.py"])
+    setup(console=["psychopy/IDE/PsychoPyIDE.py"])
 else:
     setup(app=['psychopy/IDE/PsychoPyIDE.py'],
         options=dict(py2app=dict( argv_emulation=1,
