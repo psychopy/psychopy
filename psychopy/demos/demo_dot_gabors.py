@@ -4,7 +4,7 @@ from psychopy import visual, core, event
     
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False,
-                      monitor='testMonitor', units='deg')
+                      monitor='testMonitor', units='deg', winType='pyglet')
 
 #INITIALISE SOME STIMULI
 myDotShape = visual.PatchStim(myWin, mask='gauss',sf=3)

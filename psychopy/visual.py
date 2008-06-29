@@ -483,8 +483,10 @@ class Window:
         self.winHandle.on_mouse_release = event._onPygletMouseRelease
         self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
         self.winHandle.on_resize = self.onResize
-        if self.pos is not None:
-            self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
+        if self.pos is None:
+            #work out where the centre should be
+            self.pos = [ (thisScreen.width-self.size[0])/2 , (thisScreen.height-self.size[1])/2 ]
+        self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
         
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
@@ -833,7 +835,7 @@ class DotStim:
             initialDepth=self.element.depth
             for pointN in range(0,self._nDotsTotal):
                 if self._opacity[pointN]>0.0:
-                    self.element.setDepth(0.0001,'-')
+                    #self.element.setDepth(0.0001,'-') #not necessary - handled by the element draw method
                     self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
                     self.element.draw()
 

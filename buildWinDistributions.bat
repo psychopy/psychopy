@@ -1,5 +1,5 @@
 rem python24
-c:/python24/python setup.py bdist_wininst --install-script=psychopy_post_inst.py
+rem c:/python24/python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 
 rem python25
 python setupEgg.py bdist_egg

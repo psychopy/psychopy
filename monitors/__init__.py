@@ -3,7 +3,6 @@ import os, sys
 from calibTools import *
 
 #create a test monitor if there isn't one already
-print calibTools.__file__
 if 'testMonitor' not in calibTools.getAllMonitors():
     defMon = Monitor('testMonitor',
         width=30,
