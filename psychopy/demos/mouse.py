@@ -46,5 +46,5 @@ while True: #continue until keypress
     grating.setPhase(0.05, '+')#advance 0.1cycles per frame
     grating.draw()
     message.draw()
-    myWin.update()#redraw the buffer
+    myWin.flip()#redraw the buffer
 

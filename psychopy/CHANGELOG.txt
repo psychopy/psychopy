@@ -15,6 +15,7 @@ PsychoPy 0.94.0:
   * pyglet can now get/save movie frames (like pygame)
   * can use multiple windows and multiple screens (see screensAndWindows demo)
   * fonts look a bit bigger (but much cleaner)
+* added simpler parallel.py (wraps _parallel which will remain for now)
 * removed the C code extensions in favour of ctypes (so compiler no longer necessary)
 * converted "is" for "==" where appropriate (thanks Luca)
 * Window.getMovieFrame now takes a buffer argument ('front' or 'back')

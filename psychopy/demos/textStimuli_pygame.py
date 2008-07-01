@@ -63,5 +63,5 @@ while t<20:#quits after 20 secs
     fpsText.draw()
     psychopyTxt.draw()
     
-    myWin.update()
+    myWin.flip()
 

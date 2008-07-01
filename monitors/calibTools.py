@@ -902,7 +902,7 @@ def getLumSeriesPR650(lumLevels=8,
     backPatch.draw()
     testPatch.draw()
 
-    myWin.update()
+    myWin.flip()
 
     #stay like this until key press (or 30secs has passed)
     event.waitKeys(30)
@@ -932,7 +932,7 @@ def getLumSeriesPR650(lumLevels=8,
             testPatch.setRGB(rgb)
             testPatch.draw()
 
-            myWin.update()
+            myWin.flip()
             core.wait(0.5)#allowing the screen to settle (no good reason!)
             #check for quit request
             for thisKey in event.getKeys():
@@ -986,7 +986,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     testPatch = psychopy.visual.AlphaStim(myWin,tex=None,
         size=stimSize*2,rgb=0.3)
     testPatch.draw()
-    myWin.update()
+    myWin.flip()
     #stay like this until key press (or 30secs has passed)
     event.waitKeys(30)
     spectra=[]
@@ -994,7 +994,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
         #update stimulus
         testPatch.setRGB(thisColor)
         testPatch.draw()
-        myWin.update()
+        myWin.flip()
         #make measurement
         pr650.measure()
         spectra.append(pr650.getLastSpectrum(parse=False))

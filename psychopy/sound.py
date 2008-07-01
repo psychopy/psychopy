@@ -59,7 +59,8 @@ if havePyglet:
             #print 'thread stopped'
             self.running=-1#shows that it is fully stopped
         def stop(self):
-            self.running=0#make a request to stop on next entry
+            if self.running>0:
+                self.running=0#make a request to stop on next entry
         def setPollingPeriod(self, period):
             #print 'polling period is now:%.3f' %period
             self.pollingPeriod=period

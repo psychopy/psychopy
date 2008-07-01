@@ -2,10 +2,8 @@ todo:
 
 pyglet back-end
  - fontstim, 
-     - handle text frames (wrapping)
- - _shaders.py needs to know whether to use pyglet.GL or pygame?
+     - handle text frames (text wrapping)
  
-clean up _parallel.py to make parallel.py
 getInfo script
 rewrite the stimulus scaling code
 create a BaseStimulus class?

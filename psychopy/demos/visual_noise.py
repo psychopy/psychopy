@@ -16,8 +16,8 @@ for n in range(200): #for 200 frames
     myPatch.setPhase(1/128.0,'+')# increment by one pixel
     #draw for two frames
     myPatch.draw()
-    myWin.update()
+    myWin.flip()
     myPatch.draw()
-    myWin.update()
+    myWin.flip()
 
 myWin.close()

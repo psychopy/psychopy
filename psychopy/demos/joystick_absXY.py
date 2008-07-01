@@ -50,4 +50,4 @@ while 1:
     
     message.draw()
     event.clearEvents()#need to do this every frame
-    myWin.update()#redraw the buffer
+    myWin.flip()#redraw the buffer

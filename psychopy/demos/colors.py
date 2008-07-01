@@ -28,7 +28,7 @@ stims.append( visual.PatchStim(myWin, mask='gauss',lms=(0,0,0.5), pos=[0.5,-0.5]
 
 for thisStim in stims:
     thisStim.draw()
-myWin.update()
+myWin.flip()
 #quit when a key is pressed
 #event.waitKeys()
 core.wait(2)

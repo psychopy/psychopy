@@ -6,7 +6,7 @@ nFrames = 20
 
 #setup the stimuli and other objects we need
 myWin = visual.Window([800,600],allowGUI=False)#make a window
-myWin.update()#present it
+myWin.flip()#present it
 myStim = visual.AlphaStim(myWin, tex='sin', mask='gauss', sf=3.0)
 log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 myClock = core.Clock() #just to keep track of time
@@ -15,7 +15,7 @@ myClock = core.Clock() #just to keep track of time
 for frameN in range(nFrames):
     myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1/nFrames to prev value)
     myStim.draw()
-    myWin.update()
+    myWin.flip()
     
 #report the mean time afterwards
 print 'total time=', myClock.getTime()

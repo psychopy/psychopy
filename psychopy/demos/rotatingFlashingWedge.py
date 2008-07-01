@@ -22,7 +22,7 @@ while t<5:#for 5 secs
         
     stim.setOri(t*rotationRate*360.0)
     stim.draw()
-    win.update()
+    win.flip()
     
 win.close()
 print win.fps()

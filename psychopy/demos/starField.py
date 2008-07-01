@@ -27,7 +27,7 @@ for frameN in range(400):
         dot.setPos( (dotsX[dotN], dotsY[dotN]) )
         dot.draw()
     
-    win.update()
+    win.flip()
     win.getMovieFrame()
     
 win.saveMovieFrames('starfield.mpg')    

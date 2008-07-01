@@ -16,15 +16,15 @@ from numpy import sin, cos, pi
 try:
     import ctypes
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
+    import _shadersPyglet
     havePyglet=True    
 except:
     havePyglet=False    
 
 try:
     import pygame
-    import OpenGL.GL
-    import OpenGL.GLU
-    import OpenGL.GL.ARB.multitexture
+    import OpenGL.GL, OpenGL.GLU, OpenGL.GL.ARB.multitexture
+    import _shadersPygame
     havePygame=True
     if OpenGL.__version__ > '3':
         cTypesOpenGL = True
@@ -32,7 +32,7 @@ try:
         cTypesOpenGL = False
 except:
     havePygame=False
-global GL, GLU, GL_multitexture #will use these later to assign the pyglet or pyopengl equivs
+global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
 
 #check for advanced drawing abilities
 #actually FBO isn't working yet so disable
@@ -41,13 +41,7 @@ try:
     haveFB=False
 except:
     haveFB=False
-#shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-try:
-    #xx=pp#prevent shaders from working for now
-    from psychopy import _shaders
-    haveShaders=True
-except:
-    haveShaders=False
+
 
 #try to get GLUT
 try:
@@ -279,7 +273,7 @@ class Window:
         if haveFB:
             #set rendering back to the framebuffer object
             FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-
+            
         #reset returned buffer for next frame
         if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
@@ -502,6 +496,7 @@ class Window:
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
         global GL, GLU, GL_multitexture
+        
         GL = OpenGL.GL
         GLU = OpenGL.GLU
         GL_multitexture = OpenGL.GL.ARB.multitexture
@@ -542,7 +537,9 @@ class Window:
             #self.scrWidthCM = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH_MM)/10.0
         #print 'screen width: ', self.scrWidthCM, 'cm, ', self.scrWidthPIX, 'pixels'
     def _setupGL(self):
-        global haveShaders
+        global haveShaders, _shaders
+        if self.winType=='pyglet': _shaders=_shadersPyglet
+        else: _shaders=_shadersPygame
         #do settings for openGL
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
         GL.glClearDepth(1.0)
@@ -566,13 +563,14 @@ class Window:
 
         if self.winType!='pyglet':
             GL_multitexture.glInitMultitextureARB()
-
-        if haveShaders:
-            try:
-                self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
-                self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-            except: 
-                haveShaders=False #they didn't compile - probably no OpenGL2.0 drivers (but PyOpenGL3 installed)
+        
+        try:
+            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
+            self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+            #print "successfully compiled shaders"
+            haveShaders=True 
+        except: 
+            haveShaders=False #they didn't compile - probably no OpenGL2.0 drivers (but PyOpenGL3 installed)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
         if sys.platform=='darwin':
@@ -792,7 +790,7 @@ class DotStim:
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
+        this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
@@ -1120,7 +1118,7 @@ class PatchStim:
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
+        this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
@@ -1907,7 +1905,7 @@ class RadialStim(PatchStim):
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
+        this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         
@@ -2712,7 +2710,7 @@ class TextStimGLUT:
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
+        this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         
@@ -2991,8 +2989,9 @@ class TextStim:
         GL.glPushMatrix()
 
         #setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTex)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
+        #no need to do texture maths so no need for programs?
+        GL.glUseProgram(0)#self.win._progSignedTex)
+        #GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
         
         #coords:
         if self.alignHoriz =='center': left = -self.width/2.0;    right = self.width/2.0
@@ -3003,24 +3002,26 @@ class TextStim:
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
         Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
-
-        if self.win.winType=="pyglet":
-            #unbind the main texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
-        else:
-            #bind the appropriate main texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        
         #unbind the mask texture regardless
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        if self.win.winType=="pyglet":
+            #unbind the main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glEnable(GL.GL_TEXTURE_2D)
+        else:
+            #bind the appropriate main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)            
+            GL.glEnable(GL.GL_TEXTURE_2D)
             
         if self.win.winType=="pyglet":
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
             self._pygletTextObj.draw()
         else:
             GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
@@ -3147,7 +3148,7 @@ class TextStim:
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.update() if you want the
+        this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         

@@ -42,7 +42,7 @@ staircase = data.StairHandler(startVal = 20.0,
 message1.draw()
 message2.draw()
 fixation.draw()
-win.update()
+win.flip()
 #check for a keypress
 event.waitKeys()
 
@@ -59,13 +59,13 @@ for thisIncrement in staircase: #will step through the staircase
     foil.draw()
     target.draw()
     fixation.draw()
-    win.update()
+    win.flip()
 
     core.wait(0.5)#wait 500ms (use a loop of x frames for more accurate timing)
 
     #blank screen
     fixation.draw()
-    win.update()
+    win.flip()
 
     #get response
     thisResp=None

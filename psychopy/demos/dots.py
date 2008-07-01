@@ -3,7 +3,7 @@ from psychopy import visual, event, core
 
 #create a window to draw in
 myWin =visual.Window((600,600), allowGUI=False,
-    bitsMode=None, units='norm')
+    bitsMode=None, units='norm', winType='pyglet')
 
 #INITIALISE SOME STIMULI
 dotPatch =visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
@@ -16,7 +16,7 @@ trialClock =core.Clock()
 while True:#quits after 20 secs
     dotPatch.draw()
     message.draw()
-    myWin.update()#redraw the buffer
+    myWin.flip()#redraw the buffer
 
     #handle key presses each frame
     for key in event.getKeys():

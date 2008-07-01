@@ -20,7 +20,7 @@ while t<60:#quits after 20 secs
     t=trialClock.getTime()
     dotPatch.draw()	
     message.draw()
-    myWin.update()#redraw the buffer
+    myWin.flip()#redraw the buffer
     
     #handle key presses each frame
     for key in event.getKeys():

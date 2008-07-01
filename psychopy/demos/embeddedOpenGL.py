@@ -24,7 +24,7 @@ def drawStuff():
     
     a_blob.draw()
     
-    myWin.update()
+    myWin.flip()
  
 drawStuff()
 core.wait(2)

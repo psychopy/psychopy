@@ -18,7 +18,7 @@ while True:
     win.bits.setContrast(newContr)# see http://www.psychopy.org/reference/
     #draw gratings and update screen
     grating.draw()
-    win.update()
+    win.flip()
     
     #check for a keypress
     if event.getKeys():
@@ -30,6 +30,6 @@ while True:
 
 win.bits.setContrast(1)
 
-win.update()
+win.flip()
 
 core.quit()

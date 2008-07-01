@@ -30,7 +30,7 @@ while True: #ie forever
     second.setOri(secPos)
     second.draw()
     
-    win.update()
+    win.flip()
     if 'q' in event.getKeys():
         break
     event.clearEvents()

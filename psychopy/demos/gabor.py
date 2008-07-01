@@ -24,4 +24,4 @@ while trialClock.getTime()<20:
             myWin.close()
             core.quit()
          
-   myWin.update()
+   myWin.flip()

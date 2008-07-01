@@ -33,7 +33,7 @@ while True:
         message.setText("%ifps, [Esc] to quit" %lastFPS)
     message.draw()
 
-    myWin.update()
+    myWin.flip()
 
     #handle key presses each frame
     for keys in event.getKeys():

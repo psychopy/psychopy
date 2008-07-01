@@ -34,7 +34,7 @@ while t<20:#quits after 20 secs
     
     message.draw()
     
-    myWin.update()          #update the screen
+    myWin.flip()          #update the screen
 
     #handle key presses each frame
     for keys in event.getKeys():
