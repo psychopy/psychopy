@@ -1,7 +1,7 @@
 """Load and play sounds (wraps pygame.mixer)
 """
 
-import numpy
+import numpy, threading, time
 import logging #will be the psychopy.logging module
 from os import path 
 from string import capitalize
@@ -10,11 +10,11 @@ from psychopy import event
 
 try:
     import pyglet
-    if pyglet.version<'1.1': #pyglet.resource was new and new event dispatching model
-        print "\nYou need pyglet v1.1 or above to use sounds\n"
-        sys.exit(0)
+    #if pyglet.version<'1.1': #pyglet.resource was new and new event dispatching model
+        #print "\nYou need pyglet v1.1 or above to use sounds\n"
+        #sys.exit(0)
     import pyglet.media.procedural
-    import pyglet.media, pyglet.resource
+    import pyglet.media#, pyglet.resource
     import ctypes, math
     havePyglet=True
 except:
@@ -38,8 +38,65 @@ else:
     mediaLocation=""
 
 if havePyglet:
+    
+    class _EventDispatchThread(threading.Thread):    
+        """a thread that will periodically call to dispatch events
+        """
+        """I've tried doing this in a way that the thread was started and stopped repeatedly
+        (so could be paused while a sound wasn't needed, but never made it work.
+        see sound.py in SVNr85 for the attempt."""
+        def __init__(self, pollingPeriod=0.005):
+            threading.Thread.__init__ ( self )
+            self.pollingPeriod=pollingPeriod
+            self.running = -1
+        def run(self):
+            self.running=1
+            #print 'thread started'
+            while self.running:
+                #print self.pollingPeriod
+                pyglet.media.dispatch_events()
+                time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
+            #print 'thread stopped'
+            self.running=-1#shows that it is fully stopped
+        def stop(self):
+            self.running=0#make a request to stop on next entry
+        def setPollingPeriod(self, period):
+            #print 'polling period is now:%.3f' %period
+            self.pollingPeriod=period
+            
     global _eventThread
-    _eventThread = event._EventDispatchThread()
+    _eventThread = _EventDispatchThread(pollingPeriod=0.001)
+    
+    def setEventPollingPeriod(period):
+        """For pylget contexts this sets the frequency that events controlling sound start and stop
+        are processed in seconds.
+        
+        A long period (e.g. 0.1s) will allow more time to be spent on drawing functions and computations,
+        whereas a very short time (e.g. 0.0001) will allow more precise starting/stopping of audio stimuli..
+        
+        Events will always be polled on every screen refresh anyway, and repeatedly during 
+        calls to event.waitKeys() so this command has few effects on anything other than for very
+        precise sounds.
+        """
+        global _eventThread
+        _eventThread.setPollingPeriod(period)
+    def stopEventPolling():    
+        """Stop all polling of events in a pyglet context. Events will still be dispatched on every
+        flip of a visual.Window (every 10-15ms depending on frame rate).
+        
+        The user can then dispatch events manually using 
+        pyglet.event.dispatch_events()
+        """
+        global _eventThread
+        _eventThread.stop()
+    def startEventPolling():    
+        """Restart automated event polling if it has been suspended.
+        This call does nothing if the polling had been 
+        """
+        global _eventThread
+        if _eventThread.stopping:
+            _eventThread.start()
+            
     class _pygletArrSound(pyglet.media.procedural.ProceduralSource):
         """
         Create a pyglet.StaticSource from a numpy array. 
@@ -54,7 +111,7 @@ if havePyglet:
                 self.allData = (data*127+127).astype(numpy.uint8)
             elif abs(sample_size) == 16:      #signed int16
                 self.allData = (data*32767).astype(numpy.int16)
-            print "created pyglet sound"
+            #print "created pyglet sound"
         def _generate_data(self, bytes, offset):
             #print 'bps', self._bytes_per_sample, bytes
             if self._bytes_per_sample == 1:#ubyte
@@ -124,7 +181,7 @@ class Sound:
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised) 
         """
-        global mediaLocation, usePygame
+        global mediaLocation, usePygame, _eventThread
         #check initialisation
         if (havePyglet and (mixer.get_init() is None)):
             #we have pyglet and no pygame window so use pyglet
@@ -144,7 +201,7 @@ class Sound:
             self.isStereo = True
             self.secs=secs
             self._player=pyglet.media.ManagedSoundPlayer()
-#            self._eventThread = event._EventDispatchThread(timeToRun = secs+0.1)#give ourselves an extra 100ms
+            if _eventThread.running<=0: eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
         self._snd=None
@@ -178,24 +235,29 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
-            global _eventThread
-            _eventThread.runFor(self.secs+0.1)
+            #global _eventThread
+            #_eventThread.runFor(20)
+            #_eventThread.start()
             self._player.play()
         
     def stop(self):
         """Stops the sound immediately"""
         self._snd.stop()
         
-    def fadeOut(self,mSecs):
-        """fades out the sound (when playing) over mSecs.
-        Don't know why you would do this in psychophysics but it's easy
-        and fun to include as a possibility :)
-        """
-        self._snd.fadeout(mSecs)
+    #def fadeOut(self,mSecs):
+        #"""fades out the sound (when playing) over mSecs.
+        #Don't know why you would do this in psychophysics but it's easy
+        #and fun to include as a possibility :)
+        #"""
+        #self._snd.fadeout(mSecs)
         
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
-        return self._snd.get_volume()
+        global usePygame
+        if usePygame:
+            return self._snd.get_volume()
+        else:
+            return self._player.volume
     
     def setVolume(self,newVol):
         """Sets the current volume of the sound (0.0:1.0)"""

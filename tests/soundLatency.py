@@ -3,7 +3,7 @@ from sys import platform
 from psychopy import sound,core,visual,event
 if platform=="win32": from psychopy import _parallel
 import pyglet.media
-#event.setEventPollingPeriod(0.001)
+#sound.setEventPollingPeriod(0.0001) #this gives priority to sound over drawing but isn't necessary
 
 winType = 'pyglet'
 LPT1 = 0x378#address for parallel port on many machines
@@ -26,4 +26,4 @@ win.update()#draw black screen and set parallel low
 if platform=="win32": _parallel.out(LPT1, 0)#sets all pins low
 core.wait(2)#wait for sound to finish
 
-#core.quit()
+core.quit()

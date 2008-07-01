@@ -6,16 +6,19 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 PsychoPy 0.94.0:
 * **pyglet:**
+  * creating sounds in pyglet starts a separate thread. If you use sounds in your script you must
+     call core.quit() when you're done to exit the system (or this background thread will continue).
+  * sounds are buffered faster and more precisely (16ms with <0.1ms variability on my system)
   * pyglet window.setGamma and setGammaRamp working on win and mac (NOT LINUX)
   * pyglet event.Mouse complete (and supports wheel as well as buttons)
   * pyglet is now the default context. pygame will be used if explicitly called or if pyglet (v1.1+) isn't found
-  * pyglet get/save movie frames now works
+  * pyglet can now get/save movie frames (like pygame)
   * can use multiple windows and multiple screens (see screensAndWindows demo)
+  * fonts look a bit bigger (but much cleaner)
 * removed the C code extensions in favour of ctypes (so compiler no longer necessary)
 * converted "is" for "==" where appropriate (thanks Luca)
 * Window.getMovieFrame now takes a buffer argument ('front' or 'back')
 * monitor calibration files now stored in HOME/.psychopy/monitors rather than site-packages
-* working on a application-deployable version (not ready yet...)
 
 PsychoPy 0.93.6:
 * bug fixes for OS X 10.5 and ctypes OpenGL

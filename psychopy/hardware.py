@@ -1,4 +1,4 @@
-from psychopy import serial, core
+from psychopy import serial, core, log
 import struct, sys
   
 

@@ -10,7 +10,8 @@ Various useful functions for creating filters:
 
 import numpy    
 import Image
-		
+from psychopy import log
+
 def makeGrating(res,
 		ori=0.0,    #in degrees
 		cycles=1.0,

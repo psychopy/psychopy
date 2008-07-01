@@ -25,32 +25,6 @@ if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False   
 
 if havePyglet:
-    class _EventDispatchThread(threading.Thread):    
-        #a thread that will periodically call to dispatch events
-        def __init__(self, pollingPeriod=0.01):
-            threading.Thread.__init__ ( self )
-            self.pollingPeriod=pollingPeriod
-            self.runUntil = 0
-            self.start()
-        def run(self):
-            print 'started'
-            while time.time()<self.runUntil:
-                print "%.1f" %(self.runUntil%30), 
-                pyglet.media.dispatch_events()
-                time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
-            print '\nstopped'
-            self.runUntil=-1#shows that it is fully stopped
-        def runFor(self, runTime):
-            """start (or continue) running for the given time"""
-            print 'updating runfor...'
-            prevRunUntil = self.runUntil
-            self.runUntil = max([self.runUntil, runTime+time.time()])
-            if prevRunUntil<=0:#we aren't running so start
-                self.run()
-        def stop(self):
-            self.runUntil=0#make a request to stop on next entry
-        def setPollingPeriod(self, period):
-            self.pollingPeriod=period
             
     global _keyBuffer
     _keyBuffer = []
@@ -61,36 +35,6 @@ if havePyglet:
     #global eventThread
     #eventThread = _EventDispatchThread()
     #eventThread.start()
-
-#def setEventPollingPeriod(period):
-    #"""For pylget contexts this sets the frequency that events (mouse, keyboard,
-    #sound production) are processed in seconds. 
-    
-    #A long period will allow more time to be spent on drawing functions and computations,
-    #whereas a very short time will allow more precise starting/stopping of audio stimuli and 
-    #retrieval of mouse and keyboard events.
-    
-    #Events will always be polled on every screen refresh anyway, and repeatedly during 
-    #calls to event.waitKeys() so this will have no effect on those.
-    #"""
-    #global eventThread
-    #eventThread.setPollingPeriod(period)
-#def stopEventPolling():    
-    #"""Stop all polling of events in a pyglet context. Events will still be dispatched on every
-    #flip of a visual.Window (every 10-15ms depending on frame rate).
-    
-    #The user can then dispatch events manually using 
-    #pyglet.event.dispatch_events()
-    #"""
-    #global eventThread
-    #eventThread.stop()
-#def startEventPolling():    
-    #"""Restart automated event polling if it has been suspended.
-    #This call does nothing if the polling had been 
-    #"""
-    #global eventThread
-    #if eventThread.stopping:
-        #eventThread.start()
 
 def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet

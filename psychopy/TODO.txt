@@ -4,8 +4,6 @@ pyglet back-end
  - fontstim, 
      - handle text frames (wrapping)
  - _shaders.py needs to know whether to use pyglet.GL or pygame?
- - running the pyglet window after a wx dlg
- - sound initialisation (trying to start pygame still)
  
 clean up _parallel.py to make parallel.py
 getInfo script
