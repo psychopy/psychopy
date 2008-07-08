@@ -1,13 +1,14 @@
 ##-----------------------------
 ##Windows post install (shortcuts etc...)
 ##-----------------------------
-import sys
+import sys, glob
 def install():
     import os
     try:
         print "Adding shortcuts to >>Start>Programs>PsychoPy"
         progsFolder= get_special_folder_path("CSIDL_COMMON_PROGRAMS")
         sitePackages = os.path.join(sys.prefix , 'lib','site-packages')
+        demosFolder = os.path.join(sys.prefix , 'lib','site-packages', 'psychopy', 'demos')
         
         #Psychopy Programs folder
         psychopyShortcuts = os.path.join(progsFolder, 'PsychoPy')
@@ -49,8 +50,13 @@ def install():
         create_shortcut(r"http://www.psychopy.org",
                             'PsychoPy HomePage', homePageLink)
         file_created(homePageLink)
-           
+        
         print "All done. Enjoy!"
+        
+        #remove outdated demo files
+        oldDemos = glob.glob(demosFolder+"//demo_*")
+        for file in oldDemos:
+            os.remove(file)
         
     except:
         print "failed to install shortcuts"

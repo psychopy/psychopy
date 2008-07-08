@@ -23,7 +23,7 @@ join = os.path.join
 if sys.platform=='win32':
     monitorFolder = os.path.join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
 else:
-    monitorFolder = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
+    monitorFolder = join(os.environ['HOME'],'.PsychoPy', 'monitors') #this is the folder that this file is stored in
 if not os.path.isdir(monitorFolder):
     os.mkdir(monitorFolder)
     

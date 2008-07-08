@@ -43,7 +43,7 @@ while True: #continue until keypress
     
     #do the drawing
     fixSpot.draw()
-    grating.setPhase(0.05, '+')#advance 0.1cycles per frame
+    grating.setPhase(0.05, '+')#advance 0.05cycles per frame
     grating.draw()
     message.draw()
     myWin.flip()#redraw the buffer

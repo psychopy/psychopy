@@ -36,7 +36,8 @@ class Dlg(wx.Dialog):
         try:
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         except:
-            self.app = wx.PySimpleApp()
+            global app
+            app = wx.PySimpleApp()
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         self.inputFields = []
         self.inputFieldTypes= []
