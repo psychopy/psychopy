@@ -624,7 +624,46 @@ class Window:
         self.mouseVisible = visibility
     
 #############################################################################
-
+class _BaseStim:
+    """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
+    """
+    def __init__(self):
+        raise NotImplementedError('abstract')
+    def setPos(self):
+        raise NotImplementedError('abstract')
+    def setSize(self):
+        raise NotImplementedError('abstract')
+    def setOri(self):
+        raise NotImplementedError('abstract')
+    def setRGB(self):
+        raise NotImplementedError('abstract')
+    def draw(self):
+        raise NotImplementedError('abstract')
+    def _set(self, attrib, val, op=''):
+        """
+        Deprecated. Use methods specific to the parameter you want to set
+        
+        e.g. ::
+        
+        	stim.setPos([3,2.5])
+                stim.setOri(45)
+                stim.setPhase(0.5, "+")
+                
+        NB this method does not flag the need for updates any more - that is 
+        done by specific methods as described above.
+        """
+        if op is None: op=''
+        #format the input value as float vectors
+        if type(val) in [tuple,list]:
+            val=numpy.asarray(val,float)
+        
+        if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
+            exec('self.'+attrib+'*=0') #set all values in array to 0
+            exec('self.'+attrib+'+=val') #then add the value to array
+        else:
+            exec('self.'+attrib+op+'=val')
+        
+            
 class DotStim:
     """
     This stimulus class defines a field of dots, all with the same speed
@@ -876,7 +915,7 @@ class DotStim:
             self._opacity = numpy.where(dotDist<1.0, self.opacity, 0.0)
 
 
-class PatchStim:
+class PatchStim(_BaseStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
 
@@ -1004,6 +1043,8 @@ class PatchStim:
 
         """
         global haveShaders
+        self._haveShaders=haveShaders
+        
         self.win = win
         assert isinstance(self.win, Window)
 
@@ -1018,7 +1059,7 @@ class PatchStim:
         self.interpolate=interpolate
 
         #use different functions on systems without OpenGL2.0
-        if not haveShaders:
+        if not self._haveShaders:
             self._setTex = self._setTexNoShaders
             self._setMask = self._setMaskNoShaders
             self._updateList = self._updateListNoShaders
@@ -1088,10 +1129,13 @@ class PatchStim:
         self._set('ori', value, operation)
     def setSF(self,value,operation=None):
         self._set('sf', value, operation)
+        self.needUpdate = 1
     def setSize(self,value,operation=None):
         self._set('size', value, operation)
+        self.needUpdate = 1
     def setPhase(self,value, operation=None):
         self._set('phase', value, operation)
+        self.needUpdate = 1
     def setPos(self,value,operation=None):
         self._set('pos', value, operation)
     def setDKL(self, value, operation=None):
@@ -1104,14 +1148,23 @@ class PatchStim:
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
     def setRGB(self,value, operation=None):
         self._set('rgb', value, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._haveShaders:
+            self._setTex(self._texName)
     def setContrast(self,value,operation=None):
         self._set('contrast', value, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._haveShaders:
+            self._setTex(self._texName)
     def setOpacity(self,value,operation=None):
         self._set('opacity', value, operation)
-    def setTex(self,value,operation=None):
-        self._set('tex', value, operation)
-    def setMask(self,value, operation=None):
-        self._set('mask', value, operation)
+        #opacity is coded by the texture, if not using shaders
+        if not self._haveShaders:
+            self._setMask(self._maskName)
+    def setTex(self,value):
+        self._setTex(self._texName)
+    def setMask(self,value):
+        self._setMask(self.__maskName)
     def setDepth(self,value, operation=None):
         self._set('depth', value, operation)
 
@@ -1153,50 +1206,6 @@ class PatchStim:
 
         #return the view to previous state
         GL.glPopMatrix()
-
-    def _set(self, attrib, val, op=''):
-        """Use this to set attributes of your stimulus after initialising it.
-
-        **arguments:**
-            - attrib = a string naming any of the attributes of the stimulus (set during init)
-            - val = the value to be used in the operation on the attrib
-            - op = a string representing the operation to be performed (optional) most maths operators apply ('+','-','*'...)
-
-        **examples:**
-            - myStim.set('rgb',0) #will simply set all guns to zero (black)
-            - myStim.set('rgb',0.5,'+') #will increment all 3 guns by 0.5
-            - myStim.set('rgb',(1.0,0.5,0.5),'*') # will keep the red gun the same and halve the others
-
-        """
-        global haveShaders
-        if op is None: op=''
-        #format the input value as float vectors
-        if type(val) in [tuple,list]:
-            val=numpy.asarray(val,float)
-        #handle special cases for texture/mask alterations
-        if attrib in ['tex']:#we will need to update the texture
-            exec('self.'+attrib+op+'=val')
-            self._setTex(self._texName)
-        elif attrib in ['mask']:#we'll need to update the mask
-            exec('self.'+attrib+op+'=val')
-            self._setMask(self.__maskName)
-        else:#just change the setting
-            if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
-                exec('self.'+attrib+'*=0') #set all values in array to 0
-                exec('self.'+attrib+'+=val') #then add the value to array
-            else:
-                exec('self.'+attrib+op+'=val')
-        #flag the update
-        if attrib in ['phase', 'sf', 'size']:
-            #these all need an update of the drawing list
-            #(not needed for pos or ori, which are determined during draw())
-            self.needUpdate = 1
-        if not haveShaders and (attrib in ['rgb','dkl','lms','contrast']):
-            #if not using shaders we need to recreate the texture
-            self._setTex(self._texName)
-        if not haveShaders and (attrib in ['opacity']):
-            #if not using shaders we need to recreate the texture
-            self._setMask(self._maskName)
 
     def _updateList(self):
         """
@@ -1668,9 +1677,11 @@ class PatchStim:
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
 
-AlphaStim=copy.copy(PatchStim) #but may one day be deprecated as an unintuitive name
-AlphaStim.__doc__ = "OBSELETE. Use PatchStim instead/n/n"
-
+class AlphaStim(PatchStim):
+    """DEPRECATED. Use PatchStim instead/n/n"""
+    def __init__(self, *arguments, **keywords):
+        PatchStim.__init__(self, *arguments, **keywords)
+        
 class RadialStim(PatchStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
     a checkerboard etc...
@@ -1943,47 +1954,6 @@ class RadialStim(PatchStim):
 
         #return the view to previous state
         GL.glPopMatrix()
-
-    def _set(self, attrib, val, op=''):
-        """Use this to set attributes of your stimulus after initialising it.
-
-        **arguments:**
-            - attrib = a string naming any of the attributes of the stimulus (set during init)
-            - val = the value to be used in the operation on the attrib
-            - op = a string representing the operation to be performed (optional) most maths operators apply ('+','-','*'...)
-
-        **examples:**
-            - myStim.set('rgb',0) #will simply set all guns to zero (black)
-            - myStim.set('rgb',0.5,'+') #will increment all 3 guns by 0.5
-            - myStim.set('rgb',(1.0,0.5,0.5),'*') # will keep the red gun the same and halve the others
-
-        """
-        global haveShaders
-        if op is None: op=''
-        #format the input value as float vectors
-        if type(val) in [tuple,list]:
-            val=numpy.asarray(val,float)
-
-        #handle special cases for texture/mask alterations
-        if attrib in ['tex']:#we will need to update the texture
-            exec('self.'+attrib+op+'=val')
-            self._setTex(self._texName)
-        elif attrib in ['mask']:#we'll need to update the mask
-            exec('self.'+attrib+op+'=val')
-            self._setMask(self.__maskName)
-        else:#just change the setting
-            if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
-                exec('self.'+attrib+'*=0') #set all values in array to 0
-                exec('self.'+attrib+'+=val') #then add the value to array
-            else:
-                exec('self.'+attrib+op+'=val')
-
-        if not haveShaders and (attrib in ['rgb','dkl','lms','contrast']):
-            #if not using shaders we need to recreate the texture
-            self._setTex(self._texName)
-        if not haveShaders and (attrib in ['opacity']):
-            #if not using shaders we need to recreate the texture
-            self._setMask(self._maskName)
 
     def _updateXY(self):
         """Update if the SIZE changes"""
@@ -2732,7 +2702,7 @@ class TextStimGLUT:
         GL.glCallList(self._listID)
         GL.glPopMatrix()#push before the list, pop after
 
-class TextStim:
+class TextStim(_BaseStim):
     """Class of text stimuli to be displayed in a **Window()**
 
     **Written:**
@@ -2808,6 +2778,7 @@ class TextStim:
                     A list of additional files if the font is not in the standard system location (include the full path)
         """
         global haveShaders
+        self._haveShaders=haveShaders
         self.win = win
         self.needUpdate =1
         self.opacity= opacity
@@ -2866,40 +2837,18 @@ class TextStim:
 
         self.needUpdate=True
 
-    def _set(self,attrib,val,op=''):
-        global haveShaders
-        #can handle single value in -> multi out (e.g. size->h,w)
-        if attrib=='text':       
-            self.setText(val)            
-        elif attrib=='font':    
-            self.setFont(val)           
-            self.setText(self.text)#if we update the font we need to re-render the text
-        elif op=='' or op==None:
-            exec('self.'+attrib+'*=0') #set all values in array to 0
-            exec('self.'+attrib+'+=val') #then add the value to array
-        else:
-            exec('self.'+attrib+op+'=val')
-
-        #do we need to render the texture again?
-        if (not haveShaders and (attrib in ['rgb','contrast','opacity'])):
-            self.setText(self.text)#need to render the text again to a texture
-
-    def set(self, attrib, val, op=''):
-        """DEPRECATED
-        TextStim.set() is obselete and may not be supported in future
-        versions of PsychoPy. Use the specific method for each parameter instead
-        (e.g. setOri(), setText()...)
-        """
-        self._set(attrib, val, op)
-
     def setOri(self,value,operation=None):
         self._set('ori', value, operation)
     def setPos(self,value,operation=None):
         self._set('pos', value, operation)
     def setRGB(self,value, operation=None):
         self._set('rgb', value, operation)
+        if not self._haveShaders:
+            self.setText(self.text)#need to render the text again to a texture
     def setOpacity(self,value,operation=None):
         self._set('opacity', value, operation)
+        if not self._haveShaders:
+            self.setText(self.text)#need to render the text again to a texture
     def setFont(self, font):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -2943,7 +2892,7 @@ class TextStim:
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         self.needUpdate = True
 
-    def setText(self,value,operation=None):
+    def setText(self,value):
         """Set the text to be rendered using the current font
         """
         self.text = value

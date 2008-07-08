@@ -6,6 +6,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 PsychoPy 0.94.1:
 * FIXED linux bug preventing repeated dialogs (thanks Luca Citi)
+* REWRITTEN stimuli to use _BaseClass, defining ._set() method
 
 !!!PsychoPy 0.94.0:
 * pyglet:

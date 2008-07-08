@@ -37,7 +37,9 @@ def setData(data):
     
 def setPin(pinNumber, state):
     """Set a desired pin to be high(1) or low(0).
-    Only pins 2-9 (incl) are normally used for data output.
+    
+    Only pins 2-9 (incl) are normally used for data output::
+    
         parallel.setPin(3, 1)#sets pin 3 high
         parallel.setPin(3, 0)#sets pin 3 low
     """

@@ -1116,8 +1116,9 @@ def bootStraps(dat, n=1):
 def functionFromStaircase(intensities, responses, bins = 10):
     """Create a psychometric function by binning data from a staircase procedure
     
-    usage:
-    	`[intensity, meanCorrect, n] = functionFromStaircase(intensities, responses, bins)`
+    usage::
+    
+    	[intensity, meanCorrect, n] = functionFromStaircase(intensities, responses, bins)
         
     where:
             intensities 
