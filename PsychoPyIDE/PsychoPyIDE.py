@@ -8,7 +8,7 @@ if wx.__version__<'2.8':
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob
 import threading, traceback, bdb
-import psychopy, pygame
+import psychopy
 from psychopy import misc
 import psychoParser
 import introspect, py_compile
@@ -183,7 +183,7 @@ class ModuleLoader(threading.Thread):
     #a threading class to run the scripts
     def __init__(self, parent):
         self.parent=parent#parent should be the main frame
-        assert isinstance(self.parent, StationMainFrame)
+        assert isinstance(self.parent, IDEMainFrame)
         self.complete=False
         self.run()
     def run(self):    
@@ -210,7 +210,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         #JWP additions
         self.parent=parent
         self.frame = frame
-        assert isinstance(self.frame, StationMainFrame)
+        assert isinstance(self.frame, IDEMainFrame)
         self.UNSAVED=False
         self.filename=""
         self.AUTOCOMPLETE = True
@@ -1003,12 +1003,12 @@ def makeAccelTable():
     return table
    
 
-class StationMainFrame(wx.Frame):
+class IDEMainFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[]):
         optionsPath = os.path.join(appDir, 'options.pickle')
-        if os.path.isfile(optionsPath):
+        try:
             self.options = misc.fromFile(optionsPath)
-        else: 
+        except: 
             self.options={}
             self.options['winSize']=[800,800]
             self.options['winPos']=wx.DefaultPosition
@@ -1040,12 +1040,14 @@ class StationMainFrame(wx.Frame):
                          size=self.options['winSize']) #the size settingdoesn't work but using the aui manager we can recover previous size
 
         #create icon
-        iconFile = os.path.join(appDir, 'psychopy.ico')
-        if os.path.isfile(iconFile):
-            try:
+        if sys.platform=='darwin':
+            pass
+#            iconFile = os.path.join(appDir,'Resources', 'psychopy.png')
+#            self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_PNG))
+        else:
+            iconFile = os.path.join(appDir, 'psychopy.ico')
+            if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
-            except:
-                pass
         wx.EVT_CLOSE(self, self.quit)
         wx.EVT_IDLE(self, self.onIdle)
         self.SetAcceleratorTable(makeAccelTable())
@@ -1791,7 +1793,7 @@ class StationMainFrame(wx.Frame):
         self.toolbar.EnableTool(TB_STOP,False)
 
         
-class StationApp(wx.App):
+class IDEApp(wx.App):
     def OnInit(self):
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
@@ -1800,7 +1802,7 @@ class StationApp(wx.App):
                 args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
         else:
             args=[]
-        self.frame = StationMainFrame(None, -1, 
+        self.frame = IDEMainFrame(None, -1, 
                                       title="PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__,
                                       files = args)
         splash = PsychoSplashScreen(self.frame)
@@ -1810,7 +1812,10 @@ class StationApp(wx.App):
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
         return True
-
+    def MacOpenFile(self,fileName):
+        print fileName
+        self.frame.setCurrentDoc(fileName)
+        
 if __name__=='__main__':
-    app = StationApp(0)
+    app = IDEApp(0)
     app.MainLoop()
