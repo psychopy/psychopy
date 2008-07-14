@@ -20,6 +20,10 @@ fullAppPath= os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)
 psychopyDir, junk = os.path.split(psychopy.__file__)
 
+if os.path.isdir(os.path.join(appDir, 'Resources')):
+    iconDir = os.path.join(appDir, 'Resources')
+else:iconDir = appDir
+
 RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
 IMPORT_LIBS='thread'# should be 'thread' or 'inline'
 USE_NOTEBOOK_PANEL=False
@@ -258,9 +262,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,     wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
-                    
+        
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         
@@ -884,8 +888,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         
         
 class stdOutRich(wx.richtext.RichTextCtrl):
-    def __init__(self, parent, style):
-        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+    def __init__(self, parent, style, size):
+        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.parent=parent
         
@@ -939,13 +943,7 @@ class PsychoSplashScreen(wx.SplashScreen):
         # This is a recipe to a the screen.
         # Modify the following variables as necessary.
         self.parent=parent
-        if os.path.isfile(os.path.join(appDir, 'psychopySplash.png')):
-            splashFile = os.path.join(appDir, 'psychopySplash.png')#on mac the .app will move it
-        elif os.path.isfile(os.path.join(appDir, 'Resources', 'psychopySplash.png')):
-            splashFile = os.path.join(appDir, 'Resources', 'psychopySplash.png')
-        else:
-            print "Couldn't find splash screen"
-            return False
+        splashFile = os.path.join(iconDir, 'psychopySplash.png')
         aBitmap = wx.Image(name = splashFile).ConvertToBitmap()
         splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.NO_BORDER
         # Call the constructor with the above arguments in exactly the
@@ -1011,22 +1009,30 @@ class IDEMainFrame(wx.Frame):
         except: 
             self.options={}
             self.options['winSize']=[800,800]
-            self.options['winPos']=wx.DefaultPosition
             self.options['analyseAuto']=True
-            self.options['showOutput']=True
-            self.options['showSourceAsst']=True
-            self.options['prevFiles']=[]
+            self.options['showOutput']=True   
             self.options['auiPerspective']=None
-            self.options['recentFiles']={}
+            self.options['winPos']=wx.DefaultPosition
+            self.options['recentFiles']={}    
+            self.options['prevFiles']=[]
+            if sys.platform=='darwin':
+                self.options['showSourceAsst']=False  
+            else:
+                self.options['showSourceAsst']=True
         
         if False:# force reinitialise (don't use file)
+            self.options={}
             self.options['winSize']=[800,800]
             self.options['analyseAuto']=True
-            self.options['showOutput']=True
-            self.options['showSourceAsst']=True
+            self.options['showOutput']=True   
             self.options['auiPerspective']=None
             self.options['winPos']=wx.DefaultPosition
-            self.options['recentFiles']={}
+            self.options['recentFiles']={}   
+            self.options['prevFiles']=[]        
+            if sys.platform=='darwin':
+                self.options['showSourceAsst']=False  
+            else:
+                self.options['showSourceAsst']=True
         self.currentDoc=None
         self.ignoreErrors = False
         
@@ -1041,9 +1047,7 @@ class IDEMainFrame(wx.Frame):
 
         #create icon
         if sys.platform=='darwin':
-            pass
-#            iconFile = os.path.join(appDir,'Resources', 'psychopy.png')
-#            self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_PNG))
+            pass#doesn't work and not necessary - handled by application bundle
         else:
             iconFile = os.path.join(appDir, 'psychopy.ico')
             if os.path.isfile(iconFile):
@@ -1063,7 +1067,7 @@ class IDEMainFrame(wx.Frame):
         self.scriptProcess=None
         self.scriptProcessID=None
         self.db = None#debugger
-        
+        self._lastCaretPos=None
         
         #setup statusbar
         self.CreateStatusBar()
@@ -1109,7 +1113,7 @@ class IDEMainFrame(wx.Frame):
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = stdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.outputWindow = stdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
         self.paneManager.AddPane(self.outputWindow, 
                                  wx.aui.AuiPaneInfo().
                                  Name("Output").Caption("Output").
@@ -1144,7 +1148,6 @@ class IDEMainFrame(wx.Frame):
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
-        self.SetMenuBar(menuBar)
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
@@ -1255,7 +1258,7 @@ class IDEMainFrame(wx.Frame):
         wx.EVT_MENU(self, ID_PSYCHO_TUTORIAL, self.followLink)
         
         self.demosMenu = wx.Menu()
-        
+        menuBar.Append(self.demosMenu, '&Demos') 
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(demos[thisID])
             self.demosMenu.Append(thisID, shortname)
@@ -1268,36 +1271,27 @@ class IDEMainFrame(wx.Frame):
         self.helpMenu.Append(ID_LICENSE, "License...", "PsychoPy License")
         wx.EVT_MENU(self, ID_LICENSE, self.showLicense)
         
+        self.SetMenuBar(menuBar)
+        
     def makeToolbar(self):
         #---toolbar---#000000#FFFFFF----------------------------------------------
         self.toolbar = self.CreateToolBar( (wx.TB_HORIZONTAL
             | wx.NO_BORDER
             | wx.TB_FLAT))
-        if wx.Platform == '__WXMAC__':
-            tsize=(16,16)
-        else:	
-            tsize = (16,16) 
+            
+        tsize=(16,16)    
         self.toolbar.SetToolBitmapSize(tsize)
-        #toolbar icons - use wx.ArtProvider where possible
-        new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
-        open_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize)
-        save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, tsize)
-        undo_bmp = wx.ArtProvider.GetBitmap(wx.ART_UNDO, wx.ART_TOOLBAR, tsize)
-        redo_bmp = wx.ArtProvider.GetBitmap(wx.ART_REDO, wx.ART_TOOLBAR, tsize)
-        saveAs_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE_AS, wx.ART_TOOLBAR, tsize)
-        
-        if os.path.isfile(os.path.join(appDir, 'go2.png')):
-            runBmpFile = os.path.join(appDir, 'go2.png')#the mac .app bundle will move it...?
-            run_bmp = wx.Bitmap(runBmpFile, wx.BITMAP_TYPE_PNG)
-        elif os.path.isfile(os.path.join(appDir, 'Resources', 'go2.png')):
-            runBmpFile = os.path.join(appDir, 'Resources', 'go2.png')
-            run_bmp = wx.Bitmap(runBmpFile, wx.BITMAP_TYPE_PNG)
-        if os.path.isfile(os.path.join(appDir, 'stop2.png')):
-            stopBmpFile = os.path.join(appDir, 'stop2.png')#the mac .app bundle will move it...?
-            stop_bmp = wx.Bitmap(stopBmpFile, wx.BITMAP_TYPE_PNG)
-        elif os.path.isfile(os.path.join(appDir, 'Resources', 'stop2.png')):
-            stopBmpFile = os.path.join(appDir, 'Resources', 'stop2.png')
-            stop_bmp = wx.Bitmap(stopBmpFile, wx.BITMAP_TYPE_PNG)
+        new_bmp = wx.Bitmap(os.path.join(iconDir, 'document-new.png'))
+        open_bmp = wx.Bitmap(os.path.join(iconDir, 'document-open.png'))
+        save_bmp = wx.Bitmap(os.path.join(iconDir, 'document-save.png'))
+        saveAs_bmp = wx.Bitmap(os.path.join(iconDir, 'document-save-as.png'), wx.BITMAP_TYPE_PNG)
+        new_bmp = wx.Bitmap(os.path.join(iconDir, 'document-new.png'),wx.BITMAP_TYPE_PNG)
+        undo_bmp = wx.Bitmap(os.path.join(iconDir, 'edit-undo.png'),wx.BITMAP_TYPE_PNG)
+        redo_bmp = wx.Bitmap(os.path.join(iconDir, 'edit-redo.png'),wx.BITMAP_TYPE_PNG)
+        stop_bmp = wx.Bitmap(os.path.join(iconDir, 'media-playback-stop.png'),
+          wx.BITMAP_TYPE_PNG)
+        run_bmp = wx.Bitmap(os.path.join(iconDir, 'media-playback-start.png'),
+          wx.BITMAP_TYPE_PNG)
             
         self.toolbar.AddSimpleTool(TB_FILENEW, new_bmp, "New [Ctrl+N]", "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=TB_FILENEW)
@@ -1321,6 +1315,7 @@ class IDEMainFrame(wx.Frame):
         self.toolbar.Realize()
     
     def onIdle(self, event):
+        #check the script outputs to see if anything has been written to stdout
         if self.scriptProcess is not None:
             if self.scriptProcess.IsInputAvailable():
                 stream = self.scriptProcess.GetInputStream()
@@ -1330,7 +1325,10 @@ class IDEMainFrame(wx.Frame):
                 stream = self.scriptProcess.GetErrorStream()
                 text = stream.read()
                 self.outputWindow.write(text)
-        
+        #check if we're in the same place as before
+        if (self.currentDoc is not None) and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
+            self.currentDoc.OnUpdateUI(evt=None)
+            self._lastCaretPos=self.currentDoc.GetCurrentPos()
     def pageChanged(self,event):
         old = event.GetOldSelection()
         new = event.GetSelection()
@@ -1349,8 +1347,8 @@ class IDEMainFrame(wx.Frame):
         don't kill me if something doesn't work! :-) But do let me know...
         psychopy-users@lists.sourceforge.net
         """ %psychopy.__version__
-        dlg = wx.MessageDialog(self, msg,
-                              "About PsychoPy", wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(None, message=msg,
+                              caption = "About PsychoPy", style=wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
     def showLicense(self, event):
@@ -1543,8 +1541,7 @@ class IDEMainFrame(wx.Frame):
         if filename==None: filename = self.currentDoc.filename
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=os.getcwd(), 
-            defaultFile=filename, style=wx.SAVE
-            )
+            defaultFile=filename, style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.fileSave(event=None, filename=newPath)
@@ -1552,18 +1549,21 @@ class IDEMainFrame(wx.Frame):
             path, shortName = os.path.split(newPath)
             self.notebook.SetPageText(self.notebook.GetSelection(), shortName)
             self.setFileModified(False)
-                    
+        dlg.destroy()
     def fileClose(self, event):
         filename = self.currentDoc.filename
         if self.currentDoc.UNSAVED==True:
-            dlg = wx.MessageDialog(self, 'Save changes to %s before quitting?' %filename,
-                'Warning', wx.YES_NO|wx.CANCEL )
+            sys.stdout.flush()
+            dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
+                caption='Warning', style=wx.YES_NO|wx.CANCEL )
             resp = dlg.ShowModal()
+            sys.stdout.flush()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL:
                 return 1 #return, don't quit
             elif resp == wx.ID_YES:
                 #save then quit
+                print 'saving'
                 self.fileSave(None)
             elif resp == wx.ID_NO:
                 pass #don't save just quit

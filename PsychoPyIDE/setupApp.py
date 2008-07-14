@@ -53,7 +53,7 @@ else:
                                       CFBundleExecutable         = "PsychoPyIDE",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPyIDE",
                                       CFBundleDocumentTypes=dict(CFBundleTypeExtensions='py',
-                                                                 CFBundleTypeName='Python Script',
+                                                                 #CFBundleTypeName='Python Script',
                                                                  CFBundleTypeRole='Editor'),
                                       ),                              
                               )))

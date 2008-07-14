@@ -14,7 +14,7 @@ for frameN in range(n): #for n frames
   #latter can be.
   myWin.getMovieFrame(buffer='back')
   myWin.flip()
-  
+  myW
 #save the movie in the format of your choice
 #myWin.saveMovieFrames('frame.jpg')
 #myWin.saveMovieFrames('myMovie.gif')
