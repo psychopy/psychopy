@@ -52,9 +52,9 @@ else:
                                       CFBundleGetInfoString      = "PsychoPyIDE "+psychopy.__version__,
                                       CFBundleExecutable         = "PsychoPyIDE",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPyIDE",
-                                      CFBundleDocumentTypes=dict(CFBundleTypeExtensions='py',
+                                      CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                                                  #CFBundleTypeName='Python Script',
-                                                                 CFBundleTypeRole='Editor'),
+                                                                 CFBundleTypeRole='Editor')],
                                       ),                              
                               )))
 """

@@ -5,21 +5,21 @@ and numpy.
 To get started see/run the demo scripts.
 """
 
-import string, sys
+import string, sys, os
 try: import numpy
 except: pass
 
-__version__ = '0.94.1'#string.split('$Branch: 1.19 $')[1]
+__version__ = '0.95.0'#string.split('$Branch: 1.19 $')[1]
 __date__ = string.join(string.split('$Date: 2005/08/01 15:05:34 $')[1:3], ' ')
 __author__ = 'Jon Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychpy-users@lists.sourceforge.net'
 
 # these modules are loaded by import psychopy
-from core import *
+#from core import *
 # these modules are loaded if the user performs
 # from psychopy import *
-__all__ = ["gui", "misc", "visual", "core", "event", "sound", "data", "filters"]
+__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]
 
 #set and create (if necess) the application data folder
 #this will be the 

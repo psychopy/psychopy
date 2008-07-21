@@ -16,7 +16,7 @@ try:
     #thisVersion = '0.51'
     thisVersion=psychopy.__version__ #automatically increments if permitted
 except:
-    thisVersion='0.94.0'
+    thisVersion='0.95.0'
 #define the extensions to compile if necess
   
 setup(name="PsychoPy",
@@ -26,14 +26,14 @@ setup(name="PsychoPy",
       author_email= "jon@peirce.org.uk",
       url="http://www.psychopy.org/",
       packages=['psychopy','psychopy.demos',
-        'psychopy.IDE','psychopy.IDE.Resources',
+        'PsychoPyIDE','PsychoPyIDE.Resources',
         'psychopy.ext','psychopy.serial',
         'monitors'],
       scripts = ['psychopy_post_inst.py'],
       package_data={ 'psychopy': ['*.txt'],
         'psychopy.demos':['*.jpg'],
-        'psychopy.IDE': ['*.ico'],
-        'psychopy.IDE.Resources': ['*.ico','*.png'],
+        'PsychoPyIDE': ['*.ico'],
+        'PsychoPyIDE.Resources': ['*.ico','*.png'],
         'monitors': ['*.ico'],
         'psychopy.serial':['*.txt']
         }                

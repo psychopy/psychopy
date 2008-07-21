@@ -1,12 +1,11 @@
 """Load and play sounds (wraps pygame.mixer)
 """
-
 import numpy, threading, time
 import logging #will be the psychopy.logging module
 from os import path 
 from string import capitalize
 from sys import platform, exit
-from psychopy import event
+from psychopy import event, core
 
 try:
     import pyglet
@@ -49,6 +48,7 @@ if havePyglet:
             threading.Thread.__init__ ( self )
             self.pollingPeriod=pollingPeriod
             self.running = -1
+            core.runningThreads.append(self)
         def run(self):
             self.running=1
             #print 'thread started'
@@ -202,7 +202,7 @@ class Sound:
             self.isStereo = True
             self.secs=secs
             self._player=pyglet.media.ManagedSoundPlayer()
-            if _eventThread.running<=0: eventThread.start() #start the thread if needed
+            if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
         self._snd=None

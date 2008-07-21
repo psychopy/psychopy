@@ -1,5 +1,5 @@
 #!/usr/local/bin/python2.4
-print __file__
+
 from setuptools import setup, Extension
 ################
 import glob, os
@@ -13,8 +13,7 @@ thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
 packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
-              'psychopy.IDE','psychopy.IDE.Resources',
-              'monitors']
+              'psychopyIDE','monitors']
 
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png']
 

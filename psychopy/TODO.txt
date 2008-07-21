@@ -1,5 +1,8 @@
 todo:
 
+IDE
+ - fix dialog buttons
+ 
 pyglet back-end
  - fontstim, 
      - handle text frames (text wrapping)

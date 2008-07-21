@@ -20,7 +20,7 @@ def install():
         PsychoIDELink= os.path.join(psychopyShortcuts, "PsychoPy IDE.lnk")
         if os.path.isfile(PsychoIDELink):    
             os.remove(PsychoIDELink)#we want to make a new one
-        psychoIDEloc = os.path.join(sitePackages,'psychopy','IDE', "PsychoPyIDE.py")
+        psychoIDEloc = os.path.join(sitePackages,'psychopyIDE', "PsychoPyIDE.py")
         pythonLoc = os.path.join(sys.prefix, 'pythonw.exe')
         if os.path.isfile(PsychoIDELink):    
             os.remove(PsychoIDELink)#we want to make a new one
@@ -29,7 +29,7 @@ def install():
                         PsychoIDELink,  #filename
                         psychoIDEloc, #args
                         '', #working directory (blank)  os.path.join(sitePackages,'psychopy','PsychoCentral'),
-                        os.path.join(sitePackages,'psychopy','IDE','psychopy.ico'))    
+                        os.path.join(sitePackages,'psychopyIDE','psychopy.ico'))    
         file_created(PsychoIDELink)
         
         #monitor center
@@ -64,10 +64,10 @@ def install():
         print exc[0],exc[1]
     
     print ""
-    print """TOP TIP: It's a good idea to add PsychoCentral to your handlers for *.py files.
+    print """TOP TIP: It's a good idea to add PsychoPyIDE to your handlers for *.py files.
     To do that, open a windows explorer window, go to >Tools>FoldersOptions>FileTypes.
     Find .py file type, click 'Advanced' and add the command:
-        "C:\Python24\pythonw.exe" "C:\Python24\Lib\site-packages\psychopy\IDE\PsychoPyIDE.py" "%1"
+        "C:\Python25\pythonw.exe" "C:\Python25\Lib\site-packages\PsychoPyIDE\PsychoPyIDE.py" "%1"
     Now you can right-click files and open them in PsychoPy, ready-to-run :-)
     """
 if len(sys.argv) > 1:

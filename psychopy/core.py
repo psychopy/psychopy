@@ -1,15 +1,15 @@
 """Basic timing functions
 """
 import sys, os, time
-import psychopy.sound
-
+runningThreads=[]
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
     #pygame.quit() #safe even if pygame was never initialised
-    psychopy.sound._eventThread.stop()
-    while psychopy.sound._eventThread.running==0:
-        pass#wait until it has properly finished polling
+    for thisThread in runningThreads:
+        thisThread.stop()
+        while thisThread.running==0:
+            pass#wait until it has properly finished polling
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism

@@ -21,7 +21,7 @@ while True: #ie forever
     minPos = numpy.floor((t/60.0)%60.0)*360/60 #NB floor will round down to previous minute
     minute.setOri(minPos)
     minute.draw()
-    g    
+    
     hourPos = ((t/3600))*360/12#this one can be smooth
     hour.setOri(hourPos)
     hour.draw()

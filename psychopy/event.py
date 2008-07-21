@@ -4,7 +4,6 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 import sys, time
 import psychopy.core
 import string, numpy
-import threading
 
 #try to import pyglet & pygame and hope the user has at least one of them!
 try:

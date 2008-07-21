@@ -7,11 +7,11 @@ if wx.__version__<'2.8':
 
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob
-import threading, traceback, bdb
+import threading, traceback, bdb, cPickle
 import psychopy
-from psychopy import misc
 import psychoParser
 import introspect, py_compile
+from keybindings import *
 
 ## global variables
 homeDir = os.getcwd()
@@ -25,9 +25,13 @@ if os.path.isdir(os.path.join(appDir, 'Resources')):
 else:iconDir = appDir
 
 RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
-IMPORT_LIBS='thread'# should be 'thread' or 'inline'
+IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
 USE_NOTEBOOK_PANEL=False
 ANALYSIS_LEVEL=1
+if sys.platform=='darwin':
+    ALLOW_MODULE_IMPORTS=False
+else:
+    ALLOW_MODULE_IMPORTS=True
 #create IDs for the events
 ID_EXIT=wx.NewId()
 
@@ -108,6 +112,25 @@ else:
               'size' : 12,
               'size2': 10,
              }           
+
+def toPickle(filename, data):
+    """save data (of any sort) as a pickle file
+    
+    simple wrapper of the cPickle module in core python
+    """
+    f = open(filename, 'w')
+    cPickle.dump(data,f)
+    f.close()
+
+def fromPickle(filename):
+    """load data (of any sort) from a pickle file
+    
+    simple wrapper of the cPickle module in core python
+    """
+    f = open(filename)
+    contents = cPickle.load(f)
+    f.close()
+    return contents
 
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
@@ -192,8 +215,7 @@ class ModuleLoader(threading.Thread):
         self.run()
     def run(self):    
         self.parent.SetStatusText('importing modules')
-        import psychopy
-        from psychopy import visual, misc, gui, sound, event     
+        import psychopy  
         self.parent.SetStatusText('importing numpy')
         import numpy
         self.parent.SetStatusText('importing scipy')
@@ -758,7 +780,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             if self.frame.modulesLoaded:
                 for thisLine in importStatements:
                     #check what file we're importing from
-                    tryImport=True
+                    tryImport=ALLOW_MODULE_IMPORTS
                     words = string.split(thisLine)
                     for word in words:#don't import from files in this folder (user files)
                         if os.path.isfile(word+'.py'):
@@ -962,7 +984,6 @@ class PsychoSplashScreen(wx.SplashScreen):
         if IMPORT_LIBS=='inline':
             self.status.SetLabel("Loading Libraries")
             import psychopy
-            from psychopy import visual, misc, gui, sound, event
             
             self.status.SetLabel("numpy")
             self.status.SetSize(wx.Size(520,20))
@@ -979,33 +1000,32 @@ class PsychoSplashScreen(wx.SplashScreen):
             self.status.SetLabel("monitors")
             self.status.SetSize(wx.Size(520,20))
             wx.Yield()
-            import monitors
             self.parent.modulesLoaded=True
         elif IMPORT_LIBS=='thread':
             thr = ModuleLoader(self.parent)
         self.Close()
-
-def makeAccelTable():
-    table = wx.AcceleratorTable([ \
-        (wx.ACCEL_CTRL, ord('Q'), ID_EXIT),
-        (wx.ACCEL_CTRL, ord('S'), wx.ID_SAVE),
-        (wx.ACCEL_NORMAL,  wx.WXK_F5, ID_RUNFILE),
-        (wx.ACCEL_ALT,  wx.WXK_HOME, ID_FOLDALL),
-        (wx.ACCEL_CTRL,  ord(']'), ID_INDENT),#doesn't work on windwos - handle as a keypress in text editor
-        (wx.ACCEL_CTRL,  ord('['), ID_DEDENT),
-        (wx.ACCEL_CTRL,  ord('/'), ID_COMMENT),#doesn't work on windwos - handle as a keypress in text editor
-#        (wx.ACCEL_CTRL,  ord('D'), wx.ID_DUPLICATE),#this is automatic in StyledTextCtrl anyway?
-#        (wx.ACCEL_CTRL,  ord('Z'), wx.ID_UNDO),#this is automatic in StyledTextCtrl anyway?
-#        (wx.ACCEL_CTRL,  ord('Y'), wx.ID_REDO),#this is automatic in StyledTextCtrl anyway?
-    ])
-    return table
-   
+#
+#def makeAccelTable():
+#    table = wx.AcceleratorTable([ \
+#        (wx.ACCEL_CTRL, ord('Q'), ID_EXIT),
+#        (wx.ACCEL_CTRL, ord('S'), wx.ID_SAVE),
+#        (wx.ACCEL_NORMAL,  wx.WXK_F5, ID_RUNFILE),
+#        (wx.ACCEL_ALT,  wx.WXK_HOME, ID_FOLDALL),
+#        (wx.ACCEL_CTRL,  ord(']'), ID_INDENT),#doesn't work on windwos - handle as a keypress in text editor
+#        (wx.ACCEL_CTRL,  ord('['), ID_DEDENT),
+#        (wx.ACCEL_CTRL,  ord('/'), ID_COMMENT),#doesn't work on windwos - handle as a keypress in text editor
+##        (wx.ACCEL_CTRL,  ord('D'), wx.ID_DUPLICATE),#this is automatic in StyledTextCtrl anyway?
+##        (wx.ACCEL_CTRL,  ord('Z'), wx.ID_UNDO),#this is automatic in StyledTextCtrl anyway?
+##        (wx.ACCEL_CTRL,  ord('Y'), wx.ID_REDO),#this is automatic in StyledTextCtrl anyway?
+#    ])
+#    return table
+#   
 
 class IDEMainFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[]):
         optionsPath = os.path.join(appDir, 'options.pickle')
         try:
-            self.options = misc.fromFile(optionsPath)
+            self.options = fromPickle(optionsPath)
         except: 
             self.options={}
             self.options['winSize']=[800,800]
@@ -1054,7 +1074,7 @@ class IDEMainFrame(wx.Frame):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         wx.EVT_CLOSE(self, self.quit)
         wx.EVT_IDLE(self, self.onIdle)
-        self.SetAcceleratorTable(makeAccelTable())
+#        self.SetAcceleratorTable(makeAccelTable())
         if self.options.has_key('state') and self.options['state']=='maxim':
             self.Maximize()
         #initialise some attributes
@@ -1151,11 +1171,11 @@ class IDEMainFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
-        self.fileMenu.Append(wx.ID_NEW,     "&New\tCtrl+N")
-        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\tCtrl+O")
-        self.fileMenu.Append(wx.ID_SAVE,    "&Save\tCtrl+S")
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\tCtrl+Shift+S")
-        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\tCtrl+W")
+        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %key_new)
+        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %key_open)
+        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %key_save)
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %key_saveas)
+        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %key_close)
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
@@ -1170,47 +1190,47 @@ class IDEMainFrame(wx.Frame):
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
         self.fileMenu.AppendSeparator()
-        self.fileMenu.Append(ID_EXIT, "&Quit\tCtrl+Q", "Terminate the program")
+        self.fileMenu.Append(ID_EXIT, "&Quit\t%s" %key_quit, "Terminate the program")
         wx.EVT_MENU(self, ID_EXIT,  self.quit)
         
         #---_edit---#000000#FFFFFF--------------------------------------------------
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(ID_CUT, "Cu&t\tCtrl+X")
+        self.editMenu.Append(ID_CUT, "Cu&t\t%s" %key_cut)
         wx.EVT_MENU(self, ID_CUT,  self.cut)
-        self.editMenu.Append(ID_COPY, "&Copy\tCtrl+C")
+        self.editMenu.Append(ID_COPY, "&Copy\t%s" %key_copy)
         wx.EVT_MENU(self, ID_COPY,  self.copy)
-        self.editMenu.Append(ID_PASTE, "&Paste\tCtrl+V")
+        self.editMenu.Append(ID_PASTE, "&Paste\t%s" %key_paste)
         wx.EVT_MENU(self, ID_PASTE,  self.paste)
-        self.editMenu.Append(wx.ID_DUPLICATE, "&Duplicate\tCtrl+D", "Duplicate the current line (or current selection)")
+        self.editMenu.Append(wx.ID_DUPLICATE, "&Duplicate\t%s" %key_duplicate, "Duplicate the current line (or current selection)")
         wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(ID_SHOWFIND, "&Find\tCtrl+F")
+        self.editMenu.Append(ID_SHOWFIND, "&Find\t%s" %key_find)
         wx.EVT_MENU(self, ID_SHOWFIND, self.OnFindOpen)
-        self.editMenu.Append(ID_FINDNEXT, "Find &Next\tF3")
+        self.editMenu.Append(ID_FINDNEXT, "Find &Next\t%s" %key_findagain)
         wx.EVT_MENU(self, ID_FINDNEXT, self.OnFindNext)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(ID_COMMENT, "Comment\tCtrl+/", "Comment selected lines", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_COMMENT, "Comment\t%s" %key_comment, "Comment selected lines", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_COMMENT,  self.commentSelected)
-        self.editMenu.Append(ID_UNCOMMENT, "Uncomment\tCtrl+Shift+/", "Un-comment selected lines", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_UNCOMMENT, "Uncomment\t%s" %key_uncomment, "Un-comment selected lines", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_UNCOMMENT,  self.uncommentSelected)       
-        self.editMenu.Append(ID_FOLDALL, "Toggle fold\tF2", "Toggle folding of top level", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_FOLDALL, "Toggle fold\t%s" %key_fold, "Toggle folding of top level", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_FOLDALL,  self.foldAll)  
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(ID_INDENT, "Indent selection\tCtrl+]", "Increase indentation of current line", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_INDENT, "Indent selection\t%s" %key_indent, "Increase indentation of current line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_INDENT,  self.indent)
-        self.editMenu.Append(ID_DEDENT, "Dedent selection\tCtrl+[", "Decrease indentation of current line", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_DEDENT, "Dedent selection\t%s" %key_dedent, "Decrease indentation of current line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_DEDENT,  self.dedent)
-        self.editMenu.Append(ID_SMARTINDENT, "SmartIndent\tShift+Tab", "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
+        self.editMenu.Append(ID_SMARTINDENT, "SmartIndent\t%s" %key_smartindent, "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, ID_SMARTINDENT,  self.smartIndent)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(wx.ID_UNDO, "Undo\tCtrl+Z", "Undo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %key_undo, "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\tCtrl+Y", "Redo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %key_redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
         
         #self.editMenu.Append(ID_UNFOLDALL, "Unfold All\tF3", "Unfold all lines", wx.ITEM_NORMAL)
@@ -1223,12 +1243,12 @@ class IDEMainFrame(wx.Frame):
         self.analyseAutoChk = self.toolsMenu.AppendCheckItem(ID_ANALYZE_AUTO, "Analyse on file save/open", "Automatically analyse source (for autocomplete etc...). Can slow down the editor on a slow machine or with large files")
         wx.EVT_MENU(self, ID_ANALYZE_AUTO,  self.setAnalyseAuto)
         self.analyseAutoChk.Check(self.options['analyseAuto'])
-        self.toolsMenu.Append(ID_ANALYZE_NOW, "Analyse now\tF4", "Force a reananalysis of the code now")
+        self.toolsMenu.Append(ID_ANALYZE_NOW, "Analyse now\t%s" %key_analysecode, "Force a reananalysis of the code now")
         wx.EVT_MENU(self, ID_ANALYZE_NOW,  self.analyseCodeNow)
         
-        self.toolsMenu.Append(ID_RUNFILE, "Run\tF5", "Run the current script")
+        self.toolsMenu.Append(ID_RUNFILE, "Run\t%s" %key_runscript, "Run the current script")
         wx.EVT_MENU(self, ID_RUNFILE,  self.runFile)        
-        self.toolsMenu.Append(ID_STOPFILE, "Stop\tShift+F5", "Run the current script")
+        self.toolsMenu.Append(ID_STOPFILE, "Stop\t%s" %key_stopscript, "Run the current script")
         wx.EVT_MENU(self, ID_STOPFILE,  self.stopFile)
 
         
@@ -1279,7 +1299,7 @@ class IDEMainFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
             
-        tsize=(16,16)    
+        tsize=(32,32)#NB this only affects win32    
         self.toolbar.SetToolBitmapSize(tsize)
         new_bmp = wx.Bitmap(os.path.join(iconDir, 'document-new.png'))
         open_bmp = wx.Bitmap(os.path.join(iconDir, 'document-open.png'))
@@ -1432,7 +1452,7 @@ class IDEMainFrame(wx.Frame):
         self.options['winPos']=self.GetPosition()
         self.options['auiPerspective'] = self.paneManager.SavePerspective()
         optionsPath = os.path.join(appDir, 'options.pickle')
-        misc.toFile(optionsPath, self.options)
+        toPickle(optionsPath, self.options)
         self.Destroy()
     def fileNew(self, event):
         self.setCurrentDoc("")
@@ -1563,7 +1583,6 @@ class IDEMainFrame(wx.Frame):
                 return 1 #return, don't quit
             elif resp == wx.ID_YES:
                 #save then quit
-                print 'saving'
                 self.fileSave(None)
             elif resp == wx.ID_NO:
                 pass #don't save just quit
@@ -1813,7 +1832,6 @@ class IDEApp(wx.App):
         self.SetTopWindow(self.frame)
         return True
     def MacOpenFile(self,fileName):
-        print fileName
         self.frame.setCurrentDoc(fileName)
         
 if __name__=='__main__':

@@ -3,7 +3,7 @@
 import psychopy.misc
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log
-import event
+import psychopy.event
 import monitors
 import Image
 import sys, os, time, glob, copy
@@ -472,10 +472,10 @@ class Window:
                                               style=style
                                           )
         self.winHandle.set_vsync(True)
-        self.winHandle.on_key_press = event._onPygletKey
-        self.winHandle.on_mouse_press = event._onPygletMousePress
-        self.winHandle.on_mouse_release = event._onPygletMouseRelease
-        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
+        self.winHandle.on_key_press = psychopy.event._onPygletKey
+        self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
+        self.winHandle.on_mouse_release = psychopy.event._onPygletMouseRelease
+        self.winHandle.on_mouse_scroll = psychopy.event._onPygletMouseWheel
         if not self.allowGUI: 
             #make mouse invisible. Could go further and make it 'exclusive' (but need to alter x,y handling then)
             self.winHandle._mouse_visible=False
