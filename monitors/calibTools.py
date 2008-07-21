@@ -1,9 +1,9 @@
 """Tools to help with calibrations
 """
 from calibData import *
-from psychopy import log, event, core, serial
+from psychopy import log, event, serial
 import psychopy.visual #must be imported this way because of mutual import
-
+import time
 __version__ = psychopy.__version__
     
 import string, os, time, glob, cPickle, sys
@@ -933,7 +933,7 @@ def getLumSeriesPR650(lumLevels=8,
             testPatch.draw()
 
             myWin.flip()
-            core.wait(0.5)#allowing the screen to settle (no good reason!)
+            time.sleep(0.5)#allowing the screen to settle (no good reason!)
             #check for quit request
             for thisKey in event.getKeys():
                 if thisKey in ['q', 'Q']:
