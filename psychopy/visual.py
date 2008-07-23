@@ -337,10 +337,7 @@ class Window:
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
-            for frameN, thisFrame in enumerate(self.movieFrames):
-                thisFileName='%s%03d%s' %(fileRoot, frameN+1, fileExt)
-                thisFrame.save(thisFileName)
-
+            frame_name_format = "%s%%0%dd%s" % (fileRoot, numpy.ceil(numpy.log10(len(self.movieFrames)+1)), fileExt)            for frameN, thisFrame in enumerate(self.movieFrames):               thisFileName = frame_name_format % (frameN+1,)               thisFrame.save(thisFileName) 
 
     def fullScr(self):
         """Toggles fullscreen mode (GLUT only).
