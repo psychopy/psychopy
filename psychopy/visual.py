@@ -15,6 +15,8 @@ from numpy import sin, cos, pi
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
     import ctypes
+    import pyglet
+    #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
     import _shadersPyglet
     havePyglet=True    
@@ -562,7 +564,7 @@ class Window:
             GL_multitexture.glInitMultitextureARB()
         
         try:
-            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
+            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
             #print "successfully compiled shaders"
             haveShaders=True 

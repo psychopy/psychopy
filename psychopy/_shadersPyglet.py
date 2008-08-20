@@ -4,11 +4,11 @@ import sys
 
 def print_log(shader):
     length = c_int()
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, byref(length))
+    GL.glGetShaderiv(shader, GL.GL_INFO_LOG_LENGTH, byref(length))
     
     if length.value > 0:
         log = create_string_buffer(length.value)
-        glGetShaderInfoLog(shader, length, byref(length), log)
+        GL.glGetShaderInfoLog(shader, length, byref(length), log)
         print >> sys.stderr, log.value
         
         
@@ -68,14 +68,24 @@ fragSignedColor = '''
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     ''' 
+fragSignedColorTex = '''
+    // Fragment program
+    uniform sampler2D texture;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;        
+        gl_FragColor.a = gl_Color.a*textureFrag.a;
+    }
+    '''
 fragSignedColorTexMask = '''
     // Fragment program
     uniform sampler2D texture, mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1)+1)/2;        
+        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);       
         gl_FragColor.a = gl_Color.a*maskFrag.a;
+        //
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0; 
     }
     '''
 vertSimple = """

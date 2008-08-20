@@ -4,7 +4,11 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog
 
-PsychoPy 0.94.1:
+PsychoPy 0.95.1:
+* FIXED bug in the shaders code under pyglet (was working fine in pygame already)
+* ADDED getInfo.py to demos to get python/opengl info
+
+!!!PsychoPy 0.95.0:
 * FIXED linux bug preventing repeated dialogs (thanks Luca Citi)
 * REWRITTEN stimuli to use _BaseClass, defining ._set() method
 * MAJOR IMPROVEMENTS to IDE:

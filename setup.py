@@ -1,43 +1,52 @@
-#!/usr/bin/env pythonw
-from distutils import core, sysconfig
-from distutils.core import setup, Extension
-import os
+#!/usr/local/bin/python
+"""Requires setuptools and uses the manifest.in file for data files"""
+
+from setuptools import setup, Extension
+################
+import glob, os
 from sys import platform
 
-if platform=='darwin':
-    #package_data_path='/Library/Python/2.3/psychopy'
-    import bdist_mpkg, py2app
-    
-psychopy_data_path=os.path.join('lib','site-packages','psychopy')
-monitors_data_path=os.path.join('lib','site-packages','monitors')
+import psychopy, monitors
+thisVersion=psychopy.__version__
 
-try:
-    import psychopy, monitors
-    #thisVersion = '0.51'
-    thisVersion=psychopy.__version__ #automatically increments if permitted
-except:
-    thisVersion='0.95.0'
 #define the extensions to compile if necess
-  
+packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
+              'PsychoPyIDE','PsychoPyIDE.Resources','monitors']
+
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png']
+
+if platform=='win32':
+    #you need the c extension for bits++ if you want to change bits modes, but not otherwise
+    #cExtensions.append(Extension('psychopy.ext._bits',
+    #sources = [os.path.join('psychopy','ext','_bits.c')],
+    #libraries=['bits']))
+    pass  
+elif platform=='darwin':
+    dataExtensions.extend(['*.icns'])
+elif platform=='posix':
+    pass
+    
 setup(name="PsychoPy",
-      version = thisVersion,
-      description = "Psychophysics toolkit for Python",
-      author= "Jon Peirce",
-      author_email= "jon@peirce.org.uk",
-      url="http://www.psychopy.org/",
-      packages=['psychopy','psychopy.demos',
-        'PsychoPyIDE','PsychoPyIDE.Resources',
-        'psychopy.ext','psychopy.serial',
-        'monitors'],
-      scripts = ['psychopy_post_inst.py'],
-      package_data={ 'psychopy': ['*.txt'],
-        'psychopy.demos':['*.jpg'],
-        'PsychoPyIDE': ['*.ico'],
-        'PsychoPyIDE.Resources': ['*.ico','*.png'],
-        'monitors': ['*.ico'],
-        'psychopy.serial':['*.txt']
-        }                
-      )
+    version = thisVersion,
+    description = "Psychophysics toolkit for Python",
+    author= psychopy.__author__,
+    author_email= psychopy.__author_email__,
+    maintainer_email= psychopy.__maintainer_email__,
+    url="http://www.psychopy.org/",
+    download_url="http://sourceforge.net/project/showfiles.php?group_id=48949",
+    packages=packages,
+    scripts = ['psychopy_post_inst.py'],
+    include_package_data =True,
+    package_data = {
+        # If any package contains *.txt or *.rst files, include them:
+        '': dataExtensions
+    },
+    #install_requires = dependencies,
+    #dependency_links = ["http://www.python.org/pypi/",
+    #"http://sourceforge.net/project/showfiles.php?group_id=71702",#ctypes
+    #"http://sourceforge.net/project/showfiles.php?group_id=5988",#pyopengl
+    #]
+    )
 
 # on Mac use:
-#sudo pythonw setup.py bdist_mpkg --readme=psychopy/README.txt
+#sudo python2.4 setup.py bdist_mpkg --readme=psychopy/README.txt

@@ -39,7 +39,7 @@ if platform == 'win32':
 else:
     setup(app=['PsychoPyIDE.py'],
         options=dict(py2app=dict( excludes=['OpenGL', 'pygame'],
-                                  includes=['Tkinter','FileDialog'],
+                                  includes=['Tkinter','FileDialog','setuptools'],
                                   resources=resources,
                                   #semi_standalone=True,
                                   site_packages=True,
