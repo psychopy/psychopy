@@ -3,8 +3,7 @@ todo:
 pyglet back-end
  - fontstim, 
      - handle text frames (text wrapping)
- 
-getInfo script
+
 rewrite the stimulus scaling code
 create a BaseStimulus class?
 

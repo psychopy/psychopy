@@ -625,6 +625,7 @@ class Window:
 #############################################################################
 class _BaseStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
+    Not finished, and not (really) being used!
     """
     def __init__(self):
         raise NotImplementedError('abstract')
@@ -1302,7 +1303,12 @@ class PatchStim(_BaseStim):
                 res=texName.shape[0]
             else:
                 self._tex1D=False
-                if texName.shape[0]!=texName.shape[1]: raise StandardError, "numpy array for texture was not square"
+                #check if it's a square power of two
+                maxDim = max(im.size)
+                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                    im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
                 res=texName.shape[0]
         elif texName in [None,"none", "None"]:
             res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
@@ -1327,7 +1333,6 @@ class PatchStim(_BaseStim):
             try:
                 im = Image.open(texName)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
             except:
                 log.error("couldn't load tex...%s" %(texName))
                 self.win.close()
@@ -1338,6 +1343,11 @@ class PatchStim(_BaseStim):
                 self._tex1D=True
             else:
                 self._tex1D=False
+                maxDim = max(im.size)
+                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                    im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
 
             #is it Luminance or RGB?
             if im.mode=='L':
@@ -1407,11 +1417,18 @@ class PatchStim(_BaseStim):
             try:
                 im = Image.open(maskName)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.resize([1024,1024],Image.BILINEAR)#make it square
             except IOError, (details):
                 log.error("couldn't load mask...%s: %s" %(maskName,details))
                 return 0
             im = im.convert("L")#force to intensity (in case it was rgb)
+
+            #check if it's a square power of two
+            maxDim = max(im.size)
+            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                im.resize([powerOf2,powerOf2],Image.BILINEAR)
+                
             intensity = numpy.asarray(im)
 
         data = intensity.astype(numpy.uint8)
@@ -1520,7 +1537,12 @@ class PatchStim(_BaseStim):
                 res=texName.shape[0]
             else:
                 self._tex1D=False
-                if texName.shape[0]!=texName.shape[1]: raise StandardError, "numpy array for texture was not square"
+                #check if it's a square power of two
+                maxDim = max(im.size)
+                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                    im.resize([powerOf2,powerOf2],Image.BILINEAR)
                 res=texName.shape[0]
         elif texName in [None,"none", "None"]:
             res=4 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
@@ -1545,10 +1567,10 @@ class PatchStim(_BaseStim):
             try:
                 im = Image.open(texName)
             except StandardError, (errNum, errStr):
-                log.error("couldn't load tex...%s\n\t(Error:%i)%s" %(texName, errNum, errStr))
+                log.error("Couldn't load tex...%s\n\t(Error:%i)%s" %(texName, errNum, errStr))
                 self.win.close()
                 raise #so that we quit
-
+            
             #is it 1D?
             if im.size[0]==1:
                 self._tex1D=True
@@ -1558,7 +1580,11 @@ class PatchStim(_BaseStim):
                 res=im.size[0]
             else:
                 self._tex1D=False
-                if im.size[0]!=im.size[1]: raise StandardError, "image, '"+texName+"' was not square"
+                maxDim = max(im.size)
+                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                    im.resize([powerOf2,powerOf2],Image.BILINEAR)
                 res=im.size[0]
 
             #is it Luminance or RGB?
@@ -1652,10 +1678,19 @@ class PatchStim(_BaseStim):
             except IOError, (details):
                 log.error("couldn't load mask...%s: %s" %(maskName,details))
                 return 0
-            res = im.size[0]
+            
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity = psychopy.misc.image2array(im)
 
+            #check if it's a square power of two
+            maxDim = max(im.size)
+            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
+                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                im.resize([powerOf2,powerOf2],Image.BILINEAR)
+                
+            res = im.size[0]
+            intensity = psychopy.misc.image2array(im)
+            
         #cast into ubyte when done
         data = intensity*self.opacity
         #NB now byintensity already ranges 0:255 - just needs type conv.
@@ -2170,10 +2205,10 @@ class RadialStim(PatchStim):
             try:
                 im = Image.open(maskName)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
             except IOError, (details):
                 log.error("couldn't load mask...%s: %s" %(maskName,details))
                 return
+            
             res = im.size[0]
             im = im.convert("L")#force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
@@ -3147,3 +3182,66 @@ def makeRadialMatrix(matrixSize):
     xx,yy = numpy.mgrid[0:2+oneStep:oneStep, 0:2+oneStep:oneStep] -1.0 #NB need to add one step length because
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
+
+def createTexture(texName, texID, pixFormat, useShaders):
+    
+        self.__maskName = maskName
+        res = self.texRes#resolution of texture - 128 is bearable
+        step = 1.0/res
+        rad = numpy.arange(0,1+step,step)
+        if type(maskName) == numpy.ndarray:
+            #handle a numpy array
+            intensity = 255*maskName.astype(float)
+            res = len(intensity)
+            fromFile=0
+        elif type(maskName) == list:
+            #handle a numpy array
+            intensity = 255*numpy.array(maskName, 'f')
+            res = len(intensity)
+            fromFile=0
+        elif maskName is "circle":
+            intensity = 255.0*(rad<=1)
+            fromFile=0
+        elif maskName is "gauss":
+            sigma = 1/3.0;
+            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
+            fromFile=0
+        elif maskName is "radRamp":#a radial ramp
+            intensity = 255.0-255.0*rad
+            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
+            fromFile=0
+        elif maskName in [None,"none"]:
+            res=4
+            intensity = 255.0*numpy.ones(res,float)
+            fromFile=0
+        else:#might be a filename of a tiff
+            try:
+                im = Image.open(maskName)
+            except IOError, (details):
+                log.error("couldn't load mask...%s: %s" %(maskName,details))
+                return
+            res = im.size[0]
+            im = im.convert("L")#force to intensity (in case it was rgb)
+            intensity = psychopy.misc.image2array(im)
+
+        #cast into ubyte when done
+        data = intensity*self.opacity
+        #NB now byintensity already ranges 0:255 - just needs type conv.
+
+        data = data.astype(numpy.uint8)
+        mask = data.tostring()#serialise
+
+        #do the openGL binding
+        if self.interpolate: smoothing=GL.GL_LINEAR
+        else: smoothing=GL.GL_NEAREST
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
+        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
+                        res, 0,
+                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
+        GL.glEnable(GL.GL_TEXTURE_1D)
+
+        self.needUpdate=True
