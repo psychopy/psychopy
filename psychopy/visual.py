@@ -1044,6 +1044,8 @@ class PatchStim(_BaseStim):
         """
         global haveShaders
         self._haveShaders=haveShaders
+        if not haveShaders:
+            self._updateList = self._updateListNoShaders
         
         self.win = win
         assert isinstance(self.win, Window)
@@ -1057,13 +1059,7 @@ class PatchStim(_BaseStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.interpolate=interpolate
-
-        #use different functions on systems without OpenGL2.0
-        if not self._haveShaders:
-            self._setTex = self._setTexNoShaders
-            self._setMask = self._setMaskNoShaders
-            self._updateList = self._updateListNoShaders
-
+          
         #for rgb allow user to give a single val and apply to all channels
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
@@ -1118,8 +1114,8 @@ class PatchStim(_BaseStim):
             self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
-        self._setTex(tex)
-        self._setMask(mask)
+        self.setTex(tex)
+        self.setMask(mask)
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
@@ -1162,12 +1158,15 @@ class PatchStim(_BaseStim):
         if not self._haveShaders:
             self._setMask(self._maskName)
     def setTex(self,value):
-        self._setTex(self._texName)
-    def setMask(self,value):
-        self._setMask(self.__maskName)
+        self._texName = value
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, 
+                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+    def setMask(self,value):        
+        self._maskName = value
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, 
+                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
     def setDepth(self,value, operation=None):
         self._set('depth', value, operation)
-
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -1281,171 +1280,6 @@ class PatchStim(_BaseStim):
 
         GL.glEndList()
 
-    def _setTex(self, texName):
-        """
-        Users shouldn't use this method
-        """
-        self._texName = texName
-        res = self.texRes
-        #create some helper variables
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
-        if type(texName) == numpy.ndarray:
-            #handle a numpy array
-            #for now this needs to be an NxN intensity array
-            intensity = texName.astype(numpy.float32)
-            wasLum = True
-            ##is it 1D?
-            if texName.shape[0]==1:
-                self._tex1D=True
-                res=im.shape[1]
-            elif len(texName.shape)==1 or texName.shape[1]==1:
-                self._tex1D=True
-                res=texName.shape[0]
-            else:
-                self._tex1D=False
-                #check if it's a square power of two
-                maxDim = max(im.size)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                    im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
-                res=texName.shape[0]
-        elif texName in [None,"none", "None"]:
-            res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
-            intensity = numpy.ones([res,res],numpy.float32)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sin":
-            intensity = numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D= False
-        elif texName == "sqr":#square wave (symmetric duty cycle)
-            sinusoid = numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(sinusoid>0, 1, -1)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sinXsin":
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D=False
-
-        else:#might be a filename of an image
-            try:
-                im = Image.open(texName)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            except:
-                log.error("couldn't load tex...%s" %(texName))
-                self.win.close()
-                raise #so that we quit
-
-            #is it 1D?
-            if im.size[0]==1 or im.size[1]==1:
-                self._tex1D=True
-            else:
-                self._tex1D=False
-                maxDim = max(im.size)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                    im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
-
-            #is it Luminance or RGB?
-            if im.mode=='L':
-                wasLum = True
-                intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
-            else:
-                #texture = im.tostring("raw", "RGB", 0, -1)
-                data = numpy.array(im).astype(numpy.float32)*2/255-1
-                wasLum=False
-
-        if wasLum:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-            data[:,:,0] = intensity#R
-            data[:,:,1] = intensity#G
-            data[:,:,2] = intensity#B
-        texture = data.tostring()#serialise
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-
-        pixFormat=GL.GL_RGB32F_ARB
-
-        #bind the texture in openGL
-        if self._tex1D:
-            print 'oops - got a 1d tex'
-        else:
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)#bind that name to the target
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pixFormat,
-                            data.shape[0],data.shape[1], 0,
-                            GL.GL_RGB, GL.GL_FLOAT, texture)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
-
-    def _setMask(self, maskName):
-        """Users shouldn't use this method
-        """
-        self.__maskName = maskName
-        res = self.texRes#resolution of texture - 128 is bearable
-        rad = makeRadialMatrix(res)
-        if type(maskName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*maskName.astype(float)
-            fromFile=0
-        elif maskName is "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif maskName is "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif maskName is "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif maskName in [None,"none"]:
-            res=4
-            intensity = 255.0*numpy.ones((res,res),float)
-            fromFile=0
-        else:#might be a filename of an image
-            try:
-                im = Image.open(maskName)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            except IOError, (details):
-                log.error("couldn't load mask...%s: %s" %(maskName,details))
-                return 0
-            im = im.convert("L")#force to intensity (in case it was rgb)
-
-            #check if it's a square power of two
-            maxDim = max(im.size)
-            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-            if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                
-            intensity = numpy.asarray(im)
-
-        data = intensity.astype(numpy.uint8)
-        mask = data.tostring()#serialise
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        #do the openGL binding
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_ALPHA,
-                        intensity.shape[0],intensity.shape[1], 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
     #for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
         """
@@ -1516,200 +1350,6 @@ class PatchStim(_BaseStim):
 
 
 
-    def _setTexNoShaders(self, texName):
-        """
-        Users shouldn't use this method
-        """
-        self._texName = texName
-        res = self.texRes
-        #create some helper variables
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
-        if type(texName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = texName.astype(float)
-            wasLum = True
-            #is it 1D?
-            if texName.shape[0]==1:
-                self._tex1D=True
-                res=im.shape[1]
-            elif len(texName.shape)==1 or texName.shape[1]==1:
-                self._tex1D=True
-                res=texName.shape[0]
-            else:
-                self._tex1D=False
-                #check if it's a square power of two
-                maxDim = max(im.size)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                    im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                res=texName.shape[0]
-        elif texName in [None,"none", "None"]:
-            res=4 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
-            intensity = numpy.ones(res,float)
-            wasLum = True
-            self._tex1D=True
-        elif texName == "sin":
-            intensity = numpy.sin(pi*numpy.arange(-0.5,1.5,2.0/res))
-            wasLum = True
-            self._tex1D= True
-        elif texName == "sqr":#square wave (symmetric duty cycle)
-            sinusoid = numpy.sin(pi*numpy.arange(-0.5,1.5,2.0/res))
-            intensity = numpy.where(sinusoid>0, 1, -1)
-            wasLum = True
-            self._tex1D=True
-        elif texName == "sinXsin":
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D=False
-
-        else:#might be a filename of an image
-            try:
-                im = Image.open(texName)
-            except StandardError, (errNum, errStr):
-                log.error("Couldn't load tex...%s\n\t(Error:%i)%s" %(texName, errNum, errStr))
-                self.win.close()
-                raise #so that we quit
-            
-            #is it 1D?
-            if im.size[0]==1:
-                self._tex1D=True
-                res=im.size[1]
-            elif im.size[1]==1:
-                self._tex1D=True
-                res=im.size[0]
-            else:
-                self._tex1D=False
-                maxDim = max(im.size)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-                if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                    im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                res=im.size[0]
-
-            #is it Luminance or RGB?
-            if im.mode=='L':
-                wasLum = True
-                intensity= psychopy.misc.uint8_float(psychopy.misc.image2array(im)) #get to range -1:1
-            else:
-                texture = im.tostring("raw", "RGB", 0, -1)
-                wasLum=False
-
-        if wasLum and self._tex1D:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((res,3),float)#initialise data array as a float
-            data[:,0] = intensity.flat*self.rgb[0] + self.rgbPedestal[0]#R
-            data[:,1] = intensity.flat*self.rgb[1] + self.rgbPedestal[1]#G
-            data[:,2] = intensity.flat*self.rgb[2] + self.rgbPedestal[2]#B
-            data = psychopy.misc.float_uint8(self.contrast*data)#data range -1:1 -> 0:255
-            texture = data.tostring()#serialise
-
-        elif wasLum:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((res,res,3),float)#initialise data array as a float
-            data[:,:,0] = intensity*self.rgb[0]  + self.rgbPedestal[0]#R
-            data[:,:,1] = intensity*self.rgb[1]  + self.rgbPedestal[1]#G
-            data[:,:,2] = intensity*self.rgb[2]  + self.rgbPedestal[2]#B
-            data = psychopy.misc.float_uint8(self.contrast*data)#data range -1:1 -> 0:255
-            texture = data.tostring()#serialise
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        #bind the texture in openGL
-        if self._tex1D:
-            GL.glEnable(GL.GL_TEXTURE_1D)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self.texID)#bind that name to the target
-            GL.glTexImage1D(GL.GL_TEXTURE_1D,#target
-                            0,                             #mipmap level
-                            GL.GL_RGB,      #internal format
-                            res,                   #width
-                            0,                             #border
-                            GL.GL_RGB, #target format
-                            GL.GL_UNSIGNED_BYTE, #target data type
-                            texture)                #the data
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #interpolate with NEAREST NEIGHBOUR. Important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        else:
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)#bind that name to the target
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
-                            res,res, 0,
-                            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, texture)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
-
-    def _setMaskNoShaders(self, maskName):
-        """Users shouldn't use this method
-        """
-        self.__maskName = maskName
-        res = self.texRes#resolution of texture - 128 is bearable
-        rad = makeRadialMatrix(res)
-        if type(maskName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*maskName.astype(float)
-            res=maskName.shape[0]
-            fromFile=0
-        elif maskName is "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif maskName is "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif maskName is "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif maskName in [None,"none"]:
-            res=4
-            intensity = 255.0*numpy.ones((res,res),float)
-            fromFile=0
-        else:#might be a filename of a tiff
-            try:
-                im = Image.open(maskName)
-            except IOError, (details):
-                log.error("couldn't load mask...%s: %s" %(maskName,details))
-                return 0
-            
-            im = im.convert("L")#force to intensity (in case it was rgb)
-
-            #check if it's a square power of two
-            maxDim = max(im.size)
-            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-            if numpy.array(im.size) != numpy.array([powerOf2,powerOf2]):
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
-                im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                
-            res = im.size[0]
-            intensity = psychopy.misc.image2array(im)
-            
-        #cast into ubyte when done
-        data = intensity*self.opacity
-        #NB now byintensity already ranges 0:255 - just needs type conv.
-
-        data = data.astype(numpy.uint8)
-        mask = data.tostring()#serialise
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        #do the openGL binding
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_ALPHA,
-                        res,res, 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
 
 class AlphaStim(PatchStim):
     """DEPRECATED. Use PatchStim instead/n/n"""
@@ -1866,9 +1506,10 @@ class RadialStim(PatchStim):
         self.setSF = None
 
         #use different functions on systems without OpenGL2.0
-        self._setTex = self._setTexNoShaders
-        self._setMask = self._setMaskNoShaders
-        self._updateList = self._updateListNoShaders
+        global haveShaders
+        self._haveShaders=haveShaders
+        if not haveShaders: 
+            self._updateList = self._updateListNoShaders
 
         #for rgb allow user to give a single val and apply to all channels
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -1903,9 +1544,9 @@ class RadialStim(PatchStim):
             GL.glGenTextures(1, ctypes.byref(self.maskID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
-        self._setTex(tex)
-        self._setMask(mask)
-
+        self.setTex(tex)
+        self.setMask(mask)
+        
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
 
@@ -2036,33 +1677,38 @@ class RadialStim(PatchStim):
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "mask"), 1)  # mask is texture unit 1
 
         #assign vertex array
-        GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            GL.glVertexPointer(2, GL.GL_FLOAT, 0, arrPointer) 
+        else:
+            GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
         #bind and enable textures
         #main texture
-        if self._tex1D:
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self.texID)
-            GL.glDisable(GL.GL_TEXTURE_2D)
-            GL.glEnable(GL.GL_TEXTURE_1D)
-        else:
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
-            GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glEnable(GL.GL_TEXTURE_1D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
 
         #set pointers to visible textures
         GL.glClientActiveTexture(GL.GL_TEXTURE0)
-        GL.glTexCoordPointerd(self._visibleTexture)
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, arrPointer) 
+        else:
+            GL.glTexCoordPointerd(self._visibleTexture)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #mask
         GL.glClientActiveTexture(GL.GL_TEXTURE1)
-        GL.glTexCoordPointerd(self._visibleMask)
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, arrPointer) 
+        else:
+            GL.glTexCoordPointerd(self._visibleMask)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         #do the drawing
@@ -2077,159 +1723,6 @@ class RadialStim(PatchStim):
         GL.glUseProgram(0)
         GL.glEndList()
 
-    def _setTex(self, texName):
-        """
-        Users shouldn't use this method
-        """
-        self._texName = texName
-        res = self.texRes
-        #create some helper variables
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
-        if type(texName) == numpy.ndarray:
-            #handle a numpy array
-            #for now this needs to be an NxN intensity array
-            intensity = texName.astype(numpy.float32)
-            wasLum = True
-        elif texName in [None,"none", "None"]:
-            res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
-            intensity = numpy.ones([res,res],numpy.float32)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sin":
-            intensity = numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D= False
-        elif texName == "sqr":#square wave (symmetric duty cycle)
-            sinusoid = numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(sinusoid>0, 1, -1)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sinXsin":
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sqrXsqr":
-            sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(sinusoid>0, 1, -1)
-            wasLum = True
-            self._tex1D=False
-
-        else:#might be a filename of an image
-            try:
-                im = Image.open(texName)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
-            except:
-                log.error("couldn't load tex...%s" %(texName))
-                self.win.close()
-                raise #so that we quit
-
-            #is it 1D?
-            if im.size[0]==1 or im.size[1]==1:
-                self._tex1D=True
-            else:
-                self._tex1D=False
-
-            #is it Luminance or RGB?
-            if im.mode=='L':
-                wasLum = True
-                intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
-            else:
-                #texture = im.tostring("raw", "RGB", 0, -1)
-                data = numpy.array(im).astype(numpy.float32)*2/255-1
-                wasLum=False
-
-        if wasLum:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-            data[:,:,0] = intensity#R
-            data[:,:,1] = intensity#G
-            data[:,:,2] = intensity#B
-        texture = data.tostring()#serialise
-        pixFormat=GL.GL_RGB32F_ARB
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-
-        #bind the texture in openGL
-        if self._tex1D:
-            print 'oops - got a 1d tex'
-        else:
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)#bind that name to the target
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pixFormat,
-                            data.shape[0],data.shape[1], 0,
-                            GL.GL_RGB, GL.GL_FLOAT, texture)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #important if using bits++ because GL_LINEAR
-            #might  extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
-
-
-    def _setMask(self, maskName):
-        """Users shouldn't use this method
-        """
-        self.__maskName = maskName
-        res = self.texRes#resolution of texture - 128 is bearable
-        step = 1.0/res
-        rad = numpy.arange(0,1+step,step)
-        if type(maskName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*maskName.astype(float)
-            res = len(intensity)
-            fromFile=0
-        elif type(maskName) == list:
-            #handle a numpy array
-            intensity = 255*numpy.array(maskName, 'f')
-            res = len(intensity)
-            fromFile=0
-        elif maskName is "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif maskName is "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif maskName is "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif maskName in [None,"none"]:
-            res=4
-            intensity = 255.0*numpy.ones(res,float)
-            fromFile=0
-        else:#might be a filename of a tiff
-            try:
-                im = Image.open(maskName)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            except IOError, (details):
-                log.error("couldn't load mask...%s: %s" %(maskName,details))
-                return
-            
-            res = im.size[0]
-            im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity = numpy.asarray(im)
-
-        data = intensity.astype(numpy.uint8)
-        mask = data.tostring()#serialise
-
-        #do the openGL binding
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
-        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
-                        res, 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        self.needUpdate=True
     def _updateListNoShaders(self):
         """
         The user shouldn't need this method since it gets called
@@ -2282,197 +1775,14 @@ class RadialStim(PatchStim):
 
         GL.glEndList()
 
-    def _setTexNoShaders(self, texName):
-        """
-        Users shouldn't use this method
-        """
-        self._texName = texName
-        res = self.texRes
-        #create some helper variables
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]#equivalent to matlab meshgrid
-        if type(texName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = texName.astype(float)
-            wasLum = True
-            #is it 1D?
-            if texName.shape[0]==1:
-                self._tex1D=True
-                res=im.shape[1]
-            elif len(texName.shape)==1 or texName.shape[1]==1:
-                self._tex1D=True
-                res=texName.shape[0]
-            else:
-                self._tex1D=False
-                if texName.shape[0]!=texName.shape[1]: raise StandardError, "numpy array for texture was not square"
-                res=texName.shape[0]
-        elif texName in [None,"none", "None"]:
-            res=4 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
-            intensity = numpy.ones(res,float)
-            wasLum = True
-            self._tex1D=True
-        elif texName == "sin":
-            intensity = numpy.sin(pi*numpy.arange(-0.5,1.5,2.0/res))
-            wasLum = True
-            self._tex1D= True
-        elif texName == "sqr":#square wave (symmetric duty cycle)
-            sinusoid = numpy.sin(pi*numpy.arange(-0.5,1.5,2.0/res))
-            intensity = numpy.where(sinusoid>0, 1, -1)
-            wasLum = True
-            self._tex1D=True
-        elif texName == "sqrXsqr":#square wave (symmetric duty cycle)
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(intensity>0, 1, -1)
-            wasLum = True
-            self._tex1D=False
-        elif texName == "sinXsin":
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            wasLum = True
-            self._tex1D=False
-
-        else:#might be a filename of an image
-            try:
-                im = Image.open(texName)
-            except StandardError, (errNum, errStr):
-                log.error("couldn't load tex...%s\n\t(Error:%i)%s" %(texName, errNum, errStr))
-                self.win.close()
-                raise #so that we quit
-
-            #is it 1D?
-            if im.size[0]==1:
-                self._tex1D=True
-                res=im.size[1]
-            elif im.size[1]==1:
-                self._tex1D=True
-                res=im.size[0]
-            else:
-                self._tex1D=False
-                if im.size[0]!=im.size[1]: raise StandardError, "image, '"+texName+"' was not square"
-                res=im.size[0]
-
-            #is it Luminance or RGB?
-            if im.mode=='L':
-                wasLum = True
-                intensity= psychopy.misc.uint8_float(psychopy.misc.image2array(im)) #get to range -1:1
-            else:
-                texture = im.tostring("raw", "RGB", 0, -1)
-                wasLum=False
-
-        if wasLum and self._tex1D:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((res,3),float)#initialise data array as a float
-            data[:,0] = intensity.flat*self.rgb[0] + self.rgbPedestal[0]#R
-            data[:,1] = intensity.flat*self.rgb[1] + self.rgbPedestal[1]#G
-            data[:,2] = intensity.flat*self.rgb[2] + self.rgbPedestal[2]#B
-            data = psychopy.misc.float_uint8(self.contrast*data)#data range -1:1 -> 0:255
-            texture = data.tostring()#serialise
-
-        elif wasLum:
-            #for a luminance image, scale RGB channels according to color
-            data = numpy.ones((res,res,3),float)#initialise data array as a float
-            data[:,:,0] = intensity*self.rgb[0]  + self.rgbPedestal[0]#R
-            data[:,:,1] = intensity*self.rgb[1]  + self.rgbPedestal[1]#G
-            data[:,:,2] = intensity*self.rgb[2]  + self.rgbPedestal[2]#B
-            data = psychopy.misc.float_uint8(self.contrast*data)#data range -1:1 -> 0:255
-            texture = data.tostring()#serialise
-
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        #bind the texture in openGL
-        if self._tex1D:
-            GL.glEnable(GL.GL_TEXTURE_1D)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self.texID)#bind that name to the target
-            GL.glTexImage1D(GL.GL_TEXTURE_1D,#target
-                            0,                             #mipmap level
-                            GL.GL_RGB,      #internal format
-                            res,                   #width
-                            0,                             #border
-                            GL.GL_RGB, #target format
-                            GL.GL_UNSIGNED_BYTE, #target data type
-                            texture)                #the data
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #interpolate with NEAREST NEIGHBOUR. Important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)
-            GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        else:
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)#bind that name to the target
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
-                            res,res, 0,
-                            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, texture)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            #important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
-
-    def _setMaskNoShaders(self, maskName):
-        """Users shouldn't use this method
-        """
-        self.__maskName = maskName
-        res = self.texRes#resolution of texture - 128 is bearable
-        step = 1.0/res
-        rad = numpy.arange(0,1+step,step)
-        if type(maskName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*maskName.astype(float)
-            res = len(intensity)
-            fromFile=0
-        elif type(maskName) == list:
-            #handle a numpy array
-            intensity = 255*numpy.array(maskName, 'f')
-            res = len(intensity)
-            fromFile=0
-        elif maskName is "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif maskName is "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif maskName is "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif maskName in [None,"none"]:
-            res=4
-            intensity = 255.0*numpy.ones(res,float)
-            fromFile=0
-        else:#might be a filename of a tiff
-            try:
-                im = Image.open(maskName)
-            except IOError, (details):
-                log.error("couldn't load mask...%s: %s" %(maskName,details))
-                return
-            res = im.size[0]
-            im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity = psychopy.misc.image2array(im)
-
-        #cast into ubyte when done
-        data = intensity*self.opacity
-        #NB now byintensity already ranges 0:255 - just needs type conv.
-
-        data = data.astype(numpy.uint8)
-        mask = data.tostring()#serialise
-
-        #do the openGL binding
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
-        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
-                        res, 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        self.needUpdate=True
-
-
+    def setTex(self,value):
+        self._texName = value
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, 
+                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+    def setMask(self,value):        
+        self._maskName = value
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, 
+                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
 class TextStimGLUT:
     """Class of text stimuli to be displayed in a **Window()**
 
@@ -3183,65 +2493,152 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(texName, texID, pixFormat, useShaders):
+def createTexture(tex, id, pixFormat, useShaders, interpolate, res=128):
+    """
+    id is the texture ID
+    pixFormat = GL.GL_ALPHA, GL.GL_RGB
+    useShaders is a bool
+    interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
+    res is the resolution of the texture (unless a bitmap image is used)
+    """
     
-        self.__maskName = maskName
-        res = self.texRes#resolution of texture - 128 is bearable
-        step = 1.0/res
-        rad = numpy.arange(0,1+step,step)
-        if type(maskName) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*maskName.astype(float)
-            res = len(intensity)
-            fromFile=0
-        elif type(maskName) == list:
-            #handle a numpy array
-            intensity = 255*numpy.array(maskName, 'f')
-            res = len(intensity)
-            fromFile=0
-        elif maskName is "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif maskName is "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif maskName is "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif maskName in [None,"none"]:
-            res=4
-            intensity = 255.0*numpy.ones(res,float)
-            fromFile=0
-        else:#might be a filename of a tiff
-            try:
-                im = Image.open(maskName)
-            except IOError, (details):
-                log.error("couldn't load mask...%s: %s" %(maskName,details))
-                return
-            res = im.size[0]
+    """
+    Create an intensity texture, ranging -1:1.0
+    """
+    if type(tex) == numpy.ndarray:
+        #handle a numpy array
+        #for now this needs to be an NxN intensity array
+        intensity = tex.astype(numpy.float32)/255.0
+        wasLum = True
+        ##is it 1D?
+        if tex.shape[0]==1:
+            self._tex1D=True
+            res=im.shape[1]
+        elif len(tex.shape)==1 or texName.shape[1]==1:
+            self._tex1D=True
+            res=tex.shape[0]
+        else:
+            self._tex1D=False
+            #check if it's a square power of two
+            maxDim = max(tex.shape)
+            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2:
+                log.error("Numpy array textures must be square and must be power of two (e.g. 16x16, 256x256)")      
+                core.quit()
+            res=texName.shape[0]
+    elif tex in [None,"none", "None"]:
+        res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
+        intensity = numpy.ones([res,res],numpy.float32)
+        wasLum = True
+    elif tex == "sin":
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        intensity = numpy.sin(onePeriodY-pi/2)
+        wasLum = True
+    elif tex == "sqr":#square wave (symmetric duty cycle)
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        sinusoid = numpy.sin(onePeriodY-pi/2)
+        intensity = numpy.where(sinusoid>0, 1, -1)
+        wasLum = True
+    elif tex == "sinXsin":
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
+        wasLum = True
+    elif tex == "sqrXsqr":
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
+        intensity = numpy.where(sinusoid>0, 1, -1)
+        wasLum = True
+    elif tex is "circle":
+        rad=makeRadialMatrix(res)
+        intensity = (rad<=1)*2-1 
+        fromFile=0
+    elif tex is "gauss":
+        rad=makeRadialMatrix(res)
+        sigma = 1/3.0;
+        intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
+        fromFile=0
+    elif tex is "radRamp":#a radial ramp
+        rad=makeRadialMatrix(res)
+        intensity = 1-2*rad
+        intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
+        fromFile=0
+    else:#might be a filename of an image
+        try:
+            im = Image.open(tex)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+        except:
+            log.error("couldn't load tex...%s" %(tex))
+            core.quit()
+            raise #so that we quit
+
+        #is it 1D?
+        if im.size[0]==1 or im.size[1]==1:
+            log.error("Only 2D textures are supported at the moment")
+        else:
+            maxDim = max(im.size)
+            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
+                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
+
+        #is it Luminance or RGB?
+        if im.mode=='L':
+            wasLum = True
+            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
+        elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
+            wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity = psychopy.misc.image2array(im)
+            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
+        elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
+            #texture = im.tostring("raw", "RGB", 0, -1)
+            intensity = numpy.array(im).astype(numpy.float32)*2/255-1
+            wasLum=False
 
-        #cast into ubyte when done
-        data = intensity*self.opacity
-        #NB now byintensity already ranges 0:255 - just needs type conv.
+    if pixFormat==GL.GL_RGB and wasLum and useShaders:
+        #keep as float32 -1:1
+        internalFormat = GL.GL_RGB32F_ARB
+        dataType = GL.GL_FLOAT
+        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
+        data[:,:,0] = intensity#R
+        data[:,:,1] = intensity#G
+        data[:,:,2] = intensity#B
+    elif pixFormat==GL.GL_RGB and wasLum:
+        #scale by rgb and convert to ubyte
+        internalFormat = GL.GL_RGB
+        dataType = GL.GL_UNSIGNED_BYTE
+        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
+        data[:,:,0] = intensity*self.rgb[0]  + self.rgbPedestal[0]#R
+        data[:,:,1] = intensity*self.rgb[1]  + self.rgbPedestal[1]#G
+        data[:,:,2] = intensity*self.rgb[2]  + self.rgbPedestal[2]#B
+        #convert to ubyte
+        data = psychopy.misc.float_uint8(self.contrast*data)
+    elif pixFormat==GL.GL_RGB and useShaders:
+        internalFormat = GL.GL_RGB32F_ARB
+        dataType = GL.GL_FLOAT
+        data = intensity
+    elif pixFormat==GL.GL_RGB:
+        internalFormat = GL.GL_RGB
+        dataType = GL.GL_UNSIGNED_BYTE
+        data = psychopy.misc.float_uint8(intensity)
+        
+    elif pixFormat==GL.GL_ALPHA:
+        internalFormat = GL.GL_ALPHA
+        dataType = GL.GL_UNSIGNED_BYTE
+        data = psychopy.misc.float_uint8(intensity)    
+    texture = data.tostring()#serialise
 
-        data = data.astype(numpy.uint8)
-        mask = data.tostring()#serialise
+    if interpolate: smoothing=GL.GL_LINEAR
+    else: smoothing=GL.GL_NEAREST
 
-        #do the openGL binding
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
-        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
-                        res, 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        self.needUpdate=True
+    #bind the texture in openGL
+    GL.glEnable(GL.GL_TEXTURE_2D)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
+    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                    data.shape[0],data.shape[1], 0,
+                    pixFormat, dataType, texture)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+    #important if using bits++ because GL_LINEAR
+    #sometimes extrapolates to pixel vals outside range
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
+    GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!

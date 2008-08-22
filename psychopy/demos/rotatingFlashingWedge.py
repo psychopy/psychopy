@@ -5,7 +5,7 @@ from psychopy import visual, event, core
 globalClock = core.Clock()
 win = visual.Window([800,800])
 #make two wedges (in opposite contrast) and alternate them for flashing
-wedge1 = visual.RadialStim(win, tex='sqrXsqr', rgb=1,
+wedge1 = visual.RadialStim(win, tex='sqrXsqr', rgb=1,size=0.5,
     visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
 wedge2 = visual.RadialStim(win, tex='sqrXsqr', rgb=-1,
     visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
