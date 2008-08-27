@@ -1559,6 +1559,11 @@ class IDEMainFrame(wx.Frame):
         
     def fileSaveAs(self,event, filename=None):
         if filename==None: filename = self.currentDoc.filename
+        if sys.platform=='darwin':
+            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*."
+        else:
+            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
+
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=os.getcwd(), 
             defaultFile=filename, style=wx.SAVE)

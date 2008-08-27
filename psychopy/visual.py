@@ -1159,12 +1159,10 @@ class PatchStim(_BaseStim):
             self._setMask(self._maskName)
     def setTex(self,value):
         self._texName = value
-        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, 
-                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
     def setMask(self,value):        
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, 
-                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
     def setDepth(self,value, operation=None):
         self._set('depth', value, operation)
     def draw(self, win=None):
@@ -1299,15 +1297,9 @@ class PatchStim(_BaseStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
 
         #main texture
-        if self._tex1D:
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glDisable(GL.GL_TEXTURE_2D)
-            GL.glEnable(GL.GL_TEXTURE_1D)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self.texID)
-        else:
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         #calculate coords in advance:
         L = -self.size[0]/2#vertices
         R =      self.size[0]/2
@@ -1612,7 +1604,7 @@ class RadialStim(PatchStim):
         GL.glPushMatrix()#push before the list, pop after
         #GL.glLoadIdentity() #implicitly done by push/pop?
         #scale the viewport to the appropriate size
-        self.win.setScale(self.units)
+        win.setScale(self.units)
         #move to centre of stimulus and rotate
         GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
@@ -1736,20 +1728,18 @@ class RadialStim(PatchStim):
         GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
 
         #assign vertex array
-        GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+        else:
+            GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
         #bind and enable textures
         #main texture
-        if self._tex1D:
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self.texID)
-            GL.glDisable(GL.GL_TEXTURE_2D)
-            GL.glEnable(GL.GL_TEXTURE_1D)
-        else:
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
-            GL.glEnable(GL.GL_TEXTURE_2D)
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         #mask
         GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
         GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
@@ -1758,11 +1748,19 @@ class RadialStim(PatchStim):
 
         #set pointers to visible textures
         GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-        GL.glTexCoordPointerd(self._visibleTexture)
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+        else:
+            GL.glTexCoordPointerd(self._visibleTexture)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #mask
         GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
-        GL.glTexCoordPointerd(self._visibleMask)
+        if self.win.winType=='pyglet':
+            arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+        else:
+            GL.glTexCoordPointerd(self._visibleMask)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         #do the drawing
@@ -1777,12 +1775,68 @@ class RadialStim(PatchStim):
 
     def setTex(self,value):
         self._texName = value
-        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, 
-                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
     def setMask(self,value):        
+        """Users shouldn't use this method
+        """
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, 
-                      useShaders=self._haveShaders, interpolate=self.interpolate, res=self.texRes)
+        res = self.texRes#resolution of texture - 128 is bearable
+        step = 1.0/res
+        rad = numpy.arange(0,1+step,step)
+        if type(self._maskName) == numpy.ndarray:
+            #handle a numpy array
+            intensity = 255*maskName.astype(float)
+            res = len(intensity)
+            fromFile=0
+        elif type(self._maskName) == list:
+            #handle a numpy array
+            intensity = 255*numpy.array(maskName, 'f')
+            res = len(intensity)
+            fromFile=0
+        elif self._maskName is "circle":
+            intensity = 255.0*(rad<=1)
+            fromFile=0
+        elif self._maskName is "gauss":
+            sigma = 1/3.0;
+            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
+            fromFile=0
+        elif self._maskName is "radRamp":#a radial ramp
+            intensity = 255.0-255.0*rad
+            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
+            fromFile=0
+        elif self._maskName in [None,"none"]:
+            res=4
+            intensity = 255.0*numpy.ones(res,float)
+            fromFile=0
+        else:#might be a filename of a tiff
+            try:
+                im = Image.open(self._maskName)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
+            except IOError, (details):
+                log.error("couldn't load mask...%s: %s" %(value,details))
+                return
+            res = im.size[0]
+            im = im.convert("L")#force to intensity (in case it was rgb)
+            intensity = numpy.asarray(im)
+
+        data = intensity.astype(numpy.uint8)
+        mask = data.tostring()#serialise
+
+        #do the openGL binding
+        if self.interpolate: smoothing=GL.GL_LINEAR
+        else: smoothing=GL.GL_NEAREST
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
+        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
+                        res, 0,
+                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
+        GL.glEnable(GL.GL_TEXTURE_1D)
+
+        self.needUpdate=True
 class TextStimGLUT:
     """Class of text stimuli to be displayed in a **Window()**
 
@@ -2493,7 +2547,7 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(tex, id, pixFormat, useShaders, interpolate, res=128):
+def createTexture(tex, id, pixFormat, stim, res=128):
     """
     id is the texture ID
     pixFormat = GL.GL_ALPHA, GL.GL_RGB
@@ -2505,6 +2559,9 @@ def createTexture(tex, id, pixFormat, useShaders, interpolate, res=128):
     """
     Create an intensity texture, ranging -1:1.0
     """
+    useShaders = stim._haveShaders
+    interpolate = stim.interpolate
+    
     if type(tex) == numpy.ndarray:
         #handle a numpy array
         #for now this needs to be an NxN intensity array
@@ -2607,11 +2664,11 @@ def createTexture(tex, id, pixFormat, useShaders, interpolate, res=128):
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-        data[:,:,0] = intensity*self.rgb[0]  + self.rgbPedestal[0]#R
-        data[:,:,1] = intensity*self.rgb[1]  + self.rgbPedestal[1]#G
-        data[:,:,2] = intensity*self.rgb[2]  + self.rgbPedestal[2]#B
+        data[:,:,0] = intensity*stim.rgb[0]  + stim.rgbPedestal[0]#R
+        data[:,:,1] = intensity*stim.rgb[1]  + stim.rgbPedestal[1]#G
+        data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        data = psychopy.misc.float_uint8(self.contrast*data)
+        data = psychopy.misc.float_uint8(stim.contrast*data)
     elif pixFormat==GL.GL_RGB and useShaders:
         internalFormat = GL.GL_RGB32F_ARB
         dataType = GL.GL_FLOAT
@@ -2620,11 +2677,15 @@ def createTexture(tex, id, pixFormat, useShaders, interpolate, res=128):
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
         data = psychopy.misc.float_uint8(intensity)
-        
-    elif pixFormat==GL.GL_ALPHA:
+    elif pixFormat==GL.GL_ALPHA and useShaders:
         internalFormat = GL.GL_ALPHA
         dataType = GL.GL_UNSIGNED_BYTE
         data = psychopy.misc.float_uint8(intensity)    
+    elif pixFormat==GL.GL_ALPHA:
+        internalFormat = GL.GL_ALPHA
+        dataType = GL.GL_UNSIGNED_BYTE
+        #can't use float_uint8 - do it manually
+        data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
     texture = data.tostring()#serialise
 
     if interpolate: smoothing=GL.GL_LINEAR
