@@ -14,7 +14,7 @@ trialClock = core.Clock()
 
 #repeat drawing for each frame
 while trialClock.getTime()<20:
-   gabor.setPhase(0.01,'+')
+   gabor.setOpacity(0.01,'-')
    gabor.draw()	
    message.draw()
    #handle key presses each frame

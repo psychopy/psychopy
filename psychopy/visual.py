@@ -623,22 +623,41 @@ class Window:
         self.mouseVisible = visibility
     
 #############################################################################
-class _BaseStim:
+class _BaseVisualStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
-    Not finished, and not (really) being used!
+    Not finished...?
     """
     def __init__(self):
         raise NotImplementedError('abstract')
-    def setPos(self):
-        raise NotImplementedError('abstract')
-    def setSize(self):
-        raise NotImplementedError('abstract')
-    def setOri(self):
-        raise NotImplementedError('abstract')
-    def setRGB(self):
-        raise NotImplementedError('abstract')
     def draw(self):
         raise NotImplementedError('abstract')
+        
+    def setPos(self, newPos, operation=None, units=None):
+        self._set('pos', val=newPos, op=operation)
+    def setDepth(self,newDepth, operation=None):
+        self._set('depth', newDepth, operation)
+    def setSize(self, newSize, operation=None, units=None):
+        if units==None: units=self.units#need to change this to create several units from one
+        self._set('size', newSize, op=operation)
+        self.needUpdate=True
+    def setOri(self, newOri, operation=None):
+        self._set('ori',val=newOri, op=operation)
+    def setOpacity(self,newOpacity,operation=None):
+        self._set('opacity', newOpacity, operation)
+        #opacity is coded by the texture, if not using shaders
+        if not self._haveShaders:
+            self.setMask(self._maskName)
+    def setDKL(self, newDKL, operation=None):
+        self._set('dkl', value=newDKL, op=operation)
+        self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
+    def setLMS(self, newLMS, operation=None):
+        self._set('lms', value=newLMS, op=operation)
+        self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
+    def setRGB(self, newRGB, operation):      
+        self._set('rgb', newRGB, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._haveShaders:
+            self.setTex(self._texName)
     def _set(self, attrib, val, op=''):
         """
         Deprecated. Use methods specific to the parameter you want to set
@@ -661,10 +680,11 @@ class _BaseStim:
             exec('self.'+attrib+'*=0') #set all values in array to 0
             exec('self.'+attrib+'+=val') #then add the value to array
         else:
+            print val
             exec('self.'+attrib+op+'=val')
         
             
-class DotStim:
+class DotStim(_BaseVisualStim):
     """
     This stimulus class defines a field of dots, all with the same speed
     but various directions of motion. A subset of 'coherent' dots have
@@ -819,7 +839,7 @@ class DotStim:
 
 
     def set(self, attrib, val, op=''):
-        """AlphaStim.set() is obselete and may not be supported in future
+        """DotStim.set() is obselete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setOri(), setSF()...)
         """
@@ -915,7 +935,7 @@ class DotStim:
             self._opacity = numpy.where(dotDist<1.0, self.opacity, 0.0)
 
 
-class PatchStim(_BaseStim):
+class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
 
@@ -1121,50 +1141,23 @@ class PatchStim(_BaseStim):
         self._updateList()#ie refresh display list
 
 
-    def setOri(self,value,operation=None):
-        self._set('ori', value, operation)
     def setSF(self,value,operation=None):
         self._set('sf', value, operation)
-        self.needUpdate = 1
-    def setSize(self,value,operation=None):
-        self._set('size', value, operation)
         self.needUpdate = 1
     def setPhase(self,value, operation=None):
         self._set('phase', value, operation)
         self.needUpdate = 1
-    def setPos(self,value,operation=None):
-        self._set('pos', value, operation)
-    def setDKL(self, value, operation=None):
-        if operation==None: operation=''
-        exec('self.dkl'+operation+'=numpy.asarray(value)')
-        self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
-    def setLMS(self, value, operation):
-        if operation==None: operation=''
-        exec('self.lms'+operation+'=numpy.asarray(value)')
-        self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self,value, operation=None):
-        self._set('rgb', value, operation)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._haveShaders:
-            self._setTex(self._texName)
     def setContrast(self,value,operation=None):
         self._set('contrast', value, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._haveShaders:
-            self._setTex(self._texName)
-    def setOpacity(self,value,operation=None):
-        self._set('opacity', value, operation)
-        #opacity is coded by the texture, if not using shaders
-        if not self._haveShaders:
-            self._setMask(self._maskName)
+            self.setTex(self._texName)
     def setTex(self,value):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
     def setMask(self,value):        
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
-    def setDepth(self,value, operation=None):
-        self._set('depth', value, operation)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -2100,7 +2093,7 @@ class TextStimGLUT:
         GL.glCallList(self._listID)
         GL.glPopMatrix()#push before the list, pop after
 
-class TextStim(_BaseStim):
+class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a **Window()**
 
     **Written:**
@@ -2235,18 +2228,6 @@ class TextStim(_BaseStim):
 
         self.needUpdate=True
 
-    def setOri(self,value,operation=None):
-        self._set('ori', value, operation)
-    def setPos(self,value,operation=None):
-        self._set('pos', value, operation)
-    def setRGB(self,value, operation=None):
-        self._set('rgb', value, operation)
-        if not self._haveShaders:
-            self.setText(self.text)#need to render the text again to a texture
-    def setOpacity(self,value,operation=None):
-        self._set('opacity', value, operation)
-        if not self._haveShaders:
-            self.setText(self.text)#need to render the text again to a texture
     def setFont(self, font):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -2320,9 +2301,6 @@ class TextStim(_BaseStim):
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
 
         self.needUpdate = True
-
-    def setDepth(self,value, operation=None):
-        self._set('depth', value, operation)
 
     def _updateList(self):
         """
