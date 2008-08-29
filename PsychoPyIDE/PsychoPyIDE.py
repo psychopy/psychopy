@@ -1299,19 +1299,19 @@ class IDEMainFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
             
-        tsize=(32,32)#NB this only affects win32    
-        self.toolbar.SetToolBitmapSize(tsize)
-        new_bmp = wx.Bitmap(os.path.join(iconDir, 'document-new.png'))
-        open_bmp = wx.Bitmap(os.path.join(iconDir, 'document-open.png'))
-        save_bmp = wx.Bitmap(os.path.join(iconDir, 'document-save.png'))
-        saveAs_bmp = wx.Bitmap(os.path.join(iconDir, 'document-save-as.png'), wx.BITMAP_TYPE_PNG)
-        new_bmp = wx.Bitmap(os.path.join(iconDir, 'document-new.png'),wx.BITMAP_TYPE_PNG)
-        undo_bmp = wx.Bitmap(os.path.join(iconDir, 'edit-undo.png'),wx.BITMAP_TYPE_PNG)
-        redo_bmp = wx.Bitmap(os.path.join(iconDir, 'edit-redo.png'),wx.BITMAP_TYPE_PNG)
-        stop_bmp = wx.Bitmap(os.path.join(iconDir, 'media-playback-stop.png'),
-          wx.BITMAP_TYPE_PNG)
-        run_bmp = wx.Bitmap(os.path.join(iconDir, 'media-playback-start.png'),
-          wx.BITMAP_TYPE_PNG)
+        if sys.platform=='win32':
+            toolbarSize=16
+        else:
+            toolbarSize=32 #size 16 doesn't work on mac wx
+        self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
+        new_bmp = wx.Bitmap(os.path.join(iconDir, 'filenew%i.png' %toolbarSize))
+        open_bmp = wx.Bitmap(os.path.join(iconDir, 'fileopen%i.png' %toolbarSize))
+        save_bmp = wx.Bitmap(os.path.join(iconDir, 'filesave%i.png' %toolbarSize))
+        saveAs_bmp = wx.Bitmap(os.path.join(iconDir, 'filesaveas%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        undo_bmp = wx.Bitmap(os.path.join(iconDir, 'undo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        redo_bmp = wx.Bitmap(os.path.join(iconDir, 'redo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        stop_bmp = wx.Bitmap(os.path.join(iconDir, 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        run_bmp = wx.Bitmap(os.path.join(iconDir, 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
             
         self.toolbar.AddSimpleTool(TB_FILENEW, new_bmp, "New [Ctrl+N]", "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=TB_FILENEW)
