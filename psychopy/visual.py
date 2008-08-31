@@ -1830,6 +1830,92 @@ class RadialStim(PatchStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self.needUpdate=True
+class MovieStim:
+    """A stimulus class for playing movies (mpeg, avi, etc...) in 
+    PsychoPy.
+    """
+    def __init__(self, win,
+                 filename = "",
+                 units   = 'pix',
+                 size    = None,
+                 pos      =(0.0,0.0),
+                 ori     =0.0,
+                 flipVert = False,
+                 flipHoriz = False):
+        self.win = win        
+        self._movie=None # the actual pyglet media object
+        self._player=pyglet.media.ManagedSoundPlayer()
+        self.filename=filename
+        self.loadMovie( self.filename )
+        self.format=self._movie.video_format        
+        self.pos=pos
+        self.duration=None
+        self.depth=0        
+        self.pos = numpy.asarray(pos)
+        self.flipVert = flipVert
+        self.flipHoriz = flipHoriz
+        #size
+        if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
+        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
+        else: self.size = numpy.array((size,size),float)
+        
+        self.ori = ori
+        if units in [None, "", []]:
+            self.units = win.units
+        else:
+            self.units = units
+            
+        #check for pyglet
+        if win.winType!='pyglet': 
+            log.Error('Movie stimuli can only be used with a pyglet window')
+            core.quit()
+                    
+    def loadMovie(self, filename):
+        
+        self._movie = pyglet.media.load( filename, streaming=True)
+        self._player.queue(self._movie)
+        self.duration = self._movie.duration
+        
+    def draw(self, win=None):
+        """Draw the current frame to a particular visual.Window (or to the
+        default win for this object if not specified). The current position in the
+        movie will be determined automatically.
+        
+        This method should be called on every frame that the movie is meant to appear"""
+        if not self._player.playing:
+            self._player.play()
+        
+        #set the window to draw to
+        if win==None: win=self.win
+        win.winHandle.switch_to()
+        
+        #work out next default depth
+        if self.depth==0:
+            thisDepth = self.win._defDepth
+            self.win._defDepth += _depthIncrements[self.win.winType]
+        else:
+            thisDepth=self.depth
+
+        #do scaling
+        #scale the viewport to the appropriate size
+        self.win.setScale(self.units)
+        
+        frameTexture = self._player.get_texture()
+        
+        GL.glPushMatrix()
+        #move to centre of stimulus and rotate
+        GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)
+        GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        flipBitX = 1-self.flipHoriz*2
+        flipBitY = 1-self.flipVert*2
+        frameTexture.blit(
+                -self.size[0]/2.0*flipBitX, 
+                -self.size[1]/2.0*flipBitY, 
+                width=self.size[0]*flipBitX, 
+                height=self.size[1]*flipBitY,
+                z=thisDepth)        
+        GL.glPopMatrix()
+        
 class TextStimGLUT:
     """Class of text stimuli to be displayed in a **Window()**
 
