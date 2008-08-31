@@ -909,7 +909,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
         
         
-class stdOutRich(wx.richtext.RichTextCtrl):
+class StdOutRich(wx.richtext.RichTextCtrl):
     def __init__(self, parent, style, size):
         wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
@@ -1133,7 +1133,7 @@ class IDEMainFrame(wx.Frame):
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = stdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        self.outputWindow = StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
         self.paneManager.AddPane(self.outputWindow, 
                                  wx.aui.AuiPaneInfo().
                                  Name("Output").Caption("Output").
@@ -1300,7 +1300,7 @@ class IDEMainFrame(wx.Frame):
             | wx.TB_FLAT))
             
         if sys.platform=='win32':
-            toolbarSize=16
+            toolbarSize=32
         else:
             toolbarSize=32 #size 16 doesn't work on mac wx
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
@@ -1454,6 +1454,8 @@ class IDEMainFrame(wx.Frame):
         optionsPath = os.path.join(appDir, 'options.pickle')
         toPickle(optionsPath, self.options)
         self.Destroy()
+        sys.exit(0)
+        
     def fileNew(self, event):
         self.setCurrentDoc("")
         
@@ -1721,7 +1723,12 @@ class IDEMainFrame(wx.Frame):
         
         
     def copy(self, event):
-        self.currentDoc.Copy()#let the text ctrl handle this
+        foc= self.FindFocus()
+        foc.Copy()
+        #if isinstance(foc, CodeEditor):
+        #    self.currentDoc.Copy()#let the text ctrl handle this
+        #elif isinstance(foc, StdOutRich):
+            
     def duplicateLine(self,event):
         self.currentDoc.LineDuplicate()
     def cut(self, event):
