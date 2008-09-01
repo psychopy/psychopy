@@ -2634,7 +2634,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         if tex.shape[0]==1:
             self._tex1D=True
             res=im.shape[1]
-        elif len(tex.shape)==1 or texName.shape[1]==1:
+        elif len(tex.shape)==1 or tex.shape[1]==1:
             self._tex1D=True
             res=tex.shape[0]
         else:
@@ -2645,7 +2645,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             if tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2:
                 log.error("Numpy array textures must be square and must be power of two (e.g. 16x16, 256x256)")      
                 core.quit()
-            res=texName.shape[0]
+            res=tex.shape[0]
     elif tex in [None,"none", "None"]:
         res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
         intensity = numpy.ones([res,res],numpy.float32)
@@ -2698,7 +2698,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             maxDim = max(im.size)
             powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(texName, powerOf2, powerOf2))
+                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
                 im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
 
         #is it Luminance or RGB?
