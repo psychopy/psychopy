@@ -1829,9 +1829,20 @@ class RadialStim(PatchStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self.needUpdate=True
+        
 class MovieStim:
     """A stimulus class for playing movies (mpeg, avi, etc...) in 
-    PsychoPy.
+    PsychoPy. 
+    
+    **examples**::
+    
+        mov = visual.MovieStim(myWin, 'testmovie.mpg', fliVert=False)
+        print mov.duration
+        print mov.format.width, mov.format.height #give the original size of the movie in pixels
+        
+        mov.draw() #draw the current frame (automagically determined)
+        
+    See MovieStim.py for demo.
     """
     def __init__(self, win,
                  filename = "",
@@ -1841,18 +1852,50 @@ class MovieStim:
                  ori     =0.0,
                  flipVert = False,
                  flipHoriz = False):
+        """
+        **Arguments:**
+
+            - **win:** a Window() object required - the stimulus must know where to draw itself
+
+            - **filename:**
+                a string giving the relative or absolute path to the movie. Can be any movie that 
+                AVbin can read (e.g. mpeg, DivX)
+                
+            - **units:**
+                + None (use 'pix')
+                + **or** 'norm' (normalised: window goes from -1:1)
+                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
+                
+            - **pos**:
+                position of the centre of the movie, given in the units specified
+                
+            - **flipVert**:
+                bool (True/False or 1/-1) if True then the movie will be top-bottom flipped
+                
+            - **flipHoriz**:
+                bool (True/False or 1/-1) if True then the movie will be right-left flipped
+            
+            - **ori**:
+                orientation of the stimulus in degrees
+                
+            - **size**:
+                size of the stimulus in units given. If not specified then the movie will take its
+                original dimensions. Thes can be interrogated by 
+        """
         self.win = win        
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
+        self.duration=None
         self.loadMovie( self.filename )
         self.format=self._movie.video_format        
         self.pos=pos
-        self.duration=None
         self.depth=0        
         self.pos = numpy.asarray(pos)
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
+        self.playing=0
+        
         #size
         if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
@@ -1874,6 +1917,7 @@ class MovieStim:
         self._movie = pyglet.media.load( filename, streaming=True)
         self._player.queue(self._movie)
         self.duration = self._movie.duration
+        #self._player.on_eos=self.onEOS #doesn't seem to work
         
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -1883,7 +1927,7 @@ class MovieStim:
         This method should be called on every frame that the movie is meant to appear"""
         if not self._player.playing:
             self._player.play()
-        
+            self.playing=1
         #set the window to draw to
         if win==None: win=self.win
         win.winHandle.switch_to()
@@ -1914,7 +1958,10 @@ class MovieStim:
                 height=self.size[1]*flipBitY,
                 z=thisDepth)        
         GL.glPopMatrix()
-        
+    def _onEOS(self):
+        #not called, for some reason?!
+        self.playing=-1
+        print 'movie finished'
 class TextStimGLUT:
     """Class of text stimuli to be displayed in a **Window()**
 
