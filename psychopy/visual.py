@@ -680,7 +680,6 @@ class _BaseVisualStim:
             exec('self.'+attrib+'*=0') #set all values in array to 0
             exec('self.'+attrib+'+=val') #then add the value to array
         else:
-            print val
             exec('self.'+attrib+op+'=val')
         
             

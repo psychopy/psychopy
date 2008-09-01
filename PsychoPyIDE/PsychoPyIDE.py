@@ -1561,14 +1561,16 @@ class IDEMainFrame(wx.Frame):
         
     def fileSaveAs(self,event, filename=None):
         if filename==None: filename = self.currentDoc.filename
+        initPath, filename = os.path.split(filename)
+        os.getcwd()
         if sys.platform=='darwin':
-            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*."
+            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
         else:
             wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
 
         dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(), 
-            defaultFile=filename, style=wx.SAVE)
+            self, message="Save file as ...", defaultDir=initPath, 
+            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.fileSave(event=None, filename=newPath)
@@ -1577,6 +1579,7 @@ class IDEMainFrame(wx.Frame):
             self.notebook.SetPageText(self.notebook.GetSelection(), shortName)
             self.setFileModified(False)
         dlg.destroy()
+        
     def fileClose(self, event):
         filename = self.currentDoc.filename
         if self.currentDoc.UNSAVED==True:

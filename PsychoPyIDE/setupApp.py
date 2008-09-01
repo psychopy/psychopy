@@ -40,6 +40,7 @@ else:
     setup(app=['PsychoPyIDE.py'],
         options=dict(py2app=dict( excludes=['OpenGL', 'pygame'],
                                   includes=['Tkinter','FileDialog','setuptools'],
+                                  frameworks = ["libavbin.5.dylib"],
                                   resources=resources,
                                   #semi_standalone=True,
                                   site_packages=True,
@@ -63,6 +64,7 @@ I struggled getting this to work
 Mac OS X - you need to install 
 macholib (> 1.2 to avoid "Unkown load command: 27")
 modulegraph
+altgraph
 """
 
 # on Mac use:

@@ -4,9 +4,6 @@ pyglet back-end
  - fontstim, 
      - handle text frames (text wrapping)
 
-rewrite the stimulus scaling code
-create a BaseStimulus class?
-
 debugging (test if pyglet allows - pygame on Mac didn't)
 GUI script generator
 LineStim

@@ -5,11 +5,11 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 !!Changelog
 
 PsychoPy 0.95.1:
-* FIXED bug in the shaders code under pyglet (was working fine in pygame already)
-* ADDED getInfo.py to demos to get python/opengl info
 * FIXED problem with saving files from the IDE on Mac
 * FIXED Cmd-C now copies from the output window of IDE
-* even nicer icons (thanks to the Crystal project at everaldo.com)
+* even nicer IDE icons (thanks to the Crystal project at everaldo.com)
+* FIXED bug in the shaders code under pyglet (was working fine in pygame already)
+* ADDED getInfo.py to demos to get python/opengl info
 * (refactored code to use a template visual stimulus)
 
 !!!PsychoPy 0.95.0:
