@@ -83,7 +83,8 @@ ourExp = Experiment()
 #create a new procedure
 ourExp.addProcedure('trial')
 #add events (stimuli or keyboard checking etc...)
-ourExp.procs['trial'].append( EventPatch(name='fixation', image=None, 
+ourExp.procs['trial'].append( 
+    EventPatch(name='fixation', image=None, 
         size=0.5, pos=[0,0],ori=0,
         onTimes=[(0,1), (1.5,2.0)],#on twice
         )

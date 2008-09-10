@@ -5,7 +5,7 @@ psychopy script, allowing you to draw anything that OpenGL can draw
 (ie anything)
 """
 from psychopy import *
-from OpenGL.GL import *
+from pyglet.gl import *
 
 myWin = visual.Window([600,600], units='norm',monitor='testMonitor')
 a_blob = visual.PatchStim(myWin, pos = [0.5,0],mask='gauss', sf=3)

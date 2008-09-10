@@ -1438,7 +1438,9 @@ class IDEMainFrame(wx.Frame):
             
         #close each file (which will check for saving)
         for thisFile in self.allDocs:#must do this for all files AFTER adding them to the list
-            self.fileClose(event=0)
+            ok = self.fileClose(event=0)
+            if ok==-1:
+                return -1 #user cancelled - don't quit
         #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
@@ -1590,7 +1592,7 @@ class IDEMainFrame(wx.Frame):
             sys.stdout.flush()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL:
-                return 1 #return, don't quit
+                return -1 #return, don't quit
             elif resp == wx.ID_YES:
                 #save then quit
                 self.fileSave(None)
@@ -1605,10 +1607,12 @@ class IDEMainFrame(wx.Frame):
             self.currentDoc=None    
             self.SetLabel("PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__)
         else: 
-            self.notebook.Raise
+            #self.notebook.Raise
             self.currentDoc = self.allDocs[newPageID]
+            print 'new:', self.currentDoc.filename
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
-                    
+        return 1
+    
     def _runFileAsImport(self):      
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)

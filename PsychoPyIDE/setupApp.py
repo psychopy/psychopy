@@ -29,9 +29,6 @@ elif platform=='posix':
 ##                 sources = [os.path.join('psychopy','ext','posix.c')]))
 
 
-import pytz
-pytz.zoneinfo = pytz.tzinfo
-pytz.zoneinfo.UTC = pytz.UTC
 if platform == 'win32':
     requires.extend(['pymedia'])
     setup(console=["PsychoPyIDE.py"],      
@@ -40,7 +37,7 @@ else:
     setup(app=['PsychoPyIDE.py'],
         options=dict(py2app=dict( excludes=['OpenGL', 'pygame'],
                                   includes=['Tkinter','FileDialog','setuptools'],
-                                  frameworks = ["libavbin.5.dylib"],
+                                  frameworks = ["libavbin.dylib"],
                                   resources=resources,
                                   #semi_standalone=True,
                                   site_packages=True,
@@ -62,6 +59,10 @@ else:
 I struggled getting this to work 
 
 Mac OS X - you need to install 
+setuptools0.6c9
+    (svn co http://svn.python.org/projects/sandbox/branches/setuptools-0.6 then go to the directory and
+    do a sudo python setup.py install)
+    DO NOT use version 0.7, nor version 0.6.8 - they are both broken!
 macholib (> 1.2 to avoid "Unkown load command: 27")
 modulegraph
 altgraph

@@ -22,6 +22,7 @@ if platform=='win32':
     #libraries=['bits']))
     pass  
 elif platform=='darwin':
+    #from py2app import bdist_mpkg
     dataExtensions.extend(['*.icns'])
 elif platform=='posix':
     pass

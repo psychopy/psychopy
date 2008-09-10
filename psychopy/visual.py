@@ -2703,7 +2703,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #handle a numpy array
         #for now this needs to be an NxN intensity array        
         intensity = tex.astype(numpy.float32)
-        if intenstiy.max()>1 or intensity.min()<-1:
+        if intensity.max()>1 or intensity.min()<-1:
             log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
         wasLum = True
         ##is it 1D?
