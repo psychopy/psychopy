@@ -982,14 +982,17 @@ class PatchStim(_BaseVisualStim):
         """
         **Arguments:**
 
-            - **win:** a Window() object required - the stimulus must know where to draw itself!
+            - **win:** 
+                a Window() object required - the stimulus must know where to draw itself!
 
-            - **tex** The texture forming the image
+            - **tex** 
+                The texture forming the image
                 + 'sin','sqr',None
                 + **or** the name of an image file (most formats supported)
                 + **or** a numpy array (1xN or NxN) ranging -1:1
 
-            - **mask:** The alpha mask (forming the shape of the image)
+            - **mask:**
+                The alpha mask (forming the shape of the image)
                 + None, 'circle', 'gauss'
                 + **or** the name of an image file (most formats supported)
                 + **or** a numpy array (1xN or NxN) ranging -1:1
@@ -999,66 +1002,75 @@ class PatchStim(_BaseVisualStim):
                 + **or** 'norm' (normalised: window voes from -1:1 in each direction)
                 + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
 
-            - **pos:** a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                    The origin is the screen centre, the units are determined
-                    by units (see above). Stimuli can be position beyond the
-                    window!
-            - **size:** a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                    OR a single value (which will be applied to x and y).
-                    Units are specified by 'units' (see above).
-                    Sizes can be negative and can extend beyond the window.
-            - **sf:** a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
-                    OR a single value (which will be applied to x and y).
-                    Units are in cycles per 'units' (see above). For *deg*, *cm* and *norm* units th
-                    default sf=1, for *pix* the default sf=1/size so that one cycle fits on the stim.
-            - **ori:** orientation of stimulus in degrees.
-            - **phase:** a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y
-                    OR a single value (which will be applied to x and y).
-                    Phase of the stimulus in each direction.
-                    **NB** phase has modulus 1 (rather than 360 or 2*pi)
-                    This is a little unconventional but has the nice effect
-                    that setting phase=t*n drifts a stimulus at n Hz
+            - **pos:** 
+                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+                The origin is the screen centre, the units are determined
+                by units (see above). Stimuli can be position beyond the
+                window!
+            - **size:** 
+                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
+                OR a single value (which will be applied to x and y).
+                Units are specified by 'units' (see above).
+                Sizes can be negative and can extend beyond the window.
+            - **sf:** 
+                a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
+                OR a single value (which will be applied to x and y).
+                Units are in cycles per 'units' (see above). For *deg*, *cm* and *norm* units th
+                default sf=1, for *pix* the default sf=1/size so that one cycle fits on the stim.
+            - **ori:** 
+                orientation of stimulus in degrees.
+            - **phase:** 
+                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y
+                OR a single value (which will be applied to x and y).
+                Phase of the stimulus in each direction.
+                **NB** phase has modulus 1 (rather than 360 or 2*pi)
+                This is a little unconventional but has the nice effect
+                that setting phase=t*n drifts a stimulus at n Hz
 
-            - **texRes:** 128, resolution of the texture (if not loading from an image file)
+            - **texRes:** 
+                resolution of the texture (if not loading from an image file)
 
-            - **rgb:** a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
-                    or a single value (which will be applied to all guns).
-                    RGB vals are applied to simple textures and to greyscale
-                    image files but not to RGB images.
+            - **rgb:** 
+                a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
+                or a single value (which will be applied to all guns).
+                RGB vals are applied to simple textures and to greyscale
+                image files but not to RGB images.
 
-                    **NB** units range -1:1 (so 0.0 is GREY). Again this is
-                    unconventional but it's great for vision scientists
-                    because they usually change things relative to a
-                    midpoint rather than relative to black.
+                **NB** units range -1:1 (so 0.0 is GREY). Again this is
+                unconventional but it's great for vision scientists
+                because they usually change things relative to a
+                midpoint rather than relative to black.
 
-            - **dkl:** a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
-                    specifying the coordinates of the stimuli in cone-opponent
-                    space (Derrington, Krauskopf, Lennie 1984)
-                    Triplets represent [elevation, azimuth, magnitude].
-                    Note that the monitor must be calibrated for this to be
-                    accurate (if not, example phosphors from a Sony Trinitron
-                    CRT will be used).
+            - **dkl:** 
+                a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
+                specifying the coordinates of the stimuli in cone-opponent
+                space (Derrington, Krauskopf, Lennie 1984)
+                Triplets represent [elevation, azimuth, magnitude].
+                Note that the monitor must be calibrated for this to be
+                accurate (if not, example phosphors from a Sony Trinitron
+                CRT will be used).
 
-            - **lms:** a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
-                    specifying the coordinates of the stimuli in cone space
-                    Triplets represent relative modulation of each cone [L, M, S].
-                    Note that the monitor must be calibrated for this to be
-                    accurate (if not, example phosphors from a Sony Trinitron
-                    CRT will be used).
+            - **lms:** 
+                a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
+                specifying the coordinates of the stimuli in cone space
+                Triplets represent relative modulation of each cone [L, M, S].
+                Note that the monitor must be calibrated for this to be
+                accurate (if not, example phosphors from a Sony Trinitron
+                CRT will be used).
 
             - **contrast** 1.0,
-                    How far the stimulus deviates from the middle grey.
-                    Contrast can vary -1:1 (this is a multiplier for the
-                    values given in the color description of the stimulus)
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus)
 
             - **opacity** 1.0,
-                    1.0 is opaque, 0.0 is transparent
+                1.0 is opaque, 0.0 is transparent
 
             - **depth** 0,
-                    This can potentially be used (not tested!) to choose which
-                    stimulus overlays which. (more negative values are nearer).
-                    At present the window does not do perspective rendering
-                    but could do if that's really useful(?!)
+                This can potentially be used (not tested!) to choose which
+                stimulus overlays which. (more negative values are nearer).
+                At present the window does not do perspective rendering
+                but could do if that's really useful(?!)
 
         """
         global haveShaders
@@ -1340,6 +1352,7 @@ class PatchStim(_BaseVisualStim):
         de-referencing your stimulus or the textures associated with it will be kept in memory.
         
         For example, the following will eventually crash::
+        
             from psychopy import visual
             win = visual.Window([400,400])
             for frameN in range(3000):
@@ -1349,6 +1362,7 @@ class PatchStim(_BaseVisualStim):
                 win.flip()
                 
         Whereas this will not, because it removes uneeded textures from memory::
+        
             from psychopy import visual
             win = visual.Window([400,400])
             for frameN in range(3000):
