@@ -987,12 +987,12 @@ class PatchStim(_BaseVisualStim):
             - **tex** The texture forming the image
                 + 'sin','sqr',None
                 + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging 0:255
+                + **or** a numpy array (1xN or NxN) ranging -1:1
 
             - **mask:** The alpha mask (forming the shape of the image)
                 + None, 'circle', 'gauss'
                 + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging 0:255
+                + **or** a numpy array (1xN or NxN) ranging -1:1
 
             - **units:**
                 + None (use the current units of the Window)
@@ -1334,7 +1334,34 @@ class PatchStim(_BaseVisualStim):
 
 
 
-
+    def clearTextures(self):
+        """
+        Clear the textures associated with the given stimulus. You should call this before
+        de-referencing your stimulus or the textures associated with it will be kept in memory.
+        
+        For example, the following will eventually crash::
+            from psychopy import visual
+            win = visual.Window([400,400])
+            for frameN in range(3000):
+                #creating a new stimulus every time
+                stim = visual.PatchStim(win, texRes=512)
+                stim.draw()
+                win.flip()
+                
+        Whereas this will not, because it removes uneeded textures from memory::
+            from psychopy import visual
+            win = visual.Window([400,400])
+            for frameN in range(3000):
+                #creating a new stimulus every time
+                stim = visual.PatchStim(win, texRes=512)
+                stim.draw()
+                stim.clearTextures()
+                win.flip()         
+        """
+        #only needed for pyglet
+        if self.win.winType=='pyglet':
+            GL.glDeleteTextures(1, self.texID)
+            GL.glDeleteTextures(1, self.maskID)
 class AlphaStim(PatchStim):
     """DEPRECATED. Use PatchStim instead/n/n"""
     def __init__(self, *arguments, **keywords):
@@ -1384,7 +1411,7 @@ class RadialStim(PatchStim):
                 The texture forming the image
                 + 'sqrXsqr', 'sinXsin', 'sin','sqr',None
                 + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging 0:255
+                + **or** a numpy array (1xN or NxN) ranging -1:1
 
             - **mask:**
                 Unlike the mask in the AlphaStim, this is a 1-D mask dictating the behaviour
@@ -2674,18 +2701,20 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     
     if type(tex) == numpy.ndarray:
         #handle a numpy array
-        #for now this needs to be an NxN intensity array
-        intensity = tex.astype(numpy.float32)/255.0
+        #for now this needs to be an NxN intensity array        
+        intensity = tex.astype(numpy.float32)
+        if intenstiy.max()>1 or intensity.min()<-1:
+            log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
         wasLum = True
         ##is it 1D?
         if tex.shape[0]==1:
-            self._tex1D=True
+            stim._tex1D=True
             res=im.shape[1]
         elif len(tex.shape)==1 or tex.shape[1]==1:
-            self._tex1D=True
+            stim._tex1D=True
             res=tex.shape[0]
         else:
-            self._tex1D=False
+            stim._tex1D=False
             #check if it's a square power of two
             maxDim = max(tex.shape)
             powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
