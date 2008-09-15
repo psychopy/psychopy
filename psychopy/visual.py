@@ -938,7 +938,7 @@ class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
 
-    Formally AlphaStim is just a texture behind an optional
+    Formally PatchStim is just a texture behind an optional
     transparency mask (an 'alpha mask'). Both the texture and mask can be
     arbitrary bitmaps and their combination allows an enormous variety of
     stimuli to be drawn in realtime.
