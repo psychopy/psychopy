@@ -9,12 +9,12 @@ gabor = visual.PatchStim(myWin,tex="sin",mask="gauss",texRes=256,
            rgb=[1.0,1.0,1.0],opacity=1.0,
            size=[1.0,1.0], sf=[4,0],
            ori = 45)
-message = visual.TextStim(myWin,pos=(0,-2),text='Hit Q to quit')
+message = visual.TextStim(myWin,pos=(0.0,-0.9),text='Hit Q to quit')
 trialClock = core.Clock()
 
 #repeat drawing for each frame
 while trialClock.getTime()<20:
-   gabor.setOpacity(0.01,'-')
+   gabor.setPhase(0.01,'+')
    gabor.draw()	
    message.draw()
    #handle key presses each frame

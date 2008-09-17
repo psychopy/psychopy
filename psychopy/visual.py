@@ -1058,15 +1058,15 @@ class PatchStim(_BaseVisualStim):
                 accurate (if not, example phosphors from a Sony Trinitron
                 CRT will be used).
 
-            - **contrast** 1.0,
+            - **contrast**
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus)
 
-            - **opacity** 1.0,
+            - **opacity**
                 1.0 is opaque, 0.0 is transparent
 
-            - **depth** 0,
+            - **depth**
                 This can potentially be used (not tested!) to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
@@ -2839,6 +2839,13 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         dataType = GL.GL_UNSIGNED_BYTE
         #can't use float_uint8 - do it manually
         data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
+    
+    #check for RGBA textures
+    if len(intensity.shape)>2 and intensity.shape[2] == 4:
+        if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
+        if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
+        elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+
     texture = data.tostring()#serialise
 
     if interpolate: smoothing=GL.GL_LINEAR
