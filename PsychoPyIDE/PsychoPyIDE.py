@@ -22,10 +22,10 @@ psychopyDir, junk = os.path.split(psychopy.__file__)
 #get path to settings
 join = os.path.join
 if sys.platform=='win32':
-    settingsFolder = join(os.path.expanduser('~'), '.PsychoPy' , 'IDE')
-else:
     settingsFolder = join(os.environ['APPDATA'],'PsychoPy', 'IDE') #this is the folder that this file is stored in
-
+else:
+    settingsFolder = join(os.environ['HOME'], '.PsychoPy' , 'IDE')
+    
 if not os.path.isdir(settingsFolder):
     os.makedirs(settingsFolder)
 optionsPath = join(settingsFolder, 'options.pickle')
