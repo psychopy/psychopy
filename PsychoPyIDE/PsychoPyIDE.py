@@ -19,9 +19,18 @@ homeDir = os.getcwd()
 fullAppPath= os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)
 psychopyDir, junk = os.path.split(psychopy.__file__)
-
-if os.path.isdir(os.path.join(appDir, 'Resources')):
-    iconDir = os.path.join(appDir, 'Resources')
+#get path to settings
+join = os.path.join
+if sys.platform=='win32':
+    settingsFolder = join(os.path.expanduser('~'), '.PsychoPy' , 'IDE')
+else:
+    settingsFolder = join(os.environ['HOME'],'.PsychoPy', 'IDE') #this is the folder that this file is stored in
+if not os.path.isdir(settingsFolder):
+    os.mkdir(settingsFolder)
+optionsPath = join(settingsFolder, 'options.pickle')
+#path to Resources (icons etc)
+if os.path.isdir(join(appDir, 'Resources')):
+    iconDir = join(appDir, 'Resources')
 else:iconDir = appDir
 
 RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
@@ -1023,7 +1032,6 @@ class PsychoSplashScreen(wx.SplashScreen):
 
 class IDEMainFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[]):
-        optionsPath = os.path.join(appDir, 'options.pickle')
         try:
             self.options = fromPickle(optionsPath)
         except: 
@@ -1453,7 +1461,6 @@ class IDEMainFrame(wx.Frame):
         self.options['winSize']=self.GetSize()
         self.options['winPos']=self.GetPosition()
         self.options['auiPerspective'] = self.paneManager.SavePerspective()
-        optionsPath = os.path.join(appDir, 'options.pickle')
         toPickle(optionsPath, self.options)
         self.Destroy()
         sys.exit(0)

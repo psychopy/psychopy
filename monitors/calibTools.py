@@ -21,7 +21,7 @@ DEBUG= False
 #   win32:   <UserDocs>/Application Data/.PsychoPy/monitors
 join = os.path.join
 if sys.platform=='win32':
-    monitorFolder = os.path.join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
+    monitorFolder = join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
 else:
     monitorFolder = join(os.environ['HOME'],'.PsychoPy', 'monitors') #this is the folder that this file is stored in
 if not os.path.isdir(monitorFolder):
