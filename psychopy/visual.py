@@ -2681,11 +2681,25 @@ class TextStim(_BaseVisualStim):
         else: #color is set in texture, so set glColor to white
             GL.glColor4f(1,1,1,1)
 
-        #update list if necss and then call it
-        if self.needUpdate: self._updateList()
         GL.glDisable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
-        #GL.glDisable(GL.xxx
-        GL.glCallList(self._listID)
+        #update list if necss and then call it
+        if self.win.winType=='pyglet':
+            #unbind the mask texture regardless
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            #unbind the main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            
+            self._pygletTextObj.draw()
+            
+        else: 
+            #for pygame we should (and can) use a drawing list   
+            if self.needUpdate: self._updateList()
+            GL.glCallList(self._listID)
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
 
