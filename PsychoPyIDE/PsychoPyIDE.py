@@ -24,9 +24,10 @@ join = os.path.join
 if sys.platform=='win32':
     settingsFolder = join(os.path.expanduser('~'), '.PsychoPy' , 'IDE')
 else:
-    settingsFolder = join(os.environ['HOME'],'.PsychoPy', 'IDE') #this is the folder that this file is stored in
+    settingsFolder = join(os.environ['APPDATA'],'PsychoPy', 'IDE') #this is the folder that this file is stored in
+
 if not os.path.isdir(settingsFolder):
-    os.mkdir(settingsFolder)
+    os.makedirs(settingsFolder)
 optionsPath = join(settingsFolder, 'options.pickle')
 #path to Resources (icons etc)
 if os.path.isdir(join(appDir, 'Resources')):

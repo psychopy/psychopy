@@ -23,9 +23,14 @@ join = os.path.join
 if sys.platform=='win32':
     monitorFolder = join(os.path.expanduser('~'), '.PsychoPy' , 'monitors')
 else:
-    monitorFolder = join(os.environ['HOME'],'.PsychoPy', 'monitors') #this is the folder that this file is stored in
+    #we used this for a while (until 0.95.4) but not the proper place for windows app data
+    oldMonitorFolder = join(os.environ['HOME'],'.PsychoPy', 'monitors') #this is the folder that this file is stored in
+    monitorFolder = join(os.environ['APPDATA'],'PsychoPy', 'monitors') #this is the folder that this file is stored in
+    if os.path.isdir(oldMonitorFolder):
+        os.renames(oldMonitorFolder, monitorFolder)
+    
 if not os.path.isdir(monitorFolder):
-    os.mkdir(monitorFolder)
+    os.makedirs(monitorFolder)
     
     #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
     #this only gets done if there was no existing .psychopy folder (and so no calib files)
