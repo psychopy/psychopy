@@ -1617,7 +1617,6 @@ class IDEMainFrame(wx.Frame):
         else: 
             #self.notebook.Raise
             self.currentDoc = self.allDocs[newPageID]
-            print 'new:', self.currentDoc.filename
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
         return 1
     
