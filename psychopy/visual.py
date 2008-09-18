@@ -1090,7 +1090,7 @@ class PatchStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.interpolate=interpolate
-          
+        
         #for rgb allow user to give a single val and apply to all channels
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
@@ -2356,7 +2356,7 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self._pygletTextObj=None
-        
+        print 'init'
         if not haveShaders:
             self._updateList = self._updateListNoShaders
             self.setText = self.setTextNoShaders
@@ -2426,7 +2426,7 @@ class TextStim(_BaseVisualStim):
                     #trhen check if we were successful
                     if self.fontname == None and font!="":
                         #we didn't find a ttf filename
-                        log.warn("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
+                        log.warning("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
                         self.fontname = pygame.font.get_default_font()
 
             if self.fontname is not None and os.path.isfile(self.fontname):
