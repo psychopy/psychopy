@@ -246,6 +246,12 @@ def clearEvents(eventType=None):
     """
     #pyglet
     if not havePygame or not display.get_init():
+        
+        #for each (pyglet) window, dispatch its events before checking event buffer    
+        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        for win in wins: win.dispatch_events()#pump events on pyglet windows
+        
+        global _keyBuffer
         _keyBuffer = []
         return
     

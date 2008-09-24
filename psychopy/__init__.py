@@ -9,7 +9,7 @@ import string, sys, os
 try: import numpy
 except: pass
 
-__version__ = '0.95.4'#string.split('$Branch: 1.19 $')[1]
+__version__ = '0.95.5'#string.split('$Branch: 1.19 $')[1]
 __date__ = string.join(string.split('$Date: 2005/08/01 15:05:34 $')[1:3], ' ')
 __author__ = 'Jon Peirce'
 __author_email__='jon@peirce.org.uk'
@@ -47,6 +47,7 @@ if not os.path.isdir(appDataLoc):
 #force stdout to flush after every print statement.
 #this is useful for PsychoPy IDE but may slow things down for fast drawing if you 
 #print a lot. 
+
 class FlushFile: #we want to force flushing
     def __init__(self, f):
         self.orig = f

@@ -2356,7 +2356,7 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self._pygletTextObj=None
-        print 'init'
+
         if not haveShaders:
             self._updateList = self._updateListNoShaders
             self.setText = self.setTextNoShaders
@@ -2681,7 +2681,7 @@ class TextStim(_BaseVisualStim):
         else: #color is set in texture, so set glColor to white
             GL.glColor4f(1,1,1,1)
 
-        GL.glDisable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
+        GL.glDisable(GL.GL_DEPTH_TEST) #should text have a depth or just on top?
         #update list if necss and then call it
         if self.win.winType=='pyglet':
             #unbind the mask texture regardless
@@ -2690,12 +2690,11 @@ class TextStim(_BaseVisualStim):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             #unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
-#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
             GL.glEnable(GL.GL_TEXTURE_2D)
+            #then allow pyglet to bind and use texture during drawing
             
-            self._pygletTextObj.draw()
-            
+            self._pygletTextObj.draw()            
+            GL.glDisable(GL.GL_TEXTURE_2D) 
         else: 
             #for pygame we should (and can) use a drawing list   
             if self.needUpdate: self._updateList()
