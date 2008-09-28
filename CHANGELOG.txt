@@ -7,6 +7,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 PsychoPy 0.95.5:
 * FIXED bug in event.clearEvents() implementation in pyglet (wasn't clearing)
 * FIXED - psychopy no longer disables ipython shortcut keys
+* ADDED core.rush() for increasing thread priority on win32
 
 PsychoPy 0.95.4:
 * CHANGED PsychoPy options (IDE and monitors) now stored the following, rather than with the app. (monitor calib files will be moved here if possible)
