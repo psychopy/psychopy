@@ -14,6 +14,10 @@ class LoopInitiator:
     def generateInitCode(self,buff):
         buff.write("init loop '%s' (%s)\n" %(self.loop.name, self.loop.loopType))
     def generateRunCode(self,buff, indent):
+        #work out a name for e.g. thisTrial in trials:
+        name=self.name
+        thisName = ("this"+name.capitalize()[:-1])
+        eachEntryName = self.
         buff.write("run loop '%s' \n" %self.loop.name)
 class LoopTerminator:
     """A simple class for inserting into the flow"""
