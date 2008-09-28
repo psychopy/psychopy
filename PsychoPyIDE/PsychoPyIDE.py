@@ -1309,7 +1309,7 @@ class IDEMainFrame(wx.Frame):
             | wx.TB_FLAT))
             
         if sys.platform=='win32':
-            toolbarSize=32
+            toolbarSize=16
         else:
             toolbarSize=32 #size 16 doesn't work on mac wx
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))

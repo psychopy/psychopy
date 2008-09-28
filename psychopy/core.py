@@ -51,7 +51,8 @@ def wait(secs):
     time.sleep(secs)
     
 def rush(rushLevel):
-    """Raise the priority of the current thread/process (currently wiwn32 only)
+    """Raise the priority of the current thread/process 
+    Win32 only - on OSX/linux use os.nice(niceIncrement)
     
     rushLevel varies from 0(don't rush) to 3(absolute priority)
     Beware and don't take priority until after debugging your code
@@ -59,6 +60,13 @@ def rush(rushLevel):
     keys within the display loop). Otherwise you could end up locked
     out and having to reboot!
     """
+    
+    """for darwin there is an ApplicationServices library with functions
+    getpriority
+    setpriority
+    but I haven't found docs to use them.
+    """
+    
     if sys.platform=='win32':
         import win32process, win32api#comes from pywin32 libraries
         thr=win32api.GetCurrentThread()
