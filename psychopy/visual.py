@@ -100,7 +100,7 @@ class Window:
             - **bitsMode** : None, 'fast', ('slow' mode is deprecated). Defines how (and if) the Bits++ box will be used. 'Fast' updates every frame by drawing a hidden line on the top of the screen.
 
         """
-        global haveShaders
+        self._haveShaders=None#this will be set in _setupGL()
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -339,7 +339,10 @@ class Window:
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
-            frame_name_format = "%s%%0%dd%s" % (fileRoot, numpy.ceil(numpy.log10(len(self.movieFrames)+1)), fileExt)            for frameN, thisFrame in enumerate(self.movieFrames):               thisFileName = frame_name_format % (frameN+1,)               thisFrame.save(thisFileName) 
+            frame_name_format = "%s%%0%dd%s" % (fileRoot, numpy.ceil(numpy.log10(len(self.movieFrames)+1)), fileExt)
+            for frameN, thisFrame in enumerate(self.movieFrames):
+               thisFileName = frame_name_format % (frameN+1,)
+               thisFrame.save(thisFileName) 
 
     def fullScr(self):
         """Toggles fullscreen mode (GLUT only).
@@ -536,9 +539,10 @@ class Window:
             #self.scrWidthCM = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH_MM)/10.0
         #print 'screen width: ', self.scrWidthCM, 'cm, ', self.scrWidthPIX, 'pixels'
     def _setupGL(self):
-        global haveShaders, _shaders
+        global _shaders
         if self.winType=='pyglet': _shaders=_shadersPyglet
         else: _shaders=_shadersPygame
+        
         #do settings for openGL
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
         GL.glClearDepth(1.0)
@@ -567,9 +571,10 @@ class Window:
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
             #print "successfully compiled shaders"
-            haveShaders=True 
+            self._haveShaders=True 
         except: 
-            haveShaders=False #they didn't compile - probably no OpenGL2.0 drivers (but PyOpenGL3 installed)
+            self._haveShaders=False #they didn't compile - probably no OpenGL2.0 drivers (but PyOpenGL3 installed)
+        
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
         if sys.platform=='darwin':
@@ -645,7 +650,7 @@ class _BaseVisualStim:
     def setOpacity(self,newOpacity,operation=None):
         self._set('opacity', newOpacity, operation)
         #opacity is coded by the texture, if not using shaders
-        if not self._haveShaders:
+        if not self._useShaders:
             self.setMask(self._maskName)
     def setDKL(self, newDKL, operation=None):
         self._set('dkl', value=newDKL, op=operation)
@@ -656,7 +661,7 @@ class _BaseVisualStim:
     def setRGB(self, newRGB, operation):      
         self._set('rgb', newRGB, operation)
         #if we don't have shaders we need to rebuild the texture
-        if not self._haveShaders:
+        if not self._useShaders:
             self.setTex(self._texName)
     def _set(self, attrib, val, op=''):
         """
@@ -681,8 +686,26 @@ class _BaseVisualStim:
             exec('self.'+attrib+'+=val') #then add the value to array
         else:
             exec('self.'+attrib+op+'=val')
-        
-            
+    def setUseShaders(self, val=True):
+        """Set this stimulus to use shaders if possible.
+        """
+        if val==True and self.win._haveShaders==False:
+            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+        if val!=self._useShaders:
+            self._useShaders=val
+            self.needUpdate=True        
+    def _updateList(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set() 
+        Chooses between using and not using shaders each call.
+        """
+        print 'got here'
+        self._useShaders
+        if self._useShaders:
+            self._updateListShaders()
+        else: self._updateListNoShaders()  
+                  
 class DotStim(_BaseVisualStim):
     """
     This stimulus class defines a field of dots, all with the same speed
@@ -1073,14 +1096,12 @@ class PatchStim(_BaseVisualStim):
                 but could do if that's really useful(?!)
 
         """
-        global haveShaders
-        self._haveShaders=haveShaders
-        if not haveShaders:
-            self._updateList = self._updateListNoShaders
         
         self.win = win
         assert isinstance(self.win, Window)
-
+        if win._haveShaders: self._useShaders=True#by default, this is a good thing
+        else: self._useShaders=False
+        
         if units in [None, "", []]:
             self.units = win.units
         else:
@@ -1161,7 +1182,7 @@ class PatchStim(_BaseVisualStim):
     def setContrast(self,value,operation=None):
         self._set('contrast', value, operation)
         #if we don't have shaders we need to rebuild the texture
-        if not self._haveShaders:
+        if not self._useShaders:
             self.setTex(self._texName)
     def setTex(self,value):
         self._texName = value
@@ -1208,7 +1229,7 @@ class PatchStim(_BaseVisualStim):
         #return the view to previous state
         GL.glPopMatrix()
 
-    def _updateList(self):
+    def _updateListShaders(self):
         """
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -1216,6 +1237,7 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
+        print 'updating Shaders list'
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram        
@@ -1291,6 +1313,7 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
+        print 'updating No Shaders list'
         self.needUpdate=0
 
         GL.glNewList(self._listID,GL.GL_COMPILE)
@@ -1509,6 +1532,8 @@ class RadialStim(PatchStim):
 
         """
         self.win = win
+        if win._haveShaders: self._useShaders=True#by default, this is a good thing
+        else: self._useShaders=False
         if len(units): self.units = units
         else: self.units = win.units
         self.ori = float(ori)
@@ -1529,12 +1554,6 @@ class RadialStim(PatchStim):
         self.setSF = None
         self.setPhase = None
         self.setSF = None
-
-        #use different functions on systems without OpenGL2.0
-        global haveShaders
-        self._haveShaders=haveShaders
-        if not haveShaders: 
-            self._updateList = self._updateListNoShaders
 
         #for rgb allow user to give a single val and apply to all channels
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -1685,7 +1704,7 @@ class RadialStim(PatchStim):
         self._visibleMask = self._maskCoords[self._visible,:,:].reshape(self._nVisible,2)
 
 
-    def _updateList(self):
+    def _updateListShaders(self):
         """
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -2023,7 +2042,9 @@ class TextStimGLUT:
                  alignHoriz='center',
                  alignVert='center'):
         self.win = win
-        global haveShaders
+        if win._haveShaders: self._useShaders=True#by default, this is a good thing
+        else: self._useShaders=False
+        
         if len(units): self.units = units
         else: self.units = win.units
         self.pos= numpy.array(pos)
@@ -2042,9 +2063,6 @@ class TextStimGLUT:
         self.contrast= 1.0
         self.alignHoriz = alignHoriz
         self.alignVert = alignVert
-
-        if not haveShaders:
-            self._updateList = self._updateListNoShaders
 
         if type(rgb) in [float, int]: #user may give a luminance val
             self.rgb=numpy.asarray((rgb,rgb,rgb), float)
@@ -2111,7 +2129,7 @@ class TextStimGLUT:
     def setDepth(self,value, operation=None):
         self._set('depth', value, operation)
 
-    def _updateList(self):
+    def _updateListShaders(self):
         """
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -2341,9 +2359,9 @@ class TextStim(_BaseVisualStim):
                 - **fontFiles**
                     A list of additional files if the font is not in the standard system location (include the full path)
         """
-        global haveShaders
-        self._haveShaders=haveShaders
         self.win = win
+        if win._haveShaders: self._useShaders=True
+        else: self._useShaders=False
         self.needUpdate =1
         self.opacity= opacity
         self.contrast= 1.0
@@ -2356,10 +2374,6 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self._pygletTextObj=None
-
-        if not haveShaders:
-            self._updateList = self._updateListNoShaders
-            self.setText = self.setTextNoShaders
 
         if len(units): self.units = units
         else: self.units = win.units
@@ -2447,6 +2461,13 @@ class TextStim(_BaseVisualStim):
     def setText(self,value):
         """Set the text to be rendered using the current font
         """
+        if self._useShaders:
+            self._setTextShaders(value)
+        else:
+            self._setTextNoShaders(value)
+    def _setTextShaders(self,value):
+        """Set the text to be rendered using the current font
+        """
         self.text = value
         
         if self.win.winType=="pyglet":
@@ -2475,7 +2496,7 @@ class TextStim(_BaseVisualStim):
 
         self.needUpdate = True
 
-    def _updateList(self):
+    def _updateListShaders(self):
         """
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -2544,7 +2565,7 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
-    def setTextNoShaders(self,value,operation=None):
+    def _setTextNoShaders(self,value,operation=None):
         """Set the text to be rendered using the current font
         """
         self.text = value
@@ -2672,7 +2693,7 @@ class TextStim(_BaseVisualStim):
         #then scale back to pixels
         self.win.setScale('pix', None, unitScale)
 
-        if haveShaders: #then rgb needs to be set as glColor
+        if self._useShaders: #then rgb needs to be set as glColor
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB**2.0>1.0):
@@ -2701,7 +2722,14 @@ class TextStim(_BaseVisualStim):
             GL.glCallList(self._listID)
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
-
+    def setUseShaders(self, val=True):
+        """Set this stimulus to use shaders if possible.
+        """
+        if val==True and self.win._haveShaders==False:
+            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+        if val!=self._useShaders:
+            self._useShaders=val
+            self.setText(self.text)  
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
@@ -2723,7 +2751,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     """
     Create an intensity texture, ranging -1:1.0
     """
-    useShaders = stim._haveShaders
+    useShaders = stim._useShaders
     interpolate = stim.interpolate
     
     if type(tex) == numpy.ndarray:

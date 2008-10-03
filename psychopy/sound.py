@@ -184,9 +184,13 @@ class Sound:
         """
         global mediaLocation, usePygame, _eventThread
         #check initialisation
-        if (havePyglet and (mixer.get_init() is None)):
+        if havePygame and (mixer.get_init() is not None):
+            usePygame=True
+        elif havePyglet:
             #we have pyglet and no pygame window so use pyglet
             usePygame=False
+        else:
+            logging.error("Neither pygame, nor pyglet could be loaded for playing sounds")
         
         if usePygame:
             inits = mixer.get_init()
