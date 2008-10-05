@@ -10,7 +10,7 @@ faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     pos=(0.0,0.0),
     size=(1.0,1.0),
     sf=(1.0, 1.0))
-faceRGB.setUseShaders(False)
+faceRGB.setUseShaders(True)
 faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
     rgb=[1.0,1.0,-1.0],

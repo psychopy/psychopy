@@ -1,11 +1,10 @@
 """Load and play sounds (wraps pygame.mixer)
 """
 import numpy, threading, time
-import logging #will be the psychopy.logging module
 from os import path 
 from string import capitalize
 from sys import platform, exit
-from psychopy import event, core
+from psychopy import event, core, log
 
 try:
     import pyglet
@@ -142,11 +141,11 @@ def init(rate=44100, bits=16, stereo=True, buffer=1024):
     mixer.init(rate, bits, stereoChans, buffer) #defaults: 22050Hz, 16bit, stereo,
     setRate, setBits, setStereo = mixer.get_init()
     if setRate!=rate: 
-        logging.warn('Requested sound sample rate was not poossible')
+        log.warn('Requested sound sample rate was not poossible')
     if setBits!=bits:
-        logging.warn('Requested sound depth (bits) was not possible')
+        log.warn('Requested sound depth (bits) was not possible')
     if setStereo!=1 and stereo==True: 
-        logging.warn('Requested stereo setting was not possible')
+        log.warn('Requested stereo setting was not possible')
     
 class Sound:
     """Create a sound object, from one of MANY ways.
@@ -190,7 +189,7 @@ class Sound:
             #we have pyglet and no pygame window so use pyglet
             usePygame=False
         else:
-            logging.error("Neither pygame, nor pyglet could be loaded for playing sounds")
+            log.error("Neither pygame, nor pyglet could be loaded for playing sounds")
         
         if usePygame:
             inits = mixer.get_init()
@@ -360,7 +359,7 @@ class Sound:
             try:
                 import Numeric
             except:
-                logging.error('Numeric (as well as numpy) is currently needed for playing pygame sounds')
+                log.error('Numeric (as well as numpy) is currently needed for playing pygame sounds')
                 self._snd=None
                 return -1
             self._snd = sndarray.make_sound(Numeric.array(thisArray))
