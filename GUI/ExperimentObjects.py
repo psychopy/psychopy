@@ -1,35 +1,59 @@
 import StringIO
 
 class LoopHandler(list):    
-    def __init__(self, name, loopType, nReps):
+    """A looping experimental control object
+            (e.g. generating a psychopy TrialHandler or StairHandler).
+            """
+    def __init__(self, name, loopType, nReps, trialList):
+        """
+        @param name: name of the loop e.g. trials
+        @type name: string
+        @param loopType:
+        @type loopType: string
+        @param nReps: number of reps (for all trial types)
+        @type nReps:int
+        @param trialList: list of different trial conditions to be used
+        @type trialList: list (of dicts?)
+        """
         list.__init__(self)
         self.loopType=loopType
         self.name = name
         self.nReps=nReps
-
+        self.trialList=trialList
+    def generateInitCode(self,buff):
+        buff.write("init loop '%s' (%s)\n" %(self.name, self.loopType))
+        buff.write("%s=data.TrialHandler(trialList=%s,nReps=%i,\n)" \
+            %(self.name, self.trialList, self.nReps))
+    def generateRunCode(self,buff, indent):
+        #work out a name for e.g. thisTrial in trials:
+        thisName = ("this"+self.name.capitalize()[:-1])
+        buff.write("for %s in %s:\n" %(thisName, self.name))
+        
 class LoopInitiator:
-    """A simple class for inserting into the flow"""
+    """A simple class for inserting into the flow.
+    This is created automatically when the loop is created"""
     def __init__(self, loop):
         self.loop=loop        
     def generateInitCode(self,buff):
-        buff.write("init loop '%s' (%s)\n" %(self.loop.name, self.loop.loopType))
+        self.loop.generateInitCode(buff)
     def generateRunCode(self,buff, indent):
-        #work out a name for e.g. thisTrial in trials:
-        name=self.name
-        thisName = ("this"+name.capitalize()[:-1])
-        eachEntryName = self.
-        buff.write("run loop '%s' \n" %self.loop.name)
+        self.loop.generateRunCode(buff, indent)
+        
 class LoopTerminator:
-    """A simple class for inserting into the flow"""
+    """A simple class for inserting into the flow.
+    This is created automatically when the loop is created"""
     def __init__(self, loop):
         self.loop=loop
     def generateInitCode(self,buff):
         pass
     def generateRunCode(self,buff, indent):
         #todo: dedent
-        buff.write("repeat loop '%s' for %s\n" %(self.loop.name, self.loop.nReps))
+        buff.write("# end of '%s' after %i repeats (of each entry in trialList)\n" %(self.loop.name, self.loop.nReps))
         
 class Flow(list):
+    """The flow of the experiment is a list of L{Procedure}s, L{LoopInitiator}s and
+    L{LoopTerminator}s, that will define the order in which events occur
+    """
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
         into the Flow list"""

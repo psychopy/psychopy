@@ -19,13 +19,14 @@ ourExp.procs['trial'].append(
         )
     )
     
+trialInfo = [ {'ori':5, 'sf':1.5}, {'ori':2, 'sf':1.5},{'ori':5, 'sf':3}, ]  
 #insert the procedure into the flow (so that it gets used)    
 ourExp.flow.addProcedure(
     ourExp.procs['trial'], pos=1)
 #also add a trial handler (a loop, basically)
 ourExp.flow.addLoop(
-    LoopHandler(name='trials', loopType='simple', nReps=5),
-        startPos=0.5, endPos=1.5,#specify positions relative to the
-        )
+    LoopHandler(name='trials', loopType='simple', nReps=5, trialList = trialInfo),
+    startPos=0.5, endPos=1.5,#specify positions relative to the
+    )
     
 print ourExp.generateScript().getvalue()
