@@ -706,7 +706,8 @@ class _BaseVisualStim:
             log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            self.needUpdate=True        
+            self.setTex(self._texName)
+            self.setMask(self._maskName)
     def _updateList(self):
         """
         The user shouldn't need this method since it gets called
@@ -716,7 +717,7 @@ class _BaseVisualStim:
         if self._useShaders:
             self._updateListShaders()
         else: self._updateListNoShaders()  
-                  
+
 class DotStim(_BaseVisualStim):
     """
     This stimulus class defines a field of dots, all with the same speed
@@ -2764,7 +2765,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     """
     useShaders = stim._useShaders
     interpolate = stim.interpolate
-    
+    print 'use_shaders:', useShaders
     if type(tex) == numpy.ndarray:
         #handle a numpy array
         #for now this needs to be an NxN intensity array        

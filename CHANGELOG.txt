@@ -9,6 +9,7 @@ PsychoPy 0.95.5:
 * FIXED - psychopy no longer disables ipython shortcut keys
 * FIXED bug in sound.Sound initialisation without pygame installed
 * ADDED core.rush() for increasing thread priority on win32
+* ADDED Window._haveShaders, XXXStim._useShaders and XXXStim.setUseShaders
 
 PsychoPy 0.95.4:
 * CHANGED PsychoPy options (IDE and monitors) now stored the following, rather than with the app. (monitor calib files will be moved here if possible)
