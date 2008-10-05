@@ -18,11 +18,12 @@ try:
     import pyglet
     #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
-    import _shadersPyglet
+    from pyglet.gl import gl_info
     havePyglet=True    
 except:
     havePyglet=False    
 
+import _shadersPyglet
 try:
     import pygame
     import OpenGL.GL, OpenGL.GLU, OpenGL.GL.ARB.multitexture
@@ -100,7 +101,6 @@ class Window:
             - **bitsMode** : None, 'fast', ('slow' mode is deprecated). Defines how (and if) the Bits++ box will be used. 'Fast' updates every frame by drawing a hidden line on the top of the screen.
 
         """
-        self._haveShaders=None#this will be set in _setupGL()
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -134,12 +134,7 @@ class Window:
         else:   self._isFullScr=0
         self.units = units
         self.screen = screen
-
-        if blendMode=='add' and not haveFB:
-            log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
-            self.blendMode='average' #resort to the simpler blending without float rendering
-        else: self.blendMode=blendMode
-
+        
         #setup bits++ if possible
         self.bitsMode = bitsMode #could be [None, 'fast', 'slow']
         if self.bitsMode!=None:
@@ -180,6 +175,20 @@ class Window:
             if havePyglet: winType="pyglet"
             elif havePygame: winType="pygame"
             else: winType='glut'
+            
+        #check whether shaders are supported
+        if winType=='pyglet':#we can check using gl_info
+            if gl_info.have_extension('GL_ARB_shader_objects') and \
+                gl_info.have_extension('GL_ARB_vertex_shader'):
+                    self._haveShaders=True
+            else:self._haveShaders=False        
+        #check whether FBOs are supported
+        if blendMode=='add' and not haveFB:
+            log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
+            self.blendMode='average' #resort to the simpler blending without float rendering
+        else: self.blendMode=blendMode
+        
+        #setup the context
         if winType is "glut": self._setupGlut()
         elif winType is "pygame": self._setupPygame()
         elif winType is "pyglet": self._setupPyglet()
@@ -566,14 +575,18 @@ class Window:
 
         if self.winType!='pyglet':
             GL_multitexture.glInitMultitextureARB()
-        
-        try:
+
+        if self.winType=='pyglet' and self._haveShaders:
+            #we should be able to compile shaders (don't just 'try')
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-            #print "successfully compiled shaders"
-            self._haveShaders=True 
-        except: 
-            self._haveShaders=False #they didn't compile - probably no OpenGL2.0 drivers (but PyOpenGL3 installed)
+        elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
+            if GL.glInitShaderObjectsARB():
+                self._haveShaders=True
+                self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
+                self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+            else:
+                self._haveShaders=False
         
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
@@ -690,7 +703,7 @@ class _BaseVisualStim:
         """Set this stimulus to use shaders if possible.
         """
         if val==True and self.win._haveShaders==False:
-            log.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+            log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.needUpdate=True        
@@ -700,8 +713,6 @@ class _BaseVisualStim:
         after every call to .set() 
         Chooses between using and not using shaders each call.
         """
-        print 'got here'
-        self._useShaders
         if self._useShaders:
             self._updateListShaders()
         else: self._updateListNoShaders()  
@@ -1237,7 +1248,7 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        print 'updating Shaders list'
+        #print 'updating Shaders list'
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram        
@@ -1313,7 +1324,7 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        print 'updating No Shaders list'
+        #print 'updating No Shaders list'
         self.needUpdate=0
 
         GL.glNewList(self._listID,GL.GL_COMPILE)
@@ -2726,7 +2737,7 @@ class TextStim(_BaseVisualStim):
         """Set this stimulus to use shaders if possible.
         """
         if val==True and self.win._haveShaders==False:
-            log.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.setText(self.text)  
