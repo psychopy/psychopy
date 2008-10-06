@@ -702,12 +702,15 @@ class _BaseVisualStim:
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
+        #NB TextStim overrides this function, so changes here may need changing there too
         if val==True and self.win._haveShaders==False:
             log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.setTex(self._texName)
             self.setMask(self._maskName)
+            self.needUpdate=True
+            
     def _updateList(self):
         """
         The user shouldn't need this method since it gets called
@@ -2742,6 +2745,8 @@ class TextStim(_BaseVisualStim):
         if val!=self._useShaders:
             self._useShaders=val
             self.setText(self.text)  
+            self.needUpdate=True
+            
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
