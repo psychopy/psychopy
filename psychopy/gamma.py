@@ -1,5 +1,5 @@
 #set the gamma LUT using platform-specific hardware calls
-#this currently requires a pyglet window (to identify the current 
+#this currently requires a pyglet window (to identify the current scr/display)
 
 import numpy, sys, ctypes, ctypes.util
 
@@ -24,7 +24,7 @@ def setGamma(pygletWindow=None, newGamma=1.0):
     #combine with the linear ramp    
     ramp = numpy.tile(numpy.arange(256)/256.0,(3,1))# (3x256) array
     newLUT = ramp**(1/numpy.array(newGamma))# correctly handles 1 or 3x1 gamma vals
-    setHardwareGammaRamp(pygletWindow, newLUT)
+    setGammaRamp(pygletWindow, newLUT)
     
 def setGammaRamp(pygletWindow, newRamp):
     """Ramp should be provided as 3x256 array in range 0:1

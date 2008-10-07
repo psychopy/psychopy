@@ -178,8 +178,8 @@ class Window:
             
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
-            if gl.gl_info.have_extension('GL_ARB_shader_objects') and \
-                gl.gl_info.have_extension('GL_ARB_vertex_shader'):
+            if pyglet.gl.gl_info.have_extension('GL_ARB_shader_objects') and \
+                pyglet.gl.gl_info.have_extension('GL_ARB_vertex_shader'):
                     self._haveShaders=True
             else:self._haveShaders=False        
         #check whether FBOs are supported
@@ -440,6 +440,8 @@ class Window:
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
             pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
+        elif self.winType=='pyglet':
+            self.winHandle.setGamma(self.winHandle, self.gamma)
             
     def _setupGlut(self):
         self.winType="glut"
@@ -483,9 +485,9 @@ class Window:
                                               style=style
                                           )
         #add these methods to the pyglet window                                  
-        self.winHande.setGamma = gamma.setGamma
-        self.winHande.setGammaRamp = gamma.setGammaRamp
-        self.winHande.getGammaRamp = gamma.getGammaRamp        
+        self.winHandle.setGamma = gamma.setGamma
+        self.winHandle.setGammaRamp = gamma.setGammaRamp
+        self.winHandle.getGammaRamp = gamma.getGammaRamp        
         self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = psychopy.event._onPygletKey
         self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
@@ -2775,7 +2777,6 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     """
     useShaders = stim._useShaders
     interpolate = stim.interpolate
-    print 'use_shaders:', useShaders
     if type(tex) == numpy.ndarray:
         #handle a numpy array
         #for now this needs to be an NxN intensity array        
