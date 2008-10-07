@@ -18,12 +18,12 @@ try:
     import pyglet
     #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
-    from pyglet.gl import gl_info
+    import _shadersPyglet
+    import gamma
     havePyglet=True    
 except:
     havePyglet=False    
 
-import _shadersPyglet
 try:
     import pygame
     import OpenGL.GL, OpenGL.GLU, OpenGL.GL.ARB.multitexture
@@ -178,8 +178,8 @@ class Window:
             
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
-            if gl_info.have_extension('GL_ARB_shader_objects') and \
-                gl_info.have_extension('GL_ARB_vertex_shader'):
+            if gl.gl_info.have_extension('GL_ARB_shader_objects') and \
+                gl.gl_info.have_extension('GL_ARB_vertex_shader'):
                     self._haveShaders=True
             else:self._haveShaders=False        
         #check whether FBOs are supported
@@ -482,6 +482,10 @@ class Window:
                                               screen=thisScreen,
                                               style=style
                                           )
+        #add these methods to the pyglet window                                  
+        self.winHande.setGamma = gamma.setGamma
+        self.winHande.setGammaRamp = gamma.setGammaRamp
+        self.winHande.getGammaRamp = gamma.getGammaRamp        
         self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = psychopy.event._onPygletKey
         self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
@@ -581,7 +585,8 @@ class Window:
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
         elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
-            if GL.glInitShaderObjectsARB():
+            from OpenGL.GL.ARB import shader_objects
+            if shader_objects.glInitShaderObjectsARB():
                 self._haveShaders=True
                 self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
                 self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
