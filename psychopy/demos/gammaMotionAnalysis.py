@@ -1,3 +1,10 @@
+"""Use this script to analyse data from the gammaMotionNull.py
+script. 
+
+Instructions: From the dialogue box select multiple staircases (Cmd-click
+or shift-click) to plot the results
+"""
+
 #analyse standard staircase data
 import matplotlib; matplotlib.use('TKAgg')
 from psychopy import data, gui, misc, core

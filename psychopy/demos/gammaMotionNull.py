@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Determine screen gamma using motion-nulling method 
-of Ledgeway and Smith, 1994, Vision Research, 34, 2727–2740"""
+of Ledgeway and Smith, 1994, Vision Research, 34, 2727–2740
+
+Instructions: on each trial press the up/down cursor keys depending on 
+the apparent direction of motion of the bars."""
 
 from psychopy import visual, core, event, misc, gui, data
 from psychopy import filters
