@@ -28,7 +28,7 @@ if dlg.OK:
     misc.toFile('info_gamma.pickle',info)
 else:
     core.quit() #user cancelled. quit
-    
+   
 info['timeStr']=time.strftime("%b_%d_%H%M", time.localtime())
 nFrames=3
 cyclesTime=2

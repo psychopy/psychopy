@@ -24,6 +24,7 @@ def setGamma(pygletWindow=None, newGamma=1.0):
     #combine with the linear ramp    
     ramp = numpy.tile(numpy.arange(256)/256.0,(3,1))# (3x256) array
     newLUT = ramp**(1/numpy.array(newGamma))# correctly handles 1 or 3x1 gamma vals
+    
     setGammaRamp(pygletWindow, newLUT)
     
 def setGammaRamp(pygletWindow, newRamp):

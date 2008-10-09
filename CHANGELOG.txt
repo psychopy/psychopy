@@ -10,6 +10,8 @@ PsychoPy 0.95.5:
 * FIXED bug in sound.Sound initialisation without pygame installed
 * ADDED core.rush() for increasing thread priority on win32
 * ADDED Window._haveShaders, XXXStim._useShaders and XXXStim.setUseShaders
+* FIXED crashes on win32, running a pyglet context after a DlgFromDict
+* ADDED gamma correction for pyglet contexts (not tested yet on linux)
 
 PsychoPy 0.95.4:
 * CHANGED PsychoPy options (IDE and monitors) now stored the following, rather than with the app. (monitor calib files will be moved here if possible)

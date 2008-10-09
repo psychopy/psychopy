@@ -2,8 +2,7 @@
 from psychopy import core, visual, event
 import psychopy.sound
 #create a window to draw in
-myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1), winType='pygame')
-print 'shaders:', myWin._haveShaders
+myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1))
 
 #INITIALISE SOME STIMULI
 faceRGB = visual.PatchStim(myWin,tex='face.jpg',
@@ -11,12 +10,12 @@ faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     pos=(0.0,0.0),
     size=(1.0,1.0),
     sf=(1.0, 1.0))
-faceRGB.setUseShaders(True)
+    
 faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
     rgb=[1.0,1.0,-1.0],
     size=(0.5,0.5), sf=1.0, units="norm")
-#faceALPHA.setUseShaders(False)
+    
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),
     text='[Esc] to quit', rgb=1, alignHoriz='left', alignVert='bottom')
 

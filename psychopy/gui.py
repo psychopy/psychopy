@@ -119,6 +119,7 @@ class Dlg(wx.Dialog):
         else: 
             self.OK=False
         self.Destroy()
+        #    global app
         #self.myApp.Exit()
        
 
@@ -159,7 +160,7 @@ class DlgFromDict(Dlg):
             else:
                 self.addField(field,self.dictionary[field])
         #show it and collect data
-        tmp= wx.PySimpleApp()#need to create a junk app (just on Linux?)
+        #tmp= wx.PySimpleApp()#this should have been done by Dlg ?
         self.show()
         if self.OK:
             for n,thisKey in enumerate(keys):
