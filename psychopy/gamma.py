@@ -42,11 +42,11 @@ def setGammaRamp(pygletWindow, newRamp):
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         if error: raise AssertionError, 'CGSetDisplayTransferByTable failed'
         
-    if sys.platform.startswith('linux'): 
-        newRamp= (256*newRamp).astype(numpy.uint16)      
-        error = xf86vm.XF86VidModeSetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+    if sys.platform.startswith('linux'):
+        newRamp= (65536*newRamp).astype(numpy.uint16)
+        success = xf86vm.XF86VidModeSetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
                     newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
-        if error: raise AssertionError, 'XF86VidModeSetGammaRamp failed'
+        if not success: raise AssertionError, 'XF86VidModeSetGammaRamp failed'
         
 def getGammaRamp(pygletWindow):     
     """Ramp will be returned as 3x256 array in range 0:1
@@ -65,9 +65,10 @@ def getGammaRamp(pygletWindow):
                    origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes, n.ctypes);
         if error: raise AssertionError, 'CGSetDisplayTransferByTable failed'
 
-    if sys.platform.startswith('linux'):       
-        error = xf86vm.XF86VidModeGetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
-                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
-        if error: raise AssertionError, 'XF86VidModeSetGammaRamp failed'
+    if sys.platform.startswith('linux'):
+        origramps = numpy.empty((3, 256), dtype=numpy.uint16) 
+        success = xf86vm.XF86VidModeGetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+                    origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes)
+        if not success: raise AssertionError, 'XF86VidModeGetGammaRamp failed'
         
     return origramps

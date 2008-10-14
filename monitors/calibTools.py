@@ -24,7 +24,7 @@ if sys.platform=='win32':
     #we used this for a while (until 0.95.4) but not the proper place for windows app data
     oldMonitorFolder = join(os.path.expanduser('~'),'.PsychoPy', 'monitors') #this is the folder that this file is stored in
     monitorFolder = join(os.environ['APPDATA'],'PsychoPy', 'monitors') #this is the folder that this file is stored in
-    if os.path.isdir(oldMonitorFolder):
+    if os.path.isdir(oldMonitorFolder) and not os.path.isdir(MonitorFolder):
         os.renames(oldMonitorFolder, monitorFolder)
 else:
     monitorFolder = join(os.environ['HOME'], '.PsychoPy' , 'monitors')

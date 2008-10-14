@@ -2487,6 +2487,11 @@ class TextStim(_BaseVisualStim):
             self._setTextShaders(value)
         else:
             self._setTextNoShaders(value)
+    def setRGB(self,value, operation=None):
+        self._set('rgb', value, operation)
+        if not self._haveShaders:
+            self.setText(self.text)#need to render the text again to a texture
+    
     def _setTextShaders(self,value):
         """Set the text to be rendered using the current font
         """
