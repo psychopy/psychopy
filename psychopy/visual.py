@@ -175,13 +175,7 @@ class Window:
             if havePyglet: winType="pyglet"
             elif havePygame: winType="pygame"
             else: winType='glut'
-            
-        #check whether shaders are supported
-        if winType=='pyglet':#we can check using gl_info
-            if pyglet.gl.gl_info.have_extension('GL_ARB_shader_objects') and \
-                pyglet.gl.gl_info.have_extension('GL_ARB_vertex_shader'):
-                    self._haveShaders=True
-            else:self._haveShaders=False        
+                 
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
             log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
@@ -192,13 +186,20 @@ class Window:
         if winType is "glut": self._setupGlut()
         elif winType is "pygame": self._setupPygame()
         elif winType is "pyglet": self._setupPyglet()
+        #check whether shaders are supported
+        if winType=='pyglet':#we can check using gl_info
+            if pyglet.gl.gl_info.have_extension('GL_ARB_shader_objects') and \
+                pyglet.gl.gl_info.have_extension('GL_ARB_vertex_shader'):
+                    self._haveShaders=True
+            else:self._haveShaders=False   
         self._setupGL()
 
         self.frameClock = core.Clock()#from psycho/core
         self.frames = 0         #frames since last fps calc
         self.movieFrames=[] #list of captured frames (Image objects)
-
-        self.setGamma(self.gamma)#using either pygame or bits++
+        
+        if list(self.gamma)!=[1,1,1]:
+            self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = time.time()
         self.update()#do a screen refresh straight away
 
@@ -2489,8 +2490,7 @@ class TextStim(_BaseVisualStim):
             self._setTextNoShaders(value)
     def setRGB(self,value, operation=None):
         self._set('rgb', value, operation)
-        if not self._haveShaders:
-            self.setText(self.text)#need to render the text again to a texture
+        self.setText(self.text)#need to render the text again to a texture
     
     def _setTextShaders(self,value):
         """Set the text to be rendered using the current font
@@ -2498,12 +2498,10 @@ class TextStim(_BaseVisualStim):
         self.text = value
         
         if self.win.winType=="pyglet":
-            if self._pygletTextObj==None: 
-                self._pygletTextObj = pyglet.font.Text(self._font, self.text,
+            self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
-                                                       )#width of the frame
-            else: self._pygletTextObj.text= self.text
+                                                       )#width of the frame            
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias, [255,255,255])
@@ -2598,12 +2596,10 @@ class TextStim(_BaseVisualStim):
         self.text = value
         
         if self.win.winType=="pyglet":
-            if self._pygletTextObj==None: 
-                self._pygletTextObj = pyglet.font.Text(self._font, self.text,
+            self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
                                                        )
-            self._pygletTextObj.text=self.text
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias,
