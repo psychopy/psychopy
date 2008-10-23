@@ -239,14 +239,15 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
-            #global _eventThread
-            #_eventThread.runFor(20)
-            #_eventThread.start()
             self._player.play()
         
     def stop(self):
         """Stops the sound immediately"""
-        self._snd.stop()
+        global usePygame
+        if usePygame:
+            self._snd.stop()
+        else:
+            self._player.pause()
         
     #def fadeOut(self,mSecs):
         #"""fades out the sound (when playing) over mSecs.
