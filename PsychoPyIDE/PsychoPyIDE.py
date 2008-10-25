@@ -1670,8 +1670,7 @@ class IDEMainFrame(wx.Frame):
             command = '%s %s' %(sys.executable, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(TB_RUN,False)
-        self.toolbar.EnableTool(TB_STOP,True)
-             
+        self.toolbar.EnableTool(TB_STOP,True)             
                     
     def runFile(self, event):
         """Runs files by one of various methods

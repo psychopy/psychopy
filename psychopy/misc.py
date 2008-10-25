@@ -6,8 +6,6 @@ import numpy #this is imported by psychopy.core
 from psychopy import log
 import monitors
 
-def ObjectArray(inputSeq):
-    return numpy.array(inputSeq, 'O')
 import Image, cPickle
 #from random import shuffle #this is core python dist
 
@@ -47,7 +45,7 @@ def shuffleArray(inArray, shuffleAxis=-1, seed=None):
     if seed is not None:
         numpy.random.seed(seed)
         
-    inArray = ObjectArray(inArray)#convert to array if necess
+    inArray = numpy.array(inArray, 'O')#convert to array if necess
     rndArray = numpy.random.random(inArray.shape)#create a random array of the same shape
     newIndices =  numpy.argsort(rndArray, shuffleAxis)# and get the arguments that would sort it
     return numpy.take(inArray,newIndices)#return the array with the sorted random indices
@@ -308,11 +306,28 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
     return numpy.transpose(rgb)#return in the shape we received it
 
 def pol2cart(theta, radius, units='deg'):
-    """convert from polar to cartesian coordinates"""
+    """Convert from polar to cartesian coordinates
+    
+    **usage**:
+        x,y = pol2cart(theta, radius, units='deg')
+    """
     if units=='deg':
-      theta = theta*numpy.pi/180.0
+        theta = theta*numpy.pi/180.0
     xx = radius*numpy.cos(theta)
     yy = radius*numpy.sin(theta)
     
     return xx,yy
+#----------------------------------------------------------------------
+def  cart2pol(x,y, units='deg'):
+    """Convert from cartesian to polar coordinates
+    
+    **usage**:
+        theta, radius = pol2cart(x, y, units='deg')
+        
+    units refers to the units (rad or deg) for theta that should be returned"""
+    radius= numpy.hypot(x,y)
+    theta= numpy.arctan2(y,x)
+    if units=='deg':
+        theta=theta*180/numpy.pi
+    return theta, radius
     

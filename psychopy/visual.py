@@ -1144,7 +1144,7 @@ class PatchStim(_BaseVisualStim):
             self.rgbPedestal=numpy.array((rgbPedestal,rgbPedestal,rgbPedestal), float)
         else:
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
-
+        
         if dkl is not None:
             self.dkl = dkl
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
@@ -1913,6 +1913,491 @@ class RadialStim(PatchStim):
 
         self.needUpdate=True
         
+
+
+class ElementArrayStim:
+    """
+    This stimulus class defines a field of elements whose behaviour can be independently
+    controlled. Suitable for creating 'global form' stimuli or more detailed random dot
+    stimuli. 
+    This stimulus can draw thousands of elements without dropping a frame, but in order
+    to achieve this performance, uses several OpenGL extensions only available on modern
+    graphics cards (supporting OpenGL2.0). See the ElementArray demo.
+    """
+    def __init__(self,
+                 win,
+                 units = None,
+                 fieldPos = (0.0,0.0),
+                 fieldSize = (1.0,1.0),
+                 fieldShape = 'circle',
+                 nElements = 100,
+                 sizes = 2.0,
+                 xys = None,
+                 rgbs = [1.0,1.0,1.0],
+                 opacities = 1.0,
+                 depths = 0,
+                 oris = 0,
+                 sfs=1.0,
+                 contrs = 1,
+                 phases=0,
+                 elementTex='sin',
+                 elementMask='gauss',
+                 texRes=48):
+        
+        """
+        **Arguments:**
+        
+            - **win:** a Window() object required - the stimulus must know where to draw itself!
+                            
+            - **units:**
+                + None (use the current units of the Window)
+                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
+                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
+                  
+            - **fieldPos:** The centre of the array of elements
+            
+            - **fieldSize:** The size of the array of elements (this will be overridden by setting explicit xy positions for the elements)
+                        
+            - **fieldShape:** The shape of the array (circle or 
+            
+                        
+                    
+                """
+        self.win = win        
+        if units in [None, "", []]:
+            self.units = win.units
+        else:
+            self.units = units
+        self.fieldPos = fieldPos
+        self.fieldSize = fieldSize
+        self.fieldShape = fieldShape
+        self.nElements = nElements
+        #info for each element
+        self.sizes = sizes
+        self.rgbs=rgbs
+        self.xys= xys
+        self.opacities = opacities
+        self.oris = oris
+        self.contrs = contrs
+        self.phases = phases
+        self.needVertexUpdate=True
+        self.needColorUpdate=True
+        self._useShaders=True
+        self.interpolate=True
+        
+        if self.win.winType != 'pyglet':
+            raise TypeError('ElementArray requires a pyglet context')
+        
+        if depths==0:
+            self.depth = win._defDepth
+            win._defDepth -= 0.0001# -ve depth means closer to viewer
+        else:
+            self.depths=depths
+        
+        #Deal with input for fieldpos
+        if type(fieldPos) in [tuple,list]:
+            self.fieldPos = numpy.array(fieldPos,float)
+        else:
+            self.fieldPos = numpy.array((fieldPos,fieldPos),float)
+            
+        #Deal with input for fieldsize
+        if type(fieldSize) in [tuple,list]:
+            self.fieldSize = numpy.array(fieldSize,float)
+        else:
+            self.fieldSize = numpy.array((fieldSize,fieldSize),float)#make a square if only given one dimension
+            
+        #create textures
+        self.texRes=texRes
+        self.texID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.texID))
+        self.maskID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.maskID))
+        self.setMask(elementMask)
+        self.setTex(elementTex)
+        
+        self.setContrs(contrs)
+        self.setRgbs(rgbs)
+        self.setOpacities(opacities)#opacities is used by setRgbs, so this needs to be early
+        self.setXYs(xys)
+        self.setOris(oris)  
+        self.setSizes(sizes) #set sizes before sfs (sfs may need it formatted)
+        self.setSfs(sfs)
+        self.setPhases(phases)
+                
+    def setXYs(self,value=None, operation=''):
+        """Set the xy values of the element centres (relative to the centre of the field).
+        Values should be:            
+            
+            - None
+            - an array/list of Nx2 coordinates.
+            
+        If value is None then the xy positions will be generated automatically, based
+        on the fieldSize and fieldPos. In this case opacity will also be overridden
+        by this function (it is used to make elements outside the field invisible.
+        """
+        if value==None:
+            if self.fieldShape is 'sqr':
+                self.xys = numpy.random.rand(self.nElements,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
+                #gone outside the square
+                self.xys[:,0] = ((self.xys[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
+                self.xys[:,1] = ((self.xys[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
+            elif self.fieldShape is 'circle':
+                #take twice as many elements as we need (and cull the ones outside the circle)
+                xys = numpy.random.rand(self.nElements*2,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
+                #gone outside the square
+                xys[:,0] = ((xys[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
+                xys[:,1] = ((xys[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
+                #use a circular envelope and flips dot to opposite edge if they fall
+                #beyond radius.
+                #NB always circular - uses fieldSize in X only
+                normxy = xys/(self.fieldSize/2.0)
+                dotDist = numpy.sqrt((normxy[:,0]**2.0 + normxy[:,1]**2.0))
+                self.xys = xys[dotDist<1.0,:][0:self.nElements]
+        else:        
+            #make into an array
+            if type(value) in [int, float, list, tuple]:
+                value = numpy.array(value)        
+            #check shape
+            if value.shape != (self.nElements,2):
+                raise ValueError("New value for setXYs should be either None or Nx2")
+            if operation=='':
+                self.xys=value    
+            else: exec('self.xys'+operation+'=value')            
+        self.needVertexUpdate=True
+            
+    def setOris(self,value,operation=''):
+        """Set the orientation for each element. 
+        Should either be a single value or an Nx1 array/list
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = value.repeat(self.nElements)
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            pass #is already Nx1
+        else:
+            raise ValueError("New value for setOris should be either Nx1 or a single value")
+        if operation=='':
+            self.oris=value    
+        else: exec('self.oris'+operation+'=value')
+        self.needVertexUpdate=True
+    #----------------------------------------------------------------------
+    def setSfs(self, value,operation=''):
+        """Set the spatial frequency for each element. 
+        Should either be:
+        
+          - a single value 
+          - an Nx1 array/list 
+          - an Nx2 array/list (spatial frequency of the element in X and Y).
+          
+        If the units for the stimulus are 'pix' or 'norm' then the units of sf
+        are cycles per stimulus width. For units of 'deg' or 'cm' the units
+        are c/cm or c/deg respectively.
+          
+        """
+        
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = numpy.resize(value, [self.nElements,2])
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            value.shape=(self.nElements,1)#set to be 2D
+            value = value.repeat(2,1) #repeat once on dim 1
+        elif value.shape == (self.nElements,2):
+            pass#all is good
+        else:
+            raise ValueError("New value for setSfs should be either Nx1, Nx2 or a single value")
+            
+        if operation=='':
+            self.sfs=value    
+        else: exec('self.sfs'+operation+'=value')
+                        
+    def setOpacities(self,value,operation=''):
+        """Set the opacity for each element. 
+        Should either be a single value or an Nx1 array/list
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = value.repeat(self.nElements)
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            pass #is already Nx1
+        else:
+            raise ValueError("New value for setOpacities should be either Nx1 or a single value")
+        
+        if operation=='':
+            self.opacities=value    
+        else: exec('self.opacities'+operation+'=value')
+        self.needTexCoordUpdate =True
+        
+    def setSizes(self,value,operation=''):
+        """Set the size for each element. 
+        Should either be:
+        
+          - a single value 
+          - an Nx1 array/list 
+          - an Nx2 array/list
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = numpy.resize(value, [self.nElements,2])
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            value.shape=(self.nElements,1)#set to be 2D
+            value = value.repeat(2,1) #repeat once on dim 1
+        elif value.shape == (self.nElements,2):
+            pass#all is good
+        else:
+            raise ValueError("New value for setSizes should be either Nx1, Nx2 or a single value")
+            
+        if operation=='':
+            self.sizes=value    
+        else: exec('self.sizes'+operation+'=value')
+        self.needVertexUpdate=True    
+        
+    def setPhases(self,value,operation=''):
+        """Set the phase for each element. 
+        Should either be:
+        
+          - a single value 
+          - an Nx1 array/list 
+          - an Nx2 array/list (for separate X and Y phase)
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = numpy.resize(value, [self.nElements,2])
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            value.shape=(self.nElements,1)#set to be 2D
+            value = value.repeat(2,1) #repeat once on dim 1
+        elif value.shape == (self.nElements,2):
+            pass#all is good
+        else:
+            raise ValueError("New value for setPhases should be either Nx1, Nx2 or a single value")
+            
+        if operation=='':
+            self.phases=value    
+        else: exec('self.phases'+operation+'=value')
+        self.needTexCoordUpdate=True
+        
+    def setRgbs(self,value,operation=''):
+        """Set the rgb for each element. 
+        Should either be:
+        
+          - a single value 
+          - an Nx1 array/list 
+          - an Nx3 array/list
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        
+        #check shape
+        if value.shape in [(), (1,),(3,)]:
+            value = numpy.resize(value, [self.nElements,3])
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            value.shape=(self.nElements,1)#set to be 2D
+            value = value.repeat(3,1) #repeat once on dim 1
+        elif value.shape == (self.nElements,3):
+            pass#all is good
+        else:
+            raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
+        if operation=='':
+            self.rgbs=value    
+        else: exec('self.rgbs'+operation+'=value')
+        self.needColorUpdate=True 
+    def setContrs(self,value,operation=''):
+        """Set the contrast for each element. 
+        Should either be:
+        
+          - a single value 
+          - an Nx1 array/list 
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        #check shape
+        if value.shape in [(),(1,)]:
+            value = value.repeat(self.nElements)
+        elif value.shape in [(self.nElements,), (self.nElements,1)]:
+            pass #is already Nx1
+        else:
+            raise ValueError("New value for setContrs should be either Nx1 or a single value")
+            
+        if operation=='':
+            self.contrs=value    
+        else: exec('self.contrs'+operation+'=value')
+        self.needColorUpdate=True 
+    def setFieldPos(self,value,operation=''):
+        """Set the centre of the array (X,Y)
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        #check shape
+        if value.shape != (2,):
+            raise ValueError("New value for setFieldPos should be [x,y]")
+        
+        if operation=='':
+            self.fieldPos=value
+        else:
+            exec('self.fieldPos'+operation+'=value')
+    
+    def setFieldSize(self,value,operation=''):
+        """Set the size of the array on the screen (will override
+        current XY positions of the elements)
+        """
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value)
+        #check shape
+        if value.shape not in [(2,),(1,)]:
+            raise ValueError("New value for setFieldSize should be [x,y] or a single value")
+        
+        if operation=='':
+            self.fieldSize=value
+        else:
+            exec('self.fieldSize'+operation+'=value')
+        self.setXYs()#to reflect new settings, overriding individual xys 
+        
+    def draw(self):
+        """
+        Draw the stimulus in its relevant window. You must call
+        this method after every MyWin.update() if you want the
+        stimulus to appear on that frame and then update the screen
+        again.
+        """        
+        if self.needVertexUpdate: 
+            self.updateElementVertices()
+        if self.needColorUpdate:
+            self.updataElementColors()
+        if self.needTexCoordUpdate:
+            self.updataTextureCoords()
+            
+        #scale the drawing frame and get to centre of field
+        GL.glPushMatrix()#push before drawing, pop after
+        GL.glLoadIdentity()
+        self.win.setScale(self.units)
+        GL.glTranslatef(self.fieldPos[0],self.fieldPos[1],0.0)
+               
+        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes)
+        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+
+        #setup the shaderprogram        
+        GL.glUseProgram(self.win._progSignedTexMask)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        
+        #setup client texture coordinates first
+        GL.glClientActiveTexture (GL.GL_TEXTURE0)   
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)  
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)    
+        GL.glClientActiveTexture (GL.GL_TEXTURE1)   
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)  
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)    
+        #then bind textures
+        GL.glActiveTexture (GL.GL_TEXTURE1)     
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self.maskID)
+        GL.glActiveTexture (GL.GL_TEXTURE0)     
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self.texID)
+        
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+        GL.glDrawArrays(GL.GL_QUADS, 0, self._visXYZvertices.shape[0]*4)
+        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+
+        GL.glPopMatrix()
+        
+    def updateElementVertices(self):
+        self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],'d')
+        wx = self.sizes[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
+        wy = self.sizes[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
+        hx = self.sizes[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
+        hy = -self.sizes[:,1]*numpy.cos(self.oris[:]*numpy.pi/180)/2
+        
+        #X
+        self._visXYZvertices[:,0,0] = self.xys[:,0] -wx + hx#TopL
+        self._visXYZvertices[:,1,0] = self.xys[:,0] +wx + hx#TopR
+        self._visXYZvertices[:,2,0] = self.xys[:,0] +wx - hx#BotR
+        self._visXYZvertices[:,3,0] = self.xys[:,0] -wx - hx#BotL
+        
+        #Y
+        self._visXYZvertices[:,0,1] = self.xys[:,1] -wy + hy
+        self._visXYZvertices[:,1,1] = self.xys[:,1] +wy + hy
+        self._visXYZvertices[:,2,1] = self.xys[:,1] +wy - hy
+        self._visXYZvertices[:,3,1] = self.xys[:,1] -wy - hy
+        
+        #depth
+        self._visXYZvertices[:,:,2] = numpy.arange(0,0.001*self.nElements,0.001).repeat(4).reshape(self.nElements, 4)
+        
+        self.needVertexUpdate=False
+        
+    #----------------------------------------------------------------------
+    def updataElementColors(self):
+        """Create a new array of self._RGBAs"""
+        
+        N=self.nElements
+        self._RGBAs=numpy.zeros([N,4],'d')
+        self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
+        self._RGBAs[:,-1] = self.opacities
+        self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
+        self.needColorUpdate=False
+    def updataTextureCoords(self):
+        """Create a new array of self._maskCoords"""
+        
+        N=self.nElements
+        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],'d').reshape([1,4,2])
+        self._maskCoords = self._maskCoords.repeat(N,0)        
+        
+        #for the main texture
+        if self.units in ['norm', 'pix']:#sf is dependent on size (openGL default)
+            L = -self.sfs[:,0]/2 - self.phases[:,0]+0.5
+            R = +self.sfs[:,0]/2 - self.phases[:,0]+0.5
+            T = +self.sfs[:,1]/2 - self.phases[:,1]+0.5
+            B = -self.sfs[:,1]/2 - self.phases[:,1]+0.5
+        else: #we should scale to become independent of size        
+            L = -self.sfs[:,0]*self.sizes[:,0]/2 - self.phases[:,0]+0.5
+            R = +self.sfs[:,0]*self.sizes[:,0]/2 - self.phases[:,0]+0.5
+            T = +self.sfs[:,1]*self.sizes[:,1]/2 - self.phases[:,1]+0.5
+            B = -self.sfs[:,1]*self.sizes[:,1]/2 - self.phases[:,1]+0.5
+            
+        #self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
+        self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
+            .transpose().reshape([N,4,2]).astype('d')
+        self.needTexCoordUpdate=False
+        
+    def setTex(self,value):
+        """Change the texture (all elements have the same base texture). Avoid this 
+        during time-critical points in your script. Uploading new textures to the 
+        graphics card can be time-consuming.
+        """
+        self._texName = value
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+    def setMask(self,value):    
+        """Change the mask (all elements have the same mask). Avoid doing this 
+        during time-critical points in your script. Uploading new textures to the 
+        graphics card can be time-consuming."""    
+        self._maskName = value
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
+        
 class MovieStim:
     """A stimulus class for playing movies (mpeg, avi, etc...) in 
     PsychoPy. 
@@ -2046,11 +2531,7 @@ class MovieStim:
         self.playing=-1
         print 'movie finished'
 class TextStimGLUT:
-    """Class of text stimuli to be displayed in a **Window()**
-
-    **Written:**
-            - jwp, 2003
-    """
+    """DEPRECATED - please use TextStim instead - they're much nicer!"""
     def __init__(self,win,
                  text="Hello World",
                  font="GLUT_BITMAP_TIMES_ROMAN_24",
@@ -2309,14 +2790,6 @@ class TextStimGLUT:
 
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a **Window()**
-
-    **Written:**
-            - jwp, 2003
-            - jwp, 2007 added support for pygame fonts (any TT font and UNICODE support)
-            - jwp, 2008 added support for pyglet back-end (including ttf and Unicode support)
-
-            On windows fonts can be given as concatenated names all in lower case. e.g. 'arial', 'monotypecorsiva', 'rockwellextra'...
-            If no font name is given, a default font will be used.
     """
     def __init__(self, win,
                  text="Hello World",
