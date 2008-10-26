@@ -1662,12 +1662,12 @@ class IDEMainFrame(wx.Frame):
         self.scriptProcess.Redirect()#catch the stdout/stdin
         
         if sys.platform=='win32':
-            command = '"%s" "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
+            command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:  
             fullPath= fullPath.replace(' ','\ ')
-            command = '%s %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(TB_RUN,False)
         self.toolbar.EnableTool(TB_STOP,True)             
