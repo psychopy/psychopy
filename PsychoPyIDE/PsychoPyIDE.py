@@ -1111,7 +1111,9 @@ class IDEMainFrame(wx.Frame):
         self.paneManager.SetManagedWindow(self)
         #make the notebook
         self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
-        #self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600))
+#        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600))
+#the aui.notebook is nicer and wiwth more features but needs to be wired up differently-
+#at the moment closing windows doesn't work properly
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
@@ -1521,7 +1523,10 @@ class IDEMainFrame(wx.Frame):
             else:
                 path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)   
-            self.notebook.ChangeSelection(len(self.allDocs)-1)     
+            if isinstance(self, wx.Notebook):
+                self.notebook.ChangeSelection(len(self.allDocs)-1)     
+            elif isinstance(self, wx.aui.AuiNotebook):
+                self.SetSelection(len(self.allDocs)-1)     
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
@@ -1608,7 +1613,10 @@ class IDEMainFrame(wx.Frame):
                 pass #don't save just quit
         #remove the document and its record
         self.allDocs.remove(self.currentDoc)
-        self.notebook.DeletePage(self.notebook.GetSelection())
+        if isinstance(self, wx.Notebook):
+            self.notebook.DeletePage(self.notebook.GetSelection())
+        elif isinstance(self, wx.aui.AuiNotebook):
+            self.notebook.RemovePage(self.notebook.GetSelection())
         #set new current doc
         newPageID = self.notebook.GetSelection()
         if newPageID==-1: 
