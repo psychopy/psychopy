@@ -647,7 +647,6 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-    
 #############################################################################
 class _BaseVisualStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.

@@ -220,8 +220,10 @@ class Mouse:
         if usePygame: mouse.set_visible(visible)
         else: 
             #use default window if we don't have one
-            if self.win: w = self.win
-            else: w=pyglet.window.get_platform().get_default_display().get_windows()[0]  
+            if self.win: 
+                w = self.win.winHandle
+            else: 
+                w=pyglet.window.get_platform().get_default_display().get_windows()[0]  
             w.set_mouse_visible(visible)
     
     def getPressed(self):

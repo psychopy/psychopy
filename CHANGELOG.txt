@@ -6,7 +6,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 PsychoPy 0.95.7:
 * ADDED misc.cart2pol()
-* ADDED highly optimised ElementArrayStim, suitable for drawing large numbers of elements (requires OpenGL 2.0 gfx card)
+* ADDED highly optimised ElementArrayStim, suitable for drawing large numbers of elements. Requires fast OpenGL 2.0 gfx card - at least an nVidia 8000 series or ATI HD 2600 are recommended.
 * FIXED bug in calibTools with MonitorFolder (should have been monitorFolder)
 * FIXED bug in Sound.stop() for pyglet contexts
 * FIXED bug in running scripts with spaces in the filename/path (Mac OS X)
