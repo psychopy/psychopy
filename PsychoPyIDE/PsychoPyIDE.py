@@ -1148,7 +1148,7 @@ class IDEMainFrame(wx.Frame):
         self.paneManager.AddPane(self.outputWindow, 
                                  wx.aui.AuiPaneInfo().
                                  Name("Output").Caption("Output").
-                                 RightDockable(True).LeftDockable(True).
+                                 RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
         #will we show the pane straight away?
         self.setOutputWindow(event=None)
@@ -1159,7 +1159,7 @@ class IDEMainFrame(wx.Frame):
         self.paneManager.AddPane(self.sourceAsstWindow, 
                                  wx.aui.AuiPaneInfo().BestSize((600,600)).
                                  Name("SourceAsst").Caption("Source Assistant").
-                                 RightDockable(True).LeftDockable(True).
+                                 RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Right())
         #will we show the pane straight away?
         if self.options['showSourceAsst']:
@@ -1593,8 +1593,10 @@ class IDEMainFrame(wx.Frame):
             path, shortName = os.path.split(newPath)
             self.notebook.SetPageText(self.notebook.GetSelection(), shortName)
             self.setFileModified(False)
-        dlg.destroy()
-        
+        try: #this seems correct on PC, but not on mac   
+            dlg.destroy()
+        except:
+            pass
     def fileClose(self, event):
         filename = self.currentDoc.filename
         if self.currentDoc.UNSAVED==True:
