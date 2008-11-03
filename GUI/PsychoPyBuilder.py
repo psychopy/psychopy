@@ -2,13 +2,58 @@ import wx
 import wx.aui
 import sys
     
-class FlowPanel(wx.Panel):
-    def __init__(self, parent, id=-1):
+def drawFlowBox(dc,name,rgb=[200,50,50],pos=[0,0]):
+    font = dc.GetFont()
+    font.SetPointSize(24)
+    r, g, b = rgb
+
+    #get size based on text
+    dc.SetFont(font)
+    w,h = dc.GetFullTextExtent(name)[0:2]
+    #draw box
+    rect = wx.Rect(pos[0], pos[1], w,h)
+    rect.Inflate(20,10)    
+    #the edge should match the text
+    dc.SetPen(wx.Pen(wx.Colour(r, g, b, wx.ALPHA_OPAQUE)))
+    #for the fill, draw once in white near-opaque, then in transp colour
+    dc.SetBrush(wx.Brush(wx.Colour(255,255,255, 250)))
+    dc.DrawRoundedRectangleRect(rect, 8)   
+    dc.SetBrush(wx.Brush(wx.Colour(r,g,b,50)))
+    dc.DrawRoundedRectangleRect(rect, 8)   
+    #draw text        
+    dc.SetTextForeground(rgb) 
+    dc.DrawText(name, pos[0], pos[1])
+def drawFlowLoop(dc,name,startX,endX,base,height,rgb=[200,50,50]):
+    xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
+    yy = [base,height+10,height+5,height, height, height,  height,  height+5, height+10, base]
+    pts=[]
+    for n in range(len(xx)):
+        pts.append([xx[n],yy[n]])
+    dc.DrawSpline(pts)
+class FlowPanel(wx.ScrolledWindow):
+    def __init__(self, parent, id=-1,size = wx.DefaultSize):
         """A panel that shows how the procedures will fit together
         """
-        wx.Panel.__init__(self,parent,size=(100,600))
+        wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=size, style=wx.SUNKEN_BORDER)
         self.parent=parent    
-        self.addProcBtn = wx.Button(self,-1,'AddProc') 
+        self.addProcBtn = wx.Button(self,-1,'AddProc')              
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        
+    def OnPaint(self, evt):
+        #create a drawing context for our lines/boxes
+        pdc = wx.PaintDC(self)
+        try:
+            self.dc = wx.GCDC(pdc)
+        except:
+            self.dc = pdc
+            
+        self.dc.Clear()
+        
+        self.dc.DrawLine(x1=10,y1=80,x2=500,y2=80)
+        drawFlowLoop(self.dc,'Flow1',startX=100,endX=450,base=80,height=20)
+        drawFlowBox(self.dc, name='Proc1', pos=[150,40])
+        drawFlowBox(self.dc, name='Proc2', pos=[350,40])
+                  
 class Procedure(wx.Panel):
     """A frame to represent a single procedure
     """
@@ -64,9 +109,9 @@ class BuilderFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self.parent=parent
         self._mgr = wx.aui.AuiManager(self)
-
+        
         # create several text controls
-        self.flowPanel=FlowPanel(parent=self)
+        self.flowPanel=FlowPanel(parent=self, size=(600,200))
         self.procPanel=ProceduresPanel(self)
         self.procButtons=ProcButtonsPanel(self)
         # add the panes to the manager
