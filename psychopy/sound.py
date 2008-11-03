@@ -3,7 +3,7 @@
 import numpy, threading, time
 from os import path 
 from string import capitalize
-from sys import platform, exit
+from sys import platform, exit, stdout
 from psychopy import event, core, log
 
 try:
@@ -60,6 +60,7 @@ if havePyglet:
         def stop(self):
             if self.running>0:
                 self.running=0#make a request to stop on next entry
+            core.runningThreads.remove(self)
         def setPollingPeriod(self, period):
             #print 'polling period is now:%.3f' %period
             self.pollingPeriod=period
@@ -205,6 +206,8 @@ class Sound:
             self.isStereo = True
             self.secs=secs
             self._player=pyglet.media.ManagedSoundPlayer()
+            self._player._eos_action='pause'
+            self._player._on_eos=self._onEOS
             if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
@@ -225,7 +228,7 @@ class Sound:
         if self._snd is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
             
-    def play(self):
+    def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
         If no sound channels are available, it will not play and return None. 
 
@@ -239,7 +242,18 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
+            self.setVolume(0.1)
             self._player.play()
+
+    def _onEOS(self):
+        #self._snd._seek(0)#reset the sound
+        self._player._playing = False
+        self._player._timestamp = self._player._sources[0].duration
+        self._player.seek(0)
+        self._player.queue(self._snd)
+        self._player._fill_audio()
+        self._player.dispatch_event('on_eos')
+        return True
         
     def stop(self):
         """Stops the sound immediately"""
@@ -248,7 +262,8 @@ class Sound:
             self._snd.stop()
         else:
             self._player.pause()
-        
+            self._player.queue(self._snd)#queue rady for a repeat presentation if necess
+            
     #def fadeOut(self,mSecs):
         #"""fades out the sound (when playing) over mSecs.
         #Don't know why you would do this in psychophysics but it's easy
@@ -270,7 +285,7 @@ class Sound:
         if usePygame:
             self._snd.set_volume(newVol)
         else:
-            self._player.volume = newVol
+            self._player._set_volume(newVol)
     def _fromFile(self, fileName):
         global usePygame
         

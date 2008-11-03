@@ -218,9 +218,8 @@ class Mouse:
         You can still use getRel() in that case.
         """
         if usePygame: mouse.set_visible(visible)
-        else: 
-            #use default window if we don't have one
-            if self.win: 
+        else:             
+            if self.win: #use default window if we don't have one
                 w = self.win.winHandle
             else: 
                 w=pyglet.window.get_platform().get_default_display().get_windows()[0]  

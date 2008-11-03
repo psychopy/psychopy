@@ -4,6 +4,13 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog
 
+PsychoPy 0.95.8:
+* FIXED bug in sound.Sound not repeating when play() is called repeatedly
+* IDE uses improved notebook view for code pages
+* IDE line number column is larger
+* IDE SaveAs no longer raises (inconsequential) error
+* IDE Cmd-S or Ctrl-S now clears autocomplete
+    
 PsychoPy 0.95.7:
 * ADDED misc.cart2pol()
 * ADDED highly optimised ElementArrayStim, suitable for drawing large numbers of elements. Requires fast OpenGL 2.0 gfx card - at least an nVidia 8000 series or ATI HD 2600 are recommended.
@@ -22,7 +29,7 @@ PsychoPy 0.95.6:
 PsychoPy 0.95.5:
 * FIXED bug in event.clearEvents() implementation in pyglet (wasn't clearing)
 * FIXED - psychopy no longer disables ipython shortcut keys
-* FIXED bug in sound.Sound initialisation without pygame installed
+* FIXED bug in sound.Sound initialisation without pygame installeds
 * ADDED core.rush() for increasing thread priority on win32
 * ADDED Window._haveShaders, XXXStim._useShaders and XXXStim.setUseShaders
 * FIXED crashes on win32, running a pyglet context after a DlgFromDict

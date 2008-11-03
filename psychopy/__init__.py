@@ -5,15 +5,14 @@ and numpy.
 To get started see/run the demo scripts.
 """
 
-import string, sys, os
+import string, sys, os, time
 try: import numpy
 except: pass
 
-__version__ = '0.95.7'#string.split('$Branch: 1.19 $')[1]
-__revision__ = "$Revision:  $"
-__build__ = "$Trunk: $"
-__svn__ = "$Id: Exp $"
+__version__ = '0.95.8'#string.split('$Branch: 1.19 $')[1]
 __date__ = string.join(string.split('$Date: 2005/08/01 15:05:34 $')[1:3], ' ')
+__svn__= '$Id'
+__rev__= '$Revision'
 __author__ = 'Jon Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychpy-users@lists.sourceforge.net'

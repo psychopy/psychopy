@@ -36,7 +36,7 @@ else:iconDir = appDir
 
 RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
-USE_NOTEBOOK_PANEL=False
+USE_NOTEBOOK_PANEL=True
 ANALYSIS_LEVEL=1
 if sys.platform=='darwin':
     ALLOW_MODULE_IMPORTS=False
@@ -430,15 +430,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             self.smartIdentThisLine()
-            return #so that we don't reach the skip line at end
-        
-        #then check for "else:"
-        #elif keyCode == 306 and self.GetCurLine()[0].strip()=='else':
-            #self.AddText(':')
-            #self.SetSelection(self.GetPosition()[2]-2, self.GetPosition())
-            #self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
-            #event.Skip(False)
-            #return
+            return #so that we don't reach the skip line at end        
         
         event.Skip()
     def smartIdentThisLine(self):
@@ -1110,14 +1102,18 @@ class IDEMainFrame(wx.Frame):
         self.paneManager.SetFlags(wx.aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
         #make the notebook
-        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
-#        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600))
+#        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
+        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), style=wx.aui.AUI_NB_DEFAULT_STYLE|wx.aui.AUI_NB_WINDOWLIST_BUTTON)
+
+        self.notebook.SetFocus()
 #the aui.notebook is nicer and wiwth more features but needs to be wired up differently-
 #at the moment closing windows doesn't work properly
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
+        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
+        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)        
@@ -1485,7 +1481,10 @@ class IDEMainFrame(wx.Frame):
         docID=self.findDocID(filename)
         if docID>=0:
             self.currentDoc = self.allDocs[docID]
-            self.notebook.ChangeSelection(docID)
+            if isinstance(self.notebook, wx.Notebook):
+                self.notebook.ChangeSelection(len(self.allDocs)-1)     
+            elif isinstance(self.notebook, wx.aui.AuiNotebook):
+                self.notebook.SetSelection(len(self.allDocs)-1)     
         else:#create new page and load document
             #if there is only a placeholder document then close it
             if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
@@ -1517,16 +1516,16 @@ class IDEMainFrame(wx.Frame):
             
             # line numbers in the margin
             self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
-            self.currentDoc.SetMarginWidth(1, 25)
+            self.currentDoc.SetMarginWidth(1, 32)
             if filename=="":
                 filename=shortName='untitled.py'
             else:
                 path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)   
-            if isinstance(self, wx.Notebook):
+            if isinstance(self.notebook, wx.Notebook):
                 self.notebook.ChangeSelection(len(self.allDocs)-1)     
-            elif isinstance(self, wx.aui.AuiNotebook):
-                self.SetSelection(len(self.allDocs)-1)     
+            elif isinstance(self.notebook, wx.aui.AuiNotebook):
+                self.notebook.SetSelection(len(self.allDocs)-1)     
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
@@ -1557,6 +1556,10 @@ class IDEMainFrame(wx.Frame):
         self.SetStatusText('')
         
     def fileSave(self,event, filename=None):
+        
+        if self.CallTipActive():
+            self.CallTipCancel()
+            
         if filename==None: 
             filename = self.currentDoc.filename
         if filename=='untitled.py':
@@ -1575,6 +1578,10 @@ class IDEMainFrame(wx.Frame):
         self.SetStatusText('')
         
     def fileSaveAs(self,event, filename=None):
+        
+        if self.CallTipActive():
+            self.CallTipCancel()
+            
         if filename==None: filename = self.currentDoc.filename
         initPath, filename = os.path.split(filename)
         os.getcwd()
@@ -1614,13 +1621,11 @@ class IDEMainFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass #don't save just quit
         #remove the document and its record
+        currId = self.notebook.GetSelection()
+        newPageID=currId-1
         self.allDocs.remove(self.currentDoc)
-        if isinstance(self, wx.Notebook):
-            self.notebook.DeletePage(self.notebook.GetSelection())
-        elif isinstance(self, wx.aui.AuiNotebook):
-            self.notebook.RemovePage(self.notebook.GetSelection())
+        self.notebook.DeletePage(currId)
         #set new current doc
-        newPageID = self.notebook.GetSelection()
         if newPageID==-1: 
             self.currentDoc=None    
             self.SetLabel("PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__)
@@ -1629,7 +1634,6 @@ class IDEMainFrame(wx.Frame):
             self.currentDoc = self.allDocs[newPageID]
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
         return 1
-    
     def _runFileAsImport(self):      
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
