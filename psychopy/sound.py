@@ -242,7 +242,6 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
-            self.setVolume(0.1)
             self._player.play()
 
     def _onEOS(self):
@@ -261,8 +260,11 @@ class Sound:
         if usePygame:
             self._snd.stop()
         else:
-            self._player.pause()
-            self._player.queue(self._snd)#queue rady for a repeat presentation if necess
+            self._player._playing = False
+            self._player._timestamp = self._player._sources[0].duration
+            self._player.seek(0)
+            self._player.queue(self._snd)
+            self._player._fill_audio()
             
     #def fadeOut(self,mSecs):
         #"""fades out the sound (when playing) over mSecs.

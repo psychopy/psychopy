@@ -1557,8 +1557,8 @@ class IDEMainFrame(wx.Frame):
         
     def fileSave(self,event, filename=None):
         
-        if self.CallTipActive():
-            self.CallTipCancel()
+        if self.currentDoc.CallTipActive():
+            self.currentDoc.CallTipCancel()
             
         if filename==None: 
             filename = self.currentDoc.filename
@@ -1578,9 +1578,9 @@ class IDEMainFrame(wx.Frame):
         self.SetStatusText('')
         
     def fileSaveAs(self,event, filename=None):
-        
-        if self.CallTipActive():
-            self.CallTipCancel()
+                    
+        if self.currentDoc.CallTipActive():
+            self.currentDoc.CallTipCancel()
             
         if filename==None: filename = self.currentDoc.filename
         initPath, filename = os.path.split(filename)
