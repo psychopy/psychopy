@@ -1105,13 +1105,13 @@ class IDEMainFrame(wx.Frame):
 #        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), style=wx.aui.AUI_NB_DEFAULT_STYLE|wx.aui.AUI_NB_WINDOWLIST_BUTTON)
 
-        self.notebook.SetFocus()
-#the aui.notebook is nicer and wiwth more features but needs to be wired up differently-
-#at the moment closing windows doesn't work properly
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
+
+        self.notebook.SetFocus()        
+
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
@@ -1481,10 +1481,7 @@ class IDEMainFrame(wx.Frame):
         docID=self.findDocID(filename)
         if docID>=0:
             self.currentDoc = self.allDocs[docID]
-            if isinstance(self.notebook, wx.Notebook):
-                self.notebook.ChangeSelection(len(self.allDocs)-1)     
-            elif isinstance(self.notebook, wx.aui.AuiNotebook):
-                self.notebook.SetSelection(len(self.allDocs)-1)     
+            self.notebook.ChangeSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
             if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
