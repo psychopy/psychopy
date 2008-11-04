@@ -8,9 +8,6 @@ from psychopy import event, core, log
 
 try:
     import pyglet
-    #if pyglet.version<'1.1': #pyglet.resource was new and new event dispatching model
-        #print "\nYou need pyglet v1.1 or above to use sounds\n"
-        #sys.exit(0)
     import pyglet.media.procedural
     import pyglet.media#, pyglet.resource
     import ctypes, math
@@ -43,8 +40,9 @@ if havePyglet:
         """I've tried doing this in a way that the thread was started and stopped repeatedly
         (so could be paused while a sound wasn't needed, but never made it work.
         see sound.py in SVNr85 for the attempt."""
-        def __init__(self, pollingPeriod=0.005):
+        def __init__(self, pollingPeriod):
             threading.Thread.__init__ ( self )
+            self.playerList=[]
             self.pollingPeriod=pollingPeriod
             self.running = -1
             core.runningThreads.append(self)
@@ -53,7 +51,9 @@ if havePyglet:
             #print 'thread started'
             while self.running:
                 #print self.pollingPeriod
-                pyglet.media.dispatch_events()
+                for player in self.playerList:
+                    player.dispatch_events()
+                #pyglet.media.dispatch_events()
                 time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
             #print 'thread stopped'
             self.running=-1#shows that it is fully stopped
@@ -66,7 +66,10 @@ if havePyglet:
             self.pollingPeriod=period
             
     global _eventThread
-    _eventThread = _EventDispatchThread(pollingPeriod=0.001)
+    if platform=='win32':
+        _eventThread = _EventDispatchThread(pollingPeriod=0.01)
+    else:
+        _eventThread = _EventDispatchThread(pollingPeriod=0.001)#seem to be able to use a shorter refresh safely
     
     def setEventPollingPeriod(period):
         """For pylget contexts this sets the frequency that events controlling sound start and stop
@@ -102,7 +105,7 @@ if havePyglet:
         """
         Create a pyglet.StaticSource from a numpy array. 
         """
-        def __init__(self, data, sample_rate=44100, sample_size=16):
+        def __init__(self, data, sample_rate=22050, sample_size=16):
             """Array data should be float (-+1.0)
             sample_size (16 or 8) determines the number of bits used for internal storage"""
             duration = data.shape[1]/float(sample_rate) #determine duration from data
@@ -205,8 +208,9 @@ class Sound:
             self.format = bits
             self.isStereo = True
             self.secs=secs
-            self._player=pyglet.media.ManagedSoundPlayer()
-            self._player._eos_action='pause'
+            self._player=pyglet.media.Player()
+            _eventThread.playerList.append(self._player)
+            #self._player._eos_action='pause'
             self._player._on_eos=self._onEOS
             if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
@@ -245,7 +249,6 @@ class Sound:
             self._player.play()
 
     def _onEOS(self):
-        #self._snd._seek(0)#reset the sound
         self._player._playing = False
         self._player._timestamp = self._player._sources[0].duration
         self._player.seek(0)

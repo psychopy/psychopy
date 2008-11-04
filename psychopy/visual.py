@@ -188,8 +188,7 @@ class Window:
         elif winType is "pyglet": self._setupPyglet()
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
-            if pyglet.gl.gl_info.have_extension('GL_ARB_shader_objects') and \
-                pyglet.gl.gl_info.have_extension('GL_ARB_vertex_shader'):
+            if pyglet.gl.gl_info.get_version()>='2.0':
                     self._haveShaders=True
             else:self._haveShaders=False   
         self._setupGL()

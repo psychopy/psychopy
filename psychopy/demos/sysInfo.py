@@ -1,4 +1,5 @@
 from pyglet.gl import gl_info
+from psychopy import visual
 import sys, platform
 
 print "System info:"
@@ -16,6 +17,7 @@ import matplotlib; print "matplotlib", matplotlib.__version__
 import pyglet; print "pyglet", pyglet.version
 import psychopy; print "PsychoPy", psychopy.__version__
 
+win = visual.Window([100,100])#some drivers want a window open first
 print "\nOpenGL info:"
 #get info about the graphics card and drivers
 print "vendor:", gl_info.get_vendor()

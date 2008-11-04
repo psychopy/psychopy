@@ -1,18 +1,19 @@
 #! /usr/local/bin/python2.5
 import sys
-from psychopy import sound,core
+from psychopy import sound,core, visual
 
 highA = sound.Sound('A',octave=5, secs=0.4)
-tick = sound.Sound(700,secs=0.02)
-tock = sound.Sound(600,secs=0.02)
+highA.setVolume(0.2)
+tick = sound.Sound(700,secs=0.01)
+tock = sound.Sound(600,secs=0.01)
 
+core.wait(0.5)
 highA.play()
-core.wait(1.0) #to let the sound play
-tick.play()
 core.wait(0.5) #to let the sound play
+tick.play()
+core.wait(0.5)
 tock.play()
-
-core.wait(1)
+core.wait(0.5)
 
 if sys.platform=='win32':
     ding = sound.Sound('ding')
