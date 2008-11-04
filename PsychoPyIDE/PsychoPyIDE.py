@@ -1114,7 +1114,7 @@ class IDEMainFrame(wx.Frame):
 
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)        
         self.Bind(wx.EVT_FIND, self.OnFindNext)
@@ -1307,7 +1307,7 @@ class IDEMainFrame(wx.Frame):
             | wx.TB_FLAT))
             
         if sys.platform=='win32':
-            toolbarSize=16
+            toolbarSize=32
         else:
             toolbarSize=32 #size 16 doesn't work on mac wx
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
@@ -1621,7 +1621,9 @@ class IDEMainFrame(wx.Frame):
         currId = self.notebook.GetSelection()
         newPageID=currId-1
         self.allDocs.remove(self.currentDoc)
-        self.notebook.DeletePage(currId)
+        #if this was called by AuiNotebookEvent, then page has closed already
+        if not isinstance(event, wx.aui.AuiNotebookEvent):
+            self.notebook.DeletePage(currId)
         #set new current doc
         if newPageID==-1: 
             self.currentDoc=None    
@@ -1630,7 +1632,7 @@ class IDEMainFrame(wx.Frame):
             #self.notebook.Raise
             self.currentDoc = self.allDocs[newPageID]
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
-        return 1
+        #return 1
     def _runFileAsImport(self):      
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
