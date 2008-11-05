@@ -1,45 +1,29 @@
 import wx
 import wx.aui
 import sys
-    
-def drawFlowBox(dc,name,rgb=[200,50,50],pos=[0,0]):
-    font = dc.GetFont()
-    font.SetPointSize(24)
-    r, g, b = rgb
+import ExperimentObjects
 
-    #get size based on text
-    dc.SetFont(font)
-    w,h = dc.GetFullTextExtent(name)[0:2]
-    #draw box
-    rect = wx.Rect(pos[0], pos[1], w,h)
-    rect.Inflate(20,10)    
-    #the edge should match the text
-    dc.SetPen(wx.Pen(wx.Colour(r, g, b, wx.ALPHA_OPAQUE)))
-    #for the fill, draw once in white near-opaque, then in transp colour
-    dc.SetBrush(wx.Brush(wx.Colour(255,255,255, 250)))
-    dc.DrawRoundedRectangleRect(rect, 8)   
-    dc.SetBrush(wx.Brush(wx.Colour(r,g,b,50)))
-    dc.DrawRoundedRectangleRect(rect, 8)   
-    #draw text        
-    dc.SetTextForeground(rgb) 
-    dc.DrawText(name, pos[0], pos[1])
-def drawFlowLoop(dc,name,startX,endX,base,height,rgb=[200,50,50]):
-    xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
-    yy = [base,height+10,height+5,height, height, height,  height,  height+5, height+10, base]
-    pts=[]
-    for n in range(len(xx)):
-        pts.append([xx[n],yy[n]])
-    dc.DrawSpline(pts)
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, parent, id=-1,size = wx.DefaultSize):
         """A panel that shows how the procedures will fit together
         """
         wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=size, style=wx.SUNKEN_BORDER)
         self.parent=parent    
-        self.addProcBtn = wx.Button(self,-1,'AddProc')              
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.btnAddProc = wx.Button(self,-1,'AddProc')                  
+        self.Bind(wx.EVT_BUTTON, self.onAddProc,self.btnAddProc)        
+        self.Bind(wx.EVT_PAINT, self.redraw)
+    def onAddProc(self, evt):
+        exp = self.parent.exp
         
-    def OnPaint(self, evt):
+        #bring up some dialogue to choose the procedure to add and/or create a new one
+        exp.addProcedure('testProc')
+        exp.flow.addProcedure(exp.procs['trial'], pos=1)
+        #self.redraw()
+        evt.Skip()
+    def redraw(self, evt=None):
+        expFlow = self.parent.exp.flow #retrieve the current flow from the experiment
+        
         #create a drawing context for our lines/boxes
         pdc = wx.PaintDC(self)
         try:
@@ -49,11 +33,65 @@ class FlowPanel(wx.ScrolledWindow):
             
         self.dc.Clear()
         
-        self.dc.DrawLine(x1=10,y1=80,x2=500,y2=80)
-        drawFlowLoop(self.dc,'Flow1',startX=100,endX=450,base=80,height=20)
-        drawFlowBox(self.dc, name='Proc1', pos=[150,40])
-        drawFlowBox(self.dc, name='Proc2', pos=[350,40])
-                  
+        #draw the main time line
+        linePos = 80
+        self.dc.DrawLine(x1=100,y1=linePos,x2=500,y2=linePos)
+        
+        #step through objects in flow
+        currX=120; gap=20
+        loopInits = []
+        loopTerms = []
+        for entry in expFlow:
+            if entry.getType()=='LoopInitiator':
+                self.drawLoopAttach(pos=[currX,linePos])
+                loopInits.append(currX)
+            if entry.getType()=='LoopTerminator':
+                self.drawLoopAttach(pos=[currX,linePos])
+                loopTerms.append(currX)
+            if entry.getType()=='Procedure':
+                currX = self.drawFlowBox(name='Procedure1', pos=[currX,linePos-40])
+            currX+=gap
+            
+        loopTerms.reverse()#reverse the terminators, so that last term goes with first init   
+        for n in range(len(loopInits)):
+            self.drawFlowLoop('Flow1',startX=loopInits[n],endX=loopTerms[n],base=linePos,height=20)
+            
+    def drawLoopAttach(self, pos):
+        #draws a spot that a loop will later attach to
+        self.dc.SetBrush(wx.Brush(wx.Colour(100,100,100, 250)))
+        self.dc.SetPen(wx.Pen(wx.Colour(0,0,0, wx.ALPHA_OPAQUE)))
+        self.dc.DrawCirclePoint(pos,5)
+    def drawFlowBox(self,name,rgb=[200,50,50],pos=[0,0]):
+        font = self.dc.GetFont()
+        font.SetPointSize(24)
+        r, g, b = rgb
+
+        #get size based on text
+        self.dc.SetFont(font)
+        w,h = self.dc.GetFullTextExtent(name)[0:2]
+        pad = 20
+        #draw box
+        rect = wx.Rect(pos[0], pos[1], w+pad,h+pad) 
+        endX = pos[0]+w+20
+        #the edge should match the text
+        self.dc.SetPen(wx.Pen(wx.Colour(r, g, b, wx.ALPHA_OPAQUE)))
+        #for the fill, draw once in white near-opaque, then in transp colour
+        self.dc.SetBrush(wx.Brush(wx.Colour(255,255,255, 250)))
+        self.dc.DrawRoundedRectangleRect(rect, 8)   
+        self.dc.SetBrush(wx.Brush(wx.Colour(r,g,b,50)))
+        self.dc.DrawRoundedRectangleRect(rect, 8)   
+        #draw text        
+        self.dc.SetTextForeground(rgb) 
+        self.dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
+        return endX
+    def drawFlowLoop(self,name,startX,endX,base,height,rgb=[200,50,50]):
+        xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
+        yy = [base,height+10,height+5,height, height, height,  height,  height+5, height+10, base]
+        pts=[]
+        for n in range(len(xx)):
+            pts.append([xx[n],yy[n]])
+        self.dc.DrawSpline(pts)
+        
 class Procedure(wx.Panel):
     """A frame to represent a single procedure
     """
@@ -75,21 +113,21 @@ class ProcButtonsPanel(wx.Panel):
     def __init__(self, parent, id=-1):
         """A panel that shows how the procedures will fit together
         """
-        wx.Panel.__init__(self,parent,size=(100,600))
+        wx.Panel.__init__(self,parent,size=(80,600))
         self.parent=parent    
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         
         textImg = wx.Bitmap("res//text.png")
         self.textBtn = wx.BitmapButton(self, -1, textImg, (20, 20),
-                       (textImg.GetWidth()+10, textImg.GetHeight()+10),style=wx.NO_BORDER)
+                       (textImg.GetWidth()+10, textImg.GetHeight()+10))
                        
         patchImg= wx.Bitmap("res//patch.png")
         self.patchBtn = wx.BitmapButton(self, -1, patchImg, (20, 20),
-                       (patchImg.GetWidth()+10, patchImg.GetHeight()+10),style=wx.NO_BORDER)
+                       (patchImg.GetWidth()+10, patchImg.GetHeight()+10))
                        
         mouseImg= wx.Bitmap("res//mouse.png")
         self.mouseBtn = wx.BitmapButton(self, -1, mouseImg, (20, 20),
-                       (mouseImg.GetWidth()+10, mouseImg.GetHeight()+10),style=wx.NO_BORDER)
+                       (mouseImg.GetWidth()+10, mouseImg.GetHeight()+10))
 #        patchImg= wx.Bitmap("res//patch.png")
 #        self.textBtn = wx.BitmapButton(self, -1, patchImg, (20, 20),
 #                       (patchImg.GetWidth()+10, patchImg.GetHeight()+10))
@@ -110,7 +148,18 @@ class BuilderFrame(wx.Frame):
         self.parent=parent
         self._mgr = wx.aui.AuiManager(self)
         
-        # create several text controls
+        #create a default experiment (maybe an empty one instead)
+        self.exp = ExperimentObjects.Experiment()
+        self.exp.addProcedure('trial') #create the trial procedure
+        self.exp.flow.addProcedure(self.exp.procs['trial'], pos=1)#add it to flow
+        #adda loop to the flow as well
+        trialInfo = [ {'ori':5, 'sf':1.5}, {'ori':2, 'sf':1.5},{'ori':5, 'sf':3}, ] 
+        self.exp.flow.addLoop(
+            ExperimentObjects.LoopHandler(name='trialLoop', loopType='rand', nReps=5, trialList = trialInfo),
+            startPos=0.5, endPos=1.5,#specify positions relative to the
+            )
+        
+        # create our panels
         self.flowPanel=FlowPanel(parent=self, size=(600,200))
         self.procPanel=ProceduresPanel(self)
         self.procButtons=ProcButtonsPanel(self)
@@ -131,7 +180,7 @@ class BuilderFrame(wx.Frame):
         self.Destroy()
 
 
-class IDEApp(wx.App):
+class BuilderApp(wx.App):
     def OnInit(self):
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
@@ -151,5 +200,5 @@ class IDEApp(wx.App):
         self.frame.setCurrentDoc(fileName) 
 
 if __name__=='__main__':
-    app = IDEApp(0)
+    app = BuilderApp(0)
     app.MainLoop()

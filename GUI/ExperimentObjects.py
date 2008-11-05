@@ -9,7 +9,7 @@ class LoopHandler(list):
         @param name: name of the loop e.g. trials
         @type name: string
         @param loopType:
-        @type loopType: string
+        @type loopType: string ('rand', 'seq', 'stair'...)
         @param nReps: number of reps (for all trial types)
         @type nReps:int
         @param trialList: list of different trial conditions to be used
@@ -28,7 +28,8 @@ class LoopHandler(list):
         #work out a name for e.g. thisTrial in trials:
         thisName = ("this"+self.name.capitalize()[:-1])
         buff.write("for %s in %s:\n" %(thisName, self.name))
-        
+    def getType(self):
+        return 'LoopHandler'        
 class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
@@ -38,7 +39,8 @@ class LoopInitiator:
         self.loop.generateInitCode(buff)
     def generateRunCode(self,buff, indent):
         self.loop.generateRunCode(buff, indent)
-        
+    def getType(self):
+        return 'LoopInitiator'
 class LoopTerminator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
@@ -49,7 +51,8 @@ class LoopTerminator:
     def generateRunCode(self,buff, indent):
         #todo: dedent
         buff.write("# end of '%s' after %i repeats (of each entry in trialList)\n" %(self.loop.name, self.loop.nReps))
-        
+    def getType(self):
+        return 'LoopTerminator'
 class Flow(list):
     """The flow of the experiment is a list of L{Procedure}s, L{LoopInitiator}s and
     L{LoopTerminator}s, that will define the order in which events occur
@@ -105,7 +108,8 @@ class Procedure(list):
     def generateRunCode(self,buff,indent):
         for event in self:
             event.generateRunCode(buff, indent)
-            
+    def getType(self):
+        return 'Procedure'            
 class EventBase(dict):
     """A general template for event objects"""
     def generateInitCode(self,buff):
