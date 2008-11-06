@@ -275,6 +275,15 @@ class Sound:
         #and fun to include as a possibility :)
         #"""
         #self._snd.fadeout(mSecs)
+    def getDuration(self):
+        s=self._snd      
+        if s.duration is not None:
+            duration = s.duration
+        else:       
+            duration = len(s._data)/float(s.audio_format.sample_rate)
+            #data are in byte packets so scale for sample_size (probably 2bytes)
+            duration = duration*8/s.audio_format.sample_size/s.audio_format.channels
+        return duration     
         
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
