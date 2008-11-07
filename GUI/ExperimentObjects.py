@@ -80,7 +80,7 @@ class Flow(list):
             #tell the object to write its code at given level
             if indentLevel==0:indent=""
             else: indent="    "*indentLevel#insert 4 spaces for each level
-            print entry
+
             entry.generateRunCode(s, indent)
             #if object was part of a loop then update level
             if isinstance(entry, LoopInitiator):

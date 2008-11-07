@@ -2,27 +2,44 @@ import wx
 import wx.aui
 import sys
 import ExperimentObjects
-
+import time
+t0=time.time()
 
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, parent, id=-1,size = wx.DefaultSize):
         """A panel that shows how the procedures will fit together
         """
         wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=size, style=wx.SUNKEN_BORDER)
-        self.parent=parent    
-        self.btnAddProc = wx.Button(self,-1,'AddProc')                  
-        self.Bind(wx.EVT_BUTTON, self.onAddProc,self.btnAddProc)        
-        self.Bind(wx.EVT_PAINT, self.redraw)
+        self.parent=parent   
+              
+        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
+        self.btnAddProc = wx.Button(self,-1,'Add Procedure')   
+        self.btnAddLoop = wx.Button(self,-1,'Add Loop')    
+                
+        #bind events     
+        self.Bind(wx.EVT_BUTTON, self.onAddProc,self.btnAddProc)  
+        self.Bind(wx.EVT_PAINT, self.onPaint)
+        
+        self.btnSizer.Add(self.btnAddProc)
+        self.btnSizer.Add(self.btnAddLoop)        
+        self.SetSizer(self.btnSizer)
+        self.SetAutoLayout(True)
+        #self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)   
+        #self.mainSizer.Add(self.btnSizer)
+        #self.mainSizer.Add(self.dc)           
     def onAddProc(self, evt):
         exp = self.parent.exp
         
-        #bring up some dialogue to choose the procedure to add and/or create a new one
-        exp.addProcedure('testProc')
-        exp.flow.addProcedure(exp.procs['trial'], pos=1)
-        #self.redraw()
+        #bring up listbox to choose the procedure to add and/or create a new one
+        exp.addProcedure('t')
+        exp.flow.addProcedure(exp.procs['t'], pos=1)        
+        self.Refresh()
         evt.Skip()
-    def redraw(self, evt=None):
+        
+    def onPaint(self, evt=None):
         expFlow = self.parent.exp.flow #retrieve the current flow from the experiment
+        
+        t = time.time()-t0
         
         #create a drawing context for our lines/boxes
         pdc = wx.PaintDC(self)
@@ -49,7 +66,7 @@ class FlowPanel(wx.ScrolledWindow):
                 self.drawLoopAttach(pos=[currX,linePos])
                 loopTerms.append(currX)
             if entry.getType()=='Procedure':
-                currX = self.drawFlowBox(name='Procedure1', pos=[currX,linePos-40])
+                currX = self.drawFlowBox(entry.name, pos=[currX+t,linePos-40])
             currX+=gap
             
         loopTerms.reverse()#reverse the terminators, so that last term goes with first init   
