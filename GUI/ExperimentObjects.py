@@ -1,4 +1,4 @@
-import StringIO
+import StringIO, sys
 
 class LoopHandler(list):    
     """A looping experimental control object
@@ -110,24 +110,76 @@ class Procedure(list):
             event.generateRunCode(buff, indent)
     def getType(self):
         return 'Procedure'            
-class EventBase(dict):
+class EventBase:
     """A general template for event objects"""
+    def __init__(self, name='', times=[0,1]):
+        self.type='Base'
+        self.params['name']=name
+        self.hints['name']= 'A name for the object'
     def generateInitCode(self,buff):
         pass
     def generateRunCode(self,buff, indent):
         pass  
         
+class EventText(EventBase):
+    """An event class for presenting image-based stimuli"""
+    def __init__(self, name='', text='', font='arial', 
+        pos=[0,0], size=[0,0], ori=0, times=[0,1]):
+        self.params={}
+        self.type='Text'
+        self.params['name']=name
+        self.params['text']= text
+        self.params['font']= font
+        self.params['pos']=pos
+        self.params['size']=size
+        self.params['ori']=ori
+        self.params['times']=times
+        
+        #params that can change in time
+        self.changeable=['ori','pos','rgb','size']
+        
+        self.hints={}
+        self.hints['name']="A name for the object"
+        self.hints['text']="The text to be displayed"
+        self.hints['font']= "The font name, or a list of names, e.g. ['arial','verdana']"
+        self.hints['pos']= "Position of the text as [X,Y], e.g. [-2.5,3]"
+        self.hints['size']= "Specifies the height of the letter (the width is then determined by the font)"
+        self.hints['ori']= "The orientation of the text in degrees"
+        self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+        
+    def generateInitCode(self,buff):
+        s = "%s=TextStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        buff.write(s)   
+        
+        buff.write(")\n")
+    def generateRunCode(self,buff, indent):
+        buff.write("%sdrawing TextStim '%s'\n" %(indent, self['name']))
+        
 class EventPatch(EventBase):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, name, image, pos, size, ori,onTimes):
-        dict.__init__(self)
-        self['name']=name
-        self['image']= image
-        self['pos']=pos
-        self['size']=size
-        self['ori']=ori
-        self['onTimes']=onTimes
+    def __init__(self, name='', image='sin', mask='none', pos=[0,0], 
+            sf=1, size=1, ori=0, times=[0,1]):
+        self.type='Patch'
+        self.params={}
+        self.hints={}
+        self.params['name']=name
+        self.params['mask']=mask
+        self.params['image']= image
+        self.params['pos']=pos
+        self.params['size']=size
+        self.params['sf']=sf
+        self.params['ori']=ori
+        self.params['times']=times
         
+        self.hints['name']="A name for the object"
+        self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
+        self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
+        self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
+        self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
+        self.hints['ori']= "The orientation of the stimulus in degrees"
+        self.hints['sf']= "The spatial frequency of cycles of the image on the stimulus"
+        self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+                
     def generateInitCode(self,buff):
         s = "%s=PatchStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
         buff.write(s)   
@@ -135,17 +187,96 @@ class EventPatch(EventBase):
         buff.write(")\n")
     def generateRunCode(self,buff, indent):
         buff.write("%sdrawing PatchStim '%s'\n" %(indent, self['name']))
+class EventMovie(EventBase):
+    """An event class for presenting image-based stimuli"""
+    def __init__(self, name='', movie='', pos=[0,0], 
+            size=1, ori=0, times=[0,1]):
+        
+        self.type='Movie'
+        self.params={}
+        self.hints={}
+        self.params['name']=name
+        self.params['movie']= movie
+        self.params['pos']=pos
+        self.params['size']=size
+        self.params['ori']=ori
+        self.params['times']=times
+        
+        self.hints['name']="A name for the object"
+        self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
+        self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
+        self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
+        self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
+        self.hints['ori']= "The orientation of the stimulus in degrees"
+        self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+                
+    def generateInitCode(self,buff):
+        s = "%s=PatchStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        buff.write(s)   
+        
+        buff.write(")\n")
+    def generateRunCode(self,buff, indent):
+        buff.write("%sdrawing MovieStim '%s'\n" %(indent, self['name']))
+class EventSound(EventBase):
+    """An event class for presenting image-based stimuli"""
+    def __init__(self, name='', movie='', pos=[0,0], 
+            size=1, ori=0, times=[0,1]):
+        
+        self.type='Sound'
+        self.params={}
+        self.hints={}
+        self.params['name']=name
+        self.params['movie']= movie
+        self.params['pos']=pos
+        self.params['size']=size
+        self.params['ori']=ori
+        self.params['times']=times
+        
+        self.hints['name']="A name for the object"
+        self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
+        self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
+        self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
+        self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
+        self.hints['ori']= "The orientation of the stimulus in degrees"
+        self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+                
+    def generateInitCode(self,buff):
+        s = "%s=Sound(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        buff.write(s)   
+        
+        buff.write(")\n")
+    def generateRunCode(self,buff, indent):
+        buff.write("%splaying Sound '%s'\n" %(indent, self['name']))        
 class EventKeyboard(EventBase):
     """An event class for checking the keyboard at given times"""
-    def __init__(self, name, allowedKeys,onTimes):
-        self['allowedKeys']=allowedKeys
-        self['onTimes']=onTimes
+    def __init__(self, name='', allowedKeys='q,left,right',onTimes=[0,1]):
+        self.type='Keyboard'
+        self.params={}
+        self.hints={}
+        self.params['allowedKeys']=allowedKeys
+        self.params['onTimes']=onTimes
+        
+        self.hints['allowedKeys']="The keys that the user may press"
+        self.hints['onTimes']="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
     def generateInitCode(self,buff):
         pass#no need to initialise keyboards?
     def generateRunCode(self,buff,indent):
         buff.write("%sChecking keys" %indent)
 
+class EventMouse(EventBase):
+    """An event class for checking the mouse location and buttons at given times"""
+    def __init__(self, name='', onTimes=[0,1]):
+        self.type='Mouse'
+        self.params={}
+        self.hints={}
+        self.params['onTimes']=onTimes
         
+        self.hints['onTimes']="A series of one or more periods to read the mouse, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+    def generateInitCode(self,buff):
+        pass#no need to initialise?
+    def generateRunCode(self,buff,indent):
+        buff.write("%sChecking keys" %indent)
+                
 class Experiment:
     """
     An experiment contains a single Flow and at least one
