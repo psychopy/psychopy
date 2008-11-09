@@ -189,7 +189,8 @@ class ProceduresNotebook(wx.aui.AuiNotebook):
         exp=self.parent.exp
         for procName in exp.procs:         
             self.addProcedurePage(procName, exp.procs[procName])
-            
+    def getCurrentProc(self):
+        return self.GetSelection().proc
     def addProcedurePage(self, procName, proc):
         procPage = ProcedurePage(parent=self, proc=proc)
         self.AddPage(procPage, procName)
@@ -226,6 +227,8 @@ class ProcButtonsPanel(scrolled.ScrolledPanel):
             title=objectName+' Properties',
             params = newObj.params)
         print newObj.params
+        print type(self.parent.procPanel.getCurrentProc())
+        #current proc (in procs panel) should simply append this object
         
 class DlgObjectProperties(wx.Dialog):    
     def __init__(self,parent,title,params,fixed=[],

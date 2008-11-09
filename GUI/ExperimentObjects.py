@@ -219,25 +219,18 @@ class EventMovie(EventBase):
         buff.write("%sdrawing MovieStim '%s'\n" %(indent, self['name']))
 class EventSound(EventBase):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, name='', movie='', pos=[0,0], 
+    def __init__(self, name='', sound='', 
             size=1, ori=0, times=[0,1]):
         
         self.type='Sound'
         self.params={}
         self.hints={}
         self.params['name']=name
-        self.params['movie']= movie
-        self.params['pos']=pos
-        self.params['size']=size
-        self.params['ori']=ori
+        self.params['sound']= ''
         self.params['times']=times
         
         self.hints['name']="A name for the object"
-        self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
-        self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
-        self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
-        self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
-        self.hints['ori']= "The orientation of the stimulus in degrees"
+        self.hints['sound']="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename"
         self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
                 
     def generateInitCode(self,buff):
@@ -251,11 +244,12 @@ class EventKeyboard(EventBase):
     """An event class for checking the keyboard at given times"""
     def __init__(self, name='', allowedKeys='q,left,right',onTimes=[0,1]):
         self.type='Keyboard'
+        
         self.params={}
-        self.hints={}
         self.params['allowedKeys']=allowedKeys
         self.params['onTimes']=onTimes
         
+        self.hints={}
         self.hints['allowedKeys']="The keys that the user may press"
         self.hints['onTimes']="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
     def generateInitCode(self,buff):
@@ -268,9 +262,9 @@ class EventMouse(EventBase):
     def __init__(self, name='', onTimes=[0,1]):
         self.type='Mouse'
         self.params={}
-        self.hints={}
         self.params['onTimes']=onTimes
         
+        self.hints={}
         self.hints['onTimes']="A series of one or more periods to read the mouse, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
     def generateInitCode(self,buff):
         pass#no need to initialise?
