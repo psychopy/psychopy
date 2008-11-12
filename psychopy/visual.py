@@ -2287,7 +2287,9 @@ class ElementArrayStim:
             self.updataTextureCoords()
             
         #scale the drawing frame and get to centre of field
-        GL.glPushMatrix()#push before drawing, pop after
+        GL.glPushMatrix()#push before drawing, pop after        
+        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
+        
         GL.glLoadIdentity()
         self.win.setScale(self.units)
         GL.glTranslatef(self.fieldPos[0],self.fieldPos[1],0.0)
@@ -2321,7 +2323,8 @@ class ElementArrayStim:
         GL.glDisableClientState(GL.GL_COLOR_ARRAY)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
+        
+        GL.glPopClientAttrib()
         GL.glPopMatrix()
         
     def updateElementVertices(self):
