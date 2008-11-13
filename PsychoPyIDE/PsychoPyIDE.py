@@ -1481,7 +1481,7 @@ class IDEMainFrame(wx.Frame):
         docID=self.findDocID(filename)
         if docID>=0:
             self.currentDoc = self.allDocs[docID]
-            self.notebook.ChangeSelection(docID)
+            self.notebook.SetSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
             if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
