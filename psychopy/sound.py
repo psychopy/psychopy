@@ -8,6 +8,7 @@ from psychopy import event, core, log
 
 try:
     import pyglet
+    pyglet.options['audio'] = ('silent')
     import pyglet.media.procedural
     import pyglet.media#, pyglet.resource
     import ctypes, math
@@ -67,7 +68,7 @@ if havePyglet:
             
     global _eventThread
     if platform=='win32':
-        _eventThread = _EventDispatchThread(pollingPeriod=0.01)
+        _eventThread = _EventDispatchThread(pollingPeriod=0.001)
     else:
         _eventThread = _EventDispatchThread(pollingPeriod=0.001)#seem to be able to use a shorter refresh safely
     
@@ -121,11 +122,12 @@ if havePyglet:
             if self._bytes_per_sample == 1:#ubyte
                 start = offset
                 samples = bytes
-                data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_ubyte))
             else: #signed int16
                 start = (offset >> 1)#half as many entries for same number of bytes
                 samples = (bytes >> 1)
-                data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
+            data = (self.allData[:,start:(start+samples)])
+            print 'm,M,len', data.min(), data.max(), data.shape, bytes; stdout.flush()
+            data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
             return data
 
     
