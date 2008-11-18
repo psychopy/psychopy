@@ -15,6 +15,11 @@ class FlowPanel(wx.ScrolledWindow):
         self.needUpdate=True
         self.maxWidth  = 1000
         self.maxHeight = 200
+        self.mousePos = None
+        
+        #if we're adding a loop or procedure then add spots to timeline
+        self.drawNearestProcPoint = True
+        self.drawNearestLoopPoint = False
         
         self.btnSizer = wx.BoxSizer(wx.VERTICAL)
         self.btnInsertProc = wx.Button(self,-1,'Insert Procedure')   
@@ -22,6 +27,7 @@ class FlowPanel(wx.ScrolledWindow):
         
         #bind events     
         self.Bind(wx.EVT_BUTTON, self.onInsertProc,self.btnInsertProc)  
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_PAINT, self.onPaint)
         
         self.btnSizer.Add(self.btnInsertProc)
@@ -33,6 +39,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetScrollRate(20,20)
         
     def onInsertProc(self, evt):
+        """Someone pushed the insert procedure button.
+        Fetch the dialog
+        """
         exp = self.parent.exp
         
         #bring up listbox to choose the procedure to add and/or create a new one
@@ -43,7 +52,18 @@ class FlowPanel(wx.ScrolledWindow):
         self.needUpdate=True
         self.Refresh()
         evt.Skip()
-        
+    def onMouse(self,mouse):
+        if mouse.Entering() or mouse.Moving():
+            self.mousePos = [mouse.GetX(), mouse.GetY()]
+            #redraw scr with nearest time spots highlighted
+            if self.drawNearestProcPoint or self.drawNearestLoopPoint:
+                self.Refresh()
+        if mouse.Leaving():
+            self.mousePos = None
+            #redraw scr with nearest time spots highlighted
+            if self.drawNearestProcPoint or self.drawNearestLoopPoint:
+                self.Refresh()
+        mouse.Skip()#let other part of the app get the mouse event too
     def onPaint(self, evt=None):
         #check if we need to do drawing
 
@@ -64,26 +84,48 @@ class FlowPanel(wx.ScrolledWindow):
         dc.DrawLine(x1=100,y1=linePos,x2=500,y2=linePos)
         
         #step through objects in flow
-        currX=120; gap=20
-        loopInits = []
-        loopTerms = []
+        currX=120; gap=40
+        self.loopInits = []
+        self.loopTerms = []
+        self.gapMidPoints=[currX-gap/2]
         for entry in expFlow:
             if entry.getType()=='LoopInitiator':                
-                loopInits.append(currX)
+                self.loopInits.append(currX)
             if entry.getType()=='LoopTerminator':
                 self.drawLoopAttach(dc,pos=[currX,linePos])
-                loopTerms.append(currX)
+                self.loopTerms.append(currX)
             if entry.getType()=='Procedure':
                 currX = self.drawFlowBox(dc,entry.name, pos=[currX,linePos-40])
+            self.gapMidPoints.append(currX+gap/2)
             currX+=gap
             
-        loopTerms.reverse()#reverse the terminators, so that last term goes with first init   
-        for n in range(len(loopInits)):
-            self.drawFlowLoop(dc,'Flow1',startX=loopInits[n],endX=loopTerms[n],base=linePos,height=20)
-            self.drawLoopAttach(dc,pos=[loopInits[n],linePos])
-            self.drawLoopAttach(dc,pos=[loopTerms[n],linePos])
+        #draw the loops second    
+        self.loopTerms.reverse()#reverse the terminators, so that last term goes with first init   
+        for n in range(len(self.loopInits)):
+            self.drawFlowLoop(dc,'Flow1',startX=self.loopInits[n],endX=self.loopTerms[n],base=linePos,height=20)
+            self.drawLoopAttach(dc,pos=[self.loopInits[n],linePos])
+            self.drawLoopAttach(dc,pos=[self.loopTerms[n],linePos])
+            
+        #draw all possible locations for procedures
+        pts = self.getPossibleProcLocations()
+        dc.SetPen(wx.Pen(wx.Colour(0,255,0, wx.ALPHA_OPAQUE)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,255,0,220)))
+        for n, xPos in enumerate(pts):
+            dc.DrawCircle(xPos,linePos, 3)
+
         self.needUpdate=False
-        
+    def hitTest(self, pts, radius=10):
+        if self.mousePos==None:
+            return []
+        else:
+            for thisPt in pts:
+                pass
+                
+
+    def getPossibleProcLocations(self):
+        return self.gapMidPoints
+    def getPossibleLoopLocations(self, startPoint=None):
+        pass
     def drawLoopAttach(self, dc, pos):
         #draws a spot that a loop will later attach to
         dc.SetBrush(wx.Brush(wx.Colour(100,100,100, 250)))
@@ -184,31 +226,36 @@ class ProcedurePage(wx.ScrolledWindow):
             dc = wx.GCDC(pdc)
         except:
             dc = pdc
-        yPos=60
-        self.drawTimeLine(dc,yPos)
+        yPosTop=60
+        objectStep=30
+        #draw timeline at bottom of page
+        yPosBottom = max([300, yPosTop+len(self.proc)*objectStep])
+        self.drawTimeLine(dc,yPosTop,yPosBottom)
+        yPos = yPosTop
         for n, object in enumerate(self.proc):
             self.drawEvent(dc, object, yPos)
-            yPos+=50
-        self.drawTimeLine(dc,yPos)
+            yPos+=objectStep
+        
             
-    def drawTimeLine(self, dc, yPos):  
+    def drawTimeLine(self, dc, yPosTop, yPosBottom):  
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
-        dc.DrawLine(x1=xSt,y1=yPos,
-                    x2=xEnd,y2=yPos)
+        dc.DrawLine(x1=xSt,y1=yPosTop,
+                    x2=xEnd,y2=yPosTop)
+        dc.DrawLine(x1=xSt,y1=yPosBottom,
+                    x2=xEnd,y2=yPosBottom)
         for lineN in range(10):
-            dc.DrawLine(xSt+lineN/xScale, yPos-2,
-                    xSt+lineN/xScale, yPos+2)
+            dc.DrawLine(xSt+lineN/xScale, yPosTop,
+                    xSt+lineN/xScale, yPosBottom+2)
         #add a label
         font = dc.GetFont()
         font.SetPointSize(12)
         dc.SetFont(font)
         dc.DrawText('t (secs)',xEnd+5, 
-            yPos-dc.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+            yPosBottom-dc.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
     def drawEvent(self, dc, object, yPos):        
-        bitmap = self.parent.parent.bitmaps[object.type]
-        bitmap.GetHeight
+        bitmap = self.parent.parent.bitmaps[object.type]        
         dc.DrawBitmap(bitmap, self.iconXpos,yPos, True)
         
         font = dc.GetFont()
@@ -225,12 +272,16 @@ class ProcedurePage(wx.ScrolledWindow):
         
         #draw entries on timeline
         xScale = self.getSecsPerPixel()
+        dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0)))
+        #for the fill, draw once in white near-opaque, then in transp colour
+        dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
+        
         if type(object.params['times'][0]) in [int,float]:
             object.params['times']=[object.params['times']]
         for thisOcc in object.params['times']:
             st, end = thisOcc
-            xSt = self.timeXposStart+st/xScale
-            thisOccW = end/xScale
+            xSt = self.timeXposStart + st/xScale
+            thisOccW = (end-st)/xScale
             dc.DrawRectangle(xSt, y, thisOccW, h)
             
 class ProceduresNotebook(wx.aui.AuiNotebook):

@@ -19,7 +19,7 @@ class _EventDispatchThread(threading.Thread):
                     evtDispatchLock.release()            
             time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping   
         
-_eventThread = _EventDispatchThread(pollingPeriod=0.001)
+_eventThread = _EventDispatchThread(pollingPeriod=0.00001)
 _eventThread.start()
 
 player1 = pyglet.media.ManagedSoundPlayer()
