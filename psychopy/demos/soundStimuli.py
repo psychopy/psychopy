@@ -14,6 +14,8 @@ tick.play()
 core.wait(0.5)
 tock.play()
 core.wait(0.5)
+tick.play()
+core.wait(0.5)
 
 if sys.platform=='win32':
     ding = sound.Sound('ding')

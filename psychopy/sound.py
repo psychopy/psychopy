@@ -125,8 +125,6 @@ if havePyglet:
             else: #signed int16
                 start = (offset >> 1)#half as many entries for same number of bytes
                 samples = (bytes >> 1)
-            data = (self.allData[:,start:(start+samples)])
-            print 'm,M,len', data.min(), data.max(), data.shape, bytes; stdout.flush()
             data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
             return data
 
@@ -214,7 +212,7 @@ class Sound:
             _eventThread.playerList.append(self._player)
             #self._player._eos_action='pause'
             self._player._on_eos=self._onEOS
-            if _eventThread.running<=0: _eventThread.start() #start the thread if needed
+            #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
         self._snd=None
@@ -249,6 +247,7 @@ class Sound:
             self._snd.play()
         else:
             self._player.play()
+            pyglet.media.dispatch_events()
 
     def _onEOS(self):
         self._player._playing = False

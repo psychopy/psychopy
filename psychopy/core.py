@@ -2,6 +2,11 @@
 """
 import sys, os, time
 runningThreads=[]
+try:
+    import pyglet.media
+except:
+    pass
+    
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
@@ -49,6 +54,10 @@ def wait(secs):
     which comes with Python)
     """    
     time.sleep(secs)
+    try:
+        pyglet.media.dispatch_events()
+    except:
+        pass #maybe pyglet 
     
 def rush(rushLevel):
     """Raise the priority of the current thread/process 
