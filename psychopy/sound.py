@@ -25,16 +25,63 @@ except:
     
 if havePygame:
     usePygame=True#change this when creating sounds if display is not initialised
-else: usePygame=False    
-    
+else: usePygame=False  
 
 if platform=='win32':
     mediaLocation="C:\\Windows\Media"
 else:
     mediaLocation=""
 
+try:
+    import pyaudio
+    pa = pyaudio.PyAudio()
+    havePyAudio=True
+except:
+    havePyAudio=False
+if havePyAudio:
+    class PyAudioThread:
+        """a thread class to allow PyAudio sounds to play asynchronously"""
+        def __init__(self):(threading.Thread):    
+        """a thread that will periodically call to keep buffer full
+        """
+        def __init__(self, stream, pollingPeriod, chunkSize=1024):
+            threading.Thread.__init__ ( self )
+            self.setDaemon(True)
+            self.stream = stream
+            self.pollingPeriod=pollingPeriod
+            self.chunkSize=chunkSize
+            self.running = -1
+        def run(self):
+            self.running=1
+            while self.running:
+                #do the data read
+                self.stream.fillBuffers()
+                time.sleep(self.pollingPeriod)#yields to other processes while sleeping
+            self.running=-1#shows that it is fully stopped
+        def stop(self):
+            if self.running>0:
+                self.running=0#make a request to stop on next entry
+            core.runningThreads.remove(self)
+        def setPollingPeriod(self, period):
+            self.pollingPeriod=period            
+            
+    class PyAudioStream:
+        def __init__(self, snd, async=True):
+            self.snd=snd
+            self.async=async
+            if async:
+                self.thread=PyAudioThread(pollingPeriod=0.002)
+        def play(self):
+            if async:
+                self.thread=PyAudioThread(pollingPeriod=0.002).start()
+        def stop(self):
+            self.snd.stop()
+        def setVolume(self):
+            """Not implemented"""
+            pass
+
 if havePyglet:
-    
+    evtDispatchLock = threading.Lock()
     class _EventDispatchThread(threading.Thread):    
         """a thread that will periodically call to dispatch events
         """
@@ -43,6 +90,7 @@ if havePyglet:
         see sound.py in SVNr85 for the attempt."""
         def __init__(self, pollingPeriod):
             threading.Thread.__init__ ( self )
+            self.setDaemon(True)
             self.playerList=[]
             self.pollingPeriod=pollingPeriod
             self.running = -1
@@ -51,11 +99,16 @@ if havePyglet:
             self.running=1
             #print 'thread started'
             while self.running:
-                #print self.pollingPeriod
-                for player in self.playerList:
-                    player.dispatch_events()
+                #try to get lock (but don't block - just return if it's already held)
+                if evtDispatchLock.acquire():#only dispatch if we aren't already in that loop
+                    try:
+                        pyglet.media.dispatch_events()
+                    finally:
+                        evtDispatchLock.release()
+                
                 #pyglet.media.dispatch_events()
                 time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
+                
             #print 'thread stopped'
             self.running=-1#shows that it is fully stopped
         def stop(self):
@@ -208,11 +261,13 @@ class Sound:
             self.format = bits
             self.isStereo = True
             self.secs=secs
-            self._player=pyglet.media.Player()
-            _eventThread.playerList.append(self._player)
-            #self._player._eos_action='pause'
-            self._player._on_eos=self._onEOS
-            #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
+            if havePyAudio:
+            else:
+                self._player=pyglet.media.ManagedSoundPlayer()                
+                _eventThread.playerList.append(self._player)
+                #self._player._eos_action='pause'
+                self._player._on_eos=self._onEOS
+                #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
         self._snd=None
@@ -246,7 +301,7 @@ class Sound:
         if usePygame:
             self._snd.play()
         else:
-            self._player.play()
+            self._snd.play()
             pyglet.media.dispatch_events()
 
     def _onEOS(self):
@@ -264,11 +319,7 @@ class Sound:
         if usePygame:
             self._snd.stop()
         else:
-            self._player._playing = False
-            self._player._timestamp = self._player._sources[0].duration
-            self._player.seek(0)
-            self._player.queue(self._snd)
-            self._player._fill_audio()
+            self._snd._stop()
             
     #def fadeOut(self,mSecs):
         #"""fades out the sound (when playing) over mSecs.
