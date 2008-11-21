@@ -21,8 +21,7 @@ try:
     from pygame import mixer, sndarray
     havePygame=True
 except:
-    havePygame=False
-    
+    havePygame=False    
 if havePygame:
     usePygame=True#change this when creating sounds if display is not initialised
 else: usePygame=False  
@@ -39,47 +38,27 @@ try:
 except:
     havePyAudio=False
 if havePyAudio:
-    class PyAudioThread:
+    class PyAudioThread(threading.Thread):
         """a thread class to allow PyAudio sounds to play asynchronously"""
-        def __init__(self):(threading.Thread):    
-        """a thread that will periodically call to keep buffer full
-        """
-        def __init__(self, stream, pollingPeriod, chunkSize=1024):
+        def __init__(self, sound, pollingPeriod):
             threading.Thread.__init__ ( self )
             self.setDaemon(True)
-            self.stream = stream
+            self.sound = sound
             self.pollingPeriod=pollingPeriod
-            self.chunkSize=chunkSize
             self.running = -1
         def run(self):
             self.running=1
             while self.running:
                 #do the data read
-                self.stream.fillBuffers()
+                self.sound._fillBuffer()
                 time.sleep(self.pollingPeriod)#yields to other processes while sleeping
-            self.running=-1#shows that it is fully stopped
+            self.running=-1 #shows that it is fully stopped
         def stop(self):
             if self.running>0:
-                self.running=0#make a request to stop on next entry
-            core.runningThreads.remove(self)
+                self.running=0 #make a request to stop on next entry
         def setPollingPeriod(self, period):
             self.pollingPeriod=period            
-            
-    class PyAudioStream:
-        def __init__(self, snd, async=True):
-            self.snd=snd
-            self.async=async
-            if async:
-                self.thread=PyAudioThread(pollingPeriod=0.002)
-        def play(self):
-            if async:
-                self.thread=PyAudioThread(pollingPeriod=0.002).start()
-        def stop(self):
-            self.snd.stop()
-        def setVolume(self):
-            """Not implemented"""
-            pass
-
+      
 if havePyglet:
     evtDispatchLock = threading.Lock()
     class _EventDispatchThread(threading.Thread):    
@@ -120,9 +99,9 @@ if havePyglet:
             self.pollingPeriod=period
             
     global _eventThread
-    if platform=='win32':
+    if platform=='win32' and not havePyAudio:
         _eventThread = _EventDispatchThread(pollingPeriod=0.001)
-    else:
+    elif not havePyAudio:
         _eventThread = _EventDispatchThread(pollingPeriod=0.001)#seem to be able to use a shorter refresh safely
     
     def setEventPollingPeriod(period):
@@ -165,22 +144,28 @@ if havePyglet:
             duration = data.shape[1]/float(sample_rate) #determine duration from data
             super(_pygletArrSound, self).__init__(duration,sample_rate, abs(sample_size))
             self.sample_rate = sample_rate
+            self.sample_size=sample_size
             if abs(sample_size)==8:          #ubyte
-                self.allData = (data*127+127).astype(numpy.uint8)
+                if havePyAudio:
+                    self.allData = (data*127).astype(numpy.int8)#pyaudio ubyte doesn't seem to work
+                else:
+                    self.allData = (data*127+127).astype(numpy.uint8)
             elif abs(sample_size) == 16:      #signed int16
                 self.allData = (data*32767).astype(numpy.int16)
-            #print "created pyglet sound"
-        def _generate_data(self, bytes, offset):
+            
+        def _generate_data(self, bytes, offset, volume=1.0):
             #print 'bps', self._bytes_per_sample, bytes
-            if self._bytes_per_sample == 1:#ubyte
+            if self.sample_size == 8:#ubyte
                 start = offset
                 samples = bytes
             else: #signed int16
                 start = (offset >> 1)#half as many entries for same number of bytes
                 samples = (bytes >> 1)
-            data = (self.allData[:,start:(start+samples)]).ctypes#.data_as(ctypes.POINTER(ctypes.c_short))
+            if havePyAudio:
+                data = numpy.transpose((volume*self.allData[:,start:(start+samples)])).tostring()
+            else:
+                data = (volume*self.allData[:,start:(start+samples)]).ctypes
             return data
-
     
 def init(rate=44100, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
@@ -261,13 +246,11 @@ class Sound:
             self.format = bits
             self.isStereo = True
             self.secs=secs
-            if havePyAudio:
-            else:
-                self._player=pyglet.media.ManagedSoundPlayer()                
-                _eventThread.playerList.append(self._player)
-                #self._player._eos_action='pause'
-                self._player._on_eos=self._onEOS
-                #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
+            self._player=pyglet.media.ManagedSoundPlayer()                
+            _eventThread.playerList.append(self._player)
+            #self._player._eos_action='pause'
+            self._player._on_eos=self._onEOS
+            #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
             
         #try to determine what the sound is
         self._snd=None
@@ -452,4 +435,226 @@ class Sound:
             self._player.queue(self._snd)
         return True
 
+class SoundPyAudio:
+    """Create a sound object, from one of MANY ways.
+    """
+    def __init__(self,value="C",secs=0.5,octave=4,
+                    sampleRate=44100, bits=16):
+        """
+        value: can be a number, string or an array.
+        
+            If it's a number between 37 and 32767 then a tone will be generated at
+            that frequency in Hz.
+            -----------------------------
+            It could be a string for a note ('A','Bfl','B','C','Csh'...) 
+            - you may want to specify which octave as well
+            -----------------------------
+            Or a string could represent a filename in the current
+            location, or mediaLocation, or a full path combo
+            -----------------------------
+            Or by giving an Nx2 numpy array of floats (-1:1) you 
+            can specify the sound yourself as a waveform
+            
+        secs: is only relevant if the value is a note name or
+            a frequency value
+            
+        octave: is only relevant if the value is a note name.
+            Middle octave of a piano is 4. NB On most computers you can't hear
+            sound_snds in the bottom octave (1) and the top
+            octave (8) is generally painful
+            
+        sampleRate(=44100)
+        
+        bits(=16): 8 or 16
+        """
+        global mediaLocation
+        
+        if not havePyglet or not havePyAudio:
+            raise ImportError, "pyglet and pyaudio are both needed for this type of sound"
+        self.offsetSamples = -1
+        self.bits = bits
+        self.sampleRate = sampleRate
+        self.channels=2
+        self.finished=False
+        self.chunkSize=2048# 1024 gives buffer underuns on OSX (even at 22kHz)
+        self.volume = 1.0
+        
+        self.rawData = None
+        self._thread = PyAudioThread(self, pollingPeriod=0.01)
+        self._thread.start()
+        
+        #try to determine what the sound is
+        self._snd=None
+        if type(value) is str:
+            #try to open the file
+            OK = self._fromNoteName(value,secs,octave)
+            #or use as a note name
+            if not OK: #hopefully a file
+                self._fromFile(value)
+                
+        elif type(value) in [float,int]:
+            #we've been asked for a particular Hz
+            self._fromFreq(value, secs)
+            
+        elif type(value) in [list,numpy.ndarray]:
+            #create a sound from the input array/list
+            self._fromArray(value)
+        if self.rawData is None:
+            raise RuntimeError, "I dont know how to make a "+value+" sound"
+            
+        if self.bits==16: paFormat = pyaudio.paInt16
+        elif self.bits==8: paFormat = pyaudio.paInt8
+        else: raise TypeError, "Sounds must be 8, 16bit"
+        self._stream = pa.open(format = paFormat,
+                channels = self.channels,
+                rate = self.sampleRate,
+                input = False, output=True)
+                
+    def play(self, startPos = 0):
+        """Starts playing the sound. 
+        
+        startPos detremines where the sound begins (in secs)
+        """
+        self.finished=False
+        self.setOffset(startPos)
+        self._fillBuffer()#to get the first sample on its way
+
+    def setOffset(self, secs):
+        #self._snd._seek(0)
+        self.offsetSamples = secs*self.sampleRate
+        
+    def stop(self):
+        """Stops the sound immediately"""
+        self.offsetSamples=-1
+        
+    def getDuration(self):
+        s=self._snd      
+        if s.duration is not None:
+            duration = s.duration
+        else:       
+            duration = len(s._data)/float(s.audio_format.sample_rate)
+            #data are in byte packets so scale for sample_size (probably 2bytes)
+            duration = duration*8/s.audio_format.sample_size/s.audio_format.channels
+        return duration     
+        
+    def getVolume(self):
+        """Returns the current volume of the sound (0.0:1.0)"""
+        return self.volume
+    
+    def setVolume(self,newVol):
+        """Sets the current volume of the sound (0.0:1.0)"""
+        self.volume = newVol
+    def _fromFile(self, fileName):
+        global usePygame
+        
+        #try finding the file
+        self.fileName=None
+        for filePath in ['', mediaLocation]:
+            if path.isfile(path.join(filePath,fileName)):
+                self.fileName=path.join(filePath,fileName)
+            elif path.isfile(path.join(filePath,fileName+'.wav')):
+                self.fileName=path.join(filePath,fileName+'.wav')
+        if self.fileName is None:
+            return False
+        
+        #load the file
+        self._snd = pyglet.media.load(self.fileName, streaming=False)
+        #convert to an array with int8 or int16
+        if self.bits==16:
+            sndArr = numpy.fromstring(self._snd._data,dtype=numpy.int16)
+        elif self.bits==8: 
+            sndArr = numpy.fromstring(self._snd._data,dtype=numpy.uint8)
+            #pyaudio want signed ints so convert unit8 to int8
+            sndArr = (sndArr.astype(numpy.int16)-128).astype(int8)        
+        sndArr.shape= [len(sndArr)/self.channels, self.channels]
+        #create the sound buffer from this array
+        self._fromArray(sndArr)        
+        return True
+    def _fromNoteName(self, name, secs, octave):		
+        #get a mixer.Sound object from an note name
+        A=440.0
+        thisNote=capitalize(name)
+        stepsFromA = {
+            'C' : -9,
+            'Csh' : -8,
+            'Dfl' : -8,
+            'D' : -7,
+            'Dsh' : -6,
+            'E' : -5,
+            'F' : -4,
+            'Fsh' : -3,
+            'G' : -2,
+            'Gsh' : -1,
+            'A': 0,
+            'Ash':+1,
+            'Bfl': +1,
+            'B': +2,
+            }
+        if thisNote not in stepsFromA.keys():
+            return False
+        
+        thisOctave = octave-4		
+        thisFreq = A * 2.0**(stepsFromA[thisNote]/12.0) * 2.0**thisOctave
+        self._fromFreq(thisFreq, secs)
+        
+    def _fromFreq(self, thisFreq, secs):
+        #get a mixer.Sound object from a frequency
+        nSamples = int(secs*self.sampleRate)
+        outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
+        outArr *= 2*numpy.pi*thisFreq*secs
+        outArr = numpy.sin(outArr)
+        if self.bits==16:
+            self._fromArray( (outArr*32767).astype(numpy.int16) )
+        if self.bits==8:
+            self._fromArray( (outArr*127.5-0.5).astype(numpy.int8) )#the minus 1 gives range -128:127
+    
+    def _fromArray(self, thisArray):
+        """Expects an array that is already of the correct format (int8 or int16).
+        Will create a second channel if only one is provided.
+        """
+        #make stereo if mono
+        if self.channels==2 and \
+            (len(thisArray.shape)==1 or thisArray.shape[1]<2):
+                thisArray.shape = [len(thisArray),1]
+                thisArray = thisArray.repeat(2,1)#create the second channel
+        self.rawData = thisArray
+        return True
+            
+    def _fillBuffer(self):
+        """a function that can be called repeatedly to provide more data to the
+        stream"""
+        
+        #NB chunkSize and getRemainingBytes() both refer to the number of bytes
+        #(not samples) IN EACH CHANNEL (not in total)
+        #ie. represent half the total number of bytes for a stereo source
+        
+        if self.offsetSamples==-1:
+            #sound is playing, just return
+            return
+        
+        #get the appropriate data from the array
+        if self.bits == 8:#ubyte
+            start = self.offsetSamples
+            end = max(self.chunkSize, self.rawData.shape[0])#either the chunk or the last sample
+        elif self.bits==16: #signed int16
+            start = (self.offsetSamples >> 1)#half as many entries for same number of bytes
+            end = max((self.chunkSize >> 1), self.rawData.shape[0])
+        data = (self.volume*self.rawData[start:end,:]).tostring()
+        
+        # play stream
+        if data in ['', None]:
+            self.finished=True
+            return
+            
+        #check how many bytes back and write the data
+        actualChunkSize = len(data)/self.channels
+        self.offsetSamples += self.chunkSize
+        if actualChunkSize<self.chunkSize: #this mus tbe the last sample
+            self._stream.write(data)
+            self.finished=True
+        else:
+            self._stream.write(data)
+            
+if havePyAudio:
+    Sound = SoundPyAudio
         
