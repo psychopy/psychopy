@@ -629,6 +629,7 @@ class SoundPyAudio:
         #ie. represent half the total number of bytes for a stereo source
         
         if self.offsetSamples==-1 or self.finished:
+            print 'finishedPlaying', self.offsetSamples, self.finished
             #sound is not playing yet, just return
             return
         
@@ -643,13 +644,16 @@ class SoundPyAudio:
         #check if we have that many samples
         if end>self.rawData.shape[0]:
             end = self.rawData.shape[0]
+            print 'end, shape', end, self.rawData.shape[0]
             self.finished=True#flag that this must be the last sample
+        #update next offset position    
+        self.offsetSamples+=self.chunkSize
             
         thisChunk = (self.volume*self.rawData[start:end,:])
         print start, end, self.rawData.shape, thisChunk.shape
         data=thisChunk.tostring()
         # play stream
-        if data is None or len(data)==0:
+        if len(data)==0:
             self.finished=True
             return
             
