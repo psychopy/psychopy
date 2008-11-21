@@ -2,7 +2,7 @@
 import sys
 from psychopy import sound,core, visual
 
-highA = sound.Sound('A',octave=5, secs=0.4)
+highA = sound.Sound('A',octave=5, secs=0.01)
 highA.setVolume(0.2)
 tick = sound.Sound(700,secs=0.01)
 tock = sound.Sound(600,secs=0.01)

@@ -628,32 +628,33 @@ class SoundPyAudio:
         #(not samples) IN EACH CHANNEL (not in total)
         #ie. represent half the total number of bytes for a stereo source
         
-        if self.offsetSamples==-1:
-            #sound is playing, just return
+        if self.offsetSamples==-1 or self.finished:
+            #sound is not playing yet, just return
             return
         
         #get the appropriate data from the array
         if self.bits == 8:#ubyte
             start = self.offsetSamples
-            end = max(self.chunkSize, self.rawData.shape[0])#either the chunk or the last sample
+            end = self.offsetSamples+self.chunkSize#either the chunk or the last sample
         elif self.bits==16: #signed int16
-            start = (self.offsetSamples >> 1)#half as many entries for same number of bytes
-            end = max((self.chunkSize >> 1), self.rawData.shape[0])
-        data = (self.volume*self.rawData[start:end,:]).tostring()
-        
+            start = self.offsetSamples >> 1#half as many entries for same number of bytes
+            end = (self.offsetSamples+ self.chunkSize) >> 1
+            
+        #check if we have that many samples
+        if end>self.rawData.shape[0]:
+            end = self.rawData.shape[0]
+            self.finished=True#flag that this must be the last sample
+            
+        thisChunk = (self.volume*self.rawData[start:end,:])
+        print start, end, self.rawData.shape, thisChunk.shape
+        data=thisChunk.tostring()
         # play stream
-        if data in ['', None]:
+        if data is None or len(data)==0:
             self.finished=True
             return
             
-        #check how many bytes back and write the data
-        actualChunkSize = len(data)/self.channels
-        self.offsetSamples += self.chunkSize
-        if actualChunkSize<self.chunkSize: #this mus tbe the last sample
-            self._stream.write(data)
-            self.finished=True
-        else:
-            self._stream.write(data)
+        #cwrite the data to the stream
+        self._stream.write(data)
             
 if havePyAudio:
     Sound = SoundPyAudio
