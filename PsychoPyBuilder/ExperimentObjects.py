@@ -1,5 +1,37 @@
 import StringIO, sys
 
+class Experiment:
+    """
+    An experiment contains a single Flow and at least one
+    Routine. The Flow controls how Routines are organised
+    e.g. the nature of repeats and branching of an experiment.
+    """
+    def __init__(self):
+        self.flow = Flow()
+        self.routines={}
+
+    def addRoutine(self,routineName, routine=None):
+        """Add a Routine to the current list of them. 
+        
+        Can take a Routine object directly or will create
+        an empty one if none is given.
+        """
+        if routine==None:
+            self.routines[routineName]=Routine(routineName)
+        else:
+            self.routines=routine
+            
+    def generateScript(self):
+        """Generate a PsychoPy script for the experiment
+        """
+        s=StringIO.StringIO(u'') #a string buffer object
+        s.write("""#This experiment was created using PsychoPyGEN and will
+        run on any platform on which PsychoPy (www.psychopy.org) can be installed\n\n""")
+        
+        #delegate most of the code-writing to Flow
+        self.flow.generateCode(s)
+            
+        return s
 class LoopHandler(list):    
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
@@ -54,7 +86,7 @@ class LoopTerminator:
     def getType(self):
         return 'LoopTerminator'
 class Flow(list):
-    """The flow of the experiment is a list of L{Procedure}s, L{LoopInitiator}s and
+    """The flow of the experiment is a list of L{Routine}s, L{LoopInitiator}s and
     L{LoopTerminator}s, that will define the order in which events occur
     """
     def addLoop(self, loop, startPos, endPos):
@@ -62,9 +94,9 @@ class Flow(list):
         into the Flow list"""
         self.insert(int(endPos), LoopTerminator(loop))
         self.insert(int(startPos), LoopInitiator(loop))
-    def addProcedure(self, newProc, pos):
+    def addRoutine(self, newRoutine, pos):
         """Adds the object to the Flow list"""
-        self.insert(int(pos), newProc)
+        self.insert(int(pos), newRoutine)
         
     def generateCode(self, s):
         s.write("from PsychoPy import visual, core, event, sound\n")
@@ -88,28 +120,28 @@ class Flow(list):
             if isinstance(entry, LoopTerminator):
                 indentLevel-=1
         
-class Procedure(list):
+class Routine(list):
     """
-    A Procedure determines a single sequence of events, such
-    as the presentation of trial. Multiple Procedures might be
+    A Routine determines a single sequence of events, such
+    as the presentation of trial. Multiple Routines might be
     used to comprise an Experiment (e.g. one for presenting
     instructions, one for trials, one for debriefing subjects).
     
-    In practice a Procedure is simply a python list of Event objects,
+    In practice a Routine is simply a python list of Event objects,
     each of which knows when it starts and stops.
     """
     def __init__(self, name):
         self.name=name
         list.__init__(self)
     def generateInitCode(self,buff):
-        buff.write('\n#Initialise objects for %s procedure\n' %self.name)
+        buff.write('\n#Initialise objects for %s routine\n' %self.name)
         for thisEvt in self:
             thisEvt.generateInitCode(buff)
     def generateRunCode(self,buff,indent):
         for event in self:
             event.generateRunCode(buff, indent)
     def getType(self):
-        return 'Procedure'            
+        return 'Routine'            
 class EventBase:
     """A general template for event objects"""
     def __init__(self, name='', times=[0,1]):
@@ -203,8 +235,7 @@ class EventMovie(EventBase):
         self.params['times']=times
         
         self.hints['name']="A name for the object"
-        self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
-        self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
+        self.hints['movie']="The filename/path for the movie)"
         self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
         self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
         self.hints['ori']= "The orientation of the stimulus in degrees"
@@ -248,12 +279,12 @@ class EventKeyboard(EventBase):
         self.params={}
         self.params['name']=name
         self.params['allowedKeys']=allowedKeys
-        self.params['onTimes']=onTimes
+        self.params['times']=onTimes
         
         self.hints={}
         self.hints['name']=""
-        self.hints['allowedKeys']="The keys that the user may press"
-        self.hints['onTimes']="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
+        self.hints['allowedKeys']="The keys the user may press, e.g. a,b,q,left,right"
+        self.hints['times']="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
     def generateInitCode(self,buff):
         pass#no need to initialise keyboards?
     def generateRunCode(self,buff,indent):
@@ -273,35 +304,3 @@ class EventMouse(EventBase):
     def generateRunCode(self,buff,indent):
         buff.write("%sChecking keys" %indent)
                 
-class Experiment:
-    """
-    An experiment contains a single Flow and at least one
-    Procedure. The Flow controls how Procedures are organised
-    e.g. the nature of repeats and branching of an experiment.
-    """
-    def __init__(self):
-        self.flow = Flow()
-        self.procs={}
-
-    def addProcedure(self,procName, proc=None):
-        """Add a Procedure to the current list of them. 
-        
-        Can take a Procedure object directly or will create
-        an empty one if none is given.
-        """
-        if proc==None:
-            self.procs[procName]=Procedure(procName)
-        else:
-            self.procs=proc
-            
-    def generateScript(self):
-        """Generate a PsychoPy script for the experiment
-        """
-        s=StringIO.StringIO(u'') #a string buffer object
-        s.write("""#This experiment was created using PsychoPyGEN and will
-        run on any platform on which PsychoPy (www.psychopy.org) can be installed\n\n""")
-        
-        #delegate most of the code-writing to Flow
-        self.flow.generateCode(s)
-            
-        return s
