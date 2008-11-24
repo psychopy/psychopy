@@ -236,7 +236,7 @@ class DlgAddRoutineToFlow(wx.Dialog):
             style=wx.DEFAULT_DIALOG_STYLE):
         wx.Dialog.__init__(self,parent,id,title,pos,size,style)
         self.parent=parent
-        
+        self.Center()
         # setup choices of routines
         routineChoices=self.parent.exp.routines.keys()
         if len(routineChoices)==0:
@@ -276,8 +276,6 @@ class DlgAddRoutineToFlow(wx.Dialog):
     def EvtRoutineChoice(self, event):
         name = event.GetString()
         self.routine=event.GetString() 
-        print self.routine 
-                    
     def EvtLocChoice(self, event):
         name = event.GetString()        
         if event.GetString() == 'Select a location':
@@ -286,7 +284,6 @@ class DlgAddRoutineToFlow(wx.Dialog):
         else:
             self.btnOK.Enable(True)
             self.loc=int(event.GetString())
-            print self.loc
                     
 class RoutinePage(wx.ScrolledWindow):
     """A frame to represent a single routine
@@ -429,11 +426,11 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         dlg = DlgObjectProperties(parent=self.parent,
             title=objectName+' Properties',
             params = newObj.params, hints=newObj.hints)
-        print newObj.params
-        currRoutinePage = self.parent.routinePanel.getCurrentPage()
-        currRoutine = self.parent.routinePanel.getCurrentRoutine()
-        currRoutine.append(newObj)
-        currRoutinePage.Refresh()
+        if dlg.OK:
+            currRoutinePage = self.parent.routinePanel.getCurrentPage()
+            currRoutine = self.parent.routinePanel.getCurrentRoutine()
+            currRoutine.append(newObj)
+            currRoutinePage.Refresh()
 class DlgObjectProperties(wx.Dialog):    
     def __init__(self,parent,title,params,hints,fixed=[],
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -441,6 +438,7 @@ class DlgObjectProperties(wx.Dialog):
         style=style|wx.RESIZE_BORDER
         
         wx.Dialog.__init__(self, parent,-1,title,pos,size,style)
+        self.Center()
         
         self.params=params
         self.fixed=fixed
