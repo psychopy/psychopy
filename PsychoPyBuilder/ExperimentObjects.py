@@ -95,26 +95,26 @@ class Flow(list):
         self.insert(int(endPos), LoopTerminator(loop))
         self.insert(int(startPos), LoopInitiator(loop))
     def addRoutine(self, newRoutine, pos):
-        """Adds the object to the Flow list"""
+        """Adds the routine to the Flow list"""
         self.insert(int(pos), newRoutine)
         
     def generateCode(self, s):
         s.write("from PsychoPy import visual, core, event, sound\n")
         s.write("win = visual.Window([400,400])\n")
         
-        #initialise objects
+        #initialise components
         for entry in self:
             entry.generateInitCode(s)
         
         #run-time code       
         indentLevel = 0  
         for entry in self:
-            #tell the object to write its code at given level
+            #tell the component to write its code at given level
             if indentLevel==0:indent=""
             else: indent="    "*indentLevel#insert 4 spaces for each level
 
             entry.generateRunCode(s, indent)
-            #if object was part of a loop then update level
+            #if component was part of a loop then update level
             if isinstance(entry, LoopInitiator):
                 indentLevel+=1
             if isinstance(entry, LoopTerminator):
@@ -127,14 +127,14 @@ class Routine(list):
     used to comprise an Experiment (e.g. one for presenting
     instructions, one for trials, one for debriefing subjects).
     
-    In practice a Routine is simply a python list of Event objects,
+    In practice a Routine is simply a python list of Components,
     each of which knows when it starts and stops.
     """
     def __init__(self, name):
         self.name=name
         list.__init__(self)
     def generateInitCode(self,buff):
-        buff.write('\n#Initialise objects for %s routine\n' %self.name)
+        buff.write('\n#Initialise components for %s routine\n' %self.name)
         for thisEvt in self:
             thisEvt.generateInitCode(buff)
     def generateRunCode(self,buff,indent):
@@ -142,18 +142,18 @@ class Routine(list):
             event.generateRunCode(buff, indent)
     def getType(self):
         return 'Routine'            
-class EventBase:
-    """A general template for event objects"""
+class BaseComponent:
+    """A general template for components"""
     def __init__(self, name='', times=[0,1]):
         self.type='Base'
         self.params['name']=name
-        self.hints['name']= 'A name for the object'
+        self.hints['name']= 'A name for the component'
     def generateInitCode(self,buff):
         pass
     def generateRunCode(self,buff, indent):
         pass  
         
-class EventText(EventBase):
+class TextComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, name='', text='', font='arial', 
         pos=[0,0], size=[0,0], ori=0, times=[0,1]):
@@ -171,7 +171,7 @@ class EventText(EventBase):
         self.changeable=['ori','pos','rgb','size']
         
         self.hints={}
-        self.hints['name']="A name for the object"
+        self.hints['name']="A name for the component e.g. 'thanksMsg'"
         self.hints['text']="The text to be displayed"
         self.hints['font']= "The font name, or a list of names, e.g. ['arial','verdana']"
         self.hints['pos']= "Position of the text as [X,Y], e.g. [-2.5,3]"
@@ -180,14 +180,14 @@ class EventText(EventBase):
         self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
         
     def generateInitCode(self,buff):
-        s = "%s=TextStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        s = "%s=TextStim(win=win, pos=%s, size=%s" %(self.params['name'], self.params['pos'],self.params['size'])
         buff.write(s)   
         
         buff.write(")\n")
     def generateRunCode(self,buff, indent):
-        buff.write("%sdrawing TextStim '%s'\n" %(indent, self['name']))
+        buff.write("%sdrawing TextStim '%s'\n" %(indent, self.params['name']))
         
-class EventPatch(EventBase):
+class PatchComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, name='', image='sin', mask='none', pos=[0,0], 
             sf=1, size=1, ori=0, times=[0,1]):
@@ -203,7 +203,7 @@ class EventPatch(EventBase):
         self.params['ori']=ori
         self.params['times']=times
         
-        self.hints['name']="A name for the object"
+        self.hints['name']="A name for the component e.g. 'fixationPt'"
         self.hints['image']="The image to use (a filename or 'sin', 'sqr'...)"
         self.hints['mask']= "The image that defines the mask (a filename or 'gauss', 'circle'...)"
         self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
@@ -213,13 +213,13 @@ class EventPatch(EventBase):
         self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
                 
     def generateInitCode(self,buff):
-        s = "%s=PatchStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        s = "%s=PatchStim(win=win, pos=%s, size=%s" %(self.params['name'], self.params['pos'],self.params['size'])
         buff.write(s)   
         
         buff.write(")\n")
     def generateRunCode(self,buff, indent):
-        buff.write("%sdrawing PatchStim '%s'\n" %(indent, self['name']))
-class EventMovie(EventBase):
+        buff.write("%sdrawing PatchStim '%s'\n" %(indent, self.params['name']))
+class MovieComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, name='', movie='', pos=[0,0], 
             size=1, ori=0, times=[0,1]):
@@ -234,7 +234,7 @@ class EventMovie(EventBase):
         self.params['ori']=ori
         self.params['times']=times
         
-        self.hints['name']="A name for the object"
+        self.hints['name']="A name for the component e.g. 'mainMovie'"
         self.hints['movie']="The filename/path for the movie)"
         self.hints['pos']= "Position of the image centre as [X,Y], e.g. [-2.5,3]"
         self.hints['size']= "Specifies the size of the stimulus (a single value or [w,h] )"
@@ -242,13 +242,13 @@ class EventMovie(EventBase):
         self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
                 
     def generateInitCode(self,buff):
-        s = "%s=PatchStim(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        s = "%s=MovieStim(win=win, pos=%s, movie=%s, size=%s" %(self.params['name'], self.params['movie'],self.params['pos'],self.params['size'])
         buff.write(s)   
         
         buff.write(")\n")
     def generateRunCode(self,buff, indent):
-        buff.write("%sdrawing MovieStim '%s'\n" %(indent, self['name']))
-class EventSound(EventBase):
+        buff.write("%sdrawing MovieStim '%s'\n" %(indent, self.params['name']))
+class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, name='', sound='', 
             size=1, ori=0, times=[0,1]):
@@ -260,18 +260,18 @@ class EventSound(EventBase):
         self.params['sound']= ''
         self.params['times']=times
         
-        self.hints['name']="A name for the object"
+        self.hints['name']="A name for the component e.g. 'ping'"
         self.hints['sound']="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename"
         self.hints['times']="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]"
                 
     def generateInitCode(self,buff):
-        s = "%s=Sound(win=win, pos=%s, size=%s" %(self['name'], self['pos'],self['size'])
+        s = "%s=Sound(%s, secs=%s" %(self.params['name'], self.params['sound'],self.params['times'][1]-self.params['times'][0])
         buff.write(s)   
         
         buff.write(")\n")
     def generateRunCode(self,buff, indent):
-        buff.write("%splaying Sound '%s'\n" %(indent, self['name']))        
-class EventKeyboard(EventBase):
+        buff.write("%splaying Sound '%s'\n" %(indent, self.params['name']))        
+class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given times"""
     def __init__(self, name='', allowedKeys='q,left,right',onTimes=[0,1]):
         self.type='Keyboard'
@@ -290,7 +290,7 @@ class EventKeyboard(EventBase):
     def generateRunCode(self,buff,indent):
         buff.write("%sChecking keys" %indent)
 
-class EventMouse(EventBase):
+class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given times"""
     def __init__(self, name='', onTimes=[0,1]):
         self.type='Mouse'

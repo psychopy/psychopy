@@ -141,7 +141,7 @@ class FlowPanel(wx.ScrolledWindow):
         linePos = 80
         dc.DrawLine(x1=100,y1=linePos,x2=500,y2=linePos)
         
-        #step through objects in flow
+        #step through components in flow
         currX=120; gap=40
         self.loopInits = []
         self.loopTerms = []
@@ -311,14 +311,14 @@ class RoutinePage(wx.ScrolledWindow):
         except:
             dc = pdc
         yPosTop=60
-        objectStep=50
+        componentStep=50
         #draw timeline at bottom of page
-        yPosBottom = max([300, yPosTop+len(self.routine)*objectStep])
+        yPosBottom = max([300, yPosTop+len(self.routine)*componentStep])
         self.drawTimeLine(dc,yPosTop,yPosBottom)
         yPos = yPosTop
-        for n, object in enumerate(self.routine):
-            self.drawEvent(dc, object, yPos)
-            yPos+=objectStep
+        for n, component in enumerate(self.routine):
+            self.drawComponent(dc, component, yPos)
+            yPos+=componentStep
         
             
     def drawTimeLine(self, dc, yPosTop, yPosBottom):  
@@ -339,15 +339,15 @@ class RoutinePage(wx.ScrolledWindow):
         dc.SetFont(font)
         dc.DrawText('t (secs)',xEnd+5, 
             yPosBottom-dc.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
-    def drawEvent(self, dc, object, yPos):        
-        bitmap = self.parent.parent.bitmaps[object.type]        
+    def drawComponent(self, dc, component, yPos):        
+        bitmap = self.parent.parent.bitmaps[component.type]        
         dc.DrawBitmap(bitmap, self.iconXpos,yPos, True)
         
         font = dc.GetFont()
         font.SetPointSize(12)
         dc.SetFont(font)
         
-        name = object.params['name']
+        name = component.params['name']
         #get size based on text
         w,h = dc.GetFullTextExtent(name)[0:2]  
         #draw text
@@ -361,9 +361,9 @@ class RoutinePage(wx.ScrolledWindow):
         #for the fill, draw once in white near-opaque, then in transp colour
         dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
         
-        if type(object.params['times'][0]) in [int,float]:
-            object.params['times']=[object.params['times']]
-        for thisOcc in object.params['times']:
+        if type(component.params['times'][0]) in [int,float]:
+            component.params['times']=[component.params['times']]
+        for thisOcc in component.params['times']:
             st, end = thisOcc
             xSt = self.timeXposStart + st/xScale
             thisOccW = (end-st)/xScale
@@ -404,14 +404,14 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         self.sizer=wx.BoxSizer(wx.VERTICAL)        
         
         # add a button for each type of event that can be added
-        self.routineButtons={}; self.objectFromID={}
+        self.routineButtons={}; self.componentFromID={}
         for eventType in eventTypes:
             img = parent.bitmaps[eventType]         
             btn = wx.BitmapButton(self, -1, img, (20, 20),
                            (img.GetWidth()+10, img.GetHeight()+10),
                            name=eventType)  
-            self.objectFromID[btn.GetId()]=eventType
-            self.Bind(wx.EVT_BUTTON, self.onObjectAdd,btn)  
+            self.componentFromID[btn.GetId()]=eventType
+            self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)  
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
             self.routineButtons[eventType]=btn#store it for elsewhere
             
@@ -419,19 +419,19 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         self.SetAutoLayout(1)
         self.SetupScrolling()
         
-    def onObjectAdd(self,evt):
-        objectName = self.objectFromID[evt.GetId()]
-        newClassStr = 'Event'+objectName
-        exec('newObj = ExperimentObjects.%s()' %newClassStr)
-        dlg = DlgObjectProperties(parent=self.parent,
-            title=objectName+' Properties',
-            params = newObj.params, hints=newObj.hints)
+    def onComponentAdd(self,evt):
+        componentName = self.componentFromID[evt.GetId()]
+        newClassStr = componentName+'Component'
+        exec('newComp = ExperimentObjects.%s()' %newClassStr)
+        dlg = DlgComponentProperties(parent=self.parent,
+            title=componentName+' Properties',
+            params = newComp.params, hints=newComp.hints)
         if dlg.OK:
             currRoutinePage = self.parent.routinePanel.getCurrentPage()
             currRoutine = self.parent.routinePanel.getCurrentRoutine()
-            currRoutine.append(newObj)
+            currRoutine.append(newComp)
             currRoutinePage.Refresh()
-class DlgObjectProperties(wx.Dialog):    
+class DlgComponentProperties(wx.Dialog):    
     def __init__(self,parent,title,params,hints,fixed=[],
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
@@ -451,6 +451,9 @@ class DlgObjectProperties(wx.Dialog):
         
         keys = self.params.keys()
         keys.sort()
+        
+        self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
+        print self.maxFieldLength
         types=dict([])
         for field in keys:
             #DEBUG: print field, type(params[field])
@@ -460,6 +463,7 @@ class DlgObjectProperties(wx.Dialog):
             else:
                 self.addField(field,self.params[field],self.hints[field])
         #show it and collect data
+        self.sizer.FitInside(self)
         self.showAndGetData()
         if self.OK:
             for n,thisKey in enumerate(keys):
@@ -488,10 +492,11 @@ class DlgObjectProperties(wx.Dialog):
                                         size=labelLength,
                                         style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        inputBox = wx.TextCtrl(self,-1,str(initial),size=(5*len(str(initial))+16,25))
+#        inputBox = wx.TextCtrl(self,-1,str(initial),size=(5*self.maxFieldLength+16,25))
+        inputBox = wx.TextCtrl(self,-1,str(initial),size=wx.Size(10*self.maxFieldLength,-1))
         inputBox.SetToolTipString(hint)
         container.Add(inputBox,1)
-        self.sizer.Add(container, 1, wx.ALIGN_CENTER)
+        self.sizer.Add(container, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         
         self.inputFields.append(inputBox)#store this to get data back on OK
         return inputBox
