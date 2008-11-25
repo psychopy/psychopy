@@ -49,9 +49,16 @@ if havePyAudio:
         def run(self):
             self.running=1
             while self.running:
-                #do the data read
-                self.sound._fillBuffer()
-                time.sleep(self.pollingPeriod)#yields to other processes while sleeping
+                    self.sound._fillBuffer()
+                    time.sleep(self.pollingPeriod)#yields to other processes while sleeping
+#                try:
+#                    #as of Feb 2008, if sys.exit() is called before the thread stops
+#                    #then variables get set to None and this will raise an ugly (but 
+#                    #unimportant) error message, so do it in a try...except
+#                    self.sound._fillBuffer()
+#                    time.sleep(self.pollingPeriod)#yields to other processes while sleeping
+#                except:
+#                    pass
             self.running=-1 #shows that it is fully stopped
         def stop(self):
             if self.running>0:
@@ -476,11 +483,11 @@ class SoundPyAudio:
         self.sampleRate = sampleRate
         self.channels=2
         self.finished=False
-        self.chunkSize=2048# 1024 gives buffer underuns on OSX (even at 22kHz)
+        self.chunkSize=4096# 1024 gives buffer underuns on OSX (even at 22kHz)
         self.volume = 1.0
         
         self.rawData = None
-        self._thread = PyAudioThread(self, pollingPeriod=0.01)
+        self._thread = PyAudioThread(self, pollingPeriod=0.001)
         self._thread.start()
         
         #try to determine what the sound is
@@ -502,8 +509,12 @@ class SoundPyAudio:
         if self.rawData is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
             
-        if self.bits==16: paFormat = pyaudio.paInt16
-        elif self.bits==8: paFormat = pyaudio.paInt8
+        if self.bits==16: 
+            paFormat = pyaudio.paInt16
+            self._numpy_dtype = numpy.int16
+        elif self.bits==8: 
+            paFormat = pyaudio.paInt8
+            self._numpy_dtype = numpy.int8
         else: raise TypeError, "Sounds must be 8, 16bit"
         self._stream = pa.open(format = paFormat,
                 channels = self.channels,
@@ -629,31 +640,33 @@ class SoundPyAudio:
         #ie. represent half the total number of bytes for a stereo source
         
         if self.offsetSamples==-1 or self.finished:
-            print 'finishedPlaying', self.offsetSamples, self.finished
             #sound is not playing yet, just return
             return
-        
+        else:
+            print 'playing', self.offsetSamples, self.finished
         #get the appropriate data from the array
         if self.bits == 8:#ubyte
             start = self.offsetSamples
             end = self.offsetSamples+self.chunkSize#either the chunk or the last sample
+            self.offsetSamples+=self.chunkSize
         elif self.bits==16: #signed int16
             start = self.offsetSamples >> 1#half as many entries for same number of bytes
-            end = (self.offsetSamples+ self.chunkSize) >> 1
+            end = (self.offsetSamples>>1) + self.chunkSize
+            self.offsetSamples+= (self.chunkSize<<1)
             
         #check if we have that many samples
-        if end>self.rawData.shape[0]:
+        if end>=self.rawData.shape[0]:
             end = self.rawData.shape[0]
-            print 'end, shape', end, self.rawData.shape[0]
             self.finished=True#flag that this must be the last sample
         #update next offset position    
-        self.offsetSamples+=self.chunkSize
+        
+        thisChunk = (self.volume*self.rawData[start:end,:]).astype(self._numpy_dtype)
             
-        thisChunk = (self.volume*self.rawData[start:end,:])
         print start, end, self.rawData.shape, thisChunk.shape
         data=thisChunk.tostring()
         # play stream
         if len(data)==0:
+            print 'unlikely to get here'
             self.finished=True
             return
             

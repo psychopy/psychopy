@@ -2,13 +2,18 @@
 import sys
 from psychopy import sound,core, visual
 
-highA = sound.Sound('A',octave=5, secs=0.1)
-highA.setVolume(0.2)
-tick = sound.Sound(700,secs=0.01)
+highA = sound.Sound('A',octave=5, secs=0.4)
+highA.setVolume(0.8)
+tick = sound.Sound(100,secs=0.2,sampleRate=44100, bits=8)
 tock = sound.Sound(600,secs=0.01)
 
-core.wait(0.5)
-highA.play()
+#highA.play()
+core.wait(2.0)
+tick.play()
+core.wait(0.4)
+print 'repeat'
+tick.play()
+core.wait(0.2)
 #core.wait(0.5) #to let the sound play
 #tick.play()
 #core.wait(0.5)

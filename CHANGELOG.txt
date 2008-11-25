@@ -4,6 +4,10 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog
 
+PsychoPy 0.95.11:
+* ADDED sound.Sound.getDuration() method
+* FIXED spurious (unimportant but ugly) error messages raised by certain threads on core.quit()
+
 PsychoPy 0.95.10:
 * ADDED sound.Sound.getDuration() method
 

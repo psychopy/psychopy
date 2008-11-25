@@ -1,6 +1,6 @@
 """Basic timing functions
 """
-import sys, os, time
+import sys, os, time, threading
 runningThreads=[]
 try:
     import pyglet.media
@@ -11,10 +11,12 @@ def quit():
     """Close everything and exit nicely (ending the experiment)
     """
     #pygame.quit() #safe even if pygame was never initialised
-    for thisThread in runningThreads:
-        thisThread.stop()
-        while thisThread.running==0:
-            pass#wait until it has properly finished polling
+    for thisThread in threading.enumerate():
+        if hasattr(thisThread,'stop') and hasattr(thisThread,'running'):
+            #this is one of our event threads - kill it and wait for success
+            thisThread.stop()
+            while thisThread.running==0:
+                pass#wait until it has properly finished polling
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism
