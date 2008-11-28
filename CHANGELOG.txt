@@ -22,7 +22,6 @@ PsychoPy 0.95.8:
 * IDE SaveAs no longer raises (inconsequential) error
 * IDE Cmd-S or Ctrl-S now clears autocomplete
     
-
 PsychoPy 0.95.7:
 * ADDED misc.cart2pol()
 * ADDED highly optimised ElementArrayStim, suitable for drawing large numbers of elements. Requires fast OpenGL 2.0 gfx card - at least an nVidia 8000 series or ATI HD 2600 are recommended.

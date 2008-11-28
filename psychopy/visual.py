@@ -197,6 +197,7 @@ class Window:
         self.frames = 0         #frames since last fps calc
         self.movieFrames=[] #list of captured frames (Image objects)
         
+        self._refreshThreshold=1/59.0
         if list(self.gamma)!=[1,1,1]:
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = time.time()
@@ -279,7 +280,7 @@ class Window:
         self.frames +=1
         now = core.getTime()
         deltaT = now - self.lastFrameT; self.lastFrameT=now
-        if deltaT>1/60.0: log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
+        if deltaT>self._refreshThreshold: log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
 
         if haveFB:
             #set rendering back to the framebuffer object

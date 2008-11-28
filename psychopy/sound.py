@@ -1,10 +1,37 @@
-"""Load and play sounds (wraps pygame.mixer)
+"""Load and play sounds
+
+There are various APIs for this, none of which are perfect. By default PsychoPy will 
+look for and use, in this order: ['pygame','pyglet','pyaudio']
+The API chosen will be stored as a string under
+    sound.audioAPI
+and can be set using, e.g.
+    sound.setAudioAPI('pyglet')
+    
+pygame (must be version 1.8 or above): 
+    pros: The most robust of the API options so far - it works consistently on all platforms
+    cons: needs an additional download, poor latencies
+
+pyglet:
+    pros: comes with enthought python and is already the main API for drawing in PsychoPy
+    cons: complex model using event_dispatch, dodgy timing (just on win32?)
+
+pyaudio:
+    pros: relatively low-level wrapper around portAudio
+    cons: needs another download, not fully working...?
 """
 import numpy, threading, time
 from os import path 
 from string import capitalize
 from sys import platform, exit, stdout
 from psychopy import event, core, log
+
+if platform=='win32':
+    mediaLocation="C:\\Windows\Media"
+else:
+    mediaLocation=""
+    
+preferredAPI = ['pygame','pyglet','pyaudio']
+global audioAPI
 
 try:
     import pyglet
@@ -22,22 +49,43 @@ try:
     havePygame=True
 except:
     havePygame=False    
-if havePygame:
-    usePygame=True#change this when creating sounds if display is not initialised
-else: usePygame=False  
-
-if platform=='win32':
-    mediaLocation="C:\\Windows\Media"
-else:
-    mediaLocation=""
 
 try:
     import pyaudio
     pa = pyaudio.PyAudio()
-    havePyAudio=True
+    havePyaudio=True
 except:
-    havePyAudio=False
-if havePyAudio:
+    havePyaudio=False
+
+audioAPI=None
+#initialise it and keep track
+for API in preferredAPI:
+    if setAudioAPI(API):
+        break#we found one so stop looking
+if audioAPI is None:
+    log.error('No audio API found. Try installing pygame 1.8+')
+
+def setAudioAPI(api):
+    """Change the API used for the presentation of sounds
+            
+        usage:
+            setAudioAPI(api)
+            
+        where:
+            api is one of 'pygame','pyglet', pyaudio'
+            
+    """
+    exec('haveThis=have%s' %api.title())
+    if haveThis:
+        audioAPI=api
+        exec('init%s()', %API.init())
+        
+    return haveThis
+        
+def initPyaudio():
+    """
+    define a thread for pyaudio event pumping (needed to fill buffers)
+    """
     class PyAudioThread(threading.Thread):
         """a thread class to allow PyAudio sounds to play asynchronously"""
         def __init__(self, sound, pollingPeriod):
@@ -49,16 +97,9 @@ if havePyAudio:
         def run(self):
             self.running=1
             while self.running:
-                    self.sound._fillBuffer()
-                    time.sleep(self.pollingPeriod)#yields to other processes while sleeping
-#                try:
-#                    #as of Feb 2008, if sys.exit() is called before the thread stops
-#                    #then variables get set to None and this will raise an ugly (but 
-#                    #unimportant) error message, so do it in a try...except
-#                    self.sound._fillBuffer()
-#                    time.sleep(self.pollingPeriod)#yields to other processes while sleeping
-#                except:
-#                    pass
+                #do the data read
+                self.sound._fillBuffer()
+                time.sleep(self.pollingPeriod)#yields to other processes while sleeping
             self.running=-1 #shows that it is fully stopped
         def stop(self):
             if self.running>0:
@@ -66,7 +107,10 @@ if havePyAudio:
         def setPollingPeriod(self, period):
             self.pollingPeriod=period            
       
-if havePyglet:
+def initPyglet():
+    """
+    define a thread for pyglet event pumping (needed to fill buffers)
+    """
     evtDispatchLock = threading.Lock()
     class _EventDispatchThread(threading.Thread):    
         """a thread that will periodically call to dispatch events
@@ -174,7 +218,7 @@ if havePyglet:
                 data = (volume*self.allData[:,start:(start+samples)]).ctypes
             return data
     
-def init(rate=44100, bits=16, stereo=True, buffer=1024):
+def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
     
@@ -196,7 +240,270 @@ def init(rate=44100, bits=16, stereo=True, buffer=1024):
     if setStereo!=1 and stereo==True: 
         log.warn('Requested stereo setting was not possible')
     
-class Sound:
+
+class _SoundBase:
+    """Create a sound object, from one of many ways.
+    """
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+        """
+        value: can be a number, string or an array.
+        
+            If it's a number between 37 and 32767 then a tone will be generated at
+            that frequency in Hz.
+            -----------------------------
+            It could be a string for a note ('A','Bfl','B','C','Csh'...) 
+            - you may want to specify which octave as well
+            -----------------------------
+            Or a string could represent a filename in the current
+            location, or mediaLocation, or a full path combo
+            -----------------------------
+            Or by giving an Nx2 numpy array of floats (-1:1) you 
+            can specify the sound yourself as a waveform
+            
+        secs: is only relevant if the value is a note name or
+            a frequency value
+            
+        octave: is only relevant if the value is a note name.
+            Middle octave of a piano is 4. Most computers won't
+            output sounds in the bottom octave (1) and the top
+            octave (8) is generally painful
+            
+        sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
+            sample rate for all sounds (once initialised) 
+        
+        bits(=16): Only 8- and 16-bits supported so far.
+            Only used for sounds using pyglet. Pygame uses the same
+            sample rate for all sounds (once initialised) 
+        """        
+        #try to determine what the sound is
+        self._snd=None
+        if type(value) is str:
+            #try to open the file
+            OK = self._fromNoteName(value,secs,octave)
+            #or use as a note name
+            if not OK: self._fromFile(value)
+            
+        elif type(value) in [float,int]:
+            #we've been asked for a particular Hz
+            self._fromFreq(value, secs)
+            
+        elif type(value) in [list,numpy.ndarray]:
+            #create a sound from the input array/list
+            self._fromArray(value)
+        if self._snd is None:
+            raise RuntimeError, "I dont know how to make a "+value+" sound"
+            
+    def play(self, fromStart=True):
+        """Starts playing the sound on an available channel. 
+        If no sound channels are available, it will not play and return None. 
+
+        This runs off a separate thread i.e. your code won't wait for the
+        sound to finish before continuing. You need to use a 
+        psychopy.core.wait() command if you want things to pause.
+        If you call play() whiles something is already playing the sounds will
+        be played over each other.
+        """
+        pass #should be overridden
+        
+    def stop(self):
+        """Stops the sound immediately"""
+        pass #should be overridden
+            
+    def getDuration(self):
+        pass #should be overridden
+        
+    def getVolume(self):
+        """Returns the current volume of the sound (0.0:1.0)"""
+        pass #should be overridden
+    
+    def setVolume(self,newVol):
+        """Sets the current volume of the sound (0.0:1.0)"""
+        pass #should be overridden
+    def _fromFile(self, fileName):
+        pass #should be overridden
+    def _fromNoteName(self, name, secs, octave):		
+        #get a mixer.Sound object from an note name
+        A=440.0
+        thisNote=capitalize(name)
+        stepsFromA = {
+            'C' : -9,
+            'Csh' : -8,
+            'Dfl' : -8,
+            'D' : -7,
+            'Dsh' : -6,
+            'E' : -5,
+            'F' : -4,
+            'Fsh' : -3,
+            'G' : -2,
+            'Gsh' : -1,
+            'A': 0,
+            'Ash':+1,
+            'Bfl': +1,
+            'B': +2,
+            }
+        if thisNote not in stepsFromA.keys():
+            return False
+        
+        thisOctave = octave-4		
+        thisFreq = A * 2.0**(stepsFromA[thisNote]/12.0) * 2.0**thisOctave
+        self._fromFreq(thisFreq, secs)
+        
+    def _fromFreq(self, thisFreq, secs):
+        nSamples = int(secs*self.sampleRate)
+        outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
+        outArr *= 2*numpy.pi*thisFreq*secs
+        outArr = numpy.sin(outArr)
+        self._fromArray(outArr)
+    
+    def _fromArray(self, thisArray):
+        pass #should be overridden
+
+class SoundPygame(_SoundBase):
+    """Create a sound object, from one of many ways.
+    """
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+        """
+        value: can be a number, string or an array.
+        
+            If it's a number between 37 and 32767 then a tone will be generated at
+            that frequency in Hz.
+            -----------------------------
+            It could be a string for a note ('A','Bfl','B','C','Csh'...) 
+            - you may want to specify which octave as well
+            -----------------------------
+            Or a string could represent a filename in the current
+            location, or mediaLocation, or a full path combo
+            -----------------------------
+            Or by giving an Nx2 numpy array of floats (-1:1) you 
+            can specify the sound yourself as a waveform
+            
+        secs: is only relevant if the value is a note name or
+            a frequency value
+            
+        octave: is only relevant if the value is a note name.
+            Middle octave of a piano is 4. Most computers won't
+            output sounds in the bottom octave (1) and the top
+            octave (8) is generally painful
+            
+        sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
+            sample rate for all sounds (once initialised) 
+        
+        bits(=16): Only 8- and 16-bits supported so far.
+            Only used for sounds using pyglet. Pygame uses the same
+            sample rate for all sounds (once initialised) 
+        """
+
+        #check initialisation
+        if not mixer.get_init():
+            pygame.mixer.init(22050, -16, 2, 3072)
+            print 'initialise pygame mixer'
+        
+        inits = mixer.get_init()
+        if inits is None:
+            init()
+            inits = mixer.get_init()                
+        self.sampleRate, self.format, self.isStereo = inits
+        print "using pygame sound"
+        
+        #try to determine what the sound is
+        self._snd=None
+        if type(value) is str:
+            #try to open the file
+            OK = self._fromNoteName(value,secs,octave)
+            #or use as a note name
+            if not OK: self._fromFile(value)
+            
+        elif type(value) in [float,int]:
+            #we've been asked for a particular Hz
+            self._fromFreq(value, secs)
+            
+        elif type(value) in [list,numpy.ndarray]:
+            #create a sound from the input array/list
+            self._fromArray(value)
+        if self._snd is None:
+            raise RuntimeError, "I dont know how to make a "+value+" sound"
+            
+    def play(self, fromStart=True):
+        """Starts playing the sound on an available channel. 
+        If no sound channels are available, it will not play and return None. 
+
+        This runs off a separate thread i.e. your code won't wait for the
+        sound to finish before continuing. You need to use a 
+        psychopy.core.wait() command if you want things to pause.
+        If you call play() whiles something is already playing the sounds will
+        be played over each other.
+        """
+        self._snd.play()
+        
+    def stop(self):
+        """Stops the sound immediately"""
+        self._snd.stop()
+                    
+    def fadeOut(self,mSecs):
+        """fades out the sound (when playing) over mSecs.
+        Don't know why you would do this in psychophysics but it's easy
+        and fun to include as a possibility :)
+        """
+        self._snd.fadeout(mSecs)
+        
+    def getDuration(self):
+        print "getDuration not yet implemented in pygame API"
+        return None
+        
+    def getVolume(self):
+        """Returns the current volume of the sound (0.0:1.0)"""
+        return self._snd.get_volume()
+    
+    def setVolume(self,newVol):
+        """Sets the current volume of the sound (0.0:1.0)"""
+        self._snd.set_volume(newVol)
+        
+    def _fromFile(self, fileName):
+        
+        #try finding the file
+        self.fileName=None
+        for filePath in ['', mediaLocation]:
+            if path.isfile(path.join(filePath,fileName)):
+                self.fileName=path.join(filePath,fileName)
+            elif path.isfile(path.join(filePath,fileName+'.wav')):
+                self.fileName=path.join(filePath,fileName+'.wav')
+        if self.fileName is None:
+            return False
+        
+        #load the file
+        self._snd = mixer.Sound(self.fileName)
+        return True
+    
+    def _fromArray(self, thisArray):
+        global usePygame
+        #get a mixer.Sound object from an array of floats (-1:1)
+        
+        #make stereo if mono
+        if self.isStereo and \
+            (len(thisArray.shape)==1 or thisArray.shape[1]<2):
+            tmp = numpy.ones((len(thisArray),2))
+            tmp[:,0] = thisArray
+            tmp[:,1] = thisArray
+            if usePygame: 
+                thisArray = tmp
+            else:
+                thisArray = numpy.transpose(tmp)#pyglet wants the transpose
+        
+        #get the format right
+        if self.format == -16: 
+            thisArray= (thisArray*2**15).astype(numpy.int16)
+        elif self.format == 16: 
+            thisArray= ((thisArray+1)*2**15).astype(numpy.uint16)
+        elif self.format == -8: 
+            thisArray= (thisArray*2**7).astype(numpy.Int8)
+        elif self.format == 8: 
+            thisArray= ((thisArray+1)*2**7).astype(numpy.uint8)
+    
+        self._snd = sndarray.make_sound(thisArray)
+            
+        return True
+
+class SoundPyglet:
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
@@ -230,34 +537,15 @@ class Sound:
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised) 
         """
-        global mediaLocation, usePygame, _eventThread
-        #check initialisation
-        if havePygame and (mixer.get_init() is not None):
-            usePygame=True
-        elif havePyglet:
-            #we have pyglet and no pygame window so use pyglet
-            usePygame=False
-        else:
-            log.error("Neither pygame, nor pyglet could be loaded for playing sounds")
+
+        self.sampleRate=sampleRate
+        self.format = bits
+        self.isStereo = True
+        self.secs=secs
+        self._player=pyglet.media.ManagedSoundPlayer()  
         
-        if usePygame:
-            inits = mixer.get_init()
-            if inits is None:
-                init()
-                inits = mixer.get_init()                
-            self.sampleRate, self.format, self.isStereo = inits
-            print "using pygame sound"
-        else:
-            usePygame=False
-            self.sampleRate=sampleRate
-            self.format = bits
-            self.isStereo = True
-            self.secs=secs
-            self._player=pyglet.media.ManagedSoundPlayer()                
-            _eventThread.playerList.append(self._player)
-            #self._player._eos_action='pause'
-            self._player._on_eos=self._onEOS
-            #if _eventThread.running<=0: _eventThread.start() #start the thread if needed
+        #self._player._eos_action='pause'
+        self._player._on_eos=self._onEOS
             
         #try to determine what the sound is
         self._snd=None
@@ -287,12 +575,8 @@ class Sound:
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
-        global usePygame
-        if usePygame:
-            self._snd.play()
-        else:
-            self._snd.play()
-            pyglet.media.dispatch_events()
+        self._snd.play()
+        pyglet.media.dispatch_events()
 
     def _onEOS(self):
         self._player._playing = False
@@ -305,18 +589,8 @@ class Sound:
         
     def stop(self):
         """Stops the sound immediately"""
-        global usePygame
-        if usePygame:
-            self._snd.stop()
-        else:
-            self._snd._stop()
+        self._snd._stop()
             
-    #def fadeOut(self,mSecs):
-        #"""fades out the sound (when playing) over mSecs.
-        #Don't know why you would do this in psychophysics but it's easy
-        #and fun to include as a possibility :)
-        #"""
-        #self._snd.fadeout(mSecs)
     def getDuration(self):
         s=self._snd      
         if s.duration is not None:
@@ -329,21 +603,12 @@ class Sound:
         
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
-        global usePygame
-        if usePygame:
-            return self._snd.get_volume()
-        else:
-            return self._player.volume
+        return self._player.volume
     
     def setVolume(self,newVol):
         """Sets the current volume of the sound (0.0:1.0)"""
-        global usePygame
-        if usePygame:
-            self._snd.set_volume(newVol)
-        else:
-            self._player._set_volume(newVol)
+        self._player._set_volume(newVol)
     def _fromFile(self, fileName):
-        global usePygame
         
         #try finding the file
         self.fileName=None
@@ -355,51 +620,13 @@ class Sound:
         if self.fileName is None:
             return False
         
-        #load the file
-        if usePygame:
-            self._snd = mixer.Sound(self.fileName)
-        else:
-            self._snd = pyglet.media.load(self.fileName, streaming=False)
-            #for files we need to find the length of the file and 
-            if self._snd.duration is not None: #will return none if not determined in the file
-                self.secs=self._snd.duration
-            #add to our player queue
-            self._player.queue(self._snd)
+        self._snd = pyglet.media.load(self.fileName, streaming=False)
+        #for files we need to find the length of the file and 
+        if self._snd.duration is not None: #will return none if not determined in the file
+            self.secs=self._snd.duration
+        #add to our player queue
+        self._player.queue(self._snd)
         return True
-    def _fromNoteName(self, name, secs, octave):		
-        #get a mixer.Sound object from an note name
-        A=440.0
-        thisNote=capitalize(name)
-        stepsFromA = {
-            'C' : -9,
-            'Csh' : -8,
-            'Dfl' : -8,
-            'D' : -7,
-            'Dsh' : -6,
-            'E' : -5,
-            'F' : -4,
-            'Fsh' : -3,
-            'G' : -2,
-            'Gsh' : -1,
-            'A': 0,
-            'Ash':+1,
-            'Bfl': +1,
-            'B': +2,
-            }
-        if thisNote not in stepsFromA.keys():
-            return False
-        
-        thisOctave = octave-4		
-        thisFreq = A * 2.0**(stepsFromA[thisNote]/12.0) * 2.0**thisOctave
-        self._fromFreq(thisFreq, secs)
-        
-    def _fromFreq(self, thisFreq, secs):
-        #get a mixer.Sound object from a frequency
-        nSamples = int(secs*self.sampleRate)
-        outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
-        outArr *= 2*numpy.pi*thisFreq*secs
-        outArr = numpy.sin(outArr)
-        self._fromArray(outArr)
     
     def _fromArray(self, thisArray):
         global usePygame
@@ -415,34 +642,13 @@ class Sound:
                 thisArray = tmp
             else:
                 thisArray = numpy.transpose(tmp)#pyglet wants the transpose
-        
-        if usePygame:
-            #get the format right
-            if self.format == -16: 
-                thisArray= (thisArray*2**15).astype(numpy.int16)
-            elif self.format == 16: 
-                thisArray= ((thisArray+1)*2**15).astype(numpy.uint16)
-            elif self.format == -8: 
-                thisArray= (thisArray*2**7).astype(numpy.Int8)
-            elif self.format == 8: 
-                thisArray= ((thisArray+1)*2**7).astype(numpy.uint8)
     
-                
-            try:
-                import Numeric
-            except:
-                log.error('Numeric (as well as numpy) is currently needed for playing pygame sounds')
-                self._snd=None
-                return -1
-            self._snd = sndarray.make_sound(Numeric.array(thisArray))
-            
-        else:
-            #use pyglet
-            self._snd = _pygletArrSound(data=thisArray, sample_rate=self.sampleRate, sample_size=-self.format)
-            self._player.queue(self._snd)
+        #use pyglet
+        self._snd = _pygletArrSound(data=thisArray, sample_rate=self.sampleRate, sample_size=-self.format)
+        self._player.queue(self._snd)
         return True
 
-class SoundPyAudio:
+class SoundPyaudio:
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self,value="C",secs=0.5,octave=4,
@@ -483,11 +689,11 @@ class SoundPyAudio:
         self.sampleRate = sampleRate
         self.channels=2
         self.finished=False
-        self.chunkSize=4096# 1024 gives buffer underuns on OSX (even at 22kHz)
+        self.chunkSize=2048# 1024 gives buffer underuns on OSX (even at 22kHz)
         self.volume = 1.0
         
         self.rawData = None
-        self._thread = PyAudioThread(self, pollingPeriod=0.001)
+        self._thread = PyAudioThread(self, pollingPeriod=0.01)
         self._thread.start()
         
         #try to determine what the sound is
@@ -509,12 +715,8 @@ class SoundPyAudio:
         if self.rawData is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
             
-        if self.bits==16: 
-            paFormat = pyaudio.paInt16
-            self._numpy_dtype = numpy.int16
-        elif self.bits==8: 
-            paFormat = pyaudio.paInt8
-            self._numpy_dtype = numpy.int8
+        if self.bits==16: paFormat = pyaudio.paInt16
+        elif self.bits==8: paFormat = pyaudio.paInt8
         else: raise TypeError, "Sounds must be 8, 16bit"
         self._stream = pa.open(format = paFormat,
                 channels = self.channels,
@@ -640,33 +842,31 @@ class SoundPyAudio:
         #ie. represent half the total number of bytes for a stereo source
         
         if self.offsetSamples==-1 or self.finished:
+            print 'finishedPlaying', self.offsetSamples, self.finished
             #sound is not playing yet, just return
             return
-        else:
-            print 'playing', self.offsetSamples, self.finished
+        
         #get the appropriate data from the array
         if self.bits == 8:#ubyte
             start = self.offsetSamples
             end = self.offsetSamples+self.chunkSize#either the chunk or the last sample
-            self.offsetSamples+=self.chunkSize
         elif self.bits==16: #signed int16
             start = self.offsetSamples >> 1#half as many entries for same number of bytes
-            end = (self.offsetSamples>>1) + self.chunkSize
-            self.offsetSamples+= (self.chunkSize<<1)
+            end = (self.offsetSamples+ self.chunkSize) >> 1
             
         #check if we have that many samples
-        if end>=self.rawData.shape[0]:
+        if end>self.rawData.shape[0]:
             end = self.rawData.shape[0]
+            print 'end, shape', end, self.rawData.shape[0]
             self.finished=True#flag that this must be the last sample
         #update next offset position    
-        
-        thisChunk = (self.volume*self.rawData[start:end,:]).astype(self._numpy_dtype)
+        self.offsetSamples+=self.chunkSize
             
+        thisChunk = (self.volume*self.rawData[start:end,:])
         print start, end, self.rawData.shape, thisChunk.shape
         data=thisChunk.tostring()
         # play stream
         if len(data)==0:
-            print 'unlikely to get here'
             self.finished=True
             return
             
