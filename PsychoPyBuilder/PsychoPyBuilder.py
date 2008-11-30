@@ -272,7 +272,6 @@ class DlgAddRoutineToFlow(wx.Dialog):
         self.routine=routineChoices[0]
         self.loc=0
                         
-                
     def EvtRoutineChoice(self, event):
         name = event.GetString()
         self.routine=event.GetString() 
@@ -292,15 +291,57 @@ class RoutinePage(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, parent, id)
         self.parent=parent       
         self.routine=routine
+        self.yPositions=None
         
+        self.yPosTop=60
+        self.componentStep=50#the step in Y between each component
         self.iconXpos = 100 #the left hand edge of the icons
         self.timeXposStart = 200
         self.timeXposEnd = 600
         self.timeMax = 10
-        
+        self.componentButtons={}
+        self.componentLabels={}
         self.Bind(wx.EVT_PAINT, self.onPaint)
+    def redrawComponentControls(self):
+        ypos = self.yPosTop
+        
+        #delete the previous ones
+        for btnName in self.componentButtons:
+            self.componentButtons[btnName].Destroy()
+            self.componentLabels[btnName].Destroy()
+        self.componentButtons={}
+        self.componentLabels={}
+        
+        #step through the components adding buttons
+        for component in self.routine:
+            name = component.params['name']
+            ypos += self.componentStep
+            
+            bitmap = self.parent.parent.bitmaps[component.type]   
+            btn = wx.BitmapButton(self, -1, bitmap, (self.iconXpos,ypos),
+                    (bitmap.GetWidth()+10, bitmap.GetHeight()+10),style=wx.NO_BORDER,
+                    name=name)  
+            self.Bind(wx.EVT_BUTTON, self.editComponentProperties, btn)
+            self.componentButtons[name] = btn
+            
+            h,w =self.GetTextExtent(name)
+            label=wx.StaticText(self,-1, name, pos= (self.iconXpos-w*2,ypos+bitmap.GetHeight()/2),style=wx.ALIGN_RIGHT)
+            self.componentLabels[name]=label
+            
+    def editComponentProperties(self, event=None):
+        componentName=event.EventObject.GetName()
+        component=self.routine.getComponentFromName(componentName)
+        
+        dlg = DlgComponentProperties(parent=self.parent,
+            title=componentName+' Properties',
+            params = component.params, hints=component.hints)
+        self.Refresh()#just need to refresh timings section
+        
     def getSecsPerPixel(self):
         return float(self.timeMax)/(self.timeXposEnd-self.timeXposStart)
+    def redraw(self):
+        self.redrawComponentControls()
+        self.Refresh()#this will refresh the manually painted part (the timing)
         
     def onPaint(self, evt=None):
         
@@ -310,16 +351,15 @@ class RoutinePage(wx.ScrolledWindow):
             dc = wx.GCDC(pdc)
         except:
             dc = pdc
-        yPosTop=60
-        componentStep=50
         #draw timeline at bottom of page
-        yPosBottom = max([300, yPosTop+len(self.routine)*componentStep])
-        self.drawTimeLine(dc,yPosTop,yPosBottom)
-        yPos = yPosTop
+        yPosBottom = max([300, self.yPosTop+len(self.routine)*self.componentStep])
+        self.drawTimeLine(dc,self.yPosTop,yPosBottom)
+        yPos = self.yPosTop
+        
         for n, component in enumerate(self.routine):
             self.drawComponent(dc, component, yPos)
-            yPos+=componentStep
-        
+            yPos+=self.componentStep
+            
             
     def drawTimeLine(self, dc, yPosTop, yPosBottom):  
         xScale = self.getSecsPerPixel()
@@ -339,36 +379,30 @@ class RoutinePage(wx.ScrolledWindow):
         dc.SetFont(font)
         dc.DrawText('t (secs)',xEnd+5, 
             yPosBottom-dc.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
-    def drawComponent(self, dc, component, yPos):        
-        bitmap = self.parent.parent.bitmaps[component.type]        
-        dc.DrawBitmap(bitmap, self.iconXpos,yPos, True)
-        
-        font = dc.GetFont()
-        font.SetPointSize(12)
-        dc.SetFont(font)
-        
-        name = component.params['name']
-        #get size based on text
-        w,h = dc.GetFullTextExtent(name)[0:2]  
-        #draw text
-        x = self.iconXpos-5-w
-        y = yPos+bitmap.GetHeight()/2-h/2
-        dc.DrawText(name, x, y)
+    def drawComponent(self, dc, component, yPos):  
+        """Draw the timing of one component on the timeline"""
+        btn = self.componentButtons[component.params['name']]
+        times = component.params['times']
         
         #draw entries on timeline
         xScale = self.getSecsPerPixel()
         dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0)))
         #for the fill, draw once in white near-opaque, then in transp colour
         dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
-        
-        if type(component.params['times'][0]) in [int,float]:
-            component.params['times']=[component.params['times']]
-        for thisOcc in component.params['times']:
+        h = self.componentStep/2
+        if type(times[0]) in [int,float]:
+            times=[times]
+        for thisOcc in times:#each occasion/occurence
             st, end = thisOcc
             xSt = self.timeXposStart + st/xScale
             thisOccW = (end-st)/xScale
-            dc.DrawRectangle(xSt, y, thisOccW, h)
-            
+            dc.DrawRectangle(xSt, btn.GetPosition()[1]+h/2, thisOccW,h )
+    def setComponentYpositions(self,posList):
+        """receive the positions of the trak locations from the RoutinePage
+        (which has created buttons for each track)
+        """
+        self.yPositions=posList
+        
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
     """
@@ -429,8 +463,8 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         if dlg.OK:
             currRoutinePage = self.parent.routinePanel.getCurrentPage()
             currRoutine = self.parent.routinePanel.getCurrentRoutine()
-            currRoutine.append(newComp)
-            currRoutinePage.Refresh()
+            currRoutine.append(newComp)#add to the actual routing
+            currRoutinePage.redraw()#update the routine's view with the new component too
 class DlgComponentProperties(wx.Dialog):    
     def __init__(self,parent,title,params,hints,fixed=[],
             pos=wx.DefaultPosition, size=wx.DefaultSize,

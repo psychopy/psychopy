@@ -9,7 +9,7 @@ class Experiment:
     def __init__(self):
         self.flow = Flow()
         self.routines={}
-
+        
     def addRoutine(self,routineName, routine=None):
         """Add a Routine to the current list of them. 
         
@@ -17,10 +17,10 @@ class Experiment:
         an empty one if none is given.
         """
         if routine==None:
-            self.routines[routineName]=Routine(routineName)
+            self.routines[routineName]=Routine(routineName)#create a deafult routine with this name
         else:
             self.routines=routine
-            
+        
     def generateScript(self):
         """Generate a PsychoPy script for the experiment
         """
@@ -30,8 +30,22 @@ class Experiment:
         
         #delegate most of the code-writing to Flow
         self.flow.generateCode(s)
-            
+        
         return s
+    def getAllObjectNames(self):
+        """Return the names of all objects (routines, loops and components) in the experiment
+        """
+        names=[]
+        for thisRoutine in self.routines:
+            names.append(thisRoutine.name)
+            for thisEntry in thisRoutine: 
+                if isinstance(thisEntry, LoopInitiator):
+                    names.append( thisEntry.loop.name )
+                    print 'found loop initiator: %s' %names[-1]
+                elif hasattr(thisEntry, 'params'):
+                    names.append(thisEntry.params['name'])
+                    print 'found component: %s' %names[-1]
+                    
 class LoopHandler(list):    
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
@@ -141,7 +155,12 @@ class Routine(list):
         for event in self:
             event.generateRunCode(buff, indent)
     def getType(self):
-        return 'Routine'            
+        return 'Routine'
+    def getComponentFromName(self, name):
+        for comp in self:
+            if comp.params['name']==name:
+                return comp
+        return None
 class BaseComponent:
     """A general template for components"""
     def __init__(self, name='', times=[0,1]):
@@ -292,9 +311,10 @@ class KeyboardComponent(BaseComponent):
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given times"""
-    def __init__(self, name='', onTimes=[0,1]):
+    def __init__(self, name='mouse', onTimes=[0,1]):
         self.type='Mouse'
         self.params={}
+        self.params['name']=name
         self.params['onTimes']=onTimes
         
         self.hints={}
