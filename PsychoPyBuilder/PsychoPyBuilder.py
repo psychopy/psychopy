@@ -194,7 +194,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=self.gapMidPoints[1]
         else:
             self.pointsToDraw=[]
-        print self.pointsToDraw
     def drawLoopAttach(self, dc, pos):
         #draws a spot that a loop will later attach to
         dc.SetBrush(wx.Brush(wx.Colour(100,100,100, 250)))
@@ -440,7 +439,8 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         # add a button for each type of event that can be added
         self.routineButtons={}; self.componentFromID={}
         for eventType in eventTypes:
-            img = parent.bitmaps[eventType]         
+            img =wx.Bitmap( 
+                "res//%sAdd.png" %eventType.lower())    
             btn = wx.BitmapButton(self, -1, img, (20, 20),
                            (img.GetWidth()+10, img.GetHeight()+10),
                            name=eventType)  
@@ -487,7 +487,6 @@ class DlgComponentProperties(wx.Dialog):
         keys.sort()
         
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
-        print self.maxFieldLength
         types=dict([])
         for field in keys:
             #DEBUG: print field, type(params[field])
