@@ -31,7 +31,8 @@ else:
     mediaLocation=""
     
 preferredAPI = ['pygame','pyglet','pyaudio']
-global audioAPI
+global audioAPI, Sound
+Sound = None
 
 try:
     import pyglet
@@ -46,7 +47,7 @@ except:
 try:
     import pygame
     from pygame import mixer, sndarray
-    havePygame=True
+    havePygame=False
 except:
     havePygame=False    
 
@@ -56,190 +57,6 @@ try:
     havePyaudio=True
 except:
     havePyaudio=False
-
-audioAPI=None
-#initialise it and keep track
-for API in preferredAPI:
-    if setAudioAPI(API):
-        break#we found one so stop looking
-if audioAPI is None:
-    log.error('No audio API found. Try installing pygame 1.8+')
-
-def setAudioAPI(api):
-    """Change the API used for the presentation of sounds
-            
-        usage:
-            setAudioAPI(api)
-            
-        where:
-            api is one of 'pygame','pyglet', pyaudio'
-            
-    """
-    exec('haveThis=have%s' %api.title())
-    if haveThis:
-        audioAPI=api
-        exec('init%s()', %API.init())
-        
-    return haveThis
-        
-def initPyaudio():
-    """
-    define a thread for pyaudio event pumping (needed to fill buffers)
-    """
-    class PyAudioThread(threading.Thread):
-        """a thread class to allow PyAudio sounds to play asynchronously"""
-        def __init__(self, sound, pollingPeriod):
-            threading.Thread.__init__ ( self )
-            self.setDaemon(True)
-            self.sound = sound
-            self.pollingPeriod=pollingPeriod
-            self.running = -1
-        def run(self):
-            self.running=1
-            while self.running:
-                #do the data read
-                self.sound._fillBuffer()
-                time.sleep(self.pollingPeriod)#yields to other processes while sleeping
-            self.running=-1 #shows that it is fully stopped
-        def stop(self):
-            if self.running>0:
-                self.running=0 #make a request to stop on next entry
-        def setPollingPeriod(self, period):
-            self.pollingPeriod=period            
-      
-def initPyglet():
-    """
-    define a thread for pyglet event pumping (needed to fill buffers)
-    """
-    evtDispatchLock = threading.Lock()
-    class _EventDispatchThread(threading.Thread):    
-        """a thread that will periodically call to dispatch events
-        """
-        """I've tried doing this in a way that the thread was started and stopped repeatedly
-        (so could be paused while a sound wasn't needed, but never made it work.
-        see sound.py in SVNr85 for the attempt."""
-        def __init__(self, pollingPeriod):
-            threading.Thread.__init__ ( self )
-            self.setDaemon(True)
-            self.playerList=[]
-            self.pollingPeriod=pollingPeriod
-            self.running = -1
-            core.runningThreads.append(self)
-        def run(self):
-            self.running=1
-            #print 'thread started'
-            while self.running:
-                #try to get lock (but don't block - just return if it's already held)
-                if evtDispatchLock.acquire():#only dispatch if we aren't already in that loop
-                    try:
-                        pyglet.media.dispatch_events()
-                    finally:
-                        evtDispatchLock.release()
-                
-                #pyglet.media.dispatch_events()
-                time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
-                
-            #print 'thread stopped'
-            self.running=-1#shows that it is fully stopped
-        def stop(self):
-            if self.running>0:
-                self.running=0#make a request to stop on next entry
-            core.runningThreads.remove(self)
-        def setPollingPeriod(self, period):
-            #print 'polling period is now:%.3f' %period
-            self.pollingPeriod=period
-            
-    global _eventThread
-    if platform=='win32' and not havePyAudio:
-        _eventThread = _EventDispatchThread(pollingPeriod=0.001)
-    elif not havePyAudio:
-        _eventThread = _EventDispatchThread(pollingPeriod=0.001)#seem to be able to use a shorter refresh safely
-    
-    def setEventPollingPeriod(period):
-        """For pylget contexts this sets the frequency that events controlling sound start and stop
-        are processed in seconds.
-        
-        A long period (e.g. 0.1s) will allow more time to be spent on drawing functions and computations,
-        whereas a very short time (e.g. 0.0001) will allow more precise starting/stopping of audio stimuli..
-        
-        Events will always be polled on every screen refresh anyway, and repeatedly during 
-        calls to event.waitKeys() so this command has few effects on anything other than for very
-        precise sounds.
-        """
-        global _eventThread
-        _eventThread.setPollingPeriod(period)
-    def stopEventPolling():    
-        """Stop all polling of events in a pyglet context. Events will still be dispatched on every
-        flip of a visual.Window (every 10-15ms depending on frame rate).
-        
-        The user can then dispatch events manually using 
-        pyglet.event.dispatch_events()
-        """
-        global _eventThread
-        _eventThread.stop()
-    def startEventPolling():    
-        """Restart automated event polling if it has been suspended.
-        This call does nothing if the polling had been 
-        """
-        global _eventThread
-        if _eventThread.stopping:
-            _eventThread.start()
-            
-    class _pygletArrSound(pyglet.media.procedural.ProceduralSource):
-        """
-        Create a pyglet.StaticSource from a numpy array. 
-        """
-        def __init__(self, data, sample_rate=22050, sample_size=16):
-            """Array data should be float (-+1.0)
-            sample_size (16 or 8) determines the number of bits used for internal storage"""
-            duration = data.shape[1]/float(sample_rate) #determine duration from data
-            super(_pygletArrSound, self).__init__(duration,sample_rate, abs(sample_size))
-            self.sample_rate = sample_rate
-            self.sample_size=sample_size
-            if abs(sample_size)==8:          #ubyte
-                if havePyAudio:
-                    self.allData = (data*127).astype(numpy.int8)#pyaudio ubyte doesn't seem to work
-                else:
-                    self.allData = (data*127+127).astype(numpy.uint8)
-            elif abs(sample_size) == 16:      #signed int16
-                self.allData = (data*32767).astype(numpy.int16)
-            
-        def _generate_data(self, bytes, offset, volume=1.0):
-            #print 'bps', self._bytes_per_sample, bytes
-            if self.sample_size == 8:#ubyte
-                start = offset
-                samples = bytes
-            else: #signed int16
-                start = (offset >> 1)#half as many entries for same number of bytes
-                samples = (bytes >> 1)
-            if havePyAudio:
-                data = numpy.transpose((volume*self.allData[:,start:(start+samples)])).tostring()
-            else:
-                data = (volume*self.allData[:,start:(start+samples)]).ctypes
-            return data
-    
-def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
-    """If you need a specific format for sounds you need to run this init
-    function. Run this *before creating your visual.Window*.
-    
-    The format cannot be changed once initialised or once a Window has been created. 
-    
-    If a Sound object is created before this function is run it will be
-    executed with default format (signed 16bit stereo at 44KHz).
-    
-    For more details see pygame help page for the mixer.
-    """
-    if stereo==True: stereoChans=2
-    else:   stereoChans=0
-    mixer.init(rate, bits, stereoChans, buffer) #defaults: 22050Hz, 16bit, stereo,
-    setRate, setBits, setStereo = mixer.get_init()
-    if setRate!=rate: 
-        log.warn('Requested sound sample rate was not poossible')
-    if setBits!=bits:
-        log.warn('Requested sound depth (bits) was not possible')
-    if setStereo!=1 and stereo==True: 
-        log.warn('Requested stereo setting was not possible')
-    
 
 class _SoundBase:
     """Create a sound object, from one of many ways.
@@ -484,10 +301,7 @@ class SoundPygame(_SoundBase):
             tmp = numpy.ones((len(thisArray),2))
             tmp[:,0] = thisArray
             tmp[:,1] = thisArray
-            if usePygame: 
-                thisArray = tmp
-            else:
-                thisArray = numpy.transpose(tmp)#pyglet wants the transpose
+            thisArray = tmp
         
         #get the format right
         if self.format == -16: 
@@ -503,7 +317,7 @@ class SoundPygame(_SoundBase):
             
         return True
 
-class SoundPyglet:
+class SoundPyglet(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
@@ -629,7 +443,7 @@ class SoundPyglet:
         return True
     
     def _fromArray(self, thisArray):
-        global usePygame
+        global _pygletArrSound
         #get a mixer.Sound object from an array of floats (-1:1)
         
         #make stereo if mono
@@ -638,17 +452,14 @@ class SoundPyglet:
             tmp = numpy.ones((len(thisArray),2))
             tmp[:,0] = thisArray
             tmp[:,1] = thisArray
-            if usePygame: 
-                thisArray = tmp
-            else:
-                thisArray = numpy.transpose(tmp)#pyglet wants the transpose
+            thisArray = numpy.transpose(tmp)#pyglet wants the transpose
     
         #use pyglet
         self._snd = _pygletArrSound(data=thisArray, sample_rate=self.sampleRate, sample_size=-self.format)
         self._player.queue(self._snd)
         return True
 
-class SoundPyaudio:
+class SoundPyaudio(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self,value="C",secs=0.5,octave=4,
@@ -758,8 +569,6 @@ class SoundPyaudio:
         """Sets the current volume of the sound (0.0:1.0)"""
         self.volume = newVol
     def _fromFile(self, fileName):
-        global usePygame
-        
         #try finding the file
         self.fileName=None
         for filePath in ['', mediaLocation]:
@@ -872,7 +681,177 @@ class SoundPyaudio:
             
         #cwrite the data to the stream
         self._stream.write(data)
+
+
+def initPyaudio():
+    """
+    define a thread for pyaudio event pumping (needed to fill buffers)
+    """
+    class PyAudioThread(threading.Thread):
+        """a thread class to allow PyAudio sounds to play asynchronously"""
+        def __init__(self, sound, pollingPeriod):
+            threading.Thread.__init__ ( self )
+            self.setDaemon(True)
+            self.sound = sound
+            self.pollingPeriod=pollingPeriod
+            self.running = -1
+        def run(self):
+            self.running=1
+            while self.running:
+                #do the data read
+                self.sound._fillBuffer()
+                time.sleep(self.pollingPeriod)#yields to other processes while sleeping
+            self.running=-1 #shows that it is fully stopped
+        def stop(self):
+            if self.running>0:
+                self.running=0 #make a request to stop on next entry
+        def setPollingPeriod(self, period):
+            self.pollingPeriod=period            
+      
+def initPyglet():
+    """
+    define a thread for pyglet event pumping (needed to fill buffers)
+    """
+    evtDispatchLock = threading.Lock()
+    class _EventDispatchThread(threading.Thread):    
+        """a thread that will periodically call to dispatch events
+        """
+        """I've tried doing this in a way that the thread was started and stopped repeatedly
+        (so could be paused while a sound wasn't needed, but never made it work.
+        see sound.py in SVNr85 for the attempt."""
+        def __init__(self, pollingPeriod=0.005):
+            threading.Thread.__init__ ( self )
+            self.pollingPeriod=pollingPeriod
+            self.running = -1
+            core.runningThreads.append(self)
+        def run(self):
+            self.running=1
+            #print 'thread started'
+            while self.running:
+                #print self.pollingPeriod
+                pyglet.media.dispatch_events()
+                time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
+            #print 'thread stopped'
+            self.running=-1#shows that it is fully stopped
+        def stop(self):
+            if self.running>0:
+                self.running=0#make a request to stop on next entry
+        def setPollingPeriod(self, period):
+            #print 'polling period is now:%.3f' %period
+            self.pollingPeriod=period
             
-if havePyAudio:
-    Sound = SoundPyAudio
+            
+    global _eventThread, _pygletArrSound
+    if platform=='win32':
+        _eventThread = _EventDispatchThread(pollingPeriod=0.01)
+    else:
+        _eventThread = _EventDispatchThread(pollingPeriod=0.001)#Mac seem to be able to use a shorter refresh safely
+    
+    def setEventPollingPeriod(period):
+        """For pylget contexts this sets the frequency that events controlling sound start and stop
+        are processed in seconds.
         
+        A long period (e.g. 0.1s) will allow more time to be spent on drawing functions and computations,
+        whereas a very short time (e.g. 0.0001) will allow more precise starting/stopping of audio stimuli..
+        
+        Events will always be polled on every screen refresh anyway, and repeatedly during 
+        calls to event.waitKeys() so this command has few effects on anything other than for very
+        precise sounds.
+        """
+        global _eventThread
+        _eventThread.setPollingPeriod(period)
+    def stopEventPolling():    
+        """Stop all polling of events in a pyglet context. Events will still be dispatched on every
+        flip of a visual.Window (every 10-15ms depending on frame rate).
+        
+        The user can then dispatch events manually using 
+        pyglet.event.dispatch_events()
+        """
+        global _eventThread
+        _eventThread.stop()
+    def startEventPolling():    
+        """Restart automated event polling if it has been suspended.
+        This call does nothing if the polling had been 
+        """
+        global _eventThread
+        if _eventThread.stopping:
+            _eventThread.start()
+            
+    class _pygletArrSound(pyglet.media.procedural.ProceduralSource):
+        """
+        Create a pyglet.StaticSource from a numpy array. 
+        """
+        def __init__(self, data, sample_rate=22050, sample_size=16):
+            """Array data should be float (-+1.0)
+            sample_size (16 or 8) determines the number of bits used for internal storage"""
+            duration = data.shape[1]/float(sample_rate) #determine duration from data
+            super(_pygletArrSound, self).__init__(duration,sample_rate, abs(sample_size))
+            self.sample_rate = sample_rate
+            self.sample_size=sample_size
+            if abs(sample_size)==8:          #ubyte
+                self.allData = (data*127+127).astype(numpy.uint8)
+            elif abs(sample_size) == 16:      #signed int16
+                self.allData = (data*32767).astype(numpy.int16)
+            
+        def _generate_data(self, bytes, offset, volume=1.0):
+            #print 'bps', self._bytes_per_sample, bytes
+            if self.sample_size == 8:#ubyte
+                start = offset
+                samples = bytes
+            else: #signed int16
+                start = (offset >> 1)#half as many entries for same number of bytes
+                samples = (bytes >> 1)
+            return (self.allData[:,start:(start+samples)]).ctypes
+    
+def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
+    """If you need a specific format for sounds you need to run this init
+    function. Run this *before creating your visual.Window*.
+    
+    The format cannot be changed once initialised or once a Window has been created. 
+    
+    If a Sound object is created before this function is run it will be
+    executed with default format (signed 16bit stereo at 44KHz).
+    
+    For more details see pygame help page for the mixer.
+    """
+    if stereo==True: stereoChans=2
+    else:   stereoChans=0
+    if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
+    mixer.init(rate, bits, stereoChans, buffer) #defaults: 22050Hz, 16bit, stereo,
+    setRate, setBits, setStereo = mixer.get_init()
+    if setRate!=rate: 
+        log.warn('Requested sound sample rate was not poossible')
+    if setBits!=bits:
+        log.warn('Requested sound depth (bits) was not possible')
+    if setStereo!=2 and stereo==True: 
+        log.warn('Requested stereo setting was not possible')
+    
+
+def setAudioAPI(api):
+    """Change the API used for the presentation of sounds
+            
+        usage:
+            setAudioAPI(api)
+            
+        where:
+            api is one of 'pygame','pyglet', pyaudio'
+            
+    """
+    global audioAPI, Sound
+    exec('haveThis=have%s' %api.title())
+    if haveThis:
+        audioAPI=api
+        exec('init%s()' %(API.title()))
+        exec('thisSound= Sound%s' %(API.title()))
+        Sound= thisSound
+    return haveThis
+    
+audioAPI=None
+#initialise it and keep track
+for API in preferredAPI:
+    if setAudioAPI(API):
+        audioAPI=API
+        break#we found one so stop looking
+if audioAPI is None:
+    log.error('No audio API found. Try installing pygame 1.8+')
+
