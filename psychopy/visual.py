@@ -3326,11 +3326,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             log.error("Only 2D textures are supported at the moment")
         else:
             maxDim = max(im.size)
-            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
                 log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
-                im.resize([powerOf2,powerOf2],Image.BILINEAR)                    
-
+                im=im.resize([powerOf2,powerOf2],Image.BILINEAR)      
+                
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
@@ -3341,9 +3341,10 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
+            im = im.convert("RGB")#force to rgb (in case it was CMYK or L)
             intensity = numpy.array(im).astype(numpy.float32)*2/255-1
             wasLum=False
-
+            
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
         internalFormat = GL.GL_RGB32F_ARB

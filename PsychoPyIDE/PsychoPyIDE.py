@@ -916,7 +916,8 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
         self.parent=parent
-        
+        print dir(self)
+        self.SetScrollPageSize( wx.PORTRAIT, 1000)
         #define style for filename links (URLS) needs wx as late as 2.8.4.0
         #self.urlStyle = wx.richtext.RichTextAttr()
         #self.urlStyle.SetTextColour(wx.BLUE)

@@ -13,7 +13,7 @@ thisVersion=psychopy.__version__
 packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
               'PsychoPyIDE','PsychoPyIDE.Resources','monitors']
 
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise

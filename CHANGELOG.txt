@@ -4,6 +4,14 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog
 
+PsychoPY 0.96.0:
+* CHANGED default sound handler to be pygame again. Although pyglet looked promising for this
+  it has turned out to be buggy. Timing of sounds can be very irregular and sometimes they don't even play
+  Although pygame has longer overall latencies (20-30ms) it's behaviour is at least robust. This will be 
+  revisited one day when i have time to write driver-specific code for sounds
+* FIXED image importing - scaling from square image wasn't working and CMYK images weren't imported
+  properly. Both are now fine.
+
 PsychoPy 0.95.11:
 * ADDED sound.Sound.getDuration() method
 * FIXED spurious (unimportant but ugly) error messages raised by certain threads on core.quit()

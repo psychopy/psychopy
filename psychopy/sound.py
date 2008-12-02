@@ -17,7 +17,7 @@ pyglet:
 
 pyaudio:
     pros: relatively low-level wrapper around portAudio
-    cons: needs another download, not fully working...?
+    cons: needs another download, rather buggy..
 """
 import numpy, threading, time
 from os import path 
@@ -47,7 +47,7 @@ except:
 try:
     import pygame
     from pygame import mixer, sndarray
-    havePygame=False
+    havePygame=True
 except:
     havePygame=False    
 
@@ -213,14 +213,12 @@ class SoundPygame(_SoundBase):
         #check initialisation
         if not mixer.get_init():
             pygame.mixer.init(22050, -16, 2, 3072)
-            print 'initialise pygame mixer'
         
         inits = mixer.get_init()
         if inits is None:
             init()
             inits = mixer.get_init()                
         self.sampleRate, self.format, self.isStereo = inits
-        print "using pygame sound"
         
         #try to determine what the sound is
         self._snd=None
@@ -389,7 +387,7 @@ class SoundPyglet(_SoundBase):
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
-        self._snd.play()
+        self._player.play()
         pyglet.media.dispatch_events()
 
     def _onEOS(self):
