@@ -24,10 +24,10 @@ def install():
         pythonLoc = os.path.join(sys.prefix, 'pythonw.exe')
         if os.path.isfile(PsychoIDELink):    
             os.remove(PsychoIDELink)#we want to make a new one
-        create_shortcut(pythonLoc,  #target
+        create_shortcut('"'+pythonLoc+'"',  #target
                         'PsychoPy IDE',   #description
                         PsychoIDELink,  #filename
-                        psychoIDEloc, #args
+                        '"' + psychoIDEloc + '"', #args
                         '', #working directory (blank)  os.path.join(sitePackages,'psychopy','PsychoCentral'),
                         os.path.join(sitePackages,'psychopyIDE','psychopy.ico'))    
         file_created(PsychoIDELink)
