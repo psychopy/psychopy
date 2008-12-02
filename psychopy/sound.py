@@ -33,6 +33,7 @@ else:
 preferredAPI = ['pygame','pyglet','pyaudio']
 global audioAPI, Sound
 Sound = None
+audioAPI=None
 
 try:
     import pyglet
@@ -262,8 +263,8 @@ class SoundPygame(_SoundBase):
         self._snd.fadeout(mSecs)
         
     def getDuration(self):
-        print "getDuration not yet implemented in pygame API"
-        return None
+        """Get's the duration of the current sound in secs"""
+        return self._snd.get_length()
         
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
@@ -844,7 +845,6 @@ def setAudioAPI(api):
         Sound= thisSound
     return haveThis
     
-audioAPI=None
 #initialise it and keep track
 for API in preferredAPI:
     if setAudioAPI(API):
