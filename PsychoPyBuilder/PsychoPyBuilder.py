@@ -59,6 +59,16 @@ ID_PSYCHO_TUTORIAL=wx.NewId()
 ID_PSYCHO_HOME=wx.NewId()
 ID_PSYCHO_REFERENCE=wx.NewId()
 
+#toolbar IDs
+TB_FILENEW=10
+TB_FILEOPEN=20
+TB_FILESAVE=30
+TB_FILESAVEAS=40
+TB_UNDO= 70
+TB_REDO= 80
+TB_RUN = 100
+TB_STOP = 110
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, parent, id=-1,size = wx.DefaultSize):
         """A panel that shows how the routines will fit together
@@ -439,8 +449,8 @@ class RoutineButtonsPanel(scrolled.ScrolledPanel):
         # add a button for each type of event that can be added
         self.routineButtons={}; self.componentFromID={}
         for eventType in eventTypes:
-            img =wx.Bitmap( 
-                "res//%sAdd.png" %eventType.lower())    
+            img =wx.Bitmap(
+                os.path.join(iconDir,"%sAdd.png" %eventType.lower()))    
             btn = wx.BitmapButton(self, -1, img, (20, 20),
                            (img.GetWidth()+10, img.GetHeight()+10),
                            name=eventType)  
@@ -586,9 +596,9 @@ class BuilderFrame(wx.Frame):
         #load icons for the various stimulus events 
         self.bitmaps={}
         for eventType in eventTypes:
-            self.bitmaps[eventType]=wx.Bitmap("res//%s.png" %eventType.lower())        
+            self.bitmaps[eventType]=wx.Bitmap( \
+                os.path.join(iconDir,"%sAdd.png" %eventType.lower()))      
         
-        self._mgr = wx.aui.AuiManager(self)
         
         #create a default experiment (maybe an empty one instead)
         self.exp = ExperimentObjects.Experiment()
@@ -606,15 +616,65 @@ class BuilderFrame(wx.Frame):
         self.routinePanel=RoutinesNotebook(self)
         self.routineButtons=RoutineButtonsPanel(self)
         # add the panes to the manager
-        self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
-        self._mgr.AddPane(self.routineButtons, wx.RIGHT)
-        self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
-
+#        self._mgr = wx.aui.AuiManager(self)
+#        self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
+#        self._mgr.AddPane(self.routineButtons, wx.RIGHT)
+#        self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
         # tell the manager to 'commit' all the changes just made
-        self._mgr.Update()
+#        self._mgr.Update()
+        self.routineSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.routineSizer.Add(self.routinePanel, 1)
+        self.routineSizer.Add(self.routineButtons, 1)
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(self.routineSizer, 1)
+        self.mainSizer.Add(self.flowPanel, 1)
+        self.SetSizer(self.mainSizer)
         
+        self.SetAutoLayout(True)
+        self.makeToolbar()
         self.makeMenus()
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+    def makeToolbar(self):
+        #---toolbar---#000000#FFFFFF----------------------------------------------
+        self.toolbar = self.CreateToolBar( (wx.TB_HORIZONTAL
+            | wx.NO_BORDER
+            | wx.TB_FLAT))
+            
+        if sys.platform=='win32':
+            toolbarSize=32
+        else:
+            toolbarSize=32 #size 16 doesn't work on mac wx
+        self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
+        new_bmp = wx.Bitmap(os.path.join(iconDir, 'filenew%i.png' %toolbarSize))
+        open_bmp = wx.Bitmap(os.path.join(iconDir, 'fileopen%i.png' %toolbarSize))
+        save_bmp = wx.Bitmap(os.path.join(iconDir, 'filesave%i.png' %toolbarSize))
+        saveAs_bmp = wx.Bitmap(os.path.join(iconDir, 'filesaveas%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        undo_bmp = wx.Bitmap(os.path.join(iconDir, 'undo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        redo_bmp = wx.Bitmap(os.path.join(iconDir, 'redo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        stop_bmp = wx.Bitmap(os.path.join(iconDir, 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        run_bmp = wx.Bitmap(os.path.join(iconDir, 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+            
+        self.toolbar.AddSimpleTool(TB_FILENEW, new_bmp, "New [Ctrl+N]", "Create new python file")
+        self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=TB_FILENEW)
+        self.toolbar.AddSimpleTool(TB_FILEOPEN, open_bmp, "Open [Ctrl+O]", "Open an existing file'")
+        self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=TB_FILEOPEN)
+        self.toolbar.AddSimpleTool(TB_FILESAVE, save_bmp, "Save [Ctrl+S]", "Save current file")        
+        self.toolbar.EnableTool(TB_FILESAVE, False)
+        self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=TB_FILESAVE)
+        self.toolbar.AddSimpleTool(TB_FILESAVEAS, saveAs_bmp, "Save As... [Ctrl+Shft+S]", "Save current python file as...")
+        self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=TB_FILESAVEAS)
+        self.toolbar.AddSimpleTool(TB_UNDO, undo_bmp, "Undo [Ctrl+U]", "Undo last action")
+        self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=TB_UNDO)
+        self.toolbar.AddSimpleTool(TB_REDO, redo_bmp, "Redo [Ctrl+R]", "Redo last action")
+        self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=TB_REDO)
+        self.toolbar.AddSeparator()
+        self.toolbar.AddSimpleTool(TB_RUN, run_bmp, "Run [F5]",  "Run current script")
+        self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=TB_RUN)
+        self.toolbar.AddSimpleTool(TB_STOP, stop_bmp, "Stop [Shift+F5]",  "Stop current script")
+        self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=TB_STOP)
+        self.toolbar.EnableTool(TB_STOP,False)
+        self.toolbar.Realize()
+        
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
@@ -690,8 +750,6 @@ class BuilderFrame(wx.Frame):
         pass
 
     def OnClose(self, event):
-        # deinitialize the frame manager
-        self._mgr.UnInit()
         # delete the frame
         self.Destroy()
     def fileOpen(self, event=None):
