@@ -24,10 +24,10 @@ try:
 except:
     havePyglet=False    
 
+import OpenGL.GL, OpenGL.GL.ARB.multitexture
+import pygame
+#import _shadersPygame
 try:
-    import pygame
-    import OpenGL.GL, OpenGL.GLU, OpenGL.GL.ARB.multitexture
-    import _shadersPygame
     havePygame=True
     if OpenGL.__version__ > '3':
         cTypesOpenGL = True
@@ -190,7 +190,10 @@ class Window:
         if winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
                     self._haveShaders=True
-            else:self._haveShaders=False   
+            else:
+                self._haveShaders=False   
+        else:
+            self._haveShaders=False   
         self._setupGL()
 
         self.frameClock = core.Clock()#from psycho/core
@@ -513,10 +516,9 @@ class Window:
         self.winType = "pygame"
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GLU, GL_multitexture
+        global GL, GL_multitexture
         
         GL = OpenGL.GL
-        GLU = OpenGL.GLU
         GL_multitexture = OpenGL.GL.ARB.multitexture
         
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
@@ -557,7 +559,7 @@ class Window:
     def _setupGL(self):
         global _shaders
         if self.winType=='pyglet': _shaders=_shadersPyglet
-        else: _shaders=_shadersPygame
+#        else: _shaders=_shadersPygame
         
         #do settings for openGL
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
@@ -587,14 +589,14 @@ class Window:
             #we should be able to compile shaders (don't just 'try')
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-        elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
-            from OpenGL.GL.ARB import shader_objects
-            if shader_objects.glInitShaderObjectsARB():
-                self._haveShaders=True
-                self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
-                self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-            else:
-                self._haveShaders=False
+#        elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
+#            from OpenGL.GL.ARB import shader_objects
+#            if shader_objects.glInitShaderObjectsARB():
+#                self._haveShaders=True
+#                self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
+#                self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+#            else:
+#                self._haveShaders=False
         
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
@@ -2985,14 +2987,13 @@ class TextStim(_BaseVisualStim):
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
-            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
-                                  GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
-            #GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            ##important if using bits++ because GL_LINEAR
-            ##sometimes extrapolates to pixel vals outside range
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target            
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
+                            self.width,self.height,0,
+                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
+
 
         self.needUpdate = True
 
@@ -3086,12 +3087,10 @@ class TextStim(_BaseVisualStim):
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
-            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
-                                  GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
-            #GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            ##important if using bits++ because GL_LINEAR
-            ##sometimes extrapolates to pixel vals outside range
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target            
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
+                            self.width,self.height,0,
+                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
 
@@ -3116,7 +3115,7 @@ class TextStim(_BaseVisualStim):
         if self.alignVert =='center': bottom=-self.height/2.0; top=self.height/2.0
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
-        Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
+        Btex, Ttex, Ltex, Rtex = -0.01, 0.99, 0,1.0#there seems to be a rounding err in pygame font textures
 
         if self.win.winType=="pyglet":
             #unbind the mask texture 

@@ -35,13 +35,12 @@ if platform == 'win32':
           data_files=packageData)
 else:
     setup(app=['PsychoPyIDE.py'],
-        options=dict(py2app=dict( excludes=['OpenGL'],
-                                  includes=['Tkinter','FileDialog','setuptools'],
+        options=dict(py2app=dict( includes=['Tkinter','FileDialog','setuptools'],
                                   frameworks = ["libavbin.dylib"],
                                   resources=resources,
                                   #semi_standalone=True,
                                   site_packages=True,
-                                  packages=['wx','scipy','matplotlib','pyglet','pygame','monitors','psychopy'],
+                                  packages=['wx','scipy','matplotlib','pyglet','pygame','OpenGL','monitors','psychopy'],
                                   iconfile='psychopy.icns',
                                   plist=dict(
                                       CFBundleIconFile='psychopy.icns',

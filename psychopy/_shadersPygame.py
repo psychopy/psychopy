@@ -1,61 +1,50 @@
-from ctypes import *
-
 from OpenGL.GL import *
-from OpenGL.GL.ARB import shader_objects, vertex_shader, fragment_shader
-import OpenGL.arrays
-import sys
+from OpenGL.GL.ARB.shader_objects import *
+from OpenGL.GL.ARB.fragment_shader import *
+from OpenGL.GL.ARB.vertex_shader import *
+import time, sys
+from OpenGL.extensions import alternate
+glCreateShader = alternate( 'glCreateShader', glCreateShader, glCreateShaderObjectARB )
+glShaderSource = alternate( 'glShaderSource', glShaderSource, glShaderSourceARB)
+glCompileShader = alternate( 'glCompileShader', glCompileShader, glCompileShaderARB)
+glCreateProgram = alternate( 'glCreateProgram', glCreateProgram, glCreateProgramObjectARB)
+glAttachShader = alternate( 'glAttachShader', glAttachShader,glAttachObjectARB )
+glValidateProgram = alternate( 'glValidateProgram',glValidateProgram,glValidateProgramARB )
+glLinkProgram = alternate( 'glLinkProgram',glLinkProgram,glLinkProgramARB )
+glDeleteShader = alternate( 'glDeleteShader', glDeleteShader,glDeleteObjectARB )
+glUseProgram = alternate('glUseProgram',glUseProgram,glUseProgramObjectARB )
 
-def print_log(shader):
-    length = c_int()
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, byref(length))
-    
-    if length.value > 0:
-        log = create_string_buffer(length.value)
-        glGetShaderInfoLog(shader, length, byref(length), log)
-        print >> sys.stderr, log.value
-        
-        
+def compileShader( source, shaderType ):
+	"""Compile shader source of given type"""
+	shader = glCreateShader(shaderType)
+	glShaderSource( shader, source )
+	glCompileShader( shader )
+	return shader
+
+
 def compileProgram(vertexSource=None, fragmentSource=None):
-        """Create and compile a vertex and fragment shader pair from their sources (strings)
-        """
-        
-        def compileShader( source, shaderType ):
-                """Compile shader source of given type (only needed by compileProgram)"""
-                shader = shader_objects.glCreateShaderObjectARB(shaderType)
-                #shader_objects.glShaderSourceARB( shader, 1, OpenGL.arrays.GLcharARBArray(source), None )
-                shader_objects.glShaderSourceARB( shader, 1, c_wchar_p(source), None )
-                shader_objects.glCompileShaderARB( shader )
-                #check for errors
-                status = c_int()
-                glGetShaderiv(shader, GL_COMPILE_STATUS, byref(status))
-                if not status.value:
-                    print_log(shader)
-                    glDeleteShader(shader)
-                    raise ValueError, 'Shader compilation failed'
-                return shader
-        
-        program = shader_objects.glCreateProgramObjectARB()
+	program = glCreateProgram()
 
-        if vertexSource:
-                vertexShader = compileShader(
-                        vertexSource, vertex_shader.GL_VERTEX_SHADER_ARB
-                )
-                shader_objects.glAttachObjectARB(program, vertexShader)
-        if fragmentSource:
-                fragmentShader = compileShader(
-                        fragmentSource, fragment_shader.GL_FRAGMENT_SHADER_ARB
-                )
-                shader_objects.glAttachObjectARB(program, fragmentShader)
+	if vertexSource:
+		vertexShader = compileShader(
+			[vertexSource,], GL_VERTEX_SHADER_ARB
+		)
+		glAttachShader(program, vertexShader)
+	if fragmentSource:
+		fragmentShader = compileShader(
+			[fragmentSource,], GL_FRAGMENT_SHADER_ARB
+		)
+		glAttachShader(program, fragmentShader)
 
-        shader_objects.glValidateProgramARB( program )
-        shader_objects.glLinkProgramARB(program)
+	glValidateProgram( program )
+	glLinkProgram(program)
 
-        if vertexShader:
-                shader_objects.glDeleteObjectARB(vertexShader)
-        if fragmentShader:
-                shader_objects.glDeleteObjectARB(fragmentShader)
+	if vertexShader:
+		glDeleteShader(vertexShader)
+	if fragmentShader:
+		glDeleteShader(fragmentShader)
 
-        return program
+	return program
 
 fragSignedColorTex = '''
     // Fragment program

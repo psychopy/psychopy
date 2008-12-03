@@ -41,7 +41,8 @@ def _onPygletKey(symbol, modifiers):
     using event.getKeys(), .waitKeys(), clearBuffer() etc..."""         
     thisKey = key.symbol_string(symbol).lower()#convert symbol into key string
     #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
-    thisKey = thisKey.lstrip('_').lstrip('NUM_')
+    thisKey = thisKey.lstrip('_')
+    
     _keyBuffer.append(thisKey)
 
 def _onPygletMousePress(x,y, button, modifiers):

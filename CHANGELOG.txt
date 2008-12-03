@@ -2,7 +2,11 @@
 In general, when a new feature is added the first or the second number is incremented (e.g. 0.90.3 -> 0.91.0). Those releases might break previous code you've written because new features often need slight changes to other things. 
 Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
-!!Changelog
+!!Changelog 
+
+PsychoPY 0.96.0:
+* FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
+* TODO movie is currently affected by texture color
 
 PsychoPY 0.96.0:
 * CHANGED default sound handler to be pygame again. Although pyglet looked promising for this
@@ -15,9 +19,6 @@ PsychoPY 0.96.0:
 PsychoPy 0.95.11:
 * ADDED sound.Sound.getDuration() method
 * FIXED spurious (unimportant but ugly) error messages raised by certain threads on core.quit()
-
-PsychoPy 0.95.10:
-* ADDED sound.Sound.getDuration() method
 
 PsychoPy 0.95.9:
 * FIXED further bug in sound.Sound on win32 (caused by thread being polled too frequently)
