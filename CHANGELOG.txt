@@ -5,8 +5,13 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 !!Changelog 
 
 PsychoPY 0.96.0:
-* FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
+* FIXED problem with write errors running demos from Mac IDE
+* ADDED frameWidth to textStim for multiline
+* ADDED recordFrameTimes, saveFrameTimes() to Window
 * TODO movie is currently affected by texture color
+
+!!!PsychoPY 0.96.0:
+* FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
 
 PsychoPY 0.96.0:
 * CHANGED default sound handler to be pygame again. Although pyglet looked promising for this

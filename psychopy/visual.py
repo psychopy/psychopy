@@ -2810,7 +2810,8 @@ class TextStim(_BaseVisualStim):
                  italic=False,
                  alignHoriz='center',
                  alignVert='center',
-                 fontFiles=[]):
+                 fontFiles=[],
+                 wrapWidth=None):
         """
             **Arguments:**
         
@@ -2858,6 +2859,9 @@ class TextStim(_BaseVisualStim):
                     
                 - **fontFiles**
                     A list of additional files if the font is not in the standard system location (include the full path)
+                    
+                - **wrapWidth**
+                    The width the text should run before wrapping
         """
         self.win = win
         if win._haveShaders: self._useShaders=True
@@ -2873,6 +2877,7 @@ class TextStim(_BaseVisualStim):
         self.text='' #NB just a placeholder - real value set below
         self.depth=depth
         self.ori=ori
+        self.wrapWidth=wrapWidth
         self._pygletTextObj=None
 
         if len(units): self.units = units
@@ -2896,6 +2901,16 @@ class TextStim(_BaseVisualStim):
             if height: self.height = height
             else: self.height = 20#default text height
             self.heightPix = self.height
+        
+        if self.wrapWidth ==None:
+            if self.units=='norm': self.wrapWidth=1
+            elif self.units=='deg': self.wrapWidth=15
+            elif self.units=='cm': self.wrapWidth=15
+            elif self.units=='pix': self.wrapWidth=500
+        if self.units=='norm': self._wrapWidthPIX= self.wrapWidth*win.size[0]/2
+        elif self.units=='deg': self._wrapWidthPIX= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
+        elif self.units=='cm': self._wrapWidthPIX= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
+        elif self.units=='pix': self._wrapWidthPIX=self.wrapWidth
         
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
@@ -2977,8 +2992,8 @@ class TextStim(_BaseVisualStim):
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
-                                                       )#width of the frame            
+                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
+                                                       width=self._wrapWidthPIX)#width of the frame            
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias, [255,255,255])
@@ -3189,6 +3204,11 @@ class TextStim(_BaseVisualStim):
         GL.glRotatef(self.ori,0.0,0.0,1.0)
         #then scale back to pixels
         self.win.setScale('pix', None, unitScale)
+        #and align based on x anchor
+        if self.alignHoriz=='right':
+            GL.glTranslatef(-self.width,0,0)#NB depth is set already
+        if self.alignHoriz=='center':
+            GL.glTranslatef(-self.width/2,0,0)#NB depth is set already
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
