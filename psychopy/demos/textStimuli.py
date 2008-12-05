@@ -35,9 +35,9 @@ psychopyTxt = visual.TextStim(myWin,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
                         font=fancy, italic=True) 
 longSentence = visual.TextStim(myWin, 
-                        text = u"Very long sentences can wrap", wrapWidth=0.2,
+                        text = u"Very long sentences can wrap", wrapWidth=0.4,
                         units='norm', height=0.05,
-                        pos=[0.95, -0.95], alignHoriz='center',alignVert='bottom') 
+                        pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom') 
 trialClock = core.Clock()
 t=lastFPSupdate=0;
 while t<20:#quits after 20 secs
