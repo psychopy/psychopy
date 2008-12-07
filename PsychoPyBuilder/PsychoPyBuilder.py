@@ -3,7 +3,7 @@ import wx.lib.scrolledpanel as scrolled
 import wx.aui
 import sys, os, glob
 import ExperimentObjects, numpy
-import psychopy
+#import psychopy
 from keybindings import *
 
 ## global variables
@@ -11,7 +11,7 @@ homeDir = os.getcwd()
 #on mac __file__ might be a local path
 fullAppPath= os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)
-psychopyDir, junk = os.path.split(psychopy.__file__)
+#psychopyDir, junk = os.path.split(psychopy.__file__)
 #get path to settings
 join = os.path.join
 if sys.platform=='win32':
@@ -30,7 +30,7 @@ else:iconDir = appDir
 eventTypes=['Patch','Text','Movie','Sound','Mouse','Keyboard']
 
 #for demos we need a dict where the event ID will correspond to a filename
-demoList = glob.glob(os.path.join(psychopyDir,'demos','*.py'))
+demoList = glob.glob(os.path.join(appDir,'demos','*.py'))
 if '__init__.py' in demoList: demoList.remove('__init__.py')    
 #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
 ID_DEMOS = \
@@ -298,6 +298,7 @@ class RoutinePage(wx.ScrolledWindow):
     """
     def __init__(self, parent, id=-1, routine=None):
         wx.ScrolledWindow.__init__(self, parent, id)
+        self.panel = wx.Panel(self)
         self.parent=parent       
         self.routine=routine
         self.yPositions=None
@@ -591,6 +592,7 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, size=(800, 600),files=None,
                  style=wx.DEFAULT_FRAME_STYLE):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
+        self.panel = wx.Panel(self)
         self.parent=parent
         
         #load icons for the various stimulus events 
@@ -616,19 +618,19 @@ class BuilderFrame(wx.Frame):
         self.routinePanel=RoutinesNotebook(self)
         self.routineButtons=RoutineButtonsPanel(self)
         # add the panes to the manager
-#        self._mgr = wx.aui.AuiManager(self)
-#        self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
-#        self._mgr.AddPane(self.routineButtons, wx.RIGHT)
-#        self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
+        self._mgr = wx.aui.AuiManager(self)
+        self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
+        self._mgr.AddPane(self.routineButtons, wx.RIGHT)
+        self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
         # tell the manager to 'commit' all the changes just made
-#        self._mgr.Update()
-        self.routineSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.routineSizer.Add(self.routinePanel, 1)
-        self.routineSizer.Add(self.routineButtons, 1)
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.routineSizer, 1)
-        self.mainSizer.Add(self.flowPanel, 1)
-        self.SetSizer(self.mainSizer)
+        self._mgr.Update()
+#        self.routineSizer = wx.BoxSizer(wx.HORIZONTAL)
+#        self.routineSizer.Add(self.routinePanel, 1)
+#        self.routineSizer.Add(self.routineButtons, 1)
+#        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+#        self.mainSizer.Add(self.routineSizer, 1)
+#        self.mainSizer.Add(self.flowPanel, 1)
+#        self.SetSizer(self.mainSizer)
         
         self.SetAutoLayout(True)
         self.makeToolbar()
