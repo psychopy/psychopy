@@ -186,12 +186,19 @@ class Window:
         if winType is "glut": self._setupGlut()
         elif winType is "pygame": self._setupPygame()
         elif winType is "pyglet": self._setupPyglet()
+        
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
                     self._haveShaders=True
             else:
                 self._haveShaders=False   
+            #also check for GL_ARB_texture_float
+            try:#some graphics cards require that a context is created before queries
+                if not pyglet.gl_info.have_extension('GL_ARB_texture_float'):
+                    self._haveShaders=False  
+            except:
+                pass
         else:
             self._haveShaders=False   
         self._setupGL()

@@ -8,9 +8,8 @@ PsychoPY 0.96.01:
 * FIXED problem with write errors running demos from Mac IDE
 * ADDED frameWidth to textStim for multiline
 * ADDED setRecordFrameIntervals, saveFrameTimes() to Window and misc.plotFrameIntervals()
-* FIXED movie is currently affected by texture color
-
-!!!PsychoPY 0.96.0:
+* FIXED MovieStim was being affected by texture color of other stimuli
+* FIXED window now explicitly checks for GL_ARB_texture_float before using shaders
 * FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
 
 PsychoPY 0.96.0:

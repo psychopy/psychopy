@@ -3,16 +3,6 @@ bugs in IDE and monitorcenter
     closing with unsaved data causes freeze 
     return on final line goes back one space from current indent!?
     
-bugs in pyglet sounds:
-    gets louder with each initilisation
-    only plays once (needs to be queued each time)
-    
-    
-    
-pyglet back-end
- - fontstim, 
-     - handle text frames (text wrapping)
-
 debugging (test if pyglet allows - pygame on Mac didn't)
 GUI script generator
 LineStim
