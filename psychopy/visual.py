@@ -3078,14 +3078,14 @@ class TextStim(_BaseVisualStim):
         #GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
         
         #coords:
-        if self.alignHoriz =='center': left = -self.width/2.0;    right = self.width/2.0
+        if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
         else: left = 0.0; right = self.width
         #how much to move bottom
-        if self.alignVert =='center': bottom=-self.height/2.0; top=self.height/2.0
+        if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
-        Btex, Ttex, Ltex, Rtex = 0, 1.0, 0, 1.0
+        Btex, Ttex, Ltex, Rtex = 0, 0.7, 0, 1.0
         
         #unbind the mask texture regardless
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -3172,14 +3172,14 @@ class TextStim(_BaseVisualStim):
         GL.glPushMatrix()
 
         #coords:
-        if self.alignHoriz =='center': left = -self.width/2.0;    right = self.width/2.0
+        if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
         else: left = 0.0; right = self.width
         #how much to move bottom
-        if self.alignVert =='center': bottom=-self.height/2.0; top=self.height/2.0
+        if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
-        Btex, Ttex, Ltex, Rtex = -0.01, 0.99, 0,1.0#there seems to be a rounding err in pygame font textures
+        Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
 
         if self.win.winType=="pyglet":
             #unbind the mask texture 
@@ -3253,11 +3253,6 @@ class TextStim(_BaseVisualStim):
         GL.glRotatef(self.ori,0.0,0.0,1.0)
         #then scale back to pixels
         self.win.setScale('pix', None, unitScale)
-        #and align based on x anchor
-        if self.alignHoriz=='right':
-            GL.glTranslatef(-self.width,0,0)#NB depth is set already
-        if self.alignHoriz=='center':
-            GL.glTranslatef(-self.width/2,0,0)#NB depth is set already
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -3271,6 +3266,13 @@ class TextStim(_BaseVisualStim):
         GL.glDisable(GL.GL_DEPTH_TEST) #should text have a depth or just on top?
         #update list if necss and then call it
         if self.win.winType=='pyglet':
+            
+            #and align based on x anchor
+            if self.alignHoriz=='right':
+                GL.glTranslatef(-self.width,0,0)#NB depth is set already
+            if self.alignHoriz in ['center', 'centre']:
+                GL.glTranslatef(-self.width/2,0,0)#NB depth is set already
+                
             #unbind the mask texture regardless
             GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)

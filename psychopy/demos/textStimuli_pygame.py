@@ -14,10 +14,10 @@ if sys.platform=='win32':
 else:
     #Note that you must have a *.ttf font matching these names/paths
     #You can download ttf fonts free at http://www.webpagepublicity.com/free-fonts.html
-    fancy = '/Library/Fonts/Tolkien Regular.ttf'
-    sans = 'blah'#invalid name will use default font
-    serif = '/Library/Fonts/Palatino*'
-    comic = '/Library/Fonts/Comic Sans MS.ttf'
+    fancy = '/Library/Fonts/Impact.ttf'
+    sans = '/Library/Fonts/Microsoft/Gill Sans MT.ttf'
+    serif = '/Library/Fonts/Times New Roman.ttf'
+    comic = '/Library/Fonts/Courier New.ttf'
     
 #INITIALISE SOME STIMULI
 fpsText = visual.TextStim(myWin, 
@@ -30,13 +30,8 @@ rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),
                         rgb=[-1.0,-1,1],
                         ori=0, height = 1,
                         font=comic,
-                        alignHoriz='left',alignVert='bottom')
-rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),
-                        rgb=[-1.0,-1,1],
-                        ori=0, height = 1,
-                        font=comic,
-                        alignHoriz='left',alignVert='bottom')
-unicodeStuff = visual.TextStim(myWin,
+                        alignHoriz='centre',alignVert='center') #NB you can spell centre in US or GB english ;-)
+unicodeStuff = visual.TextStim(myWin,pos=(0, 2.5),
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
                         italic=True, #use (fake) italics for whole string
                         rgb=-1,  font=serif,
@@ -45,7 +40,8 @@ psychopyTxt = visual.TextStim(myWin,
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
-                        font=fancy) #this won't exist but will be replaced with a default
+                        font=fancy) #this may not exist but will be replaced with a default
+                        
 trialClock = core.Clock()
 t=lastFPSupdate=0;
 while t<20:#quits after 20 secs
