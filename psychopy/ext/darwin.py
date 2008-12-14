@@ -10,4 +10,5 @@ def syncSwapBuffers(n):
         kCGLCPSwapInterval= 222#this is the parameter index?!
         ogl.CGLSetParameter(ogl.CGLGetCurrentContext(), ctypes.c_int(kCGLCPSwapInterval), ctypes.pointer(v))
     except:
-        print "Unable to set vsync mode. Using driver defaults"
+        print "Unable to set vsync mode. Using driver defaults" 
+        
