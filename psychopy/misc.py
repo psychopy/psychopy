@@ -331,17 +331,18 @@ def  cart2pol(x,y, units='deg'):
         theta=theta*180/numpy.pi
     return theta, radius
     
-def plotFrameIntervals(self, intervals):
+def plotFrameIntervals(intervals):
     """Plot a histogram of the frame intervals.
     
     Arguments:
         - intervals: Either a filename to a log file, saved by Window.saveFrameIntervals
             or simply a list (or array of frame intervals)
     """
-    from pylab import hist, show
+    from pylab import hist, show, plot
     
-    if types(intervals)==str:
+    if type(intervals)==str:
         f = open(intervals, 'r')
         exec("intervals = [%s]" %(f.readline()))
-    hist(intervals)
+#    hist(intervals, int(len(intervals)/10))
+    plot(intervals)
     show()

@@ -24,10 +24,11 @@ try:
 except:
     havePyglet=False    
 
-import OpenGL.GL, OpenGL.GL.ARB.multitexture
-import pygame
+
 #import _shadersPygame
 try:
+    import OpenGL.GL, OpenGL.GL.ARB.multitexture
+    import pygame
     havePygame=True
     if OpenGL.__version__ > '3':
         cTypesOpenGL = True
@@ -226,7 +227,7 @@ class Window:
             Window.saveFrameIntervals()
         """
         self.recordFrameIntervals=value
-    def saveFrameIntervals(self, fileName=None):
+    def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
         
         Arguments:
@@ -240,6 +241,8 @@ class Window:
             f = open(fileName, 'w')
             f.write(intervalStr)
             f.close()
+        if clear:
+            self.frameIntervals=[]
             
     def whenIdle(self,func):
         """Defines the function to use during idling (GLUT only)
@@ -3085,7 +3088,7 @@ class TextStim(_BaseVisualStim):
         if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
-        Btex, Ttex, Ltex, Rtex = 0, 0.7, 0, 1.0
+        Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
         
         #unbind the mask texture regardless
         GL.glActiveTexture(GL.GL_TEXTURE1)
