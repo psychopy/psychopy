@@ -28,13 +28,6 @@ elif platform=='posix':
     pass
     
 setup(name="PsychoPy",
-    version = thisVersion,
-    description = "Psychophysics toolkit for Python",
-    author= psychopy.__author__,
-    author_email= psychopy.__author_email__,
-    maintainer_email= psychopy.__maintainer_email__,
-    url="http://www.psychopy.org/",
-    download_url="http://sourceforge.net/project/showfiles.php?group_id=48949&package_id=42326",
     packages=packages,
     scripts = ['psychopy_post_inst.py'],
     include_package_data =True,
@@ -42,6 +35,21 @@ setup(name="PsychoPy",
         # If any package contains *.txt or *.rst files, include them:
         '': dataExtensions
     },
+    #metadata
+    version = thisVersion,
+    description = "Psychophysics toolkit for Python",
+    long_description = "PsychoPy uses OpenGL and Python to create a toolkit for running psychology/neuroscience/psychophysics experiments",
+    author= psychopy.__author__,
+    author_email= psychopy.__author_email__,
+    maintainer_email= psychopy.__maintainer_email__,
+    url="http://www.psychopy.org/",
+    license="BSD",
+    download_url="http://sourceforge.net/project/showfiles.php?group_id=48949&package_id=42326",
+    classifiers=['Development Status :: 4 - Beta',
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: Microsoft :: Windows',
+          'Operating System :: POSIX',
+          'Programming Language :: Python'],
     #install_requires = dependencies,
     #dependency_links = ["http://www.python.org/pypi/",
     #"http://sourceforge.net/project/showfiles.php?group_id=71702",#ctypes

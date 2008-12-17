@@ -3414,7 +3414,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
-            im = im.convert("RGB")#force to rgb (in case it was CMYK or L)
+            im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
             intensity = numpy.array(im).astype(numpy.float32)*2/255-1
             wasLum=False
             
@@ -3453,7 +3453,6 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         dataType = GL.GL_UNSIGNED_BYTE
         #can't use float_uint8 - do it manually
         data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
-    
     #check for RGBA textures
     if len(intensity.shape)>2 and intensity.shape[2] == 4:
         if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
