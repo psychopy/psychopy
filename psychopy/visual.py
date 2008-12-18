@@ -231,8 +231,8 @@ class Window:
         """Save recorded screen frame intervals to disk, as comma-separated values.
         
         Arguments:
-            - fileName (=None). The filename (including path if necessary) in which 
-            to store the data
+            - fileName (=None). The filename (including path if necessary) in which to store the data
+            
         """
         if fileName==None: 
             fileName = 'lastFrameIntervals.log'
@@ -688,7 +688,7 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-#############################################################################
+
 class _BaseVisualStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
     Not finished...?
@@ -784,13 +784,14 @@ class DotStim(_BaseVisualStim):
                  fieldSize      = (1.0,1.0),
                  fieldShape     = 'sqr',
                  dotSize        =2.0,
-                 dotLife = 1,
+                 dotLife = -1,
                  dir    =0.0,
                  speed  =0.5,
                  rgb    =[1.0,1.0,1.0],
-                 opacity        =1.0,
+                 opacity =1.0,
                  depth  =0,
-                 element=None):
+                 element=None,
+                 updateRule=3):
         """
         **Arguments:**
 
@@ -818,7 +819,7 @@ class DotStim(_BaseVisualStim):
 
             - **dotSize:** *2.0* in specified *units* [overridden if *element* is specified]
 
-            - **dotLife:** Not currently implemented
+            - **dotLife:** Number of frames each dot lives for (default = -1 = infinite)
 
             - **dir:** direction of the coherent dots (degrees)
 
@@ -861,7 +862,9 @@ class DotStim(_BaseVisualStim):
         self.speed = speed
         self.opacity = opacity
         self.element = element
-
+        self.dotLife = dotLife
+        self.updateRule = updateRule
+        
         if type(rgb) in [float, int]: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
         else:
@@ -886,7 +889,6 @@ class DotStim(_BaseVisualStim):
         self._opacity = numpy.ones(self._nDotsTotal,'f')*self.opacity
         self._dotsSpeed = numpy.ones(self._nDotsTotal, 'f')*self.speed#all dots have the same speed
         self._dotsLife = dotLife*numpy.random.rand(self._nDotsTotal)
-        self.frameClock = core.Clock()#we'll need a time record
 
         self._update_dotsXY()
 
@@ -991,34 +993,49 @@ class DotStim(_BaseVisualStim):
             self.element.setDepth(initialDepth)#reset depth before going to next frame
 
 
+    
+    def _newDots(self, dead):
+        """Populates (for the dots where dead is True):
+            
+            - _dotsXY
+            - _dotsLife
+            - (NB dir and speed need not change here, they can be handled in update)
+            
+        New dots will be generated obeying the field shape and the noiseType
+        The user shouldn't call this - its gets done within draw()
+        """
+        n = sum(dead)
+        self._dotsLife[dead]=self.dotLife #return with maximum life
+        
+        #xy
+        if self.fieldShape == 'sqr':
+            
+        elif self.fieldShape == 'circle':
+        
+            
     def _update_dotsXY(self):
         """
         The user shouldn't call this - its gets done within draw()
         """
-        deltaT = self.frameClock.getTime() #measure time since last frame draw
-        self.frameClock.reset()
-
-        self._dotsLife -= deltaT #dots to be reborn will be negative
-        deadDots = (self._dotsLife<0.0)
-        """XXXX need to give deadDots new XY and direction etc"""
+        
+        """Logic is to update all dot locations according to self.updateRule, then
+        generate new dots for all that are dead or outOfBounds
+        """
+        if self.dotLife>0:#if less than zero ignore it
+            self._dotsLife -= 1 #dots to be reborn will be negative
+            deadDots = (self._dotsLife<0.0)            
+            
         self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self._nDotsTotal,))
         self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self._nDotsTotal,))# 0 radians=East!
         #handle boundaries of the field: square for now - circles not quite working
-        if self.fieldShape is 'sqr':
-            #gone outside the square
-            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
-            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
-        elif self.fieldShape is 'circle':
-            #gone outside the square
-            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
-            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2) % self.fieldSize[1])-self.fieldSize[1]/2
-            #use a circular envelope and flips dot to opposite edge if they fall
-            #beyond radius.
-            #NB always circular - uses fieldSize in X only
+        if self.fieldShape == 'sqr':
+            #NB a '+' is like OR for bool arrays
+            deadDots = deadDots + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]) \ #out of bounds Y
+                            + (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]) #out of bounds X
+        elif self.fieldShape == 'circle':
             normXY = self._dotsXY/(self.fieldSize/2.0)
-            dotDist = numpy.sqrt((normXY[:,0]**2.0 + normXY[:,1]**2.0))
-            self._opacity = numpy.where(dotDist<1.0, self.opacity, 0.0)
-
+            distSqr = (normXY[:,0]**2.0 + normXY[:,1]**2.0)
+            deadDots = deadDots + (distSqr>1)        
 
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
@@ -1034,17 +1051,27 @@ class PatchStim(_BaseVisualStim):
         myGrat = PatchStim(tex='sin',mask='circle') #gives a circular patch of grating
         myGabor = PatchStim(tex='sin',mask='gauss') #gives a 'Gabor' patchgrating
         myImage = PatchStim(tex='face.jpg',mask=None) #simply draws the image face.jpg
-
-
+    
     An PatchStim can be rotated scaled and shifted in position, its texture can
     be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
     (for an image file that simply draws multiple copies in the patch).
 
     Also since transparency can be controlled two PatchStims can combine e.g.
-    to form a plaid.
+    to form a plaid.    
 
-    At present all these operations are 2D (and stimuli are layered in the order
-    they are initialised) but this could all be done in 3D too!
+    **Using Patchstim with images from disk (jpg, tif, pgn...)**
+    
+    Ideally images to be rendered should be square with 'power-of-2' dimensions 
+    e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
+    to the nearest such texture by PsychoPy. The size of the stimulus should be 
+    specified in the normal way using the appropriate units (deg, pix, cm...). Be 
+    sure to get the aspect ration the same as the image (if you don't want it 
+    stretched!).
+
+    **Why can't I have a normal image, drawn pixel-by-pixel?** PatchStims are 
+    rendered using OpenGL textures. This is more powerful than using simple screen 
+    blitting - it allows the rotation, masking, transparency to work. It is still 
+    necessary to have power-of-2 textures on most graphics cards.
     """
     def __init__(self,
                  win,

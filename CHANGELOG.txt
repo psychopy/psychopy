@@ -4,6 +4,10 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog 
 
+PsychoPY 0.96.03:
+* ADDED DotStim updateRule argument to (default=3, giving same motion as before)
+* CHANGED DotStim default dotLife to -1 (meaning infinite) and implemented this in the stimulus (was previously not used)
+
 PsychoPY 0.96.02:
 * FIXED bug introduced with clipping of text in 0.96.01 using textstimuli with shaders  under pygame
 * FIXED bug with rendering png alpha layer using pyglet shaders

@@ -2,9 +2,12 @@
 
 There are various APIs for this, none of which are perfect. By default PsychoPy will 
 look for and use, in this order: ['pygame','pyglet','pyaudio']
-The API chosen will be stored as a string under
+The API chosen will be stored as a string under::
+
     sound.audioAPI
-and can be set using, e.g.
+    
+and can be set using, e.g.::
+
     sound.setAudioAPI('pyglet')
     
 pygame (must be version 1.8 or above): 
@@ -17,7 +20,8 @@ pyglet:
 
 pyaudio:
     pros: relatively low-level wrapper around portAudio
-    cons: needs another download, rather buggy..
+    cons: needs another download, rather buggy.
+    
 """
 import numpy, threading, time
 from os import path 
