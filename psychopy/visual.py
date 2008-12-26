@@ -771,9 +771,22 @@ class _BaseVisualStim:
 
 class DotStim(_BaseVisualStim):
     """
-    This stimulus class defines a field of dots, all with the same speed
-    but various directions of motion. A subset of 'coherent' dots have
-    the same direction of motion.
+    This stimulus class defines a field of dots with an update rule that determines how they change
+    on every call to the .draw() method.
+    
+    This standard class can be used to generate a wide variety of dot motion types. For a review of
+    possible types and their pros and cons see Scase, xxx & Braddick (xxx). All six possible 
+    motions they describe can be generated with appropriate choices of the signalDots (which
+    determines whether signal dots are the 'same' or 'different' from frame to frame), noiseDots
+    (which determines the locations of the noise dots on each frame) and the dotLife (which 
+    determines for how many frames the dot will continue before being regenerated).
+    
+    When dots go out of bounds or reach the end of their life they are given a new random position.
+    As a result, to prevent inhomogeneities arising in the dots distribution across the field, a 
+    limitted lifetime dot is strongly recommended.
+    
+    If further customisation is required, then the DotStim should be subclassed and its
+    _update_dotsXY and _newDotsXY methods overridden.
     """
     def __init__(self,
                  win,
@@ -784,14 +797,15 @@ class DotStim(_BaseVisualStim):
                  fieldSize      = (1.0,1.0),
                  fieldShape     = 'sqr',
                  dotSize        =2.0,
-                 dotLife = -1,
+                 dotLife = 3,
                  dir    =0.0,
                  speed  =0.5,
                  rgb    =[1.0,1.0,1.0],
                  opacity =1.0,
                  depth  =0,
                  element=None,
-                 updateRule=3):
+                 signalDots='same',
+                 noiseDots='position'):
         """
         **Arguments:**
 
@@ -824,7 +838,20 @@ class DotStim(_BaseVisualStim):
             - **dir:** direction of the coherent dots (degrees)
 
             - **speed:** speed of the dots (in *units*/frame)
-
+            
+            - **signalDots**: 'same', Do the signal and noise dots stay the same
+                or do they randomise each frame ('different'). This paramater
+                corresponds to Scase et al's (xxx) categories of RDK.
+            
+            - **noiseDots**: one of the below, taken directly from Scase et al's categories
+            
+                - 'position' : noise dots take a random position every frame
+                - direction': noise dots follow a random, but constant direction
+                - 'walk': noise dots vary their direction every frame, but keep a constant speed
+            
+            - **dotLife**: 5, the number of frames that a single dot will 
+                be presented before being regenerated (-1 for infinite)
+                
             - **rgb:** a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
                 or a single value (which will be applied to all guns).
                 RGB vals are applied to simple textures and to greyscale
@@ -863,7 +890,8 @@ class DotStim(_BaseVisualStim):
         self.opacity = opacity
         self.element = element
         self.dotLife = dotLife
-        self.updateRule = updateRule
+        self.signalDots = signalDots
+        self.noiseDots = noiseDots
         
         if type(rgb) in [float, int]: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
@@ -1010,9 +1038,19 @@ class DotStim(_BaseVisualStim):
         dead = (self._dotsLife<0.0)
             
         #update XY based on speed and dir
-        self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
-        self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+        if noiseDots=='same':
+            #noise and signal dots change constantly
+        elif noiseDots=='different':
+            pass
         
+        if signalDots=='direction':
+            self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
+            self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+        if signalDots=='walk':
+            pass
+        elif signalDots=='position':
+            pass
+            
         #handle boundaries of the field: square for now - circles not quite working
         if self.fieldShape == 'sqr':
 #            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2)%self.fieldSize[0]) - self.fieldSize[0]/2 #mod(size)-size/2
