@@ -7,8 +7,8 @@ myWin =visual.Window((600,600), allowGUI=False,
 
 #INITIALISE SOME STIMULI
 dotPatch =visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
-    nDots=1000, fieldShape='circle', dotLife=-1,
-    fieldPos=(0.0,0.0),fieldSize=(0.6,0.5),
+    nDots=500, fieldShape='circle', dotLife=-1,
+    fieldPos=(0.0,0.0),fieldSize=2,
     speed=0.01, coherence=0.2)
 message =visual.TextStim(myWin,text='Hit Q to quit',
     pos=(0,-0.5))

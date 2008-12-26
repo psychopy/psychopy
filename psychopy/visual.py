@@ -885,7 +885,7 @@ class DotStim(_BaseVisualStim):
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
         self._dotsDir[0:int(self.coherence*self.nDots)] = self.dir
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
-        self._dotsLife = dotLife*numpy.random.rand(self.nDots)
+        self._dotsLife = abs(dotLife)*numpy.random.rand(self.nDots)#abs() means we can ignore the -1 case (no life)
         
         self._update_dotsXY()
 
@@ -991,9 +991,8 @@ class DotStim(_BaseVisualStim):
             while True:#repeat until we have enough
                 new=numpy.random.uniform(-1, 1, [nDots*2,2])#fetch twice as many as needed
                 inCircle= (numpy.hypot(new[:,0],new[:,1])<1)
-                print sum(inCircle), nDots
                 if sum(inCircle)>=nDots:
-                    return new[:nDots,:]*self.fieldSize/2
+                    return new[inCircle,:][:nDots,:]*self.fieldSize/2
         else:
             return numpy.random.uniform(-self.fieldSize, self.fieldSize, [nDots,2])
         
@@ -1002,14 +1001,13 @@ class DotStim(_BaseVisualStim):
         The user shouldn't call this - its gets done within draw()
         """
         
-        """Renew dead dots, then update all positions, then wrap positions
+        """Find dead dots, update positions, get new positions for dead and out-of-bounds
         """
         #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
-            dead = (self._dotsLife<0.0)
             self._dotsLife[dead]=self.dotLife
-            self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
+        dead = (self._dotsLife<0.0)
             
         #update XY based on speed and dir
         self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
@@ -1017,18 +1015,18 @@ class DotStim(_BaseVisualStim):
         
         #handle boundaries of the field: square for now - circles not quite working
         if self.fieldShape == 'sqr':
-            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2)%self.fieldSize[0]) - self.fieldSize[0]/2 #mod(size)-size/2
-            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2)%self.fieldSize[1]) - self.fieldSize[1]/2
+#            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2)%self.fieldSize[0]) - self.fieldSize[0]/2 #mod(size)-size/2
+#            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2)%self.fieldSize[1]) - self.fieldSize[1]/2
+            dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
-            th,r = psychopy.misc.cart2pol(normXY[:,0],normXY[:,1])
-            th[r>1] += 180#add 180 to theta
-            r[r>1]=1#and reset radius to 1
-            #return to XY and then rescale to fieldSize
-            normXY[:,0], normXY[:,1] = psychopy.misc.pol2cart(th, r)
-            self._dotsXY = normXY*self.fieldSize/2
-            
+            dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+
+#        update all dead dots
+        if sum(dead):
+            self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
+
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
