@@ -881,10 +881,9 @@ class DotStim(_BaseVisualStim):
 
         self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
-        self._dotsXY = numpy.random.rand(self.nDots,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
+        self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
         self._dotsDir[0:int(self.coherence*self.nDots)] = self.dir
-        self._opacity = numpy.ones(self.nDots,'f')*self.opacity
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
         self._dotsLife = dotLife*numpy.random.rand(self.nDots)
         
@@ -928,7 +927,6 @@ class DotStim(_BaseVisualStim):
         """
         self._set(attrib, val, op)
 
-
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -963,82 +961,74 @@ class DotStim(_BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-            visible = (self._opacity>0)
-            visibleXY = self._dotsXY[visible,:]
             if self.win.winType == 'pyglet':
-                #visibleXY = numpy.transpose(visibleXY)
-                #visibleXY=visibleXY.flat
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, visibleXY.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXY.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
             else:
                 GL.glVertexPointerd(visibleXY)
 
             GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glDrawArrays(GL.GL_POINTS, 0, len(visibleXY))
+            GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
             GL.glPopMatrix()
         else:
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
             for pointN in range(0,self.nDots):
-                if self._opacity[pointN]>0.0:
-#                    self.element.setDepth(0.0001,'-')# this will be done in the draw routine
-                    self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
-                    self.element.draw()
+                self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
+                self.element.draw()
 
             self.element.setDepth(initialDepth)#reset depth before going to next frame
-
-
-    
-    def _newDots(self, dead):
-        """Populates (for the dots where dead is True):
-            
-            - _dotsXY
-            - _dotsLife
-            - (NB dir and speed need not change here, they can be handled in update)
-            
-        New dots will be generated obeying the field shape and the noiseType
-        The user shouldn't call this - its gets done within draw()
-        """
-        n = sum(dead)
-        self._dotsLife[dead]=abs(self.dotLife) #return with maximum life
         
-        #xy
-        if self.fieldShape == 'sqr':
-            self._dotsXY[dead] = numpy.random.uniform(-0.5, 0.5, [n,2])*self.fieldSize
-        elif self.fieldShape == 'circle':
-            #make more than we need and then cull those outside circle
-            new = numpy.random.uniform(-0.5,0.5, [n,2])
-            th, r = psychopy.misc.cart2pol(new[:,0],new[:,1])
-            th[r>0.5] += 180#add 180 to theta
-            r[r>0.5]=0.5#and reset radius to 1
-            new[:,0], new[:,1] = psychopy.misc.pol2cart(th, r)
-            self._dotsXY[dead,:] = new*self.fieldSize
+    def _newDotsXY(self, nDots):
+        """Returns a uniform spread of dots, according to the fieldShape and fieldSize
+        
+        usage::
+            dots = self._newDots(nDots)
             
+        """
+        if self.fieldShape=='circle':#make more dots than we need and only use those that are within circle
+            while True:#repeat until we have enough
+                new=numpy.random.uniform(-1, 1, [nDots*2,2])#fetch twice as many as needed
+                inCircle= (numpy.hypot(new[:,0],new[:,1])<1)
+                print sum(inCircle), nDots
+                if sum(inCircle)>=nDots:
+                    return new[:nDots,:]*self.fieldSize/2
+        else:
+            return numpy.random.uniform(-self.fieldSize, self.fieldSize, [nDots,2])
+        
     def _update_dotsXY(self):
         """
         The user shouldn't call this - its gets done within draw()
         """
         
-        """Logic is to update all dot locations according to self.updateRule, then
-        generate new dots for all that are dead or outOfBounds
+        """Renew dead dots, then update all positions, then wrap positions
         """
+        #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
-            self._dotsLife -= 1 #dots to be reborn will be negative
-        deadDots = (self._dotsLife<0.0)            
+            self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
+            dead = (self._dotsLife<0.0)
+            self._dotsLife[dead]=self.dotLife
+            self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
             
+        #update XY based on speed and dir
         self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
         self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+        
         #handle boundaries of the field: square for now - circles not quite working
         if self.fieldShape == 'sqr':
-            #NB a '+' is like OR for bool arrays
-            deadDots = deadDots + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]) + \
-                    (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]) #out of bounds X
+            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2)%self.fieldSize[0]) - self.fieldSize[0]/2 #mod(size)-size/2
+            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2)%self.fieldSize[1]) - self.fieldSize[1]/2
         elif self.fieldShape == 'circle':
+            #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
-            deadDots = deadDots + (numpy.hypot(normXY[:,0],normXY[:,1])>1)        
-        if numpy.any(deadDots):
-            self._newDots(deadDots)
+            th,r = psychopy.misc.cart2pol(normXY[:,0],normXY[:,1])
+            th[r>1] += 180#add 180 to theta
+            r[r>1]=1#and reset radius to 1
+            #return to XY and then rescale to fieldSize
+            normXY[:,0], normXY[:,1] = psychopy.misc.pol2cart(th, r)
+            self._dotsXY = normXY*self.fieldSize/2
+            
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
