@@ -879,17 +879,15 @@ class DotStim(_BaseVisualStim):
         """initialise the dots themselves - give them all random dir and then
         fix the first n in the array to have the direction specified"""
 
-        if self.fieldShape=='circle':self._nDotsTotal=int(nDots*4/pi) #control for smaller area of circle
-        else: self._nDotsTotal = self.nDots
-        self.coherence=round(coherence*self._nDotsTotal)/self._nDotsTotal#store actual coherence
+        self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
-        self._dotsXY = numpy.random.rand(self._nDotsTotal,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
-        self._dotsDir = numpy.random.rand(self._nDotsTotal)*2*pi
-        self._dotsDir[0:int(self.coherence*self._nDotsTotal)] = self.dir
-        self._opacity = numpy.ones(self._nDotsTotal,'f')*self.opacity
-        self._dotsSpeed = numpy.ones(self._nDotsTotal, 'f')*self.speed#all dots have the same speed
-        self._dotsLife = dotLife*numpy.random.rand(self._nDotsTotal)
-
+        self._dotsXY = numpy.random.rand(self.nDots,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
+        self._dotsDir = numpy.random.rand(self.nDots)*2*pi
+        self._dotsDir[0:int(self.coherence*self.nDots)] = self.dir
+        self._opacity = numpy.ones(self.nDots,'f')*self.opacity
+        self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
+        self._dotsLife = dotLife*numpy.random.rand(self.nDots)
+        
         self._update_dotsXY()
 
     def _set(self, attrib, val, op=''):
@@ -920,9 +918,7 @@ class DotStim(_BaseVisualStim):
 
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
-            if self.fieldShape=='circle': self._nDotsTotal=int(self.nDots*4/pi)
-            else: self._nDotsTotal = self.nDots
-            self.coherence=round(self.coherence*self._nDotsTotal)/self._nDotsTotal
+            self.coherence=round(self.coherence*self.nDots)/self.nDots
 
 
     def set(self, attrib, val, op=''):
@@ -984,7 +980,7 @@ class DotStim(_BaseVisualStim):
         else:
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
-            for pointN in range(0,self._nDotsTotal):
+            for pointN in range(0,self.nDots):
                 if self._opacity[pointN]>0.0:
 #                    self.element.setDepth(0.0001,'-')# this will be done in the draw routine
                     self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
@@ -1005,13 +1001,19 @@ class DotStim(_BaseVisualStim):
         The user shouldn't call this - its gets done within draw()
         """
         n = sum(dead)
-        self._dotsLife[dead]=self.dotLife #return with maximum life
+        self._dotsLife[dead]=abs(self.dotLife) #return with maximum life
         
         #xy
         if self.fieldShape == 'sqr':
-            
+            self._dotsXY[dead] = numpy.random.uniform(-0.5, 0.5, [n,2])*self.fieldSize
         elif self.fieldShape == 'circle':
-        
+            #make more than we need and then cull those outside circle
+            new = numpy.random.uniform(-0.5,0.5, [n,2])
+            th, r = psychopy.misc.cart2pol(new[:,0],new[:,1])
+            th[r>0.5] += 180#add 180 to theta
+            r[r>0.5]=0.5#and reset radius to 1
+            new[:,0], new[:,1] = psychopy.misc.pol2cart(th, r)
+            self._dotsXY[dead,:] = new*self.fieldSize
             
     def _update_dotsXY(self):
         """
@@ -1023,20 +1025,20 @@ class DotStim(_BaseVisualStim):
         """
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #dots to be reborn will be negative
-            deadDots = (self._dotsLife<0.0)            
+        deadDots = (self._dotsLife<0.0)            
             
-        self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self._nDotsTotal,))
-        self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self._nDotsTotal,))# 0 radians=East!
+        self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
+        self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
         #handle boundaries of the field: square for now - circles not quite working
         if self.fieldShape == 'sqr':
             #NB a '+' is like OR for bool arrays
-            deadDots = deadDots + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]) \ #out of bounds Y
-                            + (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]) #out of bounds X
+            deadDots = deadDots + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]) + \
+                    (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]) #out of bounds X
         elif self.fieldShape == 'circle':
-            normXY = self._dotsXY/(self.fieldSize/2.0)
-            distSqr = (normXY[:,0]**2.0 + normXY[:,1]**2.0)
-            deadDots = deadDots + (distSqr>1)        
-
+            normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
+            deadDots = deadDots + (numpy.hypot(normXY[:,0],normXY[:,1])>1)        
+        if numpy.any(deadDots):
+            self._newDots(deadDots)
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
