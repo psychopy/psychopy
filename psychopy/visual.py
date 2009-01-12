@@ -804,7 +804,7 @@ class DotStim(_BaseVisualStim):
                  opacity =1.0,
                  depth  =0,
                  element=None,
-                 signalDots='same',
+                 signalDots='different',
                  noiseDots='position'):
         """
         **Arguments:**
@@ -910,10 +910,15 @@ class DotStim(_BaseVisualStim):
         self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
         self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
-        self._dotsDir = numpy.random.rand(self.nDots)*2*pi
-        self._dotsDir[0:int(self.coherence*self.nDots)] = self.dir
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
         self._dotsLife = abs(dotLife)*numpy.random.rand(self.nDots)#abs() means we can ignore the -1 case (no life)
+        #determine which dots are signal
+        self._signalDots = numpy.zeros(self.nDots, dtype=bool)
+        self._signalDots[0:int(self.coherence*self.nDots)]=True
+        #numpy.random.shuffle(self._signalDots)#not really necessary
+        #set directions (only used when self.noiseDots='direction')
+        self._dotsDir = numpy.random.rand(self.nDots)*2*pi
+        self._dotsDir[self._signalDots] = self.dir
         
         self._update_dotsXY()
 
@@ -1034,34 +1039,49 @@ class DotStim(_BaseVisualStim):
         #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
+            dead = (self._dotsLife<0.0)
             self._dotsLife[dead]=self.dotLife
-        dead = (self._dotsLife<0.0)
+        else:
+            dead=numpy.zeros(self.nDots, dtype=bool)
             
-        #update XY based on speed and dir
-        if noiseDots=='same':
-            #noise and signal dots change constantly
-        elif noiseDots=='different':
-            pass
+        ##update XY based on speed and dir
         
-        if signalDots=='direction':
+        #update which are the noise/signal dots
+        if self.signalDots =='same':
+            #noise and signal dots change identity constantly
+            #easiest way to keep _signalDots and _dotsDir in sync is to shuffle _dotsDir
+            #and update _signalDots from that
+            numpy.random.shuffle(self._dotsDir)
+            self._signalDots = (self._dotsDir==self.dir)
+            
+        #update the locations of signal and noise
+        if self.noiseDots=='walk':
+            # noise dots are ~self._signalDots
+            self._dotsDir[~self._signalDots] = numpy.random.rand((~self._signalDots).sum())*2*pi
+            #then update all positions from dir*speed
             self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
             self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
-        if signalDots=='walk':
-            pass
-        elif signalDots=='position':
-            pass
-            
+        elif self.noiseDots == 'direction':
+            #simply use the stored directions to update position
+            self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
+            self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+        elif self.noiseDots=='position':
+            #update signal dots
+            self._dotsXY[self._signalDots,0] += \
+                self.speed*numpy.reshape(numpy.cos(self._dotsDir[self._signalDots]),(self._signalDots.sum(),))
+            self._dotsXY[self._signalDots,1] += \
+                self.speed*numpy.reshape(numpy.sin(self._dotsDir[self._signalDots]),(self._signalDots.sum(),))# 0 radians=East!
+            #update noise dots
+            dead = dead+(~self._signalDots)#just create new ones            
         #handle boundaries of the field: square for now - circles not quite working
         if self.fieldShape == 'sqr':
-#            self._dotsXY[:,0] = ((self._dotsXY[:,0]+self.fieldSize[0]/2)%self.fieldSize[0]) - self.fieldSize[0]/2 #mod(size)-size/2
-#            self._dotsXY[:,1] = ((self._dotsXY[:,1]+self.fieldSize[1]/2)%self.fieldSize[1]) - self.fieldSize[1]/2
             dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
 
-#        update all dead dots
+#        update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
 
