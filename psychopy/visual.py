@@ -2479,7 +2479,7 @@ class ElementArrayStim:
         N=self.nElements
         self._RGBAs=numpy.zeros([N,4],'d')
         self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
-        self._RGBAs[:,-1] = self.opacities
+        self._RGBAs[:,-1] = self.opacities.reshape(N,)
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
         self.needColorUpdate=False
     def updataTextureCoords(self):
