@@ -781,6 +781,13 @@ class DotStim(_BaseVisualStim):
     (which determines the locations of the noise dots on each frame) and the dotLife (which 
     determines for how many frames the dot will continue before being regenerated).
     
+    'Movshon'-type noise uses a random position, rather than random direction, for the noise dots 
+    and the signal dots are distinct (noiseDots='different'). This has the disadvantage that the
+    noise dots not only have a random direction but also a random speed (so differ in two ways
+    from the signal dots). The default option for DotStim is that the dots follow a random walk,
+    with the dot and noise elements being randomised each frame. This provides greater certainty 
+    that individual dots cannot be used to determine the motion direction.
+    
     When dots go out of bounds or reach the end of their life they are given a new random position.
     As a result, to prevent inhomogeneities arising in the dots distribution across the field, a 
     limitted lifetime dot is strongly recommended.
@@ -833,7 +840,7 @@ class DotStim(_BaseVisualStim):
 
             - **dotSize:** *2.0* in specified *units* [overridden if *element* is specified]
 
-            - **dotLife:** Number of frames each dot lives for (default = -1 = infinite)
+            - **dotLife:** Number of frames each dot lives for (default=3, -1=infinite)
 
             - **dir:** direction of the coherent dots (degrees)
 
@@ -846,12 +853,9 @@ class DotStim(_BaseVisualStim):
             - **noiseDots**: one of the below, taken directly from Scase et al's categories
             
                 - 'position' : noise dots take a random position every frame
-                - direction': noise dots follow a random, but constant direction
+                - 'direction': noise dots follow a random, but constant direction
                 - 'walk': noise dots vary their direction every frame, but keep a constant speed
-            
-            - **dotLife**: 5, the number of frames that a single dot will 
-                be presented before being regenerated (-1 for infinite)
-                
+                            
             - **rgb:** a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
                 or a single value (which will be applied to all guns).
                 RGB vals are applied to simple textures and to greyscale
