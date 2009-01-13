@@ -15,8 +15,11 @@ from keybindings import *
 
 ## global variables
 homeDir = os.getcwd()
-#on mac __file__ might be a local path
-fullAppPath= os.path.abspath(__file__)
+#__file__ might be a local path under py2exe and py2app
+if hasattr(sys, "frozen"):
+    fullAppPath = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+else:
+    fullAppPath = os.path.abspath(__file__)
 appDir, appName = os.path.split(fullAppPath)
 psychopyDir, junk = os.path.split(psychopy.__file__)
 #get path to settings
@@ -34,7 +37,7 @@ if os.path.isdir(join(appDir, 'Resources')):
     iconDir = join(appDir, 'Resources')
 else:iconDir = appDir
 
-RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
+RUN_SCRIPTS = 'thread' #'process', or 'thread' or 'dbg'
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
 USE_NOTEBOOK_PANEL=True
 ANALYSIS_LEVEL=1

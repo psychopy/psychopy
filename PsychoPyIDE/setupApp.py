@@ -13,25 +13,44 @@ import psychopy, monitors
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-cExtensions = []
 packageData = []
+requires=[]
+
 if platform=='win32':
     import py2exe    
+    
+    #get matplotlib data files
+    from distutils.filelist import findall
+    import os
+    import matplotlib
+    matplotlibdatadir = matplotlib.get_data_path()
+    matplotlibdata = findall(matplotlibdatadir)
+    matplotlibdata_files = []
+    for f in matplotlibdata:
+        dirname = os.path.join('matplotlibdata', f[len(matplotlibdatadir)+1:])
+        packageData.append((os.path.split(dirname)[0], [f]))
+    #get resources (icons etc)        
     files = glob.glob('Resources/*')
     for file in files:
         loc, name = os.path.split(file)
         packageData.append( ['Resources', [file]])
+        
 elif platform=='darwin':
     resources = glob.glob('Resources/*')
 elif platform=='posix':
     pass
-##    cExtensions.append(Extension('psychopy.ext.posix',
-##                 sources = [os.path.join('psychopy','ext','posix.c')]))
-
-
+    
 if platform == 'win32':
     requires.extend(['pymedia'])
-    setup(console=["PsychoPyIDE.py"],      
+    setup(console=["PsychoPyIDE.py"],
+          options={
+                'py2exe': {
+                    'packages' : ['monitors','psychopy','psychopy.demos',
+                        'matplotlib', 'numpy', 'scipy', 'pytz',
+                        'pyglet','pygame','OpenGL',],
+                    "skip_archive":1,
+                    }
+            },
           data_files=packageData)
 else:
     setup(app=['PsychoPyIDE.py'],
