@@ -37,7 +37,6 @@ if os.path.isdir(join(appDir, 'Resources')):
     iconDir = join(appDir, 'Resources')
 else:iconDir = appDir
 
-RUN_SCRIPTS = 'thread' #'process', or 'thread' or 'dbg'
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
 USE_NOTEBOOK_PANEL=True
 ANALYSIS_LEVEL=1
@@ -45,6 +44,10 @@ if sys.platform=='darwin':
     ALLOW_MODULE_IMPORTS=False
 else:
     ALLOW_MODULE_IMPORTS=True
+if sys.platform=='win32':
+    RUN_SCRIPTS = 'thread' #'process', or 'thread' or 'dbg'
+else:
+    RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
 #create IDs for the events
 ID_EXIT=wx.NewId()
 

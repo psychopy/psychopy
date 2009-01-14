@@ -1,5 +1,6 @@
 todo:
 bugs in IDE and monitorcenter
+    closing not from the final file in editor causes crash
     closing with unsaved data causes freeze 
     return on final line goes back one space from current indent!?
     
