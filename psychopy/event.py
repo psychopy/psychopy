@@ -58,26 +58,48 @@ def _onPygletMouseRelease(x,y, button, modifiers):
 def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
     global mouseWheelRel
     mouseWheelRel = mouseWheelRel+numpy.array([scroll_x, scroll_y])
-def getKeys():
-    """Returns a list of names of recently pressed keys
+
+def getKeys(keyList=None):
+    """Returns a list of keys that were pressed.
+    
+    Optional argument, keyList, allows the user to specify a set of keys to check for.
+    Only keypresses from this set of eys will be removed from the keyboard buffer. 
+    If the keyList is None all keys will be checked and the key buffer will be cleared
+    completely.
+    
+    2003: written by Jon Peirce
+    2009: keyList functionality added by Gary Strangman
     """
     keyNames=[]
-    
-    #for each (pyglet) window, dispatch its events before checking event buffer    
+
+    #for each (pyglet) window, dispatch its events before checking event buffer
     wins = pyglet.window.get_platform().get_default_display().get_windows()
     for win in wins: win.dispatch_events()#pump events on pyglet windows
-    
+
     global _keyBuffer
     if len(_keyBuffer)>0:
         #then pyglet is running - just use this
         keyNames = _keyBuffer
-        _keyBuffer = []#set a new empty list
-        
-    elif havePygame and display.get_init():#see if pygame has anything instead (if it exists)            
+#        _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
+
+    elif havePygame and display.get_init():#see if pygame has anything instead (if it exists)
         for evts in evt.get(locals.KEYDOWN):
             keyNames.append(pygame.key.name(evts.key))
-            
-    return keyNames
+
+    if keyList==None:
+        _keyBuffer = [] #clear buffer entirely
+        return keyNames  # equivalent behavior to getKeys()
+    else:
+        nontargetNames = []
+        targetNames = []
+        # split keyNames into keepers and pass-thrus
+        for key in keyNames:
+            if key in keyList:
+                targetNames.append(key)
+            else:
+                nontargetNames.append(key)
+        _keyBuffer = nontargetNames  # save these
+        return targetNames     # return these 
 
 def waitKeys(maxWait = None, keyList=None):
     """
