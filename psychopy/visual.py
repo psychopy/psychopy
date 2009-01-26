@@ -2479,7 +2479,7 @@ class ElementArrayStim:
         N=self.nElements
         self._RGBAs=numpy.zeros([N,4],'d')
         self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
-        self._RGBAs[:,-1] = self.opacities.reshape(N,)
+        self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
         self.needColorUpdate=False
     def updataTextureCoords(self):
@@ -3220,7 +3220,8 @@ class TextStim(_BaseVisualStim):
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity)
+                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
+                                                       width=self._wrapWidthPIX,#width of the frame  
                                                        )
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   

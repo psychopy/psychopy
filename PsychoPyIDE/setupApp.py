@@ -42,14 +42,17 @@ elif platform=='posix':
     
 if platform == 'win32':
     requires.extend(['pymedia'])
-    setup(console=["PsychoPyIDE.py"],
+    setup(console=[{
+            "script":"PsychoPyIDE.py",
+            "icon_resources":[(0, "psychopy.ico")]
+            }],
           options={
                 'py2exe': {
                     'packages' : ['monitors','psychopy','psychopy.demos',
-                        'matplotlib', 'numpy', 'scipy', 'pytz',
+                        'matplotlib', 'numpy', 'scipy', 'pytz','wx',
                         'pyglet','pygame','OpenGL',],
-                    "skip_archive":1,
-                    }
+                    #"skip_archive":1,
+                    }          
             },
           data_files=packageData)
 else:

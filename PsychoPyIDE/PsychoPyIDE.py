@@ -17,10 +17,9 @@ from keybindings import *
 homeDir = os.getcwd()
 #__file__ might be a local path under py2exe and py2app
 if hasattr(sys, "frozen"):
-    fullAppPath = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+    appDir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
 else:
-    fullAppPath = os.path.abspath(__file__)
-appDir, appName = os.path.split(fullAppPath)
+    appDir, appName = os.path.split(os.path.abspath(__file__))
 psychopyDir, junk = os.path.split(psychopy.__file__)
 #get path to settings
 join = os.path.join
@@ -44,7 +43,8 @@ if sys.platform=='darwin':
     ALLOW_MODULE_IMPORTS=False
 else:
     ALLOW_MODULE_IMPORTS=True
-if sys.platform=='win32':
+if sys.platform=='win32' and hasattr(sys, "frozen"):
+    #if running from within py2exe there won't be a python.exe so can't launch process
     RUN_SCRIPTS = 'thread' #'process', or 'thread' or 'dbg'
 else:
     RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
@@ -84,6 +84,7 @@ ID_PSYCHO_HOME=wx.NewId()
 ID_PSYCHO_REFERENCE=wx.NewId()
 #for demos we need a dict where the event ID will correspond to a filename
 demoList = glob.glob(os.path.join(psychopyDir,'demos','*.py'))
+demoList.extend(glob.glob(os.path.join(appDir,'demos','*.py')))
 if '__init__.py' in demoList: demoList.remove('__init__.py')
     
 #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
@@ -1746,7 +1747,10 @@ class IDEMainFrame(wx.Frame):
         if RUN_SCRIPTS in ['thread','dbg']:
             #killing a debug context doesn't really work on pygame scripts because of the extra 
             if RUN_SCRIPTS == 'dbg':self.db.quit()
-            pygame.display.quit()       
+            try:
+                pygame.display.quit()      
+            except:
+                pass
             self.thread.kill()
             self.ignoreErrors = False#stop listening for errors if the script has ended
         elif RUN_SCRIPTS=='process':

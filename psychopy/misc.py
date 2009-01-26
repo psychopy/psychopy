@@ -214,7 +214,7 @@ def deg2pix(degrees, monitor):
         raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name
     
     cmSize = deg2cm(degrees, monitor)
-    return cmSize*scrSizePix[0]/scrWidthCm
+    return cmSize*scrSizePix[0]/float(scrWidthCm)
 
 def deg2cm(degrees, monitor):
     """Convert size in degrees to size in pixels for a given Monitor object"""
@@ -244,7 +244,7 @@ def cm2pix(cm, monitor):
     if scrWidthCm==None:
         raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name
     
-    return cm*scrSizePix[0]/scrWidthCm
+    return cm*scrSizePix[0]/float(scrWidthCm)
 
 #---color conversions---#000000#FFFFFF------------------------------------------ 
 def dkl2rgb(dkl_Nx3, conversionMatrix=None):
