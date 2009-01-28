@@ -470,6 +470,7 @@ class Window:
         #actually set the scale as appropriate
         thisScale = thisScale/numpy.asarray(prevScale)#allows undoing of a previous scaling procedure
         GL.glScalef(thisScale[0], thisScale[1], 1.0)
+        self.currScale=units
         return thisScale #just in case the user wants to know?!
 
     def setGamma(self,gamma):
@@ -700,11 +701,13 @@ class _BaseVisualStim:
         
     def setPos(self, newPos, operation=None, units=None):
         self._set('pos', val=newPos, op=operation)
+        self._calcPosPix()
     def setDepth(self,newDepth, operation=None):
         self._set('depth', newDepth, operation)
     def setSize(self, newSize, operation=None, units=None):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
+        self._calcSizePix()
         self.needUpdate=True
     def setOri(self, newOri, operation=None):
         self._set('ori',val=newOri, op=operation)
@@ -770,12 +773,15 @@ class _BaseVisualStim:
         else: self._updateListNoShaders()  
     def _calcSizePix(self):
         if self.units=='norm': self._sizePix=None
-        elif self.units=='deg': self._sizePix=misc.deg2pix(self.size, self.monitor)
-        elif self.units=='cm': self._sizePix=misc.cm2pix(self.size, self.monitor)
+        elif self.units=='deg': self._sizePix=misc.deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizePix=misc.cm2pix(self.size, self.win.monitor)
         elif self.units=='pix': self._sizePix=self.size
-    def _calcCyclesPerStim(self):
-        if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
-        else: self._cycles=self.sf*self.size
+    def _calcPosPix(self):
+        if self.units=='norm': self._posPix=None
+        elif self.units=='deg': self._posPix=misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posPix=misc.cm2pix(self.pos, self.win.monitor)
+        elif self.units=='pix': self._posPix=self.pos
+        
         
 class DotStim(_BaseVisualStim):
     """
@@ -892,6 +898,8 @@ class DotStim(_BaseVisualStim):
         self.win = win
         if len(units): self.units = units
         else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
         self.nDots = nDots
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
@@ -994,7 +1002,8 @@ class DotStim(_BaseVisualStim):
             #scale the drawing frame etc...
             GL.glPushMatrix()#push before drawing, pop after
             GL.glLoadIdentity()
-            self.win.setScale(self.units)
+            if self._winScale!=self.win._currScale:
+                self.win.setScale(self._winScale)
             GL.glTranslatef(self.fieldPos[0],self.fieldPos[1],thisDepth)
             GL.glPointSize(self.dotSize)
 
@@ -1254,8 +1263,10 @@ class PatchStim(_BaseVisualStim):
         
         if units in [None, "", []]:
             self.units = win.units
-        else:
-            self.units = units
+        else:self.units = units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
         self.contrast = float(contrast)
@@ -1549,6 +1560,11 @@ class PatchStim(_BaseVisualStim):
         if self.win.winType=='pyglet':
             GL.glDeleteTextures(1, self.texID)
             GL.glDeleteTextures(1, self.maskID)
+            
+    def _calcCyclesPerStim(self):
+        if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
+        else: self._cycles=self.sf*self.size
+        
 class AlphaStim(PatchStim):
     """DEPRECATED. Use PatchStim instead/n/n"""
     def __init__(self, *arguments, **keywords):
@@ -1686,6 +1702,9 @@ class RadialStim(PatchStim):
         else: self._useShaders=False
         if len(units): self.units = units
         else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
         self.angularRes = angularRes
@@ -2093,8 +2112,10 @@ class ElementArrayStim:
         self.win = win        
         if units in [None, "", []]:
             self.units = win.units
-        else:
-            self.units = units
+        else: self.units = units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
         self.fieldShape = fieldShape
@@ -2584,7 +2605,10 @@ class MovieStim:
             - **opacity**:
                 the movie can be made transparent by reducing this
         """
-        self.win = win        
+        self.win = win  
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
@@ -2686,6 +2710,9 @@ class TextStimGLUT:
         
         if len(units): self.units = units
         else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.pos= numpy.array(pos)
         if type(font)==str:
             self.fontName=font
@@ -3013,6 +3040,8 @@ class TextStim(_BaseVisualStim):
 
         if len(units): self.units = units
         else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
         self.pos= numpy.array(pos)
 
         #height in pix (needs to be done after units)
