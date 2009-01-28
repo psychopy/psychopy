@@ -72,9 +72,10 @@ def getKeys(keyList=None):
     """
     keyNames=[]
 
-    #for each (pyglet) window, dispatch its events before checking event buffer
-    wins = pyglet.window.get_platform().get_default_display().get_windows()
-    for win in wins: win.dispatch_events()#pump events on pyglet windows
+    if havePyglet:
+        #for each (pyglet) window, dispatch its events before checking event buffer
+        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        for win in wins: win.dispatch_events()#pump events on pyglet windows
 
     global _keyBuffer
     if len(_keyBuffer)>0:
@@ -119,9 +120,10 @@ def waitKeys(maxWait = None, keyList=None):
     if maxWait!=None and keyList!=None:
         #check keylist AND timer
         timer = psychopy.core.Clock()
-        while key==None and timer.getTime()<maxWait:            
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows
+        while key==None and timer.getTime()<maxWait:     
+            if havePyglet:       
+                wins = pyglet.window.get_platform().get_default_display().get_windows()
+                for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0 and (keys[0] in keyList): 
@@ -129,9 +131,10 @@ def waitKeys(maxWait = None, keyList=None):
             
     elif keyList!=None:
         #check the keyList each time there's a press
-        while key==None:            
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows
+        while key==None:        
+            if havePyglet:    
+                wins = pyglet.window.get_platform().get_default_display().get_windows()
+                for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0 and (keys[0] in keyList): 
@@ -140,18 +143,20 @@ def waitKeys(maxWait = None, keyList=None):
     elif maxWait!=None:
         #onyl wait for the maxWait 
         timer = psychopy.core.Clock()
-        while key==None and timer.getTime()<maxWait:            
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows
+        while key==None and timer.getTime()<maxWait:       
+            if havePyglet:          
+                wins = pyglet.window.get_platform().get_default_display().get_windows()
+                for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0: 
                 key = keys[0]
             
     else: #simply take the first key we get
-        while key==None:            
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows
+        while key==None:      
+            if havePyglet:           
+                wins = pyglet.window.get_platform().get_default_display().get_windows()
+                for win in wins: win.dispatch_events()#pump events on pyglet windows
             keys = getKeys()
             #check if we got a key in list
             if len(keys)>0: 

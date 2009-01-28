@@ -23,7 +23,7 @@ fpsText = visual.TextStim(myWin,
                         rgb=[+1,-1,-1])
 rotating = visual.TextStim(myWin,text="Fonts \nrotate!",pos=(0, 0),#and can have line breaks
                         rgb=[-1.0,-1,1],
-                        ori=0, height = 0.5,
+                        ori=0, height = 2.5,
                         font=comic)
 unicodeStuff = visual.TextStim(myWin,
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'

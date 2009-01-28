@@ -215,6 +215,10 @@ class Window:
         if list(self.gamma)!=[1,1,1]:
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = time.time()
+        
+        if self.units=='norm':  self.setScale('norm')
+        else: self.setScale('pix')
+            
         self.update()#do a screen refresh straight away
 
 
@@ -470,7 +474,6 @@ class Window:
         #actually set the scale as appropriate
         thisScale = thisScale/numpy.asarray(prevScale)#allows undoing of a previous scaling procedure
         GL.glScalef(thisScale[0], thisScale[1], 1.0)
-        self.currScale=units
         return thisScale #just in case the user wants to know?!
 
     def setGamma(self,gamma):
@@ -701,13 +704,13 @@ class _BaseVisualStim:
         
     def setPos(self, newPos, operation=None, units=None):
         self._set('pos', val=newPos, op=operation)
-        self._calcPosPix()
+        self._calcPosRendered()
     def setDepth(self,newDepth, operation=None):
         self._set('depth', newDepth, operation)
     def setSize(self, newSize, operation=None, units=None):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
-        self._calcSizePix()
+        self._calcSizeRendered()
         self.needUpdate=True
     def setOri(self, newOri, operation=None):
         self._set('ori',val=newOri, op=operation)
@@ -771,16 +774,16 @@ class _BaseVisualStim:
         if self._useShaders:
             self._updateListShaders()
         else: self._updateListNoShaders()  
-    def _calcSizePix(self):
-        if self.units=='norm': self._sizePix=None
-        elif self.units=='deg': self._sizePix=misc.deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizePix=misc.cm2pix(self.size, self.win.monitor)
-        elif self.units=='pix': self._sizePix=self.size
-    def _calcPosPix(self):
-        if self.units=='norm': self._posPix=None
-        elif self.units=='deg': self._posPix=misc.deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posPix=misc.cm2pix(self.pos, self.win.monitor)
-        elif self.units=='pix': self._posPix=self.pos
+    def _calcSizeRendered(self):
+        """Calculate the size of the stimulus in coords of the window (normalised or pixels)"""
+        if self.units in ['norm','pix']: self._sizeRendered=self.size
+        elif self.units=='deg': self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+    def _calcPosRendered(self):
+        """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
+        if self.units in ['norm','pix']: self._posRendered=self.pos
+        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         
         
 class DotStim(_BaseVisualStim):
@@ -896,10 +899,7 @@ class DotStim(_BaseVisualStim):
                 ``.setPos([x,y])`` method (e.g. AlphaStim, TextStim...)!!
                 """
         self.win = win
-        if len(units): self.units = units
-        else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.nDots = nDots
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
@@ -912,6 +912,18 @@ class DotStim(_BaseVisualStim):
         self.dotLife = dotLife
         self.signalDots = signalDots
         self.noiseDots = noiseDots
+        
+        #unit conversions
+        if len(units): self.units = units
+        else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        #'rendered' coordinates represent the stimuli in the scaled coords of the window
+        #(i.e. norm for units==norm, but pix for all other units)
+        self._dotSizeRendered=None
+        self._speedRendered=None
+        self._fieldSizeRendered=None
+        self._fieldPosRendered=None
         
         if type(rgb) in [float, int]: #user may give a luminance val
             self.rgb=numpy.array((rgb,rgb,rgb), float)
@@ -976,10 +988,22 @@ class DotStim(_BaseVisualStim):
     def set(self, attrib, val, op=''):
         """DotStim.set() is obselete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
-        (e.g. setOri(), setSF()...)
+        (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
-
+    def setFieldPos(self,val, op=''):
+        self._set('fieldPos', val, op)
+        self._calcFieldCoordsRendered()
+    def setFieldCoherence(self,val, op=''):
+        self._set('coherence', val, op)
+        self._calcFieldCoordsRendered()
+    def setNDots(self,val, op=''):
+        self._set('nDots', val, op)
+    def setDirection(self,val, op=''):
+        self._set('direction', val, op)
+    def setSpeed(self,val, op=''):
+        self._set('speed', val, op)
+        
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -1001,10 +1025,8 @@ class DotStim(_BaseVisualStim):
         if self.element==None:
             #scale the drawing frame etc...
             GL.glPushMatrix()#push before drawing, pop after
-            GL.glLoadIdentity()
-            if self._winScale!=self.win._currScale:
-                self.win.setScale(self._winScale)
-            GL.glTranslatef(self.fieldPos[0],self.fieldPos[1],thisDepth)
+            self.win.setScale(self._winScale)
+            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
             GL.glPointSize(self.dotSize)
 
             #load Null textures into multitexteureARB - they modulate with glColor
@@ -1016,9 +1038,9 @@ class DotStim(_BaseVisualStim):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
             if self.win.winType == 'pyglet':
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXY.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
             else:
-                GL.glVertexPointerd(visibleXY)
+                GL.glVertexPointerd(self._dotsXYRendered)
 
             GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
@@ -1029,7 +1051,7 @@ class DotStim(_BaseVisualStim):
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
             for pointN in range(0,self.nDots):
-                self.element.setPos(self._dotsXY[pointN,:]-self.fieldPos)
+                self.element.setPos(self._dotsXYRendered[pointN,:]-self._fieldPosRendered)
                 self.element.draw()
 
             self.element.setDepth(initialDepth)#reset depth before going to next frame
@@ -1105,7 +1127,24 @@ class DotStim(_BaseVisualStim):
 #        update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
-
+            
+        #update the pixel XY coordinates    
+        self._calcDotsXYRendered()
+        
+    def _calcDotsXYRendered(self):
+        if self.units in ['norm','pix']: self._dotsXYRendered=self._dotsXY
+        elif self.units=='deg': self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
+        elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
+    def _calcFieldCoordsRendered(self):
+        if self.units in ['norm', 'pix']: 
+            self._fieldSizeRendered=self.fieldSize
+            self._fieldPosRendered=self.fieldPos
+        elif self.units=='deg':
+            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize)
+            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos)
+        elif self.units=='cm': 
+            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize)
+            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos)
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -1264,8 +1303,6 @@ class PatchStim(_BaseVisualStim):
         if units in [None, "", []]:
             self.units = win.units
         else:self.units = units
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
         
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
@@ -1329,14 +1366,22 @@ class PatchStim(_BaseVisualStim):
             (self.texID, self.maskID) = GL.glGenTextures(2)
         self.setTex(tex)
         self.setMask(mask)
+        
+        #fix scaling to window coords
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        self._calcCyclesPerStim()
+        self._calcPosRendered()
+        self._calcSizeRendered()
+        
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
-
     def setSF(self,value,operation=None):
         self._set('sf', value, operation)
         self.needUpdate = 1
+        self._calcCyclesPerStim()
     def setPhase(self,value, operation=None):
         self._set('phase', value, operation)
         self.needUpdate = 1
@@ -1371,11 +1416,9 @@ class PatchStim(_BaseVisualStim):
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        #GL.glLoadIdentity() #implicitly done by push/pop?
-        #scale the viewport to the appropriate size
-        self.win.setScale(self.units)
+        self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
@@ -1416,21 +1459,15 @@ class PatchStim(_BaseVisualStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
         #calculate coords in advance:
-        L = -self.size[0]/2#vertices
-        R =      self.size[0]/2
-        T =      self.size[1]/2
-        B = -self.size[1]/2
+        L = -self._sizeRendered[0]/2#vertices
+        R =  self._sizeRendered[0]/2
+        T =  self._sizeRendered[1]/2
+        B = -self._sizeRendered[1]/2
         #depth = self.depth
-        if self.units=='norm':#sf is dependent on size (openGL default)
-            Ltex = -self.sf[0]/2 - self.phase[0]+0.5
-            Rtex = +self.sf[0]/2 - self.phase[0]+0.5
-            Ttex = +self.sf[1]/2 - self.phase[1]+0.5
-            Btex = -self.sf[1]/2 - self.phase[1]+0.5
-        else: #we should scale to become independent of size
-            Ltex = -self.sf[0]*self.size[0]/2 - self.phase[0]+0.5
-            Rtex = +self.sf[0]*self.size[0]/2 - self.phase[0]+0.5
-            Ttex = +self.sf[1]*self.size[1]/2 - self.phase[1]+0.5
-            Btex = -self.sf[1]*self.size[1]/2 - self.phase[1]+0.5
+        Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
+        Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
+        Ttex = +self._cycles[1]/2 - self.phase[1]+0.5
+        Btex = -self._cycles[1]/2 - self.phase[1]+0.5
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
@@ -1489,21 +1526,15 @@ class PatchStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         #calculate coords in advance:
-        L = -self.size[0]/2#vertices
-        R =      self.size[0]/2
-        T =      self.size[1]/2
-        B = -self.size[1]/2
+        L = -self._sizeRendered[0]/2#vertices
+        R =  self._sizeRendered[0]/2
+        T =  self._sizeRendered[1]/2
+        B = -self._sizeRendered[1]/2
         #depth = self.depth
-        if self.units=='norm':#sf is dependent on size (openGL default)
-            Ltex = -self.sf[0]/2 - self.phase[0]+0.5
-            Rtex = +self.sf[0]/2 - self.phase[0]+0.5
-            Ttex = +self.sf[1]/2 - self.phase[1]+0.5
-            Btex = -self.sf[1]/2 - self.phase[1]+0.5
-        else: #we should scale to become independent of size
-            Ltex = -self.sf[0]*self.size[0]/2 - self.phase[0]+0.5
-            Rtex = +self.sf[0]*self.size[0]/2 - self.phase[0]+0.5
-            Ttex = +self.sf[1]*self.size[1]/2 - self.phase[1]+0.5
-            Btex = -self.sf[1]*self.size[1]/2 - self.phase[1]+0.5
+        Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
+        Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
+        Ttex = +self._cycles[1]/2 - self.phase[1]+0.5
+        Btex = -self._cycles[1]/2 - self.phase[1]+0.5
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
@@ -1564,11 +1595,6 @@ class PatchStim(_BaseVisualStim):
     def _calcCyclesPerStim(self):
         if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
-        
-class AlphaStim(PatchStim):
-    """DEPRECATED. Use PatchStim instead/n/n"""
-    def __init__(self, *arguments, **keywords):
-        PatchStim.__init__(self, *arguments, **keywords)
         
 class RadialStim(PatchStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
@@ -1702,8 +1728,6 @@ class RadialStim(PatchStim):
         else: self._useShaders=False
         if len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
         
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
@@ -1771,6 +1795,13 @@ class RadialStim(PatchStim):
         self._visible[(self._angles+self._triangleWidth)*180/pi>(self.visibleWedge[1])] = False#second edge of wedge
         self._nVisible = numpy.sum(self._visible)*3
 
+        
+        #do the scaling to the window coordinate system (norm or pix coords)
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        self._calcPosRendered()
+        self._calcSizeRendered()#must be done BEFORE _updateXY
+        
         self._updateTextureCoords()
         self._updateMaskCoords()
         self._updateXY()
@@ -1778,6 +1809,7 @@ class RadialStim(PatchStim):
 
     def setSize(self, value, operation=None):
         exec('self.size' + operation+ '=value')
+        self._calcSizeRendered()
         self._updateXY()
         self.needUpdate=True
     def setAngularCycles(self,value,operation=None):
@@ -1823,11 +1855,10 @@ class RadialStim(PatchStim):
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        #GL.glLoadIdentity() #implicitly done by push/pop?
         #scale the viewport to the appropriate size
-        win.setScale(self.units)
+        self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
 
         #setup color
@@ -1844,13 +1875,14 @@ class RadialStim(PatchStim):
         GL.glPopMatrix()
 
     def _updateXY(self):
-        """Update if the SIZE changes"""
+        """Update if the SIZE changes
+        Update AFTER _calcSizeRendered"""
         #triangles = [trisX100, verticesX3, xyX2]
         self._XY = numpy.zeros([self.angularRes, 3, 2])
-        self._XY[:,1,0] = numpy.sin(self._angles)*self.size[0]/2 #x position of 1st outer vertex
-        self._XY[:,1,1] = numpy.cos(self._angles)*self.size[1]/2#y position of 1st outer vertex
-        self._XY[:,2,0] = numpy.sin(self._angles+self._triangleWidth)*self.size[0]/2#x position of 2nd outer vertex
-        self._XY[:,2,1] = numpy.cos(self._angles+self._triangleWidth)*self.size[1]/2#y position of 2nd outer vertex
+        self._XY[:,1,0] = numpy.sin(self._angles)*self._sizeRendered[0]/2 #x position of 1st outer vertex
+        self._XY[:,1,1] = numpy.cos(self._angles)*self._sizeRendered[1]/2#y position of 1st outer vertex
+        self._XY[:,2,0] = numpy.sin(self._angles+self._triangleWidth)*self._sizeRendered[0]/2#x position of 2nd outer vertex
+        self._XY[:,2,1] = numpy.cos(self._angles+self._triangleWidth)*self._sizeRendered[1]/2#y position of 2nd outer vertex
 
         self._visibleXY = self._XY[self._visible,:,:]
         self._visibleXY = self._visibleXY.reshape(self._nVisible,2)
@@ -2113,8 +2145,6 @@ class ElementArrayStim:
         if units in [None, "", []]:
             self.units = win.units
         else: self.units = units
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
         
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
@@ -2163,6 +2193,10 @@ class ElementArrayStim:
         self.setMask(elementMask)
         self.setTex(elementTex)
         
+        #set units for rendering (pix or norm)
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.setContrs(contrs)
         self.setRgbs(rgbs)
         self.setOpacities(opacities)#opacities is used by setRgbs, so this needs to be early
@@ -2171,6 +2205,11 @@ class ElementArrayStim:
         self.setSizes(sizes) #set sizes before sfs (sfs may need it formatted)
         self.setSfs(sfs)
         self.setPhases(phases)
+        
+        self._calcFieldCoordsRendered()
+        self._calcSizesRendered()
+        self._calcXYsRendered()
+        
                 
     def setXYs(self,value=None, operation=''):
         """Set the xy values of the element centres (relative to the centre of the field).
@@ -2441,8 +2480,8 @@ class ElementArrayStim:
         GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
         
         GL.glLoadIdentity()
-        self.win.setScale(self.units)
-        GL.glTranslatef(self.fieldPos[0],self.fieldPos[1],0.0)
+        self.win.setScale(self._winScale)
+        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
                
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes)
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
@@ -2477,24 +2516,45 @@ class ElementArrayStim:
         GL.glPopClientAttrib()
         GL.glPopMatrix()
         
+    def _calcSizesRendered(self):
+        if self.units in ['norm','pix']: self._sizesRendered=self.sizes
+        elif self.units=='deg': self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
+        elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
+    def _calcXYsRendered(self):
+        if self.units in ['norm','pix']: self._XYsRendered=self.xys
+        elif self.units=='deg': self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
+        elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
+    def _calcFieldCoordsRendered(self):
+        if self.units in ['norm', 'pix']: 
+            self._fieldSizeRendered=self.fieldSize
+            self._fieldPosRendered=self.fieldPos
+        elif self.units=='deg':
+            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
+        elif self.units=='cm': 
+            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
+            
     def updateElementVertices(self):
+        self._calcXYsRendered()
+        
         self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],'d')
-        wx = self.sizes[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
-        wy = self.sizes[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
-        hx = self.sizes[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
-        hy = -self.sizes[:,1]*numpy.cos(self.oris[:]*numpy.pi/180)/2
+        wx = self._sizesRendered[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
+        wy = self._sizesRendered[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
+        hx = self._sizesRendered[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
+        hy = -self._sizesRendered[:,1]*numpy.cos(self.oris[:]*numpy.pi/180)/2
         
         #X
-        self._visXYZvertices[:,0,0] = self.xys[:,0] -wx + hx#TopL
-        self._visXYZvertices[:,1,0] = self.xys[:,0] +wx + hx#TopR
-        self._visXYZvertices[:,2,0] = self.xys[:,0] +wx - hx#BotR
-        self._visXYZvertices[:,3,0] = self.xys[:,0] -wx - hx#BotL
+        self._visXYZvertices[:,0,0] = self._XYsRendered[:,0] -wx + hx#TopL
+        self._visXYZvertices[:,1,0] = self._XYsRendered[:,0] +wx + hx#TopR
+        self._visXYZvertices[:,2,0] = self._XYsRendered[:,0] +wx - hx#BotR
+        self._visXYZvertices[:,3,0] = self._XYsRendered[:,0] -wx - hx#BotL
         
         #Y
-        self._visXYZvertices[:,0,1] = self.xys[:,1] -wy + hy
-        self._visXYZvertices[:,1,1] = self.xys[:,1] +wy + hy
-        self._visXYZvertices[:,2,1] = self.xys[:,1] +wy - hy
-        self._visXYZvertices[:,3,1] = self.xys[:,1] -wy - hy
+        self._visXYZvertices[:,0,1] = self._XYsRendered[:,1] -wy + hy
+        self._visXYZvertices[:,1,1] = self._XYsRendered[:,1] +wy + hy
+        self._visXYZvertices[:,2,1] = self._XYsRendered[:,1] +wy - hy
+        self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
         
         #depth
         self._visXYZvertices[:,:,2] = numpy.arange(0,0.001*self.nElements,0.001).repeat(4).reshape(self.nElements, 4)
@@ -2549,7 +2609,7 @@ class ElementArrayStim:
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
         
-class MovieStim:
+class MovieStim(_BaseVisualStim):
     """A stimulus class for playing movies (mpeg, avi, etc...) in 
     PsychoPy. 
     
@@ -2605,9 +2665,7 @@ class MovieStim:
             - **opacity**:
                 the movie can be made transparent by reducing this
         """
-        self.win = win  
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
+        self.win = win 
         
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
@@ -2622,18 +2680,20 @@ class MovieStim:
         self.flipHoriz = flipHoriz
         self.opacity = opacity
         self.playing=0
-        
         #size
         if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
         else: self.size = numpy.array((size,size),float)
         
         self.ori = ori
-        if units in [None, "", []]:
-            self.units = win.units
-        else:
-            self.units = units
-            
+        if units in [None, "", []]: self.units = win.units
+        else: self.units = units
+        #fix scaling to window coords
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        self._calcPosRendered()
+        self._calcSizeRendered()
+        
         #check for pyglet
         if win.winType!='pyglet': 
             log.Error('Movie stimuli can only be used with a pyglet window')
@@ -2668,27 +2728,29 @@ class MovieStim:
 
         #do scaling
         #scale the viewport to the appropriate size
-        self.win.setScale(self.units)
+        self.win.setScale(self._winScale)
         
         frameTexture = self._player.get_texture()
         GL.glColor4f(1,1,1,self.opacity)
         GL.glPushMatrix()
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         flipBitX = 1-self.flipHoriz*2
         flipBitY = 1-self.flipVert*2
         frameTexture.blit(
-                -self.size[0]/2.0*flipBitX, 
-                -self.size[1]/2.0*flipBitY, 
-                width=self.size[0]*flipBitX, 
-                height=self.size[1]*flipBitY,
+                -self._sizeRendered[0]/2.0*flipBitX, 
+                -self._sizeRendered[1]/2.0*flipBitY, 
+                width=self._sizeRendered[0]*flipBitX, 
+                height=self._sizeRendered[1]*flipBitY,
                 z=thisDepth)        
         GL.glPopMatrix()
+        
     def _onEOS(self):
         #not called, for some reason?!
         self.playing=-1
         print 'movie finished'
+
 class TextStimGLUT:
     """DEPRECATED - please use TextStim instead - they're much nicer!"""
     def __init__(self,win,
@@ -2710,8 +2772,6 @@ class TextStimGLUT:
         
         if len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
         
         self.pos= numpy.array(pos)
         if type(font)==str:
@@ -2746,6 +2806,11 @@ class TextStimGLUT:
             self._texID = GL.glGenTextures(1)
         #self._setColorTex()
 
+        #setup scaling for the window
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        self._calcPosRendered()
+        
         self.ori=ori
         self.lineWidth=lineWidth
         self.letterWidth=letterWidth#width of each character in pix
@@ -2772,6 +2837,7 @@ class TextStimGLUT:
         self._set('ori', value, operation)
     def setPos(self,value,operation=None):
         self._set('pos', value, operation)
+        self._calcPosRendered()
     def setRGB(self,value, operation=None):
         self._set('rgb', value, operation)
     def setOpacity(self,value,operation=None):
@@ -2816,7 +2882,7 @@ class TextStimGLUT:
 
         GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, self.opacity)
 
-        unitScale = self.win.setScale(self.units)
+        self.win.setScale(self.units)
         GL.glTranslatef(self.pos[0],self.pos[1],0)#NB depth is set already
         if self.strokeFont:#draw stroke font stims
             GL.glLineWidth(self.lineWidth)
@@ -3042,6 +3108,7 @@ class TextStim(_BaseVisualStim):
         else: self.units = win.units
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
+        
         self.pos= numpy.array(pos)
 
         #height in pix (needs to be done after units)
@@ -3067,10 +3134,12 @@ class TextStim(_BaseVisualStim):
             elif self.units=='deg': self.wrapWidth=15
             elif self.units=='cm': self.wrapWidth=15
             elif self.units=='pix': self.wrapWidth=500
-        if self.units=='norm': self._wrapWidthPIX= self.wrapWidth*win.size[0]/2
-        elif self.units=='deg': self._wrapWidthPIX= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
-        elif self.units=='cm': self._wrapWidthPIX= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
-        elif self.units=='pix': self._wrapWidthPIX=self.wrapWidth
+        if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
+        elif self.units=='deg': self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
+        elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
+        elif self.units=='pix': self._wrapWidthPix=self.wrapWidth
+        
+        self._calcPosRendered()
         
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
@@ -3153,7 +3222,7 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
-                                                       width=self._wrapWidthPIX)#width of the frame     
+                                                       width=self._wrapWidthPix)#width of the frame     
 #            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
 #                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
 #                                                       halign=self.alignHoriz,
@@ -3161,7 +3230,7 @@ class TextStim(_BaseVisualStim):
 #                                                            int(127.5*self.rgb[1]+127.5),
 #                                                            int(127.5*self.rgb[2]+127.5),
 #                                                            int(255*self.opacity)),
-#                                                       multiline=True, width=self._wrapWidthPIX)#width of the frame           
+#                                                       multiline=True, width=self._wrapWidthPix)#width of the frame           
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias, [255,255,255])
@@ -3258,7 +3327,7 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
-                                                       width=self._wrapWidthPIX,#width of the frame  
+                                                       width=self._wrapWidthPix,#width of the frame  
                                                        )
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
@@ -3368,11 +3437,9 @@ class TextStim(_BaseVisualStim):
         GL.glPushMatrix()
 
         #scale and rotate
-        unitScale = self.win.setScale(self.units)
-        GL.glTranslatef(self.pos[0],self.pos[1],thisDepth)#NB depth is set already
+        prevScale = self.win.setScale(self._winScale)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
         GL.glRotatef(self.ori,0.0,0.0,1.0)
-        #then scale back to pixels
-        self.win.setScale('pix', None, unitScale)
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -3387,6 +3454,7 @@ class TextStim(_BaseVisualStim):
         #update list if necss and then call it
         if self.win.winType=='pyglet':
             
+            self.win.setScale('pix', prevScale)
             #and align based on x anchor
             if self.alignHoriz=='right':
                 GL.glTranslatef(-self.width,0,0)#NB depth is set already
@@ -3405,6 +3473,7 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj.draw()            
             GL.glDisable(GL.GL_TEXTURE_2D) 
         else: 
+            self.win.setScale('pix', prevScale)
             #for pygame we should (and can) use a drawing list   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)

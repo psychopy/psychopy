@@ -11,6 +11,11 @@ PsychoPY 0.97.00:
     - dotLife now works (was previously just a placeholder). Default is -1 (so should be same as before)
   see Scase, Braddick & Raymond (1996) for further info on the importance of these
 * ADDED a standalone application installer for windows
+* ADDED options to event.getKeys
+    - keyList to limit which keys are checked for (thanks Gary Strangman)
+    - timeStamped=True/False
+* FIXED bug in event.py for machines where pyglet is failing to import
+* REMOVED AlphaStim (after a long period of 'deprecated')
 
 PsychoPY 0.96.02:
 * FIXED bug introduced with clipping of text in 0.96.01 using textstimuli with shaders  under pygame
