@@ -17,7 +17,7 @@ try:
     import ctypes
     import pyglet
     #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
-    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media
+    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
     import _shadersPyglet
     import gamma
     havePyglet=True    
@@ -3440,8 +3440,8 @@ class TextStim(_BaseVisualStim):
         prevScale = self.win.setScale(self._winScale)
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
         GL.glRotatef(self.ori,0.0,0.0,1.0)
-
         self.win.setScale('pix',None, prevScale)
+        
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast

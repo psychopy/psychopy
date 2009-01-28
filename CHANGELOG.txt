@@ -10,10 +10,10 @@ PsychoPY 0.97.00:
     - noiseDots determines the update rule for the distractor dots (random 'position', 'walk', 'direction')
     - dotLife now works (was previously just a placeholder). Default is -1 (so should be same as before)
   see Scase, Braddick & Raymond (1996) for further info on the importance of these
-* ADDED a standalone application installer for windows
 * ADDED options to event.getKeys
     - keyList to limit which keys are checked for (thanks Gary Strangman)
     - timeStamped=True/False
+* CHANGED pyglet key checking now returns '1' as the key irrespective of numpad or otherwise (used to return '1' or 'NUM_1')
 * FIXED bug in event.py for machines where pyglet is failing to import
 * REMOVED AlphaStim (after a long period of 'deprecated')
 

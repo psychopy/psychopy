@@ -1,5 +1,5 @@
 #! /usr/local/bin/python2.5
-from psychopy import *
+from psychopy import core, visual, event
 
 #create a window to draw in
 myWin = visual.Window([400,400.0], allowGUI=False)
@@ -17,9 +17,9 @@ while trialClock.getTime()<20:
    gabor.draw()	
    message.draw()
    #handle key presses each frame
-   for keys in event.getKeys():
-      if keys in ['escape','q']:
-            print myWin.fps()
+   for keys in event.getKeys(timeStamped=True):
+      if keys[0][0] in ['escape','q']:
+            print myWin.fps(), keys
             myWin.close()
             core.quit()
          

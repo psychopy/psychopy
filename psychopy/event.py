@@ -15,8 +15,7 @@ except:
     havePygame = False
     
 try:
-    import pyglet.window, pyglet.event, pyglet.media
-    from pyglet.window import key
+    import pyglet.window
     havePyglet = True
 except:
     havePyglet = False
@@ -35,13 +34,17 @@ if havePyglet:
     #eventThread = _EventDispatchThread()
     #eventThread.start()
 
-def _onPygletKey(symbol, modifiers):
-    """handler for on_key_press events from pyglet
-    Adds a key event to global _keyBuffer which can then be accessed as normal
-    using event.getKeys(), .waitKeys(), clearBuffer() etc..."""         
-    thisKey = key.symbol_string(symbol).lower()#convert symbol into key string
+def _onPygletKey(symbol, modifiers): 
+    """handler for on_key_press events from pyglet 
+    Adds a key event to global _keyBuffer which can then be accessed as normal 
+    using event.getKeys(), .waitKeys(), clearBuffer() etc... 
+    Appends a tuple with (keyname, timepressed) into the _keyBuffer""" 
+    
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
+
+    thisKey = pyglet.window.key.symbol_string(symbol).lower()#convert symbol into key string
     #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
-    thisKey = thisKey.lstrip('_')
+    thisKey = (thisKey.lstrip('_').lstrip('NUM_'),keyTime) # modified to capture time of keypress so key=(keyname,keytime)
     
     _keyBuffer.append(thisKey)
 
@@ -59,7 +62,7 @@ def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
     global mouseWheelRel
     mouseWheelRel = mouseWheelRel+numpy.array([scroll_x, scroll_y])
 
-def getKeys(keyList=None):
+def getKeys(keyList=None, timeStamped=False):
     """Returns a list of keys that were pressed.
     
     Optional argument, keyList, allows the user to specify a set of keys to check for.
@@ -67,40 +70,57 @@ def getKeys(keyList=None):
     If the keyList is None all keys will be checked and the key buffer will be cleared
     completely.
     
+    Optional argument, timeStamped. NB pygame doesn't store the key time:
+    
+        - False (return a list of keynames)
+        - True (return (keyname, systemTime) tuples
+        - a core.Clock (return (keyname, relTime) tuples based on the clock)
+        
     2003: written by Jon Peirce
     2009: keyList functionality added by Gary Strangman
+    2009: timeStamped code provided by Dave Britton
     """
-    keyNames=[]
+    keys=[]
 
     if havePyglet:
         #for each (pyglet) window, dispatch its events before checking event buffer
         wins = pyglet.window.get_platform().get_default_display().get_windows()
         for win in wins: win.dispatch_events()#pump events on pyglet windows
 
-    global _keyBuffer
-    if len(_keyBuffer)>0:
-        #then pyglet is running - just use this
-        keyNames = _keyBuffer
-#        _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
+        global _keyBuffer
+        if len(_keyBuffer)>0:
+            #then pyglet is running - just use this
+            keys = _keyBuffer
+    #        _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
     elif havePygame and display.get_init():#see if pygame has anything instead (if it exists)
         for evts in evt.get(locals.KEYDOWN):
-            keyNames.append(pygame.key.name(evts.key))
+            keys.append( (pygame.key.name(evts.key),0) )#pygame has no keytimes
 
     if keyList==None:
         _keyBuffer = [] #clear buffer entirely
-        return keyNames  # equivalent behavior to getKeys()
+        targets=keys  # equivalent behavior to getKeys()
     else:
-        nontargetNames = []
-        targetNames = []
-        # split keyNames into keepers and pass-thrus
-        for key in keyNames:
-            if key in keyList:
-                targetNames.append(key)
+        nontargets = []
+        targets = []
+        # split keys into keepers and pass-thrus
+        for key in keys:
+            if key[0] in keyList:
+                targets.append(key)
             else:
-                nontargetNames.append(key)
-        _keyBuffer = nontargetNames  # save these
-        return targetNames     # return these 
+                nontargets.append(key)
+        _keyBuffer = nontargets  # save these
+        
+    #now we have a list of tuples called targets
+    #did the user want timestamped tuples or keynames?
+    if timeStamped==False:
+        keyNames = [k[0] for k in targets]
+        return keyNames
+    elif hasattr(timeStamped, 'timeAtLastReset'):
+        relTuple = [(k[0],k[1]-timeStamped.timeAtLastReset) for k in targets]
+        return relTuple
+    elif timeStamped==True:
+        return targets
 
 def waitKeys(maxWait = None, keyList=None):
     """
