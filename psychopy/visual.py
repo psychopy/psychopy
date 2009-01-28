@@ -768,7 +768,15 @@ class _BaseVisualStim:
         if self._useShaders:
             self._updateListShaders()
         else: self._updateListNoShaders()  
-
+    def _calcSizePix(self):
+        if self.units=='norm': self._sizePix=None
+        elif self.units=='deg': self._sizePix=misc.deg2pix(self.size, self.monitor)
+        elif self.units=='cm': self._sizePix=misc.cm2pix(self.size, self.monitor)
+        elif self.units=='pix': self._sizePix=self.size
+    def _calcCyclesPerStim(self):
+        if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
+        else: self._cycles=self.sf*self.size
+        
 class DotStim(_BaseVisualStim):
     """
     This stimulus class defines a field of dots with an update rule that determines how they change
