@@ -3441,6 +3441,7 @@ class TextStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
         GL.glRotatef(self.ori,0.0,0.0,1.0)
 
+        self.win.setScale('pix',None, prevScale)
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
@@ -3454,7 +3455,6 @@ class TextStim(_BaseVisualStim):
         #update list if necss and then call it
         if self.win.winType=='pyglet':
             
-            self.win.setScale('pix', prevScale)
             #and align based on x anchor
             if self.alignHoriz=='right':
                 GL.glTranslatef(-self.width,0,0)#NB depth is set already
@@ -3473,7 +3473,6 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj.draw()            
             GL.glDisable(GL.GL_TEXTURE_2D) 
         else: 
-            self.win.setScale('pix', prevScale)
             #for pygame we should (and can) use a drawing list   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
