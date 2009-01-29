@@ -1141,11 +1141,11 @@ class DotStim(_BaseVisualStim):
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units=='deg':
-            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize)
-            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos)
+            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm': 
-            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize)
-            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos)
+            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
