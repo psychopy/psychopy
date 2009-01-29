@@ -16,8 +16,11 @@ from keybindings import *
 ## global variables
 homeDir = os.getcwd()
 #__file__ might be a local path under py2exe and py2app
-if hasattr(sys, "frozen"):
+if hasattr(sys, "frozen") and sys.platform=='win32': #windows app
     appDir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+if hasattr(sys, "frozen"):#OSX app
+    appDir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
+    appDir, appName = os.path.split(appDir)
 else:
     appDir, appName = os.path.split(os.path.abspath(__file__))
 psychopyDir, junk = os.path.split(psychopy.__file__)
@@ -34,6 +37,8 @@ optionsPath = join(settingsFolder, 'options.pickle')
 #path to Resources (icons etc)
 if os.path.isdir(join(appDir, 'Resources')):
     iconDir = join(appDir, 'Resources')
+elif os.path.isdir(join(psychopyDir, 'Resources')):
+    iconDir = join(psychopyDir, 'Resources')
 else:iconDir = appDir
 
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'

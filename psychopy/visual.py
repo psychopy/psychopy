@@ -1060,6 +1060,7 @@ class DotStim(_BaseVisualStim):
         """Returns a uniform spread of dots, according to the fieldShape and fieldSize
         
         usage::
+        
             dots = self._newDots(nDots)
             
         """
