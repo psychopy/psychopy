@@ -1018,7 +1018,7 @@ class DotStim(_BaseVisualStim):
         self._update_dotsXY()
         if self.depth==0:
             thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
+            win._defDepth += _depthIncrements[win.winType]
         else:
             thisDepth=self.depth
 
@@ -1026,7 +1026,7 @@ class DotStim(_BaseVisualStim):
         if self.element==None:
             #scale the drawing frame etc...
             GL.glPushMatrix()#push before drawing, pop after
-            self.win.setScale(self._winScale)
+            win.setScale(self._winScale)
             GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
             GL.glPointSize(self.dotSize)
 
