@@ -174,6 +174,9 @@ class ScriptThread(threading.Thread):
         sys.settrace(self.globaltrace)
         self.__run_backup()
         self.run = self.__run_backup
+        
+        #we're done - send the App a message
+        self.gui.onProcessEnded(event=None)
   
     def globaltrace(self, frame, why, arg):
         if why == 'call':
