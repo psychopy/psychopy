@@ -952,6 +952,7 @@ class DotStim(_BaseVisualStim):
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
         self._dotsDir[self._signalDots] = self.dir
         
+        self._calcFieldCoordsRendered()
         self._update_dotsXY()
 
     def _set(self, attrib, val, op=''):

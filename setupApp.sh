@@ -7,6 +7,6 @@ rm psychopy/demos/*.pyc
 cd PsychoPyIDE
 sudo rm -r build
 sudo rm -r dist
-sudo python setupApp.py py2app
+python setupApp.py py2app #don't run sudo
 cd ..
 sudo mv PsychoPyIDE/dist/PsychoPyIDE.app/ dist/PsychoPyIDE.app
