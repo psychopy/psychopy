@@ -15,7 +15,7 @@ __svn__= '$Id$'
 __rev__= '$Revision$'
 __author__ = 'Jon Peirce'
 __author_email__='jon@peirce.org.uk'
-__maintainer_email__='psychpy-users@lists.sourceforge.net'
+__maintainer_email__='psychopy-users@googlegroups.com'
 
 # these modules are loaded by import psychopy
 #from core import *

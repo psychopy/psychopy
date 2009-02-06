@@ -15,7 +15,9 @@ def setPortAddress(address=0x0378):
         LPT2 = 0x0278 or 0x0378
         LPT3 = 0x0278
     """
-    defaultPort = 0x378#address for parallel port on many machines
+    _parallel.baseAddress = address#address for parallel port on many machines
+    _parallel.statusRegAdrs = baseAddress + 1                     # status register address
+    _parallel.ctrlRegAdrs = baseAddress + 2                       # control register address
 
 def setData(data):
     """Set the data to be presented on the parallel port (one ubyte).
@@ -44,3 +46,14 @@ def setPin(pinNumber, state):
         parallel.setPin(3, 0)#sets pin 3 low
     """
     exec("_parallel.pportD%i(state)" %(pinNumber-2))
+   
+  
+def readPin(pinNumber):
+    """Determine whether a desired (input) pin is high(1) or low(0).
+    
+    Only pins 2-9 (incl) are normally used for data output::
+    
+        parallel.setPin(3, 1)#sets pin 3 high
+        parallel.setPin(3, 0)#sets pin 3 low
+    """
+    exec("_parallel.pportD%i(state)" %(pinNumber-2)) 

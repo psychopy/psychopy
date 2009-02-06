@@ -792,7 +792,7 @@ class DotStim(_BaseVisualStim):
     on every call to the .draw() method.
     
     This standard class can be used to generate a wide variety of dot motion types. For a review of
-    possible types and their pros and cons see Scase, xxx & Braddick (xxx). All six possible 
+    possible types and their pros and cons see Scase, Braddick & Raymond (1996). All six possible 
     motions they describe can be generated with appropriate choices of the signalDots (which
     determines whether signal dots are the 'same' or 'different' from frame to frame), noiseDots
     (which determines the locations of the noise dots on each frame) and the dotLife (which 
@@ -831,72 +831,63 @@ class DotStim(_BaseVisualStim):
                  signalDots='different',
                  noiseDots='position'):
         """
-        **Arguments:**
-
-            - **win:** a Window() object required - the stimulus must know where to draw itself!
-
-            - **units:**
-                + None (use the current units of the Window)
-                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
-
-            - **nDots:** number of dots to be generated. For a 'sqr' fieldShape this is exactly the number of dots
-                drawn each frame. For other stimuli that use masks (e.g. fieldShape='circle') it is
-                the *average* number of dots drawn.
-
-            - **fieldPos:** a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+        :Parameters:
+            win : `Window` object 
+                the stimulus must know where to draw itself!
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the `Window` will be used. If 'norm'
+                then the window goes from -1:1 in each direction. If any of the others
+                are used then some info about the `Monitor` must be provided 
+                (e.g. from MonitorCenter.py)
+            nDots : int
+                number of dots to be generated
+            fieldPos : (x,y) or [x,y]
+                specifying the centre of the stimulus.
                 The origin is the screen centre, the units are determined
-                by units (see above).
-
-            - **fieldSize:** a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Units are specified by 'units' (see above).
+                by `units` (see above).
+            fieldSize : (x,y) or [x,y] or a singleValue            
+                If a single value is given it will be applied to x and y.
+                Units are specified by `units` (see above).
                 Sizes can be negative and can extend beyond the window.
-
-            - **fieldShape:** *'circle'*,'sqr','gauss' Defines the envelope used to present the dots
-
-            - **dotSize:** *2.0* in specified *units* [overridden if *element* is specified]
-
-            - **dotLife:** Number of frames each dot lives for (default=3, -1=infinite)
-
-            - **dir:** direction of the coherent dots (degrees)
-
-            - **speed:** speed of the dots (in *units*/frame)
-            
-            - **signalDots**: 'same', Do the signal and noise dots stay the same
-                or do they randomise each frame ('different'). This paramater
-                corresponds to Scase et al's (xxx) categories of RDK.
-            
-            - **noiseDots**: one of the below, taken directly from Scase et al's categories
-            
-                - 'position' : noise dots take a random position every frame
-                - 'direction': noise dots follow a random, but constant direction
-                - 'walk': noise dots vary their direction every frame, but keep a constant speed
-                            
-            - **rgb:** a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
+            fieldShape : *'circle'*,'sqr' or 'gauss' 
+                Defines the envelope used to present the dots
+            dotSize
+                in specified *units* (overridden if `element` is specified)
+            dotLife : int
+                Number of frames each dot lives for (default=3, -1=infinite)
+            dir : float (degrees)
+                direction of the coherent dots
+            speed : float
+                speed of the dots (in *units*/frame)            
+            signalDots : 'same' or 'different'
+                If 'same' then the chosen signal dots remain the same on each frame.
+                If 'different' they are randomly chosen each frame. This paramater
+                corresponds to Scase et al's (1996) categories of RDK.            
+            noiseDots : 'position','direction' or 'walk'
+                Determines the behaviour of the noise dots, taken directly from 
+                Scase et al's (1996) categories. For 'position', noise dots take a
+                random position every frame. For 'direction' noise dots follow a 
+                random, but constant direction. For 'walk' noise dots vary their
+                direction every frame, but keep a constant speed.                            
+            rgb : (r,g,b) or [r,g,b] or a single intensity value 
                 or a single value (which will be applied to all guns).
                 RGB vals are applied to simple textures and to greyscale
                 image files but not to RGB images.
 
-                **NB** units range -1:1 (so 0.0 is GREY). Again this is
-                unconventional but it's great for vision scientists
-                because they usually change things relative to a
-                midpoint rather than relative to black.
-
-                    [overridden if *element* is specified]
-
-            - **opacity** 1.0,
+                **NB** units range -1:1 (so 0.0 is GREY). This is the convention
+                throughout PsychoPy because most vision studies are conducted on a
+                grey screen and colors represent deviations from this screen color.
+            opacity : float
                 1.0 is opaque, 0.0 is transparent
-
-            - **depth** 0,
+            depth : 0,
                 This can be used to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
                 but could do if that's really useful(?!)
-
-            - **element:** *None*.
+            element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
-                ``.setPos([x,y])`` method (e.g. AlphaStim, TextStim...)!!
+                ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
+                See `ElementArrayStim` for a faster implementation of this idea.
                 """
         self.win = win
         

@@ -184,22 +184,22 @@ class BitsBox:
         """Optional parameter LUTrange determines which entries of the LUT
         will be set to this contrast
         
-        **Arguments:**
-            - ``contrast`` a float in the range 0:1
-            - ``LUTrange`` is one of;
-                - a single float determining the amount of the LUT to be used
-                - an array of floats determining the start and stop fractions 
-                  of the LUT
-                - an array of ints (in range 0-255) determining the start stop 
-                  indices of the LUT
+        :Parameters:
+            contrast : float in the range 0:1
+                The contrast for the range being set
+            LUTrange : float or array
+                If a float is given then this is the fraction of the LUT to be used.
+                If an array of floats is given, these will specify the start/stop points
+                as fractions of the LUT. If an array of ints (0-255) is given these 
+                determine the start stop *indices* of the LUT
         
-        **Examples:**        
+        Examples:        
             ``setContrast(1.0,0.5)``
                 will set the central 50% of the LUT so that a stimulus with 
                 contr=0.5 will actually be drawn with contrast 1.0
             
             ``setContrast(1.0,[0.25,0.5])``
-                or        
+
             ``setContrast(1.0,[63,127])``
                 will set the lower-middle quarter of the LUT
                 (which might be useful in LUT animation paradigms)

@@ -64,21 +64,22 @@ def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
 
 def getKeys(keyList=None, timeStamped=False):
     """Returns a list of keys that were pressed.
-    
-    Optional argument, keyList, allows the user to specify a set of keys to check for.
-    Only keypresses from this set of eys will be removed from the keyboard buffer. 
-    If the keyList is None all keys will be checked and the key buffer will be cleared
-    completely.
-    
-    Optional argument, timeStamped. NB pygame doesn't store the key time:
-    
-        - False (return a list of keynames)
-        - True (return (keyname, systemTime) tuples
-        - a core.Clock (return (keyname, relTime) tuples based on the clock)
         
-    2003: written by Jon Peirce
-    2009: keyList functionality added by Gary Strangman
-    2009: timeStamped code provided by Dave Britton
+    :Parameters:
+        keyList : **None** or []
+            Allows the user to specify a set of keys to check for.
+            Only keypresses from this set of keys will be removed from the keyboard buffer. 
+            If the keyList is None all keys will be checked and the key buffer will be cleared
+            completely. NB, pygame doesn't return timestamps (they are always 0)
+        timeStamped : **False** or True or `Clock`
+            If True will return a list of 
+            tuples instead of a list of keynames. Each tuple has (keyname, time). 
+            If a `core.Clock` is given then the time will be relative to the `Clock`'s last reset
+            
+    :Author:
+        - 2003 written by Jon Peirce
+        - 2009 keyList functionality added by Gary Strangman
+        - 2009 timeStamped code provided by Dave Britton
     """
     keys=[]
 
@@ -195,10 +196,14 @@ class Mouse:
     
     Create your `visual.Window` before creating a Mouse.
     
-    If using multiple visual.Windows, use the *win* argumetn to specify 
-    which Window you want this mouse coordinates to refer to. 
-    Otherwise it will use the first window found as the relevant 
-    context.
+    :Parameters:
+        visible : **True** or False
+            makes the mouse invisbile if necessary
+        newPos : **None** or [x,y]
+            gives the mouse a particular starting position (pygame `Window` only)
+        win : **None** or `Window`
+            the window to which this mouse is attached (the first found if None provided)
+
     """
     def __init__(self,
                  visible=True,
@@ -215,7 +220,12 @@ class Mouse:
         if newPos is not None: self.setPos(newPos)
         
     def setPos(self,newPos=(0,0)):
-        """Sets the current postiion of the mouse
+        """Sets the current postiion of the mouse (pygame only)
+        
+        :Parameters:
+            newPos : (x,y) or [x,y]
+                the new position on the screen
+
         """
         if usePygame: mouse.set_pos(newPos)
         else: print "pyglet does not support setting the mouse position yet"
@@ -233,7 +243,7 @@ class Mouse:
             return self.lastPos
         
     def getRel(self):
-        """Returns the new postiion of the mouse relative to the
+        """Returns the new position of the mouse relative to the
         last call to getRel or getPos
         """
         if usePygame: return mouse.get_rel()
@@ -289,9 +299,9 @@ def clearEvents(eventType=None):
     Optional argument, eventType, specifies only certain types to be
     cleared 
     
-    *eventType* can be:      
-        - None (default) all events wil be cleared
-        - 'mouse', 'joystick', 'keyboard' will remove only events of that type
+    :Parameters:
+        eventType : **None**, 'mouse', 'joystick', 'keyboard' 
+            If this is not None then only events of the given type are cleared
     """
     #pyglet
     if not havePygame or not display.get_init():
