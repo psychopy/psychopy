@@ -42,7 +42,7 @@ elif os.path.isdir(join(psychopyDir, 'Resources')):
 else:iconDir = appDir
 
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
-USE_NOTEBOOK_PANEL=True
+USE_NOTEBOOK_PANEL=False
 ANALYSIS_LEVEL=1
 if sys.platform=='darwin':
     ALLOW_MODULE_IMPORTS=False
@@ -1099,7 +1099,6 @@ class IDEMainFrame(wx.Frame):
         self.findData = wx.FindReplaceData()
         self.findData.SetFlags(wx.FR_DOWN)
         self.importedScripts={}
-        self.allDocs = []
         self.scriptProcess=None
         self.scriptProcessID=None
         self.db = None#debugger
@@ -1118,7 +1117,9 @@ class IDEMainFrame(wx.Frame):
         self.paneManager.SetManagedWindow(self)
         #make the notebook
 #        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
-        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), style=wx.aui.AUI_NB_DEFAULT_STYLE|wx.aui.AUI_NB_WINDOWLIST_BUTTON)
+        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), 
+            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
+                wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
 
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
@@ -1374,7 +1375,7 @@ class IDEMainFrame(wx.Frame):
     def pageChanged(self,event):
         old = event.GetOldSelection()
         new = event.GetSelection()
-        self.currentDoc = self.allDocs[new]
+        self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
         #event.Skip()
@@ -1448,21 +1449,31 @@ class IDEMainFrame(wx.Frame):
         stPos = self.currentDoc.GetCurrentPos()
         
         self.currentDoc.SetSelection(stPos,endPos)
-
+        
+    def getOpenFilenames(self):
+        """Return the full filename of each open tab"""
+        names=[]
+        for ii in range(self.notebook.GetPageCount()):
+            names.append(self.notebook.GetPage(ii).filename)
+        return names
+        
     def quit(self, event):
         #undo
         sys.stdout = self._origStdOut#discovered during __init__
         sys.stderr = self._origStdErr
         os.chdir(appDir)
         self.options['prevFiles'] = []
-        for thisFile in self.allDocs:
-            self.options['prevFiles'].append(thisFile.filename)
+        currFiles = self.getOpenFilenames()
+        for thisFileName in currFiles:
+            self.options['prevFiles'].append(thisFileName)
             
         #close each file (which will check for saving)
-        for thisFile in self.allDocs:#must do this for all files AFTER adding them to the list
-            ok = self.fileClose(event=0)
+        nDocs = len(currFiles)    
+        for thisFileName in currFiles:#must do this for all files AFTER adding them to the list
+            ok = self.fileClose(event=0, filename=thisFileName)#delete from end back
             if ok==-1:
                 return -1 #user cancelled - don't quit
+
         #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
@@ -1484,10 +1495,12 @@ class IDEMainFrame(wx.Frame):
         
     
     def findDocID(self, filename):
-        #find the ID of the current doc in self.allDocs list and the notebook panel (returns -1 if not found)
-        for n in range(len(self.allDocs)):
-            if self.allDocs[n].filename == filename:
-                return n
+        #find the ID of the current doc in the notebook panel (returns -1 if not found)
+        if filename in self.getOpenFilenames():
+            ii = self.notebook.GetPageIndex(filename)
+            if ii != wx.NOT_FOUND:
+                return ii
+        #either the filename wasn't in our list or we've lost the window (not sure how/!?)
         return -1
         
     def setCurrentDoc(self, filename):       
@@ -1495,18 +1508,17 @@ class IDEMainFrame(wx.Frame):
         #check if this file is already open
         docID=self.findDocID(filename)
         if docID>=0:
-            self.currentDoc = self.allDocs[docID]
+            self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
-            if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
-                self.fileClose(self.currentDoc)            
+            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
+                self.fileClose('untitled.py')      
             
             #create an editor window to put the text in
             if USE_NOTEBOOK_PANEL: #use a panel
                 p = wx.Panel(self.notebook, -1, style = wx.NO_FULL_REPAINT_ON_RESIZE)
                 self.currentDoc = CodeEditor(p, -1, frame=self)
-                self.allDocs.append(self.currentDoc)
                 
                 #arrange in window
                 s = wx.BoxSizer()
@@ -1515,7 +1527,6 @@ class IDEMainFrame(wx.Frame):
                 p.SetAutoLayout(True)
             else:
                 p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
-                self.allDocs.append(self.currentDoc)
                 
             #load text from document
             if os.path.isfile(filename):
@@ -1535,14 +1546,14 @@ class IDEMainFrame(wx.Frame):
                 path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)   
             if isinstance(self.notebook, wx.Notebook):
-                self.notebook.ChangeSelection(len(self.allDocs)-1)     
+                self.notebook.ChangeSelection(len(self.getOpenFilenames())-1)     
             elif isinstance(self.notebook, wx.aui.AuiNotebook):
-                self.notebook.SetSelection(len(self.allDocs)-1)     
+                self.notebook.SetSelection(len(self.getOpenFilenames())-1)     
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
-        if self.options['analyseAuto'] and len(self.allDocs)>0:
+        if self.options['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')
             self.currentDoc.analyseScript()
             self.SetStatusText('')
@@ -1583,7 +1594,7 @@ class IDEMainFrame(wx.Frame):
             f.close()
         self.setFileModified(False)
             
-        if self.options['analyseAuto'] and len(self.allDocs)>0:
+        if self.options['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing current source code')
             self.currentDoc.analyseScript()
         #reset status text
@@ -1616,8 +1627,12 @@ class IDEMainFrame(wx.Frame):
             dlg.destroy()
         except:
             pass
-    def fileClose(self, event):
-        filename = self.currentDoc.filename
+            
+    def fileClose(self, event, filename=None):
+        
+        if filename==None:
+            filename = self.currentDoc.filename
+        self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED==True:
             sys.stdout.flush()
             dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
@@ -1632,20 +1647,20 @@ class IDEMainFrame(wx.Frame):
                 self.fileSave(None)
             elif resp == wx.ID_NO:
                 pass #don't save just quit
+            
         #remove the document and its record
         currId = self.notebook.GetSelection()
-        newPageID=currId-1
-        self.allDocs.remove(self.currentDoc)
         #if this was called by AuiNotebookEvent, then page has closed already
         if not isinstance(event, wx.aui.AuiNotebookEvent):
             self.notebook.DeletePage(currId)
+            
         #set new current doc
-        if newPageID==-1: 
-            self.currentDoc=None    
+        newPageID = self.notebook.GetSelection()
+        if newPageID == -1:
+            self.currentDoc = None
             self.SetLabel("PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__)
         else: 
-            #self.notebook.Raise
-            self.currentDoc = self.allDocs[newPageID]
+            self.currentDoc = self.notebook.GetPage(newPageID)
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
         #return 1
     def _runFileAsImport(self):      
