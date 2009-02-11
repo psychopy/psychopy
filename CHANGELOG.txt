@@ -4,6 +4,9 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog 
 
+PsychoPY 0.97.01:
+* FIXED bug with IDE not closing properly (when current file was not right-most)
+
 PsychoPY 0.97.00:
 * ADDED options to DotStim motions. Two args have been added:
   * signalDots can be 'different' from or 'same' as the noise dots (from frame to frame)
@@ -16,6 +19,8 @@ PsychoPY 0.97.00:
 * CHANGED pyglet key checking now returns '1' as the key irrespective of numpad or otherwise (used to return '1' or 'NUM_1')
 * FIXED bug in event.py for machines where pyglet is failing to import
 * REMOVED AlphaStim (after a long period of 'deprecated')
+
+----------
 
 PsychoPY 0.96.02:
 * FIXED bug introduced with clipping of text in 0.96.01 using textstimuli with shaders  under pygame
