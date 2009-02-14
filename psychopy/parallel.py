@@ -51,9 +51,15 @@ def setPin(pinNumber, state):
 def readPin(pinNumber):
     """Determine whether a desired (input) pin is high(1) or low(0).
     
-    Only pins 2-9 (incl) are normally used for data input::
-    
-        parallel.setPin(3, 1)#sets pin 3 high
-        parallel.setPin(3, 0)#sets pin 3 low
+    Only pins 'status' pins (10-14 and 15) are currently read here, although the data
+    pins (2-9) probably could be too.
     """
-    exec("_parallel.pportD%i(state)" %(pinNumber-2)) 
+    if pinNumber==10: return _parallel.pportInAcknowledge() #should then give 1 or 0 on pin 10
+    elif pinNumber==11: return _parallel.pportInBusy() 
+    elif pinNumber==12: return _parallel.pportInPaperOut()
+    elif pinNumber==13: return _parallel.pportInSelected()
+    elif pinNumber==14: return 
+    elif pinNumber==15: return _parallel.pportInError()
+    else: 
+        print 'Pin %i cannot be read (by the psychopy.parallel.readPin() yet' %pinNumber)
+    
