@@ -3,7 +3,7 @@
 This is a wrapper around Dincer Aydin's winioport.py for
 reading and writing to the parallel port. 
 
-Requires either port95.exe to be installed.
+Requires either port95.exe or DLPortIO to be installed.
 """
 import _parallel #this is Dincer Aydin's module
 
@@ -51,7 +51,7 @@ def setPin(pinNumber, state):
 def readPin(pinNumber):
     """Determine whether a desired (input) pin is high(1) or low(0).
     
-    Only pins 2-9 (incl) are normally used for data output::
+    Only pins 2-9 (incl) are normally used for data input::
     
         parallel.setPin(3, 1)#sets pin 3 high
         parallel.setPin(3, 0)#sets pin 3 low

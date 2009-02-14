@@ -419,6 +419,7 @@ class MainFrame(wx.Frame):
                 'Warning', wx.YES_NO|wx.CANCEL )
             resp = dlg.ShowModal()
             dlg.Destroy()
+            print 'got here'
             if resp  == wx.ID_CANCEL:
                 return 1 #return before quitting
             elif resp == wx.ID_YES:
