@@ -218,7 +218,7 @@ class Window:
         
         if self.units=='norm':  self.setScale('norm')
         else: self.setScale('pix')
-            
+        
         self.update()#do a screen refresh straight away
 
 
@@ -320,13 +320,15 @@ class Window:
             else:
                 core.quit()#we've unitialised pygame so quit
                         
-        self.frames +=1
-        now = core.getTime()
-        deltaT = now - self.lastFrameT; self.lastFrameT=now
-        if deltaT>self._refreshThreshold: log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
-        
         if self.recordFrameIntervals:
+            self.frames +=1
+            now = core.getTime()
+            deltaT = now - self.lastFrameT; self.lastFrameT=now                
             self.frameIntervals.append(deltaT)
+            
+            if deltaT>self._refreshThreshold \
+                and (average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
+                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
         
         if haveFB:
             #set rendering back to the framebuffer object
@@ -2155,16 +2157,11 @@ class ElementArrayStim:
         self.needColorUpdate=True
         self._useShaders=True
         self.interpolate=True
+        self.depths=depths
         
         if self.win.winType != 'pyglet':
             raise TypeError('ElementArray requires a pyglet context')
-        
-        if depths==0:
-            self.depth = win._defDepth
-            win._defDepth -= 0.0001# -ve depth means closer to viewer
-        else:
-            self.depths=depths
-        
+                
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
             self.fieldPos = numpy.array(fieldPos,float)
@@ -2238,7 +2235,7 @@ class ElementArrayStim:
             if type(value) in [int, float, list, tuple]:
                 value = numpy.array(value, dtype=float)
             #check shape
-            if value.shape != (self.nElements,2):
+            if not (value.shape in [(),(2,),(self.nElements,2)]):
                 raise ValueError("New value for setXYs should be either None or Nx2")
             if operation=='':
                 self.xys=value    
@@ -2317,7 +2314,7 @@ class ElementArrayStim:
         if operation=='':
             self.opacities=value    
         else: exec('self.opacities'+operation+'=value')
-        self.needTexCoordUpdate =True
+        self.needColorUpdate =True
         
     def setSizes(self,value,operation=''):
         """Set the size for each element. 
@@ -2550,8 +2547,8 @@ class ElementArrayStim:
         self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
         
         #depth
-        self._visXYZvertices[:,:,2] = numpy.arange(0,0.001*self.nElements,0.001).repeat(4).reshape(self.nElements, 4)
-        
+        self._visXYZvertices[:,:,2] = self.depths
+            
         self.needVertexUpdate=False
         
     #----------------------------------------------------------------------
