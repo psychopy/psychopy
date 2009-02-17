@@ -2236,7 +2236,7 @@ class ElementArrayStim:
         else:        
             #make into an array
             if type(value) in [int, float, list, tuple]:
-                value = numpy.array(value)        
+                value = numpy.array(value, dtype=float)
             #check shape
             if value.shape != (self.nElements,2):
                 raise ValueError("New value for setXYs should be either None or Nx2")
@@ -2251,7 +2251,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         
         #check shape
         if value.shape in [(),(1,)]:
@@ -2281,7 +2281,7 @@ class ElementArrayStim:
         
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         
         #check shape
         if value.shape in [(),(1,)]:
@@ -2304,7 +2304,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         
         #check shape
         if value.shape in [(),(1,)]:
@@ -2329,7 +2329,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         #check shape
         if value.shape in [(),(1,)]:
             value = numpy.resize(value, [self.nElements,2])
@@ -2356,7 +2356,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         
         #check shape
         if value.shape in [(),(1,)]:
@@ -2384,8 +2384,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
-        
+            value = numpy.array(value, dtype=float)
         #check shape
         if value.shape in [(), (1,),(3,)]:
             value = numpy.resize(value, [self.nElements,3])
@@ -2399,6 +2398,7 @@ class ElementArrayStim:
         if operation=='':
             self.rgbs=value    
         else: exec('self.rgbs'+operation+'=value')
+        
         self.needColorUpdate=True 
     def setContrs(self,value,operation=''):
         """Set the contrast for each element. 
@@ -2409,7 +2409,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         #check shape
         if value.shape in [(),(1,)]:
             value = value.repeat(self.nElements)
@@ -2427,7 +2427,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         #check shape
         if value.shape != (2,):
             raise ValueError("New value for setFieldPos should be [x,y]")
@@ -2443,7 +2443,7 @@ class ElementArrayStim:
         """
         #make into an array
         if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value)
+            value = numpy.array(value, dtype=float)
         #check shape
         if value.shape not in [(2,),(1,)]:
             raise ValueError("New value for setFieldSize should be [x,y] or a single value")
