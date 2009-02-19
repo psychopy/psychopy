@@ -16,8 +16,8 @@ def setPortAddress(address=0x0378):
         LPT3 = 0x0278
     """
     _parallel.baseAddress = address#address for parallel port on many machines
-    _parallel.statusRegAdrs = baseAddress + 1                     # status register address
-    _parallel.ctrlRegAdrs = baseAddress + 2                       # control register address
+    _parallel.statusRegAdrs = address + 1                     # status register address
+    _parallel.ctrlRegAdrs = address + 2                       # control register address
 
 def setData(data):
     """Set the data to be presented on the parallel port (one ubyte).
