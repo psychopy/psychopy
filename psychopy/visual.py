@@ -486,6 +486,12 @@ class Window:
             self.gamma=gamma
 
         if self.bitsMode != None:
+            #first ensure that window gamma is 1.0
+            if self.winType=='pygame':
+                pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
+            elif self.winType=='pyglet':
+                self.winHandle.setGamma(self.winHandle, self.gamma)
+            #then set bits++ to desired gamma
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
             pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
@@ -727,7 +733,7 @@ class _BaseVisualStim:
     def setLMS(self, newLMS, operation=None):
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation):      
+    def setRGB(self, newRGB, operation=None):      
         self._set('rgb', newRGB, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:

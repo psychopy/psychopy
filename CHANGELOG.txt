@@ -11,6 +11,8 @@ PsychoPY 0.97.01:
 * ADDED check for floats as arguments to ElementArrayStim set___ methods 
 * CHANGED: frame time recording to be *off* by default (for plotting, for Window.fps() and for warnings). To turn it on use Window.setRecordFrameIntervals(True), preferably after first few frames have elapsed
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
+* FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
+* FIXED buglet with .setRGB on stimuli - that method should require an operation argument (def=None)
 
 PsychoPY 0.97.00:
 * ADDED options to DotStim motions. Two args have been added:
