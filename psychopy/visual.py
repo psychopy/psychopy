@@ -488,9 +488,9 @@ class Window:
         if self.bitsMode != None:
             #first ensure that window gamma is 1.0
             if self.winType=='pygame':
-                pygame.display.set_gamma(self.gamma[0], self.gamma[1], self.gamma[2])
+                pygame.display.set_gamma(1.0,1.0,1.0)
             elif self.winType=='pyglet':
-                self.winHandle.setGamma(self.winHandle, self.gamma)
+                self.winHandle.setGamma(self.winHandle, 1.0)
             #then set bits++ to desired gamma
             self.bits.setGamma(self.gamma)
         elif self.winType=='pygame':
