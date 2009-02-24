@@ -61,5 +61,5 @@ def readPin(pinNumber):
     elif pinNumber==14: return 
     elif pinNumber==15: return _parallel.pportInError()
     else: 
-        print 'Pin %i cannot be read (by the psychopy.parallel.readPin() yet' %pinNumber)
+        print 'Pin %i cannot be read (by the psychopy.parallel.readPin() yet)' %(pinNumber)
     
