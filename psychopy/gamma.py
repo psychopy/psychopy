@@ -21,8 +21,10 @@ def setGamma(pygletWindow=None, newGamma=1.0):
         newGamma.shape=[3,1]
     elif type(newGamma) is numpy.ndarray:
         newGamma.shape=[3,1]
-    #combine with the linear ramp    
-    ramp = numpy.tile(numpy.arange(256, dtype=float)/255.0,(3,1))# (3x256) array
+    #combine with the linear ramp 
+    if sys.platform=='darwin':
+        ramp = numpy.tile(numpy.arange(256, dtype=float)/256.0,(3,1))# OS X seems to (incorrectly) divide by 256 instead of 255
+    else: ramp = numpy.tile(numpy.arange(256, dtype=float)/255.0,(3,1))# (3x256) array
     newLUT = ramp**(1/numpy.array(newGamma))# correctly handles 1 or 3x1 gamma vals
 
     setGammaRamp(pygletWindow, newLUT)
