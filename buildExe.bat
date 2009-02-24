@@ -8,6 +8,6 @@ cd C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE
 python setupApp.py py2exe
 cd C:\USERS\jwp\Code\PsychoPy\svn\trunk
 xcopy /I /Y psychopy\demos PsychoPyIDE\dist\demos
-
+xcopy /I /Y windlls\*.dll PsychoPyIDE
 rem build the installer
 rem "C:\Program Files\NSIS\makensis.exe" buildExeInstaller.nsi

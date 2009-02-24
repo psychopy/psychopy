@@ -1,0 +1,26 @@
+py2exe lists the following, but actually, all are included in 
+winXP except for the marked libs (from python libs).
+
+   OLEAUT32.dll - C:\WINDOWS\system32\OLEAUT32.dll
+   USER32.dll - C:\WINDOWS\system32\USER32.dll
+   IMM32.DLL - C:\WINDOWS\system32\IMM32.DLL
+   WINMM.DLL - C:\WINDOWS\system32\WINMM.DLL
+   ADVAPI32.DLL - C:\WINDOWS\system32\ADVAPI32.DLL
+   MSVCRT.dll - C:\WINDOWS\system32\MSVCRT.dll
+   WS2_32.DLL - C:\WINDOWS\system32\WS2_32.DLL
+   GDI32.dll - C:\WINDOWS\system32\GDI32.dll
+x  MSVCP71.dll - c:\python25\lib\site-packages\wx-2.8-msw-unicode\wx\MSVCP71.dll
+   MSWSOCK.dll - C:\WINDOWS\system32\MSWSOCK.dll
+x  gdiplus.dll - c:\python25\lib\site-packages\wx-2.8-msw-unicode\wx\gdiplus.dll
+   KERNEL32.dll - C:\WINDOWS\system32\KERNEL32.dll
+   WSOCK32.dll - C:\WINDOWS\system32\WSOCK32.dll
+   VERSION.dll - C:\WINDOWS\system32\VERSION.dll
+   OLE32.dll - C:\WINDOWS\system32\OLE32.dll
+   OPENGL32.dll - C:\WINDOWS\system32\OPENGL32.dll
+x  MFC71.DLL - c:\python25\lib\site-packages\Pythonwin\MFC71.DLL
+   SHELL32.DLL - C:\WINDOWS\system32\SHELL32.DLL
+   RPCRT4.dll - C:\WINDOWS\system32\RPCRT4.dll
+   comdlg32.dll - C:\WINDOWS\system32\comdlg32.dll
+   COMCTL32.dll - C:\WINDOWS\system32\COMCTL32.dll
+   MSVCP71.dll - C:\WINDOWS\system32\MSVCP71.dll
+   WINSPOOL.DRV - C:\WINDOWS\system32\WINSPOOL.DRV
