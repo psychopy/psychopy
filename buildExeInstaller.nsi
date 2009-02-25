@@ -12,7 +12,7 @@
 
   ;Name and file
   Name "PsychoPy"
-  OutFile "PsychoPy Standalone.exe"
+  OutFile "PsychoPy-x.xx.xx-Standalone-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy"
   Icon "C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE\psychopy.ico"
   
@@ -29,7 +29,6 @@
 
   !define MUI_ABORTWARNING
   !define MUI_HEADERIMAGE
-  !define MUI_HEADERIMAGE_BITMAP "NSISsplash.bmp"
 
 ;--------------------------------
 ;Pages
