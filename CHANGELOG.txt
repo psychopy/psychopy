@@ -13,6 +13,7 @@ PsychoPY 0.97.01:
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
 * FIXED buglet with .setRGB on stimuli - that method should require an operation argument (def=None)
+* ADDED fieldDepth and depths (for elements, releative to fieldDepth) as separate arguments to the ElementArrayStim
 
 PsychoPY 0.97.00:
 * ADDED options to DotStim motions. Two args have been added:

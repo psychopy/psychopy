@@ -2115,6 +2115,7 @@ class ElementArrayStim:
                  rgbs = [1.0,1.0,1.0],
                  opacities = 1.0,
                  depths = 0,
+                 fieldDepth = 0,
                  oris = 0,
                  sfs=1.0,
                  contrs = 1,
@@ -2137,9 +2138,35 @@ class ElementArrayStim:
             
             - **fieldSize:** The size of the array of elements (this will be overridden by setting explicit xy positions for the elements)
                         
-            - **fieldShape:** The shape of the array (circle or 
+            - **fieldShape:** The shape of the array ('circle' or 'sqr')
             
-                        
+            - **nElements:** number of elements in the array
+            
+            - **sizes:** an array of sizes Nx1, Nx2 or a single value
+            
+            - **xys:** the xy positions of the elements, relative to the field centre (fieldPos)
+            
+            - **rgbs:** specifying the colour(s) of the elements. Should be Nx1 (different greys), Nx3 (different colors)or 1x3 (for a single colour)
+            
+            - **opacities:** the opacity of each element (Nx1 or a single value)
+
+            - **depths:** the depths of the elements (Nx1), relative the overall depth of the field (fieldDepth)
+            
+            - **fieldDepth:** the depth of the field (will be added to the depths of the elements)
+            
+            - **oris:** the orientations of the elements (Nx1 or a single value)
+            
+            - **sfs:** the spatial frequencies of the elements (Nx1, Nx2 or a single value)
+            
+            - **contrs:** the contrasts of the elements, ranging -1 to +1 (Nx1 or a single value)
+            
+            - **phases:** the spatial phase of the texture on the stimulus (Nx1 or a single value)
+            
+            - **elementTex:** the texture, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
+            
+            - **elementMask:** the mask, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
+            
+            - **texRes:** the number of pixels in the textures, unless an array or image is provided                       
                     
                 """
         self.win = win        
@@ -2163,8 +2190,11 @@ class ElementArrayStim:
         self.needColorUpdate=True
         self._useShaders=True
         self.interpolate=True
-        self.depths=depths
-        
+        self.fieldDepth=fieldDepth
+        if depths==0:
+            self.depths=numpy.arange(0,_depthIncrements[self.win.winType]*self.nElements,_depthIncrements[self.win.winType]).repeat(4).reshape(self.nElements, 4)
+        else:
+            self.depths=depths
         if self.win.winType != 'pyglet':
             raise TypeError('ElementArray requires a pyglet context')
                 
@@ -2477,6 +2507,9 @@ class ElementArrayStim:
         
         GL.glLoadIdentity()
         self.win.setScale(self._winScale)
+        if self.fieldDepth==0:
+            thisDepth=self.win._defDepth
+            self.win._defDepth += _depthIncrements[self.win.winType]
         GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
                
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes)
