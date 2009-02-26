@@ -167,7 +167,7 @@ class Window:
 	#if sys.platform=='darwin':
 	    #ext.darwin.syncSwapBuffers(1)
 
-class AlphaStim:
+class PatchStim:
     def __init__(self,
 	win,
 	tex	="sin",
@@ -247,7 +247,7 @@ class AlphaStim:
 	self._updateList()#ie refresh display list
 
     def set(self, attrib, val, op=''):
-	"""AlphaStim.set() is obselete and may not be supported in future
+	"""PatchStim.set() is obselete and may not be supported in future
 	versions of PsychoPy. Use the specific method for each parameter instead
 	(e.g. setOri(), setSF()...)
 	"""
@@ -553,7 +553,7 @@ GL.glColor3f(0.0, 0.0, 1.0)            # Blue
 GL.glVertex2f(-sqrSize*0.5, -sqrSize*0.5)         # Bottom Left
 GL.glEnd()      
 GL.glPopMatrix()
-stim = AlphaStim(win='junk', size=0.1,pos=[-0.6,-0.6], units='norm', depth = 0.1, tex=None)
+stim = PatchStim(win='junk', size=0.1,pos=[-0.6,-0.6], units='norm', depth = 0.1, tex=None)
 stim.draw()
 
 pygame.display.flip()

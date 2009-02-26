@@ -17,11 +17,11 @@ MyWin = Window((800.0,800.0),fullscr=0,winType="pygame",scrWidthCM=25,scrDistCM=
 #initialise stimuli
 BaseFrequency=0.2
 StimSize = 15.0
-FixSpot = AlphaStim(MyWin,tex="none", mask="circle",size=(0.05,0.05),rgb=[-1.0,-1.0,-1.0],sf=0)
-f1 = AlphaStim(MyWin,units="deg",
+FixSpot = PatchStim(MyWin,tex="none", mask="circle",size=(0.05,0.05),rgb=[-1.0,-1.0,-1.0],sf=0)
+f1 = PatchStim(MyWin,units="deg",
 			tex="sin",mask="gauss",
 			size=StimSize, sf=BaseFrequency)
-f3 = AlphaStim(MyWin,units="deg",
+f3 = PatchStim(MyWin,units="deg",
 			tex="sin",mask="gauss",
 			size=StimSize, sf=BaseFrequency*3.0,
 			opacity=0.5)

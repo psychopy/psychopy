@@ -4,7 +4,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog 
 
-PsychoPY 0.97.01:
+!!!!PsychoPy 0.97.01:
 * FIXED bug with IDE not closing properly (when current file was not right-most)
 * ADDED parallel.readPin(pinN) so that parallel port can be used for input as well as output
 * FIXED bug in parallel.setPortAddress(addr) 
@@ -15,7 +15,7 @@ PsychoPY 0.97.01:
 * FIXED buglet with .setRGB on stimuli - that method should require an operation argument (def=None)
 * ADDED fieldDepth and depths (for elements, releative to fieldDepth) as separate arguments to the ElementArrayStim
 
-PsychoPY 0.97.00:
+!!!!PsychoP 0.97.00:
 * ADDED options to DotStim motions. Two args have been added:
   * signalDots can be 'different' from or 'same' as the noise dots (from frame to frame)
   * noiseDots determines the update rule for the distractor dots (random 'position', 'walk', 'direction')
@@ -30,11 +30,11 @@ PsychoPY 0.97.00:
 
 ----------
 
-PsychoPY 0.96.02:
+!!!!PsychoPY 0.96.02:
 * FIXED bug introduced with clipping of text in 0.96.01 using textstimuli with shaders  under pygame
 * FIXED bug with rendering png alpha layer using pyglet shaders
 
-PsychoPY 0.96.01:
+!!!!PsychoPY 0.96.01:
 * FIXED problem with write errors running demos from Mac IDE
 * ADDED frameWidth to textStim for multiline
 * ADDED setRecordFrameIntervals, saveFrameTimes() to Window and misc.plotFrameIntervals()
@@ -42,7 +42,7 @@ PsychoPY 0.96.01:
 * FIXED MovieStim was being affected by texture color of other stimuli
 * FIXED window now explicitly checks for GL_ARB_texture_float before using shaders
 
-!!!PsychoPY 0.96.0:
+!!!!PsychoPY 0.96.0:
 * FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
 * CHANGED default sound handler to be pygame again. Although pyglet looked promising for this
   it has turned out to be buggy. Timing of sounds can be very irregular and sometimes they don't even play
@@ -51,29 +51,31 @@ PsychoPY 0.96.01:
 * FIXED image importing - scaling from square image wasn't working and CMYK images weren't imported
   properly. Both are now fine.
 
-PsychoPy 0.95.11:
+----------
+
+!!!!PsychoPy 0.95.11:
 * ADDED sound.Sound.getDuration() method
 * FIXED spurious (unimportant but ugly) error messages raised by certain threads on core.quit()
 
-PsychoPy 0.95.9:
+!!!!PsychoPy 0.95.9:
 * FIXED further bug in sound.Sound on win32 (caused by thread being polled too frequently)
 * FIXED new bug in notebook view (introduced in 0.95.8)
 
-PsychoPy 0.95.8:
+!!!!PsychoPy 0.95.8:
 * FIXED bug in sound.Sound not repeating when play() is called repeatedly
 * IDE uses improved notebook view for code pages
 * IDE line number column is larger
 * IDE SaveAs no longer raises (inconsequential) error
 * IDE Cmd-S or Ctrl-S now clears autocomplete
     
-PsychoPy 0.95.7:
+!!!!PsychoPy 0.95.7:
 * ADDED misc.cart2pol()
 * ADDED highly optimised ElementArrayStim, suitable for drawing large numbers of elements. Requires fast OpenGL 2.0 gfx card - at least an nVidia 8000 series or ATI HD 2600 are recommended.
 * FIXED bug in calibTools with MonitorFolder (should have been monitorFolder)
 * FIXED bug in Sound.stop() for pyglet contexts
 * FIXED bug in running scripts with spaces in the filename/path (Mac OS X)
 
-PsychoPy 0.95.6:
+!!!!PsychoPy 0.95.6:
 * DISABLED the setting of gamma if this is [1,1,1] (allows the user to set it from a control
  panel and not have this adjusted)
 * FIXED gamma setting on linux (thanks to Luca Citi for testing)
@@ -81,7 +83,7 @@ PsychoPy 0.95.6:
 * FIXED bug searching for shaders on ATI graphics cards
 * FIXED - now no need to download avbin for the mac IDE installation
 
-PsychoPy 0.95.5:
+!!!!PsychoPy 0.95.5:
 * FIXED bug in event.clearEvents() implementation in pyglet (wasn't clearing)
 * FIXED - psychopy no longer disables ipython shortcut keys
 * FIXED bug in sound.Sound initialisation without pygame installeds
@@ -90,30 +92,30 @@ PsychoPy 0.95.5:
 * FIXED crashes on win32, running a pyglet context after a DlgFromDict
 * ADDED gamma correction for pyglet contexts (not tested yet on linux)
 
-PsychoPy 0.95.4:
+!!!!PsychoPy 0.95.4:
 * CHANGED PsychoPy options (IDE and monitors) now stored the following, rather than with the app. (monitor calib files will be moved here if possible)
     * ~/.PsychoPy/IDE (OS X, linux)
     * <Docs and Settings>/<user>/Application Data/PsychoPy
 * FIXED bug in text rendering (ATI/win32/pyglet combo only)
 * FIXED minor bug in handling of images with alpha channel
 
-PsychoPy 0.95.3:
+!!!!PsychoPy 0.95.3:
 * ADDED a .clearTextures() method to PatchStim and RadialStim, which should be 
 called before de-referencing a stimulus
 * CHANGED input range for numpy array textures to -1:1
 * ADDED sysInfo.py to demos
 
-PsychoPy 0.95.2:
+!!!!PsychoPy 0.95.2:
 * FIXED quitting PsychoPyIDE now correctly cancels when saving files
 
-PsychoPy 0.95.1:
+!!!!PsychoPy 0.95.1:
 * FIXED problem with saving files from the IDE on Mac
 * FIXED Cmd-C now copies from the output window of IDE
 * even nicer IDE icons (thanks to the Crystal project at everaldo.com)
 * FIXED bug in the shaders code under pyglet (was working fine in pygame already)
 * (refactored code to use a template visual stimulus)
 
-!!!PsychoPy 0.95.0:
+!!!!PsychoPy 0.95.0:
 * FIXED linux bug preventing repeated dialogs (thanks Luca Citi)
 * REWRITTEN stimuli to use _BaseClass, defining ._set() method
 * MAJOR IMPROVEMENTS to IDE:
@@ -122,7 +124,9 @@ PsychoPy 0.95.1:
   * cleaned code for fetching icons
   * fixed code for updating SourceAssistant (now runs from .OnIdle())
 
-!!!PsychoPy 0.94.0:
+---------
+
+!!!!PsychoPy 0.94.0:
 * pyglet:
   * can use multiple windows and multiple screens (see screensAndWindows demo)
   * sounds are buffered faster and more precisely (16ms with <0.1ms variability on my system)

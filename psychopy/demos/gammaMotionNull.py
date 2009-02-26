@@ -49,22 +49,22 @@ noiseMatrix = noiseMatrix*2.0-1 #into range -1:1
 stimFrames=[]; lumGratings=[]
 #create the 4 frames of the sequence (luminance and contrast modulated noise in quadrature)
 lumGratings.append(filters.makeGrating(pixels, 0, cyclesSpace, phase=0))
-stimFrames.append(visual.AlphaStim(myWin, texRes=pixels, mask='circle',
+stimFrames.append(visual.PatchStim(myWin, texRes=pixels, mask='circle',
         size=pixels*2, sf=1.0/pixels, ori=90,
         tex= (noiseMatrix*info['lumModNoise'] + lumGratings[0]*info['lumModLum'])
         ))
 lumGratings.append(filters.makeGrating(pixels, 0, cyclesSpace, phase=90)/2.0 + 0.5)
-stimFrames.append(visual.AlphaStim(myWin, texRes=pixels, mask='circle',
+stimFrames.append(visual.PatchStim(myWin, texRes=pixels, mask='circle',
         size=pixels*2, sf=1.0/pixels, ori=90,
         tex= (noiseMatrix*info['contrastModNoise']*lumGratings[1])
         ))
 lumGratings.append(filters.makeGrating(pixels, 0, cyclesSpace, phase=180))
-stimFrames.append(visual.AlphaStim(myWin, texRes=pixels, mask='circle',
+stimFrames.append(visual.PatchStim(myWin, texRes=pixels, mask='circle',
         size=pixels*2, sf=1.0/pixels, ori=90,
         tex= (noiseMatrix*info['lumModNoise'] + lumGratings[2]*info['lumModLum'])
         ))
 lumGratings.append(filters.makeGrating(pixels, 0, cyclesSpace, phase=270)/2.0 + 0.5)
-stimFrames.append(visual.AlphaStim(myWin, texRes=pixels, mask='circle',
+stimFrames.append(visual.PatchStim(myWin, texRes=pixels, mask='circle',
         size=pixels*2, sf=1.0/pixels, ori=90,
         tex= (noiseMatrix*info['contrastModNoise']*lumGratings[3])
         ))

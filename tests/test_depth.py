@@ -17,7 +17,7 @@ contrast textures are being rewritten to the graphics card
 myWin = psychopy.visual.Window((1280,1024), allowGUI=True, units='norm')
 
 #INITIALISE SOME STIMULI
-grating = psychopy.visual.AlphaStim(myWin,tex=None,mask="circle",texRes=128,
+grating = psychopy.visual.PatchStim(myWin,tex=None,mask="circle",texRes=128,
 						rgb=[1.0,1.0,1.0],opacity=1.0,
 						size=0.1,pos=[-0.6,-0.6],
 						ori = 45, depth=0.5)

@@ -17,7 +17,7 @@ contrast textures are being rewritten to the graphics card
 myWin = psychopy.visual.Window((800,800.0), allowGUI=False, monitor='testMonitor', units='norm')
 
 #INITIALISE SOME STIMULI
-grating = psychopy.visual.AlphaStim(myWin,tex=None, mask="circle",texRes=128,
+grating = psychopy.visual.PatchStim(myWin,tex=None, mask="circle",texRes=128,
 						pos=(-1.0,-1.0),
 						size=0.25,depth=-0.5)
 message = psychopy.visual.TextStim(myWin,pos=(-0.95,-0.95),text='Hit Q to quit')

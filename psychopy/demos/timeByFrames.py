@@ -7,7 +7,7 @@ nFrames = 20
 #setup the stimuli and other objects we need
 myWin = visual.Window([800,600],allowGUI=False)#make a window
 myWin.flip()#present it
-myStim = visual.AlphaStim(myWin, tex='sin', mask='gauss', sf=3.0)
+myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
 log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 myClock = core.Clock() #just to keep track of time
 

@@ -1644,7 +1644,7 @@ class RadialStim(PatchStim):
                 + **or** a numpy array (1xN or NxN) ranging -1:1
 
             - **mask:**
-                Unlike the mask in the AlphaStim, this is a 1-D mask dictating the behaviour
+                Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
                 from the centre of the stimulus to the surround.
 
             - **units:**
@@ -1744,7 +1744,7 @@ class RadialStim(PatchStim):
         self.pos = numpy.array(pos)
         self.interpolate=interpolate
 
-        #these are defined by the AlphaStim but will just cause confusion here!
+        #these are defined by the PatchStim but will just cause confusion here!
         self.setSF = None
         self.setPhase = None
         self.setSF = None

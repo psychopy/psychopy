@@ -897,9 +897,9 @@ def getLumSeriesPR650(lumLevels=8,
     message.draw()
 
     noise = numpy.random.rand(512,512).round()*2-1
-    backPatch = psychopy.visual.AlphaStim(myWin, tex=noise, size=2, units='norm',
+    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
         sf=[winSize[0]/512.0, winSize[1]/512.0])
-    testPatch = psychopy.visual.AlphaStim(myWin,
+    testPatch = psychopy.visual.PatchStim(myWin,
         tex='sqr',
         size=stimSize,
         rgb=0.3,
@@ -988,7 +988,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     message = psychopy.visual.TextStim(myWin, text = instructions,
         pos=(0.0,-0.5), rgb=-1.0)
     message.draw()
-    testPatch = psychopy.visual.AlphaStim(myWin,tex=None,
+    testPatch = psychopy.visual.PatchStim(myWin,tex=None,
         size=stimSize*2,rgb=0.3)
     testPatch.draw()
     myWin.flip()

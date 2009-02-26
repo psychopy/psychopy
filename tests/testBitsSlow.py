@@ -18,7 +18,7 @@ myWin = psychopy.visual.Window((600,600.0),fullscr=0, winType="pygame",
 							   bitsMode='slow')
 
 #INITIALISE SOME STIMULI
-grating1 = psychopy.visual.AlphaStim(myWin,tex="sin",mask="circle",texRes=128,
+grating1 = psychopy.visual.PatchStim(myWin,tex="sin",mask="circle",texRes=128,
 			rgb=[1.0,1.0,1.0],opacity=1.0,
 			size=(1.0,1.0), sf=(4.0,2.0),
 			ori = 45, contrast=0.99)
