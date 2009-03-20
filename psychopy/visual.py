@@ -327,7 +327,7 @@ class Window:
             self.frameIntervals.append(deltaT)
             
             if deltaT>self._refreshThreshold \
-                and (average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
+                and (numpy.average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
         
         if haveFB:

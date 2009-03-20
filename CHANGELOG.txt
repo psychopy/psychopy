@@ -4,6 +4,9 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog 
 
+!!!!PsychoPy 0.97.02:
+* FIXED minor bug in Window.flip() with frame recording on (average -> numpy.average)
+
 !!!!PsychoPy 0.97.01:
 * FIXED bug with IDE not closing properly (when current file was not right-most)
 * ADDED parallel.readPin(pinN) so that parallel port can be used for input as well as output
