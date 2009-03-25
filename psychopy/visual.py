@@ -1331,7 +1331,7 @@ class PatchStim(_BaseVisualStim):
 
         #phase (ranging 0:1)
         if type(phase) in [tuple,list]:
-            self.phase = numpy.array(phase)
+            self.phase = numpy.array(phase, float)
         else:
             self.phase = numpy.array((phase,0),float)
 
@@ -1349,7 +1349,7 @@ class PatchStim(_BaseVisualStim):
         else:
             self.sf = numpy.array(sf,float)
 
-        self.pos = numpy.array(pos)
+        self.pos = numpy.array(pos, float)
 
         self.depth=depth
 
@@ -1741,7 +1741,7 @@ class RadialStim(PatchStim):
         self.angularPhase = angularPhase
         self.contrast = float(contrast)
         self.opacity = opacity
-        self.pos = numpy.array(pos)
+        self.pos = numpy.array(pos, float)
         self.interpolate=interpolate
 
         #these are defined by the PatchStim but will just cause confusion here!
@@ -2044,7 +2044,7 @@ class RadialStim(PatchStim):
             fromFile=0
         elif type(self._maskName) == list:
             #handle a numpy array
-            intensity = 255*numpy.array(maskName, 'f')
+            intensity = 255*numpy.array(maskName, float)
             res = len(intensity)
             fromFile=0
         elif self._maskName is "circle":
@@ -2704,7 +2704,7 @@ class MovieStim(_BaseVisualStim):
         self.format=self._movie.video_format        
         self.pos=pos
         self.depth=0        
-        self.pos = numpy.asarray(pos)
+        self.pos = numpy.asarray(pos, float)
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
@@ -2802,7 +2802,7 @@ class TextStimGLUT:
         if len(units): self.units = units
         else: self.units = win.units
         
-        self.pos= numpy.array(pos)
+        self.pos= numpy.array(pos, float)
         if type(font)==str:
             self.fontName=font
             exec('self.font=GLUT.'+font)
@@ -3138,7 +3138,7 @@ class TextStim(_BaseVisualStim):
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
         
-        self.pos= numpy.array(pos)
+        self.pos= numpy.array(pos, float)
 
         #height in pix (needs to be done after units)
         if self.units=='cm':
