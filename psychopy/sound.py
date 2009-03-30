@@ -821,6 +821,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     else:   stereoChans=0
     if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
     mixer.init(rate, bits, stereoChans, buffer) #defaults: 22050Hz, 16bit, stereo,
+    sndarray.use_arraytype("numpy")
     setRate, setBits, setStereo = mixer.get_init()
     if setRate!=rate: 
         log.warn('Requested sound sample rate was not poossible')
