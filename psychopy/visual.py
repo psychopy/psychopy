@@ -3517,6 +3517,151 @@ class TextStim(_BaseVisualStim):
             self.setText(self.text)  
             self.needUpdate=True
             
+
+class ShapeStim(_BaseVisualStim):
+    """
+    """
+    def __init__(self,
+                 win,
+                 units  ='',
+                 lineRGB=[1,1,1],
+                 fillRGB=[0.8,0.8,0.8],
+                 vertices=[ [-0.5,0],[0,+0.5],[+0.5,0] ],
+                 pos= [0,0],
+                 opacity=1.0,
+                 depth  =0):
+        """
+        :Parameters:
+            win : `Window` object 
+                the stimulus must know where to draw itself!
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the `Window` will be used. If 'norm'
+                then the window goes from -1:1 in each direction. If any of the others
+                are used then some info about the `Monitor` must be provided 
+                (e.g. from MonitorCenter.py)  
+            rgb : (r,g,b) or [r,g,b] or a single intensity value 
+                or a single value (which will be applied to all guns).
+                RGB vals are applied to simple textures and to greyscale
+                image files but not to RGB images.
+
+                **NB** units range -1:1 (so 0.0 is GREY). This is the convention
+                throughout PsychoPy because most vision studies are conducted on a
+                grey screen and colors represent deviations from this screen color.
+            opacity : float
+                1.0 is opaque, 0.0 is transparent
+            depth : 0,
+                This can be used to choose which
+                stimulus overlays which. (more negative values are nearer).
+                At present the window does not do perspective rendering
+                but could do if that's really useful(?!)
+            element : *None* or a visual stimulus object
+                This can be any object that has a ``.draw()`` method and a
+                ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
+                See `ElementArrayStim` for a faster implementation of this idea.
+                """
+        self.win = win
+        self.opacity = opacity
+        self.pos = numpy.array(pos, float)
+        
+        #unit conversions
+        if len(units): self.units = units
+        else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        #'rendered' coordinates represent the stimuli in the scaled coords of the window
+        #(i.e. norm for units==norm, but pix for all other units)        
+        if type(lineRGB) in [float, int]: #user may give a luminance val
+            self.lineRGB=numpy.array((lineRGB,lineRGB,lineRGB), float)
+        else: self.lineRGB = numpy.array(lineRGB, float)        
+        if type(fillRGB) in [float, int]: #user may give a luminance val
+            self.fillRGB=numpy.array((fillRGB,fillRGB,fillRGB), float)
+        else: self.fillRGB = numpy.array(fillRGB, float)
+        self.depth=depth
+
+        self._calcVerticesRendered()
+    
+    def setVertices(self,value=None, operation=''):
+        """Set the xy values of the vertices (relative to the centre of the field).
+        Values should be:            
+            
+            - an array/list of Nx2 coordinates.
+            
+        """     
+        #make into an array
+        if type(value) in [int, float, list, tuple]:
+            value = numpy.array(value, dtype=float)
+        #check shape
+        if not (value.shape in [(),(2,),(self.nElements,2)]):
+            raise ValueError("New value for setXYs should be either None or Nx2")
+        if operation=='':
+            self.vertices=value    
+        else: exec('self.vertices'+operation+'=value')            
+        self.needVertexUpdate=True
+    def draw(self, win=None):
+        """
+        Draw the stimulus in its relevant window. You must call
+        this method after every MyWin.flip() if you want the
+        stimulus to appear on that frame and then update the screen
+        again.
+        """
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
+        self._update_dotsXY()
+        if self.depth==0:
+            thisDepth = self.win._defDepth
+            win._defDepth += _depthIncrements[win.winType]
+        else:
+            thisDepth=self.depth
+
+        #draw the dots
+        if self.element==None:
+            #scale the drawing frame etc...
+            GL.glPushMatrix()#push before drawing, pop after
+            win.setScale(self._winScale)
+            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
+            GL.glPointSize(self.dotSize)
+
+            #load Null textures into multitexteureARB - they modulate with glColor
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+            if self.win.winType == 'pyglet':
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+            else:
+                GL.glVertexPointerd(self._dotsXYRendered)
+
+            GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
+            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+            GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
+            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+            GL.glPopMatrix()
+        else:
+            #we don't want to do the screen scaling twice so for each dot subtract the screen centre
+            initialDepth=self.element.depth
+            for pointN in range(0,self.nDots):
+                self.element.setPos(self._dotsXYRendered[pointN,:]-self._fieldPosRendered)
+                self.element.draw()
+
+            self.element.setDepth(initialDepth)#reset depth before going to next frame
+        
+        
+
+    def _calcVerticesRendered(self):
+        if self.units in ['norm', 'pix']: 
+            self._verticesRendered=self.vertices
+            self._posRendered=self.pos
+        elif self.units=='deg':
+            self._verticesRendered=psychopy.misc.deg2pix(self.vertices, self.win.monitor)
+            self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': 
+            self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
+            self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
