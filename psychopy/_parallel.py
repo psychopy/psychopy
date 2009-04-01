@@ -222,6 +222,15 @@ def pportSelect(state):
         ctrlReg = ctrlReg & ~0x08
     port.DlPortWritePortUchar(ctrlRegAdrs,ctrlReg)
 
+def pportTristate(state):
+     "toggle tristate output bit"
+     global ctrlReg
+     if state == 0:
+         ctrlReg = ctrlReg & ~0x10
+     else:
+         ctrlReg = ctrlReg |  0x10
+     port.DlPortWritePortUchar(ctrlRegAdrs,ctrlReg)
+
 # aliases of the control register output functions
 # these names may be easier to use in some cases
 ctrlRegBit0 = pportDataStrobe
@@ -272,7 +281,4 @@ def pportInBusy():
         return 0
     else:
         return 1
-
-
-
 
