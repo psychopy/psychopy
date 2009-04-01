@@ -3525,11 +3525,14 @@ class ShapeStim(_BaseVisualStim):
                  win,
                  units  ='',
                  lineRGB=[1,1,1],
+                 lineWidth=1.0,
                  fillRGB=[0.8,0.8,0.8],
                  vertices=[ [-0.5,0],[0,+0.5],[+0.5,0] ],
+                 closeShape=True,
                  pos= [0,0],
                  opacity=1.0,
-                 depth  =0):
+                 depth  =0,
+                 interpolate=True):
         """
         :Parameters:
             win : `Window` object 
@@ -3562,6 +3565,9 @@ class ShapeStim(_BaseVisualStim):
         self.win = win
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
+        self.closeShape=closeShape
+        self.lineWidth=lineWidth
+        self.interpolate=interpolate
         
         #unit conversions
         if len(units): self.units = units
@@ -3572,12 +3578,15 @@ class ShapeStim(_BaseVisualStim):
         #(i.e. norm for units==norm, but pix for all other units)        
         if type(lineRGB) in [float, int]: #user may give a luminance val
             self.lineRGB=numpy.array((lineRGB,lineRGB,lineRGB), float)
+        elif lineRGB==None: self.lineRGB=None
         else: self.lineRGB = numpy.array(lineRGB, float)        
         if type(fillRGB) in [float, int]: #user may give a luminance val
             self.fillRGB=numpy.array((fillRGB,fillRGB,fillRGB), float)
+        elif fillRGB==None: self.fillRGB=None
         else: self.fillRGB = numpy.array(fillRGB, float)
         self.depth=depth
-
+        
+        self.setVertices(vertices)
         self._calcVerticesRendered()
     
     def setVertices(self,value=None, operation=''):
@@ -3591,8 +3600,10 @@ class ShapeStim(_BaseVisualStim):
         if type(value) in [int, float, list, tuple]:
             value = numpy.array(value, dtype=float)
         #check shape
-        if not (value.shape in [(),(2,),(self.nElements,2)]):
-            raise ValueError("New value for setXYs should be either None or Nx2")
+        if not (value.shape==(2,) \
+            or (len(value.shape)==2 and value.shape[1]==2)
+            ):
+                raise ValueError("New value for setXYs should be 2x1 or Nx2")
         if operation=='':
             self.vertices=value    
         else: exec('self.vertices'+operation+'=value')            
@@ -3607,48 +3618,50 @@ class ShapeStim(_BaseVisualStim):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
         
-        self._update_dotsXY()
         if self.depth==0:
             thisDepth = self.win._defDepth
             win._defDepth += _depthIncrements[win.winType]
         else:
             thisDepth=self.depth
-
-        #draw the dots
-        if self.element==None:
-            #scale the drawing frame etc...
-            GL.glPushMatrix()#push before drawing, pop after
-            win.setScale(self._winScale)
-            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
-            GL.glPointSize(self.dotSize)
-
-            #load Null textures into multitexteureARB - they modulate with glColor
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glActiveTexture(GL.GL_TEXTURE1)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-            if self.win.winType == 'pyglet':
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
-            else:
-                GL.glVertexPointerd(self._dotsXYRendered)
-
-            GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
-            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
-            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glPopMatrix()
-        else:
-            #we don't want to do the screen scaling twice so for each dot subtract the screen centre
-            initialDepth=self.element.depth
-            for pointN in range(0,self.nDots):
-                self.element.setPos(self._dotsXYRendered[pointN,:]-self._fieldPosRendered)
-                self.element.draw()
-
-            self.element.setDepth(initialDepth)#reset depth before going to next frame
+        nVerts = self.vertices.shape[0]
         
+        #scale the drawing frame etc...
+        GL.glPushMatrix()#push before drawing, pop after
+        win.setScale(self._winScale)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        
+        #load Null textures into multitexteureARB - or they modulate glColor
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        if self.interpolate:            
+            GL.glEnable(GL.GL_LINE_SMOOTH)
+            GL.glEnable(GL.GL_POLYGON_SMOOTH)
+        else:            
+            GL.glDisable(GL.GL_LINE_SMOOTH)
+            GL.glDisable(GL.GL_POLYGON_SMOOTH)
+        if self.win.winType == 'pyglet':
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._verticesRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+        else:
+            GL.glVertexPointerd(self._verticesRendered)
+        
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        if nVerts>2: #draw a filled polygon first       
+            if self.fillRGB!=None:
+                GL.glColor4f(self.fillRGB[0]*0.5+0.5, self.fillRGB[1]*0.5+0.5, self.fillRGB[2]*0.5+0.5, self.opacity)
+                GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
+            if self.lineRGB!=None:
+                GL.glLineWidth(self.lineWidth)
+                GL.glTranslatef(0,0,_depthIncrements[win.winType]/2.0)
+                GL.glColor4f(self.lineRGB[0]*0.5+0.5, self.lineRGB[1]*0.5+0.5, self.lineRGB[2]*0.5+0.5, self.opacity)
+                if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)        
+                else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)       
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glPopMatrix()
         
 
     def _calcVerticesRendered(self):
