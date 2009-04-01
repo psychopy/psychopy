@@ -3530,6 +3530,7 @@ class ShapeStim(_BaseVisualStim):
                  vertices=[ [-0.5,0],[0,+0.5],[+0.5,0] ],
                  closeShape=True,
                  pos= [0,0],
+                 ori=0.0,
                  opacity=1.0,
                  depth  =0,
                  interpolate=True):
@@ -3585,7 +3586,7 @@ class ShapeStim(_BaseVisualStim):
         elif fillRGB==None: self.fillRGB=None
         else: self.fillRGB = numpy.array(fillRGB, float)
         self.depth=depth
-        
+        self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
     
@@ -3629,7 +3630,7 @@ class ShapeStim(_BaseVisualStim):
         GL.glPushMatrix()#push before drawing, pop after
         win.setScale(self._winScale)
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
-        
+        GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -3654,12 +3655,12 @@ class ShapeStim(_BaseVisualStim):
             if self.fillRGB!=None:
                 GL.glColor4f(self.fillRGB[0]*0.5+0.5, self.fillRGB[1]*0.5+0.5, self.fillRGB[2]*0.5+0.5, self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
-            if self.lineRGB!=None:
-                GL.glLineWidth(self.lineWidth)
-                GL.glTranslatef(0,0,_depthIncrements[win.winType]/2.0)
-                GL.glColor4f(self.lineRGB[0]*0.5+0.5, self.lineRGB[1]*0.5+0.5, self.lineRGB[2]*0.5+0.5, self.opacity)
-                if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)        
-                else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)       
+        if self.lineRGB!=None:
+            GL.glLineWidth(self.lineWidth)
+            GL.glTranslatef(0,0,_depthIncrements[win.winType]/2.0)
+            GL.glColor4f(self.lineRGB[0]*0.5+0.5, self.lineRGB[1]*0.5+0.5, self.lineRGB[2]*0.5+0.5, self.opacity)
+            if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)        
+            else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)       
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
         
