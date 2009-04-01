@@ -1496,9 +1496,9 @@ class IDEMainFrame(wx.Frame):
     
     def findDocID(self, filename):
         #find the ID of the current doc in the notebook panel (returns -1 if not found)
-        if filename in self.getOpenFilenames():
-            ii = self.notebook.GetPageIndex(filename)
-            if ii != wx.NOT_FOUND:
+        
+        for ii in range(self.notebook.GetPageCount()):
+            if self.notebook.GetPage(ii).filename == filename:
                 return ii
         #either the filename wasn't in our list or we've lost the window (not sure how/!?)
         return -1
