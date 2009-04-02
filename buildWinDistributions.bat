@@ -15,4 +15,4 @@ xcopy /I /Y psychopy\demos PsychoPyIDE\dist\demos
 xcopy /I /Y windlls\*.dll PsychoPyIDE\dist
 rem build the installer
 makensis.exe buildExeInstaller.nsi
-xcopy /I /Y "PsychoPy-x.xx.xx-Standalone-win32.exe" dist\
+xcopy /I /Y "StandalonePsychoPy-x.xx.x-win32.exe" dist\

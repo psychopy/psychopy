@@ -23,12 +23,7 @@ if platform=='win32':
     from distutils.filelist import findall
     import os
     import matplotlib
-    matplotlibdatadir = matplotlib.get_data_path()
-    matplotlibdata = findall(matplotlibdatadir)
-    matplotlibdata_files = []
-    for f in matplotlibdata:
-        dirname = os.path.join('matplotlibdata', f[len(matplotlibdatadir)+1:])
-        packageData.append((os.path.split(dirname)[0], [f]))
+    packageData.extend(matplotlib.get_py2exe_datafiles())
     #get resources (icons etc)        
     files = glob.glob('Resources/*')
     for file in files:

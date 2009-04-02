@@ -1091,7 +1091,7 @@ class IDEMainFrame(wx.Frame):
         if sys.platform=='darwin':
             pass#doesn't work and not necessary - handled by application bundle
         else:
-            iconFile = os.path.join(appDir, 'psychopy.ico')
+            iconFile = os.path.join(iconDir, 'psychopy.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         wx.EVT_CLOSE(self, self.quit)
