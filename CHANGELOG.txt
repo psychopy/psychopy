@@ -4,11 +4,15 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!Changelog 
 
-!!!!PsychoPy 0.97.02:
+!!!PsychoPy 1.00.00 (1.0rc1)
+* ADDED ShapeStim, for drawing geometric stimuli (see demos/shapes.py and new clockface.py)
+* ADDED support for the tristate ctrl bit on parallel ports (thanks Gary Strangman for the patch)
+* ADDED standalone installer support for windows (XP, vista?)
 * FIXED minor bug in Window.flip() with frame recording on (average -> numpy.average)
 * FIXED minor bug in sound, now forcing pygame.mixer to use numpy (thanks Konstantin for the patch)
 * FIXED visual stimulus positions forced to be floats on init (thanks C Luhmann)
-* ADDED support for the tristate ctrl bit on parallel ports (thanks Gary Strangman for the patch)
+
+----------
 
 !!!!PsychoPy 0.97.01:
 * FIXED bug with IDE not closing properly (when current file was not right-most)

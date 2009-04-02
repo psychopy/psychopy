@@ -3519,7 +3519,17 @@ class TextStim(_BaseVisualStim):
             
 
 class ShapeStim(_BaseVisualStim):
-    """
+    """Create geometric (vector) shapes by defining vertex locations.
+    
+    Shapes can be outlines or filled, by setting lineRGB and fillRGB to
+    rgb triplets, or None. They can also be rotated (stim.setOri(__)) and
+    translated (stim.setPos(__)) like any other stimulus.
+    
+    NB for now the fill of objects is performed using glBegin(GL_POLYGON) 
+    and that is limited to convex shapes. With concavities you get unpredictable
+    results (e.g. add a fill colour to the arrow stim below). To create concavities, 
+    you can combine multiple shapes, or stick to just outlines. (If anyone wants
+    to rewrite ShapeStim to use glu tesselators that would be great!)
     """
     def __init__(self,
                  win,
@@ -3543,25 +3553,32 @@ class ShapeStim(_BaseVisualStim):
                 then the window goes from -1:1 in each direction. If any of the others
                 are used then some info about the `Monitor` must be provided 
                 (e.g. from MonitorCenter.py)  
-            rgb : (r,g,b) or [r,g,b] or a single intensity value 
+            lineRGB : (r,g,b) or [r,g,b] or a single intensity value 
                 or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-
+            fillRGB : (r,g,b) or [r,g,b] or a single intensity value 
+                or a single value (which will be applied to all guns).                
                 **NB** units range -1:1 (so 0.0 is GREY). This is the convention
                 throughout PsychoPy because most vision studies are conducted on a
                 grey screen and colors represent deviations from this screen color.
+            lineWidth : int (or float?) 
+                specifying the line width in **pixels**
+            vertices : a list of lists or a numpy array (Nx2) 
+                specifying xy positions of each vertex
+            closeShape : True or False
+                Do you want the last vertex to be automatically connected to the first?
+            pos : tuple, list or 2x1 array
+                the position of the anchor for the stimulus (relative to which the vertices are drawn)
+            ori : float or int
+                the shape can be rotated around the anchor
             opacity : float
                 1.0 is opaque, 0.0 is transparent
-            depth : 0,
+            depth : 0
                 This can be used to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
                 but could do if that's really useful(?!)
-            element : *None* or a visual stimulus object
-                This can be any object that has a ``.draw()`` method and a
-                ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
-                See `ElementArrayStim` for a faster implementation of this idea.
+            interpolate : True or False
+                If True the edge of the line will be antialiased.
                 """
         self.win = win
         self.opacity = opacity
