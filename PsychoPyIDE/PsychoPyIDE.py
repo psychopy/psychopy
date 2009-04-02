@@ -18,7 +18,7 @@ homeDir = os.getcwd()
 #__file__ might be a local path under py2exe and py2app
 if hasattr(sys, "frozen") and sys.platform=='win32': #windows app
     appDir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
-if hasattr(sys, "frozen"):#OSX app
+elif hasattr(sys, "frozen"):#OSX app
     appDir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
     appDir, appName = os.path.split(appDir)
 else:
@@ -39,8 +39,14 @@ if os.path.isdir(join(appDir, 'Resources')):
     iconDir = join(appDir, 'Resources')
 elif os.path.isdir(join(psychopyDir, 'Resources')):
     iconDir = join(psychopyDir, 'Resources')
-else:iconDir = appDir
-
+elif os.path.isdir(join(os.getcwd(), 'Resources')):
+    iconDir = join(os.getcwd(), 'Resources')
+else:
+    print "couldn't find Resources directory. Are the following correct?"
+    print 'icons', iconDir
+    print 'app', appDir
+    print 'psychopy', psychopyDir
+    print 'cwd', os.getcwd()
 IMPORT_LIBS='none'# should be 'thread' or 'inline' or 'none'
 USE_NOTEBOOK_PANEL=False
 ANALYSIS_LEVEL=1
