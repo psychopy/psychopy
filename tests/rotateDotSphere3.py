@@ -8,11 +8,11 @@ win = visual.Window((600,600))
 
 class SphereDotStim(visual.DotStim):
     def _update_dotsXY(self):
-        #we need to override this so that the dots dont get updated 
+        #override this so that the dots dont get updated 
         #(which they normally do during draw() for RDKs)
         pass
         
-myStim = visual.DotStim(win, nDots=nDots, speed=0zzzzzzzzzz)#most parameters aren't going to be used here
+myStim = SphereDotStim(win, nDots=nDots)#most parameters aren't going to be used here
 
 #starting spherical coordinates for our dots
 azims = numpy.random.random(nDots)*360
