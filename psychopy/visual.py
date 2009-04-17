@@ -999,8 +999,14 @@ class DotStim(_BaseVisualStim):
         self._calcFieldCoordsRendered()
     def setNDots(self,val, op=''):
         self._set('nDots', val, op)
-    def setDirection(self,val, op=''):
-        self._set('direction', val, op)
+    def setDir(self,val, op=''):
+        """Set the direction of the signal dotSize (in degrees)
+         """
+        #check which dots are signal
+        signalDots = self._dotsDir==(self.dir*pi/180)        
+        self._set('dir', val, op)        
+        #dots currently moving in the signal direction also need to update their direction
+        self._dotsDir[signalDots] = self.dir*pi/180
     def setSpeed(self,val, op=''):
         self._set('speed', val, op)
         
@@ -1090,18 +1096,19 @@ class DotStim(_BaseVisualStim):
             
         ##update XY based on speed and dir
         
+        #NB self._dotsDir is in radians, but self.dir is in degs
+        
         #update which are the noise/signal dots
         if self.signalDots =='same':
             #noise and signal dots change identity constantly
             #easiest way to keep _signalDots and _dotsDir in sync is to shuffle _dotsDir
-            #and update _signalDots from that
-            numpy.random.shuffle(self._dotsDir)
-            self._signalDots = (self._dotsDir==self.dir)
+            numpy.random.shuffle(self._dotsDir)            
+            self._signalDots = (self._dotsDir==(self.dir*pi/180))#and then update _signalDots from that
             
         #update the locations of signal and noise
         if self.noiseDots=='walk':
             # noise dots are ~self._signalDots
-            self._dotsDir[~self._signalDots] = numpy.random.rand((~self._signalDots).sum())*2*pi
+            self._dotsDir[~self._signalDots] = numpy.random.rand((~self._signalDots).sum())*pi*2
             #then update all positions from dir*speed
             self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
             self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
@@ -1116,8 +1123,9 @@ class DotStim(_BaseVisualStim):
             self._dotsXY[self._signalDots,1] += \
                 self.speed*numpy.reshape(numpy.sin(self._dotsDir[self._signalDots]),(self._signalDots.sum(),))# 0 radians=East!
             #update noise dots
-            dead = dead+(~self._signalDots)#just create new ones            
-        #handle boundaries of the field: square for now - circles not quite working
+            dead = dead+(~self._signalDots)#just create new ones  
+            
+        #handle boundaries of the field
         if self.fieldShape == 'sqr':
             dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2)
         elif self.fieldShape == 'circle':
