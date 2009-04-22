@@ -900,7 +900,10 @@ class DotStim(_BaseVisualStim):
         self.win = win
         
         self.nDots = nDots
-        self.fieldPos = fieldPos
+        #size
+        if type(fieldPos) in [tuple,list]:
+            self.fieldPos = numpy.array(fieldPos,float)
+        else: self.fieldPos=fieldPos
         self.fieldSize = fieldSize
         self.fieldShape = fieldShape
         self.dotSize = dotSize
