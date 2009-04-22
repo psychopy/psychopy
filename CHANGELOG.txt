@@ -6,7 +6,7 @@ Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or ve
 
 !!!! PsychoPy 1.00.02 (1.0rc2)
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
-* FIXED bug with DotStim updating for 'walk' and 'position' noise dots
+* FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
 
 !!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer
