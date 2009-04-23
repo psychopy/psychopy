@@ -853,8 +853,7 @@ class DotStim(_BaseVisualStim):
                 specifying the centre of the stimulus.
                 The origin is the screen centre, the units are determined
                 by `units` (see above).
-            fieldSize : (x,y) or [x,y] or a singleValue            
-                If a single value is given it will be applied to x and y.
+            fieldSize : a single value, specifying the diameter of the field
                 Units are specified by `units` (see above).
                 Sizes can be negative and can extend beyond the window.
             fieldShape : *'circle'*,'sqr' or 'gauss' 
@@ -933,11 +932,6 @@ class DotStim(_BaseVisualStim):
             self.rgb = numpy.array(rgb, float)
 
         self.depth=depth
-        #size
-        if type(fieldSize) in [tuple,list]:
-            self.fieldSize = numpy.array(fieldSize,float)
-        else:
-            self.fieldSize = numpy.array((fieldSize,fieldSize),float)#make a square if only given one dimension
         """initialise the dots themselves - give them all random dir and then
         fix the first n in the array to have the direction specified"""
 
