@@ -84,7 +84,10 @@ class Window:
                  units='norm',
                  gamma = None,
                  blendMode='avg',
-                 screen=0):
+                 screen=0,
+                 viewScale = None,
+                 viewPos  = None,
+                 viewOri  = 0.0):
         """
         **Arguments:**
 
@@ -95,6 +98,11 @@ class Window:
             - **winType** :  'pyglet', 'pygame' or 'glut' (if None then PsychoPy will try to use Pyglet, Pygame, GLUT in that order)
             - **monitor** :  the name of your monitor (from MonitorCentre) or an actual ``Monitor`` object
             - **units** :  'norm' (normalised),'deg','cm','pix' Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
+            - **viewScale** : If not None, then applies additional scaling to the current units of the window.  
+                             Should be an (x,y) tuple or list specifying the scaling in each dimension.
+            - **viewPos** : If not None, redefines the origin for the window
+                             Should be an (x,y) tuple or list.
+            - **viewOri** : a single value determining the orientation of the view in degs (def = (0,0))
             
         The following args will override **monitor** settings(see above):
 
@@ -136,6 +144,19 @@ class Window:
         self.units = units
         self.screen = screen
         
+        #parameters for transforming the overall view
+        #scale
+        if type(viewScale) in [list, tuple]:
+            self.viewScale = numpy.array(viewScale, numpy.float64)
+        elif type(viewScale) in [int, float]:
+            self.viewScale = numpy.array([viewScale,viewScale], numpy.float64)
+        else: self.viewScale = viewScale
+        #pos
+        if type(viewPos) in [list, tuple]:
+            self.viewPos = numpy.array(viewPos, numpy.float64)
+        else: self.viewPos = viewPos
+        self.viewOri  = float(viewOri)
+                 
         #setup bits++ if possible
         self.bitsMode = bitsMode #could be [None, 'fast', 'slow']
         if self.bitsMode!=None:
@@ -329,7 +350,23 @@ class Window:
             if deltaT>self._refreshThreshold \
                 and (numpy.average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
-        
+                    
+        #rescale/reposition view of the window
+        if self.viewScale != None:
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+        if self.viewPos != None:
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+#            GL.glLoadIdentity()
+            if self.viewScale==None: scale=[1,1]
+            else: scale=self.viewScale
+            norm_rf_pos_x = self.viewPos[0]/scale[0]
+            norm_rf_pos_y = self.viewPos[1]/scale[1]
+            GL.glTranslatef( norm_rf_pos_x, norm_rf_pos_y, 0.0)
+        if self.viewOri != None:
+            GL.glRotatef( self.viewOri, 0.0, 0.0, -1.0)
+            
         if haveFB:
             #set rendering back to the framebuffer object
             FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)

@@ -9,7 +9,7 @@ myWin =visual.Window((600,600), allowGUI=False,
 dotPatch =visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
     nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1,
     dotLife=3, #number of frames for each dot to be drawn
-    signalDots='same', #are the signal and noise dots 'different' or 'same' (see Scase et al)
+    signalDots='same', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
     noiseDots='walk', #do the noise dots follow random- 'walk', 'direction', or 'position'
     speed=0.01, coherence=0.5)
 message =visual.TextStim(myWin,text='Hit Q to quit',
