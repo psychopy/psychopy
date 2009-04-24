@@ -1,7 +1,7 @@
 """Set the key bindings for your PsychoPyIDE"""
 #NB Ctrl- becomes Cmd- automatically on Apple platform
 #All letter keys should be upper case 
-from sys import platform
+import sys
 
 key_cut = 'Ctrl-X'
 key_copy= 'Ctrl-C'
@@ -13,7 +13,7 @@ key_smartindent='Shift+Tab'
 key_find = 'Ctrl+F'
 key_findagain = 'Ctrl+G'
 key_undo='Ctrl+Z'
-if platform=='darwin': key_redo='Ctrl+Shift+Z'
+if sys.platform=='darwin': key_redo='Ctrl+Shift+Z'
 else: key_redo='Ctrl+Y'
 key_runscript='F5'
 key_stopscript='Shift+F5'

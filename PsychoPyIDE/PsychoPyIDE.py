@@ -1,4 +1,4 @@
-import wx, sys, time, types, re
+import wx, sys, platform, time, types, re
 #check wx version - wx.aui was only introduced in wx2.8
 if wx.__version__<'2.8':
     print   'PsychoPyIDE requires wxPython v2.8. Please install that before running'
@@ -7,7 +7,7 @@ if wx.__version__<'2.8':
 
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob
-import threading, traceback, bdb, cPickle
+import threading, traceback, bdb, cPickle, urllib
 import psychopy
 import psychoParser
 import introspect, py_compile
@@ -160,6 +160,29 @@ def fromPickle(filename):
     f.close()
     return contents
 
+def sendUsageStats(proxies=None):
+    """Sends anonymous, very basic usage stats to psychopy server:
+      the version of PsychoPy
+      the system used (platform and version)
+      the date
+    """
+    v=psychopy.__version__
+    dateNow = time.strftime("%Y-%m-%d %H:%M")
+    miscInfo = ''
+    #get platform-specific info
+    if platform.system()=='Darwin':
+        OSXver, junk, architecture = platform.mac_ver()
+        systemInfo = "OSX_%s_%s" %(OSXver, architecture)
+    elif platform.system()=='Linux':
+        systemInfo = platform.dist()+platform.release()
+    else:
+        systemInfo = platform.system()+platform.release()
+                    
+    URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
+        %(dateNow, systemInfo, v, miscInfo)
+    page = urllib.urlopen(URL,proxies=proxies)
+    print "contacted", URL
+    
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
     method."""
@@ -1003,6 +1026,7 @@ class PsychoSplashScreen(wx.SplashScreen):
         self.status.SetMinSize(wx.Size(520,20))
         self.Fit()
         self.status.SetLabel(" ")
+        
         #preload useful (large) libraries
         if IMPORT_LIBS=='inline':
             self.status.SetLabel("Loading Libraries")
@@ -1899,6 +1923,9 @@ class IDEApp(wx.App):
                 args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
         else:
             args=[]
+        statsThread = threading.Thread(target=sendUsageStats, args=(None,))
+        statsThread.start()
+        
         self.frame = IDEMainFrame(None, -1, 
                                       title="PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__,
                                       files = args)
