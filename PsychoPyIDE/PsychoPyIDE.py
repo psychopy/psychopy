@@ -160,15 +160,19 @@ def fromPickle(filename):
     f.close()
     return contents
 
-def sendUsageStats(proxies=None):
+def sendUsageStats(proxy=None):
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
       the system used (platform and version)
       the date
+      
+    If http_proxy is set in the system environment variables these will be used automatically,
+    but additional proxies can be provided here as the argument proxies.
     """
     v=psychopy.__version__
     dateNow = time.strftime("%Y-%m-%d %H:%M")
     miscInfo = ''
+    
     #get platform-specific info
     if platform.system()=='Darwin':
         OSXver, junk, architecture = platform.mac_ver()
@@ -176,12 +180,15 @@ def sendUsageStats(proxies=None):
     elif platform.system()=='Linux':
         systemInfo = platform.dist()+platform.release()
     else:
-        systemInfo = platform.system()+platform.release()
-                    
+        systemInfo = platform.system()+platform.release()                    
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
-        %(dateNow, systemInfo, v, miscInfo)
-    page = urllib.urlopen(URL,proxies=proxies)
-    print "contacted", URL
+        %(dateNow, systemInfo, v, miscInfo)        
+        
+    if proxy is None:
+        proxies = urllib.getproxies()
+    else:
+        proxies={'http':proxy}
+    page = urllib.urlopen(URL,proxies=proxies)#proxies)
     
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
