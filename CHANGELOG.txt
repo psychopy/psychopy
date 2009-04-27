@@ -1,12 +1,14 @@
 !!Version numbers
-In general, when a new feature is added the first or the second number is incremented (e.g. 0.90.3 -> 0.91.0). Those releases might break previous code you've written because new features often need slight changes to other things. 
-Changes to the final digit (0.92.1 -> 0.92.2) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
+In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
+Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
 !!Changelog 
 
 !!!! PsychoPy 1.00.02 (1.0rc2)
+* ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
 * FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
+* FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
 
 !!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer

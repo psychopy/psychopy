@@ -170,7 +170,7 @@ def sendUsageStats(proxy=None):
     but additional proxies can be provided here as the argument proxies.
     """
     v=psychopy.__version__
-    dateNow = time.strftime("%Y-%m-%d %H:%M")
+    dateNow = time.strftime("%Y-%m-%d_%H:%M")
     miscInfo = ''
     
     #get platform-specific info
