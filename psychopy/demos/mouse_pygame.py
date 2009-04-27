@@ -1,8 +1,8 @@
 #! /usr/local/bin/python2.5
-from psychopy import *
+from psychopy import visual, event, core
 
 #create a window to draw in
-myWin = visual.Window((600.0,600.0), allowGUI=True)
+myWin = visual.Window((600.0,600.0), allowGUI=True, winType='pygame')
 
 #INITIALISE SOME STIMULI
 fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),rgb=[-1.0,-1.0,-1.0])
@@ -18,6 +18,8 @@ while True: #continue until keypress
     for key in event.getKeys():
         if key in ['escape','q']:
             core.quit()
+        else:
+            print key
             
     #get mouse events
     mouse_dX,mouse_dY = event.mouse.get_rel()

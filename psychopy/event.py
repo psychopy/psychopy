@@ -83,7 +83,12 @@ def getKeys(keyList=None, timeStamped=False):
     """
     keys=[]
 
-    if havePyglet:
+
+    if havePygame and display.get_init():#see if pygame has anything instead (if it exists)
+        for evts in evt.get(locals.KEYDOWN):
+            keys.append( (pygame.key.name(evts.key),0) )#pygame has no keytimes
+
+    elif havePyglet:
         #for each (pyglet) window, dispatch its events before checking event buffer
         wins = pyglet.window.get_platform().get_default_display().get_windows()
         for win in wins: win.dispatch_events()#pump events on pyglet windows
@@ -93,11 +98,7 @@ def getKeys(keyList=None, timeStamped=False):
             #then pyglet is running - just use this
             keys = _keyBuffer
     #        _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
-
-    elif havePygame and display.get_init():#see if pygame has anything instead (if it exists)
-        for evts in evt.get(locals.KEYDOWN):
-            keys.append( (pygame.key.name(evts.key),0) )#pygame has no keytimes
-
+    
     if keyList==None:
         _keyBuffer = [] #clear buffer entirely
         targets=keys  # equivalent behavior to getKeys()
