@@ -1188,6 +1188,163 @@ class DotStim(_BaseVisualStim):
         elif self.units=='cm': 
             self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
+
+class SimpleImageStim(_BaseVisualStim):
+    """A simple stimulus for loading images from a file and presenting at exactly
+    the resolution and colour in the file (subject to gamma correction if set).
+    
+    Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or 
+    masked (although flipping horizontally or vertically is possible). Drawing will
+    also tend to be marginally slower (because the image isn't preloaded to the 
+    gfx card. The advantage, however is that the stimulus will always be in its
+    original aspect ratio, with no interplotation or other transformation.
+    
+    Also, unlike the PatchStim (whose textures should be square and power-of-two
+    in size, there is no restriction on the size of images for the SimpleImageStim 
+    """
+    def __init__(self,
+                 win,
+                 image     ="",
+                 units   ="",
+                 pos     =(0.0,0.0),
+                 contrast=1.0,
+                 opacity=1.0,
+                 flipHoriz=False,
+                 flipVert=False,
+                 depth=0):
+        """
+        **Arguments:**
+
+            - **win:** 
+                a Window() object required - the stimulus must know where to draw itself!
+
+            - **iamge** 
+                The filename, including relative or absolute path. The image
+                can be any format that the Python Imagin Library can import
+                (which is almost all).
+
+            - **units:**
+                For SimpleImages the units only relate to the position of the image
+                + None (use the current units of the Window)
+                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
+                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
+
+            - **pos:** 
+                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+                The origin is the screen centre, the units are determined
+                by units (see above). Stimuli can be position beyond the
+                window!
+
+            - **contrast**
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus)
+
+            - **opacity**
+                1.0 is opaque, 0.0 is transparent
+
+            - **depth**
+                This can potentially be used (not tested!) to choose which
+                stimulus overlays which. (more negative values are nearer).
+                At present the window does not do perspective rendering
+                but could do if that's really useful(?!)
+
+        """
+        
+        self.win = win
+        if win._haveShaders: self._useShaders=True#by default, this is a good thing
+        else: self._useShaders=False
+        
+        if units in [None, "", []]:
+            self.units = win.units
+        else:self.units = units
+        
+        self.contrast = float(contrast)
+        self.opacity = opacity
+        self.pos = numpy.array(pos, float)
+        self.depth=depth
+        self.setImage(image)
+        #fix scaling to window coords
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
+        self._calcPosRendered()
+    
+    def setUseShaders(self, val=True):
+        """Set this stimulus to use shaders if possible.
+        """
+        #NB TextStim overrides this function, so changes here may need changing there too
+        if val==True and self.win._haveShaders==False:
+            log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
+        if val!=self._useShaders:
+            self._useShaders=val
+            self.setImage()            
+    def draw(self):
+        """
+        Draw the stimulus in its relevant window. You must call
+        this method after every MyWin.flip() if you want the
+        stimulus to appear on that frame and then update the screen
+        again.
+        """        
+        #push the projection matrix and set to orthorgaphic
+        GL.glMatrixMode(GL.GL_PROJECTION)						
+        GL.glPushMatrix()									
+        GL.glLoadIdentity()				
+        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )	#this also sets the 0,0 to be top-left
+        #but return to modelview for rendering
+        GL.glMatrixMode(GL.GL_MODELVIEW)							
+        GL.glLoadIdentity()
+        
+        #unbind any textures
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        
+        self.win.setScale(self._winScale)
+        #move to centre of stimulus and rotate
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
+        GL.glRasterPos2i(0,1)
+        #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
+        GL.glDrawPixels(524,1,self.internalFormat,self.dataType, self.imArray)
+        #return to 3D mode (go and pop the projection matrix)
+        GL.glMatrixMode( GL.GL_PROJECTION )					
+        GL.glPopMatrix()
+        GL.glMatrixMode( GL.GL_MODELVIEW )
+    def setPos(self, newPos, operation=None, units=None):
+        self._set('pos', val=newPos, op=operation)
+        self._calcPosRendered()
+    def setDepth(self,newDepth, operation=None):
+        self._set('depth', newDepth, operation)    
+    def _calcPosRendered(self):
+        """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
+        if self.units =='pix': self._posRendered=self.pos
+        elif self.units=='norm': self._posRendered=self.pos
+        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+    def setImage(self,filename=None):
+        if filename!=None:
+            self.filename=filename
+        if os.path.isfile(self.filename):
+            im = Image.open(self.filename)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+        else:
+            log.error("couldn't find tex...%s" %(tex))
+            core.quit()
+            raise #so thatensure we quit
+        self.size=im.size
+        #set correct formats for bytes/floats
+        im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
+        self.imArray = numpy.array(im.convert("RGBA")).astype(numpy.float32)*2/255-1        
+        if self._useShaders:
+            self.internalFormat = GL.GL_RGB32F_ARB
+            self.dataType = GL.GL_FLOAT
+        else:
+            self.internalFormat = GL.GL_RGB
+            self.dataType = GL.GL_UNSIGNED_BYTE
+            self.imArray = psychopy.misc.float_uint8(self.imArray)
+            
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -1339,7 +1496,6 @@ class PatchStim(_BaseVisualStim):
         """
         
         self.win = win
-        assert isinstance(self.win, Window)
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
         
@@ -3818,13 +3974,13 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
     else:#might be a filename of an image
-        try:
+        if os.path.isfile(tex):
             im = Image.open(tex)
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        except:
-            log.error("couldn't load tex...%s" %(tex))
+        else:
+            log.error("couldn't find tex...%s" %(tex))
             core.quit()
-            raise #so that we quit
+            raise #so thatensure we quit
 
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:

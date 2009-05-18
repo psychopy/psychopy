@@ -5,10 +5,12 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 !!Changelog 
 
 !!!! PsychoPy 1.00.02 (1.0rc2)
+* ADDED SimpleImageStimulus for simple blitting of raw, unscaled images
 * ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
 * FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
+* CHANGED image loading code to check whether the image is a file, rather than using try..except 
 
 !!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer
