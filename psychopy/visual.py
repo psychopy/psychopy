@@ -1307,7 +1307,9 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRasterPos2i(0,1)
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
-        GL.glDrawPixels(524,1,self.internalFormat,self.dataType, self.imArray)
+        GL.glDrawPixels(self.size[0],self.size[1],
+            self.internalFormat,self.dataType, 
+            self.imArray.ctypes)
         #return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode( GL.GL_PROJECTION )					
         GL.glPopMatrix()
@@ -1341,7 +1343,7 @@ class SimpleImageStim(_BaseVisualStim):
             self.internalFormat = GL.GL_RGB32F_ARB
             self.dataType = GL.GL_FLOAT
         else:
-            self.internalFormat = GL.GL_RGB
+            self.internalFormat = GL.GL_RGBA
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray)
             
