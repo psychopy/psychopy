@@ -1128,10 +1128,8 @@ class DotStim(_BaseVisualStim):
         else:
             dead=numpy.zeros(self.nDots, dtype=bool)
             
-        ##update XY based on speed and dir
-        
+        ##update XY based on speed and dir        
         #NB self._dotsDir is in radians, but self.dir is in degs
-        
         #update which are the noise/signal dots
         if self.signalDots =='same':
             #noise and signal dots change identity constantly
@@ -1195,12 +1193,18 @@ class SimpleImageStim(_BaseVisualStim):
     
     Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or 
     masked (although flipping horizontally or vertically is possible). Drawing will
-    also tend to be marginally slower (because the image isn't preloaded to the 
+    also tend to be marginally slower, because the image isn't preloaded to the 
     gfx card. The advantage, however is that the stimulus will always be in its
-    original aspect ratio, with no interplotation or other transformation.
+    original aspect ratio, with no interplotation or other transformation. It is always 
+    
+    SimpleImageStim does not support a depth argument (the OpenGL method
+    that draws the pixels does not support it). Simple images will obscure any other 
+    stimulus type.
     
     Also, unlike the PatchStim (whose textures should be square and power-of-two
     in size, there is no restriction on the size of images for the SimpleImageStim 
+    
+    
     """
     def __init__(self,
                  win,
@@ -1210,15 +1214,14 @@ class SimpleImageStim(_BaseVisualStim):
                  contrast=1.0,
                  opacity=1.0,
                  flipHoriz=False,
-                 flipVert=False,
-                 depth=0):
+                 flipVert=False):
         """
         **Arguments:**
 
             - **win:** 
                 a Window() object required - the stimulus must know where to draw itself!
 
-            - **iamge** 
+            - **image** 
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
                 (which is almost all).
@@ -1242,13 +1245,7 @@ class SimpleImageStim(_BaseVisualStim):
 
             - **opacity**
                 1.0 is opaque, 0.0 is transparent
-
-            - **depth**
-                This can potentially be used (not tested!) to choose which
-                stimulus overlays which. (more negative values are nearer).
-                At present the window does not do perspective rendering
-                but could do if that's really useful(?!)
-
+                
         """
         
         self.win = win
@@ -1289,7 +1286,7 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glMatrixMode(GL.GL_PROJECTION)						
         GL.glPushMatrix()									
         GL.glLoadIdentity()				
-        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )	#this also sets the 0,0 to be top-left
+        GL.glOrtho( 0, self.win.size[0],0, self.win.size[1], 0, 1 )	#this also sets the 0,0 to be top-left
         #but return to modelview for rendering
         GL.glMatrixMode(GL.GL_MODELVIEW)							
         GL.glLoadIdentity()
@@ -1302,10 +1299,9 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         
-        self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRasterPos2i(0,1)
+        GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
+            self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0],self.size[1],
             self.internalFormat,self.dataType, 
@@ -1332,18 +1328,16 @@ class SimpleImageStim(_BaseVisualStim):
             im = Image.open(self.filename)
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
         else:
-            log.error("couldn't find tex...%s" %(tex))
+            log.error("couldn't find image...%s" %(filename))
             core.quit()
             raise #so thatensure we quit
         self.size=im.size
         #set correct formats for bytes/floats
-        im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-        self.imArray = numpy.array(im.convert("RGBA")).astype(numpy.float32)*2/255-1        
-        if self._useShaders:
-            self.internalFormat = GL.GL_RGB32F_ARB
+        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
+        self.internalFormat = GL.GL_RGB      
+        if self._useShaders:            
             self.dataType = GL.GL_FLOAT
         else:
-            self.internalFormat = GL.GL_RGBA
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray)
             
