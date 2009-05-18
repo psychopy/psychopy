@@ -12,6 +12,7 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
 * CHANGED image loading code to check whether the image is a file, rather than using try..except
 * FIXED buglet raising trivial error messages on closing final window in IDE  
+* FIXED problem pasting into find dlg in IDE
 
 !!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer

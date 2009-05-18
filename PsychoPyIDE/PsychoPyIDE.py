@@ -1833,7 +1833,8 @@ class IDEMainFrame(wx.Frame):
     def cut(self, event):
         self.currentDoc.Cut()#let the text ctrl handle this
     def paste(self, event):
-        self.currentDoc.Paste()#let the text ctrl handle this
+        foc= self.FindFocus()
+        foc.Paste()
     def undo(self, event):
         self.currentDoc.Undo()
     def redo(self, event):
