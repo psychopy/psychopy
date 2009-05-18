@@ -10,7 +10,8 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
 * FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
-* CHANGED image loading code to check whether the image is a file, rather than using try..except 
+* CHANGED image loading code to check whether the image is a file, rather than using try..except
+* FIXED buglet raising trivial error messages on closing final window in IDE  
 
 !!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer

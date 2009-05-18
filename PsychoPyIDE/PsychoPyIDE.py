@@ -188,8 +188,10 @@ def sendUsageStats(proxy=None):
         proxies = urllib.getproxies()
     else:
         proxies={'http':proxy}
-    page = urllib.urlopen(URL,proxies=proxies)#proxies)
-    
+    try:
+        page = urllib.urlopen(URL,proxies=proxies)#proxies)
+    except:
+        pass#not important
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
     method."""
@@ -1406,7 +1408,7 @@ class IDEMainFrame(wx.Frame):
                 text = stream.read()
                 self.outputWindow.write(text)
         #check if we're in the same place as before
-        if (self.currentDoc is not None) and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
+        if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
     def pageChanged(self,event):
@@ -1598,7 +1600,7 @@ class IDEMainFrame(wx.Frame):
     def fileOpen(self, event):
         
         #get path of current file (empty if current file is '')
-        if self.currentDoc is not None:
+        if hasattr(self.currentDoc, 'filename'):
             initPath = os.path.split(self.currentDoc.filename)[0]
         else:   
             initPath=''

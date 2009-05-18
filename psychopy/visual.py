@@ -2125,13 +2125,15 @@ class RadialStim(PatchStim):
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
         #bind and enable textures
+        
+        #mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
+#        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEnable(GL.GL_TEXTURE_1D)
         #main texture
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        #mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         #set pointers to visible textures
@@ -2241,18 +2243,18 @@ class RadialStim(PatchStim):
             intensity = 255*numpy.array(maskName, float)
             res = len(intensity)
             fromFile=0
-        elif self._maskName is "circle":
+        elif self._maskName == "circle":
             intensity = 255.0*(rad<=1)
             fromFile=0
-        elif self._maskName is "gauss":
+        elif self._maskName == "gauss":
             sigma = 1/3.0;
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
-        elif self._maskName is "radRamp":#a radial ramp
+        elif self._maskName == "radRamp":#a radial ramp
             intensity = 255.0-255.0*rad
             intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
             fromFile=0
-        elif self._maskName in [None,"none"]:
+        elif self._maskName in [None,"none","None"]:
             res=4
             intensity = 255.0*numpy.ones(res,float)
             fromFile=0
