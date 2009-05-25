@@ -940,9 +940,13 @@ class DotStim(_BaseVisualStim):
         if type(fieldPos) in [tuple,list]:
             self.fieldPos = numpy.array(fieldPos,float)
         else: self.fieldPos=fieldPos
-        self.fieldSize = fieldSize
+        if type(fieldSize) in [tuple,list]:        
+            self.fieldSize = numpy.array(fieldSize)
+        else:self.fieldSize=fieldSize        
+        if type(dotSize) in [tuple,list]:        
+            self.dotSize = numpy.array(dotSize)
+        else:self.dotSize=dotSize
         self.fieldShape = fieldShape
-        self.dotSize = dotSize
         self.dir = dir
         self.speed = speed
         self.opacity = opacity

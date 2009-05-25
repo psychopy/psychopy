@@ -8,7 +8,7 @@ myWin = visual.Window((600,600), allowGUI=False,
 #INITIALISE SOME STIMULI
 myDotShape = visual.PatchStim(myWin, mask='gauss',sf=3)
 dotPatch = visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
-                          fieldPos=(0.0,0.0), nDots=40, fieldSize=(3,3),
+                          fieldPos=(0.0,0.0), nDots=40, fieldSize=0.3,
                           speed=0.01, fieldShape='circle', coherence=0.5,
                           element = myDotShape)
 message = visual.TextStim(myWin,text='Hit Q to quit',
