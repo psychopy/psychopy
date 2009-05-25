@@ -9,6 +9,7 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 * ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
 * FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
+* FIXED bug with DotStim when fieldSize was initialised with a list rather than an array
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
 * CHANGED image loading code to check whether the image is a file, rather than using try..except
 * FIXED buglet raising trivial error messages on closing final window in IDE  
