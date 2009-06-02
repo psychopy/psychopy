@@ -77,6 +77,16 @@ fragSignedColorTex = '''
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
+#the shader for pyglet fonts doesn't use multitextures - just one texture
+fragSignedColorTexFont = '''
+    // Fragment program
+    uniform sampler2D texture;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord.st);
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;        
+        gl_FragColor.a = gl_Color.a*textureFrag.a;
+    }
+    '''
 fragSignedColorTexMask = '''
     // Fragment program
     uniform sampler2D texture, mask;

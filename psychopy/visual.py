@@ -678,6 +678,7 @@ class Window:
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
             self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
+            self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
 #        elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
 #            from OpenGL.GL.ARB import shader_objects
 #            if shader_objects.glInitShaderObjectsARB():
@@ -3547,7 +3548,7 @@ class TextStim(_BaseVisualStim):
 
         #setup the shaderprogram
         #no need to do texture maths so no need for programs?
-        GL.glUseProgram(0)#self.win._progSignedTex)
+        GL.glUseProgram(self._progSignedTexFont)#self.win._progSignedTex)
         #GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
         
         #coords:
