@@ -677,6 +677,7 @@ class Window:
             #we should be able to compile shaders (don't just 'try')
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
             self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+            self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
 #        elif self.winType=='pygame':#on PyOpenGL we should try to get an init value
 #            from OpenGL.GL.ARB import shader_objects
 #            if shader_objects.glInitShaderObjectsARB():
@@ -2068,15 +2069,66 @@ class RadialStim(PatchStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
 
-        #setup color
-        desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-        if numpy.any(desiredRGB**2.0>1.0):
-            desiredRGB=[0.6,0.6,0.4]
-        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+        if self._useShaders:
+            #setup color
+            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+            if numpy.any(desiredRGB**2.0>1.0):
+                desiredRGB=[0.6,0.6,0.4]
+            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+            
+            #assign vertex array
+            if self.win.winType=='pyglet':
+                arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+            else:
+                GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
 
-        #the list does the texture mapping
-        if self.needUpdate: self._updateList()
-        GL.glCallList(self._listID)
+            #then bind main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+            GL.glEnable(GL.GL_TEXTURE_2D)            
+            #and mask
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
+            GL.glDisable(GL.GL_TEXTURE_2D)
+            GL.glEnable(GL.GL_TEXTURE_1D)
+            
+            #setup the shaderprogram
+            GL.glUseProgram(self.win._progSignedTexMask1D)
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask1D, "texture"), 0) #set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask1D, "mask"), 1)  # mask is texture unit 1 
+            
+            #set pointers to visible textures
+            GL.glClientActiveTexture(GL.GL_TEXTURE0)
+            if self.win.winType=='pyglet':
+                arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+                GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+            else:
+                GL.glTexCoordPointerd(self._visibleTexture)
+            GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+            
+            #mask
+            GL.glClientActiveTexture(GL.GL_TEXTURE1)
+            if self.win.winType=='pyglet':
+                arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+                GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, arrPointer) 
+            else:
+                GL.glTexCoordPointerd(self._visibleMask)
+            GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)                    
+            
+            #do the drawing
+            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+            GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
+            #disable set states
+            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+            GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+            GL.glDisable(GL.GL_TEXTURE_2D)
+            
+            GL.glUseProgram(0)
+        else:  
+            #the list does the texture mapping
+            if self.needUpdate: self._updateList()
+            GL.glCallList(self._listID)
 
         #return the view to previous state
         GL.glPopMatrix()
@@ -2123,31 +2175,18 @@ class RadialStim(PatchStim):
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
 
-        #setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "mask"), 1)  # mask is texture unit 1
-
         #assign vertex array
         if self.win.winType=='pyglet':
             arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
             GL.glVertexPointer(2, GL.GL_FLOAT, 0, arrPointer) 
         else:
             GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
-        #bind and enable textures
+        #setup the shaderprogram
+        GL.glUseProgram(self.win._progSignedTexMask1D)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask1D, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask1D, "mask"), 1)  # mask is texture unit 1 
         
-        #mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
-#        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-        #main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-
         #set pointers to visible textures
         GL.glClientActiveTexture(GL.GL_TEXTURE0)
         if self.win.winType=='pyglet':
@@ -2156,25 +2195,35 @@ class RadialStim(PatchStim):
         else:
             GL.glTexCoordPointerd(self._visibleTexture)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        #then bind main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)    
+        
         #mask
         GL.glClientActiveTexture(GL.GL_TEXTURE1)
         if self.win.winType=='pyglet':
             arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, arrPointer) 
+            GL.glTexCoordPointer(1, GL.GL_FLOAT, 0, arrPointer) 
         else:
             GL.glTexCoordPointerd(self._visibleMask)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)                    
+        #and mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEnable(GL.GL_TEXTURE_1D)
+        
         #do the drawing
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
-
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible*3)
         #disable set states
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-        #setup the shaderprogram
+        
         GL.glUseProgram(0)
+        #setup the shaderprogram
         GL.glEndList()
 
     def _updateListNoShaders(self):

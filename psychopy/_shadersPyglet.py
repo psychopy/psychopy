@@ -88,6 +88,18 @@ fragSignedColorTexMask = '''
         gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0; 
     }
     '''
+fragSignedColorTexMask1D = '''
+    // Fragment program
+    uniform sampler2D texture;
+    uniform sampler1D mask;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);       
+        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
+        //
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0; 
+    }
+    '''
 vertSimple = """
     void main() {               
             gl_FrontColor = gl_Color;
