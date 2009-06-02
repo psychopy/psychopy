@@ -1029,6 +1029,10 @@ class DotStim(_BaseVisualStim):
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
+    def setPos(self, newPos=None, operation=None, units=None):
+        """Obselete - users should use setFieldPos or instead of setPos
+        """
+        log.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")        
     def setFieldPos(self,val, op=''):
         self._set('fieldPos', val, op)
         self._calcFieldCoordsRendered()
@@ -1047,6 +1051,10 @@ class DotStim(_BaseVisualStim):
         self._dotsDir[signalDots] = self.dir*pi/180
     def setSpeed(self,val, op=''):
         self._set('speed', val, op)
+    def setPos(self, newPos=None, operation=None, units=None):
+        """Obselete - users should use setFieldPos or instead of setPos
+        """
+        log.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
         
     def draw(self, win=None):
         """
