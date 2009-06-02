@@ -8,9 +8,12 @@ myWin = visual.Window((600,600), allowGUI=False,
 #INITIALISE SOME STIMULI
 myDotShape = visual.PatchStim(myWin, mask='gauss',sf=3)
 dotPatch = visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
-                          fieldPos=(0.0,0.0), nDots=40, fieldSize=0.3,
-                          speed=0.01, fieldShape='circle', coherence=0.5,
-                          element = myDotShape)
+                        dotLife=5, #lifetime of a dot in frames (if this is long density artefacts can occur in the stimulus)
+                        signalDots='different', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
+                        noiseDots='direction', #do the noise dots follow random- 'walk', 'direction', or 'position'
+                        fieldPos=(0.0,0.0), nDots=40, fieldSize=3,
+                        speed=0.05, fieldShape='circle', coherence=0.5,
+                        element = myDotShape)
 message = visual.TextStim(myWin,text='Hit Q to quit',
                                    pos=(0,-5))
 

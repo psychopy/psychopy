@@ -1052,11 +1052,6 @@ class DotStim(_BaseVisualStim):
         self._dotsDir[signalDots] = self.dir*pi/180
     def setSpeed(self,val, op=''):
         self._set('speed', val, op)
-    def setPos(self, newPos=None, operation=None, units=None):
-        """Obselete - users should use setFieldPos or instead of setPos
-        """
-        log.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
-        
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -1068,20 +1063,21 @@ class DotStim(_BaseVisualStim):
         if win.winType=='pyglet': win.winHandle.switch_to()
         
         self._update_dotsXY()
+        
+        GL.glPushMatrix()#push before drawing, pop after       
         if self.depth==0:
             thisDepth = self.win._defDepth
             win._defDepth += _depthIncrements[win.winType]
         else:
             thisDepth=self.depth
-
+        
         #draw the dots
         if self.element==None:
+            win.setScale(self._winScale) 
             #scale the drawing frame etc...
-            GL.glPushMatrix()#push before drawing, pop after
-            win.setScale(self._winScale)
             GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
             GL.glPointSize(self.dotSize)
-
+            
             #load Null textures into multitexteureARB - they modulate with glColor
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1089,9 +1085,9 @@ class DotStim(_BaseVisualStim):
             GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
+            
             if self.win.winType == 'pyglet':
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
 
@@ -1099,15 +1095,14 @@ class DotStim(_BaseVisualStim):
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glPopMatrix()
         else:
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
             for pointN in range(0,self.nDots):
-                self.element.setPos(self._dotsXYRendered[pointN,:]-self._fieldPosRendered)
+                self.element.setPos(self._dotsXY[pointN,:]-self._fieldPosRendered)
                 self.element.draw()
-
-            self.element.setDepth(initialDepth)#reset depth before going to next frame
+            self.element.setDepth(initialDepth)#reset depth before going to next frame        
+        GL.glPopMatrix()
         
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the fieldShape and fieldSize
@@ -1618,13 +1613,13 @@ class PatchStim(_BaseVisualStim):
         #work out next default depth
         if self.depth==0:
             thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
+            win._defDepth += _depthIncrements[win.winType]
         else:
             thisDepth=self.depth
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        self.win.setScale(self._winScale)
+        win.setScale(self._winScale)
         #move to centre of stimulus and rotate
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
@@ -2726,7 +2721,11 @@ class ElementArrayStim:
             self.fieldPos=value
         else:
             exec('self.fieldPos'+operation+'=value')
-    
+    def setPos(self, newPos=None, operation=None, units=None):
+        """Obselete - users should use setFieldPos or instead of setPos
+        """
+        log.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
+        
     def setFieldSize(self,value,operation=''):
         """Set the size of the array on the screen (will override
         current XY positions of the elements)
