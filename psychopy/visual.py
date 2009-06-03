@@ -989,7 +989,7 @@ class DotStim(_BaseVisualStim):
         #numpy.random.shuffle(self._signalDots)#not really necessary
         #set directions (only used when self.noiseDots='direction')
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
-        self._dotsDir[self._signalDots] = self.dir
+        self._dotsDir[self._signalDots] = self.dir*pi/180
         
         self._calcFieldCoordsRendered()
         self._update_dotsXY()
