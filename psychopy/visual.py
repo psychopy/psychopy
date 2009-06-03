@@ -3734,6 +3734,7 @@ class TextStim(_BaseVisualStim):
             if numpy.any(desiredRGB**2.0>1.0):
                 desiredRGB=[0.6,0.6,0.4]
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+            GL.glUseProgram(self.win._progSignedTexFont)#self.win._progSignedTex)
         else: #color is set in texture, so set glColor to white
             GL.glColor4f(1,1,1,1)
 
@@ -3762,6 +3763,7 @@ class TextStim(_BaseVisualStim):
             #for pygame we should (and can) use a drawing list   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
+        GL.glUseProgram(0)#disable
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):

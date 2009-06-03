@@ -82,8 +82,8 @@ fragSignedColorTexFont = '''
     // Fragment program
     uniform sampler2D texture;
     void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord.st);
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;        
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor.rgb = gl_Color.rgb;        
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
