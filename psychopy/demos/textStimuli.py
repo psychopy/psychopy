@@ -29,12 +29,12 @@ unicodeStuff = visual.TextStim(myWin,
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
                         rgb=-1,  font=serif,pos=(0,3),
                         height = 1)
-psychopyTxt = visual.TextStim(myWin, 
+psychopyTxt = visual.TextStim(myWin, rgb=+1,
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
                         font=fancy, italic=True) 
-longSentence = visual.TextStim(myWin, 
+longSentence = visual.TextStim(myWin, rgb=[0,1,0],
                         text = u"Very long sentences can wrap", wrapWidth=0.4,
                         units='norm', height=0.05,
                         pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom') 
@@ -44,8 +44,7 @@ while t<20:#quits after 20 secs
     t=trialClock.getTime()
     
     rotating.setOri(1,"+")
-    for n in range(20):
-        rotating.draw()
+    rotating.draw()
     
     unicodeStuff.draw()
     longSentence.draw()

@@ -661,12 +661,12 @@ class Window:
 
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()                     
-
+        
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glDepthFunc(GL.GL_LESS)                      # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
         GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-
+        
         GL.glShadeModel(GL.GL_SMOOTH)                   # Color Shading (FLAT or SMOOTH)
         GL.glEnable(GL.GL_POINT_SMOOTH)
 
@@ -783,9 +783,9 @@ class _BaseVisualStim:
         
         e.g. ::
         
-        	stim.setPos([3,2.5])
-                stim.setOri(45)
-                stim.setPhase(0.5, "+")
+             stim.setPos([3,2.5])
+             stim.setOri(45)
+             stim.setPhase(0.5, "+")
                 
         NB this method does not flag the need for updates any more - that is 
         done by specific methods as described above.
@@ -3497,7 +3497,8 @@ class TextStim(_BaseVisualStim):
             self._setTextNoShaders(value)
     def setRGB(self,value, operation=None):
         self._set('rgb', value, operation)
-        self.setText(self.text)#need to render the text again to a texture
+        if not self._useShaders:
+            self.setText(self.text)#need to render the text again to a texture
     
     def _setTextShaders(self,value):
         """Set the text to be rendered using the current font
@@ -3507,7 +3508,7 @@ class TextStim(_BaseVisualStim):
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
+                                                       color = (1.0,1.0,1.0, self.opacity),
                                                        width=self._wrapWidthPix)#width of the frame     
 #            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
 #                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
@@ -3732,9 +3733,13 @@ class TextStim(_BaseVisualStim):
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
-            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+                desiredRGB=numpy.array([0.6,0.6,0.4]) 
+            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)#this has no effect - pyglet later sets it to 1,1,1?
             GL.glUseProgram(self.win._progSignedTexFont)#self.win._progSignedTex)
+#            GL.glUniform3iv(GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"), 1,
+#                desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float))) #set the texture to be texture unit 0
+            GL.glUniform3f(GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"), desiredRGB[0],desiredRGB[1],desiredRGB[2])
+
         else: #color is set in texture, so set glColor to white
             GL.glColor4f(1,1,1,1)
 
