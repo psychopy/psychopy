@@ -14,7 +14,7 @@ dotPatch =visual.DotStim(myWin, rgb=(1.0,1.0,1.0), dir=270,
     speed=0.01, coherence=0.9)
 message =visual.TextStim(myWin,text='Hit Q to quit',
     pos=(0,-0.5))
-
+dotPatch.setFieldPos([0.3,0.4])
 trialClock =core.Clock()
 while True:#quits after 20 secs
     dotPatch.draw()

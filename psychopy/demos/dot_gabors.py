@@ -11,12 +11,12 @@ dotPatch = visual.DotStim(myWin, rgb=(1.0,1.0,1.0),
                         dotLife=5, #lifetime of a dot in frames (if this is long density artefacts can occur in the stimulus)
                         signalDots='different', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
                         noiseDots='direction', #do the noise dots follow random- 'walk', 'direction', or 'position'
-                        fieldPos=(0.0,0.0), nDots=40, fieldSize=3,
+                        fieldPos=[0.0,0.0], nDots=40, fieldSize=3,
                         speed=0.05, fieldShape='circle', coherence=0.5,
                         element = myDotShape)
 message = visual.TextStim(myWin,text='Hit Q to quit',
                                    pos=(0,-5))
-
+                                   
 trialClock = core.Clock()
 t = lastFPSupdate = 0
 while t<60:#quits after 20 secs
