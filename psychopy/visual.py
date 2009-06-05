@@ -3509,15 +3509,7 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (1.0,1.0,1.0, self.opacity),
-                                                       width=self._wrapWidthPix)#width of the frame     
-#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
-#                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
-#                                                       halign=self.alignHoriz,
-#                                                       color = (int(127.5*self.rgb[0]+127.5),
-#                                                            int(127.5*self.rgb[1]+127.5),
-#                                                            int(127.5*self.rgb[2]+127.5),
-#                                                            int(255*self.opacity)),
-#                                                       multiline=True, width=self._wrapWidthPix)#width of the frame           
+                                                       width=self._wrapWidthPix)#width of the frame      
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias, [255,255,255])
@@ -3538,18 +3530,14 @@ class TextStim(_BaseVisualStim):
 
     def _updateListShaders(self):
         """
-        The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
+        This is only used with pygame text - pyglet handles all from the draw()
         """
         GL.glNewList(self._listID, GL.GL_COMPILE)
         GL.glPushMatrix()
 
         #setup the shaderprogram
         #no need to do texture maths so no need for programs?
-        GL.glUseProgram(self._progSignedTexFont)#self.win._progSignedTex)
+        GL.glUseProgram(0)#self.win._progSignedTex)
         #GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
         
         #coords:

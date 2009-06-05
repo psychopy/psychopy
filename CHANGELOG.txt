@@ -10,12 +10,14 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
 * FIXED bug with DotStim updating for 'walk' and 'position' noise dots (thanks Alex Holcombe)
 * FIXED bug with DotStim when fieldSize was initialised with a list rather than an array
+* FIXED scaling bug with DotStim (only for texture elements)
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
-* CHANGED image loading code to check whether the image is a file, rather than using try..except
 * FIXED buglet raising trivial error messages on closing final window in IDE  
+* IMPROVED speed of updating rgb and contrast for (pyglet) TextStim - now using shaders 
 * FIXED problem pasting into find dlg in IDE
+* FIXED ShapeStim was not updating vertices properly after setVertices
 
-!!!!PsychoPy 1.00.01
+!!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer
 
 !!!PsychoPy 1.00.00 (1.0rc1)

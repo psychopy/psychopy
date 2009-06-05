@@ -5,7 +5,7 @@ import sys
 #create a window to draw in
 myWin = visual.Window((600.0,600.0),allowGUI=False,
 				monitor='testMonitor', units ='cm', winType='pygame')
-    
+
 if sys.platform=='win32':
     fancy = 'c:\\windows\\fonts\\brush' #this will find brush script
     sans = 'arial' #on windows you can use short names for any system fonts
