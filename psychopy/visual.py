@@ -1100,7 +1100,7 @@ class DotStim(_BaseVisualStim):
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
             for pointN in range(0,self.nDots):
-                self.element.setPos(self._dotsXY[pointN,:]+self._fieldPosRendered)
+                self.element.setPos(self._dotsXY[pointN,:]+self.fieldPos)
                 self.element.draw()
             self.element.setDepth(initialDepth)#reset depth before going to next frame        
         GL.glPopMatrix()
