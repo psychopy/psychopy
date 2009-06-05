@@ -7,7 +7,8 @@ if wx.__version__<'2.8':
 
 import  wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob
-import threading, traceback, bdb, cPickle, urllib
+import threading, traceback, bdb, cPickle
+import urllib2, cookielib #for usage stats
 import psychopy
 import psychoParser
 import introspect, py_compile
@@ -168,10 +169,28 @@ def sendUsageStats(proxy=None):
       
     If http_proxy is set in the system environment variables these will be used automatically,
     but additional proxies can be provided here as the argument proxies.
+    
+    We need to have cookies enabled for analytics to work.
     """
     v=psychopy.__version__
     dateNow = time.strftime("%Y-%m-%d_%H:%M")
     miscInfo = ''
+    
+    #setup the cookie
+    cookieFile = os.path.join(settingsFolder, 'usageCookie.lwp')
+    cookiejar = cookielib.LWPCookieJar()
+    if os.path.isfile(cookieFile):
+        cookiejar.load(cookieFile)
+    #urllib.install_opener(opener)
+    #check for proxies        
+    if proxy is None: proxies = urllib2.getproxies()
+    else: proxies={'http':proxy}
+    #build the url opener with proxy and cookie handling
+    opener = urllib2.build_opener(
+        urllib2.ProxyHandler(proxies),
+        urllib2.HTTPCookieProcessor(cookiejar))    
+    urllib2.install_opener(opener)
+    headers = {'User-Agent' : 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
     
     #get platform-specific info
     if platform.system()=='Darwin':
@@ -182,16 +201,16 @@ def sendUsageStats(proxy=None):
     else:
         systemInfo = platform.system()+platform.release()                    
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
-        %(dateNow, systemInfo, v, miscInfo)        
-        
-    if proxy is None:
-        proxies = urllib.getproxies()
-    else:
-        proxies={'http':proxy}
+        %(dateNow, systemInfo, v, miscInfo) 
+    #URL = 'http://www.google.co.uk/search?hl=en&ie=UTF-8&q=voidspace&meta='
+    
     try:
-        page = urllib.urlopen(URL,proxies=proxies)#proxies)
+        req = urllib2.Request(URL, None, headers)
+        page = urllib2.urlopen(req)#proxies
+        cookiejar.save(cookieFile)
     except:
         pass#not important
+        
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
     method."""
