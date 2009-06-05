@@ -1,4 +1,5 @@
 from psychopy import visual, event, core
+from math import sin, cos
 """ShapeStim can be used to make geometric shapes where you specify the locations of each vertex
 relative to some anchor point. 
 
@@ -31,10 +32,13 @@ stim2 = visual.ShapeStim(win,
                  pos= [0.5,0.5], #the anchor (rotaion and vertices are position with respect to this)
                  interpolate=True,
                  opacity=0.9)
-
+clock = core.Clock()
 while True:
     stim1.setOri(2,'+')
     stim1.draw()
+    
+    sqrVertices[1] = [ -0.2-sin(clock.getTime())/6.0, -0.2-cos(clock.getTime())/6.0 ]#change one of the vertices
+    stim2.setVertices(sqrVertices)
     stim2.draw()
  
     win.flip()

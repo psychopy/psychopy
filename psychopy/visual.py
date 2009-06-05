@@ -3897,6 +3897,8 @@ class ShapeStim(_BaseVisualStim):
         stimulus to appear on that frame and then update the screen
         again.
         """
+        if self.needVertexUpdate: self._calcVerticesRendered()
+            
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
         
@@ -3947,6 +3949,7 @@ class ShapeStim(_BaseVisualStim):
         
 
     def _calcVerticesRendered(self):
+        self.needVertexUpdate=False
         if self.units in ['norm', 'pix']: 
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
