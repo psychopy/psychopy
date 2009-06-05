@@ -12,7 +12,7 @@
 
   ;Name and file
   Name "PsychoPy"
-  OutFile "PsychoPy-x.xx.xx-Standalone-win32.exe"
+  OutFile "StandalonePsychoPy-x.xx.xx-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy"
   Icon "C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE\psychopy.ico"
   
@@ -38,7 +38,7 @@
   !insertmacro MUI_PAGE_DIRECTORY
   
   ;Start Menu Folder Page Configuration
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
+  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
   !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\PsychoPy Standalone" 
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "PsychoPy Standalone"
   !define REG_UNINSTALL "Software\Microsoft\Windows\CurrentVersion\Uninstall\
@@ -68,9 +68,10 @@ Section "PsychoPy" PsychoPy
   
   ;Store installation folder
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy1 (Standalone)"  
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.0" 
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.0"   
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\PsychoPyIDE.exe" 
   WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
-         
+  
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
@@ -101,6 +102,9 @@ Section "Uninstall"
     
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPyIDE.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy homepage.lnk" 
+  Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy reference.lnk" 
+  Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy tutorials.lnk" 
   RMDir "$SMPROGRAMS\$StartMenuFolder"
   
   DeleteRegKey HKLM "${REG_UNINSTALL}"
