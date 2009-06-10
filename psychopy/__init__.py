@@ -9,7 +9,7 @@ import string, sys, os, time
 try: import numpy
 except: pass
 
-__version__ = '1.00.02'#string.split('$Branch: 1.19 $')[1]
+__version__ = '1.00.03'#string.split('$Branch: 1.19 $')[1]
 __date__ = string.join(string.split('$Date$')[1:3], ' ')
 __svn__= '$Id$'
 __rev__= '$Revision$'

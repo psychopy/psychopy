@@ -57,7 +57,7 @@ else:
     ALLOW_MODULE_IMPORTS=True
 if sys.platform=='win32' and hasattr(sys, "frozen"):
     #if running from within py2exe there won't be a python.exe so can't launch process
-    RUN_SCRIPTS = 'thread' #'process', or 'thread' or 'dbg'
+    RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
 else:
     RUN_SCRIPTS = 'process' #'process', or 'thread' or 'dbg'
 #create IDs for the events
@@ -97,8 +97,7 @@ ID_PSYCHO_REFERENCE=wx.NewId()
 #for demos we need a dict where the event ID will correspond to a filename
 demoList = glob.glob(os.path.join(psychopyDir,'demos','*.py'))
 demoList.extend(glob.glob(os.path.join(appDir,'demos','*.py')))
-if '__init__.py' in demoList: demoList.remove('__init__.py')
-    
+
 #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
 ID_DEMOS = \
     map(lambda _makeID: wx.NewId(), range(len(demoList)))
@@ -1362,6 +1361,7 @@ class IDEMainFrame(wx.Frame):
         menuBar.Append(self.demosMenu, '&Demos') 
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(demos[thisID])
+            if shortname=="__init__.py": continue
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')

@@ -4,7 +4,11 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 
 !!Changelog 
 
-!!!! PsychoPy 1.00.02 (1.0rc2)
+!!!! PsychoPy 1.00.03
+* FIXED initialisation bug with SimpleImageStimulus
+* CHANGED IDE on win32 to run scripts as processes rather than imports (gives better error messages)
+
+!!!! PsychoPy 1.00.02
 * ADDED SimpleImageStimulus for simple blitting of raw, unscaled images
 * ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
@@ -20,7 +24,7 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 !!!PsychoPy 1.00.01
 * FIXED buglet in windows standalone installer
 
-!!!PsychoPy 1.00.00 (1.0rc1)
+!!!PsychoPy 1.00.00
 * ADDED ShapeStim, for drawing geometric stimuli (see demos/shapes.py and new clockface.py)
 * ADDED support for the tristate ctrl bit on parallel ports (thanks Gary Strangman for the patch)
 * ADDED standalone installer support for windows (XP, vista?)
