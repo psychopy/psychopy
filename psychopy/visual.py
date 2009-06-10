@@ -4104,19 +4104,23 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
 
     texture = data.tostring()#serialise
-
-    if interpolate: smoothing=GL.GL_LINEAR
-    else: smoothing=GL.GL_NEAREST
-
     #bind the texture in openGL
     GL.glEnable(GL.GL_TEXTURE_2D)
     GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
-    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                    data.shape[0],data.shape[1], 0,
-                    pixFormat, dataType, texture)
     GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
     #important if using bits++ because GL_LINEAR
     #sometimes extrapolates to pixel vals outside range
-    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
-    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
+    if interpolate: 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
+        try:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+        except:
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)            
+    else:
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
+    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                    data.shape[0],data.shape[1], 0,
+                    pixFormat, dataType, texture)
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
