@@ -3536,6 +3536,7 @@ class TextStim(_BaseVisualStim):
 
         #setup the shaderprogram
         #no need to do texture maths so no need for programs?
+        #If we're using pyglet then this list won't be called, and for pygame shaders aren't enabled
         GL.glUseProgram(0)#self.win._progSignedTex)
         #GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex, "texture"), 0) #set the texture to be texture unit 0
         
@@ -3755,7 +3756,8 @@ class TextStim(_BaseVisualStim):
             #for pygame we should (and can) use a drawing list   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
-        GL.glUseProgram(0)#disable
+            
+        if self.useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):
