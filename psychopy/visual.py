@@ -1268,7 +1268,6 @@ class SimpleImageStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
-        self.depth=depth
         self.setImage(image)
         #fix scaling to window coords
         if self.units=='norm': self._winScale='norm'
