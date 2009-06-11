@@ -10,6 +10,11 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 #clean::
 #	$(MAKE) distclean
 
+# Correct interpreter lines
+install/python-psychopy::
+	find $(DEB_DESTDIR) -name \*.py \
+    | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
+
 #build/python-mvpa-doc::
 #	$(MAKE) doc
 
