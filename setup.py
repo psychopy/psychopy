@@ -36,7 +36,8 @@ setup(name="PsychoPy",
     url="http://www.psychopy.org/",
     download_url="http://sourceforge.net/project/showfiles.php?group_id=48949&package_id=42326",
     packages=packages,
-    scripts = ['psychopy_post_inst.py'],
+	# No need for win32 postinst script in Debian
+    # scripts = ['psychopy_post_inst.py'],
     include_package_data =True,
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
