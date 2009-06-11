@@ -12,7 +12,7 @@ Homepage: http://www.psychopy.org
 Package: python-psychopy
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pygame, python-wxgtk2.6, python-opengl, python-numpy
-Recommends: python-imaging
+Recommends: python-imaging, python-serial
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: package for creating psychology stimuli in Python
