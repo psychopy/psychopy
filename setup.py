@@ -10,7 +10,7 @@ import psychopy, monitors
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
+packages = ['psychopy','psychopy.ext','psychopy.demos',
               'PsychoPyIDE','PsychoPyIDE.Resources','monitors']
 
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg']
