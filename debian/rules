@@ -4,6 +4,7 @@
 include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
 DEB_PYTHON_MODULE_PACKAGE = python-psychopy
+DEB_PYTHON_MODULE_PACKAGES = python-psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
 #clean::

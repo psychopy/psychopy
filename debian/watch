@@ -1,2 +1,4 @@
 version=3
-http://sf.net/psychpy/ PsychoPy-([\d\.]*)\.zip debian dh_wraporig
+opts="versionmangle=s/-//,dversionmangle=s/.dfsg$//" \
+  http://code.google.com/p/psychopy/downloads/list \
+  http://psychopy\.googlecode\.com/files/PsychoPy-([\d\.]*)\.zip

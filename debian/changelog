@@ -1,6 +1,12 @@
-psychopy (0.93.5-1) unstable; urgency=low
+psychopy (1.00.02.dfsg-1~pre1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release (Closes: #532111)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 11 Jun 2009 15:29:41 -0400
+
+psychopy (0.93.5-1) UNRELEASED; urgency=low
+
+  * Initial packaging
 
  -- Michael Hanke <michael.hanke@gmail.com>  Wed, 23 Apr 2008 08:08:17 +0200
 

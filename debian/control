@@ -22,15 +22,15 @@ Description: package for creating psychology stimuli in Python
  syntax to give psychophysics a free and simple stimulus presentation
  and control package.
  .
- The goal is to provide, for the busy scientist, tools
- to control timing and windowing and a simple set of pre-packaged
- stimuli and methods. It features
+ The goal is to provide, for the busy scientist, tools to control
+ timing and windowing and a simple set of pre-packaged stimuli and
+ methods. It features
   - High-level powerful scripting language (Python)
-  - Simple syntax (see the demo code)
+  - Simple syntax
   - Uses hardware-accelerated graphics (OpenGL)
-  - Integration with CRS Bits++(for 14bit luminance resolution)
   - Integration with Spectrascan PR650 for easy monitor calibration
   - Simple routines for staircase and constant stimuli experimental
     methods as well as curve-fitting and bootstrapping
   - Simple (or complex) GUIs via wxPython
   - Easy interfaces to joysticks, mice, sound cards etc. via PyGame
+  - Plays movies (MPG, DivX, AVI, QuickTime...) as stimuli
