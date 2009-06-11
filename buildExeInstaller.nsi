@@ -1,6 +1,4 @@
 ;NSIS Modern User Interface
-;Start Menu Folder Selection Example Script
-;Written by Joost Verburg
 
 ;--------------------------------
 ;Include Modern UI
@@ -41,8 +39,7 @@
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
   !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\PsychoPy Standalone" 
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "PsychoPy Standalone"
-  !define REG_UNINSTALL "Software\Microsoft\Windows\CurrentVersion\Uninstall\
-\PsychoPy1"
+  !define REG_UNINSTALL "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy1"
 
   !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
   
