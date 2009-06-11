@@ -27,7 +27,7 @@ except:
 
 #import _shadersPygame
 try:
-    import OpenGL.GL, OpenGL.GL.ARB.multitexture
+    import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
     import pygame
     havePygame=True
     if OpenGL.__version__ > '3':
@@ -604,11 +604,11 @@ class Window:
         self.winType = "pygame"
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GL_multitexture
+        global GL, GL_multitexture, GLU
         
         GL = OpenGL.GL
         GL_multitexture = OpenGL.GL.ARB.multitexture
-        
+        GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
 
@@ -3757,7 +3757,7 @@ class TextStim(_BaseVisualStim):
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
             
-        if self.useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
+        if self._useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):
@@ -4114,15 +4114,21 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     #sometimes extrapolates to pixel vals outside range
     if interpolate: 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
-        try:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+        if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
-        except:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)            
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                data.shape[0],data.shape[1], 0,
+                pixFormat, dataType, texture)
+        else:#use glu
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
+            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+                data.shape[0],data.shape[1], pixFormat, dataType, texture)          
     else:
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
-    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                    data.shape[0],data.shape[1], 0,
-                    pixFormat, dataType, texture)
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                        data.shape[0],data.shape[1], 0,
+                        pixFormat, dataType, texture)
+                    
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
