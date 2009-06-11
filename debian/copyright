@@ -1,17 +1,16 @@
-This package was debianized by Michael Hanke <michael.hanke@gmail.com> on
-Wed, 23 Apr 2008 08:08:17 +0200.
+This package was originally debianized by
+Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
+on Tue, 29 Mar 2007 20:58:32 -0500.
 
-It was downloaded from <url://example.com>
+It was downloaded from http://www.psychopy.org
 
-Upstream Author(s): 
+Upstream Author(s):
 
-    <put author's name and email here>
-    <likewise for another author>
+    Jon W. Peirce <psychopy-users@googlegroups.com>
 
-Copyright: 
+Copyright:
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
+	Copyright (C) 2002-2009 Jon W. Peirce
 
 License:
 
@@ -30,13 +29,9 @@ License:
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 
-On Debian systems, the complete text of the BSD License can be 
+On Debian systems, the complete text of the BSD License can be
 found in `/usr/share/common-licenses/BSD'.
 
-
-The Debian packaging is (C) 2008, Michael Hanke <michael.hanke@gmail.com> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
-
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+The Debian packaging is (C) 2007-2009,
+Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
+and is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
