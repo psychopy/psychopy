@@ -4072,7 +4072,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
         data[:,:,2] = intensity#B
-    elif pixFormat==GL.GL_RGB and wasLum:
+    elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
@@ -4082,7 +4082,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
         data = psychopy.misc.float_uint8(stim.contrast*data)
-    elif pixFormat==GL.GL_RGB and useShaders:
+    elif pixFormat==GL.GL_RGB and useShaders:#and not wasLum
         internalFormat = GL.GL_RGB32F_ARB
         dataType = GL.GL_FLOAT
         data = intensity
