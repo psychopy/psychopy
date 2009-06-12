@@ -8,11 +8,14 @@ cd C:\USERS\jwp\Code\PsychoPy\svn\trunk\
 python setup.py install
 
 rem build the app (in PsychoPyIDE\dist) and the installer (in \trunk\dist)
-cd C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE
-python setupApp.py py2exe
-cd C:\USERS\jwp\Code\PsychoPy\svn\trunk
-xcopy /I /Y psychopy\demos PsychoPyIDE\dist\demos
-xcopy /I /Y windlls\*.dll PsychoPyIDE\dist
+rem cd C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE
+
+rem python setupApp.py py2exe
+rem cd C:\USERS\jwp\Code\PsychoPy\svn\trunk
+rem xcopy /I /Y psychopy\demos PsychoPyIDE\dist\demos
+rem xcopy /I /Y windlls\*.dll PsychoPyIDE\dist
+
+xcopy /I /Y *.txt C:\Python25
 rem build the installer
-makensis.exe buildExeInstaller.nsi
+makensis.exe buildCompleteInstaller.nsi
 xcopy /I /Y "StandalonePsychoPy-x.xx.xx-win32.exe" dist\

@@ -6,8 +6,10 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 
 !!!! PsychoPy 1.00.03
 * FIXED initialisation bug with SimpleImageStimulus
+* FIXED "useShaders" buglet for TextStim
 * CHANGED IDE on win32 to run scripts as processes rather than imports (gives better error messages)
 * ADDED mipmap support for textures (better antialiasing for down-scaling)
+* CHANGED win32 standalone to include the whole raw python rather than using py2exe
 
 !!!! PsychoPy 1.00.02
 * ADDED SimpleImageStimulus for simple blitting of raw, unscaled images
