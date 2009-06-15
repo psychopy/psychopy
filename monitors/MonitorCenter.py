@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import wx
 from wx import grid
 import monitors

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # Ensure 2.8 version of wx
 import wxversion
