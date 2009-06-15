@@ -9,5 +9,5 @@ sudo rm -r build
 sudo rm -r dist
 python setupApp.py py2app #don't run this as sudo
 cd ..
-if [-e dist/PsychoPyIDE.app/ ]; then sudo rm dist/PsychoPyIDE.app/; fi
+if [ -e dist/PsychoPyIDE.app/ ]; then sudo rm -r dist/PsychoPyIDE.app/; fi
 sudo mv PsychoPyIDE/dist/PsychoPyIDE.app/ dist/PsychoPyIDE.app/

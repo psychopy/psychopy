@@ -866,7 +866,7 @@ class DotStim(_BaseVisualStim):
                  coherence      =0.5,
                  fieldPos       =(0.0,0.0),
                  fieldSize      = (1.0,1.0),
-                 fieldShape     = 'sqr',
+                 fieldShape     = 'circle',
                  dotSize        =2.0,
                  dotLife = 3,
                  dir    =0.0,
@@ -895,7 +895,7 @@ class DotStim(_BaseVisualStim):
             fieldSize : a single value, specifying the diameter of the field
                 Units are specified by `units` (see above).
                 Sizes can be negative and can extend beyond the window.
-            fieldShape : *'circle'*,'sqr' or 'gauss' 
+            fieldShape : *'circle'* or 'sqr' 
                 Defines the envelope used to present the dots
             dotSize
                 in specified *units* (overridden if `element` is specified)
@@ -1167,7 +1167,7 @@ class DotStim(_BaseVisualStim):
             dead = dead+(~self._signalDots)#just create new ones  
             
         #handle boundaries of the field
-        if self.fieldShape == 'sqr':
+        if self.fieldShape in  ['square', 'sqr']:
             dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
