@@ -1,3 +1,8 @@
+
+# Ensure 2.8 version of wx
+import wxversion
+wxversion.ensureMinimal('2.8')
+
 import wx, sys, platform, time, types, re
 #check wx version - wx.aui was only introduced in wx2.8
 if wx.__version__<'2.8':
