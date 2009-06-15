@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 #this is win32 only - I have no idea how to use parallel ports on a Mac! jwp
 from psychopy import visual, core, log
 from psychopy import parallel 

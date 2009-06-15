@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 from random import random
 from psychopy import *
 

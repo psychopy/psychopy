@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 """
 This demo shows how you can make standard opengl calls within a
 psychopy script, allowing you to draw anything that OpenGL can draw

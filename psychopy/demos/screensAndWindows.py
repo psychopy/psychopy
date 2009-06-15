@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 """Using multiple screens and windows with PsychoPy
 """
 

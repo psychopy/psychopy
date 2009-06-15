@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 from psychopy.hardware import CedrusPad
 from psychopy import core
 import sys

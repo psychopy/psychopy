@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 from psychopy import *
 """
 Text rendering has changed a lot (for the better) under pyglet. This

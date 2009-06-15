@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 #portable serial port access with python
 #this is a wrapper module for different platform implementations
 #

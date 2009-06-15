@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 #demo arbitrary numpy array
 
 from psychopy import *

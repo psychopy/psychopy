@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.4
+#!/usr/bin/env python
 ################
 # see notes at bottom for requirements
 import glob, os

@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 """measure your JND in orientation using a staircase method"""
 
 from psychopy import core, visual, gui, data, misc, event

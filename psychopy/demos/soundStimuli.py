@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 
 """
 For sound use, I really recommend installing pygame (v1.8 or later). 

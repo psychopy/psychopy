@@ -1,4 +1,4 @@
-#! /usr/local/bin/python
+#!/usr/bin/env python
 from psychopy import *
 
 #create a window to draw in

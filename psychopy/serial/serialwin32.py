@@ -1,4 +1,4 @@
-#! python
+#!/usr/bin/env python
 #Python Serial Port Extension for Win32, Linux, BSD, Jython
 #serial driver for win32
 #see __init__.py

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 """Requires setuptools and uses the manifest.in file for data files"""
 
 from setuptools import setup, Extension

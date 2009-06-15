@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python
 from psychopy import *
 """
 Handling of the mouse has changed under pyglet - you should now
