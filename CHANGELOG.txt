@@ -3,6 +3,8 @@ In general, when a new feature is added the first or the second number is increm
 Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
 !!Changelog 
+!!!! PsychoPy 1.00.04
+* DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
 
 !!!! PsychoPy 1.00.03
 * FIXED initialisation bug with SimpleImageStimulus
