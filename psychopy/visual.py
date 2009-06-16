@@ -4105,7 +4105,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
     
-    if stim.win.wintype=='pygame':
+    if stim.win.winType=='pygame':
         texture = data.tostring()#serialise
     else:#pyglet on linux needs ctypes instead of string object!?
         texture = data.ctypes#serialise
