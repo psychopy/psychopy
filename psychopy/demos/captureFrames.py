@@ -14,9 +14,12 @@ for frameN in range(n): #for n frames
   #latter can be.
   myWin.getMovieFrame(buffer='back')
   myWin.flip()
+  
 #save the movie in the format of your choice
-myWin.saveMovieFrames('frame.jpg')
-#myWin.saveMovieFrames('myMovie.gif')
-#myWin.saveMovieFrames('myMovie.mpg')
+myWin.saveMovieFrames('frame.png')
+#myWin.saveMovieFrames('frame.tif') #much like png files (but more compatible on win32)
+#myWin.saveMovieFrames('frame.jpg') #lossy, but highly compressed images
+#myWin.saveMovieFrames('myMovie.gif')# for better results, make your gif in gimp
+#myWin.saveMovieFrames('myMovie.mpg')#only on win32 so far (requires pymedia)
 
 myWin.close()
