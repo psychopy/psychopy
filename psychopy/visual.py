@@ -866,7 +866,7 @@ class DotStim(_BaseVisualStim):
                  coherence      =0.5,
                  fieldPos       =(0.0,0.0),
                  fieldSize      = (1.0,1.0),
-                 fieldShape     = 'circle',
+                 fieldShape     = 'sqr',
                  dotSize        =2.0,
                  dotLife = 3,
                  dir    =0.0,
@@ -895,7 +895,7 @@ class DotStim(_BaseVisualStim):
             fieldSize : a single value, specifying the diameter of the field
                 Units are specified by `units` (see above).
                 Sizes can be negative and can extend beyond the window.
-            fieldShape : *'circle'* or 'sqr' 
+            fieldShape : *'sqr'* or 'circle' 
                 Defines the envelope used to present the dots
             dotSize
                 in specified *units* (overridden if `element` is specified)
