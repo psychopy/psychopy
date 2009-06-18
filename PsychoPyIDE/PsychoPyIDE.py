@@ -202,7 +202,10 @@ def sendUsageStats(proxy=None):
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" %(OSXver, architecture)
     elif platform.system()=='Linux':
-        systemInfo = platform.dist()+platform.release()
+        systemInfo = '%s_%s_%s' % (
+            platform.system(),
+            ':'.join([x for x in platform.dist() if x != '']),
+            platform.release())
     else:
         systemInfo = platform.system()+platform.release()                    
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
