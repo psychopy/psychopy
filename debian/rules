@@ -7,10 +7,11 @@ DEB_PYTHON_MODULE_PACKAGE = python-psychopy
 DEB_PYTHON_MODULE_PACKAGES = python-psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-# Correct interpreter lines
-install/python-psychopy::
-	find $(DEB_DESTDIR) -name \*.py \
-    | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
+## # Correct interpreter lines
+## was pushed upstream, but snippet is left in for possible uses
+## install/python-psychopy::
+## 	find $(DEB_DESTDIR) -name \*.py \
+##     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
