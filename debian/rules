@@ -7,9 +7,13 @@ DEB_PYTHON_MODULE_PACKAGE = python-psychopy
 DEB_PYTHON_MODULE_PACKAGES = python-psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
+install/python-psychopy::
+## Fix up permissions on images -- pushed upstream, but left here
+## just to make sure everything is ok
+	find $(DEB_DESTDIR) -name \*.png -o -name \*.ico -o -name \*.jpg -print0 | \
+		xargs -0 chmod a-x
 ## # Correct interpreter lines
 ## was pushed upstream, but snippet is left in for possible uses
-## install/python-psychopy::
 ## 	find $(DEB_DESTDIR) -name \*.py \
 ##     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
@@ -27,7 +31,7 @@ dfsg:
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
 DEB_INSTALL_CHANGELOGS_ALL := CHANGELOG.txt
-DEB_INSTALL_DOCS_python-psychopy := {README,TODO}.txt debian/README.Debian-source
+DEB_INSTALL_DOCS_python-psychopy := README.txt debian/README.Debian-source
 
 # do not actually install demos -- just symlink to them
 #DEB_INSTALL_EXAMPLES_python-psychopy := psychopy/demos/*
