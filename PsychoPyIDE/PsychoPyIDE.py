@@ -1787,7 +1787,10 @@ class IDEMainFrame(wx.Frame):
         """
         fullPath = self.currentDoc.filename
         #check syntax by compiling - errors printed (not raised as error)
-        py_compile.compile(fullPath, doraise=False)
+        try:
+            py_compile.compile(fullPath, doraise=False)
+        except Exception, e:
+            print "Problem compiling: %s" % e
         
         print '\nRunning %s' %self.currentDoc.filename 
         self.ignoreErrors = False
