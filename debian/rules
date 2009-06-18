@@ -20,8 +20,9 @@ dfsg:
 	-rm -f PsychoPyBuilder/*bak \
 	  psychopy/demos/*.ttf psychopy/demos/*.mpg \
 	  psychopy/ext/*bits*.* \
-	  buildExeInstaller.nsi buildWinDistributions.bat
-	-rm -rf psychopy/serial windllsx
+	  buildExeInstaller.nsi buildWinDistributions.bat \
+	  googlecode_upload.py
+	-rm -rf psychopy/serial windlls
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
