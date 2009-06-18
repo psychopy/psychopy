@@ -16,6 +16,7 @@ if sys.version_info[:2] >= (2, 5):
 						['Serial', 'PARITY_EVEN', 'STOPBITS_TWO'], 0)
 	# hackish way to bind needed names, not sure why
 	# fromlist argument wasn't in effect
+	locals().update(serial.__dict__)
 	#Serial = serial.Serial
 	#PARITY_EVEN = serial.PARITY_EVEN
 	#STOPBITS_TWO = serial.STOPBITS_TWO
