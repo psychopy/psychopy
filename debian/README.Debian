@@ -1,6 +1,37 @@
 psychopy for Debian
 -------------------
 
-<possible notes regarding this package - if none, delete this file>
+  For more flexibility and to ease adoption of the patches, all upstream
+  development is fetched from upstream SVN using git-svn.
 
- -- Michael Hanke <michael.hanke@gmail.com>  Wed, 23 Apr 2008 08:08:17 +0200
+
+ GIT <-> SVN
+ +++++++++++
+
+  There are master branch for trunk and master-v2 for v2 branch.
+  Upstream SVN is accessed through https protocol, so to fetch new
+  commits from SVN you should access to it via https (be a member of
+  the project). Otherwise look at
+  http://git.or.cz/gitwiki/GitSvnSwitch on how to fetch using http by
+  mangling the tip of the fetched repository.
+
+  git clone git://git.debian.org/git/pkg-exppsy/psychopy.git psychopy
+  cd psychopy
+  git config --add remote.origin.fetch '+refs/remotes/*:refs/remotes/*'
+  git fetch origin
+  git svn init -s --prefix=svn/  https://psychopy.googlecode.com/svn/
+  git rebase -l # if you don't want to actually obtain new commits atm from SVN
+  git svn fetch
+
+
+ DFSG
+ ++++
+
+  Upstream SVN and releases contain some non-DFSG compliant material,
+  which was removed from Debian packages (source and binary).
+
+  dfsg rule in debian/rules would help to infiltrate the tree whenever fresh
+  merge from trunk comes into the debian-release branch.
+
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 18 Jun 2009 12:47:05 -0400
