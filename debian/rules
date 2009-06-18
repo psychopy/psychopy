@@ -26,7 +26,7 @@ dfsg:
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
 DEB_INSTALL_CHANGELOGS_ALL := CHANGELOG.txt
-DEB_INSTALL_DOCS_python-psychopy := {README,TODO}.txt
+DEB_INSTALL_DOCS_python-psychopy := {README,TODO}.txt debian/README.Debian-source
 
 # do not actually install demos -- just symlink to them
 #DEB_INSTALL_EXAMPLES_python-psychopy := psychopy/demos/*
