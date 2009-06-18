@@ -10,8 +10,8 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 install/python-psychopy::
 ## Fix up permissions on images -- pushed upstream, but left here
 ## just to make sure everything is ok
-	find $(DEB_DESTDIR) -name \*.png -o -name \*.ico -o -name \*.jpg -print0 | \
-		xargs -0 chmod a-x
+	find $(DEB_DESTDIR) -name \*.png -o -name \*.ico -o -name \*.jpg | \
+		xargs chmod a-x
 ## # Correct interpreter lines
 ## was pushed upstream, but snippet is left in for possible uses
 ## 	find $(DEB_DESTDIR) -name \*.py \
