@@ -6,7 +6,7 @@ from setuptools import setup, Extension
 import glob, os
 from sys import platform
 
-import psychopy, monitors
+import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
