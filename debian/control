@@ -6,7 +6,7 @@ Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.ha
 Build-Depends: cdbs, debhelper (>= 5.0.38), python-support (>= 0.6), python (>= 2.4)
 XS-Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
 XS-Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
-Standards-Version: 3.8.1
+Standards-Version: 3.8.2
 Homepage: http://www.psychopy.org
 
 Package: python-psychopy
