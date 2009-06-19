@@ -22,6 +22,9 @@ install/psychopy:: debian/psychopy.1
 ## 	find $(DEB_DESTDIR) -name \*.py \
 ##     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
+## convert and install icon's .xpm manually
+	convert psychopy/psychopy.png $(DEB_DESTDIR)/usr/share/pixmaps/psychopy.xpm
+
 ## Install runner
 	cp -p debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
 

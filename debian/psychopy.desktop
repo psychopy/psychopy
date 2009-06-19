@@ -8,4 +8,4 @@ TryExec=psychopy
 Type=Application
 Terminal=false
 Categories=Graphics;Science;MedicalSoftware;Development;IDE;
-Icon=psychopy.png
+Icon=psychopy.xpm
