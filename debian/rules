@@ -3,8 +3,8 @@
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
-DEB_PYTHON_MODULE_PACKAGE = python-psychopy
-DEB_PYTHON_MODULE_PACKAGES = python-psychopy
+DEB_PYTHON_MODULE_PACKAGE = psychopy
+DEB_PYTHON_MODULE_PACKAGES = psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
 debian/psychopy.1: debian/psychopy
@@ -12,7 +12,7 @@ debian/psychopy.1: debian/psychopy
 ## cleanup
 	rm -f psychopy/__init__.pyc
 
-install/python-psychopy:: debian/psychopy.1
+install/psychopy:: debian/psychopy.1
 ## Fix up permissions on images -- pushed upstream, but left here
 ## just to make sure everything is ok
 	find $(DEB_DESTDIR) -name \*.png -o -name \*.ico -o -name \*.jpg | \
@@ -39,12 +39,12 @@ dfsg:
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
 DEB_INSTALL_CHANGELOGS_ALL := CHANGELOG.txt
-DEB_INSTALL_DOCS_python-psychopy := README.txt debian/README.Debian-source
-DEB_INSTALL_MANPAGES_python-psychopy := debian/psychopy.1
+DEB_INSTALL_DOCS_psychopy := README.txt debian/README.Debian-source
+DEB_INSTALL_MANPAGES_psychopy := debian/psychopy.1
 
 clean::
 	rm -f debian/psychopy.1
 
 # do not actually install demos -- just symlink to them
-#DEB_INSTALL_EXAMPLES_python-psychopy := psychopy/demos/*
+#DEB_INSTALL_EXAMPLES_psychopy := psychopy/demos/*
 

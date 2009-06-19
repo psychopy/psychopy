@@ -1,5 +1,5 @@
 Source: psychopy
-Section: python
+Section: science
 Priority: optional
 Maintainer: Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
@@ -9,7 +9,7 @@ XS-Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
 Standards-Version: 3.8.2
 Homepage: http://www.psychopy.org
 
-Package: python-psychopy
+Package: psychopy
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pygame | python-pyglet, python-opengl, python-numpy
 Recommends: python-wxgtk2.8, python-imaging, python-serial

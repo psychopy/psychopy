@@ -2,7 +2,7 @@ psychopy (1.00.02+svn388.dfsg-1~pre1) unstable; urgency=low
 
   * Initial release (Closes: #532111)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 11 Jun 2009 15:29:41 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 19 Jun 2009 10:29:52 -0400
 
 psychopy (0.93.5-1) UNRELEASED; urgency=low
 

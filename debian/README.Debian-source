@@ -1,12 +1,36 @@
-psychopy for Debian
--------------------
+PsychoPy for Debian Packaging
+-----------------------------
 
-  For more flexibility and to ease adoption of the patches, all upstream
-  development is fetched from upstream SVN using git-svn.
+ Naming
+ ++++++
+
+  PsychoPy upstream went beyound providing simply a public Python
+  module to code the psychological experiments.  PsychoPy now
+  represents more of an interactive GUI environment to create and run
+  the experiments. It provides a basic IDE for Python coding and
+  execution of the experiments, monitor calibration tool.  Future
+  releases will provide "builder" GUI tool for easy interactive
+  creation of designs, which would generate a valid Python PsychoPy
+  code.
+
+  Therefore, binary package for PsychoPy was not named as
+  "python-psychopy", but rather as "psychopy" and placed into 'science'
+  section instead of 'python' since
+  a. It has no value for generic "Python crowd" and specific
+     to psychological (and medical) research
+  b. It is not just a Python module, but rather an environment
+     started with 'psychopy' command from command line.
+
+  Separation into "psychopy" (GUI environment) and "python-psychopy"
+  (actual psychopy Python module) binary packages was not done since it
+  has no advantage of any kind and would only confuse the users.
 
 
  GIT <-> SVN
  +++++++++++
+
+  For more flexibility and to ease adoption of the patches, all upstream
+  development is fetched from upstream SVN using git-svn.
 
   There are master branch for trunk and master-v2 for v2 branch.
   Upstream SVN is accessed through https protocol, so to fetch new
@@ -32,6 +56,5 @@ psychopy for Debian
 
   dfsg rule in debian/rules would help to infiltrate the tree whenever fresh
   merge from trunk comes into the debian-release branch.
-
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 18 Jun 2009 12:47:05 -0400
