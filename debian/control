@@ -11,15 +11,16 @@ Homepage: http://www.psychopy.org
 
 Package: python-psychopy
 Architecture: all
-Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pygame, python-wxgtk2.8, python-opengl, python-numpy
-Recommends: python-imaging, python-serial
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pygame | python-pyglet, python-opengl, python-numpy
+Recommends: python-wxgtk2.8, python-imaging, python-serial
+Suggests: python-pyepl
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
-Description: package for creating psychology stimuli in Python
- A package for creating psychology stimuli in Python. PsychoPy
- combines the graphical strengths of OpenGL with the easy Python
- syntax to give psychophysics a free and simple stimulus presentation
- and control package.
+Description: environment for creating psychology stimuli in Python
+ PsychoPy provides an environment for creating psychology stimuli
+ using Python scripting language. PsychoPy combines the graphical
+ strengths of OpenGL with the easy Python syntax to give psychophysics
+ a free and simple stimulus presentation and control package.
  .
  The goal is to provide, for the busy scientist, tools to control
  timing and windowing and a simple set of pre-packaged stimuli and
