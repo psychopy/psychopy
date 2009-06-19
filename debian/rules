@@ -48,6 +48,7 @@ DEB_INSTALL_MANPAGES_psychopy := debian/psychopy.1
 
 clean::
 	rm -f debian/psychopy.1
+	rm -rf build dist PsychoPy.egg-info
 
 # do not actually install demos -- just symlink to them
 #DEB_INSTALL_EXAMPLES_psychopy := psychopy/demos/*
