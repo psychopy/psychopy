@@ -10,7 +10,7 @@ import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
+packages = ['psychopy','psychopy.ext','psychopy.demos',
               'PsychoPyIDE','PsychoPyIDE.Resources','monitors']
 
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg']
@@ -29,7 +29,8 @@ elif platform=='posix':
     
 setup(name="PsychoPy",
     packages=packages,
-    scripts = ['psychopy_post_inst.py'],
+	# No need for win32 postinst script in Debian
+    # scripts = ['psychopy_post_inst.py'],
     include_package_data =True,
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
