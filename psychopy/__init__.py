@@ -33,11 +33,10 @@ if sys.platform=='win32':
 else:
     appDataLoc = join(os.environ['HOME'],'.PsychoPy') #this is the folder that this file is stored in
 if not os.path.isdir(appDataLoc):
-    os.mkdir(appDataLoc)
-    
     #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
     import glob, shutil #these are just to copy old calib files across
     try: 
+        os.mkdir(appDataLoc)
         calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
         for thisFile in calibFiles:
             thisPath, fileName = os.path.split(thisFile)
