@@ -7,7 +7,7 @@ DEB_PYTHON_MODULE_PACKAGE = psychopy
 DEB_PYTHON_MODULE_PACKAGES = psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-debian/psychopy.1: debian/psychopy
+debian/psychopy.1: debian/psychopy.sh
 	PYTHONPATH=. help2man -N -n "Creating psychology stimuli in Python" $^ > $@
 ## cleanup
 	rm -f psychopy/__init__.pyc
@@ -23,7 +23,7 @@ install/psychopy:: debian/psychopy.1
 ##     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
 ## Install runner
-	cp -p debian/psychopy $(DEB_DESTDIR)/usr/bin/
+	cp -p debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
 
 # Make tree dfsg-compliant
 # Need to be run whenever master branch gets merged in
