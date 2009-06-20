@@ -44,7 +44,7 @@ PsychoPy for Debian Packaging
   git config --add remote.origin.fetch '+refs/remotes/*:refs/remotes/*'
   git fetch origin
   git svn init -s --prefix=svn/  https://psychopy.googlecode.com/svn/
-  git rebase -l # if you don't want to actually obtain new commits atm from SVN
+  git svn rebase -l # if you don't want to actually obtain new commits atm from SVN
   git svn fetch
 
 
