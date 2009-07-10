@@ -212,15 +212,9 @@ class Window:
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
-                    self._haveShaders=True
+                self._haveShaders=True #also will need to check for ARB_float extension, but that should be done after context is created
             else:
                 self._haveShaders=False   
-            #also check for GL_ARB_texture_float
-            try:#some graphics cards require that a context is created before queries
-                if not pyglet.gl_info.have_extension('GL_ARB_texture_float'):
-                    self._haveShaders=False  
-            except:
-                pass
         else:
             self._haveShaders=False   
         self._setupGL()
@@ -672,7 +666,12 @@ class Window:
 
         if self.winType!='pyglet':
             GL_multitexture.glInitMultitextureARB()
-
+   
+        #check for GL_ARB_texture_float (which is needed for shaders to be useful)
+        #this needs to be done AFTER the context has been created
+        if not pyglet.gl_info.have_extension('GL_ARB_texture_float'):
+            self._haveShaders=False  
+            
         if self.winType=='pyglet' and self._haveShaders:
             #we should be able to compile shaders (don't just 'try')
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
