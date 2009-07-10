@@ -598,9 +598,8 @@ class Window:
         self.winType = "pygame"
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GL_multitexture, GLU
-        
-        GL = OpenGL.GL
+        global GL, GL_multitexture, GLU        
+        GL = OpenGL.GL     
         GL_multitexture = OpenGL.GL.ARB.multitexture
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
@@ -669,7 +668,7 @@ class Window:
    
         #check for GL_ARB_texture_float (which is needed for shaders to be useful)
         #this needs to be done AFTER the context has been created
-        if not pyglet.gl_info.have_extension('GL_ARB_texture_float'):
+        if not pyglet.gl.gl_info.have_extension('GL_ARB_texture_float'):
             self._haveShaders=False  
             
         if self.winType=='pyglet' and self._haveShaders:
@@ -3523,10 +3522,9 @@ class TextStim(_BaseVisualStim):
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target            
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
-                            self.width,self.height,0,
-                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target    
+            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
+                                  GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
 
