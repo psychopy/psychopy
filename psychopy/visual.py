@@ -777,6 +777,13 @@ class _BaseVisualStim:
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setTex(self._texName)
+    def setContr(self, newContr, operation=None):     
+        """Set the contrast of the stimulus
+        """ 
+        self._set('contr', newContr, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._useShaders:
+            self.setTex(self._texName)
     def _set(self, attrib, val, op=''):
         """
         Deprecated. Use methods specific to the parameter you want to set
