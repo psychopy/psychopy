@@ -246,6 +246,7 @@ class Window:
             Window.saveFrameIntervals()
         """
         self.recordFrameIntervals=value
+        self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
         
@@ -262,7 +263,7 @@ class Window:
             f.close()
         if clear:
             self.frameIntervals=[]
-            
+            self.frameClock.reset()
     def whenIdle(self,func):
         """Defines the function to use during idling (GLUT only)
         """
