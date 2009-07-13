@@ -6,7 +6,7 @@ script shows you the new way to specify fonts.
 """
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,winType='pyglet',
-				monitor='testMonitor', units ='cm', screen=0)
+				monitor='testMonitor', units ='deg', screen=0)
 myWin.setRecordFrameIntervals()
 #choose some fonts. If a list is provided, the first font found will be used.
 fancy = ['Monotype Corsiva', 'Palace Script MT', 'Edwardian Script ITC']

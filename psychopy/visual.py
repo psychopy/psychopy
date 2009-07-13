@@ -212,15 +212,9 @@ class Window:
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
-                    self._haveShaders=True
+                self._haveShaders=True #also will need to check for ARB_float extension, but that should be done after context is created
             else:
                 self._haveShaders=False   
-            #also check for GL_ARB_texture_float
-            try:#some graphics cards require that a context is created before queries
-                if not pyglet.gl_info.have_extension('GL_ARB_texture_float'):
-                    self._haveShaders=False  
-            except:
-                pass
         else:
             self._haveShaders=False   
         self._setupGL()
@@ -252,6 +246,7 @@ class Window:
             Window.saveFrameIntervals()
         """
         self.recordFrameIntervals=value
+        self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
         
@@ -268,7 +263,7 @@ class Window:
             f.close()
         if clear:
             self.frameIntervals=[]
-            
+            self.frameClock.reset()
     def whenIdle(self,func):
         """Defines the function to use during idling (GLUT only)
         """
@@ -604,9 +599,8 @@ class Window:
         self.winType = "pygame"
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GL_multitexture, GLU
-        
-        GL = OpenGL.GL
+        global GL, GL_multitexture, GLU        
+        GL = OpenGL.GL     
         GL_multitexture = OpenGL.GL.ARB.multitexture
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
@@ -636,14 +630,6 @@ class Window:
             pygame.display.set_caption('PsychoPy')
         self.winHandle = pygame.display.set_mode(self.size.astype('i'),winSettings)
         pygame.display.set_gamma(1.0) #this will be set appropriately later
-
-        #get screen properties (which pygame has initialised for us)
-        #GLUT.glutInitDisplayMode(GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH)
-        #if self.scrWidthPIX == 0:
-            #self.scrWidthPIX = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH)
-        #if self.scrWidthCM == 0:
-            #self.scrWidthCM = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH_MM)/10.0
-        #print 'screen width: ', self.scrWidthCM, 'cm, ', self.scrWidthPIX, 'pixels'
     def _setupGL(self):
         global _shaders
         if self.winType=='pyglet': _shaders=_shadersPyglet
@@ -672,7 +658,12 @@ class Window:
 
         if self.winType!='pyglet':
             GL_multitexture.glInitMultitextureARB()
-
+        else:
+            #check for GL_ARB_texture_float (which is needed for shaders to be useful)
+            #this needs to be done AFTER the context has been created
+            if not pyglet.gl.gl_info.have_extension('GL_ARB_texture_float'):
+                self._haveShaders=False  
+            
         if self.winType=='pyglet' and self._haveShaders:
             #we should be able to compile shaders (don't just 'try')
             self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)#fragSignedColorTexMask
@@ -774,6 +765,13 @@ class _BaseVisualStim:
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
     def setRGB(self, newRGB, operation=None):      
         self._set('rgb', newRGB, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._useShaders:
+            self.setTex(self._texName)
+    def setContr(self, newContr, operation=None):     
+        """Set the contrast of the stimulus
+        """ 
+        self._set('contr', newContr, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setTex(self._texName)
@@ -3034,7 +3032,6 @@ class MovieStim(_BaseVisualStim):
     def _onEOS(self):
         #not called, for some reason?!
         self.playing=-1
-        print 'movie finished'
 
 class TextStimGLUT:
     """DEPRECATED - please use TextStim instead - they're much nicer!"""
@@ -3398,20 +3395,20 @@ class TextStim(_BaseVisualStim):
 
         #height in pix (needs to be done after units)
         if self.units=='cm':
-            if height: self.height = height
-            else: self.height = 1.0#default text height
+            if height==None: self.height = 1.0#default text height
+            else: self.height = height
             self.heightPix = psychopy.misc.cm2pix(self.height, win.monitor)
         elif self.units=='deg':
-            if height: self.height = height
-            else: self.height = 1.0#default text height
+            if height==None: self.height = 1.0
+            else: self.height = height
             self.heightPix = psychopy.misc.deg2pix(self.height, win.monitor)
         elif self.units=='norm':
-            if height: self.height = height
-            else: self.height = 0.1#default text height
+            if height==None: self.height = 0.1
+            else: self.height = height
             self.heightPix = self.height*win.size[1]/2
         else: #treat units as pix
-            if height: self.height = height
-            else: self.height = 20#default text height
+            if height==None: self.height = 20
+            else: self.height = height
             self.heightPix = self.height
         
         if self.wrapWidth ==None:
@@ -3423,9 +3420,7 @@ class TextStim(_BaseVisualStim):
         elif self.units=='deg': self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units=='pix': self._wrapWidthPix=self.wrapWidth
-        
-        self._calcPosRendered()
-        
+                
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
         self.setFont(font)
@@ -3440,8 +3435,10 @@ class TextStim(_BaseVisualStim):
         if not self.win.winType=="pyglet":
             self._texID = GL.glGenTextures(1)
         #render the text surfaces and build drawing list
-        self.setText(text) #some additional things get set with text
-
+        
+        self._calcPosRendered()
+        self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
+        
         self.needUpdate=True
 
     def setFont(self, font):
@@ -3510,20 +3507,20 @@ class TextStim(_BaseVisualStim):
                                                        color = (1.0,1.0,1.0, self.opacity),
                                                        width=self._wrapWidthPix)#width of the frame      
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
-        else:   
+        else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
             self.width, self.height = self._surf.get_size()
+            self._calcSizeRendered()#will update self._heightRendered and self._widthRendered
+            
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target            
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
-                            self.width,self.height,0,
-                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target    
+            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
+                                  GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-
 
         self.needUpdate = True
 
@@ -3532,7 +3529,7 @@ class TextStim(_BaseVisualStim):
         This is only used with pygame text - pyglet handles all from the draw()
         """
         GL.glNewList(self._listID, GL.GL_COMPILE)
-        GL.glPushMatrix()
+        #GL.glPushMatrix()
 
         #setup the shaderprogram
         #no need to do texture maths so no need for programs?
@@ -3588,7 +3585,7 @@ class TextStim(_BaseVisualStim):
 
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glUseProgram(0)
-        GL.glPopMatrix()
+        #GL.glPopMatrix()
 
         GL.glEndList()
         self.needUpdate=0
@@ -3633,7 +3630,7 @@ class TextStim(_BaseVisualStim):
         rather than using the .set() command
         """
         GL.glNewList(self._listID, GL.GL_COMPILE)
-        GL.glPushMatrix()
+        #GL.glPushMatrix()
 
         #coords:
         if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
@@ -3644,7 +3641,7 @@ class TextStim(_BaseVisualStim):
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
         Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
-
+        
         if self.win.winType=="pyglet":
             #unbind the mask texture 
             GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -3666,25 +3663,25 @@ class TextStim(_BaseVisualStim):
             
         if self.win.winType=="pyglet":
             self._pygletTextObj.draw()
-        else:                
+        else:             
             GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
             # right bottom
             GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex, Btex)
-            GL.glVertex3f(right,bottom,0)
+            GL.glVertex2f(right,bottom)
             # left bottom
             GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Btex)
-            GL.glVertex3f(left,bottom,0)
+            GL.glVertex2f(left,bottom)
             # left top
             GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Ttex)
-            GL.glVertex3f(left,top,0)
+            GL.glVertex2f(left,top)
             # right top
             GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex,Ttex)
-            GL.glVertex3f(right,top,0)
+            GL.glVertex2f(right,top)
             GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
 
-        GL.glPopMatrix()
+        #GL.glPopMatrix()
 
         GL.glEndList()
         self.needUpdate=0
@@ -3712,10 +3709,9 @@ class TextStim(_BaseVisualStim):
         GL.glPushMatrix()
 
         #scale and rotate
-        prevScale = self.win.setScale(self._winScale)
+        prevScale = win.setScale(self._winScale)
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
         GL.glRotatef(self.ori,0.0,0.0,1.0)
-        self.win.setScale('pix',None, prevScale)
         
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -3733,7 +3729,7 @@ class TextStim(_BaseVisualStim):
 
         GL.glDisable(GL.GL_DEPTH_TEST) #should text have a depth or just on top?
         #update list if necss and then call it
-        if self.win.winType=='pyglet':
+        if win.winType=='pyglet':
             
             #and align based on x anchor
             if self.alignHoriz=='right':
@@ -3750,10 +3746,12 @@ class TextStim(_BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
             #then allow pyglet to bind and use texture during drawing
             
+            win.setScale('pix', None, prevScale)
             self._pygletTextObj.draw()            
             GL.glDisable(GL.GL_TEXTURE_2D) 
         else: 
-            #for pygame we should (and can) use a drawing list   
+            #for pygame we should (and can) use a drawing list
+            win.setScale('norm', None, prevScale)   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
             
@@ -3771,6 +3769,7 @@ class TextStim(_BaseVisualStim):
             self.needUpdate=True
             
 
+        
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.
     
