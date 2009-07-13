@@ -3,8 +3,8 @@ from psychopy import *
 import sys
 
 #create a window to draw in
-myWin = visual.Window((600.0,600.0),allowGUI=False,
-				monitor='testMonitor', units ='cm', winType='pygame')
+myWin = visual.Window((800.0,800.0),allowGUI=False,
+				monitor='testMonitor', units ='norm', winType='pygame')
 
 if sys.platform=='win32':
     fancy = 'c:\\windows\\fonts\\brush' #this will find brush script
@@ -31,22 +31,25 @@ rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),
                         ori=0, height = 1,
                         font=comic,
                         alignHoriz='centre',alignVert='center') #NB you can spell centre in US or GB english ;-)
-unicodeStuff = visual.TextStim(myWin,pos=(0, 2.5),
+unicodeStuff = visual.TextStim(myWin,pos=(0, 0),
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
                         italic=True, #use (fake) italics for whole string
                         rgb=-1,  font=serif,
-                        height = 1.5)
+                        height = 0.5)
 psychopyTxt = visual.TextStim(myWin, 
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
-                        pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
+                        pos=[95, 300], alignHoriz='right',alignVert='top',
                         font=fancy) #this may not exist but will be replaced with a default
+                        
+patch = visual.PatchStim(myWin, 
+                        size=0.5)
                         
 trialClock = core.Clock()
 t=lastFPSupdate=0;
-while t<20:#quits after 20 secs
+while t<0.2:#quits after 20 secs
     t=trialClock.getTime()
-    
+    patch.draw()
     rotating.setOri(0.1,"+")
     rotating.draw()
     
