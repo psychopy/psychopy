@@ -3429,9 +3429,7 @@ class TextStim(_BaseVisualStim):
         elif self.units=='deg': self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units=='pix': self._wrapWidthPix=self.wrapWidth
-        
-        self._calcPosRendered()
-        
+                
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
         self.setFont(font)
@@ -3446,8 +3444,10 @@ class TextStim(_BaseVisualStim):
         if not self.win.winType=="pyglet":
             self._texID = GL.glGenTextures(1)
         #render the text surfaces and build drawing list
-        self.setText(text) #some additional things get set with text
-
+        
+        self._calcPosRendered()
+        self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
+        
         self.needUpdate=True
 
     def setFont(self, font):
@@ -3516,7 +3516,7 @@ class TextStim(_BaseVisualStim):
                                                        color = (1.0,1.0,1.0, self.opacity),
                                                        width=self._wrapWidthPix)#width of the frame      
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
-        else:   
+        else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
             self.width, self.height = self._surf.get_size()
             if self.antialias: smoothing = GL.GL_LINEAR
@@ -3528,7 +3528,7 @@ class TextStim(_BaseVisualStim):
                                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-
+            self._calcSizeRendered()#will update self._heightRendered and self._widthRendered
 
         self.needUpdate = True
 
@@ -3775,7 +3775,18 @@ class TextStim(_BaseVisualStim):
             self.setText(self.text)  
             self.needUpdate=True
             
-
+    def _calcSizeRendered(self):
+        """Calculate the size of the stimulus in coords of the window (normalised or pixels)"""
+        if self.units in ['norm','pix']: 
+            self._widthRendered,self._heightRendered = self.width, self.height
+            return#don't run the last two lines
+        elif self.units=='deg': 
+            wh=psychopy.misc.deg2pix(numpy.asarray([self.width, self.height]), self.win.monitor)
+        elif self.units=='cm': 
+            wh=psychopy.misc.cm2pix(numpy.asarray([self.width, self.height]), self.win.monitor)
+        self._widthRendered=wh[0]
+        self._heightRendered=wh[1]
+        
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.
     

@@ -3,6 +3,9 @@ In general, when a new feature is added the first or the second number is increm
 Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
 !!Changelog 
+!!!! PsychoPy 1.00.05
+* FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0) 
+
 !!!! PsychoPy 1.00.04
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
 * CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
