@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 from psychopy import visual, core, log
+import pylab
+
 #often you should synchronise your stimulus to the frame
 
-nFrames = 20
+nFrames = 200
 
 #setup the stimuli and other objects we need
 myWin = visual.Window([800,600],allowGUI=False)#make a window
-myWin.flip()#present it
+myWin.setRecordFrameIntervals(True)
+
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
 log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 myClock = core.Clock() #just to keep track of time
@@ -20,3 +23,5 @@ for frameN in range(nFrames):
 #report the mean time afterwards
 print 'total time=', myClock.getTime()
 print 'avg frame time=', myClock.getTime()/nFrames
+pylab.plot(myWin.frameIntervals, '-o')
+pylab.show()

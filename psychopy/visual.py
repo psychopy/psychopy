@@ -226,16 +226,15 @@ class Window:
         self.recordFrameIntervals=False
         self.frameIntervals=[]
         
-        self._refreshThreshold=1/59.0
+        self._refreshThreshold=1/50.0
         if list(self.gamma)!=[1,1,1]:
             self.setGamma(self.gamma)#using either pygame or bits++
-        self.lastFrameT = time.time()
+        self.lastFrameT = core.getTime()
         
         if self.units=='norm':  self.setScale('norm')
         else: self.setScale('pix')
         
-        self.update()#do a screen refresh straight away
-
+        self.flip()#do a screen refresh straight away
 
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether frames
