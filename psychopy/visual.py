@@ -3509,7 +3509,6 @@ class TextStim(_BaseVisualStim):
         else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
             self.width, self.height = self._surf.get_size()
-            self._calcSizeRendered()#will update self._heightRendered and self._widthRendered
             
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
@@ -3629,8 +3628,6 @@ class TextStim(_BaseVisualStim):
         rather than using the .set() command
         """
         GL.glNewList(self._listID, GL.GL_COMPILE)
-        #GL.glPushMatrix()
-
         #coords:
         if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
@@ -3639,8 +3636,7 @@ class TextStim(_BaseVisualStim):
         if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
         elif self.alignVert =='top': bottom=-self.height; top=0
         else: bottom=0.0; top=self.height
-        Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
-        
+        Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures        
         if self.win.winType=="pyglet":
             #unbind the mask texture 
             GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -3649,7 +3645,6 @@ class TextStim(_BaseVisualStim):
             #unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
-            
         else:
             #bind the appropriate main texture
             GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
@@ -3679,9 +3674,6 @@ class TextStim(_BaseVisualStim):
             GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-        #GL.glPopMatrix()
-
         GL.glEndList()
         self.needUpdate=0
 
@@ -3706,11 +3698,12 @@ class TextStim(_BaseVisualStim):
             thisDepth=self.depth
 
         GL.glPushMatrix()
-
+        GL.glLoadIdentity()#for PyOpenGL this is necessary despite pop/PushMatrix, (not for pyglet)
         #scale and rotate
-        prevScale = win.setScale(self._winScale)
+        prevScale = win.setScale(self._winScale)#to units for translations
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
         GL.glRotatef(self.ori,0.0,0.0,1.0)
+        win.setScale('pix', None, prevScale)#back to pixels for drawing surface
         
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -3745,12 +3738,10 @@ class TextStim(_BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
             #then allow pyglet to bind and use texture during drawing
             
-            win.setScale('pix', None, prevScale)
             self._pygletTextObj.draw()            
             GL.glDisable(GL.GL_TEXTURE_2D) 
         else: 
             #for pygame we should (and can) use a drawing list
-            win.setScale('norm', None, prevScale)   
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
             
