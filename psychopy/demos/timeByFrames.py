@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from psychopy import visual, core, log
+from psychopy import visual, core, log, ext
 import pylab
 
 #often you should synchronise your stimulus to the frame
 
-nFrames = 2000
+nFrames = 200
 core.rush()
 #setup the stimuli and other objects we need
 myWin = visual.Window([800,600],allowGUI=False)#make a window
@@ -19,6 +19,7 @@ for frameN in range(nFrames):
     myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1/nFrames to prev value)
     myStim.draw()
     myWin.flip()
+    ext.waitForVBL()
     
 #report the mean time afterwards
 print 'total time=', myClock.getTime()

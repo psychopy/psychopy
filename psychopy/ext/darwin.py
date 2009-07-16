@@ -1,4 +1,4 @@
-import sys, ctypes, ctypes.util
+import sys, ctypes, ctypes.util, time
 from psychopy import log
 
 #constants
@@ -135,7 +135,8 @@ def getScreens():
     cocoa.CGGetActiveDisplayList(count.value, displays, ctypes.byref(count))
     return [id for id in displays]    
 def getRefreshRate(screen=None):
-    """Return the refresh rate of the given screen. If 
+    """Return the refresh rate of the given screen (typically screen is 0 or 1)    
+    If no screen is given then screen 0 is used.
     """
     screens=getScreens()
     if screen==None:
@@ -148,6 +149,74 @@ def getRefreshRate(screen=None):
     refreshCF = cocoa.CFDictionaryGetValue(mode, _create_cfstring('RefreshRate'))
     refresh = ctypes.c_long()
     cocoa.CFNumberGetValue(refreshCF, kCFNumberLongType, ctypes.byref(refresh))
-    return refresh.value
+    if refresh.value==0: 
+        return 60#probably an LCD
+    else:
+        return refresh.value
     
 
+def getScreenSizePix(screen=None):
+    """Return the height and width (in pixels) of the given screen (typically screen is 0 or 1)    
+    If no screen is given then screen 0 is used.
+    
+    h,w = getScreenSizePix()
+    """
+    screens=getScreens()
+    if screen==None:
+        scrID = cocoa.CGMainDisplayID()
+    elif screen>(len(screens)-1):
+        raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
+    else:
+        scrID=getScreens()[screen]
+    h = cocoa.CGDisplayPixelsHigh(scrID)
+    w = cocoa.CGDisplayPixelsWide(scrID)
+    return [h,w]
+    
+global lastLine    #this will get set on the first pass through the waitForVBL
+lastLine=-1
+def waitForVBL(screen=None,nFrames=1):
+    """Wait for the given screen (typically screen is 0 or 1) to finish drawing before returning/
+    If no screen is given then screen 0 is used.
+    
+    This is based on detecting the display beam position and may give unpredictable results for an LCD.
+    """    
+    """this code follows the logic of Mario Kleiner's SCREENWaitBlanking.c"""
+    global lastLine#will store the last line of the (the highest line after the screen size)
+    screens=getScreens()
+    if screen==None:
+        scrID = cocoa.CGMainDisplayID()
+    elif screen>(len(screens)-1):
+        raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
+    else:
+        scrID=getScreens()[screen]
+    framePeriod=1.0/getRefreshRate() 
+    #when we're in a VBL the current beam position is greater than the screen height (for up to ~30 lines)
+    top=getScreenSizePix()[0]
+    if lastLine==-1: lastLine=top#it will be bigger, but this is good start
+    if cocoa.CGDisplayBeamPosition(scrID)>lastLine:
+        nFrames+=1#we're in a VBL already, wait for one more
+    while nFrames>0:
+        beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
+        #choose how long to wait
+        while framePeriod*(lastLine-beamPos)/lastLine > 0.008:#we have at least 5ms to go so can wait for 1ms
+            time.sleep(0.001)
+            beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
+        #now less than 3ms to go so poll continuously
+        while beamPos<lastLine:
+            beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
+        #if this was not the last frame, then wait until start of next frame before continuing
+        #so that we don't detect the VBL again. If this was the last frame then get back to script asap
+        if nFrames>1 or lastLine==top:
+            while beamPos>top:
+                beamPos =  cocoa.CGDisplayBeamPosition(scrID)
+                lastLine = max(beamPos,lastLine)
+        nFrames-=1
+        
+#first=last=time.time()     
+#print getRefreshRate(1)
+#for nFrames in range(20):        
+#    waitForVBL(1, nFrames=1) 
+#    time.sleep(0.005)
+#    this=time.time()
+#    print this-first, this-last, 1/(this-last)
+#    last=this
