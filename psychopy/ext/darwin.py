@@ -1,15 +1,16 @@
 import sys, ctypes, ctypes.util
+from psychopy import log
 
 #constants
 KERN_SUCCESS=0;
 kCGLCPSwapInterval= ctypes.c_int(222)
 #these defined in thread_policy.h from apple (googleable)
-THREAD_STANDARD_POLICY=1 
-THREAD_STANDARD_POLICY_COUNT=0 
-THREAD_EXTENDED_POLICY=1
-THREAD_EXTENDED_POLICY_COUNT=1 
-THREAD_TIME_CONSTRAINT_POLICY=2
-THREAD_TIME_CONSTRAINT_POLICY_COUNT=4 
+THREAD_STANDARD_POLICY=ctypes.c_int(1)
+THREAD_STANDARD_POLICY_COUNT=ctypes.c_int(0 )
+THREAD_EXTENDED_POLICY=ctypes.c_int(1)
+THREAD_EXTENDED_POLICY_COUNT=ctypes.c_int(1) 
+THREAD_TIME_CONSTRAINT_POLICY=ctypes.c_int(2)
+THREAD_TIME_CONSTRAINT_POLICY_COUNT=ctypes.c_int(4)
 #these were found in pyglet/window/carbon/constants thanks to Alex Holkner
 kCFStringEncodingASCII = 0x0600
 kCFStringEncodingUnicode = 0x0100
@@ -31,8 +32,8 @@ thread_info_t		= integer_t * 12 #in mach_types.defs
 thread_policy_flavor_t	= natural_t #in mach_types.defs
 thread_policy_t		= integer_t * 16 #in mach_types.defs
 #for use with sysctl()
-CTL_HW=6		#/* generic cpu/io */
-HW_BUS_FREQ=14
+CTL_HW=ctypes.c_int(6)		#/* generic cpu/io */
+HW_BUS_FREQ=ctypes.c_int(14)
 
 cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library("Cocoa"))#could use carbon instead?
 #mach = ctypes.cdll.LoadLibrary(ctypes.util.find_library("libm"))#not needed - all the functions seem to be in cocoa
@@ -67,31 +68,71 @@ def getBusFreq():
     cocoa.sysctl(ctypes.byref(mib), 2, ctypes.byref(val), ctypes.byref(intSize), 0, 0)
     return val.value
     
-def rush(value=True):
+def rush(value=True):    
+    """Raise the priority of the current thread/process 
+    Win32 and OS X only so far - on linux use os.nice(niceIncrement)
+    
+    Set with rush(True) or rush(False)
+    
+    Beware and don't take priority until after debugging your code
+    and ensuring you have a way out (e.g. an escape sequence of
+    keys within the display loop). Otherwise you could end up locked
+    out and having to reboot!
+    """
     if value:
         HZ = getBusFreq()
         extendedPolicy=_timeConstraintThreadPolicy()
-        extendedPolicy.period=ctypes.c_uint(HZ/160)
-        extendedPolicy.computation=ctypes.c_uint(HZ/3300)
-        extendedPolicy.constrain=ctypes.c_uint(HZ/2200)
-        extendedPolicy.preemptible=ctypes.c_uint(1)
+        extendedPolicy.period=HZ/160
+        extendedPolicy.computation=HZ/3300
+        extendedPolicy.constrain= HZ/2200
+        extendedPolicy.preemptible=1
         err=cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY, 
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_TIME_CONSTRAINT_POLICY_COUNT)
-#    if (error != KERN_SUCCESS)
+        if err!=KERN_SUCCESS:
+            log.error('Failed to set darwin thread policy, with thread_policy_set')
+        else:
+            print 'ok'
+            log.info('Successfully set darwin thread to realtime')
     else:
-        cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_STANDARD_POLICY)
+        #revert to default policy
+        extendedPolicy=getThreadPolicy(getDefault=True, flavour=THREAD_STANDARD_POLICY)
+        err=cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_STANDARD_POLICY, 
+            ctypes.byref(extendedPolicy), #send the address of the struct
+            THREAD_STANDARD_POLICY_COUNT)
+        
+def getThreadPolicy(getDefault, flavour):
+    """Retrieve the current (or default) thread policy.
+    
+    getDefault should be True or False
+    flavour should be 1 (standard) or 2 (realtime)
+    
+    Returns a ctypes struct with fields:
+           .period
+           .computation
+           .constrain
+           .preemptible
+           
+    See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html"""
+    extendedPolicy=_timeConstraintThreadPolicy()#to store the infos
+    getDefault=ctypes.c_int(getDefault)#we want to retrive actual policy or the default
+    err=cocoa.thread_policy_get(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY, 
+        ctypes.byref(extendedPolicy), #send the address of the policy struct
+        ctypes.byref(THREAD_TIME_CONSTRAINT_POLICY_COUNT),
+        ctypes.byref(getDefault))
+    return extendedPolicy
 def getRush():
-    """Determine whether rush is currently set """
-    pass
+    """Determine whether or not we are in rush mode. Returns True/False"""
+    policy = getThreadPolicy(getDefault=False,flavour=THREAD_TIME_CONSTRAINT_POLICY)
+    default = getThreadPolicy(getDefault=True,flavour=THREAD_TIME_CONSTRAINT_POLICY)
+    return policy.period != default.period #by default this is zero, so not zero means we've changed it
 def getScreens():
     """Get a list of display IDs from cocoa"""
     count = CGDisplayCount()
     cocoa.CGGetActiveDisplayList(0, None, ctypes.byref(count))
     displays = (CGDirectDisplayID * count.value)()
     cocoa.CGGetActiveDisplayList(count.value, displays, ctypes.byref(count))
-    return [id for id in displays]
-    
+    return [id for id in displays]    
 def getRefreshRate(screen=None):
     """Return the refresh rate of the given screen. If 
     """
@@ -108,5 +149,4 @@ def getRefreshRate(screen=None):
     cocoa.CFNumberGetValue(refreshCF, kCFNumberLongType, ctypes.byref(refresh))
     return refresh.value
     
-    
-    
+

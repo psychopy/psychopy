@@ -1,7 +1,5 @@
-"""C extensions (platform specific). Not needed by most users"""
-
-import sys
-#imports all available c extensions
+"""Platform specific extensions (using ctypes)"""
+import sys.platform
 
 if sys.platform=='win32':
 	from win32 import *

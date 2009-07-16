@@ -60,38 +60,6 @@ def wait(secs):
         pyglet.media.dispatch_events()
     except:
         pass #maybe pyglet 
-    
-def rush(rushLevel):
-    """Raise the priority of the current thread/process 
-    Win32 only - on OSX/linux use os.nice(niceIncrement)
-    
-    rushLevel varies from 0(don't rush) to 3(absolute priority)
-    Beware and don't take priority until after debugging your code
-    and ensuring you have a way out (e.g. an escape sequence of
-    keys within the display loop). Otherwise you could end up locked
-    out and having to reboot!
-    """
-    
-    """for darwin there is an ApplicationServices library with functions
-    getpriority
-    setpriority
-    but I haven't found docs to use them.
-    """
-    
-    if sys.platform=='win32':
-        import win32process, win32api#comes from pywin32 libraries
-        thr=win32api.GetCurrentThread()
-        pr =win32api.GetCurrentProcess()
-        if rushLevel==0:
-            win32process.SetPriorityClass(pr, win32process.IDLE_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_IDLE)
-        elif rushLevel==1:
-            win32process.SetPriorityClass(pr, win32process.NORMAL_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_NORMAL)
-        elif rushLevel==2:
-            win32process.SetPriorityClass(pr, win32process.HIGH_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_HIGHEST)
-        elif rushLevel==3:
-            win32process.SetPriorityClass(pr, win32process.REALTIME_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_TIME_CRITICAL)
-        else: raise RuntimeError, 'Rush raised to unknown priority'
+
+if sys.platform in ['win32','darwin']:#not written yet for linux
+    from ext import rush
