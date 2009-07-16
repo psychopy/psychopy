@@ -4,8 +4,8 @@ import pylab
 
 #often you should synchronise your stimulus to the frame
 
-nFrames = 200
-
+nFrames = 2000
+core.rush()
 #setup the stimuli and other objects we need
 myWin = visual.Window([800,600],allowGUI=False)#make a window
 myWin.setRecordFrameIntervals(True)

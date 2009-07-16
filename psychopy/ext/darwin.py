@@ -86,6 +86,7 @@ def rush(value=True):
         extendedPolicy.computation=HZ/3300
         extendedPolicy.constrain= HZ/2200
         extendedPolicy.preemptible=1
+#        extendedPolicy=getThreadPolicy(getDefault=True, flavour=THREAD_TIME_CONSTRAINT_POLICY)
         err=cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY, 
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_TIME_CONSTRAINT_POLICY_COUNT)
