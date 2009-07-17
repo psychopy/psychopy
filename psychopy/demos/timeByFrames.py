@@ -5,9 +5,8 @@ import pylab
 #often you should synchronise your stimulus to the frame
 
 nFrames = 200
-core.rush()
 #setup the stimuli and other objects we need
-myWin = visual.Window([1680,1050],screen=0, fullscr=True, waitBlanking=True)#make a window
+myWin = visual.Window([1024,768],screen=0, fullscr=True, waitBlanking=True)#make a window
 myWin.setRecordFrameIntervals(True)
 
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)

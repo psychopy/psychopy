@@ -112,6 +112,7 @@ class Window:
             - **bitsMode** : None, 'fast', ('slow' mode is deprecated). Defines how (and if) the Bits++ box will be used. 'Fast' updates every frame by drawing a hidden line on the top of the screen.
 
         """
+        ext.rush() #no reason to turn off?
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
