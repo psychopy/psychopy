@@ -7,7 +7,7 @@ import pylab
 nFrames = 200
 core.rush()
 #setup the stimuli and other objects we need
-myWin = visual.Window([800,600],allowGUI=False)#make a window
+myWin = visual.Window([1680,1050],screen=0, fullscr=True, waitBlanking=True)#make a window
 myWin.setRecordFrameIntervals(True)
 
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
@@ -19,10 +19,11 @@ for frameN in range(nFrames):
     myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1/nFrames to prev value)
     myStim.draw()
     myWin.flip()
-    ext.waitForVBL()
-    
+myWin.close()    
 #report the mean time afterwards
 print 'total time=', myClock.getTime()
 print 'avg frame time=', myClock.getTime()/nFrames
-pylab.plot(myWin.frameIntervals, '-o')
+frameTimes=pylab.array(myWin.frameIntervals[20:])*1000#convert to ms
+pylab.plot(frameTimes[20:], '-o')#ignore the first 20 (likely to be noisy)
+pylab.ylabel('frame times (ms)')
 pylab.show()

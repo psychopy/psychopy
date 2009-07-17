@@ -87,7 +87,8 @@ class Window:
                  screen=0,
                  viewScale = None,
                  viewPos  = None,
-                 viewOri  = 0.0):
+                 viewOri  = 0.0,
+                 waitBlanking=True):
         """
         **Arguments:**
 
@@ -103,7 +104,8 @@ class Window:
             - **viewPos** : If not None, redefines the origin for the window
                              Should be an (x,y) tuple or list.
             - **viewOri** : a single value determining the orientation of the view in degs (def = (0,0))
-            
+            - **waitBlanking**: True/False. After a call to flip() should we wait for the blank before further calls
+                
         The following args will override **monitor** settings(see above):
 
             - **gamma** : 1.0, monitor gamma for linearisation (will use Bits++ if possible)
@@ -234,6 +236,7 @@ class Window:
         if self.units=='norm':  self.setScale('norm')
         else: self.setScale('pix')
         
+        self.waitBlanking = waitBlanking
         self.flip()#do a screen refresh straight away
 
     def setRecordFrameIntervals(self, value=True):
@@ -334,7 +337,7 @@ class Window:
                 pygame.event.pump()#keeps us in synch with system event queue
             else:
                 core.quit()#we've unitialised pygame so quit
-                        
+                
         if self.recordFrameIntervals:
             self.frames +=1
             now = core.getTime()
@@ -370,6 +373,9 @@ class Window:
         else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
         
+        if self.waitBlanking and (sys.platform in ['win32','darwin']):
+            ext.waitForVBL()
+
     def update(self):
         """Deprecated: use Window.flip() instead        
         """

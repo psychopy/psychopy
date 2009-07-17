@@ -80,13 +80,13 @@ def rush(value=True):
     out and having to reboot!
     """
     if value:
-        HZ = getBusFreq()
+        bus = getBusFreq()
         extendedPolicy=_timeConstraintThreadPolicy()
-        extendedPolicy.period=HZ/160
-        extendedPolicy.computation=HZ/3300
-        extendedPolicy.constrain= HZ/2200
+        extendedPolicy.period=bus/160 #number of cycles in hz (make higher than frame rate)
+        extendedPolicy.computation=bus/320#half of that period
+        extendedPolicy.constrain= bus/640#max period that they should be carried out in
         extendedPolicy.preemptible=1
-#        extendedPolicy=getThreadPolicy(getDefault=True, flavour=THREAD_TIME_CONSTRAINT_POLICY)
+        extendedPolicy=getThreadPolicy(getDefault=True, flavour=THREAD_TIME_CONSTRAINT_POLICY)
         err=cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY, 
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_TIME_CONSTRAINT_POLICY_COUNT)
@@ -134,14 +134,14 @@ def getScreens():
     displays = (CGDirectDisplayID * count.value)()
     cocoa.CGGetActiveDisplayList(count.value, displays, ctypes.byref(count))
     return [id for id in displays]    
-def getRefreshRate(screen=None):
+def getRefreshRate(screen=0):
     """Return the refresh rate of the given screen (typically screen is 0 or 1)    
-    If no screen is given then screen 0 is used.
+    
+    NB. If two screens are connected with different refresh rates then the rate at which we
+    draw may not reflect the refresh rate of the monitor, because
     """
     screens=getScreens()
-    if screen==None:
-        scrID = cocoa.CGMainDisplayID()
-    elif screen>(len(screens)-1):
+    if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
     else:
         scrID=getScreens()[screen]
@@ -155,16 +155,14 @@ def getRefreshRate(screen=None):
         return refresh.value
     
 
-def getScreenSizePix(screen=None):
+def getScreenSizePix(screen=0):
     """Return the height and width (in pixels) of the given screen (typically screen is 0 or 1)    
     If no screen is given then screen 0 is used.
     
     h,w = getScreenSizePix()
     """
     screens=getScreens()
-    if screen==None:
-        scrID = cocoa.CGMainDisplayID()
-    elif screen>(len(screens)-1):
+    if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
     else:
         scrID=getScreens()[screen]
@@ -172,46 +170,49 @@ def getScreenSizePix(screen=None):
     w = cocoa.CGDisplayPixelsWide(scrID)
     return [h,w]
     
-global lastLine    #this will get set on the first pass through the waitForVBL
-lastLine=-1
-def waitForVBL(screen=None,nFrames=1):
+def waitForVBL(screen=0,nFrames=1):
     """Wait for the given screen (typically screen is 0 or 1) to finish drawing before returning/
     If no screen is given then screen 0 is used.
     
     This is based on detecting the display beam position and may give unpredictable results for an LCD.
     """    
-    """this code follows the logic of Mario Kleiner's SCREENWaitBlanking.c"""
-    global lastLine#will store the last line of the (the highest line after the screen size)
     screens=getScreens()
-    if screen==None:
-        scrID = cocoa.CGMainDisplayID()
-    elif screen>(len(screens)-1):
+    if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
     else:
         scrID=getScreens()[screen]
-    framePeriod=1.0/getRefreshRate() 
+    framePeriod=1.0/getRefreshRate(screen) 
+    if screen>0: #got multiple screens, check if they have same rate
+        mainFramePeriod = 1.0/getRefreshRate(0) 
+        if mainFramePeriod!=framePeriod:
+            #CGDisplayBeamPosition is unpredictable in this case - usually synced to the first monitor, but maybe better if 2 gfx cards?
+            log.warning("You are trying to wait for blanking on a secondary monitor that has a different \
+refresh rate to your primary monitor. This is not recommended (likely to reduce your frame rate to the primary monitor).")
     #when we're in a VBL the current beam position is greater than the screen height (for up to ~30 lines)
-    top=getScreenSizePix()[0]
-    if lastLine==-1: lastLine=top#it will be bigger, but this is good start
-    if cocoa.CGDisplayBeamPosition(scrID)>lastLine:
+    top=getScreenSizePix(screen)[0]
+    if cocoa.CGDisplayBeamPosition(scrID)>top:
         nFrames+=1#we're in a VBL already, wait for one more
     while nFrames>0:
         beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
         #choose how long to wait
-        while framePeriod*(lastLine-beamPos)/lastLine > 0.008:#we have at least 5ms to go so can wait for 1ms
-            time.sleep(0.001)
+        while framePeriod*(top-beamPos)/top > 0.005:#we have at least 5ms to go so can wait for 1ms
+#            print 'plenty', beamPos, framePeriod*(top-beamPos)/top, time.time()
+#            time.sleep(0.0001)#actually it seems that time.sleep() waits too long on os x
             beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
-        #now less than 3ms to go so poll continuously
-        while beamPos<lastLine:
+        #now near top so poll continuously
+        while beamPos<top:
             beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
         #if this was not the last frame, then wait until start of next frame before continuing
         #so that we don't detect the VBL again. If this was the last frame then get back to script asap
-        if nFrames>1 or lastLine==top:
-            while beamPos>top:
+        if nFrames>1:
+            while beamPos>=top:
                 beamPos =  cocoa.CGDisplayBeamPosition(scrID)
-                lastLine = max(beamPos,lastLine)
         nFrames-=1
         
+#beamPos =  cocoa.CGDisplayBeamPosition(1)
+#while beamPos<=1000:
+#        beamPos =  cocoa.CGDisplayBeamPosition(1)
+#        print beamPos
 #first=last=time.time()     
 #print getRefreshRate(1)
 #for nFrames in range(20):        
@@ -220,3 +221,4 @@ def waitForVBL(screen=None,nFrames=1):
 #    this=time.time()
 #    print this-first, this-last, 1/(this-last)
 #    last=this
+#rush()
