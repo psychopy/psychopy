@@ -1,12 +1,12 @@
-"""C extensions (platform specific). Not needed by most users"""
-
+"""Platform specific extensions (using ctypes)"""
 import sys
-#imports all available c extensions
 
 if sys.platform=='win32':
 	from win32 import *
-if sys.platform=='darwin':
+elif sys.platform=='darwin':
 	from darwin import *
-#if sys.platform=='posix':
-	#from posix import *
+elif sys.platform.startswith('linux'):#normally 'linux2'
+	from linux import *
+elif sys.platform=='posix':#ever?!
+	from posix import *
 	

@@ -5,6 +5,7 @@ Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or 
 !!Changelog 
 !!!! PsychoPy 1.00.05
 * FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0) 
+* FIXED bug scaling pygame text (which caused pygame TextStims not to appear)
 
 !!!! PsychoPy 1.00.04
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
