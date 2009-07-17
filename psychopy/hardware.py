@@ -42,15 +42,18 @@ class CedrusPad:
         self.port = serial.Serial(self.portString, baudrate=baudrate, bytesize=8, parity='N', stopbits=1, timeout=0.0001)
         self.port.open()
         #self.buffer = ''#our own buffer (in addition to the serial port buffer)
-        self._clearBuffer()
+        self.clearBuffer()
         
     def sendMessage(self, message):
         self.port.writelines(message)
         
     def _clearBuffer(self):
-        """Empty the input buffer of all characters"""
+        """DEPRECATED as of 1.00.05"""
         self.port.flushInput()
-        #self.buffer=''
+        
+    def clearBuffer(self):
+        """Empty the input buffer of all characters. Call this to clear any keypresses that haven't yet been handled."""
+        self.port.flushInput()
         
     def getKeyEvents(self, allowedKeys=[1,2,3,4,5,6,7], downOnly=True):    
         """Return a list of keyEvents

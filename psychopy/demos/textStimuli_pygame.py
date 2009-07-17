@@ -4,7 +4,8 @@ import sys
 
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,
-				monitor='testMonitor', units ='norm', winType='pygame')
+				monitor='testMonitor', units ='cm', winType='pygame')
+myWin.setRecordFrameIntervals(True)
 
 if sys.platform=='win32':
     fancy = 'c:\\windows\\fonts\\brush' #this will find brush script
@@ -21,35 +22,30 @@ else:
     
 #INITIALISE SOME STIMULI
 fpsText = visual.TextStim(myWin, 
-                        units='norm',height = 0.2,
+                        units='norm',height = 0.1,
                         pos=(-0.98, -0.98), text='starting...',
                         font=sans, 
                         alignHoriz = 'left',alignVert='bottom',
                         rgb=[+1,-1,-1])
-rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),
-                        rgb=[-1.0,-1,1],
-                        ori=0, height = 1,
-                        font=comic,
-                        alignHoriz='centre',alignVert='center') #NB you can spell centre in US or GB english ;-)
-unicodeStuff = visual.TextStim(myWin,pos=(0, 0),
+rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),#and can have line breaks
+                        rgb=[-1.0,-1,1],units='deg',
+                        ori=0, height = 1.0,
+                        font=comic)
+unicodeStuff = visual.TextStim(myWin,
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
-                        italic=True, #use (fake) italics for whole string
-                        rgb=-1,  font=serif,
-                        height = 0.5)
-psychopyTxt = visual.TextStim(myWin, 
+                        rgb=-1,  font=serif,pos=(0,3),
+                        height = 1)
+psychopyTxt = visual.TextStim(myWin, rgb=+1,
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
-                        pos=[95, 300], alignHoriz='right',alignVert='top',
-                        font=fancy) #this may not exist but will be replaced with a default
-                        
-patch = visual.PatchStim(myWin, 
-                        size=0.5)
+                        pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
+                        font=fancy, italic=True) 
                         
 trialClock = core.Clock()
 t=lastFPSupdate=0;
-while t<0.2:#quits after 20 secs
+while t<20:#quits after 20 secs
     t=trialClock.getTime()
-    patch.draw()
+    
     rotating.setOri(0.1,"+")
     rotating.draw()
     
