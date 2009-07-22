@@ -24,13 +24,13 @@ def rush(value=True):
         schedParams = _SchedParams()
         schedParams.sched_priority = c.sched_get_priority_max(SCHED_RR)
         err = c.sched_setscheduler(0,SCHED_RR, ctypes.byref(schedParams))
-        if err=-1:#returns 0 if OK
+        if err==-1:#returns 0 if OK
             log.warning("Failed to raise thread priority with sched_setscheduler. You need to run as sudo in order for PsychoPy to rush()")
     else:#set to RR with max priority
         schedParams = _SchedParams()
         schedParams.sched_priority = c.sched_get_priority_min(SCHED_NORMAL)
         err = c.sched_setscheduler(0,SCHED_NORMAL, ctypes.byref(schedParams))
-        if err=-1:#returns 0 if OK
+        if err==-1:#returns 0 if OK
             log.warning("Failed to set thread priority back to normal level with sched_setscheduler.")
         
   
