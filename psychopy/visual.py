@@ -94,7 +94,7 @@ class Window:
 
             - **size** :  size of the window in pixels (X,Y)
             - **rgb** :  background color (R,G,B) from -1.0 to 1.0
-            - **fullScr** :  0(in a window), 1(fullscreen) NB Try using fullScr=0, allowGUI=0
+            - **fullscr** :  0(in a window), 1(fullscreen) NB Try using fullscr=0, allowGUI=0
             - **allowGUI** :  0,1 If set to 1, window will be drawn with no frame and no buttons to close etc...
             - **winType** :  'pyglet', 'pygame' or 'glut' (if None then PsychoPy will try to use Pyglet, Pygame, GLUT in that order)
             - **monitor** :  the name of your monitor (from MonitorCentre) or an actual ``Monitor`` object
