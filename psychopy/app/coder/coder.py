@@ -1144,7 +1144,6 @@ class CoderFrame(wx.Frame):
             if shortname=="__init__.py": continue
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
-        self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         
         self.helpMenu.AppendSeparator()       
         self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")#on mac this will move to appication menu

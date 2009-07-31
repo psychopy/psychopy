@@ -159,13 +159,12 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(self.builder)
     def MacOpenFile(self,fileName):
         self.frame.setCurrentDoc(fileName)
-    def quit(self):
+    def quit(self, event=None):
         self.prefs.saveAppData()
         for frame in [self.coder, self.builder]:
             if hasattr(frame,'closeFrame'): 
                 frame.closeFrame()#this executes the saving of files etc
                 frame.Destroy()#then destroy it
-            
         #todo: work out correct operation of closing wrt multiple frames etc...
     def showPrefs(self, event):
         prefsDlg = PreferencesDlg(app=self)
