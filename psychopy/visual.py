@@ -4,7 +4,7 @@ import psychopy.misc
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log
 import psychopy.event
-import monitors
+import psychopy.monitors as monitors
 import Image
 import sys, os, time, glob, copy
 import makeMovies
@@ -23,7 +23,6 @@ try:
     havePyglet=True    
 except:
     havePyglet=False    
-
 
 #import _shadersPygame
 try:

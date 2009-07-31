@@ -8,7 +8,21 @@ from scipy import optimize, special
 def ObjectArray(inputSeq):
     #a wrapper of numpy array(xx,'O') objects
     return numpy.array(inputSeq, 'O')
+    
+class TrialType(dict):
+    """This is just like a dict, except that you can access keys
+    """
+    def __getattribute__(self, name):
+        try:#to get attr from dict in normal way (passing self)
+            return dict.__getattribute__(self, name)
+        except AttributeError:
+            try:
+                return self[name]
+            except KeyError:
+#                print 'TrialType has no attribute (or key) \'%s\'' %(name)
+                raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
+        
 class TrialHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
@@ -30,6 +44,10 @@ class TrialHandler:
             
             """
         self.trialList =trialList
+        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+        for n, entry in enumerate(trialList):
+            if type(entry)==dict:
+                trialList[n]=TrialType(entry)
         self.nReps = nReps
         self.nTotal = nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial

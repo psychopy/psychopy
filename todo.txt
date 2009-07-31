@@ -1,0 +1,9 @@
+- scaling availability on RoutineCanvas (just in x)
+- scaling ability on FlowPanel (just in x direction)
+- global application options dialog
+- experiment options (fullscreen etc) from flowPanel(?)
+- load/save experiments
+- undo/redo changes
+- add brief info to loops in FlowPanel to show "Name (nTrials X trialTypes)"
+
+- build installer for win32
