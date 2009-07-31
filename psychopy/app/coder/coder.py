@@ -1101,7 +1101,6 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
         self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto, "Analyse on file save/open", "Automatically analyse source (for autocomplete etc...). Can slow down the editor on a slow machine or with large files")
         wx.EVT_MENU(self, self.IDs.analyzeAuto,  self.setAnalyseAuto)
-        print self.prefs['analyseAuto'], type(self.prefs['analyseAuto'])
         self.analyseAutoChk.Check(self.prefs['analyseAuto'])
         self.toolsMenu.Append(self.IDs.analyzeNow, "Analyse now\t%s" %key_analysecode, "Force a reananalysis of the code now")
         wx.EVT_MENU(self, self.IDs.analyzeNow,  self.analyseCodeNow)
