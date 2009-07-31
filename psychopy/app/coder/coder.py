@@ -72,7 +72,9 @@ class ScriptThread(threading.Thread):
         trace."""
         sys.settrace(self.globaltrace)
         self.__run_backup()
-        self.run = self.__run_backup
+        self.run = self.__run_backup        
+        #we're done - send the App a message
+        self.gui.onProcessEnded(event=None)
   
     def globaltrace(self, frame, why, arg):
         if why == 'call':
@@ -766,8 +768,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 
     def onModified(self, event):
         #update the UNSAVED flag and the save icons
-        panel = self.GetParent()
-        notebook = panel.GetParent()
+        notebook = self.GetParent()
         mainFrame = notebook.GetParent()
         mainFrame.setFileModified(True)
     def DoFindNext(self, findData, findDlg=None):
@@ -920,7 +921,6 @@ class CoderFrame(wx.Frame):
         self.findData = wx.FindReplaceData()
         self.findData.SetFlags(wx.FR_DOWN)
         self.importedScripts={}
-        self.allDocs = []
         self.scriptProcess=None
         self.scriptProcessID=None
         self.db = None#debugger
@@ -939,8 +939,10 @@ class CoderFrame(wx.Frame):
         self.paneManager.SetManagedWindow(self)
         #make the notebook
 #        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
-        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), style=wx.aui.AUI_NB_DEFAULT_STYLE|wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-
+        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), 
+            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
+                wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
+        
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
@@ -960,7 +962,6 @@ class CoderFrame(wx.Frame):
         
         #for demos we need a dict where the event ID will correspond to a filename
         self.demoList = glob.glob(os.path.join(self.paths['demos'],'*.py'))
-        if '__init__.py' in self.demoList: self.demoList.remove('__init__.py')
         #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
         self.ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
@@ -1140,6 +1141,7 @@ class CoderFrame(wx.Frame):
         menuBar.Append(self.demosMenu, '&Demos') 
         for thisID in self.ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
+            if shortname=="__init__.py": continue
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
@@ -1206,13 +1208,13 @@ class CoderFrame(wx.Frame):
                 text = stream.read()
                 self.outputWindow.write(text)
         #check if we're in the same place as before
-        if (self.currentDoc is not None) and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
+        if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
     def pageChanged(self,event):
         old = event.GetOldSelection()
         new = event.GetSelection()
-        self.currentDoc = self.allDocs[new]
+        self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
         #event.Skip()
@@ -1261,7 +1263,14 @@ class CoderFrame(wx.Frame):
         stPos = self.currentDoc.GetCurrentPos()
         
         self.currentDoc.SetSelection(stPos,endPos)
-
+        
+    def getOpenFilenames(self):
+        """Return the full filename of each open tab"""
+        names=[]
+        for ii in range(self.notebook.GetPageCount()):
+            names.append(self.notebook.GetPage(ii).filename)
+        return names
+    
     def quit(self, event):
         self.app.quit()
         
@@ -1276,9 +1285,10 @@ class CoderFrame(wx.Frame):
         
         #store current appData
         self.appData['prevFiles'] = []
-        for thisFile in self.allDocs:
-            self.appData['prevFiles'].append(thisFile.filename)
-                #get size and window layout info
+        currFiles = self.getOpenFilenames()
+        for thisFileName in currFiles:
+            self.appData['prevFiles'].append(thisFileName)
+        #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
             self.appData['state']='normal'
@@ -1297,10 +1307,11 @@ class CoderFrame(wx.Frame):
         self.app.prefs.saveAppData()#do the actual save
         
         #close each file (so that we check for saving)
-        for thisFile in self.allDocs:
-            ok = self.fileClose(event=0)
+        for thisFileName in currFiles:#must do this for all files AFTER adding them to the list
+            ok = self.fileClose(event=0, filename=thisFileName)#delete from end back
             if ok==-1:
-                return -1 #user cancelled - don't quit   
+                return -1 #user cancelled - don't quit
+  
         if sys.platform=='darwin':
             self.Hide()#the user may not have quit, so keep the menubar open by just hiding the window
         else: self.Destroy()
@@ -1308,32 +1319,24 @@ class CoderFrame(wx.Frame):
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
     def findDocID(self, filename):
-        #find the ID of the current doc in self.allDocs list and the notebook panel (returns -1 if not found)
-        for n in range(len(self.allDocs)):
-            if self.allDocs[n].filename == filename:
-                return n
+        #find the ID of the current doc
+        for ii in range(self.notebook.GetPageCount()):
+            if self.notebook.GetPage(ii).filename == filename:
+                return ii
         return -1
-    def setCurrentDoc(self, filename, keepHidden=False): 
+    def setCurrentDoc(self, filename, keepHidden=False):
         #check if this file is already open
         docID=self.findDocID(filename)
         if docID>=0:
-            self.currentDoc = self.allDocs[docID]
+            self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
-            if len(self.allDocs)==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
-                self.fileClose(self.currentDoc)            
+            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
+                self.fileClose('untitled.py')  
             
             #create an editor window to put the text in
-            p = wx.Panel(self.notebook, -1, style = wx.NO_FULL_REPAINT_ON_RESIZE)
-            self.currentDoc = CodeEditor(p, -1, frame=self)
-            self.allDocs.append(self.currentDoc)
-            
-            #arrange in window
-            s = wx.BoxSizer()
-            s.Add(self.currentDoc, 1, wx.EXPAND)
-            p.SetSizer(s)
-            p.SetAutoLayout(True)
+            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
                 
             #load text from document
             if os.path.isfile(filename):
@@ -1353,14 +1356,14 @@ class CoderFrame(wx.Frame):
                 path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)   
             if isinstance(self.notebook, wx.Notebook):
-                self.notebook.ChangeSelection(len(self.allDocs)-1)     
+                self.notebook.ChangeSelection(len(self.getOpenFilenames())-1)
             elif isinstance(self.notebook, wx.aui.AuiNotebook):
-                self.notebook.SetSelection(len(self.allDocs)-1)     
+                self.notebook.SetSelection(len(self.getOpenFilenames())-1)
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
-        if self.prefs['analyseAuto'] and len(self.allDocs)>0:
+        if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')
             self.currentDoc.analyseScript()
             self.SetStatusText('')
@@ -1369,7 +1372,7 @@ class CoderFrame(wx.Frame):
     def fileOpen(self, event):
         
         #get path of current file (empty if current file is '')
-        if self.currentDoc is not None:
+        if hasattr(self.currentDoc, 'filename'):
             initPath = os.path.split(self.currentDoc.filename)[0]
         else:   
             initPath=''
@@ -1402,7 +1405,7 @@ class CoderFrame(wx.Frame):
             f.close()
         self.setFileModified(False)
             
-        if self.prefs['analyseAuto'] and len(self.allDocs)>0:
+        if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing current source code')
             self.currentDoc.analyseScript()
         #reset status text
@@ -1436,8 +1439,10 @@ class CoderFrame(wx.Frame):
             dlg.destroy()
         except:
             pass
-    def fileClose(self, event):
-        filename = self.currentDoc.filename
+    def fileClose(self, event, filename=None):        
+        if filename==None:
+            filename = self.currentDoc.filename
+        self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED==True:
             sys.stdout.flush()
             dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
@@ -1454,18 +1459,16 @@ class CoderFrame(wx.Frame):
                 pass #don't save just quit
         #remove the document and its record
         currId = self.notebook.GetSelection()
-        newPageID=currId-1
-        self.allDocs.remove(self.currentDoc)
         #if this was called by AuiNotebookEvent, then page has closed already
         if not isinstance(event, wx.aui.AuiNotebookEvent):
             self.notebook.DeletePage(currId)
         #set new current doc
-        if newPageID==-1: 
-            self.currentDoc=None    
-            self.SetLabel("PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__)
-        else: 
-            #self.notebook.Raise
-            self.currentDoc = self.allDocs[newPageID]
+        newPageID = self.notebook.GetSelection()
+        if newPageID == -1:
+            self.currentDoc = None
+            self.SetLabel("PsychoPy (Coder) (v%s)" %psychopy.__version__)
+        else:
+            self.currentDoc = self.notebook.GetPage(newPageID)
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
         #return 1
     def _runFileAsImport(self):      
@@ -1524,7 +1527,10 @@ class CoderFrame(wx.Frame):
         """
         fullPath = self.currentDoc.filename
         #check syntax by compiling - errors printed (not raised as error)
-        py_compile.compile(fullPath, doraise=False)
+        try:
+            py_compile.compile(fullPath, doraise=False)
+        except Exception, e:
+            print "Problem compiling: %s" %e
         
         print '\nRunning %s as %s' %(self.currentDoc.filename, self.appPrefs['runScripts']) 
         self.ignoreErrors = False
@@ -1571,13 +1577,16 @@ class CoderFrame(wx.Frame):
     def stopFile(self, event):
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
-        if RUN_SCRIPTS in ['thread','dbg']:
+        if self.appPrefs['runScripts'] in ['thread','dbg']:
             #killing a debug context doesn't really work on pygame scripts because of the extra 
-            if RUN_SCRIPTS == 'dbg':self.db.quit()
-            pygame.display.quit()       
+            if self.appPrefs['runScripts'] == 'dbg':self.db.quit()
+            try:
+                pygame.display.quit()#if pygame is running then try to kill it
+            except:
+                pass
             self.thread.kill()
             self.ignoreErrors = False#stop listening for errors if the script has ended
-        elif RUN_SCRIPTS=='process':
+        elif self.appPrefs['runScripts']=='process':
             success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
             if success[0] != wx.KILL_OK:
                 wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively        
@@ -1595,7 +1604,8 @@ class CoderFrame(wx.Frame):
     def cut(self, event):
         self.currentDoc.Cut()#let the text ctrl handle this
     def paste(self, event):
-        self.currentDoc.Paste()#let the text ctrl handle this
+        foc= self.FindFocus()
+        foc.Paste()
     def undo(self, event):
         self.currentDoc.Undo()
     def redo(self, event):
@@ -1684,29 +1694,7 @@ class CoderFrame(wx.Frame):
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
 
-        
-class CoderApp(wx.App):
-    def OnInit(self):
-        if len(sys.argv)>1:
-            if sys.argv[1]==__name__:
-                args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
-            else:
-                args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
-        else:
-            args=[]
-        self.frame = CoderFrame(None, -1, 
-                                      title="PsychoPy's Integrated Development Environment (v%s)" %psychopy.__version__,
-                                      files = args)
-        splash = PsychoSplashScreen(self.frame)
-        if splash:
-            splash.Show()
-        
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
-        return True
-    def MacOpenFile(self,fileName):
-        self.frame.setCurrentDoc(fileName)
-        
 if __name__=='__main__':
-    app = IDEApp(0)
+    from psychopy.app import PsychoPy
+    app = PsychoPy.PsychoPyApp(0)
     app.MainLoop()

@@ -1537,3 +1537,8 @@ class BuilderFrame(wx.Frame):
         pass
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
+
+if __name__=='__main__':
+    from psychopy.app import PsychoPy
+    app = PsychoPy.PsychoPyApp(0)
+    app.MainLoop()

@@ -8,7 +8,7 @@ Changelog
 PsychoPy 1.50
 ------------------------------
 
-PsychoPy 1.00.04
+PsychoPy 1.50.00
 ~~~~~~~~~~~~~~~~~~~~~~
 * ADDED A preview of the new application structure and GUI
 * ADDED performance enhancements (OS X now blocks on vblank, all platforms rush() if user has permissions)

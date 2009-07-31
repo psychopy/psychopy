@@ -19,7 +19,7 @@ Contents
 .. toctree::
    :maxdepth: 1
    
-   changelog
+   changelog <../../CHANGELOG.txt>
    screenshots
 
 Downloads
