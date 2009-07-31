@@ -3511,7 +3511,15 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (1.0,1.0,1.0, self.opacity),
-                                                       width=self._wrapWidthPix)
+                                                       width=self._wrapWidthPix)#width of the frame     
+#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
+#                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
+#                                                       halign=self.alignHoriz,
+#                                                       color = (int(127.5*self.rgb[0]+127.5),
+#                                                            int(127.5*self.rgb[1]+127.5),
+#                                                            int(127.5*self.rgb[2]+127.5),
+#                                                            int(255*self.opacity)),
+#                                                       multiline=True, width=self._wrapWidthPix)#width of the frame           
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
