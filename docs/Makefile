@@ -43,6 +43,7 @@ clean:
 	-rm -rf build/*
 
 html:
+	cp -f ../CHANGELOG.txt source/changelog.rst
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."

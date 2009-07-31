@@ -52,10 +52,11 @@ pr650code={'OK':'000\r\n',#this is returned after measure
 
 def findPR650(ports=None):
     """Try to find a COM port with a PR650 connected! Returns a Photometer object
-
-    pr650 = findPR650([portNumber, anotherPortNumber])#tests specific ports only
-    pr650 = findPR650() #sweeps ports 0 to 10 searching for PR650
-    pr650= None if PR650 wasn't found
+    e.g.::
+    
+        pr650 = findPR650([portNumber, anotherPortNumber])#tests specific ports only
+        pr650 = findPR650() #sweeps ports 0 to 10 searching for PR650
+        
     """
     if ports==None:
         if sys.platform=='darwin':
@@ -850,20 +851,19 @@ def getLumSeriesPR650(lumLevels=8,
     Automatically measures a series of gun values and measures
     the luminance with a PR650.
 
-    **Parameters:**
-
-    - ``photometer`` is the number of the serial port PR650 is connected to, or
-        or Photometer object, from findPR650()
-    - ``lumLevels`` (=8) can be scalar (number of tests evenly spaced in range 0-255)
-        or an array of actual values to test
-    - ``testGamma`` (=1.0) the gamma value at which to test
-    - ``autoMode`` (='auto'). If 'auto' the program will present the screen
-        and automatically take a measurement before moving on.
-        If set to 'semi' the program will wait for a keypress before
-        moving on but will not attempt to make a measurement (use this
-        to make a measurement with your own device). Any other text will
-        simply move on without pausing on each screen (use this to see
-        that the visual system is performing as expected).
+    :Parameters:
+        photometer : is the number of the serial port PR650 is connected to, or
+            or Photometer object, from findPR650()
+        lumLevels : (=8) can be scalar (number of tests evenly spaced in range 0-255)
+            or an array of actual values to test
+            testGamma : (=1.0) the gamma value at which to test
+        autoMode : (='auto'). If 'auto' the program will present the screen
+            and automatically take a measurement before moving on.
+            If set to 'semi' the program will wait for a keypress before
+            moving on but will not attempt to make a measurement (use this
+            to make a measurement with your own device). Any other text will
+            simply move on without pausing on each screen (use this to see
+            that the visual system is performing as expected).
 
     """
 
@@ -1014,6 +1014,8 @@ def DACrange(n):
     #NB python ranges exclude final val
     return numpy.arange(0.0,256.0,255.0/(n-1)).astype(numpy.uint8)
 def getAllMonitors():
+    """Find the names of all monitors for which calibration files exist
+    """
     currDir = os.getcwd()
     os.chdir(monitorFolder)
     monitorList=glob.glob('*.calib')

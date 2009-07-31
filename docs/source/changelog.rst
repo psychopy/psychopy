@@ -5,8 +5,37 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
+PsychoPy 1.50
+------------------------------
+
+PsychoPy 1.50.00
+~~~~~~~~~~~~~~~~~~~~~~
+* ADDED A preview of the new application structure and GUI
+* ADDED performance enhancements (OS X now blocks on vblank, all platforms rush() if user has permissions)
+* ADDED config files. These are already used by the app, but not the library.
+* FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0) 
+* FIXED bug scaling pygame text (which caused pygame TextStims not to appear)
+* BACKWARDS NONCOMPAT: monitors is moved to be a subpackage of psychopy
+* Added TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
+* Moved docs/website to sphinx rather than wiki (contained in svn)
+
 PsychoPy 1.00
 ------------------------------
+
+PsychoPy 1.00.04
+~~~~~~~~~~~~~~~~~~~~~~
+* DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
+* CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
+* CHANGED pyglet textures to use numpy->ctypes rather than numpy->string
+* FIXED systemInfo assigned on Linux systems
+
+PsychoPy 1.00.03
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED initialisation bug with SimpleImageStimulus
+* FIXED "useShaders" buglet for TextStim
+* CHANGED IDE on win32 to run scripts as processes rather than imports (gives better error messages)
+* ADDED mipmap support for textures (better antialiasing for down-scaling)
+* CHANGED win32 standalone to include the whole raw python rather than using py2exe
 
 PsychoPy 1.00.02
 ~~~~~~~~~~~~~~~~~~~~~~

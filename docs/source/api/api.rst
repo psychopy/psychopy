@@ -4,14 +4,13 @@ API (Reference)
 Contents:
 
 .. toctree::
-   :maxdepth: 1
-   
+   :maxdepth: 1   
+   :glob:
+
+   core
    visual
-   sound
-   event
-   log
-   data
-   serial
+   *
+
    
 Indices and tables
 ~~~~~~~~~~~~~~~~~~~~~~
