@@ -1026,8 +1026,20 @@ class CoderFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
+        
+        #create a file history submenu
+        self.fileHistory = wx.FileHistory()
+        self.recentFilesMenu = wx.Menu()
+        self.fileHistory.UseMenu(self.recentFilesMenu)
+        for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
+        self.Bind(
+            wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
+            )
+            
+        #add items to file menu    
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %key_new)
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %key_open)
+        self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %key_save)
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %key_saveas)
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %key_close)
@@ -1039,19 +1051,10 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
-
-
-        # and a file history
-        self.fileHistory = wx.FileHistory()
-        
-        self.fileHistory.UseMenu(self.fileMenu)
-        for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
-        self.Bind(
-            wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
-            )
+        #-------------quit
         self.fileMenu.AppendSeparator()
-        self.fileMenu.Append(self.IDs.exit, "&Quit\t%s" %key_quit, "Terminate the program")
-        wx.EVT_MENU(self, self.IDs.exit,  self.quit)
+        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %key_quit, "Terminate the program")
+        wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
         
         #---_edit---#000000#FFFFFF--------------------------------------------------
         self.editMenu = wx.Menu()

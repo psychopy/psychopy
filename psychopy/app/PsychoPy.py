@@ -105,7 +105,7 @@ class PsychoPyApp(wx.App):
                     mainFrame='coder'
         else:
             args=[]
-        
+        self.SetAppName('PsychoPy')
         #set default paths and import options
         self.prefs = Preferences() #from preferences.py
         splash = PsychoSplashScreen(self)

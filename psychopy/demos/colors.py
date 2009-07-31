@@ -9,7 +9,7 @@ from psychopy import visual, event, core
 #have a PR60 then you can do this automatically using MonitorCenter.py
 #in the monitors package
 
-myWin = visual.Window((600,600), monitor='testMonitor', winType='pygame')
+myWin = visual.Window((600,600), monitor='testMonitor')
 stims = []
 #rgb colors
 stims.append( visual.PatchStim(myWin, mask='gauss',rgb=[1,0,0], pos=[-0.5,0.5],sf=2) )#r
