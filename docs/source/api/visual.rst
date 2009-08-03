@@ -15,9 +15,7 @@
 .. autoclass:: psychopy.visual.PatchStim
     :members:
     :undoc-members:
-    :inherited-members:  
-    
-    .. automethod:: __init__  
+    :inherited-members:
     
 --------
 
