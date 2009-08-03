@@ -7,6 +7,7 @@ Contents:
    :maxdepth: 1
    
    overview
+   gettingStarted
    builder/builder
    coder/coder
    api/api

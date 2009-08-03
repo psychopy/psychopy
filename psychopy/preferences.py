@@ -2,7 +2,7 @@ import wx, wx.stc
 import os, sys, urllib
 from shutil import copyfile
 from psychopy import configobj, configobjValidate
-
+from psychopy.app.keybindings import key_save, key_close, key_quit
 #GET PATHS------------------
 join = os.path.join
 

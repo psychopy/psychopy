@@ -37,6 +37,7 @@ try:
         cTypesOpenGL = False
 except:
     havePygame=False
+
 global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
 
 #check for advanced drawing abilities
@@ -156,8 +157,8 @@ class Window:
             self.scrWidthPIX=None
         else:self.scrWidthPIX=scrSize[0]
         
-        if fullscr==None: self.fullscr = prefs.general['fullscr']
-        else: self.fullscr = fullscr
+        if fullscr==None: self._isFullScr = prefs.general['fullscr']
+        else: self._isFullScr = fullscr
         if units==None: self.units = prefs.general['units']
         else: self.units = units
         if allowGUI==None: self.allowGUI = prefs.general['allowGUI']
@@ -213,7 +214,9 @@ class Window:
 
         #setup context and openGL()
         if winType==None:#choose the default windowing
-            winType=prefs.general['winType']
+            self.winType=prefs.general['winType']
+        else:
+            self.winType = winType
         
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
@@ -222,9 +225,10 @@ class Window:
         else: self.blendMode=blendMode
         
         #setup the context
-        if winType is "glut": self._setupGlut()
-        elif winType is "pygame": self._setupPygame()
-        elif winType is "pyglet": self._setupPyglet()
+        if self.winType == "glut": self._setupGlut()
+        elif self.winType == "pygame": self._setupPygame()
+        elif self.winType == "pyglet": 
+            self._setupPyglet()
         
         #check whether shaders are supported
         if winType=='pyglet':#we can check using gl_info
@@ -563,10 +567,10 @@ class Window:
         else:  GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
         #set the redisplay callback
         GLUT.glutDisplayFunc(self.update)
-    def _setupPyglet(self):
+    def _setupPyglet(self):        
+        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
         self.winType = "pyglet"
         #setup the global use of pyglet.gl
-        global GL, GLU, GL_multitexture
         GL = pyglet.gl
         GLU = pyglet.gl
         GL_multitexture = pyglet.gl
@@ -617,9 +621,9 @@ class Window:
 
     def _setupPygame(self):
         self.winType = "pygame"
+        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GL_multitexture, GLU        
         GL = OpenGL.GL     
         GL_multitexture = OpenGL.GL.ARB.multitexture
         GLU = OpenGL.GLU
@@ -651,7 +655,6 @@ class Window:
         self.winHandle = pygame.display.set_mode(self.size.astype('i'),winSettings)
         pygame.display.set_gamma(1.0) #this will be set appropriately later
     def _setupGL(self):
-        global _shaders
         if self.winType=='pyglet': _shaders=_shadersPyglet
 #        else: _shaders=_shadersPygame
         
