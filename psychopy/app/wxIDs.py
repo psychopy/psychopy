@@ -23,6 +23,8 @@ remRoutineFromFlow=wx.NewId()
 remLoopFromFlow=wx.NewId()
 
 #view menu
+openCoderView = wx.NewId()
+openBuilderView = wx.NewId()
 toggleOutput=wx.NewId()
 toggleSourceAsst=wx.NewId()
 

@@ -115,8 +115,9 @@ class PsychoPyApp(wx.App):
         self.coder=None
         self.builder=None
         self.IDs=wxIDs
-        if mainFrame == 'coder': self.newCoderFrame(args)
-        else: self.newBuilderFrame(args)
+        self.keys=keys
+        if mainFrame == 'coder': self.newCoderFrame(None, args)
+        else: self.newBuilderFrame(None, args)
         
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
@@ -143,22 +144,27 @@ class PsychoPyApp(wx.App):
                 config.Flush()"""
         
         return True
-    def newCoderFrame(self, filelist=None):
+    def newCoderFrame(self, event=None, filelist=None):
         #NB a frame doesn't have an app as a parent
-        self.coder = coder.CoderFrame(None, -1, 
+        if self.coder==None:
+            self.coder = coder.CoderFrame(None, -1, 
                                   title="PsychoPy Coder (IDE) (v%s)" %psychopy.__version__,
                                   files = filelist, app=self)         
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
-    def newBuilderFrame(self, fileList=None):    
+    def newBuilderFrame(self, event=None, fileList=None):    
         #NB a frame doesn't have an app as a parent
-        self.builder = builder.BuilderFrame(None, -1, 
+        if self.builder==None:
+            self.builder = builder.BuilderFrame(None, -1, 
                                   title="PsychoPy Experiment Builder",
                                   files = fileList, app=self)       
         self.builder.Show(True)
         self.SetTopWindow(self.builder)
     def MacOpenFile(self,fileName):
-        self.frame.setCurrentDoc(fileName)
+        if fileName.endswith('.py'):
+            self.coder.setCurrentDoc(fileName)
+        elif fileName.endswith('.psyexp'):
+            self.builder.setCurrentDoc(fileName)
     def quit(self, event=None):
         self.prefs.saveAppData()
         for frame in [self.coder, self.builder]:

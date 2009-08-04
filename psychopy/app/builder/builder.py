@@ -5,7 +5,7 @@ import sys, os, glob, copy, pickle
 import csv, pylab #these are used to read in csv files
 import experiment, numpy
 #import psychopy
-from keybindings import *
+#import psychopy.app.keybindings as keys
 
 #TODO: this should be loaded from prefs rather than hard-coded
 componentTypes=['Patch','Text','Movie','Sound','Mouse','Keyboard']
@@ -971,11 +971,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         keys = handler.params.keys()  
         #add trialList stuff to the *end*      
         if 'trialListFile' in keys:
-            keys.remove('trialListFile')
-            keys.insert(-1,'trialListFile')
+            self.app.keys.remove('trialListFile')
+            self.app.keys.insert(-1,'trialListFile')
         if 'trialList' in keys:
-            keys.remove('trialList')
-            keys.insert(-1,'trialList')
+            self.app.keys.remove('trialList')
+            self.app.keys.insert(-1,'trialList')
         #then step through them    
         for fieldName in keys:
             if fieldName in self.globalCtrls.keys():
@@ -1244,11 +1244,11 @@ class BuilderFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
-        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %key_new)
-        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %key_open)
-        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %key_save)
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %key_saveas)
-        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %key_close)
+        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys.new)
+        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys.open)
+        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys.save)
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveas)
+        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys.close)
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
@@ -1258,9 +1258,9 @@ class BuilderFrame(wx.Frame):
         
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %key_undo, "Undo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys.undo, "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %key_redo, "Redo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
         
         #---_tools---#000000#FFFFFF--------------------------------------------------
@@ -1269,14 +1269,16 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.openMonCentre, "Monitor Center", "To set information about your monitor")
         wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
         
-        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %key_runscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runscript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)        
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %key_stopscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopscript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
+        self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
+        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.newCoderFrame)
                 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()    

@@ -2,7 +2,7 @@ import wx, wx.stc
 import os, sys, urllib
 from shutil import copyfile
 from psychopy import configobj, configobjValidate
-from psychopy.app.keybindings import key_save, key_close, key_quit
+import psychopy.app.keybindings as keys
 #GET PATHS------------------
 join = os.path.join
 
@@ -143,12 +143,12 @@ class PreferencesDlg(wx.Frame):
     
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
-        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %key_save)
+        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %keys.save)
         self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %key_close)
+        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %keys.close)
         self.Bind(wx.EVT_MENU, self.close, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %key_quit, "Terminate the application")
+        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %keys.quit, "Terminate the application")
         self.Bind(wx.EVT_MENU, self.quit, item)
 
 #        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
