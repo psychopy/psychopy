@@ -4,3 +4,7 @@ dist
 build
 old
 nonSVN
+sitePrefs.cfg
+builddocs.sh
+appData.cfg
+PsyScope*
