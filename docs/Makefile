@@ -26,19 +26,6 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
-all:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
-	@echo
-	@echo "Built HTML format in build/html."
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
-	@echo
-	@echo "Built LaTeX in build/latex."
-	cd build/latex/
-	make all-pdf
-	cd ../..
-	@echo
-	@echo "Built pdf as build/PsychoPy.pdf"
-
 clean:
 	-rm -rf build/*
 

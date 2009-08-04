@@ -7,7 +7,7 @@ PsychoPy has moved from a wiki-based web site to Sphinx (for better integration 
 **Latest version**:
 Version 1.00.03 was released in June 2009. There is now a standalone download for Windows and OS X (containing its own python and dependencies).
 
-ShapeStims and SimpleImageStim have been added, and many bugs fixed. See the :doc:changelog for further details.
+ShapeStims and SimpleImageStim have been added, and many bugs fixed. See the :doc:`changelog` for further details.
 
 Contents
 ====================

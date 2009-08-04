@@ -7,9 +7,15 @@ Contents:
    :maxdepth: 1
    
    overview
+   installation
    gettingStarted
    builder/builder
    coder/coder
    api/api
    faqs/faqs
-   Index <indices>
+   glossary
+   indices
+
+A pdf copy of the current documentation is available at:
+    
+    http://www.psychopy.org/PsychoPyManual.pdf

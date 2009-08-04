@@ -173,7 +173,7 @@ htmlhelp_basename = 'PsychoPydoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('documentation', 'PsychoPy.tex', u'PsychoPy - Psychology software for Python',
+  ('documentation', 'PsychoPyManual.tex', u'PsychoPy - Psychology software for Python',
    u'Jonathan Peirce', 'manual'),
 ]
 

@@ -25,7 +25,12 @@ There are many advantages to using PsychoPy, but here are some of the key ones
     * Simple routines for staircase and constant stimuli experimental methods as well as curve-fitting and bootstrapping
     * Integration with CRS Bits++(for 14bit luminance resolution)
     * Integration with Spectrascan PR650 for easy monitor calibration 
-   
+    
+Platform Independence
+----------------------
+
+The package is written almost entirely in Python using platform independent libraries (see list below). Since these are all available on all popular platforms PsychoPy will run anywhere and is limited only by your graphics card (make sure you have a decent 3D-accelerated card).
+
 How to cite PsychoPy
 ----------------------
 A couple of papers have been written about PsychoPy already. Please cite them if you use the software.
