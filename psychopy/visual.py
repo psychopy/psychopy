@@ -3031,14 +3031,17 @@ class MovieStim(_BaseVisualStim):
             self.win._defDepth += _depthIncrements[self.win.winType]
         else:
             thisDepth=self.depth
-
-        #do scaling
-        #scale the viewport to the appropriate size
-        self.win.setScale(self._winScale)
+        
+        #make sure that textures are on and GL_TEXTURE0 is active
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         
         frameTexture = self._player.get_texture()
         GL.glColor4f(1,1,1,self.opacity)
         GL.glPushMatrix()
+        #do scaling
+        #scale the viewport to the appropriate size
+        self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
