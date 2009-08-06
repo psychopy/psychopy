@@ -2,11 +2,8 @@ import sys, time, types, re
 import wx, wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob
 import threading, traceback, bdb, cPickle
-import psychopy
 import psychoParser
 import introspect, py_compile
-
-from psychopy.preferences import *
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -831,7 +828,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         #self.urlStyle.SetFontUnderlined(False)
         
         self.write('Welcome to the Integrated Development Environment (IDE) for PsychoPy!\n')
-        self.write("v%s\n" %psychopy.__version__)
+        self.write("v%s\n" %self.parent.app.version)
         
     def write(self,inStr):
         self.MoveEnd()#always 'append' text rather than 'writing' it
@@ -1037,12 +1034,12 @@ class CoderFrame(wx.Frame):
             )
             
         #add items to file menu    
-        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %keys.new)
-        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %keys.open)
+        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys.new)
+        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys.open)
         self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
-        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %keys.save)
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %keys.saveas)
-        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %keys.close)
+        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys.save)
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveas)
+        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys.close)
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
@@ -1053,47 +1050,47 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
         self.fileMenu.AppendSeparator()
-        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %keys.quit, "Terminate the program")
+        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys.quit, "Terminate the program")
         wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
         
         #---_edit---#000000#FFFFFF--------------------------------------------------
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(self.IDs.cut, "Cu&t\t%s" %keys.cut)
+        self.editMenu.Append(self.IDs.cut, "Cu&t\t%s" %self.app.keys.cut)
         wx.EVT_MENU(self, self.IDs.cut,  self.cut)
-        self.editMenu.Append(self.IDs.copy, "&Copy\t%s" %keys.copy)
+        self.editMenu.Append(self.IDs.copy, "&Copy\t%s" %self.app.keys.copy)
         wx.EVT_MENU(self, self.IDs.copy,  self.copy)
-        self.editMenu.Append(self.IDs.paste, "&Paste\t%s" %keys.paste)
+        self.editMenu.Append(self.IDs.paste, "&Paste\t%s" %self.app.keys.paste)
         wx.EVT_MENU(self, self.IDs.paste,  self.paste)
-        self.editMenu.Append(wx.ID_DUPLICATE, "&Duplicate\t%s" %keys.duplicate, "Duplicate the current line (or current selection)")
+        self.editMenu.Append(wx.ID_DUPLICATE, "&Duplicate\t%s" %self.app.keys.duplicate, "Duplicate the current line (or current selection)")
         wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(self.IDs.showFind, "&Find\t%s" %keys.find)
+        self.editMenu.Append(self.IDs.showFind, "&Find\t%s" %self.app.keys.find)
         wx.EVT_MENU(self, self.IDs.showFind, self.OnFindOpen)
-        self.editMenu.Append(self.IDs.findNext, "Find &Next\t%s" %keys.findagain)
+        self.editMenu.Append(self.IDs.findNext, "Find &Next\t%s" %self.app.keys.findagain)
         wx.EVT_MENU(self, self.IDs.findNext, self.OnFindNext)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(self.IDs.comment, "Comment\t%s" %keys.comment, "Comment selected lines", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.comment, "Comment\t%s" %self.app.keys.comment, "Comment selected lines", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.comment,  self.commentSelected)
-        self.editMenu.Append(self.IDs.unComment, "Uncomment\t%s" %keys.uncomment, "Un-comment selected lines", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.unComment, "Uncomment\t%s" %self.app.keys.uncomment, "Un-comment selected lines", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.unComment,  self.uncommentSelected)       
-        self.editMenu.Append(self.IDs.foldAll, "Toggle fold\t%s" %keys.fold, "Toggle folding of top level", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.foldAll, "Toggle fold\t%s" %self.app.keys.fold, "Toggle folding of top level", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.foldAll,  self.foldAll)  
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(self.IDs.indent, "Indent selection\t%s" %keys.indent, "Increase indentation of current line", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.indent, "Indent selection\t%s" %self.app.keys.indent, "Increase indentation of current line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.indent,  self.indent)
-        self.editMenu.Append(self.IDs.dedent, "Dedent selection\t%s" %keys.dedent, "Decrease indentation of current line", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.dedent, "Dedent selection\t%s" %self.app.keys.dedent, "Decrease indentation of current line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.dedent,  self.dedent)
-        self.editMenu.Append(self.IDs.smartIndent, "SmartIndent\t%s" %keys.smartindent, "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.smartIndent, "SmartIndent\t%s" %self.app.keys.smartindent, "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.smartIndent,  self.smartIndent)
         
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %keys.undo, "Undo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys.undo, "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %keys.redo, "Redo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
         
         #self.editMenu.Append(ID_UNFOLDALL, "Unfold All\tF3", "Unfold all lines", wx.ITEM_NORMAL)
@@ -1106,12 +1103,12 @@ class CoderFrame(wx.Frame):
         self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto, "Analyse on file save/open", "Automatically analyse source (for autocomplete etc...). Can slow down the editor on a slow machine or with large files")
         wx.EVT_MENU(self, self.IDs.analyzeAuto,  self.setAnalyseAuto)
         self.analyseAutoChk.Check(self.prefs['analyseAuto'])
-        self.toolsMenu.Append(self.IDs.analyzeNow, "Analyse now\t%s" %keys.analysecode, "Force a reananalysis of the code now")
+        self.toolsMenu.Append(self.IDs.analyzeNow, "Analyse now\t%s" %self.app.keys.analysecode, "Force a reananalysis of the code now")
         wx.EVT_MENU(self, self.IDs.analyzeNow,  self.analyseCodeNow)
         
-        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %keys.runscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runscript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)        
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %keys.stopscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopscript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
 
         
@@ -1129,7 +1126,7 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()       
-        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %keys.switchToBuilder, "Open a new Builder view")
+        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.newBuilderFrame)
                 
         
@@ -1469,7 +1466,7 @@ class CoderFrame(wx.Frame):
         newPageID = self.notebook.GetSelection()
         if newPageID == -1:
             self.currentDoc = None
-            self.SetLabel("PsychoPy (Coder) (v%s)" %psychopy.__version__)
+            self.SetLabel("PsychoPy (Coder) (v%s)" %self.app.version)
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
@@ -1696,8 +1693,3 @@ class CoderFrame(wx.Frame):
         self.scriptProcessID=None        
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
-
-if __name__=='__main__':
-    from psychopy.app import PsychoPy
-    app = PsychoPy.PsychoPyApp(0)
-    app.MainLoop()

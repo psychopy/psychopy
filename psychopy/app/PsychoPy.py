@@ -2,14 +2,14 @@
 
 # Ensure 2.8 version of wx
 import wxversion
-wxversion.ensureMinimal('2.8')
+#wxversion.ensureMinimal('2.8')
 import wx
 
 import sys, os, threading, time, platform
-from keybindings import *
-import psychopy, coder, builder
-from psychopy.preferences import *
-import wxIDs#handles for GUI controls
+import psychopy
+from psychopy.preferences import Preferences
+#other app subpackages needs to be imported as explicitly in app 
+from psychopy.app import coder, builder, keybindings, wxIDs
 import urllib2 #for usage stats
 
 
@@ -85,13 +85,20 @@ def sendUsageStats(proxy=None):
         
 class PsychoPyApp(wx.App):
     def OnInit(self):
-        mainFrame = 'builder'
+        self.version=psychopy.__version__
+        self.SetAppName('PsychoPy2')
+        #set default paths and import options
+        self.prefs = Preferences() #from preferences.py
+        splash = PsychoSplashScreen(self)
+        if splash:
+            splash.Show()
+            
+        mainFrame=self.prefs.app['defaultView']
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
                 args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
             else:
                 args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
-
             #choose which frame to start with
             if args[0] in ['builder', '--builder', '-b']:
                     mainFrame='builder'
@@ -105,17 +112,11 @@ class PsychoPyApp(wx.App):
                     mainFrame='coder'
         else:
             args=[]
-        self.SetAppName('PsychoPy')
-        #set default paths and import options
-        self.prefs = Preferences() #from preferences.py
-        splash = PsychoSplashScreen(self)
-        if splash:
-            splash.Show()
         #create frame(s) for coder/builder as necess
         self.coder=None
         self.builder=None
         self.IDs=wxIDs
-        self.keys=keys
+        self.keys=keybindings
         if mainFrame == 'coder': self.newCoderFrame(None, args)
         else: self.newBuilderFrame(None, args)
         
@@ -148,7 +149,7 @@ class PsychoPyApp(wx.App):
         #NB a frame doesn't have an app as a parent
         if self.coder==None:
             self.coder = coder.CoderFrame(None, -1, 
-                                  title="PsychoPy Coder (IDE) (v%s)" %psychopy.__version__,
+                                  title="PsychoPy Coder (IDE) (v%s)" %self.version,
                                   files = filelist, app=self)         
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
@@ -219,12 +220,12 @@ class PreferencesDlg(wx.Frame):
         
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
-        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %keys.save)
+        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys.save)
         self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %keys.close)
+        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys.close)
         self.Bind(wx.EVT_MENU, self.close, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %keys.quit, "Terminate the application")
+        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %app.keys.quit, "Terminate the application")
         self.Bind(wx.EVT_MENU, self.quit, item)
 
 #        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)

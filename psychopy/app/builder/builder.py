@@ -1255,6 +1255,8 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
+        item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
+        self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
@@ -1539,8 +1541,3 @@ class BuilderFrame(wx.Frame):
         pass
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
-
-if __name__=='__main__':
-    from psychopy.app import PsychoPy
-    app = PsychoPy.PsychoPyApp(0)
-    app.MainLoop()

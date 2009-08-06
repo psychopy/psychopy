@@ -1,7 +1,7 @@
 """Set the key bindings for the PsychoPy app"""
 #NB Ctrl- becomes Cmd- automatically on Apple platform
 #All letter keys should be upper case 
-#import platform
+import platform
 
 open="Ctrl+O"
 new = 'Ctrl+N'
@@ -20,8 +20,8 @@ smartindent='Shift+Tab'
 find = 'Ctrl+F'
 findagain = 'Ctrl+G'
 undo='Ctrl+Z'
-#if platform.system=='darwin': redo='Ctrl+Shift+Z'
-#else: redo='Ctrl+Y'
+if platform.system=='darwin': redo='Ctrl+Shift+Z'
+else: redo='Ctrl+Y'
 redo='Ctrl+Y'
 runscript='F5'
 stopscript='Shift+F5'

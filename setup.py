@@ -10,8 +10,9 @@ import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
-              'PsychoPyIDE','PsychoPyIDE.Resources','monitors']
+packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos','psychopy.monitors',
+              'psychopy.app','psychopy.app.coder','psychopy.app.builder','psychopy.app.Resources',
+              ]
 
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg']
 
