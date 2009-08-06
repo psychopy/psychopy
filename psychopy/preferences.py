@@ -2,7 +2,7 @@ import wx, wx.stc
 import os, sys, urllib
 from shutil import copyfile
 from psychopy import configobj, configobjValidate
-import psychopy.app.keybindings as keys
+
 #GET PATHS------------------
 join = os.path.join
 
@@ -123,87 +123,3 @@ class Preferences:
         else:
             return ""
         
-class PreferencesDlg(wx.Frame):
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
-        wx.Frame.__init__(self, parent, ID, title, size=(500,700))
-        panel = wx.Panel(self)
-        self.nb = wx.Notebook(panel)
-        self.pageIDs={}#store the page numbers
-        self.paths = app.prefs.paths
-        self.app=app
-        
-        for n, prefsType in enumerate(['site','user']):
-            sitePage = self.makePage(self.paths['%sPrefsFile' %prefsType])
-            self.nb.AddPage(sitePage,prefsType)
-            self.pageIDs[prefsType]=n
-        
-        sizer = wx.BoxSizer()
-        sizer.Add(self.nb, 1, wx.EXPAND)
-        panel.SetSizer(sizer)
-    
-        self.menuBar = wx.MenuBar()
-        self.fileMenu = wx.Menu()
-        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %keys.save)
-        self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %keys.close)
-        self.Bind(wx.EVT_MENU, self.close, item)
-        self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %keys.quit, "Terminate the application")
-        self.Bind(wx.EVT_MENU, self.quit, item)
-
-#        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
-#        self.fileMenu.Enable(wx.ID_SAVE, False)
-        self.menuBar.Append(self.fileMenu, "&File")
-        self.SetMenuBar(self.menuBar)
-        
-    def makePage(self, path):
-        page = wx.stc.StyledTextCtrl(parent=self.nb)
-        
-        # setup the style
-        if sys.platform=='darwin':
-            page.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:Courier New,size:10d")
-        else:
-            page.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:Courier,size:12d")
-        page.StyleClearAll()  # Reset all to be like the default
-        page.SetLexer(wx.stc.STC_LEX_PROPERTIES)
-        page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF0000")
-        page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#007F00")
-        
-        f = open(path, 'r+')
-        page.SetText(f.read())
-        f.close()        
-        if not os.access(path,os.W_OK):#can only read so make the textctrl read-only
-            page.set_read_only()
-        
-        return page
-    def close(self, event=None):
-        okToQuit=self.save(event=None)#will be -1 if user cancelled during save
-        self.Destroy()
-    def quit(self,event=None):
-        self.close()
-        self.app.quit()
-    def save(self, event=None):
-        ok=1
-        for prefsType in ['site','user']:
-            pageText = self.getPageText(prefsType)
-            filePath = self.paths['%sPrefsFile' %prefsType]
-            if self.isChanged(prefsType):
-                f=open(filePath,'w')
-                f.write(pageText)
-                f.close()
-                print "saved", filePath             
-        return ok
-    def getPageText(self,prefsType):
-        """Get the prefs text for a given page
-        """
-        self.nb.ChangeSelection(self.pageIDs[prefsType])
-        return self.nb.GetCurrentPage().GetText().encode('utf-8')
-    def isChanged(self,prefsType='site'):
-        filePath = self.paths['%sPrefsFile' %prefsType]
-        f = open(filePath, 'r+')
-        savedTxt = f.read()
-        f.close()
-        #find the notebook page
-        currTxt = self.getPageText(prefsType)
-        return (currTxt!=savedTxt)
-    

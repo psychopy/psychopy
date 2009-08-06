@@ -1,4 +1,4 @@
-import """
+"""
 placeholder for adding c (or ctypes) extensions to the linux PsychoPy
 """
 def rush(value=True):    
