@@ -102,6 +102,7 @@ class Preferences:
         cfg.write()#so the user can see what's (now) available
         return cfg
     def loadUserPrefs(self):  
+        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         #check for folder
         if not os.path.isfile(self.paths['userPrefsFile']):
             #create file and validate based on template, but then close and reopen
@@ -109,7 +110,6 @@ class Preferences:
             #inserted and will override sitePrefs with defaults
             os.makedirs(self.paths['userPrefs'])  
             #then add user prefs
-            prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
             cfg1 = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
             cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
             cfg1.initial_comment=["#preferences set in this file will override the site-prefs",

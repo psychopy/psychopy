@@ -52,7 +52,7 @@ class Experiment:
         """
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('"""This experiment was created using PsychoPy2 (Experiment Builder) and will\n \
-run on any platform on which PsychoPy (www.psychopy.org) can be installed\n \
+run on any platform on which PsychoPy can be installed\n \
 \nIf you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
         
         #delegate most of the code-writing to Flow
@@ -176,7 +176,7 @@ class TrialHandler():
         buff.setIndentLevel(1, relative=True)
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("# end of '%s' after %i repeats (of each entry in trialList)\n" %(self.loop.params['name'], self.loop.params['nReps']))
+        buff.writeIndented("# end of '%s' after %s repeats (of each entry in trialList)\n" %(self.params['name'], self.params['nReps']))
     def getType(self):
         return 'TrialHandler'     
 class StairHandler():    
@@ -242,7 +242,7 @@ class LoopTerminator:
     def writeInitCode(self,buff):
         pass
     def writeMainCode(self,buff):
-        self.loop.writeLoopStartCode(buff)
+        self.loop.writeLoopEndCode(buff)
     def getType(self):
         return 'LoopTerminator'
 class Flow(list):

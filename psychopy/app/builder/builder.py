@@ -11,7 +11,6 @@ canvasColour=[200,200,200]#in prefs? ;-)
 
 #todo: need to implement right-click context menus for flow and routine canvas!
 
-
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1,size = (600,100)):
         """A panel that shows how the routines will fit together
@@ -853,7 +852,7 @@ class ParamCtrls:
         """Get the current value of the updates ctrl
         """
         if self.updateCtrl:
-            return self._getCtrlValue(self.updatesCtrl)
+            return self._getCtrlValue(self.updateCtrl)
 class _BaseParamsDlg(wx.Dialog):   
     def __init__(self,frame,title,params,order,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -1213,7 +1212,7 @@ class BuilderFrame(wx.Frame):
 
         self.panel = wx.Panel(self)
         self.app=app
-        self.appData = self.app.prefs.appData['coder']#things the user doesn't set like winsize etc
+        self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.builder#things about the coder that get set
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
@@ -1227,13 +1226,16 @@ class BuilderFrame(wx.Frame):
         self.makeMenus()
         
         #setup a blank exp
-        self.lastSavedCopy=None
-        self.fileNew(closeCurrent=False)#don't try to close before opening
-        self.exp.addRoutine('trial') #create the trial routine as an example
-        self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow 
-        self.updateAllViews()
-        self.resetUndoStack() #so that the above 2 changes don't show up as undo-able
-        self.setIsModified(False)
+        if self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
+            self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
+        else:
+            self.lastSavedCopy=None
+            self.fileNew(closeCurrent=False)#don't try to close before opening
+            self.exp.addRoutine('trial') #create the trial routine as an example
+            self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow 
+            self.updateAllViews()
+            self.resetUndoStack() #so that the above 2 changes don't show up as undo-able
+            self.setIsModified(False)
         
         if True: #control the panes using aui manager
             self._mgr = wx.aui.AuiManager(self)
@@ -1252,7 +1254,7 @@ class BuilderFrame(wx.Frame):
             self.SetSizer(self.mainSizer)
             
         self.SetAutoLayout(True)
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
     def makeToolbar(self):
         #---toolbar---#000000#FFFFFF----------------------------------------------
         self.toolbar = self.CreateToolBar( (wx.TB_HORIZONTAL
@@ -1276,25 +1278,25 @@ class BuilderFrame(wx.Frame):
         run_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         compile_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'compile%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         
-        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [Ctrl+N]", "Create new python file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [%s]" %self.app.keys.new, "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, "Open [Ctrl+O]", "Open an existing file'")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, "Open [%s]" %self.app.keys.open, "Open an existing file'")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, "Save [Ctrl+S]", "Save current file")        
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, "Save [%s]" %self.app.keys.save,  "Save current file")        
         self.toolbar.EnableTool(self.IDs.tbFileSave, False)
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, "Save As... [Ctrl+Shft+S]", "Save current python file as...")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, "Save As... [%s]" %self.app.keys.saveAs, "Save current python file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, "Undo [Ctrl+U]", "Undo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, "Undo [%s]" %self.app.keys.undo, "Undo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [Ctrl+R]", "Redo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [%s]" %self.app.keys.redo,  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
-        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, "Comile Script [F4]",  "Run current script")
+        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, "Compile Script [%s]" %self.app.keys.compileScript,  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
-        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run [F5]",  "Run current script")
+        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run/t%s" %self.app.keys.runScript,  "Run experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop [Shift+F5]",  "Stop current script")
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop/t%s" %self.app.keys.compileScript,  "Stop experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         self.toolbar.Realize()
@@ -1308,7 +1310,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys.new)
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys.open)
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys.save)
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveas)
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveAs)
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys.close)
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
@@ -1318,6 +1320,10 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+        #-------------quit
+        self.fileMenu.AppendSeparator()
+        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys.quit, "Terminate the program")
+        wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
         
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
@@ -1332,9 +1338,11 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.openMonCentre, "Monitor Center", "To set information about your monitor")
         wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
         
-        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.runFile, "Compile\t%s" %self.app.keys.compileScript, "Compile the exp to a script")
+        wx.EVT_MENU(self, self.IDs.runFile,  self.runFile) 
+        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runScript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)        
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopScript, "Abort the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
@@ -1392,9 +1400,11 @@ class BuilderFrame(wx.Frame):
         self.demosMenu
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
-        
-    def OnClose(self, event):
-        # delete the frame
+    def closeFrame(self, event=None):
+        self.appData['prevFile']=self.filename
+        self.Hide()
+    def quit(self, event):
+        """quit the app""" 
         self.Destroy()
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""   
@@ -1404,30 +1414,31 @@ class BuilderFrame(wx.Frame):
         self.exp = experiment.Experiment()
         self.resetUndoStack() 
         self.updateAllViews()
-    def fileOpen(self, event=None):
+    def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
         """
-        #todo: check whether current file has been modified and recommend save
-        dlg = wx.FileDialog(
-            self, message="Open file ...", style=wx.OPEN,
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
-            )
-        
-        if dlg.ShowModal() != wx.ID_OK: 
-            return 0
-        newPath = dlg.GetPath()
-        f = open(newPath)
+        if filename==None:
+            dlg = wx.FileDialog(
+                self, message="Open file ...", style=wx.OPEN,
+                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
+                )
+            
+            if dlg.ShowModal() != wx.ID_OK: 
+                return 0
+            filename = dlg.GetPath()
+        f = open(filename)
         exp = pickle.load(f)
         f.close()
         if not hasattr(exp,'psychopyExperimentVersion'):#this indicates we have a PsychoPy Experiment object
             print 'not a valid PsychoPy builder experiment'
             return 0
-        self.fileClose()#close the existing (and prompt for save if necess)
+        if closeCurrent:
+            self.fileClose()#close the existing (and prompt for save if necess)
         #update exp vals
         self.exp=exp
         self.resetUndoStack()
         self.setIsModified(False)  
-        self.filename = newPath
+        self.filename = filename
         #load routines
         for thisRoutineName in self.exp.routines.keys():
             routine = self.exp.routines[thisRoutineName]
@@ -1616,7 +1627,6 @@ class BuilderFrame(wx.Frame):
         name = os.path.splitext(self.filename)[0]+".py"
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
-        self.app.coder.currentDoc.setFileModified(False)#it won't need saving unless user changes
     def openMonitorCenter(self, event=None):
         #todo: openMonitorCenter
         pass

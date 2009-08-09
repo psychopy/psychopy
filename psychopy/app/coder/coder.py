@@ -1038,7 +1038,7 @@ class CoderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys.open)
         self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys.save)
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveas)
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveAs)
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys.close)
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
@@ -1068,7 +1068,7 @@ class CoderFrame(wx.Frame):
         self.editMenu.AppendSeparator()
         self.editMenu.Append(self.IDs.showFind, "&Find\t%s" %self.app.keys.find)
         wx.EVT_MENU(self, self.IDs.showFind, self.OnFindOpen)
-        self.editMenu.Append(self.IDs.findNext, "Find &Next\t%s" %self.app.keys.findagain)
+        self.editMenu.Append(self.IDs.findNext, "Find &Next\t%s" %self.app.keys.findAgain)
         wx.EVT_MENU(self, self.IDs.findNext, self.OnFindNext)
         
         self.editMenu.AppendSeparator()
@@ -1084,7 +1084,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.indent,  self.indent)
         self.editMenu.Append(self.IDs.dedent, "Dedent selection\t%s" %self.app.keys.dedent, "Decrease indentation of current line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.dedent,  self.dedent)
-        self.editMenu.Append(self.IDs.smartIndent, "SmartIndent\t%s" %self.app.keys.smartindent, "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
+        self.editMenu.Append(self.IDs.smartIndent, "SmartIndent\t%s" %self.app.keys.smartIndent, "Try to indent to the correct position w.r.t  last line", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.smartIndent,  self.smartIndent)
         
         self.editMenu.AppendSeparator()
@@ -1103,12 +1103,12 @@ class CoderFrame(wx.Frame):
         self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto, "Analyse on file save/open", "Automatically analyse source (for autocomplete etc...). Can slow down the editor on a slow machine or with large files")
         wx.EVT_MENU(self, self.IDs.analyzeAuto,  self.setAnalyseAuto)
         self.analyseAutoChk.Check(self.prefs['analyseAuto'])
-        self.toolsMenu.Append(self.IDs.analyzeNow, "Analyse now\t%s" %self.app.keys.analysecode, "Force a reananalysis of the code now")
+        self.toolsMenu.Append(self.IDs.analyzeNow, "Analyse now\t%s" %self.app.keys.analyseCode, "Force a reananalysis of the code now")
         wx.EVT_MENU(self, self.IDs.analyzeNow,  self.analyseCodeNow)
         
-        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runScript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)        
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopscript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopScript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
 
         
@@ -1304,17 +1304,14 @@ class CoderFrame(wx.Frame):
             self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
-        self.app.prefs.saveAppData()#do the actual save
         
         #close each file (so that we check for saving)
         for thisFileName in currFiles:#must do this for all files AFTER adding them to the list
             ok = self.fileClose(event=0, filename=thisFileName)#delete from end back
             if ok==-1:
                 return -1 #user cancelled - don't quit
-  
-        if sys.platform=='darwin':
-            self.Hide()#the user may not have quit, so keep the menubar open by just hiding the window
-        else: self.Destroy()
+        
+        self.Hide()#the user may not have quit, so keep the menubar open by just hiding the window
         
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)

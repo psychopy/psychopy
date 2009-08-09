@@ -26,7 +26,7 @@ class TextComponent(VisualComponent):
             updates="never", allowedUpdates=["never","routine","frame"],
             hint="Specifies the height of the letter (the width is then determined by the font)")
     def writeInitCode(self,buff):
-        s = "%s=TextStim(win=win, pos=%s, size=%s" %(self.params['name'], self.params['pos'],self.params['size'])
+        s = "%s=TextStim(win=win, pos=%s, height=%s" %(self.params['name'], self.params['pos'],self.params['letterHeight'])
         buff.writeIndented(s)   
         
         buff.writeIndented(")\n")
