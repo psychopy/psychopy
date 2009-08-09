@@ -18,6 +18,8 @@ PsychoPy 1.50.00
 * BACKWARDS NONCOMPAT: monitors is moved to be a subpackage of psychopy
 * Added TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
 * Moved docs/website to sphinx rather than wiki (contained in svn)
+* FIXED bug with MovieStim not displaying corretly after SimpleImageStim
+* FIXED incorrect wx sizing of app(IDE) under OS X on opening
 
 PsychoPy 1.00
 ------------------------------

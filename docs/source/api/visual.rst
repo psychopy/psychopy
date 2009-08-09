@@ -1,6 +1,8 @@
 :mod:`psychopy.visual` - many visual stimuli
 ==============================================================================
 
+.. automod:: psychopy.visual
+
 :class:`Window`
 ------------------------------------
 .. autoclass:: psychopy.visual.Window
