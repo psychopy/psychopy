@@ -852,7 +852,7 @@ class ParamCtrls:
     def getUpdates(self):
         """Get the current value of the updates ctrl
         """
-        if self.updatesCtrl:
+        if self.updateCtrl:
             return self._getCtrlValue(self.updatesCtrl)
 class _BaseParamsDlg(wx.Dialog):   
     def __init__(self,frame,title,params,order,

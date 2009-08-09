@@ -46,7 +46,7 @@ class Preferences:
         self.paths['userPrefs']=dirUserPrefs
         self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg')
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
-        self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'sitePrefs.cfg')
+        self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
 
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a 
@@ -57,10 +57,9 @@ class Preferences:
         self.appDataCfg = self.loadAppData()
         self.prefsCfg = self.loadSitePrefs()
         self.userPrefsCfg = self.loadUserPrefs()
-        self.userPrefsCfg.validate(self._validator, copy=True)#copy means all settings get saved
         #merge site prefs and user prefs
         self.prefsCfg.merge(self.userPrefsCfg)
-        
+        self.prefsCfg.validate(self._validator, copy=False)#validate after the merge
         #simplify namespace
         self.general=self.prefsCfg['general']
         self.app = self.prefsCfg['app'] 
@@ -104,16 +103,20 @@ class Preferences:
         return cfg
     def loadUserPrefs(self):  
         #check for folder
-        if not os.path.isdir(self.paths['userPrefs']):
+        if not os.path.isfile(self.paths['userPrefsFile']):
+            #create file and validate based on template, but then close and reopen
+            #if we validate the file that we actually use then all the settings will be
+            #inserted and will override sitePrefs with defaults
             os.makedirs(self.paths['userPrefs'])  
-        #then add user prefs
-        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+            #then add user prefs
+            prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+            cfg1 = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
+            cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
+            cfg1.initial_comment=["#preferences set in this file will override the site-prefs",
+                "#to set a preference here simply copy and paste from the site-prefs file",
+                "the file can be found at %s" %self.paths['userPrefsFile']]
+            cfg1.write()
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
-        cfg.validate(self._validator, copy=False)#copy means all settings get saved   
-        cfg.initial_comment=["#preferences set in this file will override the site-prefs",
-            "#to set a preference here simply copy and paste from the site-prefs file",
-            "the file can be found at %s" %self.paths['userPrefsFile']]
-        cfg.write()
         return cfg
     def getAutoProxy(self):
         """Fetch the proxy from the the system environment variables
