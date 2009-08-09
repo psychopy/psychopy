@@ -109,7 +109,7 @@ class FlowPanel(wx.ScrolledWindow):
         
         if loopDlg.OK:
             handler=loopDlg.currentHandler
-            exec("ends=%s" %handler.params['endPoints'])#creates a copy of endPoints as an array
+            exec("ends=numpy.%s" %handler.params['endPoints'])#creates a copy of endPoints as an array
             self.frame.exp.flow.addLoop(handler, startPos=ends[0], endPos=ends[1])
             self.frame.addToUndoStack("AddLoopToFlow")
         #remove the points from the timeline
@@ -722,7 +722,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
             order = newComp.order)
         compName = newComp.params['name']
         if dlg.OK:
-            currRoutine.append(newComp)#add to the actual routing
+            currRoutine.addComponent(newComp)#add to the actual routing
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
@@ -1296,7 +1296,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run/t%s" %self.app.keys.runScript,  "Run experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop/t%s" %self.app.keys.compileScript,  "Stop experiment")
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop/t%s" %self.app.keys.stopScript,  "Stop experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         self.toolbar.Realize()
@@ -1338,13 +1338,13 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.openMonCentre, "Monitor Center", "To set information about your monitor")
         wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
         
-        self.toolsMenu.Append(self.IDs.runFile, "Compile\t%s" %self.app.keys.compileScript, "Compile the exp to a script")
-        wx.EVT_MENU(self, self.IDs.runFile,  self.runFile) 
+        self.toolsMenu.Append(self.IDs.compileScript, "Compile\t%s" %self.app.keys.compileScript, "Compile the exp to a script")
+        wx.EVT_MENU(self, self.IDs.compileScript,  self.compileScript) 
         self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runScript, "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)        
         self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopScript, "Abort the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
-
+        
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
@@ -1615,12 +1615,11 @@ class BuilderFrame(wx.Frame):
     def runFile(self, event=None):
         #todo: runFile
         script = self.exp.writeScript()
-        print script.getvalue()      
+        print script.getvalue()    
     def stopFile(self, event=None):
         #todo: stopFile
         pass
     def compileScript(self, event=None):
-        #todo: exportScript
         script = self.exp.writeScript()
         if not self.app.coder:#it doesn't exist so make one
             self.app.newCoderFrame()

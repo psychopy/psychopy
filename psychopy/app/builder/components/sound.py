@@ -8,6 +8,7 @@ class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, parentName, name='', sound='A', 
             size=1, ori=0, times=[0,1]):
+        self.psychopyLibs=['sound']#needs this psychopy lib to operate
         self.order=['name']#make sure name comes first
         self.type='Sound'
         self.params={}

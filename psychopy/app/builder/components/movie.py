@@ -21,7 +21,7 @@ class MovieComponent(VisualComponent):
             hint="A filename for the movie (including path)")        
                 
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=MovieStim(win=win, movie=%(movie)s,\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.MovieStim(win=win, movie=%(movie)s,\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s)\n" %(self.params))
         
   

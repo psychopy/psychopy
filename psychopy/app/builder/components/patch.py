@@ -26,8 +26,8 @@ class PatchComponent(VisualComponent):
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates="never", allowedUpdates=["never"],
             hint="How should the image be interpolated if/when rescaled")
-                
+            
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=PatchStim(win=win, tex=%(image)s, mask=%(mask)s,\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.PatchStim(win=win, tex=%(image)s, mask=%(mask)s,\n" %(self.params))
         buff.writeIndented("    pos=%(pos)s, size=%(size)s)\n" %(self.params) )
 

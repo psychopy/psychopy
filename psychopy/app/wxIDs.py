@@ -32,6 +32,7 @@ toggleSourceAsst=wx.NewId()
 analyzeNow=wx.NewId()
 analyzeAuto=wx.NewId()
 openMonCentre=wx.NewId()
+compileScript=wx.NewId()
 runFile=wx.NewId()
 stopFile=wx.NewId()
 

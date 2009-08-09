@@ -9,6 +9,7 @@ class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given times"""
     def __init__(self, parentName, name='mouse', times=[0,1], save='final'):
         self.type='Mouse'
+        self.psychopyLibs=['event']#needs this psychopy lib to operate
         self.setIcon(path.abspath('mouse.png'))#needs to be the absolute path, not relative
         self.order = ['name']#make sure that 'name' is at top of dlg
         self.params={}

@@ -33,9 +33,8 @@ class BaseComponent:
         exec("times=%s" %self.params['times'].val)
         if type(times[0]) in [int, float]:
             times=[times]#make a list of lists
-        print times
         #write the code for the first repeat of the stimulus
-        buff.writeIndented("if (%.f <= t < %.f)" %(times[0][0], times[0][1]))
+        buff.writeIndented("if (%.4f <= t < %.4f)" %(times[0][0], times[0][1]))
         if len(times)>1:
             for epoch in times[1:]: 
                 buff.write("\n")
@@ -47,7 +46,7 @@ class BaseComponent:
         """
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
-            if thisParam.updates=='frame':
+            if thisParam.updates==updateType:
                 buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], thisParamName.capitalize(), thisParam) )
     def getType(self):
         return self.__class__.__name__

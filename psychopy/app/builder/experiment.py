@@ -32,10 +32,20 @@ class Experiment:
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self):
-        self.flow = Flow()
+        self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyExperimentVersion='0.1' 
+        self.psychopyExperimentVersion='1.5' 
+        self.psychopyLibs=['core','data']
+    def requirePsychopyLibs(self, libs=[]):
+        """Add a list of top-level psychopy libs that the experiment will need.
+        e.g. [visual, event]
+        """
+        if type(libs)!=list: 
+            libs=list(libs)
+        for lib in libs:
+            if lib not in self.psychopyLibs:
+                self.psychopyLibs.append(lib)
     def addRoutine(self,routineName, routine=None):
         """Add a Routine to the current list of them. 
         
@@ -43,7 +53,7 @@ class Experiment:
         an empty one if none is given.
         """
         if routine==None:
-            self.routines[routineName]=Routine(routineName)#create a deafult routine with this name
+            self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
         
@@ -51,10 +61,16 @@ class Experiment:
         """Write a PsychoPy script for the experiment
         """
         s=IndentingBuffer(u'') #a string buffer object
-        s.writeIndented('"""This experiment was created using PsychoPy2 (Experiment Builder) and will\n \
-run on any platform on which PsychoPy can be installed\n \
+        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder \
 \nIf you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
         
+        #import psychopy libs
+        libString=""; separator=""
+        for lib in self.psychopyLibs:
+            libString = libString+separator+lib
+            separator=", "#for the second lib upwards we need a comma
+        s.writeIndented("from psychopy import %s\n" %libString)        
+        s.writeIndented("from numpy import * #many different maths functions\n")
         #delegate most of the code-writing to Flow
         self.flow.writeCode(s)
         
@@ -120,10 +136,12 @@ class Param:
             try:
                 return str(float(self.val))#will work if it can be represented as a float
             except:#might be an array
-                return "numpy.asarray(%s)" %(self.val)
+                return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
             return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
         elif self.valType == 'code':
+            return "%s" %(self.val)
+        elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
             raise TypeError, "Can't represent a Param of type %s" %self.valType
@@ -165,7 +183,8 @@ class TrialHandler():
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
-        #todo: need to write code to fetch trialList from file!
+        #todo: write code to fetch trialList from file?
+        trialsStr=[]
         buff.writeIndented("%s=data.TrialHandler(trialList=%s,nReps=%s)\n" \
             %(self.params['name'], self.params['trialList'], self.params['nReps']))
     def writeLoopStartCode(self,buff):
@@ -249,17 +268,19 @@ class Flow(list):
     """The flow of the experiment is a list of L{Routine}s, L{LoopInitiator}s and
     L{LoopTerminator}s, that will define the order in which events occur
     """
+    def __init__(self, exp):
+        list.__init__(self)
+        self.exp=exp
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
         into the Flow list"""
         self.insert(int(endPos), LoopTerminator(loop))
         self.insert(int(startPos), LoopInitiator(loop))
+        self.exp.requirePsychopyLibs(['data'])#needed for TrialHandlers etc
     def addRoutine(self, newRoutine, pos):
         """Adds the routine to the Flow list"""
-        self.insert(int(pos), newRoutine)
-        
+        self.insert(int(pos), newRoutine)        
     def writeCode(self, s):
-        s.writeIndented("from PsychoPy import visual, core, event, sound\n")
         s.writeIndented("win = visual.Window([400,400])\n")
         
         #initialise components
@@ -280,9 +301,14 @@ class Routine(list):
     In practice a Routine is simply a python list of Components,
     each of which knows when it starts and stops.
     """
-    def __init__(self, name):
+    def __init__(self, name, exp):
         self.name=name
+        self.exp=exp
         list.__init__(self)
+    def addComponent(self,component):
+        """Add a component to the end of the routine""" 
+        self.append(component)
+        self.exp.requirePsychopyLibs(component.psychopyLibs)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
@@ -294,10 +320,14 @@ class Routine(list):
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
+        #This is the beginning of the routine, before the loop starts
+        for event in self:
+            event.writeRoutineStartCode(buff)
+        
         #create the frame loop for this routine
         buff.writeIndented('t=0\n')
         buff.writeIndented('%s.reset()\n' %(self.clockName))
-        buff.writeIndented('while t<maxTime:\n')
+        buff.writeIndented('while t<%.4f:\n' %self.getMaxTime())
         buff.setIndentLevel(1,True)
         
         #on each frame
@@ -315,6 +345,11 @@ class Routine(list):
         
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
+        
+        #write the code for each component for the end of the routine
+        for event in self:
+            event.writeRoutineEndCode(buff)
+            
     def getType(self):
         return 'Routine'
     def getComponentFromName(self, name):
@@ -322,4 +357,10 @@ class Routine(list):
             if comp.params['name']==name:
                 return comp
         return None
-    
+    def getMaxTime(self):
+        maxTime=0;
+        for event in self:
+            exec("times=%s" %event.params['times'].val)#convert params['times'].val into numeric
+            times.append(maxTime)
+            maxTime=float(max(times))
+        return maxTime

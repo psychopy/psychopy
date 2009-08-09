@@ -7,24 +7,25 @@ class VisualComponent(_base.BaseComponent):
     """
     def __init__(self, parentName, name='', units='window units', colour=[1,1,1],
         pos=[0,0], size=[0,0], ori=0, times=[0,1], colourSpace='rgb'):
+        self.psychopyLibs=['visual']#needs this psychopy lib to operate
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name,  valType='code', updates="never", 
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
-        self.params['colour']=Param(colour, valType='num', allowedTypes=['num','str','code'],
+        self.params['colour']=Param(colour, valType='code', allowedTypes=['num','str','code'],
             updates="never", allowedUpdates=["never","routine","frame"],
             hint="Colour of this stimulus (e.g. [1,1,0], 'red' )")
-        self.params['colourSpace']=Param(colourSpace, valType='str', allowedVals=['rgb','dkl','lms'],
+        self.params['colourSpace']=Param(colourSpace, valType='code', allowedVals=['rgb','dkl','lms'],
             hint="Choice of colour space for the colour (rgb, dkl, lms)")
-        self.params['pos']=Param(pos, valType='num', allowedTypes=['num','code'],
+        self.params['pos']=Param(pos, valType='code', allowedTypes=['num','code'],
             updates="never", allowedUpdates=["never","routine","frame"],
             hint="Position of this stimulus (e.g. [1,2] ")
-        self.params['size']=Param(size, valType='num', allowedTypes=['num','code'],
+        self.params['size']=Param(size, valType='code', allowedTypes=['num','code'],
             updates="never", allowedUpdates=["never","routine","frame"],
             hint="Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ")
-        self.params['ori']=Param(ori, valType='num', allowedTypes=['num','code'],
+        self.params['ori']=Param(ori, valType='code', allowedTypes=['num','code'],
             updates="never", allowedUpdates=["never","routine","frame"],
             hint="Orientation of this stimulus (in deg)")
         self.params['times']=Param(times, valType='code', allowedTypes=['code'],
