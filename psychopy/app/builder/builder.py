@@ -2,13 +2,12 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
 import sys, os, glob, copy, pickle
-import csv, pylab #these are used to read in csv files
-import experiment, numpy
+import csv, pylab, numpy #csv,pylab are to read in csv files
+import experiment, components
 #import psychopy
 #import psychopy.app.keybindings as keys
 
-#TODO: this should be loaded from prefs rather than hard-coded
-componentTypes=['Patch','Text','Movie','Sound','Mouse','Keyboard']
+canvasColour=[200,200,200]#in prefs? ;-)
 
 #todo: need to implement right-click context menus for flow and routine canvas!
 
@@ -18,6 +17,7 @@ class FlowPanel(wx.ScrolledWindow):
         """A panel that shows how the routines will fit together
         """
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0), size=size)
+        self.SetBackgroundColour(canvasColour)
         self.panel = wx.Panel(self,-1,size=(600,200))
         self.frame=frame   
         self.app=frame.app
@@ -409,6 +409,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         wx.ScrolledWindow.__init__(self, notebook, id, (0, 0), style=wx.SUNKEN_BORDER)
         
+        self.SetBackgroundColour(canvasColour)
         self.notebook=notebook
         self.frame=notebook.frame
         self.app=self.frame.app
@@ -555,9 +556,8 @@ class RoutineCanvas(wx.ScrolledWindow):
             yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
     def drawComponent(self, dc, component, yPos):  
         """Draw the timing of one component on the timeline"""   
-        
-        bitmap = self.frame.bitmaps[component.type]        
-        dc.DrawBitmap(bitmap, self.iconXpos,yPos, True)
+        thisIcon = components.icons[component.getType()][0]#index 0 is main icon
+        dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
         
         font = self.GetFont()
         font.SetPointSize(12)
@@ -568,7 +568,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         w,h = self.GetFullTextExtent(name)[0:2]  
         #draw text
         x = self.iconXpos-5-w
-        y = yPos+bitmap.GetHeight()/2-h/2
+        y = yPos+thisIcon.GetHeight()/2-h/2
         dc.DrawText(name, x, y)
         
         #draw entries on timeline
@@ -586,7 +586,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             thisOccW = (end-st)/xScale
             dc.DrawRectangle(xSt, y, thisOccW,h )
         
-        ##set an id for the region where the bitmap falls (so it can act as a button)
+        ##set an id for the region where the component.icon falls (so it can act as a button)
         #see if we created this already
         id=None
         for key in self.componentFromID.keys():
@@ -597,7 +597,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.componentFromID[id]=component
         dc.SetId(id)
         #set the area for this component
-        r = wx.Rect(self.iconXpos, yPos, bitmap.GetWidth(),bitmap.GetHeight())
+        r = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
         dc.SetIdBounds(id,r)
                 
     def editComponentProperties(self, event=None, component=None):
@@ -684,16 +684,23 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         
         # add a button for each type of event that can be added
         self.componentButtons={}; self.componentFromID={}
-        for componentType in componentTypes:
-            img =wx.Bitmap(
-                os.path.join(self.app.prefs.paths['resources'],"%sAdd.png" %componentType.lower()))    
-            btn = wx.BitmapButton(self, -1, img, (20, 20),
-                           (img.GetWidth()+10, img.GetHeight()+10),
-                           name=componentType)  
-            self.componentFromID[btn.GetId()]=componentType
+        self.components=experiment.getAllComponents()
+        for hiddenComp in self.frame.prefs['hiddenComponents']:
+            del self.components[hiddenComp]
+        for thisName in self.components.keys():
+            #NB thisComp is a class - we can't use its methods until it is an instance
+            thisComp=self.components[thisName]  
+            thisIcon = components.icons[thisName][1]#index 1 is the 'add' icon
+            shortName=thisName#but might be shortened below
+            for redundant in ['component','Component']:
+                if redundant in thisName: shortName=thisName.replace(redundant, "")
+            btn = wx.BitmapButton(self, -1, thisIcon, (20, 20),
+                           (thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
+                           name=thisComp.__name__)  
+            self.componentFromID[btn.GetId()]=thisName
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)  
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
-            self.componentButtons[componentType]=btn#store it for elsewhere
+            self.componentButtons[thisName]=btn#store it for elsewhere
             
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
@@ -704,9 +711,10 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         #get component name
-        componentName = self.componentFromID[evt.GetId()]
-        newClassStr = componentName+'Component'
-        exec('newComp = experiment.%s("%s")' %(newClassStr,currRoutine.name))
+        newClassStr = self.componentFromID[evt.GetId()]
+        componentName = newClassStr.replace('Component','')
+        newCompClass = self.components[newClassStr]
+        newComp = newCompClass(currRoutine.name)
         #create component template    
         dlg = DlgComponentProperties(frame=self.frame,
             parentName = currRoutine.name,
@@ -1151,12 +1159,6 @@ class BuilderFrame(wx.Frame):
         self.prefs = self.app.prefs.builder#things about the coder that get set
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        
-        #load icons for the various stimulus events 
-        self.bitmaps={}
-        for componentType in componentTypes:
-            self.bitmaps[componentType]=wx.Bitmap( \
-                os.path.join(self.paths['resources'],"%s.png" %componentType.lower()))      
                 
         # create our panels
         self.flowPanel=FlowPanel(frame=self, size=(600,200))
