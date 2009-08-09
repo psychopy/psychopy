@@ -107,6 +107,7 @@ class FlowPanel(wx.ScrolledWindow):
         
         #bring up listbox to choose the routine to add and/or create a new one
         loopDlg = DlgLoopProperties(frame=self.frame)
+        
         if loopDlg.OK:
             handler=loopDlg.currentHandler
             exec("ends=%s" %handler.params['endPoints'])#creates a copy of endPoints as an array
@@ -802,7 +803,57 @@ class ParamCtrls:
         #create browse control
         if browse:
             self.browseCtrl = wx.Button(self.dlg, -1, "Browse...") #we don't need a label for this  
-        
+    def _getCtrlValue(self, ctrl):
+        """Retrieve the current value form the control (whatever type of ctrl it
+        is, e.g. checkbox.GetValue, textctrl.GetStringSelection
+        """
+        """Different types of control have different methods for retrieving value. 
+        This function checks them all and returns the value or None.
+        """
+        if ctrl==None: return None
+        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+            return ctrl.GetValue()
+        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
+            return ctrl.GetStringSelection()
+        elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
+            return ctrl.GetLabel()
+        else:
+            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            return None    
+    def _setCtrlValue(self, ctrl, newVal):
+        """Set the current value form the control (whatever type of ctrl it
+        is, e.g. checkbox.SetValue, textctrl.SetStringSelection
+        """
+        """Different types of control have different methods for retrieving value. 
+        This function checks them all and returns the value or None.
+        """
+        if ctrl==None: return None
+        elif hasattr(ctrl, 'SetValue'): #e.g. TextCtrl
+            ctrl.SetValue(newVal)
+        elif hasattr(ctrl, 'SetStringSelection'): #for wx.Choice
+            ctrl.SetStringSelection(newVal)
+        elif hasattr(ctrl, 'SetLabel'): #for wx.StaticText
+            ctrl.SetLabel(newVal)
+        else:
+            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+    def getValue(self):
+        """Get the current value of the value ctrl
+        """
+        return self._getCtrlValue(self.valueCtrl)
+    def setValue(self, newVal):
+        """Get the current value of the value ctrl
+        """
+        return self._setCtrlValue(self.valueCtrl, newVal)
+    def getType(self):
+        """Get the current value of the type ctrl
+        """
+        if self.typeCtrl:
+            return self._getCtrlValue(self.typeCtrl)
+    def getUpdates(self):
+        """Get the current value of the updates ctrl
+        """
+        if self.updatesCtrl:
+            return self._getCtrlValue(self.updatesCtrl)
 class _BaseParamsDlg(wx.Dialog):   
     def __init__(self,frame,title,params,order,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -898,25 +949,25 @@ class _BaseParamsDlg(wx.Dialog):
         for fieldName in self.params.keys():
             param=self.params[fieldName]
             ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param            
-            param.val = self.getCtrlValue(ctrls.valueCtrl)
-            if ctrls.typeCtrl: param.valType = self.getCtrlValue(ctrls.typeCtrl)
-            if ctrls.updateCtrl: param.updates = self.getCtrlValue(ctrls.updateCtrl)
+            param.val = ctrls.getValue()
+            if ctrls.typeCtrl: param.valType = ctrls.getType()
+            if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.params
-        
-    def getCtrlValue(self, ctrl):
-        """Different types of control have different methods for retrieving value. 
-        This function checks them all and returns the value or None.
-        """
-        if ctrl==None: return None
-        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
-            return ctrl.GetValue()
-        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
-            return ctrl.GetStringSelection()
-        elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
-            return ctrl.GetLabel()
-        else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
-            return None
+#The following is now performed by the ParamCtrl class automatically
+#    def getCtrlValue(self, ctrl):
+#        """Different types of control have different methods for retrieving value. 
+#        This function checks them all and returns the value or None.
+#        """
+#        if ctrl==None: return None
+#        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+#            return ctrl.GetValue()
+#        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
+#            return ctrl.GetStringSelection()
+#        elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
+#            return ctrl.GetLabel()
+#        else:
+#            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+#            return None
 class DlgLoopProperties(_BaseParamsDlg):    
     def __init__(self,frame,title="Loop properties",loop=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -941,6 +992,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
             self.trialHandler = self.currentHandler = loop
+            print 'inputparams:', loop.params
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
             self.stairHandler=experiment.StairHandler('trials', nReps=50, nReversals=12,
                 stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
@@ -950,8 +1002,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             experiment.TrialHandler(name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
 
         self.makeGlobalCtrls()
-        self.makeConstantsCtrls()#the controls for Method of Constants
         self.makeStaircaseCtrls()
+        self.makeConstantsCtrls()#the controls for Method of Constants
+        self.trialListFile=None
+        self.trialList=None
         self.setCtrls(self.currentType)
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
@@ -976,13 +1030,14 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.trialHandler
         #loop through the params 
         keys = handler.params.keys()  
-        #add trialList stuff to the *end*      
+        print '\n\ncheckingkeys;', keys
+        #add trialList stuff to the *end* 
+        if 'trialList' in keys:
+            keys.remove('trialList')
+            keys.insert(-1,'trialList')     
         if 'trialListFile' in keys:
             keys.remove('trialListFile')
             keys.insert(-1,'trialListFile')
-        if 'trialList' in keys:
-            keys.remove('trialList')
-            keys.insert(-1,'trialList')
         #then step through them    
         for fieldName in keys:
             if fieldName in self.globalCtrls.keys():
@@ -996,11 +1051,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.sizer.Add(container)
             elif fieldName=='trialList':
                 if handler.params.has_key('trialList'):
-                    text=self.getTrialsSummary(handler.params['trialList'])
+                    text=self.getTrialsSummary(handler.params['trialList'].val)
                 else: 
-                    text = """No parameters set  """
+                    text = """No parameters set (select a .csv file above)"""
                 ctrls = ParamCtrls(self, 'trialList',text,noCtrls=True)#we'll create our own widgets
-                size = wx.Size(200, 50)
+                size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.sizer
                 #self.sizer.Add(ctrls.valueCtrl)
             else: #normal text entry field
@@ -1037,10 +1092,11 @@ class DlgLoopProperties(_BaseParamsDlg):
             return '%i trial types, with %i parameters\n%s' \
                 %(len(trialList),len(trialList[0]), trialList[0].keys())
         else:
+            print type(trialList)
             return "No parameters set"
     def importTrialTypes(self, fileName):
         """Import the trial data from fileName to generate a list of dicts.
-        Insert this immediately into self.params['trialList']
+        Insert this immediately into self.trialList
         """
         #use csv import library to fetch the fieldNames
         f = open(fileName,'rU')#the U converts lineendings to os.linesep
@@ -1058,7 +1114,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             for fieldN, fieldName in enumerate(fieldNames):
                 thisTrial[fieldName] = trialsArr[trialN][fieldN]
             trialList.append(thisTrial)            
-        self.params['trialList']=trialList
+        self.trialList=trialList
     def setCtrls(self, ctrlType):
         #choose the ctrls to show/hide
         if ctrlType=='staircase': 
@@ -1095,10 +1151,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            self.params['trialListFile'] = newPath
+            self.trialListFile = newPath
             self.importTrialTypes(newPath)
-            self.randFields['trialListFile'].SetLabel(self.getAbbriev(newPath))
-            self.randFields['trialList'].SetLabel(self.getTrialsSummary(self.params['trialList']))
+            self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
+            self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
     def getParams(self):
         """retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -1106,9 +1162,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in self.currentHandler.params.keys():
             param=self.currentHandler.params[fieldName]
             ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param     
-            param.val = self.getCtrlValue(ctrls.valueCtrl)#from _baseParamsDlg (handles diff control types)
-            if ctrls.typeCtrl: param.valType = ctrls.typeCtrl.GetValue()
-            if ctrls.updateCtrl: param.updates = ctrls.updateCtrl.getValue()
+            param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)
+            if ctrls.typeCtrl: param.valType = ctrls.getType()
+            if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
+        if self.currentType in ['random','sequential']:
+            self.currentHandler.params['trialListFile'].val=self.trialListFile
+            self.currentHandler.params['trialList'].val=self.trialList
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):    
     def __init__(self,frame,title,params,order,
@@ -1403,7 +1462,7 @@ class BuilderFrame(wx.Frame):
 #        if newVal:
         self.toolbar.EnableTool(self.IDs.tbFileSave, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
-            
+        
     def getIsModified(self):
 #        return self.exp==self.lastSavedCopy
         return self.isModified 
@@ -1419,7 +1478,6 @@ class BuilderFrame(wx.Frame):
             pickle.dump(self.exp,f)
             f.close()        
         self.setIsModified(False)
-        self.updateModifiedStatus()
     def fileSaveAs(self,event=None, filename=None):
         """
         """
