@@ -36,7 +36,6 @@ class Experiment:
         self.routines={}
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyExperimentVersion='0.1' 
-        
     def addRoutine(self,routineName, routine=None):
         """Add a Routine to the current list of them. 
         

@@ -612,7 +612,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
-            self.frame.addToUndoStack("Editted %s" %componentName)
+            self.frame.addToUndoStack("edit %s" %component.params['name'])
             
     def getSecsPerPixel(self):
         return float(self.timeMax)/(self.timeXposEnd-self.timeXposStart)
@@ -717,7 +717,6 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         newComp = newCompClass(currRoutine.name)
         #create component template    
         dlg = DlgComponentProperties(frame=self.frame,
-            parentName = currRoutine.name,
             title=componentName+' Properties',
             params = newComp.params,
             order = newComp.order)
@@ -979,11 +978,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         keys = handler.params.keys()  
         #add trialList stuff to the *end*      
         if 'trialListFile' in keys:
-            self.app.keys.remove('trialListFile')
-            self.app.keys.insert(-1,'trialListFile')
+            keys.remove('trialListFile')
+            keys.insert(-1,'trialListFile')
         if 'trialList' in keys:
-            self.app.keys.remove('trialList')
-            self.app.keys.insert(-1,'trialList')
+            keys.remove('trialList')
+            keys.insert(-1,'trialList')
         #then step through them    
         for fieldName in keys:
             if fieldName in self.globalCtrls.keys():
@@ -1112,7 +1111,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             if ctrls.updateCtrl: param.updates = ctrls.updateCtrl.getValue()
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):    
-    def __init__(self,frame,parentName,title,params,order,
+    def __init__(self,frame,title,params,order,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER        
@@ -1169,6 +1168,7 @@ class BuilderFrame(wx.Frame):
         self.makeMenus()
         
         #setup a blank exp
+        self.lastSavedCopy=None
         self.fileNew(closeCurrent=False)#don't try to close before opening
         self.exp.addRoutine('trial') #create the trial routine as an example
         self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow 
@@ -1366,6 +1366,7 @@ class BuilderFrame(wx.Frame):
         self.fileClose()#close the existing (and prompt for save if necess)
         #update exp vals
         self.exp=exp
+        self.resetUndoStack()
         self.setIsModified(False)  
         self.filename = newPath
         #load routines
@@ -1383,12 +1384,29 @@ class BuilderFrame(wx.Frame):
             shortName = os.path.split(self.filename)[-1]
             newTitle='PsychoPy (Experiment Builder) - %s' %(shortName)
         self.SetTitle(newTitle)
-    def setIsModified(self, newVal=True):
-        self.isModified=newVal
+    def setIsModified(self, newVal=None):
+        """Sets current modified status and updates save icon accordingly.
+        
+        This method is called by the methods fileSave, undo, redo, addToUndoStack
+        and it is usually preferably to call those than to call this directly.
+        
+        Call with ``newVal=None``, to only update the save icon(s)
+        """
+        if newVal==None:
+            newVal= self.getIsModified()
+            print 'found newval to be ', newVal
+        else: self.isModified=newVal
+#        elif newVal==False:
+#            self.lastSavedCopy=copy.copy(self.exp)
+#            print 'made new copy of exp'
+#        #then update buttons/menus
+#        if newVal:
         self.toolbar.EnableTool(self.IDs.tbFileSave, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
+            
     def getIsModified(self):
-        return self.isModified
+#        return self.exp==self.lastSavedCopy
+        return self.isModified 
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved 
         """
@@ -1399,9 +1417,9 @@ class BuilderFrame(wx.Frame):
         else:
             f = open(filename, 'w')
             pickle.dump(self.exp,f)
-            f.close()
-        self.setIsModified(False)        
-        
+            f.close()        
+        self.setIsModified(False)
+        self.updateModifiedStatus()
     def fileSaveAs(self,event=None, filename=None):
         """
         """
@@ -1420,8 +1438,7 @@ class BuilderFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.fileSave(event=None, filename=newPath)
-            self.filename = newPath            
-            self.setIsModified(False)
+            self.filename = newPath    
         try: #this seems correct on PC, but not on mac   
             dlg.destroy()
         except:
@@ -1457,10 +1474,11 @@ class BuilderFrame(wx.Frame):
         self.addToUndoStack()
         self.enableUndo(False)
         self.enableRedo(False)
+        self.setIsModified(newVal=False)#update save icon if needed
     def addToUndoStack(self, action="", state=None):
-        """Add the given @action@ to the currentUndoStack, associated with the @state@.
-        @state@ should be a copy of the exp from *immediately after* the action was taken.
-        If no @state@ is given the current state of the experiment is used.
+        """Add the given ``action`` to the currentUndoStack, associated with the @state@.
+        ``state`` should be a copy of the exp from *immediately after* the action was taken.
+        If no ``state`` is given the current state of the experiment is used.
         
         If we are at end of stack already then simply append the action. 
         If not (user has done an undo) then remove orphan actions and then append. 
@@ -1475,6 +1493,7 @@ class BuilderFrame(wx.Frame):
         #append this action
         self.currentUndoStack.append({'action':action,'state':state})
         self.enableUndo(True)
+        self.setIsModified(newVal=True)#update save icon if needed
 #        print 'after stack=', self.currentUndoStack
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
@@ -1493,6 +1512,7 @@ class BuilderFrame(wx.Frame):
         if (self.currentUndoLevel)==len(self.currentUndoStack):
             self.enableUndo(False)
         self.updateAllViews()
+        self.setIsModified(newVal=True)#update save icon if needed
         # return
         return self.currentUndoLevel
     def redo(self, event=None):
@@ -1511,6 +1531,7 @@ class BuilderFrame(wx.Frame):
         if self.currentUndoLevel==1:
             self.enableRedo(False)
         self.updateAllViews()
+        self.setIsModified(newVal=True)#update save icon if needed
         # return
         return self.currentUndoLevel
     def enableRedo(self,enable=True):

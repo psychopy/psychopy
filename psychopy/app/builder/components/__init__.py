@@ -42,7 +42,6 @@ def getComponents(folder=None):
                 #just fetch the attributes that end with 'Component', not other functions
                 if attrib.endswith('omponent') and \
                     attrib not in ['VisualComponent', 'BaseComponent']:#must be a component
-                    print file, attrib
                     name=attrib
                     components[attrib]=getattr(module, attrib)
                     #also try to get an iconfile
