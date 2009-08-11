@@ -2,6 +2,7 @@
 """
 import os, imp, glob, wx
 from os.path import *
+import psychopy
 
 def getIcons(filename=None):
         """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image. 

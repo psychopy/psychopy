@@ -1214,30 +1214,49 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.app=frame.app
         
         #for input devices:
-        if 'storeCorrect' in self.params:
-            self.onStoreCorrectChange(event=None)#do this just to set the initial values to be 
-            self.Bind(wx.EVT_CHECKBOX, self.onStoreCorrectChange, self.paramCtrls['storeCorrect'].valueCtrl)
+        self.onFullScrChange(event=None)#do this just to set the initial values to be 
+        self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
         
         #for all components
         self.show()
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()     
-    def onStoreCorrectChange(self,event=None):
+    def onFullScrChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
-        if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctIf'].valueCtrl.Show()
-            self.paramCtrls['correctIf'].nameCtrl.Show()
-            #self.paramCtrls['correctIf'].typeCtrl.Show()
-            #self.paramCtrls['correctIf'].updateCtrl.Show()
+        if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
+            self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
+            self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
         else:
-            self.paramCtrls['correctIf'].valueCtrl.Hide()
-            self.paramCtrls['correctIf'].nameCtrl.Hide()
-            #self.paramCtrls['correctIf'].typeCtrl.Hide()
-            #self.paramCtrls['correctIf'].updateCtrl.Hide()    
+            self.paramCtrls['Window size (pixels)'].valueCtrl.Enable() 
+            self.paramCtrls['Window size (pixels)'].nameCtrl.Enable() 
         self.sizer.Layout()
         self.Fit()       
-        self.Refresh()     
+        self.Refresh() 
+        
+    def show(self):
+        """Adds an OK and cancel button, shows dialogue. 
+        
+        This method returns wx.ID_OK (as from ShowModal), but also 
+        sets self.OK to be True or False
+        """
+        #add buttons for OK and Cancel
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        OK = wx.Button(self, wx.ID_OK, " OK ")
+        OK.SetDefault()
+        buttons.Add(OK, 0, wx.ALL,border=3)
+        CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        buttons.Add(CANCEL, 0, wx.ALL,border=3)
+        if hasattr(self, 'currRow'):#then we are using as GridBagSizer
+            self.sizer.Add(buttons, (self.currRow,1), (1,2)) 
+        else:#we are using a box sizer
+            self.sizer.Add(buttons)
+        self.SetSizerAndFit(self.sizer)
+        #do show and process return
+        retVal = self.ShowModal() 
+        if retVal== wx.ID_OK: self.OK=True
+        else:  self.OK=False
+        return wx.ID_OK
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
@@ -1678,8 +1697,6 @@ class BuilderFrame(wx.Frame):
             params = component.params,
             order = component.order)
         if dlg.OK:
-            self.redrawRoutine()#need to refresh timings section
-            self.Refresh()#then redraw visible
-            self.frame.addToUndoStack("edit %s" %component.params['name'])
+            self.frame.addToUndoStack("edit experiment settings")
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()

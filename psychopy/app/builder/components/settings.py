@@ -5,7 +5,7 @@ from _base import *
 
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
-    def __init__(self, parentName, fullScr=True, winSize=[1024,768], screen=1, 
+    def __init__(self, parentName, fullScr=True, winSize=[1024,768], screen=1, monitor=None,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':001, 'session':001}"):
         self.type='Settings'
         self.params={}
@@ -15,7 +15,12 @@ class SettingsComponent:
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
             hint="Size of window (if not fullscreen)") 
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
-            hint="Which physical screen to run on") 
+            hint="Which physical screen to run on (1 or 2)")  
+        self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
+            hint="Name of the monitor (must match one in Monitor Center)") 
+        self.params['Units']=Param(screen, valType='str', allowedTypes=[],
+            allowedVals=['use prefs', 'deg','pix','cm','norm'],
+            hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg") 
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the normal data file) of the entire experiment") 
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
@@ -26,15 +31,37 @@ class SettingsComponent:
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
-    def writeStartCode(self):
+    def writeStartCode(self, buff):
         
-        s.writeIndented("#setup files for saving\n")
-        s.writeIndented("info={participant':'001'}\n")
-        s.writeIndented("logFile=")
-        s.writeIndented("date=data.getDateStr()#get a timestamp for running the exp\n")
+        buff.writeIndented("#store info about the experiment\n")
+        buff.writeIndented("expName=os.path.splitext(os.path.splitdir(__file__))#get name from filename\n")
+        buff.writeIndented("expInfo=%s\n" %self.params['Experiment info'])
+        if self.params['Show info dlg'].val:
+            buff.writeIndented("dlg=gui.dlgFromDict(dictionary=expInfo,title=expName)\n")
+            buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")            
+        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
         
-        s.writeIndented("#setup the Window\n")
-        s.writeIndented("win = visual.Window([400,400])\n")
-    def writeEndCodeself(self):
+        if self.params['Save log file']:
+            buff.writeIndented("#setup files for saving\n")
+            buff.writeIndented("if not os.path.isdir('data'):\n")
+            buff.writeIndented("    os.makedirs('data')#if this fails we will get error\n")
+            if 'participant' in self.params['Experiment info'].val:
+                buff.writeIndented("filename= 'data/'+expInfo['participant']+expInfo['date']")
+            buff.writeIndented("logFile=open(filename+'.log', 'w'")
+        
+        
+        buff.writeIndented("#setup the Window\n")
+        #get parameters for the Window
+        size=self.params['Window size (pixels)']#
+        fullScr = self.params['Full-screen window']
+        monitor=self.params['Monitor']
+        if self.params['Units']=='use prefs': unitsCode=""
+        else: unitsCode=", units=%s" %self.params['Units']
+        screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
+        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s\n" %(size, fullScr, screenNumber))
+        buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))
+                        
+    def writeEndCodeself(self, buff):
         """write code for end of experiment (e.g. close log file)
         """
+        buff.writeIndented("logFile.close()")

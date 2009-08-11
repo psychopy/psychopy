@@ -36,7 +36,7 @@ class Experiment:
         self.routines={}
         self.settings=getAllComponents()['SettingsComponent'](parentName="")
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyExperimentVersion='1.5' 
+        self.psychopyExperimentVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data']
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
@@ -72,12 +72,12 @@ class Experiment:
             separator=", "#for the second lib upwards we need a comma
         s.writeIndented("from psychopy import %s\n" %libString)        
         s.writeIndented("from numpy import * #many different maths functions\n")
-        s.writeIndented("import os #system functions\n\n")
+        s.writeIndented("import os #handy system and path functions\n\n")
         
-        self.experimentComponent.writeStartCode()#present info dlg, make logfile, Window
+        self.settings.writeStartCode(s)#present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
-        self.experimentComponent.writeStartCode()
+        self.settings.writeStartCode(s)#close log file
         
         return s
     def getAllObjectNames(self):
