@@ -171,8 +171,8 @@ class PsychoPyApp(wx.App):
         for frame in [self.coder, self.builder]:
             if hasattr(frame, 'closeFrame'):
                 frame.closeFrame()#this should update (but not save) prefs.appData
+                self.prefs.saveAppData()
                 frame.Destroy()#closeFrame actually just Hides the frame
-        self.prefs.saveAppData()
         #todo: work out correct operation of closing wrt multiple frames etc...
     def showPrefs(self, event):
         prefsDlg = PreferencesDlg(app=self)

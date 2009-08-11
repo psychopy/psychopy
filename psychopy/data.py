@@ -1098,7 +1098,6 @@ class FitCumNormal(_baseFunctionFit):
         xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
         return xx
 
-
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
     SLOW IMPLEMENTATION (Python for-loop)
@@ -1190,3 +1189,10 @@ def functionFromStaircase(intensities, responses, bins = 10):
             nPoints.append( len(thisInten) )
         
     return binnedInten, binnedResp, nPoints
+
+def getDateStr():
+    """Uses ``time.strftime()``_ to generate a string of the form
+    Apr_19_1531 for 19th April 3.31pm.
+    This is often useful appended to data filenames to provide unique names
+    """
+    return time.strftime("%b_%d_%H%M", time.localtime())

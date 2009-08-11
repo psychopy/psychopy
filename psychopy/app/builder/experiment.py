@@ -70,8 +70,12 @@ class Experiment:
             libString = libString+separator+lib
             separator=", "#for the second lib upwards we need a comma
         s.writeIndented("from psychopy import %s\n" %libString)        
-        s.writeIndented("from numpy import * #many different maths functions\n")
-        #delegate most of the code-writing to Flow
+        s.writeIndented("from numpy import * #many different maths functions\n\n")
+        
+        s.writeIndented("date=data.getDateStr()#get a timestamp for running the exp\n")
+        
+        
+        #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
         
         return s
@@ -325,8 +329,9 @@ class Routine(list):
             event.writeRoutineStartCode(buff)
         
         #create the frame loop for this routine
-        buff.writeIndented('t=0\n')
-        buff.writeIndented('%s.reset()\n' %(self.clockName))
+        buff.writeIndented('\n')
+        buff.writeIndented('#run the trial\n')
+        buff.writeIndented('t=0; %s.reset()\n' %(self.clockName))
         buff.writeIndented('while t<%.4f:\n' %self.getMaxTime())
         buff.setIndentLevel(1,True)
         
@@ -335,6 +340,7 @@ class Routine(list):
         buff.writeIndented('t=%s.getTime()\n\n' %self.clockName)
         
         #write the code for each component during frame
+        buff.writeIndented('#update each component (where necess)\n')
         for event in self:
             event.writeFrameCode(buff)
             

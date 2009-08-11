@@ -86,7 +86,7 @@ class Preferences:
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
-        cfg.validate(self._validator, copy=True)     
+        cfg.validate(self._validator, copy=True)  
         return cfg   
     def loadSitePrefs(self):        
         #load against the spec, then validate and save to a file 

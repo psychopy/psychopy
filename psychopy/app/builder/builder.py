@@ -4,8 +4,6 @@ import wx.aui
 import sys, os, glob, copy, pickle
 import csv, pylab, numpy #csv,pylab are to read in csv files
 import experiment, components
-#import psychopy
-#import psychopy.app.keybindings as keys
 
 canvasColour=[200,200,200]#in prefs? ;-)
 
@@ -991,7 +989,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
             self.trialHandler = self.currentHandler = loop
-            print 'inputparams:', loop.params
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
             self.stairHandler=experiment.StairHandler('trials', nReps=50, nReversals=12,
                 stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
@@ -1029,7 +1026,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.trialHandler
         #loop through the params 
         keys = handler.params.keys()  
-        print '\n\ncheckingkeys;', keys
         #add trialList stuff to the *end* 
         if 'trialList' in keys:
             keys.remove('trialList')
@@ -1405,7 +1401,7 @@ class BuilderFrame(wx.Frame):
         self.Hide()
     def quit(self, event):
         """quit the app""" 
-        self.Destroy()
+        self.app.quit()
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""   
         # check whether existing file is modified
