@@ -12,7 +12,6 @@ from psychopy.preferences import Preferences
 from psychopy.app import coder, builder, keybindings, wxIDs
 import urllib2 #for usage stats
 
-
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
     wxIDs.psychopyReference:"http://www.psychopy.org/reference",
@@ -149,7 +148,7 @@ class PsychoPyApp(wx.App):
         #NB a frame doesn't have an app as a parent
         if self.coder==None:
             self.coder = coder.CoderFrame(None, -1, 
-                                  title="PsychoPy Coder (IDE) (v%s)" %self.version,
+                                  title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
                                   files = filelist, app=self)         
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
@@ -157,10 +156,14 @@ class PsychoPyApp(wx.App):
         #NB a frame doesn't have an app as a parent
         if self.builder==None:
             self.builder = builder.BuilderFrame(None, -1, 
-                                  title="PsychoPy Experiment Builder",
+                                  title="PsychoPy2 Experiment Builder",
                                   files = fileList, app=self)       
         self.builder.Show(True)
         self.SetTopWindow(self.builder)
+    def openMonitorCenter(self,event):
+        from monitors import MonitorCenter
+        frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
+        frame.Show(True)
     def MacOpenFile(self,fileName):
         if fileName.endswith('.py'):
             self.coder.setCurrentDoc(fileName)

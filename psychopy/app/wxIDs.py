@@ -35,6 +35,7 @@ openMonCentre=wx.NewId()
 compileScript=wx.NewId()
 runFile=wx.NewId()
 stopFile=wx.NewId()
+monitorCenter=wx.NewId()
 
 #help menu
 about=wx.NewId()
@@ -53,4 +54,7 @@ tbRedo= 80
 tbRun = 100
 tbStop = 110
 tbCompile=120
+tbPreferences=130#for the app
+tbExpSettings=140#for the experiment
+tbMonitorCenter=150
 

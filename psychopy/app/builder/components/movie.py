@@ -16,10 +16,10 @@ class MovieComponent(VisualComponent):
         del self.params['colour']
         del self.params['colourSpace']
         self.type='Movie'
-        self.params['movie']=Param(movie, valType='str', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine"],
+        self.params['movie']=Param(movie, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A filename for the movie (including path)")        
-                
+            
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=visual.MovieStim(win=win, movie=%(movie)s,\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s)\n" %(self.params))

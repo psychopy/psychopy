@@ -6,24 +6,25 @@ iconFile = path.join(thisFolder,'text.png')
 
 class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, parentName, name='', text='', font='arial',
-        units='window units', colour=[1,1,1], colourSpace='rgb',
-        pos=[0,0], letterHeight=1, ori=0, times=[0,1]):
+    def __init__(self, parentName, name='', 
+                 text='"Hint:\nUse double quotes for text (or this looks like a variable)!"', 
+                 font='arial',units='window units', colour=[1,1,1], colourSpace='rgb',
+                 pos=[0,0], letterHeight=1, ori=0, times=[0,1]):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units, 
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, ori=ori, times=times)
         self.type='Text'
-        self.params['text']=Param(text, valType='code', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['text']=Param(text, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The text to be displayed")
-        self.params['font']=Param(font, valType='str', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['font']=Param(font, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The font name, or a list of names, e.g. ['arial','verdana']")
         #change the hint for size
         del self.params['size']#because you can't specify width for text
-        self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=['num','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Specifies the height of the letter (the width is then determined by the font)")
     def writeInitCode(self,buff):
         #do we need units code?

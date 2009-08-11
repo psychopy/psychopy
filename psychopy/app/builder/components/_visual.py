@@ -10,26 +10,26 @@ class VisualComponent(_base.BaseComponent):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
         self.order=['name']#make name come first (others don't matter)
         self.params={}
-        self.params['name']=Param(name,  valType='code', updates="never", 
+        self.params['name']=Param(name,  valType='code', updates='constant', 
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
-        self.params['colour']=Param(colour, valType='code', allowedTypes=['num','str','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['colour']=Param(colour, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Colour of this stimulus (e.g. [1,1,0], 'red' )")
         self.params['colourSpace']=Param(colourSpace, valType='code', allowedVals=['rgb','dkl','lms'],
             hint="Choice of colour space for the colour (rgb, dkl, lms)")
-        self.params['pos']=Param(pos, valType='code', allowedTypes=['num','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['pos']=Param(pos, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Position of this stimulus (e.g. [1,2] ")
-        self.params['size']=Param(size, valType='code', allowedTypes=['num','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['size']=Param(size, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ")
-        self.params['ori']=Param(ori, valType='code', allowedTypes=['num','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['ori']=Param(ori, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Orientation of this stimulus (in deg)")
-        self.params['times']=Param(times, valType='code', allowedTypes=['code'],
-            updates="never", allowedUpdates=["never"],
+        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="Start and end times for this stimulus (e.g. [0,1] or [[0,1],[2,3]] for a repeated appearance")
             
     def writeFrameCode(self,buff):

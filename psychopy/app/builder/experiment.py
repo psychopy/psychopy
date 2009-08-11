@@ -34,6 +34,7 @@ class Experiment:
     def __init__(self):
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
+        self.settings=getAllComponents()['SettingsComponent'](parentName="")
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyExperimentVersion='1.5' 
         self.psychopyLibs=['core','data']
@@ -70,13 +71,13 @@ class Experiment:
             libString = libString+separator+lib
             separator=", "#for the second lib upwards we need a comma
         s.writeIndented("from psychopy import %s\n" %libString)        
-        s.writeIndented("from numpy import * #many different maths functions\n\n")
+        s.writeIndented("from numpy import * #many different maths functions\n")
+        s.writeIndented("import os #system functions\n\n")
         
-        s.writeIndented("date=data.getDateStr()#get a timestamp for running the exp\n")
-        
-        
+        self.experimentComponent.writeStartCode()#present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
+        self.experimentComponent.writeStartCode()
         
         return s
     def getAllObjectNames(self):
@@ -123,9 +124,9 @@ class Param:
         @type allowedTypes: list
         @param hint: describe this parameter for the user
         @type hint: string
-        @param updates: how often does this parameter update ('experiment', 'routine', 'frame')
+        @param updates: how often does this parameter update ('experiment', 'routine', 'set every frame')
         @type updates: string
-        @param allowedUpdates: conceivable updates for this param [None, 'routine', 'frame']
+        @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
         @type allowedUpdates: list        
         """
         self.val=val
@@ -285,7 +286,6 @@ class Flow(list):
         """Adds the routine to the Flow list"""
         self.insert(int(pos), newRoutine)        
     def writeCode(self, s):
-        s.writeIndented("win = visual.Window([400,400])\n")
         
         #initialise components
         for entry in self:

@@ -13,11 +13,11 @@ class SoundComponent(BaseComponent):
         self.type='Sound'
         self.params={}
         self.params['name']=Param(name,  valType='code', hint="A filename for the movie (including path)")  
-        self.params['sound']=Param(sound, valType='str', allowedTypes=['str','num','code'],
-            updates="never", allowedUpdates=["never","routine"],
+        self.params['sound']=Param(sound, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename")  
-        self.params['times']=Param(times, valType='code', allowedTypes=['code'],
-            updates="never", allowedUpdates=["never"],
+        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")  
 
     def writeInitCode(self,buff):

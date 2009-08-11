@@ -10,13 +10,12 @@ class MouseComponent(BaseComponent):
     def __init__(self, parentName, name='mouse', times=[0,1], save='final'):
         self.type='Mouse'
         self.psychopyLibs=['event']#needs this psychopy lib to operate
-        self.setIcon(path.abspath('mouse.png'))#needs to be the absolute path, not relative
         self.order = ['name']#make sure that 'name' is at top of dlg
         self.params={}
-        self.params['name']=Param(name, valType='str', allowedTypes=['str','code'],
+        self.params['name']=Param(name, valType='str', allowedTypes=[],
             hint="Even mice have names!") 
-        self.params['times']=Param(times, valType='code', allowedTypes=['code'],
-            updates="never", allowedUpdates=["never"],
+        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="A series of one or more periods to read the mouse, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")
         self.params['save']=Param(save, valType='str', allowedVals=['final values','every frame'])
     def writeInitCode(self,buff):

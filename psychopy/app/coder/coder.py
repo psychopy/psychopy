@@ -1098,8 +1098,8 @@ class CoderFrame(wx.Frame):
         #---_tools---#000000#FFFFFF--------------------------------------------------
         self.toolsMenu = wx.Menu()
         menuBar.Append(self.toolsMenu, '&Tools')
-        self.toolsMenu.Append(self.IDs.openMonCentre, "Monitor Center", "To set information about your monitor")
-        wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
+        self.toolsMenu.Append(self.IDs.monitorCenter, "Monitor Center", "To set information about your monitor")
+        wx.EVT_MENU(self, self.IDs.monitorCenter,  self.app.openMonitorCenter)
         self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto, "Analyse on file save/open", "Automatically analyse source (for autocomplete etc...). Can slow down the editor on a slow machine or with large files")
         wx.EVT_MENU(self, self.IDs.analyzeAuto,  self.setAnalyseAuto)
         self.analyseAutoChk.Check(self.prefs['analyseAuto'])
@@ -1174,6 +1174,8 @@ class CoderFrame(wx.Frame):
         redo_bmp = wx.Bitmap(os.path.join(self.paths['resources'], 'redo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         stop_bmp = wx.Bitmap(os.path.join(self.paths['resources'], 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         run_bmp = wx.Bitmap(os.path.join(self.paths['resources'], 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [Ctrl+N]", "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
@@ -1188,6 +1190,11 @@ class CoderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
         self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [Ctrl+R]", "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
+        self.toolbar.AddSeparator()
+        self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, "Preferences",  "Application preferences")
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
+        self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run [F5]",  "Run current script")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
@@ -1656,10 +1663,6 @@ class CoderFrame(wx.Frame):
             self.prefs['analyseAuto']=True
         else:
             self.prefs['analyseAuto']=False
-    def openMonitorCenter(self,event):
-        from monitors import MonitorCenter
-        frame = MonitorCenter.MainFrame(None,'PsychoPy Monitor Centre')
-        frame.Show(True)
     def loadDemo(self, event):
         self.setCurrentDoc( self.demos[event.GetId()] )
     def tabKeyPressed(self,event):

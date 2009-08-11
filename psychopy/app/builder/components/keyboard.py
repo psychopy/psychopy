@@ -16,28 +16,28 @@ class KeyboardComponent(BaseComponent):
             'store','storeCorrect','correctIf',
             'forceEndTrial','times']
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
-        self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine"],
+        self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="The keys the user may press, e.g. a,b,q,left,right")  
-        self.params['times']=Param(times, valType='code', allowedTypes=['code'],
-            updates="never", allowedUpdates=["never"],
+        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")
-        self.params['store']=Param(store, valType='str', allowedTypes=['str'],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates="never", allowedUpdates=["never"],
+        self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
+            updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")  
-        self.params['forceEndTrial']=Param(forceEndTrial, valType='bool', allowedTypes=['bool'],
-            updates="never", allowedUpdates=["never"],
+        self.params['forceEndTrial']=Param(forceEndTrial, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="Should the keypress force the end of the routine (e.g end the trial)?")
-        self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=['bool'],
-            updates="never", allowedUpdates=["never"],
+        self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
-        self.params['correctIf']=Param(correctIf, valType='code', allowedTypes=['code'],
-            updates="never", allowedUpdates=["never"],
+        self.params['correctIf']=Param(correctIf, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect? Might be helpful to add a corrAns column in the trialList")
         #todo: add response time clock to keyboard!!
         self.params['storeResponseTime']=Param(storeResponseTime, 
-            valType='bool', allowedTypes=['bool'],
-            updates="never", allowedUpdates=["never"],
+            valType='bool', 
+            updates='constant', allowedUpdates=[],
             hint="Response time (saved as 'rt') is based from start of keyboard available period")
     def writeInitCode(self,buff):
         pass#no need to initialise keyboards?

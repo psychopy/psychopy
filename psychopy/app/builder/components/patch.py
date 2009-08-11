@@ -14,17 +14,17 @@ class PatchComponent(VisualComponent):
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, size=size, ori=ori, times=times)
         self.type='Patch'
-        self.params['image']=Param(image, valType='str', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['image']=Param(image, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")        
-        self.params['mask']=Param(mask, valType='str', allowedTypes=['str','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['mask']=Param(mask, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)")        
-        self.params['sf']=Param(sf, valType='num', allowedTypes=['num','code'],
-            updates="never", allowedUpdates=["never","routine","frame"],
+        self.params['sf']=Param(sf, valType='num', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]")        
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
-            updates="never", allowedUpdates=["never"],
+            updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled")
             
     def writeInitCode(self,buff):

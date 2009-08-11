@@ -685,6 +685,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         self.components=experiment.getAllComponents()
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             del self.components[hiddenComp]
+        del self.components['SettingsComponent']#also remove settings - that's in toolbar not components panel
         for thisName in self.components.keys():
             #NB thisComp is a class - we can't use its methods until it is an instance
             thisComp=self.components[thisName]  
@@ -746,7 +747,7 @@ class ParamCtrls:
         """
         self.param = param
         self.dlg = dlg
-        self.valueWidth = 150
+        self.valueWidth = 250
         #param has the fields:
         #val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
         # we need the following
@@ -756,7 +757,7 @@ class ParamCtrls:
         
         if type(param.val)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
-        labelLength = wx.Size(self.valueWidth,25)#was 8*until v0.91.4
+        labelLength = wx.Size(150,25)#was 8*until v0.91.4
         self.nameCtrl = wx.StaticText(self.dlg,-1,label,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
                                         
@@ -852,7 +853,7 @@ class ParamCtrls:
         if self.updateCtrl:
             return self._getCtrlValue(self.updateCtrl)
 class _BaseParamsDlg(wx.Dialog):   
-    def __init__(self,frame,title,params,order,
+    def __init__(self,frame,title,params,order,suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):        
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
@@ -866,18 +867,20 @@ class _BaseParamsDlg(wx.Dialog):
         self.data = []
         self.sizer= wx.GridBagSizer(vgap=2,hgap=2)
         self.currRow = 0
-                
+        
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
         types=dict([])
+        self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         
-        #create a header row of titles        
-        size=wx.Size(100,-1)
-        self.sizer.Add(wx.StaticText(self,-1,'Parameter',size=size, style=wx.ALIGN_CENTER),(self.currRow,0))
-        self.sizer.Add(wx.StaticText(self,-1,'Value',size=size, style=wx.ALIGN_CENTER),(self.currRow,1))
-        self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
-        self.sizer.Add(wx.StaticText(self,-1,'Update Frequency',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
-        self.currRow+=1
-        self.sizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,4))
+        #create a header row of titles  
+        if not suppressTitles:
+            size=wx.Size(100,-1)
+            self.sizer.Add(wx.StaticText(self,-1,'Parameter',size=size, style=wx.ALIGN_CENTER),(self.currRow,0))
+            self.sizer.Add(wx.StaticText(self,-1,'Value',size=size, style=wx.ALIGN_CENTER),(self.currRow,1))
+            #self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
+            self.sizer.Add(wx.StaticText(self,-1,'Updates',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
+            self.currRow+=1
+        self.sizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
         self.currRow+=1
         
         remaining = sorted(self.params.keys())
@@ -895,10 +898,10 @@ class _BaseParamsDlg(wx.Dialog):
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         self.sizer.Add(ctrls.nameCtrl, (self.currRow,0), (1,1),wx.ALIGN_RIGHT )
         self.sizer.Add(ctrls.valueCtrl, (self.currRow,1) )
-        if ctrls.typeCtrl: 
-            self.sizer.Add(ctrls.typeCtrl, (self.currRow,2) )
         if ctrls.updateCtrl: 
-            self.sizer.Add(ctrls.updateCtrl, (self.currRow,3))      
+            self.sizer.Add(ctrls.updateCtrl, (self.currRow,2)) 
+        if ctrls.typeCtrl: 
+            self.sizer.Add(ctrls.typeCtrl, (self.currRow,3) )     
         self.currRow+=1
             
     def addText(self, text, size=None):
@@ -1165,11 +1168,12 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler.params['trialList'].val=self.trialList
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):    
-    def __init__(self,frame,title,params,order,
+    def __init__(self,frame,title,params,order,suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER        
-        _BaseParamsDlg.__init__(self,frame,title,params,order,pos,size,style)
+        _BaseParamsDlg.__init__(self,frame,title,params,order,
+                                pos=pos,size=size,style=style)
         self.frame=frame        
         self.app=frame.app
         
@@ -1188,17 +1192,52 @@ class DlgComponentProperties(_BaseParamsDlg):
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
             self.paramCtrls['correctIf'].valueCtrl.Show()
             self.paramCtrls['correctIf'].nameCtrl.Show()
-            self.paramCtrls['correctIf'].typeCtrl.Show()
-            self.paramCtrls['correctIf'].updateCtrl.Show()
+            #self.paramCtrls['correctIf'].typeCtrl.Show()
+            #self.paramCtrls['correctIf'].updateCtrl.Show()
         else:
             self.paramCtrls['correctIf'].valueCtrl.Hide()
             self.paramCtrls['correctIf'].nameCtrl.Hide()
-            self.paramCtrls['correctIf'].typeCtrl.Hide()
-            self.paramCtrls['correctIf'].updateCtrl.Hide()    
+            #self.paramCtrls['correctIf'].typeCtrl.Hide()
+            #self.paramCtrls['correctIf'].updateCtrl.Hide()    
         self.sizer.Layout()
         self.Fit()       
-        self.Refresh()        
+        self.Refresh()   
         
+class DlgExperimentProperties(_BaseParamsDlg):    
+    def __init__(self,frame,title,params,order,suppressTitles=False,
+            pos=wx.DefaultPosition, size=wx.DefaultSize,
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
+        style=style|wx.RESIZE_BORDER        
+        _BaseParamsDlg.__init__(self,frame,title,params,order,
+                                pos=pos,size=size,style=style)
+        self.frame=frame        
+        self.app=frame.app
+        
+        #for input devices:
+        if 'storeCorrect' in self.params:
+            self.onStoreCorrectChange(event=None)#do this just to set the initial values to be 
+            self.Bind(wx.EVT_CHECKBOX, self.onStoreCorrectChange, self.paramCtrls['storeCorrect'].valueCtrl)
+        
+        #for all components
+        self.show()
+        if self.OK:
+            self.params = self.getParams()#get new vals from dlg
+        self.Destroy()     
+    def onStoreCorrectChange(self,event=None):
+        """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
+        if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
+            self.paramCtrls['correctIf'].valueCtrl.Show()
+            self.paramCtrls['correctIf'].nameCtrl.Show()
+            #self.paramCtrls['correctIf'].typeCtrl.Show()
+            #self.paramCtrls['correctIf'].updateCtrl.Show()
+        else:
+            self.paramCtrls['correctIf'].valueCtrl.Hide()
+            self.paramCtrls['correctIf'].nameCtrl.Hide()
+            #self.paramCtrls['correctIf'].typeCtrl.Hide()
+            #self.paramCtrls['correctIf'].updateCtrl.Hide()    
+        self.sizer.Layout()
+        self.Fit()       
+        self.Refresh()     
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
@@ -1273,6 +1312,9 @@ class BuilderFrame(wx.Frame):
         stop_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         run_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         compile_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'compile%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        settings_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'settingsExp%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [%s]" %self.app.keys.new, "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
@@ -1288,6 +1330,13 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [%s]" %self.app.keys.redo,  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
+        self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, "Preferences",  "Application preferences")
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
+        self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
+        self.toolbar.AddSeparator()
+        self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")
+        self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
         self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, "Compile Script [%s]" %self.app.keys.compileScript,  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run/t%s" %self.app.keys.runScript,  "Run experiment")
@@ -1331,8 +1380,8 @@ class BuilderFrame(wx.Frame):
         #---_tools---#000000#FFFFFF--------------------------------------------------
         self.toolsMenu = wx.Menu()
         menuBar.Append(self.toolsMenu, '&Tools')
-        self.toolsMenu.Append(self.IDs.openMonCentre, "Monitor Center", "To set information about your monitor")
-        wx.EVT_MENU(self, self.IDs.openMonCentre,  self.openMonitorCenter)
+        self.toolsMenu.Append(self.IDs.monitorCenter, "Monitor Center", "To set information about your monitor")
+        wx.EVT_MENU(self, self.IDs.monitorCenter,  self.app.openMonitorCenter)
         
         self.toolsMenu.Append(self.IDs.compileScript, "Compile\t%s" %self.app.keys.compileScript, "Compile the exp to a script")
         wx.EVT_MENU(self, self.IDs.compileScript,  self.compileScript) 
@@ -1622,8 +1671,15 @@ class BuilderFrame(wx.Frame):
         name = os.path.splitext(self.filename)[0]+".py"
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
-    def openMonitorCenter(self, event=None):
-        #todo: openMonitorCenter
-        pass
+    def setExperimentSettings(self,event=None):
+        component=self.exp.settings
+        dlg = DlgExperimentProperties(frame=self,
+            title='Experiment Properties',
+            params = component.params,
+            order = component.order)
+        if dlg.OK:
+            self.redrawRoutine()#need to refresh timings section
+            self.Refresh()#then redraw visible
+            self.frame.addToUndoStack("edit %s" %component.params['name'])
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
