@@ -35,11 +35,11 @@ class Experiment:
         self.name=None
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
-
+        
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyExperimentVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data'] 
-               
+        self.psychopyLibs=['core','data', 'event'] 
+        
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         
     def requirePsychopyLibs(self, libs=[]):
@@ -73,7 +73,7 @@ class Experiment:
         libString=""; separator=""
         for lib in self.psychopyLibs:
             libString = libString+separator+lib
-            separator=", "#for the second lib upwards we need a comma   
+            separator=", "#for the second lib upwards we need a comma
         s.writeIndented("from numpy import * #many different maths functions\n")
         s.writeIndented("import os #handy system and path functions\n")
         s.writeIndented("from psychopy import %s\n" %libString)     
@@ -160,7 +160,7 @@ class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
-    def __init__(self, name, loopType, nReps, 
+    def __init__(self, name, loopType, nReps,
         trialList=[], trialListFile='',endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
@@ -199,13 +199,16 @@ class TrialHandler():
         for line in self.params['trialList'].val:
             trialStr += "        %s,\n" %line
         trialStr += "        ]"
+        #also a 'thisName' for use in "for thisTrial in trials:"
+        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code        
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
+        buff.writeIndented("%s=trials.next()#so we can initialise stimuli with first trial values\n" %self.thisName)
+        
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
-        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
@@ -219,6 +222,7 @@ class TrialHandler():
         #save data
         ##a string to show all the available variables
         stimOutStr="["
+        print 'nicomm', self.params['trialList'].val
         for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
@@ -373,6 +377,9 @@ class Routine(list):
             
         #update screen
         buff.writeIndented('\n')
+        buff.writeIndented('#check for quit (the [Esc] key)\n')
+        buff.writeIndented('if event.getKeys("Esc"): core.quit()\n')
+        buff.writeIndented("event.clearBuffer()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
         

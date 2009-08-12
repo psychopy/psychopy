@@ -969,6 +969,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.staircaseCtrls={}
         self.data = []
         self.sizer= wx.BoxSizer(wx.VERTICAL)
+        self.trialList=None
+        self.trialListFile=None
         
         #create instances of the two loop types
         if loop==None:
@@ -978,6 +980,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentType='random'
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
+            self.trialList=loop.params['trialList'].val
+            self.trialLIstFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
             self.stairHandler=experiment.StairHandler('trials', nReps=50, nReversals=12,
@@ -986,12 +990,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.stairHandler = self.currentHandler = loop            
             self.currentType='staircase'
             experiment.TrialHandler(name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-
+        
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
         self.makeConstantsCtrls()#the controls for Method of Constants
-        self.trialListFile=None
-        self.trialList=None
         self.setCtrls(self.currentType)
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
@@ -1000,6 +1002,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.show()
         if self.OK:
             self.params = self.getParams()
+        #make sure we set this back regardless of whether OK
+        #otherwise it will be left as a summary string, not a trialList
+        if self.currentHandler.params.has_key('trialListFile'):
+            self.currentHandler.params['trialList'].val=self.trialList
             
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType','endPoints']: 
@@ -1037,7 +1043,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName=='trialList':
                 if handler.params.has_key('trialList'):
                     text=self.getTrialsSummary(handler.params['trialList'].val)
-                else: 
+                else:
                     text = """No parameters set (select a .csv file above)"""
                 ctrls = ParamCtrls(self, 'trialList',text,noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
@@ -1077,7 +1083,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             return '%i trial types, with %i parameters\n%s' \
                 %(len(trialList),len(trialList[0]), trialList[0].keys())
         else:
-            print type(trialList)
             return "No parameters set"
     def importTrialTypes(self, fileName):
         """Import the trial data from fileName to generate a list of dicts.
@@ -1097,9 +1102,15 @@ class DlgLoopProperties(_BaseParamsDlg):
         for trialN, trialType in enumerate(trialsArr):
             thisTrial ={}
             for fieldN, fieldName in enumerate(fieldNames):
-                thisTrial[fieldName] = trialsArr[trialN][fieldN]
+                val = trialsArr[trialN][fieldN]
+                #if it looks like a list, convert it
+                if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
+                    print 'here'
+                    exec('val=%s' %val)
+                thisTrial[fieldName] = val
             trialList.append(thisTrial)            
         self.trialList=trialList
+        print self.trialList
     def setCtrls(self, ctrlType):
         #choose the ctrls to show/hide
         if ctrlType=='staircase': 
@@ -1150,9 +1161,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)
             if ctrls.typeCtrl: param.valType = ctrls.getType()
             if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
-        if self.currentType in ['random','sequential']:
-            self.currentHandler.params['trialListFile'].val=self.trialListFile
-            self.currentHandler.params['trialList'].val=self.trialList
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):    
     def __init__(self,frame,title,params,order,suppressTitles=True,
@@ -1206,10 +1214,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         
         #for all components
         self.show()
-        print 'expParams:', self.params
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
-        print 'expParams:', self.params
         self.Destroy()     
     def onFullScrChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
