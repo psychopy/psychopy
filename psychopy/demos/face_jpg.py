@@ -3,7 +3,7 @@ from psychopy import core, visual, event
 import psychopy.sound
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1), winType='pygame')
-
+myWin.setRecordFrameIntervals()
 #INITIALISE SOME STIMULI
 faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     mask=None,

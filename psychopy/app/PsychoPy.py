@@ -87,12 +87,26 @@ class PsychoPyApp(wx.App):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and import options
-        self.prefs = Preferences() #from preferences.py
+        self.prefs = Preferences() #from preferences.py        
+        self.IDs=wxIDs
+        self.keys=keybindings
+        
         splash = PsychoSplashScreen(self)
         if splash:
             splash.Show()
+        
+        #send anonymous info to www.psychopy.org/usage.php
+        #please don't disable this - it's important for PsychoPy's development
+        if self.prefs.connections['allowUsageStats']:
+            statsThread = threading.Thread(target=sendUsageStats, args=(self.prefs.connections['proxy'],))
+            statsThread.start()
             
-        mainFrame=self.prefs.app['defaultView']
+        #get preferred view(s) from prefs and previous view
+        if self.prefs.app['defaultView']=='last':
+            mainFrame = self.prefs.appData['lastFrame']
+        else: mainFrame= self.prefs.app['defaultView']
+        #then override the main frame by command options and passed files
+        scripts=[]; exps=[]
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
                 args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
@@ -102,28 +116,28 @@ class PsychoPyApp(wx.App):
             if args[0] in ['builder', '--builder', '-b']:
                     mainFrame='builder'
                     args = args[1:]#can remove that argument
-            elif args[0][-7:]=='.psyExp':
-                    mainFrame='builder'
             elif args[0] in ['coder','--coder', '-c']:
                     mainFrame='coder'
                     args = args[1:]#can remove that argument
+            #did we get .py or .psyexp files?
+            elif args[0][-7:]=='.psyExp':
+                    mainFrame='builder'
+                    exps=[args[0]]
             elif args[0][-3:]=='.py':
                     mainFrame='coder'
+                    scripts=[args[0]]
         else:
             args=[]
-        #create frame(s) for coder/builder as necess
-        self.coder=None
-        self.builder=None
-        self.IDs=wxIDs
-        self.keys=keybindings
-        if mainFrame == 'coder': self.newCoderFrame(None, args)
-        else: self.newBuilderFrame(None, args)
+        #create both frame for coder/builder as necess
+        self.coder=coder.CoderFrame(None, -1, 
+                                  title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
+                                  files = scripts, app=self) 
+        self.builder=builder.BuilderFrame(None, -1, 
+                                  title="PsychoPy2 Experiment Builder",
+                                  files = exps, app=self)            
+        if mainFrame in ['both','coder']: self.showCoder()
+        if mainFrame in ['both','builder']: self.showBuilder()
         
-        #send anonymous info to www.psychopy.org/usage.php
-        #please don't disable this - it's important for PsychoPy's development
-        if self.prefs.connections['allowUsageStats']:
-            statsThread = threading.Thread(target=sendUsageStats, args=(self.prefs.connections['proxy'],))
-            statsThread.start()
         
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
@@ -144,20 +158,10 @@ class PsychoPyApp(wx.App):
                 config.Flush()"""
         
         return True
-    def newCoderFrame(self, event=None, filelist=None):
-        #NB a frame doesn't have an app as a parent
-        if self.coder==None:
-            self.coder = coder.CoderFrame(None, -1, 
-                                  title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
-                                  files = filelist, app=self)         
+    def showCoder(self, event=None, filelist=None):   
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
-    def newBuilderFrame(self, event=None, fileList=None):    
-        #NB a frame doesn't have an app as a parent
-        if self.builder==None:
-            self.builder = builder.BuilderFrame(None, -1, 
-                                  title="PsychoPy2 Experiment Builder",
-                                  files = fileList, app=self)       
+    def showBuilder(self, event=None, fileList=None):         
         self.builder.Show(True)
         self.SetTopWindow(self.builder)
     def openMonitorCenter(self,event):
@@ -170,13 +174,23 @@ class PsychoPyApp(wx.App):
         elif fileName.endswith('.psyexp'):
             self.builder.setCurrentDoc(fileName)
     def quit(self, event=None):
-        self.prefs.saveAppData()
+        #see whether any files need saving
         for frame in [self.coder, self.builder]:
-            if hasattr(frame, 'closeFrame'):
-                frame.closeFrame()#this should update (but not save) prefs.appData
-                self.prefs.saveAppData()
-                frame.Destroy()#closeFrame actually just Hides the frame
-        #todo: work out correct operation of closing wrt multiple frames etc...
+            ok=frame.checkSave()
+            if not ok: return#user cancelled quit 
+        #save info about current frames for next run
+        if self.coder.IsShown() and not self.builder.IsShown(): 
+            self.prefs.appData['lastFrame']='coder'
+        elif self.builder.IsShown() and not self.coder.IsShown(): 
+            self.prefs.appData['lastFrame']='builder'
+        else:
+            self.prefs.appData['lastFrame']='both'
+        #hide the frames then close
+        for frame in [self.coder, self.builder]:
+            frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
+            self.prefs.saveAppData()#must do this before destroying the frame?
+            frame.Destroy()#because closeFrame actually just Hides the frame
+            
     def showPrefs(self, event):
         prefsDlg = PreferencesDlg(app=self)
         prefsDlg.Show()

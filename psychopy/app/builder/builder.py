@@ -1349,10 +1349,12 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [%s]" %self.app.keys.redo,  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
+        self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, "Preferences",  "Application preferences")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
         self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
+        self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
@@ -1413,7 +1415,7 @@ class BuilderFrame(wx.Frame):
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
-        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.newCoderFrame)
+        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
                 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()    
@@ -1464,9 +1466,13 @@ class BuilderFrame(wx.Frame):
         self.demosMenu
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
-    def closeFrame(self, event=None):
+    def closeFrame(self, event=None, checkSave=True):
+        if checkSave:
+            ok=self.checkSave()
+            if not ok: return -1
         self.appData['prevFile']=self.filename
         self.Hide()
+        return 1#indicates that check was successful
     def quit(self, event):
         """quit the app""" 
         self.app.quit()
@@ -1577,8 +1583,9 @@ class BuilderFrame(wx.Frame):
         except:
             pass
         self.updateWindowTitle()
-    def fileClose(self, event=None):
-        """Close the current file (and warn if it hasn't been saved)"""
+    def checkSave(self):
+        """Check whether we need to save before quitting
+        """
         if hasattr(self, 'isModified') and self.isModified:
             dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %self.filename,
                 caption='Warning', style=wx.YES_NO|wx.CANCEL )
@@ -1591,7 +1598,14 @@ class BuilderFrame(wx.Frame):
                 #save then quit
                 self.fileSave()
             elif resp == wx.ID_NO:
-                pass #don't save just quit
+                pass #don't save just quit        
+        return 1
+    def fileClose(self, event=None, checkSave=True):
+        """Close the current file (and warn if it hasn't been saved)"""
+        if checkSave:
+            ok = self.checkSave()
+            if not ok: return -1#user cancelled
+        #close self
         self.routinePanel.removePages()
         self.filename = 'untitled.psyexp'    
         self.resetUndoStack()#will add the current exp as the start point for undo
@@ -1685,9 +1699,8 @@ class BuilderFrame(wx.Frame):
         pass
     def compileScript(self, event=None):
         script = self.exp.writeScript()
-        if not self.app.coder:#it doesn't exist so make one
-            self.app.newCoderFrame()
-        name = os.path.splitext(self.filename)[0]+".py"
+        self.app.showCoder()#make sure coder is visible
+        name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp an add .py
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
     def setExperimentSettings(self,event=None):

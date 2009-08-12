@@ -1015,8 +1015,6 @@ class CoderFrame(wx.Frame):
             self.SetMinSize(wx.Size(200, 200)) #min size for the whole window
         self.SendSizeEvent()
         
-        self.Show()#now it's all done
-        
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
@@ -1127,7 +1125,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()       
         self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
-        wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.newBuilderFrame)
+        wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
                 
         
         #---_help---#000000#FFFFFF--------------------------------------------------
@@ -1191,10 +1189,12 @@ class CoderFrame(wx.Frame):
         self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [Ctrl+R]", "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
+        self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, "Preferences",  "Application preferences")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
         self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
+        self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run [F5]",  "Run current script")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
@@ -1280,11 +1280,31 @@ class CoderFrame(wx.Frame):
     
     def quit(self, event):
         self.app.quit()
-        
-    def closeFrame(self, event=None):
+    def checkSave(self):
+        """Loop through all open files checking whether they need save
+        """
+        for ii in range(self.notebook.GetPageCount()):
+            doc = self.notebook.GetPage(ii)
+            if doc.UNSAVED:
+                dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
+                    caption='Warning', style=wx.YES_NO|wx.CANCEL )
+                resp = dlg.ShowModal()
+                sys.stdout.flush()
+                dlg.Destroy()
+                if resp  == wx.ID_CANCEL:
+                    return -1 #return, don't quit
+                elif resp == wx.ID_YES:
+                    #save then quit
+                    self.fileSave(None)
+                elif resp == wx.ID_NO:
+                    pass #don't save just quit
+        return 1
+                
+    def closeFrame(self, event=None, checkSave=True):
         """Close open windows, update prefs.appData (but don't save) and either 
         close the frame or hide it
         """
+        wasShown = self.IsShown()
         self.Hide()#ugly to see it close all the files independently
         #undo
         sys.stdout = self._origStdOut#discovered during __init__
@@ -1314,11 +1334,11 @@ class CoderFrame(wx.Frame):
         
         #close each file (so that we check for saving)
         for thisFileName in currFiles:#must do this for all files AFTER adding them to the list
-            ok = self.fileClose(event=0, filename=thisFileName)#delete from end back
+            ok = self.fileClose(event=0, filename=thisFileName, checkSave=checkSave)#delete from end back
             if ok==-1:
+                self.Show(wasShown)#show again if it was visible
                 return -1 #user cancelled - don't quit
-        
-        self.Hide()#the user may not have quit, so keep the menubar open by just hiding the window
+        self.Hide()#ultimately Hide
         
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
@@ -1336,8 +1356,8 @@ class CoderFrame(wx.Frame):
             self.notebook.SetSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
-            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename=='untitled.py':
-                self.fileClose('untitled.py')  
+            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename.startswith('untitled'):
+                self.fileClose(self.currentDoc.filename)  
             
             #create an editor window to put the text in
             p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
@@ -1354,8 +1374,14 @@ class CoderFrame(wx.Frame):
             # line numbers in the margin
             self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
             self.currentDoc.SetMarginWidth(1, 32)
+            #set name for an untitled document
             if filename=="":
                 filename=shortName='untitled.py'
+                allFileNames=self.getOpenFilenames()
+                n=1
+                while filename in allFileNames:
+                    filename=shortName='untitled%i.py' %n
+                    n+=1
             else:
                 path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)   
@@ -1393,19 +1419,24 @@ class CoderFrame(wx.Frame):
                     
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
-    def fileSave(self,event, filename=None):
-        
+    def fileSave(self,event, filename=None, doc=None):
+        """Save a ``doc`` with a particular ``filename``.
+        If ``doc`` is ``None`` then the current active doc is used. If the ``filename`` is 
+        ``None`` then the ``doc``'s current filename is used or a dlg is presented to 
+        get a new filename.
+        """
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
-            
+        
+        if doc==None:doc=self.currentDoc
         if filename==None: 
-            filename = self.currentDoc.filename
-        if filename=='untitled.py':
+            filename = doc.filename
+        if filename.startswith('untitled'):
             self.fileSaveAs(filename)
         else:
             self.SetStatusText('Saving file')
             f = open(filename,'w')
-            f.write( self.currentDoc.GetText().encode('utf-8'))
+            f.write( doc.GetText().encode('utf-8'))
             f.close()
         self.setFileModified(False)
             
@@ -1416,38 +1447,51 @@ class CoderFrame(wx.Frame):
         self.SetStatusText('')
         self.fileHistory.AddFileToHistory(filename)
         
-    def fileSaveAs(self,event, filename=None):
-                    
+    def fileSaveAs(self,event, filename=None, doc=None):
+        """Save a ``doc`` with a new ``filename``, after presenting a dlg to get a new
+        filename. 
+        
+        If ``doc`` is ``None`` then the current active doc is used. 
+        
+        If the ``filename`` is not ``None`` then this will be the initial value
+        for the filename in the dlg.
+        """
+        #cancel autocomplete if active
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
-            
-        if filename==None: filename = self.currentDoc.filename
-        initPath, filename = os.path.split(filename)
-        os.getcwd()
+        
+        if doc==None: 
+            doc = self.currentDoc
+            docId=self.notebook.GetSelection()
+        else: 
+            docId = self.findDocID(doc.filename)
+        if filename==None: filename = doc.filename
+        initPath, filename = os.path.split(filename)#if we have an absolute path then split it
+        #set wildcards
         if sys.platform=='darwin':
             wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
         else:
             wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
-
+        #open dlg
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=initPath, 
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            self.fileSave(event=None, filename=newPath)
-            self.currentDoc.filename = newPath
+            self.fileSave(event=None, filename=newPath, doc=doc)
+            doc.filename = newPath
             path, shortName = os.path.split(newPath)
-            self.notebook.SetPageText(self.notebook.GetSelection(), shortName)
+            self.notebook.SetPageText(docId, shortName)
             self.setFileModified(False)
-        try: #this seems correct on PC, but not on mac   
+        try: #this seems correct on PC, but can raise errors on mac   
             dlg.destroy()
         except:
             pass
-    def fileClose(self, event, filename=None):        
+    def fileClose(self, event, filename=None, checkSave=True):        
         if filename==None:
             filename = self.currentDoc.filename
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
-        if self.currentDoc.UNSAVED==True:
+        if self.currentDoc.UNSAVED and checkSave:
             sys.stdout.flush()
             dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
                 caption='Warning', style=wx.YES_NO|wx.CANCEL )
