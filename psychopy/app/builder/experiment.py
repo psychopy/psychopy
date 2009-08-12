@@ -40,7 +40,7 @@ class Experiment:
         self.psychopyExperimentVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data'] 
                
-        self.settings=getAllComponents()['SettingsComponent'](exp=self)
+        self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
@@ -61,7 +61,7 @@ class Experiment:
             self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
-        
+    
     def writeScript(self):
         """Write a PsychoPy script for the experiment
         """

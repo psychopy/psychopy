@@ -5,12 +5,13 @@ from _base import *
 
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
-    def __init__(self, exp, fullScr=True, winSize=[1024,768], screen=1, monitor=None,
+    def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':001, 'session':001}",
                  logging='warning'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
+        self.parentName=parentName
         #params
         self.params={}
         self.order=['Screen', 'Full-screen window','Window size (pixels)']
@@ -63,8 +64,8 @@ class SettingsComponent:
         size=self.params['Window size (pixels)']#
         fullScr = self.params['Full-screen window']
         monitor=self.params['Monitor']
-        if self.params['Units']=='use prefs': unitsCode=""
-        else: unitsCode=", units=%s" %self.params['Units']
+        if self.params['Units'].val=='use prefs': unitsCode=""
+        else: unitsCode=", units=%s" %self.params['Units'].val
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))

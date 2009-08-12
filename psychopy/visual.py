@@ -141,7 +141,7 @@ class Window:
         #convert to a Monitor object
         if monitor==None:
             monitor = monitors.Monitor('__blank__')
-        if type(monitor)==str:
+        if type(monitor) in [str, unicode]:
             monitor = monitors.Monitor(monitor)
         elif type(monitor)==dict:
             #convert into a monitor object
@@ -3082,7 +3082,7 @@ class TextStimGLUT:
         else: self.units = win.units
         
         self.pos= numpy.array(pos, float)
-        if type(font)==str:
+        if type(font) in [unicode, str]:
             self.fontName=font
             exec('self.font=GLUT.'+font)
         else:#presumably was an actual GLUT font enumerator

@@ -714,7 +714,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         newClassStr = self.componentFromID[evt.GetId()]
         componentName = newClassStr.replace('Component','')
         newCompClass = self.components[newClassStr]
-        newComp = newCompClass(currRoutine.name, self.frame.exp)
+        newComp = newCompClass(parentName=currRoutine.name, exp=self.frame.exp)
         #create component template    
         dlg = DlgComponentProperties(frame=self.frame,
             title=componentName+' Properties',
@@ -954,21 +954,7 @@ class _BaseParamsDlg(wx.Dialog):
             if ctrls.typeCtrl: param.valType = ctrls.getType()
             if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.params
-#The following is now performed by the ParamCtrl class automatically
-#    def getCtrlValue(self, ctrl):
-#        """Different types of control have different methods for retrieving value. 
-#        This function checks them all and returns the value or None.
-#        """
-#        if ctrl==None: return None
-#        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
-#            return ctrl.GetValue()
-#        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
-#            return ctrl.GetStringSelection()
-#        elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
-#            return ctrl.GetLabel()
-#        else:
-#            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
-#            return None
+    
 class DlgLoopProperties(_BaseParamsDlg):    
     def __init__(self,frame,title="Loop properties",loop=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -1220,8 +1206,10 @@ class DlgExperimentProperties(_BaseParamsDlg):
         
         #for all components
         self.show()
+        print 'expParams:', self.params
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
+        print 'expParams:', self.params
         self.Destroy()     
     def onFullScrChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
@@ -1711,10 +1699,12 @@ class BuilderFrame(wx.Frame):
     def setExperimentSettings(self,event=None):
         component=self.exp.settings
         dlg = DlgExperimentProperties(frame=self,
-            title='Experiment Properties',
+            title='%s Properties' %self.exp.name,
             params = component.params,
             order = component.order)
         if dlg.OK:
-            self.frame.addToUndoStack("edit experiment settings")
+            
+            self.addToUndoStack("edit experiment settings")
+            self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()

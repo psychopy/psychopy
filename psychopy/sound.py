@@ -220,7 +220,7 @@ class SoundPygame(_SoundBase):
         
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
@@ -359,7 +359,7 @@ class SoundPyglet(_SoundBase):
             
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
@@ -505,7 +505,7 @@ class SoundPyaudio(_SoundBase):
         
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
