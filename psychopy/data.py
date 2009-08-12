@@ -211,7 +211,7 @@ class TrialHandler:
         return self.thisTrial
     def saveAsText(self,fileName, 
                    stimOut=[], 
-                   dataOut=['n','rt_mean','rt_std', 'acc_raw'],
+                   dataOut=['n','all_mean','all_std', 'all_raw'],
                    delim='\t',
                    matrixOnly=False,
                    appendFile=True,
@@ -231,13 +231,14 @@ class TrialHandler:
             
             dataOut
                 a list of strings specifying the dataType and the analysis to
-                be performed. The data can be any of the types that
-                you added using trialHandler.data.add() and the anal can be either
+                be performed,in the form /dataType_analysis/. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
                 'raw' or most things in the numpy library, including;
                 'mean','std','median','max','min'...
+                The default values will output the raw, mean and std of all datatypes found 
             
             delim
-                allows the user to use a delimiter other than tab
+                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
             
             matrixOnly
                 outputs the data with no header row or extraInfo attached
@@ -247,10 +248,26 @@ class TrialHandler:
             
         """
         
-        #do the necessary analysis on the data
         dataHead=[]#will store list of data headers
         dataAnal=dict([])	#will store data that has been analyzed
         if type(dataOut)!=list: dataOut = [dataOut]
+        
+        #expand any 'all' dataTypes to be the full list of available dataTypes
+        allDataTypes=self.data.keys()
+        dataOutNew=[]
+        for thisDataOut in enumerate(dataOut):
+            dataType, analType =string.split(thisDataOut, '_', 1)
+            if dataType=='all':
+                dataOutList.extend([key+"_"+analType for key in allDataTypes])
+            else:
+                dataOutList.append(thisDataOut)
+        dataOut=dataOutNew
+        dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        if 'n' in dataOut:#move n to the first column
+            dataOut.remove('n')
+            dataOut.insert(0,'n')
+        
+        #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
             
             if thisDataOut=='n': 
@@ -273,7 +290,7 @@ class TrialHandler:
             elif analType=='raw':
                 thisAnal=thisData
             else:
-                raise 'psychopyErr', 'you can only use analyses from numpy'
+                raise AttributeError, 'You can only use analyses from numpy'
             #add extra cols to header if necess
             if len(thisAnal.shape)>1:
                 for n in range(thisAnal.shape[1]-1):
@@ -351,7 +368,7 @@ class TrialHandler:
         f.close()
         
     def printAsText(self, stimOut=[], 
-                    dataOut=['rt_mean','rt_std', 'acc_raw'],
+                    dataOut=['all_mean', 'all_std', 'all_raw'],
                     delim='\t',
                     matrixOnly=False,
                   ):
@@ -370,7 +387,10 @@ class TrialHandler:
         """)
             self._warnUseOfNext=False     
         return self.next()
-        
+    def addData(self, thisType, value, position=None):
+        """Add data for the current trial to the `~psychopy.data.DataHandler`
+        """
+        self.data.add(thisType, value, position=None)
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.

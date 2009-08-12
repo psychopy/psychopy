@@ -160,6 +160,7 @@ class PsychoPyApp(wx.App):
         return True
     def showCoder(self, event=None, filelist=None):   
         self.coder.Show(True)
+        self.coder.setOutputWindow()#takes control of sys.stdout
         self.SetTopWindow(self.coder)
     def showBuilder(self, event=None, fileList=None):         
         self.builder.Show(True)

@@ -226,6 +226,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType()=='Routine':
                 currX = self.drawFlowBox(pdc,entry.name, pos=[currX,linePos-40])
             self.gapMidPoints.append(currX+gap/2)
+            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos,x2=currX+gap,y2=linePos)
             currX+=gap
             
@@ -713,7 +714,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         newClassStr = self.componentFromID[evt.GetId()]
         componentName = newClassStr.replace('Component','')
         newCompClass = self.components[newClassStr]
-        newComp = newCompClass(currRoutine.name)
+        newComp = newCompClass(currRoutine.name, self.frame.exp)
         #create component template    
         dlg = DlgComponentProperties(frame=self.frame,
             title=componentName+' Properties',
@@ -1575,7 +1576,11 @@ class BuilderFrame(wx.Frame):
             self, message="Save file as ...", defaultDir=initPath, 
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
+            newPath = dlg.GetPath()      
+            #update exp name      
+            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
+            self.exp.setExpName(shortName)
+            #actually save
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath    
         try: #this seems correct on PC, but not on mac   
@@ -1699,10 +1704,10 @@ class BuilderFrame(wx.Frame):
         pass
     def compileScript(self, event=None):
         script = self.exp.writeScript()
-        self.app.showCoder()#make sure coder is visible
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp an add .py
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
+        self.app.showCoder()#make sure coder is visible
     def setExperimentSettings(self,event=None):
         component=self.exp.settings
         dlg = DlgExperimentProperties(frame=self,

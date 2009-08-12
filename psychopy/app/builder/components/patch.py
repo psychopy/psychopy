@@ -6,7 +6,7 @@ iconFile = path.join(thisFolder,'patch.png')
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, parentName, name='', image='sin', mask='none', sf=1, interpolate='linear',
+    def __init__(self, exp, parentName, name='', image='sin', mask='none', sf=1, interpolate='linear',
         units='window units', colour=[1,1,1], colourSpace='rgb',
         pos=[0,0], size=[0,0], ori=0, times=[0,1]):
         #initialise main parameters from base stimulus
@@ -14,6 +14,9 @@ class PatchComponent(VisualComponent):
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, size=size, ori=ori, times=times)
         self.type='Patch'
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['visual'])
+        #params
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")        

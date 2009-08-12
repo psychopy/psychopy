@@ -6,11 +6,13 @@ iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given times"""
-    def __init__(self, parentName, name='resp', allowedKeys='["q","left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='resp', allowedKeys='["q","left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==thisTrial.corrAns",storeResponseTime=True,times=[0,1]):
         self.type='Keyboard'
-        self.psychopyLibs=['event']#needs this psychopy lib to operate
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['gui'])
         self.parentName=parentName
+        #params
         self.params={}
         self.order=['name','allowedKeys',
             'store','storeCorrect','correctIf',
@@ -49,7 +51,7 @@ class KeyboardComponent(BaseComponent):
             return
         #create 
         buff.writeIndented("#store info from keyboard\n")
-        buff.writeIndented("%s={'keys':None,'corr':None,'rt':None, 'clock'=None}\n" %self.params['name'])#start a dictionary
+        buff.writeIndented("%s={'keys':None, 'corr':None, 'rt':None, 'clock':None}\n" %self.params['name'])#start a dictionary
         
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
@@ -66,20 +68,20 @@ class KeyboardComponent(BaseComponent):
         
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(keyList=%(allowedKeys)s)\n" %(self.params))
-        buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed")
+        buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
         buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
         
         if self.params['storeResponseTime'].val==True:
-            buff.writeIndented("if %(name)s['clock']==None: %(name)s['clock']=core.Clock()" %self.params)
+            buff.writeIndented("if %(name)s['clock']==None: %(name)s['clock']=core.Clock()\n" %self.params)
         #how do we store it?
         if store=='first key':#then see if a key has already been pressed
-            buff.writeIndented("if %(name).keys==[]:#then this was the first keypress" %(self.params))
+            buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
-            buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed" %(self.params))
+            buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
         elif store=='last key':
-            buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed" %(self.params))
+            buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
         elif store=='all keys':
-            buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed" %(self.params))
+            buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
         #get RT
         if storeRT:
             buff.writeIndented("%(name)s.rt = %(name)s['clock'].getTime()\n" %(self.params))
@@ -102,9 +104,10 @@ class KeyboardComponent(BaseComponent):
         elif store=='all keys': index=""
         #write the actual text
         if store!='nothing':
-            buff.writeIndented("if len(%s.keys)>0: %s.addData('%s.keys',%s.keys%s)" %(self.parentName,name,name,name,index))
-        if self.params['storeCorrect'].val==True:
-            buff.writeIndented("%s.addData('%s.corr',%s.corr)" %(self.parentName, name, name))
-        if self.params['storeResponseTime'].val==True:
-            buff.writeIndented("%s.addData('%s.rt',%s.rt)" %(self.parentName, name, name))
+            buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
+            buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" %(self.parentName,name,name,index))
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" %(self.parentName, name, name))
+            if self.params['storeResponseTime'].val==True:
+                buff.writeIndented("    %s.addData('%s.rt',%s.rt)\n" %(self.parentName, name, name))
             

@@ -4,8 +4,9 @@ from psychopy.app.builder.experiment import Param
 
 class BaseComponent:
     """A template for components, defining the methods to be overridden"""
-    def __init__(self, parentName, name='', times=[0,1]):
+    def __init__(self, exp, parentName, name='', times=[0,1]):
         self.type='Base'
+        self.exp=exp#so we can access the experiment if necess
         self.params={}
         self.params['name']=Param(name, valType='code', 
             hint="Name of this loop")

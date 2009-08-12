@@ -9,3 +9,6 @@ Contents:
    concepts
    routines
    flow
+   components
+   outputs
+   gotchas

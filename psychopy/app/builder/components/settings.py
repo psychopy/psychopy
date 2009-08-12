@@ -5,9 +5,13 @@ from _base import *
 
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
-    def __init__(self, parentName, fullScr=True, winSize=[1024,768], screen=1, monitor=None,
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':001, 'session':001}"):
+    def __init__(self, exp, fullScr=True, winSize=[1024,768], screen=1, monitor=None,
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':001, 'session':001}",
+                 logging='warning'):
         self.type='Settings'
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['visual', 'gui'])
+        #params
         self.params={}
         self.order=['Screen', 'Full-screen window','Window size (pixels)']
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
@@ -27,6 +31,9 @@ class SettingsComponent:
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 
+        self.params['logging level']=Param(logging, valType='code', 
+            allowedVals=['error','warning','info','debug'],
+            hint="How much output do you want from the script? ('error' is fewest messages, 'debug' is most)")
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
@@ -34,23 +41,24 @@ class SettingsComponent:
     def writeStartCode(self, buff):
         
         buff.writeIndented("#store info about the experiment\n")
-        buff.writeIndented("expName=os.path.splitext(os.path.splitdir(__file__))#get name from filename\n")
+        buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
         buff.writeIndented("expInfo=%s\n" %self.params['Experiment info'])
-        if self.params['Show info dlg'].val:
-            buff.writeIndented("dlg=gui.dlgFromDict(dictionary=expInfo,title=expName)\n")
+        if self.params['Show info dlg'].val:            
+            buff.writeIndented("dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)\n")
             buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")            
-        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
+        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")          
+        buff.writeIndented("expInfo['expName']=expName\n")
         
         if self.params['Save log file']:
             buff.writeIndented("#setup files for saving\n")
             buff.writeIndented("if not os.path.isdir('data'):\n")
             buff.writeIndented("    os.makedirs('data')#if this fails we will get error\n")
             if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename= 'data/'+expInfo['participant']+expInfo['date']")
-            buff.writeIndented("logFile=open(filename+'.log', 'w'")
+                buff.writeIndented("filename= 'data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+            buff.writeIndented("logFile=open(filename+'.log', 'w')\n")
+            buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.%s)#this outputs to the screen, not a file\n" %(self.params['logging level'].val.upper()))
         
-        
-        buff.writeIndented("#setup the Window\n")
+        buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
         size=self.params['Window size (pixels)']#
         fullScr = self.params['Full-screen window']
@@ -58,10 +66,10 @@ class SettingsComponent:
         if self.params['Units']=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
-        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s\n" %(size, fullScr, screenNumber))
+        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))
-                        
-    def writeEndCodeself(self, buff):
+        
+    def writeEndCode(self, buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("logFile.close()")

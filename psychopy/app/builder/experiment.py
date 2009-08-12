@@ -32,12 +32,16 @@ class Experiment:
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self):
+        self.name=None
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
-        self.settings=getAllComponents()['SettingsComponent'](parentName="")
+
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyExperimentVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data']
+        self.psychopyLibs=['core','data'] 
+               
+        self.settings=getAllComponents()['SettingsComponent'](exp=self)
+        
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -69,15 +73,16 @@ class Experiment:
         libString=""; separator=""
         for lib in self.psychopyLibs:
             libString = libString+separator+lib
-            separator=", "#for the second lib upwards we need a comma
-        s.writeIndented("from psychopy import %s\n" %libString)        
+            separator=", "#for the second lib upwards we need a comma   
         s.writeIndented("from numpy import * #many different maths functions\n")
-        s.writeIndented("import os #handy system and path functions\n\n")
+        s.writeIndented("import os #handy system and path functions\n")
+        s.writeIndented("from psychopy import %s\n" %libString)     
+        s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
         
         self.settings.writeStartCode(s)#present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
-        self.settings.writeStartCode(s)#close log file
+        self.settings.writeEndCode(s)#close log file
         
         return s
     def getAllObjectNames(self):
@@ -89,12 +94,12 @@ class Experiment:
             for thisEntry in thisRoutine: 
                 if isinstance(thisEntry, LoopInitiator):
                     names.append( thisEntry.loop.name )
-                    print 'found loop initiator: %s' %names[-1]
                 elif hasattr(thisEntry, 'params'):
                     names.append(thisEntry.params['name'])
-                    print 'found component: %s' %names[-1]
                     
-
+    def setExpName(self, name):
+        self.name=name
+        self.settings.expName=name
 class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
@@ -189,9 +194,15 @@ class TrialHandler():
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
-        trialsStr=[]
-        buff.writeIndented("%s=data.TrialHandler(trialList=%s,nReps=%s)\n" \
-            %(self.params['name'], self.params['trialList'], self.params['nReps']))
+        #create nice line-separated list of trialTypes
+        trialStr="[ \\\n"
+        for line in self.params['trialList'].val:
+            trialStr += "        %s,\n" %line
+        trialStr += "        ]"
+        #write the code        
+        buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
+            %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
@@ -200,7 +211,24 @@ class TrialHandler():
         buff.setIndentLevel(1, relative=True)
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("# end of '%s' after %s repeats (of each entry in trialList)\n" %(self.params['name'], self.params['nReps']))
+        buff.writeIndented("\n")
+        buff.writeIndented("#completed %s repeats of '%s' repeats\n" \
+            %(self.params['nReps'], self.params['name']))
+        buff.writeIndented("\n")
+        
+        #save data
+        ##a string to show all the available variables
+        stimOutStr="["
+        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
+            stimOutStr+= "'%s', " %variable
+        stimOutStr+= "]"
+        buff.writeIndented("%(name)s.saveAsText(filename+'.csv', dlm=',',\n" %self.params)
+        buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+        buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+#            saveAsText(self,fileName, 
+#                   stimOut=[], 
+#                   dataOut=['n','rt_mean','rt_std', 'acc_raw'],
+#                   delim=',',
     def getType(self):
         return 'TrialHandler'     
 class StairHandler():    
@@ -312,7 +340,6 @@ class Routine(list):
     def addComponent(self,component):
         """Add a component to the end of the routine""" 
         self.append(component)
-        self.exp.requirePsychopyLibs(component.psychopyLibs)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
@@ -353,6 +380,8 @@ class Routine(list):
         buff.setIndentLevel(-1,True)
         
         #write the code for each component for the end of the routine
+        buff.writeIndented('\n')
+        buff.writeIndented('#end of this routine (e.g. trial)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
             

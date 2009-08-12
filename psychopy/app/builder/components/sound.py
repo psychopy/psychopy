@@ -6,11 +6,13 @@ iconFile = path.join(thisFolder,'sound.png')
 
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, parentName, name='', sound='A', 
+    def __init__(self, exp, parentName, name='', sound='A', 
             size=1, ori=0, times=[0,1]):
-        self.psychopyLibs=['sound']#needs this psychopy lib to operate
-        self.order=['name']#make sure name comes first
         self.type='Sound'
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['sound'])
+        #params
+        self.order=['name']#make sure name comes first
         self.params={}
         self.params['name']=Param(name,  valType='code', hint="A filename for the movie (including path)")  
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],

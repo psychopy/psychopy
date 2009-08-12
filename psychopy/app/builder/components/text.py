@@ -6,7 +6,7 @@ iconFile = path.join(thisFolder,'text.png')
 
 class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, parentName, name='', 
+    def __init__(self, exp, parentName, name='', 
                  text='"Hint:\nUse double quotes for text (or this looks like a variable)!"', 
                  font='arial',units='window units', colour=[1,1,1], colourSpace='rgb',
                  pos=[0,0], letterHeight=1, ori=0, times=[0,1]):
@@ -15,6 +15,11 @@ class TextComponent(VisualComponent):
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, ori=ori, times=times)
         self.type='Text'
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['visual'])
+        self.parentName=parentName
+        #params
+        self.order=['name']#make sure this is at top
         self.params['text']=Param(text, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The text to be displayed")
@@ -31,6 +36,11 @@ class TextComponent(VisualComponent):
         if self.params['units'].val=='window units': units=""
         else: units="units=%(units)s, " %self.params 
         #do writing of init
-        buff.writeIndented("%(name)s=visual.TextStim(win=win, text=%(text)s, ori=%(ori)s\n" %(self.params)) 
+        text = self.params['text'].val
+        #turn "some text" into """some text""" so that line breaks don't kill the script 
+        if text.startswith('"') and not text.startswith('"""'):
+            text= '""'+text+'""' 
+        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s,\n" %(self.params))
+        buff.writeIndented("    text=%s,\n" %text)
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
         buff.writeIndented("    %(colourSpace)s=%(colour)s)\n" %(self.params))  

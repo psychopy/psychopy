@@ -6,12 +6,15 @@ iconFile = path.join(thisFolder,'movie.png')
 
 class MovieComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, parentName, name='', movie='', 
+    def __init__(self, exp, parentName, name='', movie='', 
         units='window units', 
         pos=[0,0], size=[0,0], ori=0, times=[0,1]):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
                     pos=pos, size=size, ori=ori, times=times)
+        self.exp=exp#so we can access the experiment if necess
+        self.exp.requirePsychopyLibs(['visual'])
+        #params
         #these are normally added but we don't want them for a movie            
         del self.params['colour']
         del self.params['colourSpace']

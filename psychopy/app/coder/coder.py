@@ -989,9 +989,6 @@ class CoderFrame(wx.Frame):
                                  Name("Output").Caption("Output").
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
-        #will we show the pane straight away?
-        self.setOutputWindow(event=None)
-        
         #add help window
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300), 
                                           style=wx.TE_MULTILINE|wx.TE_READONLY)
@@ -1285,6 +1282,7 @@ class CoderFrame(wx.Frame):
         """
         for ii in range(self.notebook.GetPageCount()):
             doc = self.notebook.GetPage(ii)
+            filename=doc.filename
             if doc.UNSAVED:
                 dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
                     caption='Warning', style=wx.YES_NO|wx.CANCEL )
@@ -1666,9 +1664,11 @@ class CoderFrame(wx.Frame):
         self.currentDoc.FoldAll()
     #def unfoldAll(self, event):
         #self.currentDoc.ToggleFoldAll(expand = False)
-    def setOutputWindow(self, event):      
+    def setOutputWindow(self, event=None, value=None):      
         #show/hide the output window (from the view menu control)  
-        if self.outputChk.IsChecked():
+        if value==None:
+            value=self.outputChk.IsChecked()
+        if value:
             #show the pane
             self.prefs['showOutput']=True
             self.paneManager.GetPane('Output').Show()
