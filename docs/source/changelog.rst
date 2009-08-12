@@ -17,7 +17,7 @@ PsychoPy 1.50.00
 * FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0) 
 * FIXED bug scaling pygame text (which caused pygame TextStims not to appear)
 * BACKWARDS NONCOMPAT: monitors is moved to be a subpackage of psychopy
-* BACKWARDS NONCOMPAT: added `all` data type to TrialHandler.saveAsText and this is now default
+* BACKWARDS NONCOMPAT: added 'all_' data type to TrialHandler.saveAsText and this is now default
 * Added TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
 * Moved docs/website to sphinx rather than wiki (contained in svn)
 * FIXED bug with MovieStim not displaying corretly after SimpleImageStim

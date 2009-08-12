@@ -1289,22 +1289,20 @@ class CoderFrame(wx.Frame):
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
-                if resp  == wx.ID_CANCEL:
-                    return -1 #return, don't quit
-                elif resp == wx.ID_YES:
-                    #save then quit
-                    self.fileSave(None)
-                elif resp == wx.ID_NO:
-                    pass #don't save just quit
+                if resp  == wx.ID_CANCEL: return 0 #return, don't quit
+                elif resp == wx.ID_YES: self.fileSave() #save then quit
+                elif resp == wx.ID_NO: pass #don't save just quit        
         return 1
                 
     def closeFrame(self, event=None, checkSave=True):
         """Close open windows, update prefs.appData (but don't save) and either 
         close the frame or hide it
         """
+        if checkSave: self.checkSave()#check all files before initiating close of any
+        
         wasShown = self.IsShown()
-        self.Hide()#ugly to see it close all the files independently
-        #undo
+        self.Hide()#ugly to see it close all the files independently        
+    
         sys.stdout = self._origStdOut#discovered during __init__
         sys.stderr = self._origStdErr
         
@@ -1330,12 +1328,6 @@ class CoderFrame(wx.Frame):
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
         
-        #close each file (so that we check for saving)
-        for thisFileName in currFiles:#must do this for all files AFTER adding them to the list
-            ok = self.fileClose(event=0, filename=thisFileName, checkSave=checkSave)#delete from end back
-            if ok==-1:
-                self.Show(wasShown)#show again if it was visible
-                return -1 #user cancelled - don't quit
         self.Hide()#ultimately Hide
         
     def fileNew(self, event=None, filepath=""):

@@ -10,7 +10,7 @@ def ObjectArray(inputSeq):
     return numpy.array(inputSeq, 'O')
     
 class TrialType(dict):
-    """This is just like a dict, except that you can access keys
+    """This is just like a dict, except that you can access keys with obj.key
     """
     def __getattribute__(self, name):
         try:#to get attr from dict in normal way (passing self)
@@ -126,7 +126,7 @@ class TrialHandler:
             # create indices for a single rep
             indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
             seed=self.seed
-            for thisRep in range(self.nReps):
+            for thisRep in range(int(self.nReps)):
                 thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
@@ -255,26 +255,27 @@ class TrialHandler:
         #expand any 'all' dataTypes to be the full list of available dataTypes
         allDataTypes=self.data.keys()
         dataOutNew=[]
-        for thisDataOut in enumerate(dataOut):
+        for thisDataOut in dataOut:
+            if thisDataOut=='n': 
+                #n is really just hte sum of the ran trials
+                dataOutNew.append('ran_sum')
+                continue#no need to do more with this one
+            #then break into dataType and analysis 
             dataType, analType =string.split(thisDataOut, '_', 1)
             if dataType=='all':
-                dataOutList.extend([key+"_"+analType for key in allDataTypes])
+                dataOutNew.extend([key+"_"+analType for key in allDataTypes])
             else:
-                dataOutList.append(thisDataOut)
+                dataOutNew.append(thisDataOut)
         dataOut=dataOutNew
+        
         dataOut.sort()#so that all datatypes come together, rather than all analtypes
-        if 'n' in dataOut:#move n to the first column
-            dataOut.remove('n')
-            dataOut.insert(0,'n')
+        if 'ran_sum' in dataOut:#move n to the first column
+            dataOut.remove('ran_sum')
+            dataOut.insert(0,'ran_sum')
         
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
-            
-            if thisDataOut=='n': 
-                #n is really just hte sum of the ran trials
-                thisDataOut='ran_sum' 
-                dataOut[thisDataOutN] = 'ran_sum'
-                
+                            
             dataType, analType =string.split(thisDataOut, '_', 1)
             if not self.data.has_key(dataType): 
                 dataOut.remove(thisDataOut)#that analysis can't be done
@@ -302,7 +303,7 @@ class TrialHandler:
         else: writeFormat='w' #will overwrite a file        
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
             f= file(fileName+'.dlm',writeFormat)

@@ -1591,13 +1591,9 @@ class BuilderFrame(wx.Frame):
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()
-            if resp  == wx.ID_CANCEL:
-                return -1 #return, don't quit
-            elif resp == wx.ID_YES:
-                #save then quit
-                self.fileSave()
-            elif resp == wx.ID_NO:
-                pass #don't save just quit        
+            if resp  == wx.ID_CANCEL: return 0 #return, don't quit
+            elif resp == wx.ID_YES: self.fileSave() #save then quit
+            elif resp == wx.ID_NO: pass #don't save just quit        
         return 1
     def fileClose(self, event=None, checkSave=True):
         """Close the current file (and warn if it hasn't been saved)"""
@@ -1708,9 +1704,9 @@ class BuilderFrame(wx.Frame):
             title='%s Properties' %self.exp.name,
             params = component.params,
             order = component.order)
-        if dlg.OK:
-            
+        if dlg.OK:            
             self.addToUndoStack("edit experiment settings")
             self.setIsModified(True)
+        print self.exp.settings.params['Units'], self.exp.settings.params['Units'].val
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()

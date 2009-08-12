@@ -222,13 +222,13 @@ class TrialHandler():
         #save data
         ##a string to show all the available variables
         stimOutStr="["
-        print 'nicomm', self.params['trialList'].val
         for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
-        buff.writeIndented("%(name)s.saveAsText(filename+'.csv', dlm=',',\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsText(filename+'.csv', delim=',',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+        buff.writeIndented("print 'saved data to filename'+'.csv'\n" %self.params)
 #            saveAsText(self,fileName, 
 #                   stimOut=[], 
 #                   dataOut=['n','rt_mean','rt_std', 'acc_raw'],
@@ -378,8 +378,8 @@ class Routine(list):
         #update screen
         buff.writeIndented('\n')
         buff.writeIndented('#check for quit (the [Esc] key)\n')
-        buff.writeIndented('if event.getKeys("Esc"): core.quit()\n')
-        buff.writeIndented("event.clearBuffer()#so that it doesn't get clogged with other events\n")
+        buff.writeIndented('if event.getKeys("escape"): core.quit()\n')
+        buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
         

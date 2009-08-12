@@ -6,7 +6,7 @@ iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given times"""
-    def __init__(self, exp, parentName, name='resp', allowedKeys='["q","left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==thisTrial.corrAns",storeResponseTime=True,times=[0,1]):
         self.type='Keyboard'
         self.exp=exp#so we can access the experiment if necess
@@ -42,16 +42,22 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="Response time (saved as 'rt') is based from start of keyboard available period")
     def writeInitCode(self,buff):
-        pass#no need to initialise keyboards?
+        #create a key response object - easier to store data (including a clock to start 
+        #at beginning of keyboard testing
+        buff.writeIndented("#create our own class to store info from keyboard\n")
+        buff.writeIndented("\nclass KeyResponse:\n")
+        buff.writeIndented("    def __init__(self):\n")
+        buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
+        buff.writeIndented("        self.corr=None#was the subj correct this trial?\n")
+        buff.writeIndented("        self.rt=None#response time\n")
+        buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
     def writeRoutineStartCode(self, buff):
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False \
             and self.params['storeResponseTime'].val==False:
             #the user doesn't want to store anything so don't bother
             return
-        #create 
-        buff.writeIndented("#store info from keyboard\n")
-        buff.writeIndented("%s={'keys':None, 'corr':None, 'rt':None, 'clock':None}\n" %self.params['name'])#start a dictionary
+        buff.writeIndented("%(name)s = KeyResponse()#create an object of type KeyResponse\n" %self.params)
         
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
@@ -72,7 +78,8 @@ class KeyboardComponent(BaseComponent):
         buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
         
         if self.params['storeResponseTime'].val==True:
-            buff.writeIndented("if %(name)s['clock']==None: %(name)s['clock']=core.Clock()\n" %self.params)
+            buff.writeIndented("if %(name)s.clock==None: \n#if we don't have one we've just started\n" %self.params)
+            buff.writeIndented("    %(name)s.clock=core.Clock()#create one (now t=0)\n" %self.params)
         #how do we store it?
         if store=='first key':#then see if a key has already been pressed
             buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
@@ -84,11 +91,11 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
         #get RT
         if storeRT:
-            buff.writeIndented("%(name)s.rt = %(name)s['clock'].getTime()\n" %(self.params))
+            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         #check if correct (if necess)
         if storeCorr:
-            buff.writeIndented("if (%(correctIf)s): corr=1\n" %(self.params))
-            buff.writeIndented("else: corr=0\n")
+            buff.writeIndented("if (%(correctIf)s): %(name)s.corr=1\n" %(self.params))
+            buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
         #does the response end the trial?
         if forceEnd==True:
             buff.writeIndented("break #keypress ends routine\n")

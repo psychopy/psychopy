@@ -6,7 +6,7 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':001, 'session':001}",
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='user prefs',
                  logging='warning'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
@@ -23,7 +23,7 @@ class SettingsComponent:
             hint="Which physical screen to run on (1 or 2)")  
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (must match one in Monitor Center)") 
-        self.params['Units']=Param(screen, valType='str', allowedTypes=[],
+        self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg") 
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],

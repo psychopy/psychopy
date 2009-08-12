@@ -21,7 +21,7 @@ class BaseComponent:
         """Write the code that will be called at the beginning of 
         a routine (e.g. to update stimulus parameters)
         """
-        self.writeParamUpdates(buff, 'routine')
+        self.writeParamUpdates(buff, 'set every repeat')
     def writeRoutineEndCode(self,buff):
         """Write the code that will be called at the end of 
         a routine (e.g. to save data)
