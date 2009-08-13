@@ -22,7 +22,7 @@ findAgain = 'Ctrl+G'
 undo='Ctrl+Z'
 if platform.system=='darwin': redo='Ctrl+Shift+Z'
 else: redo='Ctrl+Y'
-compileScript='F4'#builder only
+compileScript='Ctrl+Shift+F5'#builder only
 analyseCode='F4'#coder only
 runScript='F5'
 stopScript='Shift+F5'

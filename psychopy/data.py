@@ -254,6 +254,7 @@ class TrialHandler:
         
         #expand any 'all' dataTypes to be the full list of available dataTypes
         allDataTypes=self.data.keys()
+        allDataTypes.remove('ran')
         dataOutNew=[]
         for thisDataOut in dataOut:
             if thisDataOut=='n': 
@@ -287,7 +288,10 @@ class TrialHandler:
             
             #analyse thisData using numpy module
             if analType in dir(numpy):
-                exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                try:#this will fail if we try to take mean of a string for example
+                    exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                except:
+                    dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
             elif analType=='raw':
                 thisAnal=thisData
             else:
@@ -312,7 +316,7 @@ class TrialHandler:
             #write a header line
             for heading in stimOut+dataHead:
                 if heading=='ran_sum': heading ='n'
-                f.write('%s	' %heading)
+                f.write('%s%s' %(heading,delim))
             f.write('\n')
         
         #loop through stimuli, writing data
@@ -773,7 +777,8 @@ class DataHandler(dict):
             #array isn't big enough
             log.warning('need a bigger array for:'+thisType)
             self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
-            
+        if (type(value) in [str, unicode]) and len(value)>1:
+            self[thisType] = numpy.asarray(self[thisType],dtype=numpy.object)
         #insert the value
         self[thisType][position[0]][position[1]]=value
         

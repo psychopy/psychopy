@@ -6,7 +6,7 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='user prefs',
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='use prefs',
                  logging='warning'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
@@ -39,7 +39,7 @@ class SettingsComponent:
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
-    def writeStartCode(self, buff):
+    def writeStartCode(self,buff):
         
         buff.writeIndented("#store info about the experiment\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
@@ -53,7 +53,7 @@ class SettingsComponent:
         if self.params['Save log file']:
             buff.writeIndented("#setup files for saving\n")
             buff.writeIndented("if not os.path.isdir('data'):\n")
-            buff.writeIndented("    os.makedirs('data')#if this fails we will get error\n")
+            buff.writeIndented("    os.makedirs('data')#if this fails (e.g. permissions) we will get error\n")
             if 'participant' in self.params['Experiment info'].val:
                 buff.writeIndented("filename= 'data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
             buff.writeIndented("logFile=open(filename+'.log', 'w')\n")
@@ -70,7 +70,7 @@ class SettingsComponent:
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))
         
-    def writeEndCode(self, buff):
+    def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("logFile.close()")

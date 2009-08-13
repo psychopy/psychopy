@@ -160,7 +160,7 @@ class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
-    def __init__(self, name, loopType, nReps,
+    def __init__(self, exp, name, loopType, nReps,
         trialList=[], trialListFile='',endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
@@ -175,6 +175,7 @@ class TrialHandler():
         @type trialList: string (filename)
         """
         self.type='TrialHandler'
+        self.exp=exp
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
@@ -225,20 +226,17 @@ class TrialHandler():
         for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
-        buff.writeIndented("%(name)s.saveAsText(filename+'.csv', delim=',',\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        buff.writeIndented("print 'saved data to filename'+'.csv'\n" %self.params)
-#            saveAsText(self,fileName, 
-#                   stimOut=[], 
-#                   dataOut=['n','rt_mean','rt_std', 'acc_raw'],
-#                   delim=',',
+        buff.writeIndented("print 'saved data to '+filename+'.dlm'\n" %self.params)
+
     def getType(self):
         return 'TrialHandler'     
 class StairHandler():    
     """A staircase experimental control object.
     """
-    def __init__(self, name, nReps, nReversals, stepSizes, stepType, startVal, endPoints=[0,1]):
+    def __init__(self, exp, name, nReps, nReversals, stepSizes, stepType, startVal, endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -246,6 +244,7 @@ class StairHandler():
         @type nReps:int
         """
         self.type='StairHandler'
+        self.exp=exp
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
@@ -283,11 +282,13 @@ class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
-        self.loop=loop        
+        self.loop=loop
+        self.exp=loop.exp
     def writeInitCode(self,buff):
         self.loop.writeInitCode(buff)
     def writeMainCode(self,buff):
-        self.loop.writeLoopStartCode(buff)       
+        self.loop.writeLoopStartCode(buff)
+        self.exp.flow._loopList.append(self.loop)#we are now the inner-most loop
     def getType(self):
         return 'LoopInitiator'
 class LoopTerminator:
@@ -295,10 +296,12 @@ class LoopTerminator:
     This is created automatically when the loop is created"""
     def __init__(self, loop):
         self.loop=loop
+        self.exp=loop.exp
     def writeInitCode(self,buff):
         pass
     def writeMainCode(self,buff):
         self.loop.writeLoopEndCode(buff)
+        self.exp.flow._loopList.remove(self.loop)# _loopList[-1] will now be the inner-most loop
     def getType(self):
         return 'LoopTerminator'
 class Flow(list):
@@ -308,6 +311,8 @@ class Flow(list):
     def __init__(self, exp):
         list.__init__(self)
         self.exp=exp
+        self._currentRoutine=None
+        self._loopList=[]#will be used while we write the code
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
         into the Flow list"""
@@ -319,12 +324,14 @@ class Flow(list):
         self.insert(int(pos), newRoutine)        
     def writeCode(self, s):
         
-        #initialise components
-        for entry in self:
+        #initialise
+        for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
+            self._currentRoutine=entry
             entry.writeInitCode(s)
         
         #run-time code  
         for entry in self:
+            self._currentRoutine=entry
             entry.writeMainCode(s)
         
 class Routine(list):
@@ -340,6 +347,8 @@ class Routine(list):
     def __init__(self, name, exp):
         self.name=name
         self.exp=exp
+        self._continueName=''#this is used for script-writing e.g. "while continueTrial:"
+        self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
         list.__init__(self)
     def addComponent(self,component):
         """Add a component to the end of the routine""" 
@@ -347,8 +356,9 @@ class Routine(list):
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
-        self.clockName = self.name+"Clock"
-        buff.writeIndented('%s=core.Clock()\n' %(self.clockName))
+        self._clockName = self.name+"Clock"
+        self._continueName = "continue%s" %self.name.capitalize()
+        buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
         for thisEvt in self:
             thisEvt.writeInitCode(buff)
         
@@ -358,17 +368,18 @@ class Routine(list):
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-        
+            
         #create the frame loop for this routine
         buff.writeIndented('\n')
         buff.writeIndented('#run the trial\n')
-        buff.writeIndented('t=0; %s.reset()\n' %(self.clockName))
-        buff.writeIndented('while t<%.4f:\n' %self.getMaxTime())
+        buff.writeIndented('%s=True\n' %self._continueName)
+        buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
+        buff.writeIndented('while %s and (t<%.4f):\n' %(self._continueName, self.getMaxTime()))
         buff.setIndentLevel(1,True)
         
         #on each frame
         buff.writeIndented('#get current time\n')
-        buff.writeIndented('t=%s.getTime()\n\n' %self.clockName)
+        buff.writeIndented('t=%s.getTime()\n\n' %self._clockName)
         
         #write the code for each component during frame
         buff.writeIndented('#update each component (where necess)\n')

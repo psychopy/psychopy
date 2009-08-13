@@ -160,8 +160,8 @@ class PsychoPyApp(wx.App):
         return True
     def showCoder(self, event=None, filelist=None):   
         self.coder.Show(True)
-        self.coder.setOutputWindow()#takes control of sys.stdout
         self.SetTopWindow(self.coder)
+        self.coder.setOutputWindow()#takes control of sys.stdout
     def showBuilder(self, event=None, fileList=None):         
         self.builder.Show(True)
         self.SetTopWindow(self.builder)
@@ -190,8 +190,8 @@ class PsychoPyApp(wx.App):
         for frame in [self.coder, self.builder]:
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
-            frame.Destroy()#because closeFrame actually just Hides the frame
-            
+            frame.Destroy()#because closeFrame actually just Hides the frame            
+        
     def showPrefs(self, event):
         prefsDlg = PreferencesDlg(app=self)
         prefsDlg.Show()

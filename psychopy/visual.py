@@ -845,12 +845,12 @@ class _BaseVisualStim:
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the window (normalised or pixels)"""
         if self.units in ['norm','pix']: self._sizeRendered=self.size
-        elif self.units=='deg': self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
         if self.units in ['norm','pix']: self._posRendered=self.pos
-        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         
         
@@ -1204,13 +1204,13 @@ class DotStim(_BaseVisualStim):
         
     def _calcDotsXYRendered(self):
         if self.units in ['norm','pix']: self._dotsXYRendered=self._dotsXY
-        elif self.units=='deg': self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
+        elif self.units in ['deg','degs']: self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
         elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm': 
@@ -1346,9 +1346,9 @@ class SimpleImageStim(_BaseVisualStim):
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
-        if self.units =='pix': self._posRendered=self.pos
+        if self.units in ['pix', 'pixels']: self._posRendered=self.pos
         elif self.units=='norm': self._posRendered=self.pos
-        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
         if filename!=None:
@@ -1565,7 +1565,7 @@ class PatchStim(_BaseVisualStim):
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
 
         #sf
-        if units=='pix' and sf==(1,1): #if using pix and sf wasn't given
+        if units in ['pix', 'pixels'] and sf==(1,1): #if using pix and sf wasn't given
             sf = 1.0/self.size#so that exactly
         if type(sf) in [float, int] or len(sf)==1:
             self.sf = numpy.array((sf,sf),float)
@@ -2824,17 +2824,17 @@ class ElementArrayStim:
         
     def _calcSizesRendered(self):
         if self.units in ['norm','pix']: self._sizesRendered=self.sizes
-        elif self.units=='deg': self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
         elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
     def _calcXYsRendered(self):
         if self.units in ['norm','pix']: self._XYsRendered=self.xys
-        elif self.units=='deg': self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
         elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm': 
@@ -3424,7 +3424,7 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 1.0#default text height
             else: self.height = height
             self.heightPix = psychopy.misc.cm2pix(self.height, win.monitor)
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             if height==None: self.height = 1.0
             else: self.height = height
             self.heightPix = psychopy.misc.deg2pix(self.height, win.monitor)
@@ -3439,13 +3439,13 @@ class TextStim(_BaseVisualStim):
         
         if self.wrapWidth ==None:
             if self.units=='norm': self.wrapWidth=1
-            elif self.units=='deg': self.wrapWidth=15
+            elif self.units in ['deg', 'degs']: self.wrapWidth=15
             elif self.units=='cm': self.wrapWidth=15
-            elif self.units=='pix': self.wrapWidth=500
+            elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
-        elif self.units=='deg': self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
+        elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
-        elif self.units=='pix': self._wrapWidthPix=self.wrapWidth
+        elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
                 
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
@@ -3966,7 +3966,7 @@ class ShapeStim(_BaseVisualStim):
         if self.units in ['norm', 'pix']: 
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._verticesRendered=psychopy.misc.deg2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': 

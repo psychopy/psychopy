@@ -27,7 +27,7 @@ class BaseComponent:
         a routine (e.g. to save data)
         """
         pass
-    def writeTimeTestCode(self, buff):
+    def writeTimeTestCode(self,buff):
         """Write the code for each frame that tests whether the component is being
         drawn/used.
         """

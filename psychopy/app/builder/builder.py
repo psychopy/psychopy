@@ -954,13 +954,14 @@ class _BaseParamsDlg(wx.Dialog):
             if ctrls.typeCtrl: param.valType = ctrls.getType()
             if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.params
-    
+
 class DlgLoopProperties(_BaseParamsDlg):    
     def __init__(self,frame,title="Loop properties",loop=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):       
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
+        self.exp=frame.exp
         self.app=frame.app
         self.Center()
         self.panel = wx.Panel(self, -1)
@@ -974,8 +975,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         
         #create instances of the two loop types
         if loop==None:
-            self.trialHandler=experiment.TrialHandler('trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler('trials', nReps=50, nReversals=12,
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name='trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=12,
                 stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
@@ -984,12 +985,12 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialLIstFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
-            self.stairHandler=experiment.StairHandler('trials', nReps=50, nReversals=12,
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=12,
                 stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop            
             self.currentType='staircase'
-            experiment.TrialHandler(name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            experiment.TrialHandler(exp=self.exp, name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
         
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
@@ -1105,12 +1106,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 val = trialsArr[trialN][fieldN]
                 #if it looks like a list, convert it
                 if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
-                    print 'here'
                     exec('val=%s' %val)
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)            
         self.trialList=trialList
-        print self.trialList
     def setCtrls(self, ctrlType):
         #choose the ctrls to show/hide
         if ctrlType=='staircase': 

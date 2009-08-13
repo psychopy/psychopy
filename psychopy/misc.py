@@ -311,7 +311,7 @@ def pol2cart(theta, radius, units='deg'):
     **usage**:
         x,y = pol2cart(theta, radius, units='deg')
     """
-    if units=='deg':
+    if units in ['deg', 'degs']:
         theta = theta*numpy.pi/180.0
     xx = radius*numpy.cos(theta)
     yy = radius*numpy.sin(theta)
@@ -327,7 +327,7 @@ def  cart2pol(x,y, units='deg'):
     units refers to the units (rad or deg) for theta that should be returned"""
     radius= numpy.hypot(x,y)
     theta= numpy.arctan2(y,x)
-    if units=='deg':
+    if units in ['deg', 'degs']:
         theta=theta*180/numpy.pi
     return theta, radius
     
