@@ -51,15 +51,30 @@ class Clock:
         """
         self.timeAtLastReset=getTime()+newT
 
-def wait(secs):
-    """Wait for a given time period (simple wrap of time.sleep()
-    which comes with Python)
-    """    
-    time.sleep(secs)
+def wait(secs, hogCPUperiod=0.2):
+    """Wait for a given time period. 
+    
+    If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function will be used,
+    which is not especially precise, but allows the cpu to perform housekeeping. In
+    the final hogCPUperiod the more precise, but method of constantly polling the clock 
+    is used for greater precision.
+    """
+    #initial relaxed period, using sleep (better for system resources etc)
+    if secs>hogCPUperiod:
+        time.sleep(secs-hogCPUperiod)
+        secs=hogCPUperiod#only this much is now left
+        
+    #hog the cpu, checking time
+    t0=getTime()
+    while (getTime()-t0)<secs:
+        pass
+    
+    #we're done, let's see if pyglet collected any event in meantime
     try:
         pyglet.media.dispatch_events()
     except:
         pass #maybe pyglet 
 
-if sys.platform in ['win32','darwin']:#not written yet for linux
+if sys.platform in ['win32','darwin'] \
+   or sys.platform.startswith('linux'):
     from ext import rush
