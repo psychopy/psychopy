@@ -73,8 +73,11 @@ class KeyboardComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
         dedentAtEnd=1
         
+        #do we need a list of keys?
+        if self.params['allowedKeys'].val in [None, "", "[]"]: keyListStr=""
+        else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
         #check for keypresses
-        buff.writeIndented("theseKeys = event.getKeys(keyList=%(allowedKeys)s)\n" %(self.params))
+        buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
         buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
         buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
         

@@ -93,7 +93,6 @@ def rush(value=True):
         if err!=KERN_SUCCESS:
             log.error('Failed to set darwin thread policy, with thread_policy_set')
         else:
-            print 'ok'
             log.info('Successfully set darwin thread to realtime')
     else:
         #revert to default policy

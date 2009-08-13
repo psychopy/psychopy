@@ -321,7 +321,20 @@ class Flow(list):
         self.exp.requirePsychopyLibs(['data'])#needed for TrialHandlers etc
     def addRoutine(self, newRoutine, pos):
         """Adds the routine to the Flow list"""
-        self.insert(int(pos), newRoutine)        
+        self.insert(int(pos), newRoutine)   
+    def removeComponent(self,component):
+        """Removes a Loop, LoopTerminator or Routine from the flow
+        """
+        if component.getType() in ['LoopInitiator', 'LoopTerminator']:
+            component=component.loop#and then continue to do the next
+        if component.getType() in ['StairHandler', 'TrialHandler']:
+            #we need to remove the termination points that correspond to the loop
+            for comp in self:
+                if comp.getType() in ['LoopInitiator','LoopTerminator']:
+                    if comp.loop==component: self.remove(comp)
+        elif component.getType()=='Routine':
+            self.remove(component)#this one's easy!
+            
     def writeCode(self, s):
         
         #initialise
@@ -345,6 +358,7 @@ class Routine(list):
     each of which knows when it starts and stops.
     """
     def __init__(self, name, exp):
+        self.params={'name':name}
         self.name=name
         self.exp=exp
         self._continueName=''#this is used for script-writing e.g. "while continueTrial:"
@@ -353,6 +367,9 @@ class Routine(list):
     def addComponent(self,component):
         """Add a component to the end of the routine""" 
         self.append(component)
+    def removeComponent(self,component):
+        """Remove a component from the end of the routine""" 
+        self.remove(component)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))

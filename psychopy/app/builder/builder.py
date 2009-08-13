@@ -16,7 +16,7 @@ class FlowPanel(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0), size=size)
         self.SetBackgroundColour(canvasColour)
         self.panel = wx.Panel(self,-1,size=(600,200))
-        self.frame=frame   
+        self.frame=frame
         self.app=frame.app
         self.needUpdate=True
         self.maxWidth  = 1000
@@ -35,8 +35,16 @@ class FlowPanel(wx.ScrolledWindow):
         self.hitradius=5
         self.dragid = -1
         self.lastpos = (0,0)
-        self.loopFromID={}#use the ID of the drawn icon to retrieve loop object
         
+        #for the context menu
+        self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine) 
+        self.contextMenuItems=['remove']
+        self.contextItemFromID={}; self.contextIDFromItem={}
+        for item in self.contextMenuItems:
+            id = wx.NewId()
+            self.contextItemFromID[id] = item
+            self.contextIDFromItem[item] = id
+            
         self.btnSizer = wx.BoxSizer(wx.VERTICAL)
         self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine')   
         self.btnInsertLoop = wx.Button(self,-1,'Insert Loop')    
@@ -90,9 +98,7 @@ class FlowPanel(wx.ScrolledWindow):
         #remove the points from the timeline
         self.setDrawPoints(None)
         self.redrawFlow()
-    def onRemRoutine(self,evt=None,routineName=None):
-        #todo: implement removal of routines from flow
-        print 'removal of routines form flow not yet implemented'
+
     def onInsertLoop(self, evt):
         """Someone pushed the insert loop button.
         Fetch the dialog
@@ -135,44 +141,49 @@ class FlowPanel(wx.ScrolledWindow):
         #remove the points from the timeline
         self.setDrawPoints(None)
         self.redrawFlow()
-    def onRemLoop(self, event=None):
-        #todo: implement the removal of loops!
-        print 'removing loops not implemented yet'
     
     def OnMouse(self, event):
         if event.LeftDown():
             x,y = self.ConvertEventCoords(event)
             #l = self.pdc.FindObjectsByBBox(x, y)
             icons = self.pdc.FindObjects(x, y, self.hitradius)
-            if len(icons): 
-                self.editLoopProperties(loop=self.loopFromID[icons[0]])
+            if len(icons):
+                comp=self.componentFromID[icons[0]]
+                if comp.getType() in ['StairHandler', 'TrialHandler']:
+                    self.editLoopProperties(loop=comp)
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
             #l = self.pdc.FindObjectsByBBox(x, y)
-            l = self.pdc.FindObjects(x, y, self.hitradius)
-            if l:
-                self.pdc.SetIdGreyedOut(l[0], not self.pdc.GetIdGreyedOut(l[0]))
-                r = self.pdc.GetIdBounds(l[0])
-                r.Inflate(4,4)
-                self.OffsetRect(r)
-                self.RefreshRect(r, False)
+            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            if len(icons):
+                self._menuComponent=self.componentFromID[icons[0]]
+                self.showContextMenu(self._menuComponent, 
+                    xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
-                x,y = self.lastpos
-                dx = event.GetX() - x
-                dy = event.GetY() - y
-                r = self.pdc.GetIdBounds(self.dragid)
-                self.pdc.TranslateId(self.dragid, dx, dy)
-                r2 = self.pdc.GetIdBounds(self.dragid)
-                r = r.Union(r2)
-                r.Inflate(4,4)
-                self.OffsetRect(r)
-                self.RefreshRect(r, False)
-                self.lastpos = (event.GetX(),event.GetY())
+                pass
             if event.LeftUp():
-                self.dragid = -1
-            
-    
+                pass
+    def showContextMenu(self, component, xy):
+        menu = wx.Menu()
+        for item in self.contextMenuItems:
+            id = self.contextIDFromItem[item]
+            menu.Append( id, item )
+            wx.EVT_MENU( menu, id, self.onContextSelect )        
+        self.frame.PopupMenu( menu, xy )
+        menu.Destroy() # destroy to avoid mem leak        
+    def onContextSelect(self, event):
+        """Perform a given action on the component chosen
+        """
+        op = self.contextItemFromID[event.GetId()]
+        component=self._menuComponent
+        flow = self.frame.exp.flow
+        if op=='remove':
+            flow.removeComponent(component)
+            self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
+        self.redrawFlow()
+        self._menuComponent=None
+        
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
         # wx.PaintDC and then blit the bitmap to it when dc is
@@ -224,7 +235,7 @@ class FlowPanel(wx.ScrolledWindow):
                 self.loops.append(entry.loop)
                 self.loopTerms.append(currX)
             if entry.getType()=='Routine':
-                currX = self.drawFlowBox(pdc,entry.name, pos=[currX,linePos-40])
+                currX = self.drawFlowRoutine(pdc,entry, pos=[currX,linePos-40])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos,x2=currX+gap,y2=linePos)
@@ -275,7 +286,10 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
 #        dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)
         dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)
-    def drawFlowBox(self,dc, name,rgb=[200,50,50],pos=[0,0]):
+    def drawFlowRoutine(self,dc,routine,rgb=[200,50,50],pos=[0,0]):
+        """Draw a box to show a routine on the timeline
+        """
+        name=routine.name
         font = self.GetFont()
         font.SetPointSize(24)
         r, g, b = rgb
@@ -297,6 +311,20 @@ class FlowPanel(wx.ScrolledWindow):
         #draw text        
         dc.SetTextForeground(rgb) 
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
+        
+        ##set an id for the region where the box falls (so it can act as a button)
+        #see if we created this already
+        id=None
+        for key in self.componentFromID.keys():
+            if self.componentFromID[key]==routine: 
+                id=key
+        if not id: #then create one and add to the dict
+            id = wx.NewId()
+            self.componentFromID[id]=routine
+        dc.SetId(id)
+        #set the area for this component
+        dc.SetIdBounds(id,rect)
+        
         return endX
     def drawLoop(self,dc,name,loop,
             startX,endX,
@@ -336,12 +364,12 @@ class FlowPanel(wx.ScrolledWindow):
         ##set an id for the region where the bitmap falls (so it can act as a button)
         #see if we created this already
         id=None
-        for key in self.loopFromID.keys():
-            if self.loopFromID[key]==loop: 
+        for key in self.componentFromID.keys():
+            if self.componentFromID[key]==loop: 
                 id=key
         if not id: #then create one and add to the dict
             id = wx.NewId()
-            self.loopFromID[id]=loop
+            self.componentFromID[id]=loop
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
@@ -440,7 +468,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.dragid = -1
         self.lastpos = (0,0)
         self.componentFromID={}#use the ID of the drawn icon to retrieve component name 
-    
+        self.contextMenuItems=['edit','remove','move to top','move up','move down','move to bottom']
+        self.contextItemFromID={}; self.contextIDFromItem={}
+        for item in self.contextMenuItems:
+            id = wx.NewId()
+            self.contextItemFromID[id] = item
+            self.contextIDFromItem[item] = id
+            
         self.redrawRoutine()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -471,29 +505,45 @@ class RoutineCanvas(wx.ScrolledWindow):
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
             #l = self.pdc.FindObjectsByBBox(x, y)
-            l = self.pdc.FindObjects(x, y, self.hitradius)
-            if l:
-                self.pdc.SetIdGreyedOut(l[0], not self.pdc.GetIdGreyedOut(l[0]))
-                r = self.pdc.GetIdBounds(l[0])
-                r.Inflate(4,4)
-                self.OffsetRect(r)
-                self.RefreshRect(r, False)
+            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            if len(icons):
+                self._menuComponent=self.componentFromID[icons[0]]
+                self.showContextMenu(self._menuComponent, xy=event.GetPosition())
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
-                x,y = self.lastpos
-                dx = event.GetX() - x
-                dy = event.GetY() - y
-                r = self.pdc.GetIdBounds(self.dragid)
-                self.pdc.TranslateId(self.dragid, dx, dy)
-                r2 = self.pdc.GetIdBounds(self.dragid)
-                r = r.Union(r2)
-                r.Inflate(4,4)
-                self.OffsetRect(r)
-                self.RefreshRect(r, False)
-                self.lastpos = (event.GetX(),event.GetY())
+                pass
             if event.LeftUp():
-                self.dragid = -1
-
+                pass
+    def showContextMenu(self, component, xy):
+        menu = wx.Menu()
+        for item in self.contextMenuItems:
+            id = self.contextIDFromItem[item]
+            menu.Append( id, item )
+            wx.EVT_MENU( menu, id, self.onContextSelect )        
+        self.frame.PopupMenu( menu, xy )
+        menu.Destroy() # destroy to avoid mem leak
+        
+    def onContextSelect(self, event):
+        """Perform a given action on the component chosen
+        """
+        op = self.contextItemFromID[event.GetId()]
+        component=self._menuComponent
+        r = self.routine
+        if op=='edit':
+            self.editComponentProperties(component=component)
+        elif op=='remove':
+            r.remove(component)
+            self.addToUndoStack("removed" + component.params['name'])
+        elif op.startswith('move'):
+            lastLoc=r.index(component)
+            r.remove(component)
+            if op=='move to top': r.insert(0, component)
+            if op=='move up': r.insert(lastLoc-1, component)
+            if op=='move down': r.insert(lastLoc+1, component)
+            if op=='move to bottom': r.append(component)
+            self.app.addToUndoStack("moved" + component.params['name'])
+        self.redrawRoutine()
+        self._menuComponent=None
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
         # wx.PaintDC and then blit the bitmap to it when dc is
@@ -649,7 +699,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             routineName=dlg.GetValue()
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
-            self.frame.addToUndoStack("created %s routine" %routinename)
+            self.frame.addToUndoStack("created %s routine" %routineName)
         dlg.Destroy()
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp
@@ -1410,7 +1460,7 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
-                
+        
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()    
         menuBar.Append(self.expMenu, '&Experiment')
@@ -1420,12 +1470,8 @@ class BuilderFrame(wx.Frame):
         
         self.expMenu.Append(self.IDs.addRoutineToFlow, "Insert Routine in Flow", "Select one of your routines to be inserted into the experiment flow")
         wx.EVT_MENU(self, self.IDs.addRoutineToFlow,  self.flowPanel.onInsertRoutine)
-        self.expMenu.Append(self.IDs.remRoutineFromFlow, "Remove Routine from Flow", "Create a new loop in your flow window")
-        wx.EVT_MENU(self, self.IDs.remRoutineFromFlow,  self.flowPanel.onRemRoutine)
         self.expMenu.Append(self.IDs.addLoopToFlow, "Insert Loop in Flow", "Create a new loop in your flow window")
         wx.EVT_MENU(self, self.IDs.addLoopToFlow,  self.flowPanel.onInsertLoop)
-        self.expMenu.Append(self.IDs.remLoopFromFlow, "Remove Loop from Flow", "Remove a loop from your flow window")
-        wx.EVT_MENU(self, self.IDs.remLoopFromFlow,  self.flowPanel.onRemLoop)
         
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename

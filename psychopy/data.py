@@ -763,7 +763,6 @@ class DataHandler(dict):
         (and add a new one if necess)
         """
         if not self.has_key(thisType):
-            log.warning("New data type being added: "+thisType)
             self.addDataType(thisType)
         if position==None: 
             #make a list where 1st digit is trial number
