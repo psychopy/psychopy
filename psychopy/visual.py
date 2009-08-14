@@ -1,5 +1,9 @@
 """To control the screen and visual stimuli for experiments
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import psychopy.misc
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log, preferences

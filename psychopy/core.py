@@ -1,6 +1,11 @@
 """Basic timing functions
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import sys, os, time, threading
+from ext import rush
 runningThreads=[]
 try:
     import pyglet.media
@@ -74,7 +79,3 @@ def wait(secs, hogCPUperiod=0.2):
         pyglet.media.dispatch_events()
     except:
         pass #maybe pyglet 
-
-if sys.platform in ['win32','darwin'] \
-   or sys.platform.startswith('linux'):
-    from ext import rush

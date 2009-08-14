@@ -1,3 +1,7 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """
 There are no c extensions for windows at the moment - everything is done
 from the pywin32 extensions.

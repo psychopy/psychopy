@@ -1,5 +1,9 @@
 """Data useful for calibrations (Smith-Pokorny cone fundamentals etc...)
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import numpy
 
 wavelength_5nm = numpy.arange(380,785,5)#380 to 780 inclusive with 5nm steps

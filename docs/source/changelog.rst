@@ -22,6 +22,7 @@ PsychoPy 1.50.00
 * Moved docs/website to sphinx rather than wiki (contained in svn)
 * FIXED bug with MovieStim not displaying corretly after SimpleImageStim
 * FIXED incorrect wx sizing of app(IDE) under OS X on opening
+* CHANGED license to GPL (more restrictive, preventing proprietary use)
 
 PsychoPy 1.00
 ------------------------------

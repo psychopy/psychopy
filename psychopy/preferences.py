@@ -1,3 +1,7 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import wx, wx.stc
 import os, sys, urllib
 from shutil import copyfile

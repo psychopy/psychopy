@@ -1,5 +1,9 @@
 """Extensible set of components for the PsychoPy Builder view
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import os, imp, glob, wx
 from os.path import *
 import psychopy

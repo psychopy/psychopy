@@ -1,3 +1,7 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import sys, time, types, re
 import wx, wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob

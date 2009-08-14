@@ -1,4 +1,7 @@
 """Routines for handling data structures and analysis"""
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
 import cPickle, shelve, string, sys, os, time, copy

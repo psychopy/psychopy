@@ -4,14 +4,15 @@ and numpy.
 
 To get started see/run the demo scripts.
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import string
 
 __version__ = '1.50.00'
-__date__ = string.join(string.split('$Date$')[1:3], ' ')
-__svn__= '$Id$'
-__rev__= '$Revision$'
-__author__ = 'Jon Peirce'
+__license = 'GNU GPL'
+__author__ = 'Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-users@googlegroups.com'
 

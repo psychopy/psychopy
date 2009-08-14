@@ -7,7 +7,7 @@
 # ConfigObj 4
 # http://www.voidspace.org.uk/python/configobj.html
 
-# Released subject to the BSD License
+# Released subject to the modified BSD License
 # Please see http://www.voidspace.org.uk/python/license.shtml
 
 # Scripts maintained at http://www.voidspace.org.uk/python/index.shtml

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 # Ensure 2.8 version of wx
 import wxversion
 #wxversion.ensureMinimal('2.8')
@@ -161,9 +165,11 @@ class PsychoPyApp(wx.App):
     def showCoder(self, event=None, filelist=None):   
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
+        self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
     def showBuilder(self, event=None, fileList=None):         
         self.builder.Show(True)
+        self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openMonitorCenter(self,event):
         from monitors import MonitorCenter
