@@ -42,10 +42,9 @@ class Experiment:
         
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyExperimentVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data', 'event'] 
-        
+        self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
-        
+
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -65,7 +64,7 @@ class Experiment:
             self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
-    
+            
     def writeScript(self):
         """Write a PsychoPy script for the experiment
         """
@@ -88,19 +87,20 @@ class Experiment:
         self.flow.writeCode(s)
         self.settings.writeEndCode(s)#close log file
         
-        return s
-    def getAllObjectNames(self):
-        """Return the names of all objects (routines, loops and components) in the experiment
-        """
-        names=[]
-        for thisRoutine in self.routines:
-            names.append(thisRoutine.name)
-            for thisEntry in thisRoutine: 
-                if isinstance(thisEntry, LoopInitiator):
-                    names.append( thisEntry.loop.name )
-                elif hasattr(thisEntry, 'params'):
-                    names.append(thisEntry.params['name'])
-                    
+        return s                   
+    def getUsedName(self, name):
+        """Check the exp._usedNames dict and return None for unused or
+        the type of object using it otherwise
+        """  
+        #look for routines and loop names
+        for flowElement in self.flow:
+            if flowElement.getType()in ['LoopInitiator','LoopTerminator']:
+                flowElement=flowElement.loop #we want the loop itself
+            if flowElement.params['name']==name: return flowElement.getType()
+        for routineName in self.routines.keys():
+            for comp in self.routines[routineName]:                    
+                if name==comp.params['name'].val: return comp.getType()
+        return#we didn't find an existing name :-)
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name

@@ -4,13 +4,20 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import sys, psychopy
+if sys.argv[-1] in ['-v', '--version']:
+    print 'PsychoPy version %s (c)Jonathan Peirce, 2009, GNU GPL license' %psychopy.__version__
+    sys.exit()
+if sys.argv[-1] in ['-h', '--help']:
+    print "Haven't written this yet"
+    sys.exit()
+
 # Ensure 2.8 version of wx
 import wxversion
-#wxversion.ensureMinimal('2.8')
+wxversion.ensureMinimal('2.8')
 import wx
 
 import sys, os, threading, time, platform
-import psychopy
 from psychopy.preferences import Preferences
 #other app subpackages needs to be imported as explicitly in app 
 from psychopy.app import coder, builder, keybindings, wxIDs
@@ -94,17 +101,7 @@ class PsychoPyApp(wx.App):
         self.prefs = Preferences() #from preferences.py        
         self.IDs=wxIDs
         self.keys=keybindings
-        
-        splash = PsychoSplashScreen(self)
-        if splash:
-            splash.Show()
-        
-        #send anonymous info to www.psychopy.org/usage.php
-        #please don't disable this - it's important for PsychoPy's development
-        if self.prefs.connections['allowUsageStats']:
-            statsThread = threading.Thread(target=sendUsageStats, args=(self.prefs.connections['proxy'],))
-            statsThread.start()
-            
+                    
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
             mainFrame = self.prefs.appData['lastFrame']
@@ -132,6 +129,11 @@ class PsychoPyApp(wx.App):
                     scripts=[args[0]]
         else:
             args=[]
+            
+        splash = PsychoSplashScreen(self)
+        if splash:
+            splash.Show()
+            
         #create both frame for coder/builder as necess
         self.coder=coder.CoderFrame(None, -1, 
                                   title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
@@ -141,8 +143,12 @@ class PsychoPyApp(wx.App):
                                   files = exps, app=self)            
         if mainFrame in ['both','coder']: self.showCoder()
         if mainFrame in ['both','builder']: self.showBuilder()
-        
-        
+                        
+        #send anonymous info to www.psychopy.org/usage.php
+        #please don't disable this - it's important for PsychoPy's development
+        if self.prefs.connections['allowUsageStats']:
+            statsThread = threading.Thread(target=sendUsageStats, args=(self.prefs.connections['proxy'],))
+            statsThread.start()
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
         def ShowTip(self):
