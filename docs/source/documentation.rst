@@ -12,6 +12,7 @@ Contents:
    builder/builder
    coder/coder
    api/api
+   timing/timing
    faqs/faqs
    glossary
    indices

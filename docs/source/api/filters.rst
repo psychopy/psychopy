@@ -17,10 +17,6 @@
 ----------------------------------
 .. autofunction:: psychopy.filters.makeGauss
 
-:func:`maskGrating`
-------------------------------------
-.. autofunction:: psychopy.filters.maskGrating
-
 :func:`makeRadialMatrix`
 ------------------------------------
 .. autofunction:: psychopy.filters.makeRadialMatrix

@@ -172,7 +172,7 @@ def getScreenSizePix(screen=0):
     h = cocoa.CGDisplayPixelsHigh(scrID)
     w = cocoa.CGDisplayPixelsWide(scrID)
     return [h,w]
-    
+
 def waitForVBL(screen=0,nFrames=1):
     """Wait for the given screen (typically screen is 0 or 1) to finish drawing before returning/
     If no screen is given then screen 0 is used.
