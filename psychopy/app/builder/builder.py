@@ -11,8 +11,6 @@ import experiment, components
 
 canvasColour=[200,200,200]#in prefs? ;-)
 
-#todo: need to implement right-click context menus for flow and routine canvas!
-
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1,size = (600,100)):
         """A panel that shows how the routines will fit together

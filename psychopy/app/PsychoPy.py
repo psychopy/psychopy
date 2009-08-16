@@ -6,10 +6,17 @@
 
 import sys, psychopy
 if sys.argv[-1] in ['-v', '--version']:
-    print 'PsychoPy version %s (c)Jonathan Peirce, 2009, GNU GPL license' %psychopy.__version__
+    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2009, GNU GPL license' %psychopy.__version__
     sys.exit()
 if sys.argv[-1] in ['-h', '--help']:
-    print "Haven't written this yet"
+    print """Starts the PsychoPy2 application.
+usage:
+    python PsychoPy.py    #start the app using prefs to decide on the view(s) to open
+    python PsychoPy.py -c #(or --coder or coder) opens coder view only
+    python PsychoPy.py -b #(or --builder or builder) opens builder view only
+    python PsychoPy.py file.py #opens coder and opens the file
+    python PsychoPy.py exp.psyexp #opens builder view and opens the experiment file
+        """
     sys.exit()
 
 # Ensure 2.8 version of wx

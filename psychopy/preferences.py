@@ -98,6 +98,7 @@ class Preferences:
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=True)#copy means all settings get saved
+        print cfg['general']
         if len(cfg['general']['userPrefsFile'])==0:
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']#set path to home
         else: self.paths['userPrefsFile']=cfg['general']['userPrefsFile']#set app path to user override
@@ -112,7 +113,6 @@ class Preferences:
             #create file and validate based on template, but then close and reopen
             #if we validate the file that we actually use then all the settings will be
             #inserted and will override sitePrefs with defaults
-            os.makedirs(self.paths['userPrefs'])  
             #then add user prefs
             cfg1 = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
             cfg1.validate(self._validator, copy=False)#copy means all settings get saved   

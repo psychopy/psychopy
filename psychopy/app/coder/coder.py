@@ -831,7 +831,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         #self.urlStyle.SetFontWeight(wx.BOLD)
         #self.urlStyle.SetFontUnderlined(False)
         
-        self.write('Welcome to the Integrated Development Environment (IDE) for PsychoPy!\n')
+        self.write('Welcome to the PsychoPy2!\n')
         self.write("v%s\n" %self.parent.app.version)
         
     def write(self,inStr):
