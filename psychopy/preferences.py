@@ -98,7 +98,6 @@ class Preferences:
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=True)#copy means all settings get saved
-        print cfg['general']
         if len(cfg['general']['userPrefsFile'])==0:
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']#set path to home
         else: self.paths['userPrefsFile']=cfg['general']['userPrefsFile']#set app path to user override

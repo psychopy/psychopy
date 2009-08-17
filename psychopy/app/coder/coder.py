@@ -8,6 +8,7 @@ import keyword, os, sys, string, StringIO, glob
 import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
+from psychopy.app import stdOutRich
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -817,56 +818,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             else:
                 findDlg.Close()
 
-        
-        
-class StdOutRich(wx.richtext.RichTextCtrl):
-    def __init__(self, parent, style, size):
-        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
-        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
-        self.parent=parent
-        self.SetScrollPageSize( wx.PORTRAIT, 1000)
-        #define style for filename links (URLS) needs wx as late as 2.8.4.0
-        #self.urlStyle = wx.richtext.RichTextAttr()
-        #self.urlStyle.SetTextColour(wx.BLUE)
-        #self.urlStyle.SetFontWeight(wx.BOLD)
-        #self.urlStyle.SetFontUnderlined(False)
-        
-        self.write('Welcome to the PsychoPy2!\n')
-        self.write("v%s\n" %self.parent.app.version)
-        
-    def write(self,inStr):
-        self.MoveEnd()#always 'append' text rather than 'writing' it
-        """tracebacks have the form:
-        Traceback (most recent call last):
-        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 21, in <module>
-            class WordFetcher:
-        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
-        """
-        for thisLine in inStr.splitlines(True):
-            if len(re.findall('".*", line.*',thisLine))>0:
-                #this line contains a file/line location so write as URL 
-                #self.BeginStyle(self.urlStyle) #this should be done with styles, but they don't exist in wx as late as 2.8.4.0
-                self.BeginBold()
-                self.BeginTextColour(wx.BLUE)
-                self.BeginURL(thisLine)
-                self.WriteText(thisLine)
-                self.EndURL()
-                self.EndBold()
-                self.EndTextColour()
-            else:
-                #line to write as simple text
-                self.WriteText(thisLine)
-        self.MoveEnd()#go to end of stdout so user can see updated text
-        self.ShowPosition(self.GetLastPosition() )
-    def OnURL(self, evt):
-        """decompose the URL of a file and line number"""
-        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
-        filename = evt.GetString().split('"')[1]
-        lineNumber = int(evt.GetString().split(',')[1][5:])
-        self.parent.gotoLine(filename,lineNumber)
-    def flush(self):
-        pass#not needed?
-        
 #def makeAccelTable():
 #    table = wx.AcceleratorTable([ \
 #        (wx.ACCEL_CTRL, ord('Q'), ID_EXIT),
@@ -987,7 +938,10 @@ class CoderFrame(wx.Frame):
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        self.outputWindow.write('Welcome to the PsychoPy2!\n')
+        self.outputWindow.write("v%s\n" %self.app.version)
+        
         self.paneManager.AddPane(self.outputWindow, 
                                  wx.aui.AuiPaneInfo().
                                  Name("Output").Caption("Output").
@@ -1733,3 +1687,9 @@ class CoderFrame(wx.Frame):
         self.scriptProcessID=None        
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
+    def onURL(self, evt):
+        """decompose the URL of a file and line number"""
+        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
+        filename = evt.GetString().split('"')[1]
+        lineNumber = int(evt.GetString().split(',')[1][5:])
+        self.gotoLine(filename,lineNumber)

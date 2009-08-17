@@ -206,7 +206,7 @@ class PsychoPyApp(wx.App):
         else:
             self.prefs.appData['lastFrame']='both'
         #hide the frames then close
-        for frame in [self.coder, self.builder.stdoutFrame, self.builder]:
+        for frame in [self.coder, self.builder]:
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
             frame.Destroy()#because closeFrame actually just Hides the frame            

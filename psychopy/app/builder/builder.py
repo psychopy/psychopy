@@ -1330,7 +1330,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         else:  self.OK=False
         return wx.ID_OK
 class BuilderFrame(wx.Frame):
-
+    
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, size=(800, 600),files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
@@ -1352,7 +1352,9 @@ class BuilderFrame(wx.Frame):
         self.makeMenus()
         
         #
-        self.stdoutFrame=stdOutRich.StdOutFrame()
+        self.stdoutOrig = sys.stdout
+        self.stderrOrig = sys.stderr
+        self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         #setup a blank exp
         if self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
@@ -1384,6 +1386,7 @@ class BuilderFrame(wx.Frame):
             
         self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
+        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded) 
     def makeToolbar(self):
         #---toolbar---#000000#FFFFFF----------------------------------------------
         self.toolbar = self.CreateToolBar( (wx.TB_HORIZONTAL
@@ -1544,7 +1547,7 @@ class BuilderFrame(wx.Frame):
         self.appData['prevFile']=self.filename
         self.Hide()
         return 1#indicates that check was successful
-    def quit(self, event):
+    def quit(self, event=None):
         """quit the app""" 
         self.app.quit()
     def fileNew(self, event=None, closeCurrent=True):
@@ -1771,8 +1774,11 @@ class BuilderFrame(wx.Frame):
         #set the directory and add to path
         os.chdir(path)
         f = open(fullPath, 'w')
-        f.write(script)
+        f.write(script.getvalue())
         f.close()
+        
+        sys.stdout = self.stdoutFrame
+        sys.stderr = self.stdoutFrame
         
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
@@ -1791,9 +1797,31 @@ class BuilderFrame(wx.Frame):
         success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
+        self.processEnded(event=None)
+    def onProcessEnded(self, event=None):
         self.toolbar.EnableTool(self.IDs.tbRun,True)
-        self.toolbar.EnableTool(self.IDs.tbStop,False)   
-                
+        self.toolbar.EnableTool(self.IDs.tbStop,False) 
+        #update the output window and show it
+        if self.scriptProcess.IsInputAvailable():
+            stream = self.scriptProcess.GetInputStream()
+            text = stream.read()
+            self.stdoutFrame.write(text)
+        if self.scriptProcess.IsErrorAvailable():
+            stream = self.scriptProcess.GetErrorStream()
+            text = stream.read()
+            self.stdoutFrame.write(text) 
+        self.stdoutFrame.Show()
+        self.stdoutFrame.Raise() 
+        #then return stdout to its org location
+        sys.stdout=self.stdoutOrig
+        sys.stderr=self.stderrOrig  
+    def onURL(self, evt):
+        """decompose the URL of a file and line number"""
+        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
+        filename = evt.GetString().split('"')[1]
+        lineNumber = int(evt.GetString().split(',')[1][5:])
+        self.app.coder.gotoLine(filename,lineNumber)
+        self.app.showCoder()     
     def compileScript(self, event=None):
         script = self.exp.writeScript()
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
