@@ -8,6 +8,7 @@ import wx.aui
 import sys, os, glob, copy, pickle
 import csv, pylab, numpy #csv,pylab are to read in csv files
 import experiment, components
+from psychopy.app import stdOutRich
 
 canvasColour=[200,200,200]#in prefs? ;-)
 
@@ -1350,6 +1351,9 @@ class BuilderFrame(wx.Frame):
         self.makeToolbar()
         self.makeMenus()
         
+        #
+        self.stdoutFrame=stdOutRich.StdOutFrame()
+        
         #setup a blank exp
         if self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
             self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
@@ -1760,13 +1764,39 @@ class BuilderFrame(wx.Frame):
     def runFile(self, event=None):
         #todo: runFile
         script = self.exp.writeScript()
-        print script.getvalue()    
-    def stopFile(self, event=None):
-        #todo: stopFile
-        pass
+        fullPath = self.filename.replace('.psyexp','_lastrun.py')
+        path, scriptName = os.path.split(fullPath)
+        shortName, ext = os.path.splitext(scriptName)
+        
+        #set the directory and add to path
+        os.chdir(path)
+        f = open(fullPath, 'w')
+        f.write(script)
+        f.close()
+        
+        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
+        self.scriptProcess.Redirect()#builder will receive the stdout/stdin
+        
+        if sys.platform=='win32':
+            command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
+            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
+        else:  
+            fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
+            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+        self.toolbar.EnableTool(self.IDs.tbRun,False)
+        self.toolbar.EnableTool(self.IDs.tbStop,True)   
+    def stopFile(self, event=None):    
+        success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
+        if success[0] != wx.KILL_OK:
+            wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
+        self.toolbar.EnableTool(self.IDs.tbRun,True)
+        self.toolbar.EnableTool(self.IDs.tbStop,False)   
+                
     def compileScript(self, event=None):
         script = self.exp.writeScript()
-        name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp an add .py
+        name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
         self.app.showCoder()#make sure coder is visible
