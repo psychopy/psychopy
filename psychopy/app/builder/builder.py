@@ -1341,6 +1341,7 @@ class BuilderFrame(wx.Frame):
         self.app=app
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.builder#things about the coder that get set
+        self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
         
@@ -1395,7 +1396,7 @@ class BuilderFrame(wx.Frame):
             | wx.TB_FLAT))
             
         if sys.platform=='win32' or sys.platform.startswith('linux'):
-            if self.prefs['largeIcons']: toolbarSize=32         
+            if self.appPrefs['largeIcons']: toolbarSize=32
             else: toolbarSize=16
         else:
             toolbarSize=32 #size 16 doesn't work on mac wx

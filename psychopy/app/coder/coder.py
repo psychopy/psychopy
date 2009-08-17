@@ -1112,7 +1112,7 @@ class CoderFrame(wx.Frame):
             | wx.TB_FLAT))
             
         if sys.platform=='win32' or sys.platform.startswith('linux'):
-            if self.prefs['largeIcons']: toolbarSize=32         
+            if self.appPrefs['largeIcons']: toolbarSize=32
             else: toolbarSize=16
         else:
             toolbarSize=32 #size 16 doesn't work on mac wx
