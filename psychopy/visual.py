@@ -583,9 +583,9 @@ class Window:
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
-            print 'configured pyglet screen %i' %self.screen
+            log.info('configured pyglet screen %i' %self.screen)
         else: 
-            print "Requested an unavailable screen number"
+            log.error("Requested an unavailable screen number")
         if self._isFullScr:
             w,h = None,None
         else:

@@ -91,7 +91,7 @@ class Experiment:
     def getUsedName(self, name):
         """Check the exp._usedNames dict and return None for unused or
         the type of object using it otherwise
-        """  
+        """
         #look for routines and loop names
         for flowElement in self.flow:
             if flowElement.getType()in ['LoopInitiator','LoopTerminator']:

@@ -86,7 +86,7 @@ class StdOutFrame(wx.Frame):
         #we should direct it back to orig
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig
-        self.Destroy()
+        self.Hide()
     def saveAs(self):
         pass
     def save(self):

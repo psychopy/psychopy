@@ -1025,11 +1025,11 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(self, 'globalCtrls'): newName=self.globalCtrls['name'].getValue()
         if newName=='':
             self.nameOKlabel.SetLabel("Missing name")
-            self.OKbtn.Disable()   
+            self.OKbtn.Disable()
         else:
             used=self.frame.exp.getUsedName(newName)
-            if used:
-                self.nameOKlabel.SetLabel("%s is used by a %s" %(newName, used))
+            if newName!=self.params['name'].val and used:
+                self.nameOKlabel.SetLabel("Name '%s' is already used by a %s" %(newName, used))
                 self.OKbtn.Disable()
             else:
                 self.OKbtn.Enable()
@@ -1094,6 +1094,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
             self.ctrlSizer.Add(container)
             
+        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged, self.globalCtrls['loopType'].valueCtrl)
         
     def makeConstantsCtrls(self):
@@ -1335,7 +1336,7 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, size=(800, 600),files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
-
+        
         self.panel = wx.Panel(self)
         self.app=app
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
@@ -1765,7 +1766,6 @@ class BuilderFrame(wx.Frame):
         #todo: loadDemo
         pass
     def runFile(self, event=None):
-        #todo: runFile
         script = self.exp.writeScript()
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         path, scriptName = os.path.split(fullPath)
@@ -1782,12 +1782,13 @@ class BuilderFrame(wx.Frame):
         
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
+        self.stdoutFrame
         
         if sys.platform=='win32':
             command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
-        else:  
+        else:
             fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
             command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
@@ -1799,19 +1800,22 @@ class BuilderFrame(wx.Frame):
             wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
         self.processEnded(event=None)
     def onProcessEnded(self, event=None):
+        """The script/exp has finished running
+        """
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False) 
         #update the output window and show it
+        text=""
         if self.scriptProcess.IsInputAvailable():
             stream = self.scriptProcess.GetInputStream()
-            text = stream.read()
-            self.stdoutFrame.write(text)
+            text.append(stream.read())
         if self.scriptProcess.IsErrorAvailable():
             stream = self.scriptProcess.GetErrorStream()
-            text = stream.read()
+            text.append(stream.read())
+        if len(text):
             self.stdoutFrame.write(text) 
-        self.stdoutFrame.Show()
-        self.stdoutFrame.Raise() 
+            self.stdoutFrame.Show()
+            self.stdoutFrame.Raise() 
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig  
