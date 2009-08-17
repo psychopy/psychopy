@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
+import StringIO
 if sys.argv[-1] in ['-v', '--version']:
     print 'PsychoPy2, version %s (c)Jonathan Peirce, 2009, GNU GPL license' %psychopy.__version__
     sys.exit()
@@ -27,8 +28,7 @@ import wx
 import sys, os, threading, time, platform
 from psychopy.preferences import Preferences
 #other app subpackages needs to be imported as explicitly in app 
-from psychopy.app import coder, builder, keybindings, wxIDs
-import urllib2 #for usage stats
+from psychopy.app import coder, builder, keybindings, wxIDs, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
@@ -58,48 +58,6 @@ class PsychoSplashScreen(wx.SplashScreen):
         self.Fit()
         self.Close()
         
-def sendUsageStats(proxy=None):
-    """Sends anonymous, very basic usage stats to psychopy server:
-      the version of PsychoPy
-      the system used (platform and version)
-      the date
-      
-    If http_proxy is set in the system environment variables these will be used automatically,
-    but additional proxies can be provided here as the argument proxies.
-    """
-    v=psychopy.__version__
-    dateNow = time.strftime("%Y-%m-%d_%H:%M")
-    miscInfo = ''
-    
-    #urllib.install_opener(opener)
-    #check for proxies        
-    if proxy is None: proxies = urllib2.getproxies()
-    else: proxies={'http':proxy}
-    #build the url opener with proxy and cookie handling
-    opener = urllib2.build_opener(
-        urllib2.ProxyHandler(proxies))    
-    urllib2.install_opener(opener)
-    headers = {'User-Agent' : 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
-    
-    #get platform-specific info
-    if platform.system()=='Darwin':
-        OSXver, junk, architecture = platform.mac_ver()
-        systemInfo = "OSX_%s_%s" %(OSXver, architecture)
-    elif platform.system()=='Linux':
-        systemInfo = '%s_%s_%s' % (
-            platform.system(),
-            ':'.join([x for x in platform.dist() if x != '']),
-            platform.release())
-    else:
-        systemInfo = platform.system()+platform.release()                    
-    URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
-        %(dateNow, systemInfo, v, miscInfo)
-    try:
-        req = urllib2.Request(URL, None, headers)
-        page = urllib2.urlopen(req)#proxies
-    except:
-        pass#maybe proxy is wrong, maybe no internet connection etc...
-        
 class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
@@ -108,7 +66,7 @@ class PsychoPyApp(wx.App):
         self.prefs = Preferences() #from preferences.py        
         self.IDs=wxIDs
         self.keys=keybindings
-                    
+        
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
             mainFrame = self.prefs.appData['lastFrame']
@@ -137,10 +95,12 @@ class PsychoPyApp(wx.App):
         else:
             args=[]
             
+        connections.checkForUpdates(app=self)
+        
         splash = PsychoSplashScreen(self)
         if splash:
-            splash.Show()
-            
+            splash.Show()        
+        
         #create both frame for coder/builder as necess
         self.coder=coder.CoderFrame(None, -1, 
                                   title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
@@ -150,11 +110,11 @@ class PsychoPyApp(wx.App):
                                   files = exps, app=self)            
         if mainFrame in ['both','coder']: self.showCoder()
         if mainFrame in ['both','builder']: self.showBuilder()
-                        
+        
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         if self.prefs.connections['allowUsageStats']:
-            statsThread = threading.Thread(target=sendUsageStats, args=(self.prefs.connections['proxy'],))
+            statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
@@ -173,6 +133,7 @@ class PsychoPyApp(wx.App):
                 index = tp.GetCurrentTip()
                 config.Write("tips", str( (showTip, index) ))
                 config.Flush()"""
+        
         
         return True
     def showCoder(self, event=None, filelist=None):   
@@ -216,23 +177,29 @@ class PsychoPyApp(wx.App):
         prefsDlg.Show()
 
     def showAbout(self, event):
-        msg = """PsychoPy %s \nWritten by Jon Peirce.\n
-        It has a liberal license; basically, do what you like with it, 
-        don't kill me if something doesn't work! :-) But do let me know...
-        psychopy-users@googlegroups.com
-        """ %psychopy.__version__
-        dlg = wx.MessageDialog(None, message=msg,
-                              caption = "About PsychoPy", style=wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
-    def showLicense(self, event):
+        
         licFile = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'))
-        licTxt = licFile.read()
+        license = licFile.read()
         licFile.close()
-        dlg = wx.MessageDialog(self, licTxt, "PsychoPy License", wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
+        
+        msg = """For stimulus generation and experimental control in python.
 
+PsychoPy depends on your feedback. If something doesn't work then 
+let me/us know at psychopy-users@googlegroups.com"""
+        info = wx.AboutDialogInfo()
+        info.SetName('PsychoPy')
+        info.SetVersion('v'+psychopy.__version__)
+        info.SetDescription(msg)
+
+        info.SetCopyright('(C) 2002-2009 Jonathan Peirce')
+        info.SetWebSite('http://www.psychopy.org')
+        info.SetLicence(license)
+        info.AddDeveloper('Jonathan Peirce')
+        info.AddDeveloper('Yaroslav Halchenko')
+        info.AddDocWriter('Jonathan Peirce')
+        
+        wx.AboutBox(info)
+        
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
 
@@ -246,9 +213,11 @@ class PreferencesDlg(wx.Frame):
         self.pageIDs={}#store the page numbers
         self.paths = app.prefs.paths
         self.app=app
-        
+        self.prefs={'user':app.prefs.userPrefsCfg,
+                    'site':app.prefs.prefsCfg}
+                    
         for n, prefsType in enumerate(['site','user']):
-            sitePage = self.makePage(self.paths['%sPrefsFile' %prefsType])
+            sitePage = self.makePage(self.prefs[prefsType])
             self.nb.AddPage(sitePage,prefsType)
             self.pageIDs[prefsType]=n
         
@@ -266,12 +235,10 @@ class PreferencesDlg(wx.Frame):
         item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %app.keys.quit, "Terminate the application")
         self.Bind(wx.EVT_MENU, self.quit, item)
 
-#        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
-#        self.fileMenu.Enable(wx.ID_SAVE, False)
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-    def makePage(self, path):
+    def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
         
         # setup the style
@@ -284,15 +251,22 @@ class PreferencesDlg(wx.Frame):
         page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF0000")
         page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#007F00")
         
-        f = open(path, 'r+')
-        page.SetText(f.read())
-        f.close()        
-        if not os.access(path,os.W_OK):#can only read so make the textctrl read-only
-            page.set_read_only()
+        buff=StringIO.StringIO()
+        prefs.write(buff)        
+        page.SetText(buff.getvalue())
+        buff.close()  
+        
+        #check that the folder exists
+        dirname = os.path.dirname(prefs.filename)
+        if not os.path.isdir(dirname):
+            try: os.makedirs(dirname)
+            except: page.SetReadOnly()
+        #check for file write access
+        if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
+            page.SetReadOnly()
         
         return page
     def close(self, event=None):
-        okToQuit=self.save(event=None)#will be -1 if user cancelled during save
         self.Destroy()
     def quit(self,event=None):
         self.close()

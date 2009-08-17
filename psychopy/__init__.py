@@ -11,9 +11,11 @@ To get started see/run the demo scripts.
 import string
 
 __version__ = '1.50.00'
-__license = 'GNU GPL'
+__license__ = 'GNU GPLv3'
 __author__ = 'Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-users@googlegroups.com'
+__url__='http://www.psychopy.org'
+__downloadUrl__="http://code.google.com/p/psychopy/"
 
 __all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]

@@ -1,4 +1,4 @@
-From version 2 onwards PsychoPy is likely to be distributed under the GNU GPLv3
+From version 2 onwards PsychoPy is distributed under the GNU GPLv3
 
 PsychoPy includes the following files which have other compatible open-source licenses:
 

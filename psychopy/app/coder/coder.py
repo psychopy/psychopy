@@ -1102,8 +1102,6 @@ class CoderFrame(wx.Frame):
         self.helpMenu.AppendSeparator()       
         self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")#on mac this will move to appication menu
         wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
-        self.helpMenu.Append(self.IDs.license, "License...", "PsychoPy License")
-        wx.EVT_MENU(self, self.IDs.license, self.app.showLicense)
         
         self.SetMenuBar(menuBar)
         
@@ -1243,7 +1241,7 @@ class CoderFrame(wx.Frame):
             filename=doc.filename
             if doc.UNSAVED:
                 dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
-                    caption='Warning', style=wx.YES_NO|wx.CANCEL )
+                    caption='Warning', style=wx.YES_NO|wx.CANCEL|wx.CENTER )
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()

@@ -11,13 +11,13 @@ thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
 packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
-			'psychopy.monitors',
-            'psychopy.app','psychopy.app.coder',
-			'psychopy.app.builder','psychopy.app.builder.components',
-			'psychopy.app.Resources',
-			]
+                'psychopy.monitors',
+                'psychopy.app','psychopy.app.coder',
+                'psychopy.app.builder','psychopy.app.builder.components',
+                'psychopy.app.Resources',
+                ]
 
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
@@ -42,14 +42,14 @@ setup(name="PsychoPy",
     #metadata
     version = thisVersion,
     description = "Psychophysics toolkit for Python",
-    long_description = "PsychoPy uses OpenGL and Python to create a toolkit"
-	  " for running psychology/neuroscience/psychophysics experiments",
+    long_description = "PsychoPy uses OpenGL and Python to create a toolkit" + \
+        " for running psychology/neuroscience/psychophysics experiments",
     author= psychopy.__author__,
     author_email= psychopy.__author_email__,
     maintainer_email= psychopy.__maintainer_email__,
-    url="http://www.psychopy.org/",
-    license="BSD",
-    download_url="http://code.google.com/p/psychopy/",
+    url=psychopy.__url__,
+    license=psychopy.__license__,
+    download_url=psychopy.__downloadUrl__,
     classifiers=['Development Status :: 4 - Beta',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: Microsoft :: Windows',

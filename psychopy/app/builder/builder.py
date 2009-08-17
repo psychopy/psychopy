@@ -1535,8 +1535,6 @@ class BuilderFrame(wx.Frame):
         self.helpMenu.AppendSeparator()       
         self.helpMenu.Append(self.IDs.about, "&About...", "About PsychoPy")
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
-        self.helpMenu.Append(self.IDs.license, "License...", "PsychoPy License")
-        wx.EVT_MENU(self, self.IDs.license, self.app.showLicense)
         
         self.demosMenu
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')

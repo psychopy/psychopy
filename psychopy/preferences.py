@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx, wx.stc
-import os, sys, urllib
+import os, sys, urllib, StringIO
 from shutil import copyfile
 import configobj, configobjValidate
 
@@ -34,8 +34,8 @@ class Preferences:
         else:
             dirUserPrefs = join(os.environ['HOME'], '.psychopy2')
         #from the directory for preferences work out the path for preferences (incl filename)
-        if not os.path.isdir(dirUserPrefs):
-            os.makedirs(dirUserPrefs)
+#        if not os.path.isdir(dirUserPrefs):
+#            os.makedirs(dirUserPrefs)
         #path to Resources (icons etc)
         dirApp = join(dirPsychoPy, 'app')
         if os.path.isdir(join(dirApp, 'Resources')):
@@ -81,6 +81,8 @@ class Preferences:
         """Save the various setting to the appropriate files (or discard, in some cases)
         """
         self.appDataCfg.validate(self._validator, copy=True)#copy means all settings get saved
+        if not os.path.isdir(self.paths['userPrefs']):
+            os.makedirs(self.paths['userPrefs'])
         self.appDataCfg.write()
     def resetSitePrefs(self):
         """Reset the site preferences to the original defaults (to reset user prefs, just delete entries)
@@ -103,23 +105,26 @@ class Preferences:
         else: self.paths['userPrefsFile']=cfg['general']['userPrefsFile']#set app path to user override
         cfg.initial_comment=["#preferences set in this file apply to all users",
             "the file can be found at %s" %self.paths['sitePrefsFile']]
-        cfg.write()#so the user can see what's (now) available
+        cfg.filename = self.paths['userPrefsFile']
         return cfg
     def loadUserPrefs(self):  
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
-        #check for folder
-        if not os.path.isfile(self.paths['userPrefsFile']):
-            #create file and validate based on template, but then close and reopen
-            #if we validate the file that we actually use then all the settings will be
-            #inserted and will override sitePrefs with defaults
-            #then add user prefs
-            cfg1 = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
-            cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
-            cfg1.initial_comment=["#preferences set in this file will override the site-prefs",
-                "#to set a preference here simply copy and paste from the site-prefs file",
-                "the file can be found at %s" %self.paths['userPrefsFile']]
-            cfg1.write()
-        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
+        #create file and validate based on template, but then close and reopen
+        #if we validate the file that we actually use then all the settings will be
+        #inserted and will override sitePrefs with defaults
+        #then add user prefs
+        #BUT we also can't write an actual file, because that kills easy_install,
+        #so now using a StringIO object
+        cfg1 = configobj.ConfigObj('tmp', configspec=prefsSpec)
+        cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
+        cfg1.initial_comment=["#preferences set in this file will override the site-prefs",
+            "#to set a preference here simply copy and paste from the site-prefs file",
+            "the file can be found at %s" %self.paths['userPrefsFile']]
+        buff=StringIO.StringIO()
+        cfg1.write()
+        #then create the actual cfg from this stringIO object
+        cfg = configobj.ConfigObj('tmp', configspec=prefsSpec)
+        cfg.filename = self.paths['userPrefsFile']
         return cfg
     def getAutoProxy(self):
         """Fetch the proxy from the the system environment variables
