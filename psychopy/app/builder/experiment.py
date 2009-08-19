@@ -4,6 +4,7 @@
 
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
+import xml.dom.minidom #for saving files out
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -41,7 +42,7 @@ class Experiment:
         self.routines={}
         
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyExperimentVersion=psychopy.__version__ #imported from components
+        self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
 
@@ -101,6 +102,38 @@ class Experiment:
             for comp in self.routines[routineName]:                    
                 if name==comp.params['name'].val: return comp.getType()
         return#we didn't find an existing name :-)
+    def saveToFile(self, filename):
+        #create the document
+        doc = xml.dom.minidom.Document()
+        root=doc.createElement("PsychoPy2_experiment")
+        root.setAttribute('version', '1.5')
+        doc.appendChild(root)
+
+        settings=doc.createElement('settings')
+        root.appendChild(settings)
+        for name, setting in self.settings.params.iteritems():
+            thisSetting = settings.createElement(name)            
+            thisSetting.setAttribute('val',setting.val)           
+            thisSetting.setAttribute('valType',setting.valType)
+            
+        routines=doc.createElement('routines')
+        root.appendChild(routines)
+        for routine in self.routines:
+            thisRoutine = routines.createElement(routine.name)
+            routines.appendChild(thisRoutine)
+            for name, setting in self.settings.params.iteritems():
+                thisSetting = settings.createElement(name)            
+                thisSetting.setAttribute('val',setting.val)           
+                thisSetting.setAttribute('valType',setting.valType)
+        
+        loops=doc.createElement('loops')
+        root.appendChild(loops)
+        
+        flow=doc.createElement('flow')
+        root.appendChild(flow)
+
+        doc.toprettyxml()
+        
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
