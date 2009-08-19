@@ -158,7 +158,7 @@ class MainFrame(wx.Frame):
     def makeMenuBar(self):
         menuBar = wx.MenuBar()
         fileMenu = wx.Menu()
-        fileMenu.Append(idMenuSave,'Save\tCtrl s', 'Save the current monitor')
+        fileMenu.Append(idMenuSave,'Save\tCtrl+S', 'Save the current monitor')
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
         menuBar.Append(fileMenu, '&File')
         self.SetMenuBar(menuBar)

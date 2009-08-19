@@ -10,9 +10,9 @@ saveAs="Ctrl+Shift+S"
 close='Ctrl+W'
 quit='Ctrl+Q'
 
-cut = 'Ctrl-X'
-copy= 'Ctrl-C'
-paste='Ctrl-V'
+cut = 'Ctrl+X'
+copy= 'Ctrl+C'
+paste='Ctrl+V'
 duplicate='Ctrl-D'#duplicate the current line
 indent='Ctrl+]'#indent all the selected lines by 4 spaces
 dedent='Ctrl+['
