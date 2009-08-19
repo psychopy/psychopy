@@ -21,14 +21,15 @@ usage:
     sys.exit()
 
 # Ensure 2.8 version of wx
-import wxversion
-wxversion.ensureMinimal('2.8')
+if not hasattr(sys, 'frozen'):
+    import wxversion
+    wxversion.ensureMinimal('2.8')
 import wx
 
 import sys, os, threading, time, platform
-from psychopy.preferences import Preferences
+from psychopy import preferences
 #other app subpackages needs to be imported as explicitly in app 
-from psychopy.app import coder, builder, keybindings, wxIDs, connections
+from psychopy.app import coder, builder, keybindings, wxIDs#, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
@@ -63,7 +64,7 @@ class PsychoPyApp(wx.App):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and import options
-        self.prefs = Preferences() #from preferences.py        
+        self.prefs = preferences.Preferences() #from preferences.py        
         self.IDs=wxIDs
         self.keys=keybindings
         
@@ -95,7 +96,7 @@ class PsychoPyApp(wx.App):
         else:
             args=[]
             
-        connections.checkForUpdates(app=self)
+        #connections.checkForUpdates(app=self)
         
         splash = PsychoSplashScreen(self)
         if splash:
@@ -203,8 +204,6 @@ let me/us know at psychopy-users@googlegroups.com"""
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
 
-
-
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
         wx.Frame.__init__(self, parent, ID, title, size=(500,700))
@@ -289,6 +288,8 @@ class PreferencesDlg(wx.Frame):
         return self.nb.GetCurrentPage().GetText().encode('utf-8')
     def isChanged(self,prefsType='site'):
         filePath = self.paths['%sPrefsFile' %prefsType]
+        if not os.path.isfile(filePath):
+            return True
         f = open(filePath, 'r+')
         savedTxt = f.read()
         f.close()
