@@ -6,7 +6,8 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
 import sys, os, glob, copy, pickle
-import csv, pylab, numpy #csv,pylab are to read in csv files
+import csv, numpy
+from matplotlib import mlab
 import experiment, components
 from psychopy.app import stdOutRich
 
@@ -1174,9 +1175,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
         reader = csv.reader(f)#.split(os.linesep))
         fieldNames = reader.next()
-        #use pylab to import data and intelligently check for data types
+        #use matplotlib to import data and intelligently check for data types
         #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-        trialsArr = pylab.csv2rec(f)
+        trialsArr = mlab.csv2rec(f)
         f.close()
         #convert the record array into a list of dicts
         trialList = []

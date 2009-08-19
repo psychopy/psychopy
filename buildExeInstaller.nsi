@@ -9,7 +9,7 @@
 ;General
 
   ;Name and file
-  Name "PsychoPy"
+  Name "PsychoPy2"
   OutFile "StandalonePsychoPy-x.xx.xx-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy"
   Icon "C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE\psychopy.ico"
@@ -64,8 +64,8 @@ Section "PsychoPy" PsychoPy
   file /r "C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE\dist\*.*"
   
   ;Store installation folder
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy1 (Standalone)"  
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.0"   
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.50.00"   
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\PsychoPyIDE.exe" 
   WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
   
