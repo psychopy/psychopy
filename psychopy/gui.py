@@ -49,7 +49,7 @@ class Dlg(wx.Dialog):
         #prepare a frame in which to hold objects
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         #self.addText('')#insert some space at top of dialogue
-        
+        self.Center()
     def addText(self, text):
         textLength = wx.Size(8*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
