@@ -4,7 +4,7 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import os, imp, glob, wx
+import os, glob, wx
 from os.path import *
 import psychopy
 
@@ -39,9 +39,10 @@ def getComponents(folder=None):
         icons['default']=getIcons(filename=None) 
     #go through components in directory
     if os.path.isdir(folder):
-        for file in glob.glob(os.path.join(folder, '[A-z]*.py')):#must start with a letter
-            fullPath=os.path.join(folder, file)
-            module = imp.load_source(file[:-3], fullPath)
+        for file in glob.glob(os.path.join(folder, '*.py')):#must start with a letter
+            file=os.path.split(file)[1]
+#            module = imp.load_source(file[:-3], fullPath)#can't use imp - breaks py2app
+            exec('import %s as module' %(file[:-3]))
             for attrib in dir(module):
                 name=None
                 #just fetch the attributes that end with 'Component', not other functions
