@@ -2,10 +2,10 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import urllib2, time, platform, sys
-import wx
-from setuptools.command import easy_install
+import urllib2, time, platform, sys, zipfile, os
 import psychopy
+
+import wx
 
 class UpdatesDlg(wx.MessageDialog):
     def __init__(self, app, updateInfo):
@@ -41,25 +41,43 @@ class UpdatesDlg(wx.MessageDialog):
         sys.stderr = origStdErr
         print retVal
         self.Destroy()
-        
+
+def unzip_file_into_dir(file, dir):
+    os.mkdir(dir, 0777)
+    zfobj = zipfile.ZipFile(file)
+    for name in zfobj.namelist():
+        if name.endswith('/'):
+            os.mkdir(os.path.join(dir, name))
+        else:
+            outfile = open(os.path.join(dir, name), 'wb')
+            outfile.write(zfobj.read(name))
+            outfile.close()
+
 def updatePsychoPy():
     
+    import subprocess
+    os.chdir('/Users/jwp/Desktop/testPkg')
+    
+    p = subprocess.Popen([sys.executable,'setup.py','install'])
 #        sys.argv=['-Z', '-U',#unzip, upgrade 
 #            '-f', 'http://code.google.com/p/psychopy/downloads/list',#
 #            'psychopy']
 #        msg = "#!%s\n" %sys.executable
 #        msg+= """__requires__ = 'setuptools==0.6c9'
 #import sys
-    from pkg_resources import load_entry_point
-    sys.argv = ['-Z', '-U',#unzip, upgrade 
-            '-f', 'http://code.google.com/p/psychopy/downloads/list',#
-            'psychopy']
-    ok=load_entry_point('setuptools==0.6c9', 'console_scripts', 'easy_install')()
     
-    msg= 'returns: %s' %ok
-    dlg = wx.MessageDialog(None, style=wx.OK|wx.CENTER,
-        message=msg, caption='Update')
+#    from pkg_resources import load_entry_point
+#    sys.argv = ['-Z', '-U',#unzip, upgrade 
+#            '-f', 'http://code.google.com/p/psychopy/downloads/list',#
+#            'psychopy']
+#    ok=load_entry_point('', 'console_scripts', 'easy_install')()
+    
+#    msg= 'returns: %s' %ok
+#    dlg = wx.MessageDialog(None, style=wx.OK|wx.CENTER,
+#        message=msg, caption='Update')
     #dlg.Destroy()
+    
+    
 def checkForUpdates(app, proxy=None, currVersion=psychopy.__version__):
     
     sys.argv = ['junk', '-Z', '-U',#unzip, upgrade 
@@ -83,7 +101,8 @@ def checkForUpdates(app, proxy=None, currVersion=psychopy.__version__):
         key, keyInfo = line.split(':')
         info[key]=keyInfo.replace('\n', '')
         
-    if info['version']>currVersion and info['version']!=app.prefs.appData['skipVersion']:
+#    if info['version']>currVersion and info['version']!=app.prefs.appData['skipVersion']:
+    if True:
         msg = "PsychoPy v%s is available (you are running %s). " %(info['version'], currVersion)
         msg+= "For details see full changelog at\nhttp://www.psychopy.org/changelog.html"
         msg+= "\n\nDo you want to update?\n\nYes = install\nCancel = not now\nNo = skip this version"

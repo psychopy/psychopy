@@ -29,7 +29,7 @@ import wx
 import sys, os, threading, time, platform
 from psychopy import preferences
 #other app subpackages needs to be imported as explicitly in app 
-from psychopy.app import coder, builder, keybindings, wxIDs#, connections
+from psychopy.app import coder, builder, keybindings, wxIDs, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",

@@ -50,21 +50,22 @@ if platform == 'win32':
           data_files=packageData)
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
-        options=dict(py2app=dict( includes=['Tkinter','FileDialog'],
+        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp'],
                                   frameworks = ["libavbin.dylib"],
                                   resources=resources,
                                   #semi_standalone=True,
                                   site_packages=True,
                                   packages=['wx','pyglet','pygame','OpenGL','psychopy',
-                                    'scipy','setuptools','matplotlib'],
+                                    'scipy','matplotlib'],
                                   iconfile='psychopy/app/Resources/psychopy.icns',
                                   plist=dict(
                                       CFBundleIconFile='psychopy.icns',
                                       CFBundleName               = "PsychoPy2",
                                       CFBundleShortVersionString = psychopy.__version__,     # must be in X.X.X format
-                                      CFBundleGetInfoString      = "PsychoPy "+psychopy.__version__,
+                                      CFBundleGetInfoString      = "PsychoPy2 "+psychopy.__version__,
                                       CFBundleExecutable         = "PsychoPy2",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPy2",
+                                      CFBundleLicense            = "GNU GPLv3",
                                       CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],#CFBundleTypeName='Python Script',                                                                 
                                                                  CFBundleTypeRole='Editor')],
                                       ),                              
@@ -90,6 +91,16 @@ Fixed this by modifying the use of get_config_vars() in distutils/util around li
                 macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
             except:
                 pass#we couldn't load up pyconfig.h
+
+to make avbin work from the mac standalone:                
+    In pyglet/lib.py, around line 166, do this:
+        search_path.append(join(sys.prefix, '..', 'Frameworks'))
+    instead (or as well as) of 
+        search_path.append(os.path.join(
+                    os.environ['RESOURCEPATH'],
+                    '..',
+                    'Frameworks',
+                    libname))
 """
 
 # on Mac use:
