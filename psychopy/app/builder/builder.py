@@ -537,7 +537,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.editComponentProperties(component=component)
         elif op=='remove':
             r.remove(component)
-            self.frame.addToUndoStack("removed" + component.params['name'])
+            self.frame.addToUndoStack("removed" + component.params['name'].val)
         elif op.startswith('move'):
             lastLoc=r.index(component)
             r.remove(component)
@@ -545,7 +545,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if op=='move up': r.insert(lastLoc-1, component)
             if op=='move down': r.insert(lastLoc+1, component)
             if op=='move to bottom': r.append(component)
-            self.app.addToUndoStack("moved" + component.params['name'])
+            self.frame.addToUndoStack("moved" + component.params['name'].val)
         self.redrawRoutine()
         self._menuComponent=None
     def OnPaint(self, event):
@@ -637,6 +637,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             st, end = thisOcc
             xSt = self.timeXposStart + st/xScale
             thisOccW = (end-st)/xScale
+            if thisOccW<2: thisOccW=2#make sure at least one pixel shows
             dc.DrawRectangle(xSt, y, thisOccW,h )
         
         ##set an id for the region where the component.icon falls (so it can act as a button)
@@ -1057,8 +1058,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         #create instances of the two loop types
         if loop==None:
             self.trialHandler=experiment.TrialHandler(exp=self.exp, name='trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=12,
-                stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
+                stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
@@ -1066,8 +1067,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialLIstFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=12,
-                stepSizes=[0.8,0.8,0.4,0.4,0.2], stepType='log', startVal=0.5) #for staircases
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
+                stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop            
             self.currentType='staircase'

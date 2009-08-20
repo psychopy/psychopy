@@ -325,7 +325,7 @@ class StairHandler():
     """A staircase experimental control object.
     """
     def __init__(self, exp, name, nReps, startVal, nReversals='None',
-            nUp=1, nDown=3, 
+            nUp=1, nDown=3, minVal=0,maxVal=1,
             stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
@@ -346,9 +346,9 @@ class StairHandler():
             hint="The maximum value the parameter can take")
         self.params['min value']=Param(minVal, valType='num', 
             hint="The minimum value the parameter can take")
-        self.params['step sizes']=Param(stepSizes, valType='num', allowedVals=['lin','log','db'],
+        self.params['step sizes']=Param(stepSizes, valType='num', 
             hint="The size of the jump at each step (can change on each 'reversal')")
-        self.params['step type']=Param(stepType, valType='str', 
+        self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
             hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")
         self.params['N up']=Param(nUp, valType='code', 
             hint="The number of 'incorrect' answers before the value goes up")
