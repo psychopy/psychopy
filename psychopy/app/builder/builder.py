@@ -537,7 +537,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.editComponentProperties(component=component)
         elif op=='remove':
             r.remove(component)
-            self.addToUndoStack("removed" + component.params['name'])
+            self.frame.addToUndoStack("removed" + component.params['name'])
         elif op.startswith('move'):
             lastLoc=r.index(component)
             r.remove(component)
@@ -1627,12 +1627,14 @@ class BuilderFrame(wx.Frame):
         """
         if filename==None: 
             filename = self.filename
-        if filename=='untitled.py':
+        if filename.startswith('untitled'):
             self.fileSaveAs(filename)
         else:
             f = open(filename, 'w')
             pickle.dump(self.exp,f)
-            f.close()        
+            f.close() 
+            self.exp.saveToXML(filename+'.xml')
+            
         self.setIsModified(False)
     def fileSaveAs(self,event=None, filename=None):
         """

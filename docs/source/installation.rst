@@ -84,6 +84,7 @@ If you want to install each library individually rather than use the simple dist
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting stuff)
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port, win32 only)
 * `ctypes <http://python.net/crew/theller/ctypes/>`_ (this is already included in python 2.5)
+* `pyxml (needed for printing saving builder experiment files)`
 
 Please send feedback to the mailing list.
 

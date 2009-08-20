@@ -4,6 +4,11 @@
 
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
+try:
+    import xml.dom.ext
+    canPrettyPrint=True
+except:
+    canPrettyPrint=False
 import xml.dom.minidom #for saving files out
 
 class IndentingBuffer(StringIO.StringIO):
@@ -70,8 +75,8 @@ class Experiment:
         """Write a PsychoPy script for the experiment
         """
         s=IndentingBuffer(u'') #a string buffer object
-        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder \
-\nIf you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
+        s.writeIndented('This experiment was created using PsychoPy2 Experiment Builder ')
+        s.writeIndented("If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)\n\n")
         
         #import psychopy libs
         libString=""; separator=""
@@ -102,45 +107,86 @@ class Experiment:
             for comp in self.routines[routineName]:                    
                 if name==comp.params['name'].val: return comp.getType()
         return#we didn't find an existing name :-)
-    def saveToFile(self, filename):
-        #create the document
+    def saveToXML(self, filename):        
+        #create the dom object
         doc = xml.dom.minidom.Document()
-        root=doc.createElement("PsychoPy2_experiment")
-        root.setAttribute('version', '1.5')
+        root=doc.createElement("PsychoPy2experiment")
+        root.setAttribute('version', self.psychopyVersion)
+        root.setAttribute('encoding', 'utf-8')
         doc.appendChild(root)
-
+        #store settings
         settings=doc.createElement('settings')
         root.appendChild(settings)
         for name, setting in self.settings.params.iteritems():
-            thisSetting = settings.createElement(name)            
-            thisSetting.setAttribute('val',setting.val)           
+            thisSetting = doc.createElement(name)
+            thisSetting.setAttribute('val',str(setting.val))
             thisSetting.setAttribute('valType',setting.valType)
-            
+            settings.appendChild(thisSetting)
+        #store routiens
         routines=doc.createElement('routines')
         root.appendChild(routines)
-        for routine in self.routines:
-            thisRoutine = routines.createElement(routine.name)
+        for routineName, routine in self.routines.iteritems():#routines is a dict of routines
+            thisRoutine = doc.createElement(routineName)
             routines.appendChild(thisRoutine)
-            for compName, component in routine.params.iteritems():
-                thisComponent = thisRoutine.createElement(compName)
+            for component in routine: #a routine is based on a list of components
+                compName=component.params['name'].val
+                thisComponent = doc.createElement(compName)
                 thisRoutine.appendChild(thisComponent)
                 for paramName, param in component.params.iteritems():
-                    thisParam = thisComponent.createElement(name)   
-                    thisComponent.append(thisParam)         
-                    thisParam.setAttribute('val',setting.val)           
-                    thisParam.setAttribute('valType',setting.valType)
-        
-        loops=doc.createElement('loops')
-        root.appendChild(loops)
-        
+                    thisParam = doc.createElement(paramName)        
+                    thisParam.setAttribute('val',str(param.val))
+                    thisParam.setAttribute('valType',param.valType)
+                    thisParam.setAttribute('updates',param.updates)
+                    thisComponent.appendChild(thisParam)
+        #implement flow
         flow=doc.createElement('flow')
         root.appendChild(flow)
-
-        doc.toprettyxml()
+        for element in self.flow:#a list of elements(routines and loopInit/Terms)
+            if element.getType() == 'LoopInitiator':
+                thisElement = doc.createElement('Start%s' %element.loop.params['name'].val.capitalize())
+                thisElement.setAttribute('type', element.getType())
+                #also add the loop in here
+                loop=doc.createElement(element.loop.params['name'])
+                loop.setAttribute('type', element.loop.getType())
+                thisElement.appendChild(loop)
+                for paramName, param in element.loop.params.iteritems():
+                    thisParam = doc.createElement(paramName)
+                    if paramName=='trialList': #we can't easilly store that - use the filename instead
+                        thisParam.setAttribute('val',repr(param.val))  
+                    else: 
+                        thisParam.setAttribute('val',param.val)            
+                    thisParam.setAttribute('valType',param.valType) 
+                    loop.appendChild(thisParam) 
+            elif element.getType() == 'LoopTerminator':
+                thisElement = doc.createElement('End%s' %element.loop.params['name'].val.capitalize())
+                thisElement.setAttribute('type', element.getType())
+            if element.getType() == 'Routine':
+                thisElement = doc.createElement('%s' %element.params['name'])
+                thisElement.setAttribute('type', element.getType())
+            flow.appendChild(thisElement) 
+        #write to disk
+        f=open(filename, 'wb')
+        xml.dom.ext.PrettyPrint(doc, f)
+        #f.write(doc.toxml())#NB DO NOT use doc.toprettyxml() - the output has whitespace errors
+        f.close()
         
+    def loadFromXML(self, filename):
+        doc = xml.dom.minidom.parse(name)
+        #first make sure we're empty
+        self.flow = Flow(exp=self)#every exp has exactly one flow
+        self.routines={}
+        #fetch exp settings
+        settingsXML=doc.getElementsByTagName('settings')
+        for child in settingsXML.childNodes:
+            pass
+        #fetch routines
+        routinesXML=doc.getElementsByTagName('routines')
+        #fetch flow settings
+        flowXML=doc.getElementsByTagName('flow')
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
+    
 class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
