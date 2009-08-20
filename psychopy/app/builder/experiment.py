@@ -121,10 +121,14 @@ class Experiment:
         for routine in self.routines:
             thisRoutine = routines.createElement(routine.name)
             routines.appendChild(thisRoutine)
-            for name, setting in self.settings.params.iteritems():
-                thisSetting = settings.createElement(name)            
-                thisSetting.setAttribute('val',setting.val)           
-                thisSetting.setAttribute('valType',setting.valType)
+            for compName, component in routine.params.iteritems():
+                thisComponent = thisRoutine.createElement(compName)
+                thisRoutine.appendChild(thisComponent)
+                for paramName, param in component.params.iteritems():
+                    thisParam = thisComponent.createElement(name)   
+                    thisComponent.append(thisParam)         
+                    thisParam.setAttribute('val',setting.val)           
+                    thisParam.setAttribute('valType',setting.valType)
         
         loops=doc.createElement('loops')
         root.appendChild(loops)
