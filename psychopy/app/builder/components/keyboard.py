@@ -48,13 +48,15 @@ class KeyboardComponent(BaseComponent):
     def writeInitCode(self,buff):
         #create a key response object - easier to store data (including a clock to start 
         #at beginning of keyboard testing
-        buff.writeIndented("#create our own class to store info from keyboard\n")
-        buff.writeIndented("\nclass KeyResponse:\n")
-        buff.writeIndented("    def __init__(self):\n")
-        buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
-        buff.writeIndented("        self.corr=None#was the subj correct this trial?\n")
-        buff.writeIndented("        self.rt=None#response time\n")
-        buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
+        if self.exp.noKeyResponse and self.params['store'].val!='nothing':
+            buff.writeIndented("#create our own class to store info from keyboard\n")
+            buff.writeIndented("class KeyResponse:\n")
+            buff.writeIndented("    def __init__(self):\n")
+            buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
+            buff.writeIndented("        self.corr=None#was the subj correct this trial?\n")
+            buff.writeIndented("        self.rt=None#response time\n")
+            buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
+            self.exp.noKeyResponse=False#don't write this again
     def writeRoutineStartCode(self,buff):
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False \
@@ -76,7 +78,11 @@ class KeyboardComponent(BaseComponent):
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
         dedentAtEnd=1
-        
+        #create a clo
+        if self.params['storeResponseTime'].val==True:
+            buff.writeIndented("if %(name)s.clock==None: #if we don't have one we've just started\n" %self.params)
+            buff.writeIndented("    %(name)s.clock=core.Clock()#create one (now t=0)\n" %self.params)
+            
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None, "", "[]"]: keyListStr=""
         else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
@@ -85,9 +91,6 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
         buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
         
-        if self.params['storeResponseTime'].val==True:
-            buff.writeIndented("if %(name)s.clock==None: #if we don't have one we've just started\n" %self.params)
-            buff.writeIndented("    %(name)s.clock=core.Clock()#create one (now t=0)\n" %self.params)
         #how do we store it?
         if store=='first key':#then see if a key has already been pressed
             buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))

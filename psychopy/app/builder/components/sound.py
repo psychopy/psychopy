@@ -27,7 +27,9 @@ class SoundComponent(BaseComponent):
             hint="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")  
 
     def writeInitCode(self,buff):
-        s = "%(name)s=Sound(%(sound)s, secs=%s\n" %(self.params,self.params['times'][1]-self.params['times'][0])
+        exec('times=%s' %self.params['times'])
+        duration = times[1]-times[0]
+        s = "%s=sound.Sound(%s, secs=%s)\n" %(self.params['name'], self.params['sound'], duration)
         buff.writeIndented(s)  
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame

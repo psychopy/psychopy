@@ -50,7 +50,6 @@ class Experiment:
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
-
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -74,6 +73,7 @@ class Experiment:
     def writeScript(self):
         """Write a PsychoPy script for the experiment
         """
+        self.noKeyResponse=True#if keyboard is used (and data stored) this will be False
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('This experiment was created using PsychoPy2 Experiment Builder ')
         s.writeIndented("If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)\n\n")
@@ -293,7 +293,7 @@ class TrialHandler():
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
-        buff.writeIndented("%s=trials.next()#so we can initialise stimuli with first trial values\n" %self.thisName)
+        buff.writeIndented("%s=trials.trialList[0]#so we can initialise stimuli with first trial values\n" %self.thisName)
         
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
@@ -313,17 +313,20 @@ class TrialHandler():
         for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
+        buff.writeIndented("%(name)s.saveAsPickle(filename+'.psydat')\n" %self.params)
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        buff.writeIndented("print 'saved data to '+filename+'.dlm'\n" %self.params)
+        buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
 
     def getType(self):
         return 'TrialHandler'     
 class StairHandler():    
     """A staircase experimental control object.
     """
-    def __init__(self, exp, name, nReps, nReversals, stepSizes, stepType, startVal, endPoints=[0,1]):
+    def __init__(self, exp, name, nReps, startVal, nReversals='None',
+            nUp=1, nDown=3, 
+            stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -338,33 +341,64 @@ class StairHandler():
         self.params['nReps']=Param(nReps, valType='num', 
             hint="(Minimum) number of trials in the staircase")
         self.params['start value']=Param(startVal, valType='num', 
-            hint="The size of the jump at each step (can change on each 'reversal')")
+            hint="The initial value of the parameter")
+        self.params['max value']=Param(maxVal, valType='num', 
+            hint="The maximum value the parameter can take")
+        self.params['min value']=Param(minVal, valType='num', 
+            hint="The minimum value the parameter can take")
         self.params['step sizes']=Param(stepSizes, valType='num', allowedVals=['lin','log','db'],
             hint="The size of the jump at each step (can change on each 'reversal')")
         self.params['step type']=Param(stepType, valType='str', 
             hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")
-        self.params['nReversals']=Param(nReversals, valType='code', 
+        self.params['N up']=Param(nUp, valType='code', 
+            hint="The number of 'incorrect' answers before the value goes up")
+        self.params['N down']=Param(nDown, valType='code', 
+            hint="The number of 'correct' answers before the value goes down")
+        self.params['N reversals']=Param(nReversals, valType='code', 
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str', allowedVals=['random','sequential','staircase'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
+            
     def writeInitCode(self,buff):
-        #TODO: code for stair handler init!
-        buff.writeIndented("init loop '%s' (%s)\n" %(self.params['name'], self.loopType))
-        buff.writeIndented("%s=data.StairHandler(nReps=%i,\n)" \
-            %(self.name, self.nReps))
+        #todo: write code to fetch trialList from file?
+        #create nice line-separated list of trialTypes
+        trialStr="[ \\\n"
+        for line in self.params['trialList'].val:
+            trialStr += "        %s,\n" %line
+        trialStr += "        ]"
+        #also a 'thisName' for use in "for thisTrial in trials:"
+        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
+        #write the code        
+        buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndented("%s=data.StairHandler(nReps=%(name)s, extraInfo=expInfo,\n" %(self.params))
+        buff.writeIndented("    startVal=%(start value)s, stepSizes=%(step sizes)i, stepType=%(step type)s,\n" %self.params)
+        buff.writeIndented("    nReversals=%(nReversals)s, nTrials=%(nReps)i, \n" %self.params)
+        buff.writeIndented("    nUp=%(N up)i, nDown=%(N down)i,\n" %self.params)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
-        thisName = ("this"+self.params['name'].capitalize()[:-1])
-        buff.writeIndented("for %s in %s:\n" %(thisName, self.params['name']))
+        buff.writeIndented("\n")
+        buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("# end of '%s' after %i repeats (of each entry in trialList)\n" %(self.loop.params['name'], self.loop.params['nReps']))
+        buff.writeIndented("\n")
+        buff.writeIndented("#staircase completed\n")
+        buff.writeIndented("\n")        
+        #save data
+        ##a string to show all the available variables
+        stimOutStr="["
+        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
+            stimOutStr+= "'%s', " %variable
+        stimOutStr+= "]"
+        buff.writeIndented("%(name)s.saveAsText(filename+'.dlm')\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsPickle(filename+'.psydat')\n" %self.params)
+        buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
     def getType(self):
         return 'StairHandler'   
+
 class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""

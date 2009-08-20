@@ -279,7 +279,7 @@ class TrialHandler:
         
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
-                            
+            
             dataType, analType =string.split(thisDataOut, '_', 1)
             if not self.data.has_key(dataType): 
                 dataOut.remove(thisDataOut)#that analysis can't be done
