@@ -4,12 +4,8 @@
 
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
-try:
-    import xml.dom.ext
-    canPrettyPrint=True
-except:
-    canPrettyPrint=False
 import xml.dom.minidom #for saving files out
+import xml.dom.ext#this come from installing pyxml (as well as the beasic xml included in python)
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -120,16 +116,16 @@ class Experiment:
         settingsNode=doc.createElement('settings')
         root.appendChild(settingsNode)
         for longName, setting in self.settings.params.iteritems():
-            settingNode=self._addXMLparam(parent=settingsNode,param=setting,longName=longName)
+            settingNode=self._setXMLparam(parent=settingsNode,param=setting,longName=longName)
         #store routines
         routinesNode=doc.createElement('routines')
         root.appendChild(routinesNode)
         for routineName, routine in self.routines.iteritems():#routines is a dict of routines
-            routineNode = self._addXMLparam(parent=routinesNode,param=routine,longName=routineName)
+            routineNode = self._setXMLparam(parent=routinesNode,param=routine,longName=routineName)
             for component in routine: #a routine is based on a list of components
-                componentNode=self._addXMLparam(parent=routineNode,param=component,longName=component.params['name'].val)
+                componentNode=self._setXMLparam(parent=routineNode,param=component,longName=component.params['name'].val)
                 for longName, param in component.params.iteritems():
-                    paramNode=self._addXMLparam(parent=componentNode,param=param,longName=longName)
+                    paramNode=self._setXMLparam(parent=componentNode,param=param,longName=longName)
         #implement flow
         flowNode=doc.createElement('flow')
         root.appendChild(flowNode)
@@ -145,7 +141,7 @@ class Experiment:
                 loopNode.setAttribute('type', element.loop.getType())
                 elementNode.appendChild(loopNode)
                 for paramName, param in element.loop.params.iteritems():
-                    paramNode = self._addXMLparam(parent=loopNode,param=param,longName=paramName)
+                    paramNode = self._setXMLparam(parent=loopNode,param=param,longName=paramName)
                     if paramName=='trialList': #override val with repr(val)
                         paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
@@ -159,11 +155,11 @@ class Experiment:
         #write to disk
         f=open(filename, 'wb')
         xml.dom.ext.PrettyPrint(doc, f)
-        #f.write(self._doc.toxml())#NB DO NOT use doc.toprettyxml() - the output has whitespace errors
+        #f.write(self._doc.toxml())#simple printer doesn't work
         f.close()
     def _getShortName(self, longName):
         return longName.replace('(','').replace(')','').replace(' ','')
-    def _addXMLparam(self,parent,param,longName,shortName=None):
+    def _setXMLparam(self,parent,param,longName,shortName=None):
         """Add a new child to a given xml node.
         longName can include spaces and parens, which will be removed to create child name
         """
@@ -175,19 +171,35 @@ class Experiment:
         if hasattr(param,'updates'): thisChild.setAttribute('updates',param.updates)
         parent.appendChild(thisChild)
         return thisChild
+    def _getXMLparam(self,params,paramNode):
+        """params is the dict of params of the builder component (e.g. stimulus)
+        paramNode is the parameter node fetched from the xml file
+        """
+        longName=paramNode.getAttribute('longName')
+        params[longName].val = paramNode.getAttribute('val')
+        if child.hasAttribute('valType'): params[longName].valType = child.getAttribute('valType')
+        if child.hasAttribute('updates'): params[longName].updates = child.getAttribute('updates')
+        return params[longName]
     def loadFromXML(self, filename):
-        doc = xml.dom.minidom.parse(name)
+        self._doc = doc = xml.dom.minidom.parse(filename)
+        self.psychopyVersion = doc.getAttribute('version')
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #fetch exp settings
-        settingsXML=doc.getElementsByTagName('settings')
-        for child in settingsXML.childNodes:
-            pass
+        ##NB the lines about someNode.hasattributes() are to avoid empty 'Text Attributes' inserted by pretty print
+        settingsNode=doc.getElementsByTagName('settings')[0]
+        for child in settingsNode.childNodes:
+            if child.hasAttributes():#then is a setting so get setting
+                junk=self._getXMLparam(params=self.exp.settings.params, paramNode=child)
         #fetch routines
-        routinesXML=doc.getElementsByTagName('routines')
+        routinesNode=doc.getElementsByTagName('routines')[0]
+        for routineNode in routinesNode.childNodes:
+            if routineNode.hasAttributes():#then is a routineNode so get components
+                routine = self._getXMLparam(params=self.exp.routines, paramNode=routineNode)
+                #XXXworking here ;-)
         #fetch flow settings
-        flowXML=doc.getElementsByTagName('flow')
+        flowXML=doc.getElementsByTagName('flow')[0]
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
