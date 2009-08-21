@@ -19,22 +19,22 @@ class IndentingBuffer(StringIO.StringIO):
     def writeIndented(self,text):
         """Write to the StringIO buffer, but add the current indent.
         Use write() if you don't want the indent.
-        
+
         To test if the prev character was a newline use::
             self.getvalue()[-1]=='\n'
-            
+
         """
         self.write(self.oneIndent*self.indentLevel + text)
     def setIndentLevel(self, newLevel, relative=False):
         """Change the indent level for the buffer to a new value.
-        
+
         Set relative to True if you want to increment or decrement the current value.
         """
         if relative:
             self.indentLevel+=newLevel
         else:
             self.indentLevel=newLevel
-        
+
 class Experiment:
     """
     An experiment contains a single Flow and at least one
@@ -45,23 +45,24 @@ class Experiment:
         self.name=None
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
-        
+
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
+        self._doc=None#this will be the xml.dom.minidom.doc object for saving
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
         """
-        if type(libs)!=list: 
+        if type(libs)!=list:
             libs=list(libs)
         for lib in libs:
             if lib not in self.psychopyLibs:
                 self.psychopyLibs.append(lib)
     def addRoutine(self,routineName, routine=None):
-        """Add a Routine to the current list of them. 
-        
+        """Add a Routine to the current list of them.
+
         Can take a Routine object directly or will create
         an empty one if none is given.
         """
@@ -69,7 +70,7 @@ class Experiment:
             self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
-            
+
     def writeScript(self):
         """Write a PsychoPy script for the experiment
         """
@@ -77,7 +78,7 @@ class Experiment:
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('This experiment was created using PsychoPy2 Experiment Builder ')
         s.writeIndented("If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)\n\n")
-        
+
         #import psychopy libs
         libString=""; separator=""
         for lib in self.psychopyLibs:
@@ -85,15 +86,15 @@ class Experiment:
             separator=", "#for the second lib upwards we need a comma
         s.writeIndented("from numpy import * #many different maths functions\n")
         s.writeIndented("import os #handy system and path functions\n")
-        s.writeIndented("from psychopy import %s\n" %libString)     
+        s.writeIndented("from psychopy import %s\n" %libString)
         s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
-        
+
         self.settings.writeStartCode(s)#present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
         self.settings.writeEndCode(s)#close log file
-        
-        return s                   
+
+        return s
     def getUsedName(self, name):
         """Check the exp._usedNames dict and return None for unused or
         the type of object using it otherwise
@@ -104,72 +105,76 @@ class Experiment:
                 flowElement=flowElement.loop #we want the loop itself
             if flowElement.params['name']==name: return flowElement.getType()
         for routineName in self.routines.keys():
-            for comp in self.routines[routineName]:                    
+            for comp in self.routines[routineName]:
                 if name==comp.params['name'].val: return comp.getType()
         return#we didn't find an existing name :-)
-    def saveToXML(self, filename):        
+    def saveToXML(self, filename):
         #create the dom object
-        doc = xml.dom.minidom.Document()
+        doc = self._doc = xml.dom.minidom.Document()
         root=doc.createElement("PsychoPy2experiment")
         root.setAttribute('version', self.psychopyVersion)
         root.setAttribute('encoding', 'utf-8')
         doc.appendChild(root)
+        ##in the following, anything beginning '
         #store settings
-        settings=doc.createElement('settings')
-        root.appendChild(settings)
-        for name, setting in self.settings.params.iteritems():
-            thisSetting = doc.createElement(name)
-            thisSetting.setAttribute('val',str(setting.val))
-            thisSetting.setAttribute('valType',setting.valType)
-            settings.appendChild(thisSetting)
-        #store routiens
-        routines=doc.createElement('routines')
-        root.appendChild(routines)
+        settingsNode=doc.createElement('settings')
+        root.appendChild(settingsNode)
+        for longName, setting in self.settings.params.iteritems():
+            settingNode=self._addXMLparam(parent=settingsNode,param=setting,longName=longName)
+        #store routines
+        routinesNode=doc.createElement('routines')
+        root.appendChild(routinesNode)
         for routineName, routine in self.routines.iteritems():#routines is a dict of routines
-            thisRoutine = doc.createElement(routineName)
-            routines.appendChild(thisRoutine)
+            routineNode = self._addXMLparam(parent=routinesNode,param=routine,longName=routineName)
             for component in routine: #a routine is based on a list of components
-                compName=component.params['name'].val
-                thisComponent = doc.createElement(compName)
-                thisRoutine.appendChild(thisComponent)
-                for paramName, param in component.params.iteritems():
-                    thisParam = doc.createElement(paramName)        
-                    thisParam.setAttribute('val',str(param.val))
-                    thisParam.setAttribute('valType',param.valType)
-                    thisParam.setAttribute('updates',param.updates)
-                    thisComponent.appendChild(thisParam)
+                componentNode=self._addXMLparam(parent=routineNode,param=component,longName=component.params['name'].val)
+                for longName, param in component.params.iteritems():
+                    paramNode=self._addXMLparam(parent=componentNode,param=param,longName=longName)
         #implement flow
-        flow=doc.createElement('flow')
-        root.appendChild(flow)
+        flowNode=doc.createElement('flow')
+        root.appendChild(flowNode)
         for element in self.flow:#a list of elements(routines and loopInit/Terms)
             if element.getType() == 'LoopInitiator':
-                thisElement = doc.createElement('Start%s' %element.loop.params['name'].val.capitalize())
-                thisElement.setAttribute('type', element.getType())
+                longName = element.loop.params['name'].val                
+                shortName= 'Start%s' %(self._getShortName(longName).capitalize())
+                elementNode=doc.createElement(shortName)
+                elementNode.setAttribute('type', element.getType())
+                elementNode.setAttribute('loop', element.loop.params['name'].val)
                 #also add the loop in here
-                loop=doc.createElement(element.loop.params['name'])
-                loop.setAttribute('type', element.loop.getType())
-                thisElement.appendChild(loop)
+                loopNode=doc.createElement(element.loop.params['name'])
+                loopNode.setAttribute('type', element.loop.getType())
+                elementNode.appendChild(loopNode)
                 for paramName, param in element.loop.params.iteritems():
-                    thisParam = doc.createElement(paramName)
-                    if paramName=='trialList': #we can't easilly store that - use the filename instead
-                        thisParam.setAttribute('val',repr(param.val))  
-                    else: 
-                        thisParam.setAttribute('val',param.val)            
-                    thisParam.setAttribute('valType',param.valType) 
-                    loop.appendChild(thisParam) 
+                    paramNode = self._addXMLparam(parent=loopNode,param=param,longName=paramName)
+                    if paramName=='trialList': #override val with repr(val)
+                        paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
-                thisElement = doc.createElement('End%s' %element.loop.params['name'].val.capitalize())
-                thisElement.setAttribute('type', element.getType())
+                elementNode = doc.createElement('End%s' %element.loop.params['name'].val.capitalize())
+                elementNode.setAttribute('type', element.getType())
+                elementNode.setAttribute('loop', element.loop.params['name'].val)
             if element.getType() == 'Routine':
-                thisElement = doc.createElement('%s' %element.params['name'])
-                thisElement.setAttribute('type', element.getType())
-            flow.appendChild(thisElement) 
+                elementNode = doc.createElement('%s' %element.params['name'])
+                elementNode.setAttribute('type', element.getType())
+            flowNode.appendChild(elementNode)
         #write to disk
         f=open(filename, 'wb')
         xml.dom.ext.PrettyPrint(doc, f)
-        #f.write(doc.toxml())#NB DO NOT use doc.toprettyxml() - the output has whitespace errors
+        #f.write(self._doc.toxml())#NB DO NOT use doc.toprettyxml() - the output has whitespace errors
         f.close()
-        
+    def _getShortName(self, longName):
+        return longName.replace('(','').replace(')','').replace(' ','')
+    def _addXMLparam(self,parent,param,longName,shortName=None):
+        """Add a new child to a given xml node.
+        longName can include spaces and parens, which will be removed to create child name
+        """
+        shortName=self._getShortName(longName)
+        thisChild = self._doc.createElement(shortName)
+        thisChild.setAttribute('longName',longName)
+        if hasattr(param,'val'): thisChild.setAttribute('val',str(param.val))
+        if hasattr(param,'valType'): thisChild.setAttribute('valType',param.valType)
+        if hasattr(param,'updates'): thisChild.setAttribute('updates',param.updates)
+        parent.appendChild(thisChild)
+        return thisChild
     def loadFromXML(self, filename):
         doc = xml.dom.minidom.parse(name)
         #first make sure we're empty
@@ -186,23 +191,23 @@ class Experiment:
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
-    
+
 class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
-    
+
     >>> sizeParam = Param(val=[3,4], valType='num')
     >>> print sizeParam
     numpy.asarray([3,4])
-    
+
     >>> sizeParam = Param(val=[3,4], valType='str')
     >>> print sizeParam
     "[3,4]"
-    
+
     >>> sizeParam = Param(val=[3,4], valType='code')
     >>> print sizeParam
     [3,4]
-    
+
     """
     def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
         """
@@ -219,7 +224,7 @@ class Param:
         @param updates: how often does this parameter update ('experiment', 'routine', 'set every frame')
         @type updates: string
         @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
-        @type allowedUpdates: list        
+        @type allowedUpdates: list
         """
         self.val=val
         self.valType=valType
@@ -242,8 +247,8 @@ class Param:
             return "%s" %(self.val)
         else:
             raise TypeError, "Can't represent a Param of type %s" %self.valType
-            
-class TrialHandler():    
+
+class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
@@ -274,7 +279,7 @@ class TrialHandler():
         self.params['trialListFile']=Param(trialListFile, valType='str', updates=None, allowedUpdates=None,
             hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
-            hint="The start and end of the loop (see flow timeline)")      
+            hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str', allowedVals=['random','sequential','staircase'],
             hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
@@ -289,12 +294,12 @@ class TrialHandler():
         trialStr += "        ]"
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
-        #write the code        
+        #write the code
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
         buff.writeIndented("%s=trials.trialList[0]#so we can initialise stimuli with first trial values\n" %self.thisName)
-        
+
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
@@ -306,7 +311,7 @@ class TrialHandler():
         buff.writeIndented("#completed %s repeats of '%s' repeats\n" \
             %(self.params['nReps'], self.params['name']))
         buff.writeIndented("\n")
-        
+
         #save data
         ##a string to show all the available variables
         stimOutStr="["
@@ -320,8 +325,8 @@ class TrialHandler():
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
 
     def getType(self):
-        return 'TrialHandler'     
-class StairHandler():    
+        return 'TrialHandler'
+class StairHandler():
     """A staircase experimental control object.
     """
     def __init__(self, exp, name, nReps, startVal, nReversals='None',
@@ -338,30 +343,30 @@ class StairHandler():
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
-        self.params['nReps']=Param(nReps, valType='num', 
+        self.params['nReps']=Param(nReps, valType='num',
             hint="(Minimum) number of trials in the staircase")
-        self.params['start value']=Param(startVal, valType='num', 
+        self.params['start value']=Param(startVal, valType='num',
             hint="The initial value of the parameter")
-        self.params['max value']=Param(maxVal, valType='num', 
+        self.params['max value']=Param(maxVal, valType='num',
             hint="The maximum value the parameter can take")
-        self.params['min value']=Param(minVal, valType='num', 
+        self.params['min value']=Param(minVal, valType='num',
             hint="The minimum value the parameter can take")
-        self.params['step sizes']=Param(stepSizes, valType='num', 
+        self.params['step sizes']=Param(stepSizes, valType='num',
             hint="The size of the jump at each step (can change on each 'reversal')")
         self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
             hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")
-        self.params['N up']=Param(nUp, valType='code', 
+        self.params['N up']=Param(nUp, valType='code',
             hint="The number of 'incorrect' answers before the value goes up")
-        self.params['N down']=Param(nDown, valType='code', 
+        self.params['N down']=Param(nDown, valType='code',
             hint="The number of 'correct' answers before the value goes down")
-        self.params['N reversals']=Param(nReversals, valType='code', 
+        self.params['N reversals']=Param(nReversals, valType='code',
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str', allowedVals=['random','sequential','staircase'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
-            
+
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
         #create nice line-separated list of trialTypes
@@ -371,7 +376,7 @@ class StairHandler():
         trialStr += "        ]"
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
-        #write the code        
+        #write the code
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.StairHandler(nReps=%(name)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    startVal=%(start value)s, stepSizes=%(step sizes)i, stepType=%(step type)s,\n" %self.params)
@@ -386,7 +391,7 @@ class StairHandler():
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
         buff.writeIndented("#staircase completed\n")
-        buff.writeIndented("\n")        
+        buff.writeIndented("\n")
         #save data
         ##a string to show all the available variables
         stimOutStr="["
@@ -397,7 +402,7 @@ class StairHandler():
         buff.writeIndented("%(name)s.saveAsPickle(filename+'.psydat')\n" %self.params)
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
     def getType(self):
-        return 'StairHandler'   
+        return 'StairHandler'
 
 class LoopInitiator:
     """A simple class for inserting into the flow.
@@ -442,7 +447,7 @@ class Flow(list):
         self.exp.requirePsychopyLibs(['data'])#needed for TrialHandlers etc
     def addRoutine(self, newRoutine, pos):
         """Adds the routine to the Flow list"""
-        self.insert(int(pos), newRoutine)   
+        self.insert(int(pos), newRoutine)
     def removeComponent(self,component):
         """Removes a Loop, LoopTerminator or Routine from the flow
         """
@@ -455,26 +460,26 @@ class Flow(list):
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
             self.remove(component)#this one's easy!
-            
+
     def writeCode(self, s):
-        
+
         #initialise
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(s)
-        
-        #run-time code  
+
+        #run-time code
         for entry in self:
             self._currentRoutine=entry
             entry.writeMainCode(s)
-        
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
     as the presentation of trial. Multiple Routines might be
     used to comprise an Experiment (e.g. one for presenting
     instructions, one for trials, one for debriefing subjects).
-    
+
     In practice a Routine is simply a python list of Components,
     each of which knows when it starts and stops.
     """
@@ -486,10 +491,10 @@ class Routine(list):
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
         list.__init__(self)
     def addComponent(self,component):
-        """Add a component to the end of the routine""" 
+        """Add a component to the end of the routine"""
         self.append(component)
     def removeComponent(self,component):
-        """Remove a component from the end of the routine""" 
+        """Remove a component from the end of the routine"""
         self.remove(component)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
@@ -499,14 +504,14 @@ class Routine(list):
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
         for thisEvt in self:
             thisEvt.writeInitCode(buff)
-        
+
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-            
+
         #create the frame loop for this routine
         buff.writeIndented('\n')
         buff.writeIndented('#run the trial\n')
@@ -514,16 +519,16 @@ class Routine(list):
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('while %s and (t<%.4f):\n' %(self._continueName, self.getMaxTime()))
         buff.setIndentLevel(1,True)
-        
+
         #on each frame
         buff.writeIndented('#get current time\n')
         buff.writeIndented('t=%s.getTime()\n\n' %self._clockName)
-        
+
         #write the code for each component during frame
         buff.writeIndented('#update each component (where necess)\n')
         for event in self:
             event.writeFrameCode(buff)
-            
+
         #update screen
         buff.writeIndented('\n')
         buff.writeIndented('#check for quit (the [Esc] key)\n')
@@ -531,16 +536,16 @@ class Routine(list):
         buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
-        
+
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
-        
+
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
         buff.writeIndented('#end of this routine (e.g. trial)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
-            
+
     def getType(self):
         return 'Routine'
     def getComponentFromName(self, name):
