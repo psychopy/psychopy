@@ -2,13 +2,13 @@ News
 ====================
 
 **PsychoPy webpage gets a facelift**: 
-PsychoPy has moved from a wiki-based web site to Sphinx (for better integration with documentation)
+PsychoPy has moved from a wiki-based web site to Sphinx (for better integration with documentation). This documentation now relates to the new version (PsychoPy2, building up towards version 2.00). The previous website for PsychoPy version 1.xx is still available `here <psychopy1/home.php>`_
 
 **Latest version**:
-Version 1.00.03 was released in June 2009. There is now a standalone download for Windows and OS X (containing its own python and dependencies).
+Version 1.50.00 released on xx.xx, including a preview of the new graphical :doc:`builder <builder/builder>` view.
 
-ShapeStims and SimpleImageStim have been added, and many bugs fixed. See the :doc:`changelog` for further details.
-
+.. title:: Home
+    
 Contents
 ====================
 .. toctree::

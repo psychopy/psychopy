@@ -3,7 +3,9 @@ Frequently Asked Questions (FAQs)
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :glob:
    
-   timing
+   *
+
 

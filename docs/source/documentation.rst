@@ -13,7 +13,9 @@ Contents:
    coder/coder
    api/api
    timing/timing
+   recipes/recipes
    faqs/faqs
+   contributing
    glossary
    indices
 
