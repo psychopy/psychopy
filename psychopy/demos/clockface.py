@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from psychopy import visual, core, event
 import numpy, time    
-win = visual.Window([800,800])
+win = visual.Window([800,800], monitor='testMonitor')
 
 handVerts = numpy.array([ [0,0.8],[-0.05,0],[0,-0.05],[0.05,0] ])#vertices (using numpy means we can scale them easily)
 

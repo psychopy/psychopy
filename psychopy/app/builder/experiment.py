@@ -113,44 +113,38 @@ class Experiment:
         doc.appendChild(root)
         ##in the following, anything beginning '
         #store settings
-        settingsNode=doc.createElement('settings')
+        settingsNode=doc.createElement('Settings')
         root.appendChild(settingsNode)
-        for longName, setting in self.settings.params.iteritems():
-            settingNode=self._setXMLparam(parent=settingsNode,param=setting,longName=longName)
+        for name, setting in self.settings.params.iteritems():
+            settingNode=self._setXMLparam(parent=settingsNode,param=setting,name=name)
         #store routines
-        routinesNode=doc.createElement('routines')
+        routinesNode=doc.createElement('Routines')
         root.appendChild(routinesNode)
         for routineName, routine in self.routines.iteritems():#routines is a dict of routines
-            routineNode = self._setXMLparam(parent=routinesNode,param=routine,longName=routineName)
+            routineNode = self._setXMLparam(parent=routinesNode,param=routine,name=routineName)
             for component in routine: #a routine is based on a list of components
-                componentNode=self._setXMLparam(parent=routineNode,param=component,longName=component.params['name'].val)
-                for longName, param in component.params.iteritems():
-                    paramNode=self._setXMLparam(parent=componentNode,param=param,longName=longName)
+                componentNode=self._setXMLparam(parent=routineNode,param=component,name=component.params['name'].val)
+                for name, param in component.params.iteritems():
+                    paramNode=self._setXMLparam(parent=componentNode,param=param,name=name)
         #implement flow
-        flowNode=doc.createElement('flow')
+        flowNode=doc.createElement('Flow')
         root.appendChild(flowNode)
         for element in self.flow:#a list of elements(routines and loopInit/Terms)
             if element.getType() == 'LoopInitiator':
-                longName = element.loop.params['name'].val                
-                shortName= 'Start%s' %(self._getShortName(longName).capitalize())
-                elementNode=doc.createElement(shortName)
-                elementNode.setAttribute('type', element.getType())
-                elementNode.setAttribute('loop', element.loop.params['name'].val)
-                #also add the loop in here
-                loopNode=doc.createElement(element.loop.params['name'])
-                loopNode.setAttribute('type', element.loop.getType())
-                elementNode.appendChild(loopNode)
-                for paramName, param in element.loop.params.iteritems():
-                    paramNode = self._setXMLparam(parent=loopNode,param=param,longName=paramName)
+                loop=element.loop
+                name = loop.params['name'].val      
+                elementNode=doc.createElement(loop.getType())
+                elementNode.setAttribute('name', name)
+                for paramName, param in loop.params.iteritems():
+                    paramNode = self._setXMLparam(parent=loopNode,param=param,name=paramName)
                     if paramName=='trialList': #override val with repr(val)
                         paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
-                elementNode = doc.createElement('End%s' %element.loop.params['name'].val.capitalize())
-                elementNode.setAttribute('type', element.getType())
-                elementNode.setAttribute('loop', element.loop.params['name'].val)
+                elementNode = doc.createElement('LoopTerminator')
+                elementNode.setAttribute('loopTerminating', element.loop.params['name'].val)
             if element.getType() == 'Routine':
-                elementNode = doc.createElement('%s' %element.params['name'])
-                elementNode.setAttribute('type', element.getType())
+                elementNode = doc.createElement('Routine')
+                elementNode.setAttribute('name', '%s' %element.params['name'])
             flowNode.appendChild(elementNode)
         #write to disk
         f=open(filename, 'wb')
@@ -159,27 +153,29 @@ class Experiment:
         f.close()
     def _getShortName(self, longName):
         return longName.replace('(','').replace(')','').replace(' ','')
-    def _setXMLparam(self,parent,param,longName,shortName=None):
+    def _setXMLparam(self,parent,param,name):
         """Add a new child to a given xml node.
-        longName can include spaces and parens, which will be removed to create child name
+        name can include spaces and parens, which will be removed to create child name
         """
-        shortName=self._getShortName(longName)
-        thisChild = self._doc.createElement(shortName)
-        thisChild.setAttribute('longName',longName)
+        if hasattr(param,'getType'):
+            thisType = param.getType()
+        else: thisType='Param'
+        thisChild = self._doc.createElement(thisType)
+        thisChild.setAttribute('name',name)
         if hasattr(param,'val'): thisChild.setAttribute('val',str(param.val))
         if hasattr(param,'valType'): thisChild.setAttribute('valType',param.valType)
         if hasattr(param,'updates'): thisChild.setAttribute('updates',param.updates)
         parent.appendChild(thisChild)
         return thisChild
     def _getXMLparam(self,params,paramNode):
-        """params is the dict of params of the builder component (e.g. stimulus)
+        """params is the dict of params of the builder component (e.g. stimulus) into which
+        the parameters will be inserted (so the object to store the params should be created first)
         paramNode is the parameter node fetched from the xml file
         """
-        longName=paramNode.getAttribute('longName')
-        params[longName].val = paramNode.getAttribute('val')
-        if child.hasAttribute('valType'): params[longName].valType = child.getAttribute('valType')
-        if child.hasAttribute('updates'): params[longName].updates = child.getAttribute('updates')
-        return params[longName]
+        name=paramNode.getAttribute('name')
+        if hasattr(param,'val'): params[name].val = paramNode.getAttribute('val')
+        if child.hasAttribute('valType'): params[name].valType = child.getAttribute('valType')
+        if child.hasAttribute('updates'): params[name].updates = child.getAttribute('updates')
     def loadFromXML(self, filename):
         self._doc = doc = xml.dom.minidom.parse(filename)
         self.psychopyVersion = doc.getAttribute('version')
@@ -190,14 +186,20 @@ class Experiment:
         ##NB the lines about someNode.hasattributes() are to avoid empty 'Text Attributes' inserted by pretty print
         settingsNode=doc.getElementsByTagName('settings')[0]
         for child in settingsNode.childNodes:
-            if child.hasAttributes():#then is a setting so get setting
-                junk=self._getXMLparam(params=self.exp.settings.params, paramNode=child)
+            if not child.hasAttributes(): continue#this is a junk text node
+            self._getXMLparam(params=self.exp.settings.params, paramNode=child)
         #fetch routines
         routinesNode=doc.getElementsByTagName('routines')[0]
-        for routineNode in routinesNode.childNodes:
-            if routineNode.hasAttributes():#then is a routineNode so get components
-                routine = self._getXMLparam(params=self.exp.routines, paramNode=routineNode)
-                #XXXworking here ;-)
+        for routineNode in routinesNode.childNodes:#get each routine node from the list of routines
+            if not routineNode.hasAttributes(): continue#this is a junk text node
+            routine = Routine(name=routineNode.getAttribute('name'), exp=self)
+            self._getXMLparam(params=routine.params, paramNode=routineNode)
+            #then create the 
+            self.routines.append(routine)
+            for componentNode in routineNode.childNodes:
+                if not componentNode.hasAttributes(): continue#this is a junk text node
+                compType=componentNode.getAttribute('type')
+                component=self._getXMLparam(params=routine, paramNode=componentNode)
         #fetch flow settings
         flowXML=doc.getElementsByTagName('flow')[0]
     def setExpName(self, name):

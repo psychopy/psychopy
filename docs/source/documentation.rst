@@ -12,6 +12,7 @@ Contents:
    builder/builder
    coder/coder
    api/api
+   psyexp
    timing/timing
    recipes/recipes
    faqs/faqs
