@@ -130,22 +130,21 @@ class Experiment:
         flowNode=doc.createElement('Flow')
         root.appendChild(flowNode)
         for element in self.flow:#a list of elements(routines and loopInit/Terms)
+            elementNode=doc.createElement(element.getType())
+            flowNode.appendChild(elementNode)
             if element.getType() == 'LoopInitiator':
                 loop=element.loop
                 name = loop.params['name'].val      
-                elementNode=doc.createElement(loop.getType())
+                elementNode.setAttribute('loopType',loop.getType())
                 elementNode.setAttribute('name', name)
                 for paramName, param in loop.params.iteritems():
                     paramNode = self._setXMLparam(parent=loopNode,param=param,name=paramName)
                     if paramName=='trialList': #override val with repr(val)
                         paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
-                elementNode = doc.createElement('LoopTerminator')
                 elementNode.setAttribute('loopTerminating', element.loop.params['name'].val)
-            if element.getType() == 'Routine':
-                elementNode = doc.createElement('Routine')
+            elif element.getType() == 'Routine':
                 elementNode.setAttribute('name', '%s' %element.params['name'])
-            flowNode.appendChild(elementNode)
         #write to disk
         f=open(filename, 'wb')
         xml.dom.ext.PrettyPrint(doc, f)
@@ -183,25 +182,39 @@ class Experiment:
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #fetch exp settings
-        ##NB the lines about someNode.hasattributes() are to avoid empty 'Text Attributes' inserted by pretty print
-        settingsNode=doc.getElementsByTagName('settings')[0]
+        settingsNode=doc.getElementsByTagName('Settings')[0]
         for child in settingsNode.childNodes:
-            if not child.hasAttributes(): continue#this is a junk text node
+            if elementNode.nodeName=="#text": continue#this is a junk text node
             self._getXMLparam(params=self.exp.settings.params, paramNode=child)
         #fetch routines
-        routinesNode=doc.getElementsByTagName('routines')[0]
+        routinesNode=doc.getElementsByTagName('Routines')[0]
         for routineNode in routinesNode.childNodes:#get each routine node from the list of routines
-            if not routineNode.hasAttributes(): continue#this is a junk text node
+            if elementNode.nodeName=="#text": continue #this is a PrettyPrint filler
             routine = Routine(name=routineNode.getAttribute('name'), exp=self)
             self._getXMLparam(params=routine.params, paramNode=routineNode)
             #then create the 
-            self.routines.append(routine)
+            self.routines[routineNode.getAttribute('name')]=routine
             for componentNode in routineNode.childNodes:
-                if not componentNode.hasAttributes(): continue#this is a junk text node
-                compType=componentNode.getAttribute('type')
-                component=self._getXMLparam(params=routine, paramNode=componentNode)
+                if elementNode.nodeName=="#text": continue#this is a PrettyPrint filler
+                componentType=componentNode.nodeName
+                #create an actual component of that type
+                component=getAllComponents()[componentType](parentName='', exp=self)
+                #populate the component with its various params
+                for paramNode in componentNode.childNodes:
+                    self._getXMLparam(params=component.params, paramNode=componentNode)
         #fetch flow settings
-        flowXML=doc.getElementsByTagName('flow')[0]
+        flowNode=doc.getElementsByTagName('Flow')[0]
+        for elementNode in flowNode.childNodes:
+            if elementNode.nodeName=="#text": continue#this is a PrettyPrint filler
+            if elementNode.nodeName=="LoopInitiator":
+                loopType=elementNode.getAttribute('loopType')
+                loopName=elementNode.getAttribute('name')
+                pass#todo: the code for loading loop initiator
+            elif elementNode.nodeName=="LoopTerminator":
+                pass#todo: the code for loading loop terminator
+            elif elementNode.nodeName=="Routine":
+                self.flow.append(self.routines[elementNode.getAttribute('name')])
+                
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
