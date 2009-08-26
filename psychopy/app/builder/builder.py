@@ -1566,22 +1566,15 @@ class BuilderFrame(wx.Frame):
         if filename==None:
             dlg = wx.FileDialog(
                 self, message="Open file ...", style=wx.OPEN,
-                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
+                wildcard="PsychoPy experiments (*.psyexp.xml)|*.xml|Any file (*.*)|*",
                 )
             
             if dlg.ShowModal() != wx.ID_OK: 
                 return 0
             filename = dlg.GetPath()
-        f = open(filename)
-        exp = pickle.load(f)
-        f.close()
-        if not hasattr(exp,'psychopyExperimentVersion'):#this indicates we have a PsychoPy Experiment object
-            print 'not a valid PsychoPy builder experiment'
-            return 0
-        if closeCurrent:
-            self.fileClose()#close the existing (and prompt for save if necess)
-        #update exp vals
-        self.exp=exp
+#        if closeCurrent:
+#            self.fileClose()#close the existing (and prompt for save if necess)
+        self.exp.loadFromXML(filename)
         self.resetUndoStack()
         self.setIsModified(False)  
         self.filename = filename

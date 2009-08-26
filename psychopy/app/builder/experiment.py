@@ -5,7 +5,8 @@
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
 import xml.dom.minidom #for saving files out
-import xml.dom.ext#this come from installing pyxml (as well as the beasic xml included in python)
+import xml.dom.ext#this come from installing pyxml (as well as the basic xml included in python)
+import amara
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -138,7 +139,7 @@ class Experiment:
                 elementNode.setAttribute('loopType',loop.getType())
                 elementNode.setAttribute('name', name)
                 for paramName, param in loop.params.iteritems():
-                    paramNode = self._setXMLparam(parent=loopNode,param=param,name=paramName)
+                    paramNode = self._setXMLparam(parent=elementNode,param=param,name=paramName)
                     if paramName=='trialList': #override val with repr(val)
                         paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
@@ -176,26 +177,34 @@ class Experiment:
         if child.hasAttribute('valType'): params[name].valType = child.getAttribute('valType')
         if child.hasAttribute('updates'): params[name].updates = child.getAttribute('updates')
     def loadFromXML(self, filename):
-        self._doc = doc = xml.dom.minidom.parse(filename)
+        """Loads an xml file and parses the builder Experiment from it
+        """
+        #load file and remove PrettyPrint whitespace
+        print 'got0'; sys.stdout.flush()
+        _doc = amara.parse(filename)
+        print 'got01'; sys.stdout.flush()
+        doc=_XMLremoveWhitespaceNodes(_doc.documentElement)
+        print 'got02'; sys.stdout.flush()      
         self.psychopyVersion = doc.getAttribute('version')
+        #todo: some error checking on the version (or report that this isn't .psyexp)?
+        #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #fetch exp settings
         settingsNode=doc.getElementsByTagName('Settings')[0]
+        print 'got1'; sys.stdout.flush()
         for child in settingsNode.childNodes:
-            if elementNode.nodeName=="#text": continue#this is a junk text node
-            self._getXMLparam(params=self.exp.settings.params, paramNode=child)
+            self._getXMLparam(params=self.settings.params, paramNode=child)
+        print self.settings.params; sys.stdout.flush()
         #fetch routines
         routinesNode=doc.getElementsByTagName('Routines')[0]
         for routineNode in routinesNode.childNodes:#get each routine node from the list of routines
-            if elementNode.nodeName=="#text": continue #this is a PrettyPrint filler
             routine = Routine(name=routineNode.getAttribute('name'), exp=self)
             self._getXMLparam(params=routine.params, paramNode=routineNode)
             #then create the 
             self.routines[routineNode.getAttribute('name')]=routine
             for componentNode in routineNode.childNodes:
-                if elementNode.nodeName=="#text": continue#this is a PrettyPrint filler
                 componentType=componentNode.nodeName
                 #create an actual component of that type
                 component=getAllComponents()[componentType](parentName='', exp=self)
@@ -204,17 +213,31 @@ class Experiment:
                     self._getXMLparam(params=component.params, paramNode=componentNode)
         #fetch flow settings
         flowNode=doc.getElementsByTagName('Flow')[0]
+        loops={}
         for elementNode in flowNode.childNodes:
-            if elementNode.nodeName=="#text": continue#this is a PrettyPrint filler
             if elementNode.nodeName=="LoopInitiator":
                 loopType=elementNode.getAttribute('loopType')
                 loopName=elementNode.getAttribute('name')
-                pass#todo: the code for loading loop initiator
+                exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
+                loops[loopName]=loop
+                for paramNode in elementNode.childNodes:
+                    paramName,param=self._getXMLparam(paramNode=paramNode,params=loop.params)
+                    if paramName=='trialList':
+                        exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
+                self.flow.append(LoopInitiator(loop=loops[loopName]))
             elif elementNode.nodeName=="LoopTerminator":
-                pass#todo: the code for loading loop terminator
+                self.flow.append(LoopTerminator(loop=loops[elementNode.getAttribute('name')]))
             elif elementNode.nodeName=="Routine":
                 self.flow.append(self.routines[elementNode.getAttribute('name')])
                 
+#                for paramName, param in loop.params.iteritems():
+#                    paramNode = self._setXMLparam(parent=loopNode,param=param,name=paramName)
+#                    if paramName=='trialList': #override val with repr(val)
+#                        paramNode.setAttribute('val',repr(param.val))
+#            elif element.getType() == 'LoopTerminator':
+#                elementNode.setAttribute('loopTerminating', element.loop.params['name'].val)
+#            elif element.getType() == 'Routine':
+#                elementNode.setAttribute('name', '%s' %element.params['name'])
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
@@ -587,3 +610,12 @@ class Routine(list):
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime
+    
+def _XMLremoveWhitespaceNodes(parent):
+    """Remove all text nodes from an xml document (likely to be whitespace)
+    """
+    for child in list(parent.childNodes):
+        if child.nodeType==node.TEXT_NODE and node.data.strip()=='':
+            parent.removeChild(child)
+        else:
+            removeWhitespaceNodes(child)
