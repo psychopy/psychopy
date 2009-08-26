@@ -235,15 +235,14 @@ class Window:
             self._setupPyglet()
         
         #check whether shaders are supported
-        if winType=='pyglet':#we can check using gl_info
+        if self.winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
                 self._haveShaders=True #also will need to check for ARB_float extension, but that should be done after context is created
             else:
                 self._haveShaders=False   
         else:
-            self._haveShaders=False   
+            self._haveShaders=False 
         self._setupGL()
-
         self.frameClock = core.Clock()#from psycho/core
         self.frames = 0         #frames since last fps calc
         self.movieFrames=[] #list of captured frames (Image objects)
@@ -1676,7 +1675,6 @@ class PatchStim(_BaseVisualStim):
         GL.glUseProgram(self.win._progSignedTexMask)
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
-
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
