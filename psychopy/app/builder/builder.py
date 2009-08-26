@@ -19,7 +19,7 @@ class FlowPanel(wx.ScrolledWindow):
         """
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0), size=size)
         self.SetBackgroundColour(canvasColour)
-        self.panel = wx.Panel(self,-1,size=(600,200))
+        #self.panel = wx.Panel(self,-1,size=(600,200))
         self.frame=frame
         self.app=frame.app
         self.needUpdate=True
@@ -56,7 +56,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.redrawFlow()
         
         #bind events     
-        self.panel.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine) 
         self.Bind(wx.EVT_BUTTON, self.onInsertLoop,self.btnInsertLoop) 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
