@@ -308,9 +308,7 @@ class FlowPanel(wx.ScrolledWindow):
         #the edge should match the text
         dc.SetPen(wx.Pen(wx.Colour(r, g, b, wx.ALPHA_OPAQUE)))
         #for the fill, draw once in white near-opaque, then in transp colour
-        dc.SetBrush(wx.Brush(wx.Colour(255,255,255, 250)))
-        dc.DrawRoundedRectangleRect(rect, 8)   
-        dc.SetBrush(wx.Brush(wx.Colour(r,g,b,50)))
+        dc.SetBrush(wx.Brush(wx.Colour(r,g*3,b*3,255)))
         dc.DrawRoundedRectangleRect(rect, 8)   
         #draw text        
         dc.SetTextForeground(rgb) 
