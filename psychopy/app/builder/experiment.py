@@ -71,8 +71,9 @@ class Experiment:
         """
         self.noKeyResponse=True#if keyboard is used (and data stored) this will be False
         s=IndentingBuffer(u'') #a string buffer object
-        s.writeIndented('This experiment was created using PsychoPy2 Experiment Builder ')
-        s.writeIndented("If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)\n\n")
+        s.writeIndented('#!/usr/bin/env python\n')
+        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder ')
+        s.writeIndented('If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
 
         #import psychopy libs
         libString=""; separator=""

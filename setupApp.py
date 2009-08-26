@@ -51,12 +51,12 @@ if platform == 'win32':
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
         options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp'],
-                                  frameworks = ["libavbin.dylib"],
+                                  frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
                                   resources=resources,
-                                  #semi_standalone=True,
+                                  argv_emulation=True,
                                   site_packages=True,
                                   packages=['wx','pyglet','pygame','OpenGL','psychopy',
-                                    'scipy','matplotlib'],
+                                    'scipy','matplotlib','lxml'],
                                   iconfile='psychopy/app/Resources/psychopy.icns',
                                   plist=dict(
                                       CFBundleIconFile='psychopy.icns',
