@@ -6,7 +6,7 @@ import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
 import xml.dom.minidom #for saving files out
 import xml.dom.ext#this come from installing pyxml (as well as the basic xml included in python)
-import amara
+from lxml import etree
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -143,7 +143,7 @@ class Experiment:
                     if paramName=='trialList': #override val with repr(val)
                         paramNode.setAttribute('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
-                elementNode.setAttribute('loopTerminating', element.loop.params['name'].val)
+                elementNode.setAttribute('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
                 elementNode.setAttribute('name', '%s' %element.params['name'])
         #write to disk
@@ -172,72 +172,71 @@ class Experiment:
         the parameters will be inserted (so the object to store the params should be created first)
         paramNode is the parameter node fetched from the xml file
         """
-        name=paramNode.getAttribute('name')
-        if hasattr(param,'val'): params[name].val = paramNode.getAttribute('val')
-        if child.hasAttribute('valType'): params[name].valType = child.getAttribute('valType')
-        if child.hasAttribute('updates'): params[name].updates = child.getAttribute('updates')
+        name=paramNode.get('name')
+        if 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        if 'valType' in paramNode.keys(): params[name].valType = paramNode.get('valType')
+        if 'updates' in paramNode.keys(): params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
-        #load file and remove PrettyPrint whitespace
-        print 'got0'; sys.stdout.flush()
-        _doc = amara.parse(filename)
-        print 'got01'; sys.stdout.flush()
-        doc=_XMLremoveWhitespaceNodes(_doc.documentElement)
-        print 'got02'; sys.stdout.flush()      
-        self.psychopyVersion = doc.getAttribute('version')
+        #open the file using a parser that ignores prettyprint blank text
+        parser = etree.XMLParser(remove_blank_text=True)
+        f=open(filename)
+        self._doc=etree.XML(f.read(),parser)
+        f.close()
+        root=self._doc#.getroot()
+        
+        self.psychopyVersion = root.get('version')
         #todo: some error checking on the version (or report that this isn't .psyexp)?
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #fetch exp settings
-        settingsNode=doc.getElementsByTagName('Settings')[0]
-        print 'got1'; sys.stdout.flush()
-        for child in settingsNode.childNodes:
+        settingsNode=root.find('Settings')
+        for child in settingsNode:
             self._getXMLparam(params=self.settings.params, paramNode=child)
-        print self.settings.params; sys.stdout.flush()
         #fetch routines
-        routinesNode=doc.getElementsByTagName('Routines')[0]
-        for routineNode in routinesNode.childNodes:#get each routine node from the list of routines
-            routine = Routine(name=routineNode.getAttribute('name'), exp=self)
+        routinesNode=root.find('Routines')
+        for routineNode in routinesNode:#get each routine node from the list of routines
+            routine = Routine(name=routineNode.get('name'), exp=self)
             self._getXMLparam(params=routine.params, paramNode=routineNode)
-            #then create the 
-            self.routines[routineNode.getAttribute('name')]=routine
-            for componentNode in routineNode.childNodes:
-                componentType=componentNode.nodeName
+            #then create the
+            self.routines[routineNode.get('name')]=routine
+            for componentNode in routineNode:
+                componentType=componentNode.tag
+                componentName=componentNode.get('name')
                 #create an actual component of that type
-                component=getAllComponents()[componentType](parentName='', exp=self)
+                component=getAllComponents()[componentType](\
+                    name=componentName,
+                    parentName=routineNode.get('name'), exp=self)
                 #populate the component with its various params
-                for paramNode in componentNode.childNodes:
+                for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=componentNode)
+                routine.append(component)
+                print 'thisCopmoonent', component.params
+        print 'routinesAre:', self.routines
         #fetch flow settings
-        flowNode=doc.getElementsByTagName('Flow')[0]
+        flowNode=root.find('Flow')
         loops={}
-        for elementNode in flowNode.childNodes:
-            if elementNode.nodeName=="LoopInitiator":
-                loopType=elementNode.getAttribute('loopType')
-                loopName=elementNode.getAttribute('name')
+        for elementNode in flowNode:
+            if elementNode.tag=="LoopInitiator":
+                loopType=elementNode.get('loopType')
+                loopName=elementNode.get('name')
                 exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
-                for paramNode in elementNode.childNodes:
-                    paramName,param=self._getXMLparam(paramNode=paramNode,params=loop.params)
-                    if paramName=='trialList':
+                for paramNode in elementNode:
+                    self._getXMLparam(paramNode=paramNode,params=loop.params)
+                    #for trialList convert string rep to actual list of dicts
+                    if paramNode.get('name')=='trialList':
+                        param=loop.params['trialList']
                         exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
-            elif elementNode.nodeName=="LoopTerminator":
-                self.flow.append(LoopTerminator(loop=loops[elementNode.getAttribute('name')]))
-            elif elementNode.nodeName=="Routine":
-                self.flow.append(self.routines[elementNode.getAttribute('name')])
+            elif elementNode.tag=="LoopTerminator":
+                self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
+            elif elementNode.tag=="Routine":
+                self.flow.append(self.routines[elementNode.get('name')])
                 
-#                for paramName, param in loop.params.iteritems():
-#                    paramNode = self._setXMLparam(parent=loopNode,param=param,name=paramName)
-#                    if paramName=='trialList': #override val with repr(val)
-#                        paramNode.setAttribute('val',repr(param.val))
-#            elif element.getType() == 'LoopTerminator':
-#                elementNode.setAttribute('loopTerminating', element.loop.params['name'].val)
-#            elif element.getType() == 'Routine':
-#                elementNode.setAttribute('name', '%s' %element.params['name'])
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
@@ -302,7 +301,7 @@ class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
-    def __init__(self, exp, name, loopType, nReps,
+    def __init__(self, exp, name, loopType='random', nReps=5,
         trialList=[], trialListFile='',endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
