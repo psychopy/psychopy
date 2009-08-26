@@ -5,7 +5,7 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
-import sys, os, glob, copy, pickle
+import sys, os, glob, copy
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
@@ -1566,7 +1566,7 @@ class BuilderFrame(wx.Frame):
         if filename==None:
             dlg = wx.FileDialog(
                 self, message="Open file ...", style=wx.OPEN,
-                wildcard="PsychoPy experiments (*.psyexp.xml)|*.xml|Any file (*.*)|*",
+                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
                 )
             
             if dlg.ShowModal() != wx.ID_OK: 
@@ -1614,7 +1614,6 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
         
     def getIsModified(self):
-#        return self.exp==self.lastSavedCopy
         return self.isModified 
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved 
@@ -1624,10 +1623,7 @@ class BuilderFrame(wx.Frame):
         if filename.startswith('untitled'):
             self.fileSaveAs(filename)
         else:
-            f = open(filename, 'w')
-            pickle.dump(self.exp,f)
-            f.close() 
-            self.exp.saveToXML(filename+'.xml')
+            self.exp.saveToXML(filename)
             
         self.setIsModified(False)
     def fileSaveAs(self,event=None, filename=None):

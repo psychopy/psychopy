@@ -4,8 +4,6 @@
 
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
-import xml.dom.minidom #for saving files out
-import xml.dom.ext#this come from installing pyxml (as well as the basic xml included in python)
 from lxml import etree
 
 class IndentingBuffer(StringIO.StringIO):
@@ -107,20 +105,16 @@ class Experiment:
         return#we didn't find an existing name :-)
     def saveToXML(self, filename):
         #create the dom object
-        doc = self._doc = xml.dom.minidom.Document()
-        root=doc.createElement("PsychoPy2experiment")
-        root.setAttribute('version', self.psychopyVersion)
-        root.setAttribute('encoding', 'utf-8')
-        doc.appendChild(root)
+        self.xmlRoot = etree.Element("PsychoPy2experiment")
+        self.xmlRoot.set('version', self.psychopyVersion)
+        self.xmlRoot.set('encoding', 'utf-8')
         ##in the following, anything beginning '
         #store settings
-        settingsNode=doc.createElement('Settings')
-        root.appendChild(settingsNode)
+        settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
         for name, setting in self.settings.params.iteritems():
             settingNode=self._setXMLparam(parent=settingsNode,param=setting,name=name)
         #store routines
-        routinesNode=doc.createElement('Routines')
-        root.appendChild(routinesNode)
+        routinesNode=etree.SubElement(self.xmlRoot, 'Routines')
         for routineName, routine in self.routines.iteritems():#routines is a dict of routines
             routineNode = self._setXMLparam(parent=routinesNode,param=routine,name=routineName)
             for component in routine: #a routine is based on a list of components
@@ -128,28 +122,25 @@ class Experiment:
                 for name, param in component.params.iteritems():
                     paramNode=self._setXMLparam(parent=componentNode,param=param,name=name)
         #implement flow
-        flowNode=doc.createElement('Flow')
-        root.appendChild(flowNode)
+        flowNode=etree.SubElement(self.xmlRoot, 'Flow')
         for element in self.flow:#a list of elements(routines and loopInit/Terms)
-            elementNode=doc.createElement(element.getType())
-            flowNode.appendChild(elementNode)
+            elementNode=etree.SubElement(flowNode, element.getType())
             if element.getType() == 'LoopInitiator':
                 loop=element.loop
                 name = loop.params['name'].val      
-                elementNode.setAttribute('loopType',loop.getType())
-                elementNode.setAttribute('name', name)
+                elementNode.set('loopType',loop.getType())
+                elementNode.set('name', name)
                 for paramName, param in loop.params.iteritems():
                     paramNode = self._setXMLparam(parent=elementNode,param=param,name=paramName)
                     if paramName=='trialList': #override val with repr(val)
-                        paramNode.setAttribute('val',repr(param.val))
+                        paramNode.set('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
-                elementNode.setAttribute('name', element.loop.params['name'].val)
+                elementNode.set('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
-                elementNode.setAttribute('name', '%s' %element.params['name'])
+                elementNode.set('name', '%s' %element.params['name'])
         #write to disk
         f=open(filename, 'wb')
-        xml.dom.ext.PrettyPrint(doc, f)
-        #f.write(self._doc.toxml())#simple printer doesn't work
+        f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
         f.close()
     def _getShortName(self, longName):
         return longName.replace('(','').replace(')','').replace(' ','')
@@ -160,12 +151,11 @@ class Experiment:
         if hasattr(param,'getType'):
             thisType = param.getType()
         else: thisType='Param'
-        thisChild = self._doc.createElement(thisType)
-        thisChild.setAttribute('name',name)
-        if hasattr(param,'val'): thisChild.setAttribute('val',str(param.val))
-        if hasattr(param,'valType'): thisChild.setAttribute('valType',param.valType)
-        if hasattr(param,'updates'): thisChild.setAttribute('updates',param.updates)
-        parent.appendChild(thisChild)
+        thisChild = etree.SubElement(parent,thisType)#creates and appends to parent
+        thisChild.set('name',name)
+        if hasattr(param,'val'): thisChild.set('val',str(param.val))
+        if hasattr(param,'valType'): thisChild.set('valType',param.valType)
+        if hasattr(param,'updates'): thisChild.set('updates',str(param.updates))
         return thisChild
     def _getXMLparam(self,params,paramNode):
         """params is the dict of params of the builder component (e.g. stimulus) into which
@@ -214,8 +204,6 @@ class Experiment:
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=componentNode)
                 routine.append(component)
-                print 'thisCopmoonent', component.params
-        print 'routinesAre:', self.routines
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
