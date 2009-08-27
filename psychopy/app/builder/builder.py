@@ -1480,7 +1480,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
         self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
-
+        
         #---_tools---#000000#FFFFFF--------------------------------------------------
         self.toolsMenu = wx.Menu()
         menuBar.Append(self.toolsMenu, '&Tools')
@@ -1548,7 +1548,8 @@ class BuilderFrame(wx.Frame):
             ok=self.checkSave()
             if not ok: return -1
         self.appData['prevFile']=self.filename
-        self.Hide()
+        self.Destroy()
+        self.app.builder=None
         return 1#indicates that check was successful
     def quit(self, event=None):
         """quit the app"""

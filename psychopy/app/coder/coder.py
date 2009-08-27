@@ -1258,7 +1258,7 @@ class CoderFrame(wx.Frame):
         
         wasShown = self.IsShown()
         self.Hide()#ugly to see it close all the files independently        
-    
+        
         sys.stdout = self._origStdOut#discovered during __init__
         sys.stderr = self._origStdErr
         
@@ -1284,7 +1284,8 @@ class CoderFrame(wx.Frame):
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
         
-        self.Hide()#ultimately Hide
+        self.Destroy()#ultimately Hide
+        self.app.coder=None
         
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)

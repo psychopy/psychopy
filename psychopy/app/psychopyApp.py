@@ -59,6 +59,27 @@ class PsychoSplashScreen(wx.SplashScreen):
         self.Fit()
         self.Close()
         
+class MenuFrame(wx.Frame):
+    """A simple, empty frame with a menubar that should be the last frame to close on a mac
+    """
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
+        wx.Frame.__init__(self, parent, ID, title, size=(1,1))
+        self.app=app
+        
+        self.menuBar = wx.MenuBar()
+        
+        self.viewMenu = wx.Menu()
+        self.menuBar.Append(self.viewMenu, '&View')
+        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
+        wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)        
+        self.viewMenu.Append(self.app.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
+        wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
+        item=self.viewMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys.quit, "Terminate the program")
+        self.Bind(wx.EVT_MENU, self.app.quit, item)
+        
+        self.SetMenuBar(self.menuBar)
+        self.Show()
+        
 class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
@@ -68,6 +89,9 @@ class PsychoPyApp(wx.App):
         self.IDs=wxIDs
         self.keys=keybindings
         
+        #on a mac, don't exit when the last frame is deleted, just show a menu
+        if platform.system()=='Darwin':
+            self.menuFrame=MenuFrame(parent=None, app=self)
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
             mainFrame = self.prefs.appData['lastFrame']
@@ -100,20 +124,15 @@ class PsychoPyApp(wx.App):
         
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
-    
+        
         splash = PsychoSplashScreen(self)
         if splash:
             splash.Show()        
         
         #create both frame for coder/builder as necess
-        self.coder=coder.CoderFrame(None, -1, 
-                                  title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
-                                  files = scripts, app=self)                                   
-        self.builder=builder.BuilderFrame(None, -1, 
-                                  title="PsychoPy2 Experiment Builder",
-                                  files = exps, app=self)            
-        if mainFrame in ['both','coder']: self.showCoder()
-        if mainFrame in ['both','builder']: self.showBuilder()
+        self.coder = self.builder = None
+        if mainFrame in ['coder','both']: self.showCoder(fileList=scripts)
+        if mainFrame in ['both','builder']: self.showBuilder(fileList=exps)
         
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
@@ -139,13 +158,22 @@ class PsychoPyApp(wx.App):
                 config.Flush()"""
         
         
+        
         return True
-    def showCoder(self, event=None, filelist=None):   
+    def showCoder(self, event=None, fileList=None):   
+        if self.coder==None:
+            self.coder=coder.CoderFrame(None, -1, 
+                      title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
+                      files = fileList, app=self)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
-    def showBuilder(self, event=None, fileList=None):         
+    def showBuilder(self, event=None, fileList=None):
+        if self.builder==None:
+            self.builder=builder.BuilderFrame(None, -1,
+                                  title="PsychoPy2 Experiment Builder",
+                                  files = fileList, app=self)      
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
@@ -172,10 +200,12 @@ class PsychoPyApp(wx.App):
             self.prefs.appData['lastFrame']='both'
         #hide the frames then close
         for frame in [self.coder, self.builder]:
+            if frame=None: continue
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
             frame.Destroy()#because closeFrame actually just Hides the frame            
-        
+        if platform.system()=='Darwin':
+            self.menuFrame.Destroy()
     def showPrefs(self, event):
         prefsDlg = PreferencesDlg(app=self)
         prefsDlg.Show()
@@ -234,7 +264,7 @@ class PreferencesDlg(wx.Frame):
         item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys.close)
         self.Bind(wx.EVT_MENU, self.close, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(-1, "&Quit (entire app)\t%s" %app.keys.quit, "Terminate the application")
+        item = self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %app.keys.quit, "Terminate the application")
         self.Bind(wx.EVT_MENU, self.quit, item)
 
         self.menuBar.Append(self.fileMenu, "&File")
