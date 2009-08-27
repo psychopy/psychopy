@@ -98,6 +98,9 @@ class PsychoPyApp(wx.App):
             
         #connections.checkForUpdates(app=self)
         
+        self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
+        if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
+    
         splash = PsychoSplashScreen(self)
         if splash:
             splash.Show()        

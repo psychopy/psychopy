@@ -14,17 +14,18 @@ from psychopy.app import stdOutRich
 canvasColour=[200,200,200]#in prefs? ;-)
 
 class FlowPanel(wx.ScrolledWindow):
-    def __init__(self, frame, id=-1,size = (600,100)):
+    def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
-        wx.ScrolledWindow.__init__(self, frame, id, (0, 0), size=size)
-        self.SetBackgroundColour(canvasColour)
-        #self.panel = wx.Panel(self,-1,size=(600,200))
         self.frame=frame
         self.app=frame.app
+        self.dpi=self.app.dpi
+        wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = (8*self.dpi,2*self.dpi))
+        self.SetBackgroundColour(canvasColour)
+        #self.panel = wx.Panel(self,-1,size=(600,200))
         self.needUpdate=True
-        self.maxWidth  = 1000
-        self.maxHeight = 200
+        self.maxWidth  = 14*self.dpi
+        self.maxHeight = 3*self.dpi
         self.mousePos = None
         #if we're adding a loop or routine then add spots to timeline
         self.drawNearestRoutinePoint = True
@@ -63,7 +64,7 @@ class FlowPanel(wx.ScrolledWindow):
         
         #self.SetAutoLayout(True)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(20,20)
+        self.SetScrollRate(self.dpi/4,self.dpi/4)
         
         self.btnSizer.Add(self.btnInsertRoutine)
         self.btnSizer.Add(self.btnInsertLoop) 
@@ -223,11 +224,11 @@ class FlowPanel(wx.ScrolledWindow):
         font = self.GetFont()
         
         #draw the main time line
-        linePos = 120
+        linePos = (1.4*self.dpi,1.2*self.dpi) #x value
         
         #step through components in flow
-        currX=120; gap=40
-        pdc.DrawLine(x1=100,y1=linePos,x2=100+gap,y2=linePos)
+        currX=linePos[0]; gap=self.dpi/2
+        pdc.DrawLine(x1=1*self.dpi,y1=linePos[1],x2=1*self.dpi+gap,y2=linePos[1])
         self.loopInits = []#these will be entry indices
         self.loopTerms = []
         self.loops=[]#these will be copies of the actual loop obects
@@ -239,10 +240,10 @@ class FlowPanel(wx.ScrolledWindow):
                 self.loops.append(entry.loop)
                 self.loopTerms.append(currX)
             if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, pos=[currX,linePos-40])
+                currX = self.drawFlowRoutine(pdc,entry, pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
-            pdc.DrawLine(x1=currX,y1=linePos,x2=currX+gap,y2=linePos)
+            pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
             currX+=gap
             
         #draw the loops second    
@@ -251,20 +252,20 @@ class FlowPanel(wx.ScrolledWindow):
             name = self.loops[n].params['name'].val#name of the trialHandler/StairHandler
             self.drawLoop(pdc,name,self.loops[n], 
                         startX=self.loopInits[n], endX=self.loopTerms[n],
-                        base=linePos,height=linePos-60-n*15)
-            self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos])
-            self.drawLoopEnd(pdc,pos=[self.loopTerms[n],linePos])
+                        base=linePos[1],height=linePos[1]-60-n*15)
+            self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos[1]])
+            self.drawLoopEnd(pdc,pos=[self.loopTerms[n],linePos[1]])
         
         #draw all possible locations for routines 
         for n, xPos in enumerate(self.pointsToDraw):
-            font.SetPointSize(10)
+            font.SetPointSize(600/self.dpi)
             self.SetFont(font); pdc.SetFont(font)
             w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
-            pdc.DrawCircle(xPos,linePos, w+2)
+            pdc.DrawCircle(xPos,linePos[1], w+2)
             pdc.SetTextForeground([255,255,255])   
-            pdc.DrawText(str(n), xPos-w/2, linePos-h/2)
+            pdc.DrawText(str(n), xPos-w/2, linePos[1]-h/2)
                 
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
@@ -295,7 +296,7 @@ class FlowPanel(wx.ScrolledWindow):
         """
         name=routine.name
         font = self.GetFont()
-        font.SetPointSize(24)
+        font.SetPointSize(1200/self.dpi)
         r, g, b = rgb
         
         #get size based on text
@@ -343,7 +344,7 @@ class FlowPanel(wx.ScrolledWindow):
         
         #add a name label that can be clicked on
         font = self.GetFont()
-        font.SetPointSize(12)
+        font.SetPointSize(800/self.dpi)
         self.SetFont(font); dc.SetFont(font)
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2] 
@@ -380,6 +381,7 @@ class DlgAddRoutineToFlow(wx.Dialog):
             style=wx.DEFAULT_DIALOG_STYLE):
         wx.Dialog.__init__(self,frame,id,title,pos,size,style)
         self.frame=frame
+        self.dpi=self.frame.app.dpi
         self.Center()
         # setup choices of routines
         routineChoices=self.frame.exp.routines.keys()
@@ -440,15 +442,16 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.notebook=notebook
         self.frame=notebook.frame
         self.app=self.frame.app
+        self.dpi=self.app.dpi
         self.lines = []
-        self.maxWidth  = 200
-        self.maxHeight = 100
+        self.maxWidth  = 15*self.dpi
+        self.maxHeight = 15*self.dpi
         self.x = self.y = 0
         self.curLine = []
         self.drawing = False
 
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(20,20)
+        self.SetScrollRate(self.dpi/4,self.dpi/4)
         self.hitradius=5
         
         self.routine=routine
@@ -599,7 +602,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                     xSt+lineN/xScale, yPosBottom+2)
         #add a label
         font = self.GetFont()
-        font.SetPointSize(12)
+        font.SetPointSize(1000/self.dpi)
         dc.SetFont(font)
         dc.DrawText('t (secs)',xEnd+5, 
             yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
@@ -609,7 +612,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
         
         font = self.GetFont()
-        font.SetPointSize(12)
+        font.SetPointSize(1000/self.dpi)
         dc.SetFont(font)
         
         name = component.params['name'].val
@@ -674,6 +677,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
     def __init__(self, frame, id=-1):
         self.frame=frame
         self.app=frame.app
+        self.dpi=self.app.dpi
         wx.aui.AuiNotebook.__init__(self, frame, id)
         
         if not hasattr(self.frame, 'exp'):
@@ -727,9 +731,10 @@ class ComponentsPanel(scrolled.ScrolledPanel):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
-        scrolled.ScrolledPanel.__init__(self,frame,id,size=(80,800))
-        self.frame=frame  
-        self.app=frame.app  
+        self.frame=frame
+        self.app=frame.app
+        self.dpi=self.app.dpi 
+        scrolled.ScrolledPanel.__init__(self,frame,id,size=(1*self.dpi,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)        
         
         # add a button for each type of event that can be added
@@ -799,7 +804,8 @@ class ParamCtrls:
         """
         self.param = param
         self.dlg = dlg
-        self.valueWidth = 250
+        self.dpi=self.dlg.dpi
+        self.valueWidth = self.dpi*3.5
         #param has the fields:
         #val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
         # we need the following
@@ -809,7 +815,7 @@ class ParamCtrls:
         
         if type(param.val)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
-        labelLength = wx.Size(150,25)#was 8*until v0.91.4
+        labelLength = wx.Size(self.dpi*2,self.dpi/3)#was 8*until v0.91.4
         self.nameCtrl = wx.StaticText(self.dlg,-1,label,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
                                         
@@ -911,6 +917,7 @@ class _BaseParamsDlg(wx.Dialog):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
+        self.dpi=self.app.dpi
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
@@ -926,7 +933,7 @@ class _BaseParamsDlg(wx.Dialog):
         
         #create a header row of titles  
         if not suppressTitles:
-            size=wx.Size(100,-1)
+            size=wx.Size(1.5*self.dpi,-1)
             self.ctrlSizer.Add(wx.StaticText(self,-1,'Parameter',size=size, style=wx.ALIGN_CENTER),(self.currRow,0))
             self.ctrlSizer.Add(wx.StaticText(self,-1,'Value',size=size, style=wx.ALIGN_CENTER),(self.currRow,1))
             #self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
@@ -1040,6 +1047,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.frame=frame
         self.exp=frame.exp
         self.app=frame.app
+        self.dpi=self.app.dpi
         self.params={}
         self.Center()
         self.panel = wx.Panel(self, -1)
@@ -1248,6 +1256,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                                 pos=pos,size=size,style=style)
         self.frame=frame        
         self.app=frame.app
+        self.dpi=self.app.dpi
         
         #for input devices:
         if 'storeCorrect' in self.params:
@@ -1284,6 +1293,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
                                 pos=pos,size=size,style=style)
         self.frame=frame        
         self.app=frame.app
+        self.dpi=self.app.dpi
         
         #for input devices:
         self.onFullScrChange(event=None)#do this just to set the initial values to be 
@@ -1337,6 +1347,7 @@ class BuilderFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.app=app
+        self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.builder#things about the coder that get set
         self.appPrefs = self.app.prefs.app
@@ -1344,7 +1355,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         
         # create our panels
-        self.flowPanel=FlowPanel(frame=self, size=(600,200))
+        self.flowPanel=FlowPanel(frame=self)
         self.routinePanel=RoutinesNotebook(self)
         self.componentButtons=ComponentsPanel(self)
         #menus and toolbars
