@@ -66,7 +66,7 @@ Section "PsychoPy" PsychoPy
   ;Store installation folder
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.50.00"   
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\PsychoPyIDE.exe" 
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\app\Resources\psychopy.ico" 
   WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
   
   ;Create uninstaller
@@ -76,14 +76,17 @@ Section "PsychoPy" PsychoPy
     
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPyIDE.lnk" "$INSTDIR\PsychoPyIDE.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy.lnk" "$INSTDIR\python.exe $INSTDIR\app\psychopyApp.py"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy homepage.lnk" "http://www.psychopy.org"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy reference.lnk" "http://www.psychopy.org/reference"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy tutorials.lnk" "http://www.psychopy.org/home.php/Docs/Tutorials"
-  
+     
   !insertmacro MUI_STARTMENU_WRITE_END
-
+  
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  ;associate .psydat files
+  !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "$INSTDIR\app\Resources\psychopy.ico,0" \
+     "Open with PsychoPy" "$INSTDIR\python.exe $INSTDIR\app\psychopyApp.py $\"%1$\""
+     
 SectionEnd
 
  
@@ -106,5 +109,7 @@ Section "Uninstall"
   
   DeleteRegKey HKLM "${REG_UNINSTALL}"
   DeleteRegKey HKCU "Software\PsychoPy Standalone" ;may have been installed by prev version
+    
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"   
 
 SectionEnd

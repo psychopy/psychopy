@@ -13,7 +13,7 @@ rem cd C:\USERS\jwp\Code\PsychoPy\svn\trunk\PsychoPyIDE
 rem python setupApp.py py2exe
 rem cd C:\USERS\jwp\Code\PsychoPy\svn\trunk
 rem xcopy /I /Y psychopy\demos PsychoPyIDE\dist\demos
-rem xcopy /I /Y windlls\*.dll PsychoPyIDE\dist
+xcopy /I /Y windlls\*.dll dist
 
 xcopy /I /Y *.txt C:\Python25
 rem build the installer
