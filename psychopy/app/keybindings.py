@@ -8,8 +8,9 @@ new = 'Ctrl+N'
 save = "Ctrl+S"
 saveAs="Ctrl+Shift+S"
 close='Ctrl+W'
-quit='Ctrl+Q'
-
+if platform.system()=='Windows': quit='Alt+F4'
+else: quit='Ctrl+Q'
+    
 cut = 'Ctrl+X'
 copy= 'Ctrl+C'
 paste='Ctrl+V'
@@ -20,7 +21,7 @@ smartIndent='Shift+Tab'
 find = 'Ctrl+F'
 findAgain = 'Ctrl+G'
 undo='Ctrl+Z'
-if platform.system=='darwin': redo='Ctrl+Shift+Z'
+if platform.system()=='Darwin': redo='Ctrl+Shift+Z'
 else: redo='Ctrl+Y'
 compileScript='Ctrl+Shift+F5'#builder only
 analyseCode='F4'#coder only

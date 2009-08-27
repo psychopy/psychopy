@@ -150,16 +150,14 @@ class FlowPanel(wx.ScrolledWindow):
     def OnMouse(self, event):
         if event.LeftDown():
             x,y = self.ConvertEventCoords(event)
-            #l = self.pdc.FindObjectsByBBox(x, y)
-            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
                 comp=self.componentFromID[icons[0]]
                 if comp.getType() in ['StairHandler', 'TrialHandler']:
                     self.editLoopProperties(loop=comp)
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
-            #l = self.pdc.FindObjectsByBBox(x, y)
-            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
                 self._menuComponent=self.componentFromID[icons[0]]
                 self.showContextMenu(self._menuComponent,
@@ -452,7 +450,6 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi/4,self.dpi/4)
-        self.hitradius=5
 
         self.routine=routine
         self.yPositions=None
@@ -498,17 +495,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         r.OffsetXY(-(xView*xDelta),-(yView*yDelta))
 
     def OnMouse(self, event):
-
         if event.LeftDown():
             x,y = self.ConvertEventCoords(event)
-            #l = self.pdc.FindObjectsByBBox(x, y)
-            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
                 self.editComponentProperties(component=self.componentFromID[icons[0]])
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
-            #l = self.pdc.FindObjectsByBBox(x, y)
-            icons = self.pdc.FindObjects(x, y, self.hitradius)
+            icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
                 self._menuComponent=self.componentFromID[icons[0]]
                 self.showContextMenu(self._menuComponent, xy=event.GetPosition())
@@ -619,9 +613,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
         #draw text
-        x = self.iconXpos-5-w
+        x = self.iconXpos-self.dpi/10-w
         y = yPos+thisIcon.GetHeight()/2-h/2
-        dc.DrawText(name, x, y)
+        dc.DrawText(name, x-20, y)
 
         #draw entries on timeline
         xScale = self.getSecsPerPixel()
