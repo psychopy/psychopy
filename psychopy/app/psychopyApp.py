@@ -105,7 +105,7 @@ class PsychoPyApp(wx.App):
         #create both frame for coder/builder as necess
         self.coder=coder.CoderFrame(None, -1, 
                                   title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
-                                  files = scripts, app=self) 
+                                  files = scripts, app=self)                                   
         self.builder=builder.BuilderFrame(None, -1, 
                                   title="PsychoPy2 Experiment Builder",
                                   files = exps, app=self)            

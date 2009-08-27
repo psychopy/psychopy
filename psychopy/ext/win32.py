@@ -26,3 +26,8 @@ def rush(value=True):
     else:
             win32process.SetPriorityClass(pr, win32process.NORMAL_PRIORITY_CLASS)
             win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_NORMAL)
+
+def waitForVBL():
+    """Not implemented on win32 yet
+    """
+    pass
