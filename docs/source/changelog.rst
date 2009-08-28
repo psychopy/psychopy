@@ -18,11 +18,13 @@ PsychoPy 1.50.00
 * FIXED bug scaling pygame text (which caused pygame TextStims not to appear)
 * BACKWARDS NONCOMPAT: monitors is moved to be a subpackage of psychopy
 * BACKWARDS NONCOMPAT: added 'all_mean' (and similar) data types to TrialHandler.saveAsText and these are now default
-* Added TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
-* Moved docs/website to sphinx rather than wiki (contained in svn)
+* ADDED TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
+* converted docs/website to sphinx rather than wiki (contained in svn)
 * FIXED bug with MovieStim not displaying corretly after SimpleImageStim
 * FIXED incorrect wx sizing of app(IDE) under OS X on opening
 * CHANGED license to GPL (more restrictive, preventing proprietary use)
+* CHANGED gui dialogs are centered on screen rather than wx default position
+* new dependency on lxml (for saving/loading builder files)
 
 PsychoPy 1.00
 ------------------------------

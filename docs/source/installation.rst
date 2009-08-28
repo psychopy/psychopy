@@ -36,9 +36,11 @@ There are different ways to install PsychoPy on a mac that will suit different u
 
 * Users of `macports <http://www.macports.org/>`_ can install PsychoPy and all its dependencies simply with:
     ``sudo port install py25-psychopy``
-(thanks James Kyles for that).
+    
+    (thanks James Kyles for that).
 
 * For PPC macs (or for intel mac users that want their own custom python for running PsychoPy)
+
 The easiest way to install all the dependencies is to use the `Enthought Python Distribution <http://www.enthought.com/products/epddownload.php>`_. It's free (for academic use) and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame <http://www.pygame.org/download.shtml>`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below.
  
 If you take this last method you can update to the latest version by opening a terminal and typing:
