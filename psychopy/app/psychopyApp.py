@@ -189,6 +189,7 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         #see whether any files need saving
         for frame in [self.coder, self.builder]:
+            if frame==None: continue
             ok=frame.checkSave()
             if not ok: return#user cancelled quit 
         #save info about current frames for next run

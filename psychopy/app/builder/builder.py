@@ -1544,6 +1544,11 @@ class BuilderFrame(wx.Frame):
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
     def closeFrame(self, event=None, checkSave=True):
+        
+        if self.app.coder==None and platform.system()!='Darwin':
+            self.app.quit()
+            return#app.quit() will have closed the frame already
+            
         if checkSave:
             ok=self.checkSave()
             if not ok: return -1

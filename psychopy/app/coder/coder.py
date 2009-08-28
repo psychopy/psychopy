@@ -1254,6 +1254,10 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save) and either 
         close the frame or hide it
         """
+        if self.app.builder==None and platform.system()!='Darwin':
+            self.app.quit()
+            return#app.quit() will have closed the frame already
+            
         if checkSave: self.checkSave()#check all files before initiating close of any
         
         wasShown = self.IsShown()
