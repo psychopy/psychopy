@@ -17,3 +17,17 @@ Contents:
    components
    outputs
    gotchas
+   
+Future developments
+-----------------------
+
+As at version 1.50 the builder view is rough around the edges in a number of ways. This is a first version (maybe just a proof of concept). There are a number of key ways in which it will improve, hopefully very soon:
+
+* Improved documentation. A lot of the docs haven't yet been written, and I plan to make a movie demo or two (for utube?). I guess this is the most important thing right now.
+* Added components. Many of the stimuli and events that PsychoPy can handle don't currently show up as components in the builder view, but they can be added easily (take a look inside the components directory to see how easy it is to create a component). I also plan to add a 'custom' component, which will simply allow you to insert your own python code at various points through a Routine.
+* Dialogue entry validation. Dialogue boxes currently allow you to type almost anything into their windows. The only current checking is that a name is given to the component and that this is unique. More checking is needed to reduce errors.
+* Similar to the above, I hope to add suggested entries to go into dialogs, as a form of help. e.g. on right-clicking an entry box, say for stimulus orientation, a context menu should appear with ideas including numeric values, known local variables (e.g. "thisTrial.rgb", based on the existing loops in the Flows) and global variable ideas (e.g. "frameN*360")
+* Better code output. I hope that the builder output code will illustrate best practice for precise timing and stimulus presentation (it will probably always take more lines than a man-made script, but it should be at least as precise). At the moment that isn't the case. e.g. The builder should strongly recommend an interval between trials where only static stimuli are drawn (e.g. fixation) and update components for this trial in that interval.
+* GUI improvements. There are various ways the GUI itself could be more intuitive. e.g. when adding a loop or a Routine to the Flow, it's obviously a pain to type in numbers to say when things occur; we should just click on the line, or click and drag a loop. All that is possible, but takes a little time to write - making the thing /work/ was my first priority.
+
+Still, warnings and caveats asside, I hope that the users can see the potential in the Builder view. Ideally a few people could convince their respective depts that this could be a fantastic teaching tool. If we clubbed together and put in a little cash each, we could hire a professional programmer to add a heavy dose of polish!s
