@@ -168,8 +168,8 @@ class PsychoPyApp(wx.App):
                       files = fileList, app=self)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
-        #self.coder.Raise()
-        #self.coder.setOutputWindow()#takes control of sys.stdout
+        self.coder.Raise()
+        self.coder.setOutputWindow()#takes control of sys.stdout
     def showBuilder(self, event=None, fileList=None):
         if self.builder==None:
             self.builder=builder.BuilderFrame(None, -1,
