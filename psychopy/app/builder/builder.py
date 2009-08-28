@@ -1338,7 +1338,7 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, size=(800, 600),files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
-
+        
         self.panel = wx.Panel(self)
         self.app=app
         self.dpi=self.app.dpi
