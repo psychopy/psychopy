@@ -5,7 +5,7 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
-import sys, os, glob, copy
+import sys, os, glob, copy, platform
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
@@ -1546,7 +1546,7 @@ class BuilderFrame(wx.Frame):
     def closeFrame(self, event=None, checkSave=True):
         
         if self.app.coder==None and platform.system()!='Darwin':
-            self.app.quit()
+            if not self.app.quitting: self.app.quit()
             return#app.quit() will have closed the frame already
             
         if checkSave:

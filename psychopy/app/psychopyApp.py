@@ -88,6 +88,7 @@ class PsychoPyApp(wx.App):
         self.prefs = preferences.Preferences() #from preferences.py        
         self.IDs=wxIDs
         self.keys=keybindings
+        self.quitting=False
         
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
@@ -187,15 +188,16 @@ class PsychoPyApp(wx.App):
         elif fileName.endswith('.psyexp'):
             self.builder.setCurrentDoc(fileName)
     def quit(self, event=None):
+        self.quitting=True
         #see whether any files need saving
         for frame in [self.coder, self.builder]:
             if frame==None: continue
             ok=frame.checkSave()
             if not ok: return#user cancelled quit 
         #save info about current frames for next run
-        if self.coder.IsShown() and not self.builder.IsShown(): 
+        if self.coder and not self.builder: 
             self.prefs.appData['lastFrame']='coder'
-        elif self.builder.IsShown() and not self.coder.IsShown(): 
+        elif self.builder and not self.coder: 
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'

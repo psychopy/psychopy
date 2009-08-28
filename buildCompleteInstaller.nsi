@@ -49,6 +49,28 @@
   
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
+  
+;--------------------------
+;if previous version installed then remove
+Function .onInit
+ 
+  ReadRegStr $R0 HKLM \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy2" \
+  "UninstallString"
+  StrCmp $R0 "" done
+ 
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+  
+;Run the uninstaller
+uninst:
+  ClearErrors
+  Exec $INSTDIR\uninst.exe ; instead of the ExecWait line
+done: 
+FunctionEnd
 
 ;--------------------------------
 ;Languages

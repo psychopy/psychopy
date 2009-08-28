@@ -4,7 +4,7 @@
 
 import sys, time, types, re
 import wx, wx.stc, wx.aui, wx.richtext
-import keyword, os, sys, string, StringIO, glob
+import keyword, os, sys, string, StringIO, glob, platform
 import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
@@ -1081,7 +1081,6 @@ class CoderFrame(wx.Frame):
         self.viewMenu.AppendSeparator()       
         self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
-                
         
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1255,7 +1254,7 @@ class CoderFrame(wx.Frame):
         close the frame or hide it
         """
         if self.app.builder==None and platform.system()!='Darwin':
-            self.app.quit()
+            if not self.app.quitting: self.app.quit()
             return#app.quit() will have closed the frame already
             
         if checkSave: self.checkSave()#check all files before initiating close of any

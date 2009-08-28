@@ -9,4 +9,4 @@ python setup.py install
 xcopy /I /Y *.txt C:\Python25
 rem build the installer
 makensis.exe /v2 buildCompleteInstaller.nsi
-xmove /I /Y "StandalonePsychoPy*.exe" dist\
+move /Y "StandalonePsychoPy*.exe" dist\
