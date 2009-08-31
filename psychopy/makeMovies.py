@@ -1,3 +1,6 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """
 Not for users. To create a movie use win.getMovieFrame() and then win.saveMovieFrames(filename)

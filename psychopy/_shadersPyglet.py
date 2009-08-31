@@ -1,3 +1,7 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from ctypes import *
 import pyglet.gl as GL
 import sys

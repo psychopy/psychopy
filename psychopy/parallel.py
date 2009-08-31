@@ -5,6 +5,7 @@ reading and writing to the parallel port.
 
 Requires either port95.exe or DLPortIO to be installed.
 """
+
 import _parallel #this is Dincer Aydin's module
 
 def setPortAddress(address=0x0378):

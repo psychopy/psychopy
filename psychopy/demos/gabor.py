@@ -18,8 +18,7 @@ while trialClock.getTime()<20:
    message.draw()
    #handle key presses each frame
    for keys in event.getKeys(timeStamped=True):
-      if keys[0][0] in ['escape','q']:
-            print myWin.fps(), keys
+      if keys[0]in ['escape','q']:
             myWin.close()
             core.quit()
          

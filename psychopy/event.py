@@ -1,6 +1,10 @@
 """To handle from keyboard, mouse and joystick (joysticks require pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import sys, time
 import psychopy.core
 import string, numpy

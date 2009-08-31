@@ -1,6 +1,9 @@
 """Tools, nothing to do with psychophysics or experiments
 - just handy things like conversion functions etc...
 """ 
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy #this is imported by psychopy.core
 from psychopy import log
@@ -311,7 +314,7 @@ def pol2cart(theta, radius, units='deg'):
     **usage**:
         x,y = pol2cart(theta, radius, units='deg')
     """
-    if units=='deg':
+    if units in ['deg', 'degs']:
         theta = theta*numpy.pi/180.0
     xx = radius*numpy.cos(theta)
     yy = radius*numpy.sin(theta)
@@ -327,7 +330,7 @@ def  cart2pol(x,y, units='deg'):
     units refers to the units (rad or deg) for theta that should be returned"""
     radius= numpy.hypot(x,y)
     theta= numpy.arctan2(y,x)
-    if units=='deg':
+    if units in ['deg', 'degs']:
         theta=theta*180/numpy.pi
     return theta, radius
     

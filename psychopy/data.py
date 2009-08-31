@@ -1,4 +1,7 @@
 """Routines for handling data structures and analysis"""
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
 import cPickle, shelve, string, sys, os, time, copy
@@ -8,7 +11,21 @@ from scipy import optimize, special
 def ObjectArray(inputSeq):
     #a wrapper of numpy array(xx,'O') objects
     return numpy.array(inputSeq, 'O')
+    
+class TrialType(dict):
+    """This is just like a dict, except that you can access keys with obj.key
+    """
+    def __getattribute__(self, name):
+        try:#to get attr from dict in normal way (passing self)
+            return dict.__getattribute__(self, name)
+        except AttributeError:
+            try:
+                return self[name]
+            except KeyError:
+#                print 'TrialType has no attribute (or key) \'%s\'' %(name)
+                raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
+        
 class TrialHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
@@ -30,6 +47,10 @@ class TrialHandler:
             
             """
         self.trialList =trialList
+        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+        for n, entry in enumerate(trialList):
+            if type(entry)==dict:
+                trialList[n]=TrialType(entry)
         self.nReps = nReps
         self.nTotal = nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial
@@ -108,7 +129,7 @@ class TrialHandler:
             # create indices for a single rep
             indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
             seed=self.seed
-            for thisRep in range(self.nReps):
+            for thisRep in range(int(self.nReps)):
                 thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
@@ -193,7 +214,7 @@ class TrialHandler:
         return self.thisTrial
     def saveAsText(self,fileName, 
                    stimOut=[], 
-                   dataOut=['n','rt_mean','rt_std', 'acc_raw'],
+                   dataOut=['n','all_mean','all_std', 'all_raw'],
                    delim='\t',
                    matrixOnly=False,
                    appendFile=True,
@@ -213,13 +234,14 @@ class TrialHandler:
             
             dataOut
                 a list of strings specifying the dataType and the analysis to
-                be performed. The data can be any of the types that
-                you added using trialHandler.data.add() and the anal can be either
+                be performed,in the form /dataType_analysis/. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
                 'raw' or most things in the numpy library, including;
                 'mean','std','median','max','min'...
+                The default values will output the raw, mean and std of all datatypes found 
             
             delim
-                allows the user to use a delimiter other than tab
+                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
             
             matrixOnly
                 outputs the data with no header row or extraInfo attached
@@ -229,17 +251,35 @@ class TrialHandler:
             
         """
         
-        #do the necessary analysis on the data
         dataHead=[]#will store list of data headers
         dataAnal=dict([])	#will store data that has been analyzed
         if type(dataOut)!=list: dataOut = [dataOut]
-        for thisDataOutN,thisDataOut in enumerate(dataOut):
-            
+        
+        #expand any 'all' dataTypes to be the full list of available dataTypes
+        allDataTypes=self.data.keys()
+        allDataTypes.remove('ran')
+        dataOutNew=[]
+        for thisDataOut in dataOut:
             if thisDataOut=='n': 
                 #n is really just hte sum of the ran trials
-                thisDataOut='ran_sum' 
-                dataOut[thisDataOutN] = 'ran_sum'
-                
+                dataOutNew.append('ran_sum')
+                continue#no need to do more with this one
+            #then break into dataType and analysis 
+            dataType, analType =string.split(thisDataOut, '_', 1)
+            if dataType=='all':
+                dataOutNew.extend([key+"_"+analType for key in allDataTypes])
+            else:
+                dataOutNew.append(thisDataOut)
+        dataOut=dataOutNew
+        
+        dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        if 'ran_sum' in dataOut:#move n to the first column
+            dataOut.remove('ran_sum')
+            dataOut.insert(0,'ran_sum')
+        
+        #do the necessary analysis on the data
+        for thisDataOutN,thisDataOut in enumerate(dataOut):
+            
             dataType, analType =string.split(thisDataOut, '_', 1)
             if not self.data.has_key(dataType): 
                 dataOut.remove(thisDataOut)#that analysis can't be done
@@ -251,11 +291,14 @@ class TrialHandler:
             
             #analyse thisData using numpy module
             if analType in dir(numpy):
-                exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                try:#this will fail if we try to take mean of a string for example
+                    exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                except:
+                    dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
             elif analType=='raw':
                 thisAnal=thisData
             else:
-                raise 'psychopyErr', 'you can only use analyses from numpy'
+                raise AttributeError, 'You can only use analyses from numpy'
             #add extra cols to header if necess
             if len(thisAnal.shape)>1:
                 for n in range(thisAnal.shape[1]-1):
@@ -267,7 +310,7 @@ class TrialHandler:
         else: writeFormat='w' #will overwrite a file        
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
             f= file(fileName+'.dlm',writeFormat)
@@ -276,7 +319,7 @@ class TrialHandler:
             #write a header line
             for heading in stimOut+dataHead:
                 if heading=='ran_sum': heading ='n'
-                f.write('%s	' %heading)
+                f.write('%s%s' %(heading,delim))
             f.write('\n')
         
         #loop through stimuli, writing data
@@ -333,7 +376,7 @@ class TrialHandler:
         f.close()
         
     def printAsText(self, stimOut=[], 
-                    dataOut=['rt_mean','rt_std', 'acc_raw'],
+                    dataOut=['all_mean', 'all_std', 'all_raw'],
                     delim='\t',
                     matrixOnly=False,
                   ):
@@ -352,7 +395,10 @@ class TrialHandler:
         """)
             self._warnUseOfNext=False     
         return self.next()
-        
+    def addData(self, thisType, value, position=None):
+        """Add data for the current trial to the `~psychopy.data.DataHandler`
+        """
+        self.data.add(thisType, value, position=None)
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
@@ -720,7 +766,6 @@ class DataHandler(dict):
         (and add a new one if necess)
         """
         if not self.has_key(thisType):
-            log.warning("New data type being added: "+thisType)
             self.addDataType(thisType)
         if position==None: 
             #make a list where 1st digit is trial number
@@ -734,7 +779,8 @@ class DataHandler(dict):
             #array isn't big enough
             log.warning('need a bigger array for:'+thisType)
             self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
-            
+        if (type(value) in [str, unicode]) and len(value)>1:
+            self[thisType] = numpy.asarray(self[thisType],dtype=numpy.object)
         #insert the value
         self[thisType][position[0]][position[1]]=value
         
@@ -1080,7 +1126,6 @@ class FitCumNormal(_baseFunctionFit):
         xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
         return xx
 
-
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
     SLOW IMPLEMENTATION (Python for-loop)
@@ -1172,3 +1217,10 @@ def functionFromStaircase(intensities, responses, bins = 10):
             nPoints.append( len(thisInten) )
         
     return binnedInten, binnedResp, nPoints
+
+def getDateStr():
+    """Uses ``time.strftime()``_ to generate a string of the form
+    Apr_19_1531 for 19th April 3.31pm.
+    This is often useful appended to data filenames to provide unique names
+    """
+    return time.strftime("%b_%d_%H%M", time.localtime())
