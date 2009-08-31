@@ -55,12 +55,4 @@ setup(name="PsychoPy",
           'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
           'Programming Language :: Python'],
-    #install_requires = dependencies,
-    #dependency_links = ["http://www.python.org/pypi/",
-    #"http://sourceforge.net/project/showfiles.php?group_id=71702",#ctypes
-    #"http://sourceforge.net/project/showfiles.php?group_id=5988",#pyopengl
-    #]
     )
-
-# on Mac use:
-#sudo python2.4 setup.py bdist_mpkg --readme=psychopy/README.txt
