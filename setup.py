@@ -10,7 +10,7 @@ import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
+packages = ['psychopy','psychopy.ext','psychopy.demos',
                 'psychopy.monitors',
                 'psychopy.app','psychopy.app.coder',
                 'psychopy.app.builder','psychopy.app.builder.components',
