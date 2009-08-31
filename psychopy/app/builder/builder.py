@@ -1563,7 +1563,7 @@ class BuilderFrame(wx.Frame):
         """Create a default experiment (maybe an empty one instead)"""
         # check whether existing file is modified
         if closeCurrent: self.fileClose()
-        self.filename='untitled.py'
+        self.filename='untitled.psyexp'
         self.exp = experiment.Experiment()
         self.resetUndoStack()
         self.updateAllViews()
