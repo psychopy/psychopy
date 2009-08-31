@@ -1,4 +1,8 @@
-import """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
+"""
 placeholder for adding c (or ctypes) extensions to the linux PsychoPy
 """
 def rush(value=True):    

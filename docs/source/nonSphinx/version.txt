@@ -1,0 +1,4 @@
+version:1.50.00
+info:adds a preview of the builder view and many more new features
+lastCompatible:1.50.00
+compatibilityNotes:monitors is now a module of psychopy, rather than it's own module

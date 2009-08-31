@@ -21,6 +21,10 @@ can silence both by setting them to receive only CRITICAL messages, which
     log.console.setLevel(log.CRITICAL)
 
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from os import path
 import logging
 _packagePath = path.split(__file__)[0]

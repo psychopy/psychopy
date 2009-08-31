@@ -1,8 +1,12 @@
 """To control the screen and visual stimuli for experiments
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import psychopy.misc
 import psychopy #so we can get the __path__
-from psychopy import core, ext, log
+from psychopy import core, ext, log, preferences
 import psychopy.event
 import monitors
 import Image
@@ -11,6 +15,8 @@ import makeMovies
 
 import numpy
 from numpy import sin, cos, pi
+
+prefs = preferences.Preferences()#load the site/user config files
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
@@ -24,7 +30,6 @@ try:
 except:
     havePyglet=False    
 
-
 #import _shadersPygame
 try:
     import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
@@ -36,6 +41,7 @@ try:
         cTypesOpenGL = False
 except:
     havePygame=False
+
 global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
 
 #check for advanced drawing abilities
@@ -61,14 +67,48 @@ _depthIncrements = {'pyglet':+0.001, 'pygame':-0.001, 'glut':-0.001}
 
 class Window:
     """Used to set up a context in which to draw objects,
-    using either PyGame (python's SDL binding) or GLUT.
-    These two types have different structure but can achieve
-    similar results. Pygame follows a procedural model, that
-    is you specify from line to line what happens next. This
-    is usually more intuitive for psychophysics exps. Glut
-    uses a callback or event-driven model, where you specify
-    functions to be run on certain events (when a button is
-    pressed do...).
+    using either PyGame (python's SDL binding) or pyglet.
+    
+    The pyglet backend allows multiple windows to be created, allows the user to specify 
+    which screen to use (if more than one is available, duh!) and allows movies to be
+    rendered.
+    
+    Pygame has fewer bells and whistles, but does seem a little faster in text rendering.
+    Pygame is used for all sound production and for monitoring the joystick.
+        
+        :Parameters:
+            size : (800,600)
+                Size of the window in pixels (X,Y)
+            pos : *None* or (x,y)
+                Location of the window on the screen
+            rgb : [0,0,0]
+                Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
+            fullscr : *None*, True or False
+                Better timing can be achieved in full-screen mode            
+            allowGUI :  *None*, True or False (if None prefs are used) 
+                If set to False, window will be drawn with no frame and no buttons to close etc...
+            winType :  *None*, 'pyglet', 'pygame'
+                If None then PsychoPy will revert to user/site preferences
+            monitor : *None*, string or a `Monitor` object
+                The monitor to be used during the experiment
+            units :  'norm' (normalised),'deg','cm','pix'
+                Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
+            viewScale : *None* or [x,y]
+                Can be used to apply a custom scaling to the current units of the window.  
+            viewPos : *None*, or [x,y]
+                If not None, redefines the origin for the window
+            viewOri : *0* or any numeric value
+                A single value determining the orientation of the view in degs
+            waitBlanking : *None*, True or False. 
+                After a call to flip() should we wait for the blank before the script continues
+            gamma : 1.0, 
+                Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
+            bitsMode : None, 'fast', ('slow' mode is deprecated). 
+                Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
+        
+        :note: Preferences
+            For arguments where None is given user/site preferences will be used if possible.
+            
     """
     def __init__(self,
                  size = (800,600),
@@ -76,12 +116,12 @@ class Window:
                  rgb = (0.0,0.0,0.0),
                  dkl=None,
                  lms=None,
-                 fullscr = 0,
-                 allowGUI=True,
+                 fullscr=None,
+                 allowGUI=None,
                  monitor=dict([]),
                  bitsMode=None,
                  winType=None,
-                 units='norm',
+                 units=None,
                  gamma = None,
                  blendMode='avg',
                  screen=0,
@@ -90,27 +130,6 @@ class Window:
                  viewOri  = 0.0,
                  waitBlanking=True):
         """
-        **Arguments:**
-
-            - **size** :  size of the window in pixels (X,Y)
-            - **rgb** :  background color (R,G,B) from -1.0 to 1.0
-            - **fullScr** :  0(in a window), 1(fullscreen) NB Try using fullScr=0, allowGUI=0
-            - **allowGUI** :  0,1 If set to 1, window will be drawn with no frame and no buttons to close etc...
-            - **winType** :  'pyglet', 'pygame' or 'glut' (if None then PsychoPy will try to use Pyglet, Pygame, GLUT in that order)
-            - **monitor** :  the name of your monitor (from MonitorCentre) or an actual ``Monitor`` object
-            - **units** :  'norm' (normalised),'deg','cm','pix' Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
-            - **viewScale** : If not None, then applies additional scaling to the current units of the window.  
-                             Should be an (x,y) tuple or list specifying the scaling in each dimension.
-            - **viewPos** : If not None, redefines the origin for the window
-                             Should be an (x,y) tuple or list.
-            - **viewOri** : a single value determining the orientation of the view in degs (def = (0,0))
-            - **waitBlanking**: True/False. After a call to flip() should we wait for the blank before further calls
-                
-        The following args will override **monitor** settings(see above):
-
-            - **gamma** : 1.0, monitor gamma for linearisation (will use Bits++ if possible)
-            - **bitsMode** : None, 'fast', ('slow' mode is deprecated). Defines how (and if) the Bits++ box will be used. 'Fast' updates every frame by drawing a hidden line on the top of the screen.
-
         """
         ext.rush() #no reason to turn off?
         self.size = numpy.array(size, numpy.int)
@@ -126,7 +145,7 @@ class Window:
         #convert to a Monitor object
         if monitor==None:
             monitor = monitors.Monitor('__blank__')
-        if type(monitor)==str:
+        if type(monitor) in [str, unicode]:
             monitor = monitors.Monitor(monitor)
         elif type(monitor)==dict:
             #convert into a monitor object
@@ -141,10 +160,13 @@ class Window:
         if scrSize==None:
             self.scrWidthPIX=None
         else:self.scrWidthPIX=scrSize[0]
-
-        if fullscr: self._isFullScr=1
-        else:   self._isFullScr=0
-        self.units = units
+        
+        if fullscr==None: self._isFullScr = prefs.general['fullscr']
+        else: self._isFullScr = fullscr
+        if units==None: self.units = prefs.general['units']
+        else: self.units = units
+        if allowGUI==None: self.allowGUI = prefs.general['allowGUI']
+        else: self.allowGUI = allowGUI
         self.screen = screen
         
         #parameters for transforming the overall view
@@ -195,12 +217,11 @@ class Window:
         else: self.lms_rgb = None
 
         #setup context and openGL()
-        self.allowGUI = allowGUI
-        if winType is None:#choose the default windowing
-            if havePyglet: winType="pyglet"
-            elif havePygame: winType="pygame"
-            else: winType='glut'
-                 
+        if winType==None:#choose the default windowing
+            self.winType=prefs.general['winType']
+        else:
+            self.winType = winType
+        
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
             log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
@@ -208,20 +229,20 @@ class Window:
         else: self.blendMode=blendMode
         
         #setup the context
-        if winType is "glut": self._setupGlut()
-        elif winType is "pygame": self._setupPygame()
-        elif winType is "pyglet": self._setupPyglet()
+        if self.winType == "glut": self._setupGlut()
+        elif self.winType == "pygame": self._setupPygame()
+        elif self.winType == "pyglet": 
+            self._setupPyglet()
         
         #check whether shaders are supported
-        if winType=='pyglet':#we can check using gl_info
+        if self.winType=='pyglet':#we can check using gl_info
             if pyglet.gl.gl_info.get_version()>='2.0':
                 self._haveShaders=True #also will need to check for ARB_float extension, but that should be done after context is created
             else:
                 self._haveShaders=False   
         else:
-            self._haveShaders=False   
+            self._haveShaders=False 
         self._setupGL()
-
         self.frameClock = core.Clock()#from psycho/core
         self.frames = 0         #frames since last fps calc
         self.movieFrames=[] #list of captured frames (Image objects)
@@ -549,10 +570,10 @@ class Window:
         else:  GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
         #set the redisplay callback
         GLUT.glutDisplayFunc(self.update)
-    def _setupPyglet(self):
+    def _setupPyglet(self):        
+        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
         self.winType = "pyglet"
         #setup the global use of pyglet.gl
-        global GL, GLU, GL_multitexture
         GL = pyglet.gl
         GLU = pyglet.gl
         GL_multitexture = pyglet.gl
@@ -561,9 +582,9 @@ class Window:
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
-            print 'configured pyglet screen %i' %self.screen
+            log.info('configured pyglet screen %i' %self.screen)
         else: 
-            print "Requested an unavailable screen number"
+            log.error("Requested an unavailable screen number")
         if self._isFullScr:
             w,h = None,None
         else:
@@ -603,9 +624,9 @@ class Window:
 
     def _setupPygame(self):
         self.winType = "pygame"
+        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
         
         #setup the global use of PyOpenGL (rather than pyglet.gl)
-        global GL, GL_multitexture, GLU        
         GL = OpenGL.GL     
         GL_multitexture = OpenGL.GL.ARB.multitexture
         GLU = OpenGL.GLU
@@ -637,7 +658,6 @@ class Window:
         self.winHandle = pygame.display.set_mode(self.size.astype('i'),winSettings)
         pygame.display.set_gamma(1.0) #this will be set appropriately later
     def _setupGL(self):
-        global _shaders
         if self.winType=='pyglet': _shaders=_shadersPyglet
 #        else: _shaders=_shadersPygame
         
@@ -828,12 +848,12 @@ class _BaseVisualStim:
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the window (normalised or pixels)"""
         if self.units in ['norm','pix']: self._sizeRendered=self.size
-        elif self.units=='deg': self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
         if self.units in ['norm','pix']: self._posRendered=self.pos
-        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         
         
@@ -1187,13 +1207,13 @@ class DotStim(_BaseVisualStim):
         
     def _calcDotsXYRendered(self):
         if self.units in ['norm','pix']: self._dotsXYRendered=self._dotsXY
-        elif self.units=='deg': self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
+        elif self.units in ['deg','degs']: self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
         elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm': 
@@ -1329,9 +1349,9 @@ class SimpleImageStim(_BaseVisualStim):
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
-        if self.units =='pix': self._posRendered=self.pos
+        if self.units in ['pix', 'pixels']: self._posRendered=self.pos
         elif self.units=='norm': self._posRendered=self.pos
-        elif self.units=='deg': self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
         if filename!=None:
@@ -1548,7 +1568,7 @@ class PatchStim(_BaseVisualStim):
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
 
         #sf
-        if units=='pix' and sf==(1,1): #if using pix and sf wasn't given
+        if units in ['pix', 'pixels'] and sf==(1,1): #if using pix and sf wasn't given
             sf = 1.0/self.size#so that exactly
         if type(sf) in [float, int] or len(sf)==1:
             self.sf = numpy.array((sf,sf),float)
@@ -1655,7 +1675,6 @@ class PatchStim(_BaseVisualStim):
         GL.glUseProgram(self.win._progSignedTexMask)
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
-
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
@@ -2807,17 +2826,17 @@ class ElementArrayStim:
         
     def _calcSizesRendered(self):
         if self.units in ['norm','pix']: self._sizesRendered=self.sizes
-        elif self.units=='deg': self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
         elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
     def _calcXYsRendered(self):
         if self.units in ['norm','pix']: self._XYsRendered=self.xys
-        elif self.units=='deg': self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
         elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm': 
@@ -3014,14 +3033,17 @@ class MovieStim(_BaseVisualStim):
             self.win._defDepth += _depthIncrements[self.win.winType]
         else:
             thisDepth=self.depth
-
-        #do scaling
-        #scale the viewport to the appropriate size
-        self.win.setScale(self._winScale)
+        
+        #make sure that textures are on and GL_TEXTURE0 is active
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         
         frameTexture = self._player.get_texture()
         GL.glColor4f(1,1,1,self.opacity)
         GL.glPushMatrix()
+        #do scaling
+        #scale the viewport to the appropriate size
+        self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
@@ -3062,7 +3084,7 @@ class TextStimGLUT:
         else: self.units = win.units
         
         self.pos= numpy.array(pos, float)
-        if type(font)==str:
+        if type(font) in [unicode, str]:
             self.fontName=font
             exec('self.font=GLUT.'+font)
         else:#presumably was an actual GLUT font enumerator
@@ -3305,7 +3327,7 @@ class TextStimGLUT:
         GL.glPopMatrix()#push before the list, pop after
 
 class TextStim(_BaseVisualStim):
-    """Class of text stimuli to be displayed in a **Window()**
+    """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
     def __init__(self, win,
                  text="Hello World",
@@ -3404,7 +3426,7 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 1.0#default text height
             else: self.height = height
             self.heightPix = psychopy.misc.cm2pix(self.height, win.monitor)
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             if height==None: self.height = 1.0
             else: self.height = height
             self.heightPix = psychopy.misc.deg2pix(self.height, win.monitor)
@@ -3419,13 +3441,13 @@ class TextStim(_BaseVisualStim):
         
         if self.wrapWidth ==None:
             if self.units=='norm': self.wrapWidth=1
-            elif self.units=='deg': self.wrapWidth=15
+            elif self.units in ['deg', 'degs']: self.wrapWidth=15
             elif self.units=='cm': self.wrapWidth=15
-            elif self.units=='pix': self.wrapWidth=500
+            elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
-        elif self.units=='deg': self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
+        elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
-        elif self.units=='pix': self._wrapWidthPix=self.wrapWidth
+        elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
                 
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
@@ -3511,7 +3533,15 @@ class TextStim(_BaseVisualStim):
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (1.0,1.0,1.0, self.opacity),
-                                                       width=self._wrapWidthPix)#width of the frame      
+                                                       width=self._wrapWidthPix)#width of the frame     
+#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
+#                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
+#                                                       halign=self.alignHoriz,
+#                                                       color = (int(127.5*self.rgb[0]+127.5),
+#                                                            int(127.5*self.rgb[1]+127.5),
+#                                                            int(127.5*self.rgb[2]+127.5),
+#                                                            int(255*self.opacity)),
+#                                                       multiline=True, width=self._wrapWidthPix)#width of the frame           
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
@@ -3751,8 +3781,8 @@ class TextStim(_BaseVisualStim):
             #for pygame we should (and can) use a drawing list
             if self.needUpdate: self._updateList()
             GL.glCallList(self._listID)
-            
         if self._useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
+
         GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):
@@ -3938,7 +3968,7 @@ class ShapeStim(_BaseVisualStim):
         if self.units in ['norm', 'pix']: 
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
-        elif self.units=='deg':
+        elif self.units in ['deg', 'degs']:
             self._verticesRendered=psychopy.misc.deg2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': 

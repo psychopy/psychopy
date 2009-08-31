@@ -61,7 +61,6 @@ while True:
     #handle key presses each frame
     for key in event.getKeys():
         if key in ['escape','q']:
-            print win.fps()
             win.close()
             core.quit()
     event.clearEvents()#keep the event buffer from overflowing

@@ -1,0 +1,9 @@
+From version 2 onwards PsychoPy is distributed under the GNU GPLv3
+
+PsychoPy includes the following files which have other compatible open-source licenses:
+
+ConfigObj (http://www.voidspace.org.uk/python/configobj.html) released under BSD license
+    configobj.py
+    validateConfigobj.py
+
+pySerial (http://pyserial.wiki.sourceforge.net/pySerial) released under Python License

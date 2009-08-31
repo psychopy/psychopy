@@ -1,6 +1,10 @@
 #set the gamma LUT using platform-specific hardware calls
 #this currently requires a pyglet window (to identify the current scr/display)
 
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import numpy, sys, ctypes, ctypes.util
 
 #import platform specific C++ libs for controlling gamma

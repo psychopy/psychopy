@@ -1,3 +1,7 @@
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import sys, ctypes, ctypes.util, time
 from psychopy import log
 
@@ -93,7 +97,6 @@ def rush(value=True):
         if err!=KERN_SUCCESS:
             log.error('Failed to set darwin thread policy, with thread_policy_set')
         else:
-            print 'ok'
             log.info('Successfully set darwin thread to realtime')
     else:
         #revert to default policy
@@ -169,7 +172,7 @@ def getScreenSizePix(screen=0):
     h = cocoa.CGDisplayPixelsHigh(scrID)
     w = cocoa.CGDisplayPixelsWide(scrID)
     return [h,w]
-    
+
 def waitForVBL(screen=0,nFrames=1):
     """Wait for the given screen (typically screen is 0 or 1) to finish drawing before returning/
     If no screen is given then screen 0 is used.

@@ -23,6 +23,10 @@ pyaudio:
     cons: needs another download, rather buggy.
     
 """
+# Part of the PsychoPy library
+# Copyright (C) 2009 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import numpy, threading, time
 from os import path 
 from string import capitalize
@@ -182,25 +186,15 @@ class _SoundBase:
 
 class SoundPygame(_SoundBase):
     """Create a sound object, from one of many ways.
-    """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
-        """
-        value: can be a number, string or an array.
-        
-            If it's a number between 37 and 32767 then a tone will be generated at
-            that frequency in Hz.
-            -----------------------------
-            It could be a string for a note ('A','Bfl','B','C','Csh'...) 
-            - you may want to specify which octave as well
-            -----------------------------
-            Or a string could represent a filename in the current
-            location, or mediaLocation, or a full path combo
-            -----------------------------
-            Or by giving an Nx2 numpy array of floats (-1:1) you 
-            can specify the sound yourself as a waveform
+    
+    :parameters:
+        value: can be a number, string or an array:        
+            * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
+            * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
+            * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
+            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
             
-        secs: is only relevant if the value is a note name or
-            a frequency value
+        secs: duration (only relevant if the value is a note name or a frequency value)
             
         octave: is only relevant if the value is a note name.
             Middle octave of a piano is 4. Most computers won't
@@ -213,6 +207,9 @@ class SoundPygame(_SoundBase):
         bits(=16): Only 8- and 16-bits supported so far.
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised) 
+    """
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+        """
         """
 
         #check initialisation
@@ -227,7 +224,7 @@ class SoundPygame(_SoundBase):
         
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
@@ -366,7 +363,7 @@ class SoundPyglet(_SoundBase):
             
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
@@ -512,7 +509,7 @@ class SoundPyaudio(_SoundBase):
         
         #try to determine what the sound is
         self._snd=None
-        if type(value) is str:
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
