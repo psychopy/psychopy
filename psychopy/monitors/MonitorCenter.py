@@ -6,7 +6,7 @@
 
 import wx
 from wx import grid
-import monitors
+from psychopy import monitors
 import time, os
 DEBUG=True
 NOTEBOOKSTYLE = False

@@ -179,7 +179,7 @@ class PsychoPyApp(wx.App):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openMonitorCenter(self,event):
-        from monitors import MonitorCenter
+        from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
     def MacOpenFile(self,fileName):
