@@ -26,12 +26,12 @@ DEBUG= False
 join = os.path.join
 if sys.platform=='win32':
     #we used this for a while (until 0.95.4) but not the proper place for windows app data
-    oldMonitorFolder = join(os.path.expanduser('~'),'.PsychoPy', 'monitors') 
-    monitorFolder = join(os.environ['APPDATA'],'PsychoPy', 'monitors')
+    oldMonitorFolder = join(os.path.expanduser('~'),'.psychopy2', 'monitors') 
+    monitorFolder = join(os.environ['APPDATA'],'psychopy2', 'monitors')
     if os.path.isdir(oldMonitorFolder) and not os.path.isdir(monitorFolder):
         os.renames(oldMonitorFolder, monitorFolder)
 else:
-    monitorFolder = join(os.environ['HOME'], '.PsychoPy' , 'monitors')
+    monitorFolder = join(os.environ['HOME'], '.psychopy2' , 'monitors')
     
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
