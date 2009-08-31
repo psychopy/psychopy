@@ -844,13 +844,14 @@ class CoderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.currentDoc=None
         self.ignoreErrors = False
-#        print self.appData
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winH'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
         wx.Frame.__init__(self, parent, ID, title,
                          (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']))
+                  
         self.panel = wx.Panel(self)      
         self.Hide()#ugly to see it all initialise
         #create icon
@@ -862,7 +863,7 @@ class CoderFrame(wx.Frame):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         wx.EVT_CLOSE(self, self.closeFrame)#NB not the same as quit - just close the window
         wx.EVT_IDLE(self, self.onIdle)
-#        self.SetAcceleratorTable(makeAccelTable())
+        
         if self.appData.has_key('state') and self.appData['state']=='maxim':
             self.Maximize()
         #initialise some attributes
@@ -875,24 +876,24 @@ class CoderFrame(wx.Frame):
         self.scriptProcessID=None
         self.db = None#debugger
         self._lastCaretPos=None
-        
+                                
         #setup statusbar
         self.CreateStatusBar()
         self.SetStatusText("")
         self.fileMenu = self.editMenu = self.viewMenu = self.helpMenu = self.toolsMenu = None
-        
+
+        self.makeToolbar()#must be before the paneManager for some reason                 
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
-                
+                  
         #create an editor pane
         self.paneManager.SetFlags(wx.aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
         #make the notebook
-#        self.notebook = wx.Notebook(self, -1,size=wx.Size(200,200)) #size doesn't make any difference!, size=wx.Size(600,12000))
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600), 
             style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-        
+     
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
@@ -910,18 +911,7 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)        
         
-        #for demos we need a dict where the event ID will correspond to a filename
-        self.demoList = glob.glob(os.path.join(self.paths['demos'],'*.py'))
-        #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
-        self.ID_DEMOS = \
-            map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
-        self.demos={}
-        for n in range(len(self.demoList)):
-            self.demos[self.ID_DEMOS[n]] = self.demoList[n]
-            
         self.makeMenus()
-        self.makeToolbar()
-        
         #take files from arguments and append the previously opened files
         if files: 
             print 'files:', files
@@ -959,7 +949,7 @@ class CoderFrame(wx.Frame):
         if self.prefs['showSourceAsst']:
             self.paneManager.GetPane('SourceAsst').Show()
         else:self.paneManager.GetPane('SourceAsst').Hide()
-        
+    
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.appData['auiPerspective']:
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
@@ -969,7 +959,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.Update()
             self.SetMinSize(wx.Size(200, 200)) #min size for the whole window
         self.SendSizeEvent()
-        
+
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
@@ -1091,6 +1081,16 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.psychopyTutorial, self.app.followLink)
         
         self.demosMenu = wx.Menu()
+        
+        #for demos we need a dict where the event ID will correspond to a filename
+        self.demoList = glob.glob(os.path.join(self.paths['demos'],'*.py'))
+        #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
+        self.ID_DEMOS = \
+            map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
+        self.demos={}
+        for n in range(len(self.demoList)):
+            self.demos[self.ID_DEMOS[n]] = self.demoList[n]
+        
         menuBar.Append(self.demosMenu, '&Demos') 
         for thisID in self.ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
