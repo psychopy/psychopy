@@ -30,7 +30,7 @@ class Preferences:
         dirPsychoPy = os.path.split(thisFileAbsPath)[0]
         #paths to user settings
         if sys.platform=='win32':
-            dirUserPrefs = join(os.environ['APPDATA'],'psychoy2') #the folder where the user cfg file is stored
+            dirUserPrefs = join(os.environ['APPDATA'],'psychopy2') #the folder where the user cfg file is stored
         else:
             dirUserPrefs = join(os.environ['HOME'], '.psychopy2')
         #from the directory for preferences work out the path for preferences (incl filename)
