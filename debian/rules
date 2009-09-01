@@ -42,8 +42,8 @@ dfsg:
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
-DEB_INSTALL_CHANGELOGS_ALL := CHANGELOG.txt
-DEB_INSTALL_DOCS_psychopy := README.txt debian/README.Debian-source
+DEB_INSTALL_CHANGELOGS_ALL := psychopy/CHANGELOG.txt
+DEB_INSTALL_DOCS_psychopy := psychopy/README.txt debian/README.Debian-source
 DEB_INSTALL_MANPAGES_psychopy := debian/psychopy.1
 
 clean::
