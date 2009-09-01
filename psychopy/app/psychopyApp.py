@@ -11,13 +11,25 @@ if sys.argv[-1] in ['-v', '--version']:
     sys.exit()
 if sys.argv[-1] in ['-h', '--help']:
     print """Starts the PsychoPy2 application.
-usage:
-    python PsychoPy.py    #start the app using prefs to decide on the view(s) to open
-    python PsychoPy.py -c #(or --coder or coder) opens coder view only
-    python PsychoPy.py -b #(or --builder or builder) opens builder view only
-    python PsychoPy.py file.py #opens coder and opens the file
-    python PsychoPy.py exp.psyexp #opens builder view and opens the experiment file
-        """
+
+Usage:  python PsychoPy.py [options] [file]
+
+Without options or files provided starts the psychopy using prefs to
+decide on the view(s) to open.  If optional [file] is provided action
+depends on the type of the [file]:
+
+ Python script 'file.py' -- opens coder
+
+ Experiment design 'file.psyexp' -- opens builder
+
+Options:
+    -c, --coder, coder       opens coder view only
+    -b, --builder, builder   opens builder view only
+
+    --version        prints version and exits
+    -h, --help       prints this help and exit
+
+"""
     sys.exit()
 
 # Ensure 2.8 version of wx
