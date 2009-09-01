@@ -12,10 +12,11 @@ Contents:
    builder/builder
    coder/coder
    api/api
-   psyexp
+   prefs
    timing/timing
    recipes/recipes
    faqs/faqs
+   psyexp
    contributing
    glossary
    indices
