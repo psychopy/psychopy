@@ -1292,7 +1292,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         #for input devices:
         self.onFullScrChange(event=None)#do this just to set the initial values to be
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
-
+        
         #for all components
         self.show()
         if self.OK:
@@ -1324,7 +1324,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-
+        
+        self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
         #do show and process return
