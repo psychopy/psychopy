@@ -119,6 +119,9 @@ Section "PsychoPy2" PsychoPy2
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
      
 
+  ;add to path variable
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  
 SectionEnd
 
 ;--------------------------------
@@ -135,9 +138,11 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy2.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy homepage.lnk" 
   RMDir "$SMPROGRAMS\$StartMenuFolder"
-  
+    
+  ;remove from registry
   DeleteRegKey HKLM "${REG_UNINSTALL}"
   DeleteRegKey HKCU "Software\PsychoPy Standalone" ;may have been installed by prev version
 
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR" 
+
 SectionEnd
