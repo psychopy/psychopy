@@ -28,6 +28,7 @@ install/psychopy:: debian/psychopy.1
       $(DEB_DESTDIR)/usr/share/pixmaps/psychopy.xpm
 ## Install runner
 #	install debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
+	find $(DEB_DESTDIR) -name psychopyApp.py | xargs chmod a+rx
 
 # Make tree dfsg-compliant
 # Need to be run whenever master branch gets merged in
