@@ -3,6 +3,8 @@ psychopy (1.50.00.dfsg-1~pre1) unstable; urgency=low
   * New upstream release
   * Removed custom psychopy shell script -- now upstream provides a python
     script to start necessary GUI module
+  * Adjusted copyright file -- from 1.50.00 psychopy is distributed under
+    GPL version 3
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 01 Sep 2009 13:13:43 -0400
 
