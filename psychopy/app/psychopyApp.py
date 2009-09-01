@@ -40,7 +40,7 @@ import wx
 
 import sys, os, threading, time, platform
 from psychopy import preferences
-#other app subpackages needs to be imported as explicitly in app 
+#other app subpackages needs to be imported as explicitly in app
 from psychopy.app import coder, builder, keybindings, wxIDs, connections
 
 links={
@@ -48,7 +48,7 @@ links={
     wxIDs.psychopyReference:"http://www.psychopy.org/reference",
     wxIDs.psychopyTutorial:"http://www.psychopy.org/home.php/Docs/Tutorials"
     }
-    
+
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
@@ -62,46 +62,46 @@ class PsychoSplashScreen(wx.SplashScreen):
         # following order.
         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
                                  0, None)
-        #setup statusbar  
+        #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "Initialising PsychoPy and Libs", 
+        self.status = wx.StaticText(self, -1, "Initialising PsychoPy and Libs",
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
         self.Fit()
         self.Close()
-        
+
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
     """
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
         wx.Frame.__init__(self, parent, ID, title, size=(1,1))
         self.app=app
-        
+
         self.menuBar = wx.MenuBar()
-        
+
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
-        wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)        
+        wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
         self.viewMenu.Append(self.app.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
         wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
         item=self.viewMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys.quit, "Terminate the program")
         self.Bind(wx.EVT_MENU, self.app.quit, item)
-        
+
         self.SetMenuBar(self.menuBar)
         self.Show()
-        
+
 class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and import options
-        self.prefs = preferences.Preferences() #from preferences.py        
+        self.prefs = preferences.Preferences() #from preferences.py
         self.IDs=wxIDs
         self.keys=keybindings
         self.quitting=False
-        
+
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
@@ -132,21 +132,21 @@ class PsychoPyApp(wx.App):
                     scripts=[args[0]]
         else:
             args=[]
-            
+
         #connections.checkForUpdates(app=self)
-        
+
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
-        
+
         splash = PsychoSplashScreen(self)
         if splash:
-            splash.Show()        
-        
+            splash.Show()
+
         #create both frame for coder/builder as necess
         self.coder = self.builder = None
         if mainFrame in ['coder','both']: self.showCoder(fileList=scripts)
         if mainFrame in ['both','builder']: self.showBuilder(fileList=exps)
-        
+
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         if self.prefs.connections['allowUsageStats']:
@@ -161,7 +161,7 @@ class PsychoPyApp(wx.App):
                 showTip, index = eval(showTipText)
             else:
                 showTip, index = (1, 0)
-                
+
             if showTip:
                 tp = wx.CreateFileTipProvider(opj("data/tips.txt"), index)
                 ##tp = MyTP(0)
@@ -169,13 +169,13 @@ class PsychoPyApp(wx.App):
                 index = tp.GetCurrentTip()
                 config.Write("tips", str( (showTip, index) ))
                 config.Flush()"""
-        
-        
-        
+
+
+
         return True
-    def showCoder(self, event=None, fileList=None):   
+    def showCoder(self, event=None, fileList=None):
         if self.coder==None:
-            self.coder=coder.CoderFrame(None, -1, 
+            self.coder=coder.CoderFrame(None, -1,
                       title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
                       files = fileList, app=self)
         self.coder.Show(True)
@@ -186,7 +186,7 @@ class PsychoPyApp(wx.App):
         if self.builder==None:
             self.builder=builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder",
-                                  files = fileList, app=self)      
+                                  files = fileList, app=self)
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
@@ -205,11 +205,11 @@ class PsychoPyApp(wx.App):
         for frame in [self.coder, self.builder]:
             if frame==None: continue
             ok=frame.checkSave()
-            if not ok: return#user cancelled quit 
+            if not ok: return#user cancelled quit
         #save info about current frames for next run
-        if self.coder and not self.builder: 
+        if self.coder and not self.builder:
             self.prefs.appData['lastFrame']='coder'
-        elif self.builder and not self.coder: 
+        elif self.builder and not self.coder:
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
@@ -218,7 +218,7 @@ class PsychoPyApp(wx.App):
             if frame==None: continue
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
-            frame.Destroy()#because closeFrame actually just Hides the frame            
+            frame.Destroy()#because closeFrame actually just Hides the frame
         if platform.system()=='Darwin':
             self.menuFrame.Destroy()
         sys.exit()#really force a quit
@@ -227,14 +227,14 @@ class PsychoPyApp(wx.App):
         prefsDlg.Show()
 
     def showAbout(self, event):
-        
+
         licFile = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'))
         license = licFile.read()
         licFile.close()
-        
+
         msg = """For stimulus generation and experimental control in python.
 
-PsychoPy depends on your feedback. If something doesn't work then 
+PsychoPy depends on your feedback. If something doesn't work then
 let me/us know at psychopy-users@googlegroups.com"""
         info = wx.AboutDialogInfo()
         info.SetName('PsychoPy')
@@ -247,9 +247,9 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDocWriter('Jonathan Peirce')
-        
+
         wx.AboutBox(info)
-        
+
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
 
@@ -263,16 +263,16 @@ class PreferencesDlg(wx.Frame):
         self.app=app
         self.prefs={'user':app.prefs.userPrefsCfg,
                     'site':app.prefs.prefsCfg}
-                    
+
         for n, prefsType in enumerate(['site','user']):
             sitePage = self.makePage(self.prefs[prefsType])
             self.nb.AddPage(sitePage,prefsType)
             self.pageIDs[prefsType]=n
-        
+
         sizer = wx.BoxSizer()
         sizer.Add(self.nb, 1, wx.EXPAND)
         panel.SetSizer(sizer)
-        
+
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
         item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys.save)
@@ -285,10 +285,10 @@ class PreferencesDlg(wx.Frame):
 
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
-        
+
     def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
-        
+
         # setup the style
         if sys.platform=='darwin':
             page.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:Courier New,size:10d")
@@ -298,12 +298,12 @@ class PreferencesDlg(wx.Frame):
         page.SetLexer(wx.stc.STC_LEX_PROPERTIES)
         page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF0000")
         page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#007F00")
-        
+
         buff=StringIO.StringIO()
-        prefs.write(buff)        
+        prefs.write(buff)
         page.SetText(buff.getvalue())
-        buff.close()  
-        
+        buff.close()
+
         #check that the folder exists
         dirname = os.path.dirname(prefs.filename)
         if not os.path.isdir(dirname):
@@ -312,7 +312,7 @@ class PreferencesDlg(wx.Frame):
         #check for file write access
         if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
             page.SetReadOnly()
-        
+
         return page
     def close(self, event=None):
         self.Destroy()
@@ -328,7 +328,7 @@ class PreferencesDlg(wx.Frame):
                 f=open(filePath,'w')
                 f.write(pageText)
                 f.close()
-                print "saved", filePath             
+                print "saved", filePath
         return ok
     def getPageText(self,prefsType):
         """Get the prefs text for a given page
@@ -345,7 +345,7 @@ class PreferencesDlg(wx.Frame):
         #find the notebook page
         currTxt = self.getPageText(prefsType)
         return (currTxt!=savedTxt)
-    
+
 if __name__=='__main__':
     app = PsychoPyApp(0)
     app.MainLoop()
