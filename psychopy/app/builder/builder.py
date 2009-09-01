@@ -1466,7 +1466,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.closeFrame)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
@@ -1675,7 +1675,7 @@ class BuilderFrame(wx.Frame):
             elif resp == wx.ID_NO: pass #don't save just quit
         return 1
     def fileClose(self, event=None, checkSave=True):
-        """Close the current file (and warn if it hasn't been saved)"""
+        """Not currently used? Frame is closed rather than file"""
         if checkSave:
             ok = self.checkSave()
             if not ok: return -1#user cancelled
