@@ -7,7 +7,7 @@ DEB_PYTHON_MODULE_PACKAGE = psychopy
 DEB_PYTHON_MODULE_PACKAGES = psychopy
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-debian/psychopy.1: debian/psychopy.sh
+debian/psychopy.1: psychopy/app/psychopyApp.py
 	chmod +x $^
 	PYTHONPATH=. help2man -N -n "Creating psychology stimuli in Python" $^ > $@
 ## cleanup
@@ -24,10 +24,11 @@ install/psychopy:: debian/psychopy.1
 ##     | xargs sed -i -e '1 s,^#!.*python.*,#!/usr/bin/env python,g'
 
 ## convert and install icon's .xpm manually
-	convert psychopy/psychopy.png $(DEB_DESTDIR)/usr/share/pixmaps/psychopy.xpm
-
+	convert psychopy/app/Resources/psychopy.png -geometry 32x32 \
+      $(DEB_DESTDIR)/usr/share/pixmaps/psychopy.xpm
 ## Install runner
-	install debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
+#	install debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
+	find $(DEB_DESTDIR) -name psychopyApp.py | xargs chmod a+rx
 
 # Make tree dfsg-compliant
 # Need to be run whenever master branch gets merged in
@@ -42,8 +43,8 @@ dfsg:
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
-DEB_INSTALL_CHANGELOGS_ALL := CHANGELOG.txt
-DEB_INSTALL_DOCS_psychopy := README.txt debian/README.Debian-source
+DEB_INSTALL_CHANGELOGS_ALL := psychopy/CHANGELOG.txt
+DEB_INSTALL_DOCS_psychopy := psychopy/README.txt debian/README.Debian-source
 DEB_INSTALL_MANPAGES_psychopy := debian/psychopy.1
 
 clean::
