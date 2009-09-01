@@ -286,7 +286,7 @@ class Param:
         else:
             raise TypeError, "Can't represent a Param of type %s" %self.valType
 
-class TrialHandler():
+class TrialHandler:
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
@@ -364,7 +364,7 @@ class TrialHandler():
 
     def getType(self):
         return 'TrialHandler'
-class StairHandler():
+class StairHandler:
     """A staircase experimental control object.
     """
     def __init__(self, exp, name, nReps, startVal, nReversals='None',
