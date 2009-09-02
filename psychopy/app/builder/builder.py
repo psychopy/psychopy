@@ -1292,7 +1292,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         #for input devices:
         self.onFullScrChange(event=None)#do this just to set the initial values to be
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
-        
+
         #for all components
         self.show()
         if self.OK:
@@ -1324,7 +1324,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-        
+
         self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
@@ -1339,7 +1339,7 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, size=(800, 600),files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
-        
+
         self.panel = wx.Panel(self)
         self.app=app
         self.dpi=self.app.dpi
@@ -1481,7 +1481,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
         self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
-        
+
         #---_tools---#000000#FFFFFF--------------------------------------------------
         self.toolsMenu = wx.Menu()
         menuBar.Append(self.toolsMenu, '&Tools')
@@ -1545,11 +1545,11 @@ class BuilderFrame(wx.Frame):
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
     def closeFrame(self, event=None, checkSave=True):
-        
+
         if self.app.coder==None and platform.system()!='Darwin':
             if not self.app.quitting: self.app.quit()
             return#app.quit() will have closed the frame already
-            
+
         if checkSave:
             ok=self.checkSave()
             if not ok: return -1
@@ -1772,7 +1772,7 @@ class BuilderFrame(wx.Frame):
         shortName, ext = os.path.splitext(scriptName)
 
         #set the directory and add to path
-        os.chdir(path)
+        if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
         f = open(fullPath, 'w')
         f.write(script.getvalue())
         f.close()
