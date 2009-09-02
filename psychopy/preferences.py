@@ -115,7 +115,15 @@ class Preferences:
         #then add user prefs
         #BUT we also can't write an actual file, because that kills easy_install,
         #so now using a StringIO object
-        cfg1 = configobj.ConfigObj(join(self.paths['userPrefs'], 'tmp'), configspec=prefsSpec)
+        
+        #check/create path for tmp file
+        if not os.path.isdir(self.paths['userPrefs']):
+            try: os.makedirs(self.paths['userPrefs'])
+            except: 
+                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %tmpPath
+        
+        tmpPath = join(self.paths['userPrefs'], 'tmp')
+        cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
         cfg1.initial_comment=["#preferences set in this file will override the site-prefs",
             "#to set a preference here simply copy and paste from the site-prefs file",
@@ -123,7 +131,7 @@ class Preferences:
         buff=StringIO.StringIO()
         cfg1.write()
         #then create the actual cfg from this stringIO object
-        cfg = configobj.ConfigObj(join(self.paths['userPrefs'], 'tmp'), configspec=prefsSpec)
+        cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg.filename = self.paths['userPrefsFile']
         return cfg
     def getAutoProxy(self):

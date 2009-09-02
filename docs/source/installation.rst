@@ -41,11 +41,11 @@ There are different ways to install PsychoPy on a mac that will suit different u
 
 Linux:
 ~~~~~~~~~~~~~~~~~~~~~~
-PsychoPy is in the Debian packages index so users of debian-based distributions (e.g. Ubuntu) can simply do;
+PsychoPy is in the Debian packages index so users of Debian-based distributions (e.g. Ubuntu) can simply do;
     
     ``sudo apt-get install psychopy``
 
-For non-debian systems you need to install the dependencies below manually and then PsychoPy (with easy_install?). Thanks to Yaroslav Halchenko for his work on the Debian package.
+For non-Debian systems you need to install the dependencies below manually and then PsychoPy (with easy_install?). Thanks to Yaroslav Halchenko for his work on the Debian package.
 
 .. _dependencies:
 
