@@ -317,7 +317,6 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetTextForeground(rgb)
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
         
-        print id, routine, routine.name
         self.componentFromID[id]=routine
         dc.SetId(id)
         #set the area for this component
@@ -1605,7 +1604,6 @@ class BuilderFrame(wx.Frame):
         """
         if newVal==None:
             newVal= self.getIsModified()
-            print 'found newval to be ', newVal
         else: self.isModified=newVal
 #        elif newVal==False:
 #            self.lastSavedCopy=copy.copy(self.exp)
@@ -1719,7 +1717,6 @@ class BuilderFrame(wx.Frame):
         or -1 if redo failed (probably can't undo)
         """
         if (self.currentUndoLevel)>=len(self.currentUndoStack):
-            print self.currentUndoLevel, len(self.currentUndoStack)
             return -1#can't undo
         self.currentUndoLevel+=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
@@ -1835,6 +1832,5 @@ class BuilderFrame(wx.Frame):
         if dlg.OK:
             self.addToUndoStack("edit experiment settings")
             self.setIsModified(True)
-        print self.exp.settings.params['Units'], self.exp.settings.params['Units'].val
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
