@@ -159,8 +159,8 @@ class FlowPanel(wx.ScrolledWindow):
             x,y = self.ConvertEventCoords(event)
             icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
-                self._menuComponent=self.componentFromID[icons[0]]
-                self.showContextMenu(self._menuComponent,
+                self._menuComponentID=icons[0]
+                self.showContextMenu(self._menuComponentID,
                     xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
@@ -179,13 +179,13 @@ class FlowPanel(wx.ScrolledWindow):
         """Perform a given action on the component chosen
         """
         op = self.contextItemFromID[event.GetId()]
-        component=self._menuComponent
+        component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            flow.removeComponent(component)
+            flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
         self.redrawFlow()
-        self._menuComponent=None
+        self._menuComponentID=None
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
@@ -214,7 +214,9 @@ class FlowPanel(wx.ScrolledWindow):
             return#we haven't yet added an exp
         expFlow = self.frame.exp.flow #retrieve the current flow from the experiment
         pdc=self.pdc
-
+        
+        self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
+        
         pdc.Clear()#clear the screen
         pdc.RemoveAll()#clear all objects (icon buttons)
         pdc.BeginDrawing()
@@ -229,16 +231,18 @@ class FlowPanel(wx.ScrolledWindow):
         pdc.DrawLine(x1=linePos[0]-gap,y1=linePos[1],x2=linePos[0],y2=linePos[1])
         self.loopInits = []#these will be entry indices
         self.loopTerms = []
+        loopIDs=[]#index of the entry (of the loopInit) in the flow
         self.loops=[]#these will be copies of the actual loop obects
         self.gapMidPoints=[currX-gap/2]
-        for entry in expFlow:
+        for n, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
+                loopIDs.append(n)
                 self.loopInits.append(currX)
             if entry.getType()=='LoopTerminator':
                 self.loops.append(entry.loop)
                 self.loopTerms.append(currX)
             if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, pos=[currX,linePos[1]-30])
+                currX = self.drawFlowRoutine(pdc,entry, id=n,pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
@@ -248,7 +252,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.loopInits.reverse()#start with last initiator (paired with first terminator)
         for n, loopInit in enumerate(self.loopInits):
             name = self.loops[n].params['name'].val#name of the trialHandler/StairHandler
-            self.drawLoop(pdc,name,self.loops[n],
+            self.drawLoop(pdc,name,self.loops[n],id=loopIDs[n],
                         startX=self.loopInits[n], endX=self.loopTerms[n],
                         base=linePos[1],height=linePos[1]-60-n*15)
             self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos[1]])
@@ -289,7 +293,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
 #        dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)
         dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)
-    def drawFlowRoutine(self,dc,routine,rgb=[200,50,50],pos=[0,0]):
+    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0]):
         """Draw a box to show a routine on the timeline
         """
         name=routine.name
@@ -312,22 +316,15 @@ class FlowPanel(wx.ScrolledWindow):
         #draw text
         dc.SetTextForeground(rgb)
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
-
-        ##set an id for the region where the box falls (so it can act as a button)
-        #see if we created this already
-        id=None
-        for key in self.componentFromID.keys():
-            if self.componentFromID[key]==routine:
-                id=key
-        if not id: #then create one and add to the dict
-            id = wx.NewId()
-            self.componentFromID[id]=routine
+        
+        print id, routine, routine.name
+        self.componentFromID[id]=routine
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
 
         return endX
-    def drawLoop(self,dc,name,loop,
+    def drawLoop(self,dc,name,loop,id, 
             startX,endX,
             base,height,rgb=[0,0,0]):
         xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
@@ -360,15 +357,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetTextForeground([r,g,b])
         dc.DrawText(name, x+pad/2, y+pad/2)
 
-        ##set an id for the region where the bitmap falls (so it can act as a button)
-        #see if we created this already
-        id=None
-        for key in self.componentFromID.keys():
-            if self.componentFromID[key]==loop:
-                id=key
-        if not id: #then create one and add to the dict
-            id = wx.NewId()
-            self.componentFromID[id]=loop
+        self.componentFromID[id]=loop
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
@@ -1082,6 +1071,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.show()
         if self.OK:
             self.params = self.getParams()
+            #convert endPoints from str to list
+            exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
+            #then sort the list so the endpoints are in correct order
+            self.params['endPoints'].val.sort()
+            
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):

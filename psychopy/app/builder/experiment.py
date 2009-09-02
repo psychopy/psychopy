@@ -486,7 +486,7 @@ class Flow(list):
     def addRoutine(self, newRoutine, pos):
         """Adds the routine to the Flow list"""
         self.insert(int(pos), newRoutine)
-    def removeComponent(self,component):
+    def removeComponent(self,component,id=None):
         """Removes a Loop, LoopTerminator or Routine from the flow
         """
         if component.getType() in ['LoopInitiator', 'LoopTerminator']:
@@ -497,7 +497,8 @@ class Flow(list):
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
-            self.remove(component)#this one's easy!
+            print id, self
+            del self[id]
 
     def writeCode(self, s):
 
