@@ -8,6 +8,12 @@ Changelog
 PsychoPy 1.50
 ------------------------------
 
+PsychoPy 1.50.01
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED problem creating prefs file on first use
+* FIXED problem with removing (identical) routines in Flow panel
+* FIXED problem with avbin import (OS X standalone version)
+
 PsychoPy 1.50.00
 ~~~~~~~~~~~~~~~~~~~~~~
 * ADDED A preview of the new application structure and GUI

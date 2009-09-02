@@ -10,8 +10,8 @@ To get started see/run the demo scripts.
 
 import string
 
-__version__ = '1.50.00'
-__license__ = 'GNU GPLv3'
+__version__ = '1.50.01'
+__license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-users@googlegroups.com'
