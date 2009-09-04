@@ -91,8 +91,10 @@ class Window:
                 If None then PsychoPy will revert to user/site preferences
             monitor : *None*, string or a `Monitor` object
                 The monitor to be used during the experiment
-            units :  'norm' (normalised),'deg','cm','pix'
+            units :  *None*, 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
+            screen : *1*, 2 (or higher if you have many screens)
+                Specifies the physical screen that stimuli will appear on (pyglet winType only)
             viewScale : *None* or [x,y]
                 Can be used to apply a custom scaling to the current units of the window.  
             viewPos : *None*, or [x,y]
@@ -106,8 +108,7 @@ class Window:
             bitsMode : None, 'fast', ('slow' mode is deprecated). 
                 Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
         
-        :note: Preferences
-            For arguments where None is given user/site preferences will be used if possible.
+        :note: Preferences. Some arguments (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
             
     """
     def __init__(self,
