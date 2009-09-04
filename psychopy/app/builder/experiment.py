@@ -165,8 +165,11 @@ class Experiment:
         """
         name=paramNode.get('name')
         if 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
-        if 'valType' in paramNode.keys(): params[name].valType = paramNode.get('valType')
-        if 'updates' in paramNode.keys(): params[name].updates = paramNode.get('updates')
+        if 'valType' in paramNode.keys(): 
+            params[name].valType = paramNode.get('valType')
+            if params[name].valType=='bool': exec("params[name].val=%s" %params[name].valType)
+        if 'updates' in paramNode.keys(): 
+            params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
@@ -191,7 +194,7 @@ class Experiment:
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
             routine = Routine(name=routineNode.get('name'), exp=self)
-            self._getXMLparam(params=routine.params, paramNode=routineNode)
+            #self._getXMLparam(params=routine.params, paramNode=routineNode)
             #then create the
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
@@ -203,7 +206,7 @@ class Experiment:
                     parentName=routineNode.get('name'), exp=self)
                 #populate the component with its various params
                 for paramNode in componentNode:
-                    self._getXMLparam(params=component.params, paramNode=componentNode)
+                    self._getXMLparam(params=component.params, paramNode=paramNode)
                 routine.append(component)
         #fetch flow settings
         flowNode=root.find('Flow')
@@ -497,7 +500,6 @@ class Flow(list):
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
-            print id, self
             del self[id]
 
     def writeCode(self, s):
