@@ -11,24 +11,48 @@
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
+    <Routine name="ready">
+      <TextComponent name="readyText">
+        <Param name="name" val="readyText" valType="code" updates="constant"/>
+        <Param name="text" val="&quot;Press a key when ready&quot;" valType="code" updates="constant"/>
+        <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="times" val="[0, 1000]" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="1" valType="code" updates="constant"/>
+        <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
+        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="font" val="arial" valType="str" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="startTrials">
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="startTrials" valType="code" updates="None"/>
+        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
+        <Param name="times" val="[0, 1000]" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
+        <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
     <Routine name="trial">
       <TextComponent name="testWord">
         <Param name="name" val="testWord" valType="code" updates="constant"/>
-        <Param name="text" val="thisTrial.text" valType="code" updates="set every repeat"/>
-        <Param name="colour" val="thisTrial.rgb" valType="code" updates="set every repeat"/>
+        <Param name="text" val="&quot;Hint: Use double quotes for text (or this looks like a variable)&quot;" valType="code" updates="constant"/>
+        <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="times" val="[0.5,1.5]" valType="code" updates="constant"/>
+        <Param name="times" val="[0, 1]" valType="code" updates="constant"/>
         <Param name="letterHeight" val="1" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="arial" valType="str" updates="constant"/>
       </TextComponent>
       <KeyboardComponent name="resp">
-        <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="times" val="[0.5,2.0]" valType="code" updates="constant"/>
+        <Param name="times" val="[0, 1]" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="[&quot;left&quot;,&quot;right&quot;]" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
@@ -37,6 +61,7 @@
     </Routine>
   </Routines>
   <Flow>
+    <Routine name="ready"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
