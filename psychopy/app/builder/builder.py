@@ -9,7 +9,7 @@ import sys, os, glob, copy, platform
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
-from psychopy.app import stdOutRich
+from psychopy.app import stdOutRich, dialogs
 
 canvasColour=[200,200,200]#in prefs? ;-)
 
@@ -1658,10 +1658,8 @@ class BuilderFrame(wx.Frame):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
-            dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %self.filename,
-                caption='Warning', style=wx.YES_NO|wx.CANCEL )
+            dlg = dialogs.WarningDialog(self,'Experiment has changed. Save before quitting?')
             resp = dlg.ShowModal()
-            sys.stdout.flush()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL: return 0 #return, don't quit
             elif resp == wx.ID_YES: self.fileSave() #save then quit

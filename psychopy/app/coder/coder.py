@@ -8,7 +8,7 @@ import keyword, os, sys, string, StringIO, glob, platform
 import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
-from psychopy.app import stdOutRich
+from psychopy.app import stdOutRich, dialogs
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -1239,8 +1239,7 @@ class CoderFrame(wx.Frame):
             doc = self.notebook.GetPage(ii)
             filename=doc.filename
             if doc.UNSAVED:
-                dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
-                    caption='Warning', style=wx.YES_NO|wx.CANCEL|wx.CENTER )
+                dlg = dialogs.WarningDialog(self,message='Save changes to %s before quitting?' %filename)
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
@@ -1443,8 +1442,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
             sys.stdout.flush()
-            dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
-                caption='Warning', style=wx.YES_NO|wx.CANCEL )
+            dlg = dialogs.WarningDialog(self,message='Save changes to %s before quitting?' %filename)
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()

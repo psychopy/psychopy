@@ -7,6 +7,7 @@
 import wx
 from wx import grid
 from psychopy import monitors
+from psychopy.app import dialogs
 import time, os
 DEBUG=True
 NOTEBOOKSTYLE = False
@@ -421,10 +422,8 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             #warn user that data will be lost
-            dlg = wx.MessageDialog(self, 'Save changes to monitor before quitting?',
-                'Warning', wx.YES_NO|wx.CANCEL )
+            dlg = dialogs.WarningDialog(self,message='Save changes to monitor settings before quitting?')
             resp = dlg.ShowModal()
-            dlg.Destroy()
             if resp  == wx.ID_CANCEL:
                 return 1 #return before quitting
             elif resp == wx.ID_YES:
@@ -432,7 +431,7 @@ class MainFrame(wx.Frame):
                 self.currentMon.saveMon()
             elif resp == wx.ID_NO:
                 pass #don't save just quit
-
+            dlg.Destroy()
         self.Destroy()
 
 #admin callbacks
@@ -973,6 +972,7 @@ class GammaDlg(wx.Dialog):
 
 class MonitorCenter(wx.App):
     def OnInit(self):
+        print 'running MonitorCenter'
         frame = MainFrame(None,'PsychoPy Monitor Center')
         frame.Show(True)
         self.SetTopWindow(frame)

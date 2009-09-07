@@ -240,7 +240,6 @@ let me/us know at psychopy-users@googlegroups.com"""
 
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
-
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
         wx.Frame.__init__(self, parent, ID, title, size=(500,700))
