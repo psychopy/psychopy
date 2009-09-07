@@ -28,6 +28,7 @@ import wx
 
 import sys, os, threading, time, platform
 from psychopy import preferences
+from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
 from psychopy.app import coder, builder, keybindings, wxIDs, connections
 
@@ -179,7 +180,6 @@ class PsychoPyApp(wx.App):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openMonitorCenter(self,event):
-        from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
     def MacOpenFile(self,fileName):
