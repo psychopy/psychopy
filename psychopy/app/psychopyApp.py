@@ -40,6 +40,7 @@ import wx
 
 import sys, os, threading, time, platform
 from psychopy import preferences
+from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
 from psychopy.app import coder, builder, keybindings, wxIDs, connections
 
@@ -191,7 +192,6 @@ class PsychoPyApp(wx.App):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openMonitorCenter(self,event):
-        from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
     def MacOpenFile(self,fileName):
@@ -252,7 +252,6 @@ let me/us know at psychopy-users@googlegroups.com"""
 
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
-
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
         wx.Frame.__init__(self, parent, ID, title, size=(500,700))
@@ -308,11 +307,14 @@ class PreferencesDlg(wx.Frame):
         dirname = os.path.dirname(prefs.filename)
         if not os.path.isdir(dirname):
             try: os.makedirs(dirname)
-            except: page.SetReadOnly()
+            except: 
+                page.SetReadOnly(True)
+                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
         #check for file write access
         if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
-            page.SetReadOnly()
-
+            page.SetReadOnly(True)
+            print "PsychoPy can't write to folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
+                
         return page
     def close(self, event=None):
         self.Destroy()

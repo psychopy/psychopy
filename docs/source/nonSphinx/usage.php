@@ -34,22 +34,22 @@ else {
   $tot=mysql_numrows($all);
   $totMachines=mysql_numrows(mysql_query("SELECT DISTINCT(host) FROM $table"));
   $firstDate=substr(mysql_result($all,1,"date"),0,10);        
-  echo "<br>Since $firstDate PsychoPyIDE has been run $tot times on $totMachines computers<br>";   
+  echo "<br>Since $firstDate the PsychoPy application has been run $tot times on $totMachines computers<br>";   
   
   $lastMonth=date("Y-m-d_H:i", time()-60*60*24*28);
   $sql="SELECT * FROM $table WHERE date > ('$lastMonth')";
   $monthRuns=mysql_numrows(mysql_query($sql));
   $sql="SELECT DISTINCT(host) FROM $table WHERE date > ('$lastMonth')";
   $monthMachines=mysql_numrows(mysql_query($sql));
-  echo "In the last 28 days PsychoPyIDE has been run $monthRuns times on $monthMachines computers<br>";
+  echo "In the last 28 days the PsychoPy application has been run $monthRuns times on $monthMachines computers<br>";
   
   $lastWeek=date("Y-m-d_H:i", time()-60*60*24*7);
   $sql="SELECT * FROM $table WHERE date > ('$lastWeek')";
   $weekRuns=mysql_numrows(mysql_query($sql));
   $sql="SELECT DISTINCT(host) FROM $table WHERE date > ('$lastWeek')";
   $weekMachines=mysql_numrows(mysql_query($sql));
-  echo "In the last 7 days PsychoPyIDE has been run $weekRuns times on $weekMachines computers<br>";
-  echo "not including users that opt out of providing stats or many that use PsychoPy libs without the application<hr><br>";
+  echo "In the last 7 days the PsychoPy application has been run $weekRuns times on $weekMachines computers<br>";
+  echo "NB these stats don't include users that opt out of providing stats or the many that use PsychoPy libraries without the application<hr><br>";
   while ($i <= min($tot,10)) {    
     $id=mysql_result($all,$tot-$i,"id");
     $date=mysql_result($all,$tot-$i,"date");

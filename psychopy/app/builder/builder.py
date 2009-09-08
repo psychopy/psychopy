@@ -9,7 +9,7 @@ import sys, os, glob, copy, platform
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
-from psychopy.app import stdOutRich
+from psychopy.app import stdOutRich, dialogs
 
 canvasColour=[200,200,200]#in prefs? ;-)
 
@@ -22,7 +22,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.dpi=self.app.dpi
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = (8*self.dpi,2*self.dpi))
         self.SetBackgroundColour(canvasColour)
-        #self.panel = wx.Panel(self,-1,size=(600,200))
         self.needUpdate=True
         self.maxWidth  = 14*self.dpi
         self.maxHeight = 3*self.dpi
@@ -159,8 +158,8 @@ class FlowPanel(wx.ScrolledWindow):
             x,y = self.ConvertEventCoords(event)
             icons = self.pdc.FindObjectsByBBox(x, y)
             if len(icons):
-                self._menuComponent=self.componentFromID[icons[0]]
-                self.showContextMenu(self._menuComponent,
+                self._menuComponentID=icons[0]
+                self.showContextMenu(self._menuComponentID,
                     xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
@@ -179,13 +178,13 @@ class FlowPanel(wx.ScrolledWindow):
         """Perform a given action on the component chosen
         """
         op = self.contextItemFromID[event.GetId()]
-        component=self._menuComponent
+        component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            flow.removeComponent(component)
+            flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
         self.redrawFlow()
-        self._menuComponent=None
+        self._menuComponentID=None
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
@@ -214,7 +213,9 @@ class FlowPanel(wx.ScrolledWindow):
             return#we haven't yet added an exp
         expFlow = self.frame.exp.flow #retrieve the current flow from the experiment
         pdc=self.pdc
-
+        
+        self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
+        
         pdc.Clear()#clear the screen
         pdc.RemoveAll()#clear all objects (icon buttons)
         pdc.BeginDrawing()
@@ -229,16 +230,18 @@ class FlowPanel(wx.ScrolledWindow):
         pdc.DrawLine(x1=linePos[0]-gap,y1=linePos[1],x2=linePos[0],y2=linePos[1])
         self.loopInits = []#these will be entry indices
         self.loopTerms = []
+        loopIDs=[]#index of the entry (of the loopInit) in the flow
         self.loops=[]#these will be copies of the actual loop obects
         self.gapMidPoints=[currX-gap/2]
-        for entry in expFlow:
+        for n, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
+                loopIDs.append(n)
                 self.loopInits.append(currX)
             if entry.getType()=='LoopTerminator':
                 self.loops.append(entry.loop)
                 self.loopTerms.append(currX)
             if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, pos=[currX,linePos[1]-30])
+                currX = self.drawFlowRoutine(pdc,entry, id=n,pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
@@ -248,7 +251,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.loopInits.reverse()#start with last initiator (paired with first terminator)
         for n, loopInit in enumerate(self.loopInits):
             name = self.loops[n].params['name'].val#name of the trialHandler/StairHandler
-            self.drawLoop(pdc,name,self.loops[n],
+            self.drawLoop(pdc,name,self.loops[n],id=loopIDs[n],
                         startX=self.loopInits[n], endX=self.loopTerms[n],
                         base=linePos[1],height=linePos[1]-60-n*15)
             self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos[1]])
@@ -289,12 +292,15 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
 #        dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)
         dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)
-    def drawFlowRoutine(self,dc,routine,rgb=[200,50,50],pos=[0,0]):
+    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0]):
         """Draw a box to show a routine on the timeline
         """
         name=routine.name
         font = self.GetFont()
-        font.SetPointSize(1200/self.dpi)
+        if platform.system()=='Darwin':
+            font.SetPointSize(1400/self.dpi)
+        else:
+            font.SetPointSize(1000/self.dpi)
         r, g, b = rgb
 
         #get size based on text
@@ -312,22 +318,14 @@ class FlowPanel(wx.ScrolledWindow):
         #draw text
         dc.SetTextForeground(rgb)
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
-
-        ##set an id for the region where the box falls (so it can act as a button)
-        #see if we created this already
-        id=None
-        for key in self.componentFromID.keys():
-            if self.componentFromID[key]==routine:
-                id=key
-        if not id: #then create one and add to the dict
-            id = wx.NewId()
-            self.componentFromID[id]=routine
+        
+        self.componentFromID[id]=routine
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
 
         return endX
-    def drawLoop(self,dc,name,loop,
+    def drawLoop(self,dc,name,loop,id, 
             startX,endX,
             base,height,rgb=[0,0,0]):
         xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
@@ -342,7 +340,10 @@ class FlowPanel(wx.ScrolledWindow):
 
         #add a name label that can be clicked on
         font = self.GetFont()
-        font.SetPointSize(800/self.dpi)
+        if platform.system()=='Darwin':
+            font.SetPointSize(800/self.dpi)
+        else:
+            font.SetPointSize(800/self.dpi)
         self.SetFont(font); dc.SetFont(font)
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
@@ -360,15 +361,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetTextForeground([r,g,b])
         dc.DrawText(name, x+pad/2, y+pad/2)
 
-        ##set an id for the region where the bitmap falls (so it can act as a button)
-        #see if we created this already
-        id=None
-        for key in self.componentFromID.keys():
-            if self.componentFromID[key]==loop:
-                id=key
-        if not id: #then create one and add to the dict
-            id = wx.NewId()
-            self.componentFromID[id]=loop
+        self.componentFromID[id]=loop
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
@@ -679,9 +672,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
 
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane, self)
     def getCurrentRoutine(self):
-        return self.getCurrentPage().routine
+        routinePage=self.getCurrentPage()
+        if routinePage:
+            return routinePage.routine
+        else: #no routine page
+            return None
     def getCurrentPage(self):
-        return self.GetPage(self.GetSelection())
+        if self.GetSelection()>=0:
+            return self.GetPage(self.GetSelection())
+        else:#there are no routine pages
+            return None
     def addRoutinePage(self, routineName, routine):
 #        routinePage = RoutinePage(parent=self, routine=routine)
         routinePage = RoutineCanvas(notebook=self, routine=routine)
@@ -759,6 +759,10 @@ class ComponentsPanel(scrolled.ScrolledPanel):
     def onComponentAdd(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
+        if not currRoutinePage:
+            dialogs.MessageDialog(self,"Create a routine (Experiment menu) before adding components", 
+                type='Info', title='Error').ShowModal()
+            return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         #get component name
         newClassStr = self.componentFromID[evt.GetId()]
@@ -776,7 +780,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
-
+        return True
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False):
         """Create a set of ctrls for a particular Component Parameter, to be
@@ -1082,6 +1086,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.show()
         if self.OK:
             self.params = self.getParams()
+            #convert endPoints from str to list
+            exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
+            #then sort the list so the endpoints are in correct order
+            self.params['endPoints'].val.sort()
+            
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):
@@ -1292,7 +1301,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         #for input devices:
         self.onFullScrChange(event=None)#do this just to set the initial values to be
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
-        
+
         #for all components
         self.show()
         if self.OK:
@@ -1324,7 +1333,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-        
+
         self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
@@ -1336,11 +1345,9 @@ class DlgExperimentProperties(_BaseParamsDlg):
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
-                 pos=wx.DefaultPosition, size=(800, 600),files=None,
+                 pos=wx.DefaultPosition, files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
-        wx.Frame.__init__(self, parent, id, title, pos, size, style)
-        
-        self.panel = wx.Panel(self)
+                 
         self.app=app
         self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
@@ -1348,6 +1355,15 @@ class BuilderFrame(wx.Frame):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
+        
+        if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
+            self.appData['winH'], self.appData['winW'] =wx.DefaultSize
+            self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+        wx.Frame.__init__(self, parent, id, title, (self.appData['winX'], self.appData['winY']),
+                         size=(self.appData['winW'],self.appData['winH']),
+                         style=style)
+
+        self.panel = wx.Panel(self)
 
         # create our panels
         self.flowPanel=FlowPanel(frame=self)
@@ -1374,23 +1390,33 @@ class BuilderFrame(wx.Frame):
             self.resetUndoStack() #so that the above 2 changes don't show up as undo-able
             self.setIsModified(False)
 
-        if True: #control the panes using aui manager
-            self._mgr = wx.aui.AuiManager(self)
-            self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
-            self._mgr.AddPane(self.componentButtons, wx.RIGHT)
-            self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
-#             tell the manager to 'commit' all the changes just made
-            self._mgr.Update()
-        else:
-            self.routineSizer = wx.BoxSizer(wx.HORIZONTAL)
-            self.routineSizer.Add(self.routinePanel, 0, wx.ALIGN_LEFT|wx.EXPAND, 15)
-            self.routineSizer.Add(self.componentButtons,0, wx.ALIGN_RIGHT, 15)
-            self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-            self.mainSizer.Add(self.routineSizer, 1)
-            self.mainSizer.Add(self.flowPanel, 1, wx.ALIGN_BOTTOM)
-            self.SetSizer(self.mainSizer)
-
-        self.SetAutoLayout(True)
+        #control the panes using aui manager
+        self._mgr = wx.aui.AuiManager(self)
+        self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+                          Name("Routines").Caption("Routines").
+                          CenterPane(). #'center panes' expand to fill space
+                          CloseButton(False).MaximizeButton(True))
+        self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+                          Name("Components").Caption("Components").
+                          RightDockable(True).LeftDockable(True).CloseButton(False).
+                          Right())
+        self._mgr.AddPane(self.flowPanel, 
+                          wx.aui.AuiPaneInfo().
+                          Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
+                          RightDockable(True).LeftDockable(True).CloseButton(False).
+                          Bottom())
+        #tell the manager to 'commit' all the changes just made
+        self._mgr.Update()
+        
+        #self.SetSizer(self.mainSizer)#not necessary for aui type controls
+        if self.appData['auiPerspective']:
+            self._mgr.LoadPerspective(self.appData['auiPerspective'])
+        self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
+        self.Fit()
+        self.SendSizeEvent()
+        self._mgr.Update()        
+        
+        #self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
     def makeToolbar(self):
@@ -1481,7 +1507,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
         self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
-        
+
         #---_tools---#000000#FFFFFF--------------------------------------------------
         self.toolsMenu = wx.Menu()
         menuBar.Append(self.toolsMenu, '&Tools')
@@ -1545,15 +1571,32 @@ class BuilderFrame(wx.Frame):
         self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
     def closeFrame(self, event=None, checkSave=True):
-        
+
         if self.app.coder==None and platform.system()!='Darwin':
-            if not self.app.quitting: self.app.quit()
-            return#app.quit() will have closed the frame already
-            
+            if not self.app.quitting: 
+                self.app.quit()
+                return#app.quit() will have closed the frame already
+
         if checkSave:
             ok=self.checkSave()
-            if not ok: return -1
+            if not ok: return False
         self.appData['prevFile']=self.filename
+        
+        #get size and window layout info
+        if self.IsIconized():
+            self.Iconize(False)#will return to normal mode to get size info
+            self.appData['state']='normal'
+        elif self.IsMaximized():
+            self.Maximize(False)#will briefly return to normal mode to get size info
+            self.appData['state']='maxim'
+        else:
+            self.appData['state']='normal'
+        self.appData['auiPerspective'] = self._mgr.SavePerspective()
+        self.appData['winW'], self.appData['winH']=self.GetSize()
+        self.appData['winX'], self.appData['winY']=self.GetPosition() 
+        if sys.platform=='darwin':
+            self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+        
         self.Destroy()
         self.app.builder=None
         return 1#indicates that check was successful
@@ -1563,7 +1606,8 @@ class BuilderFrame(wx.Frame):
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""
         # check whether existing file is modified
-        if closeCurrent: self.fileClose()
+        if closeCurrent: #if no exp exists then don't try to close it
+            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment()
         self.resetUndoStack()
@@ -1580,8 +1624,9 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
-#        if closeCurrent:
-#            self.fileClose()#close the existing (and prompt for save if necess)
+        if closeCurrent:
+            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
+        self.exp = experiment.Experiment()
         self.exp.loadFromXML(filename)
         self.resetUndoStack()
         self.setIsModified(False)
@@ -1592,6 +1637,71 @@ class BuilderFrame(wx.Frame):
             self.routinePanel.addRoutinePage(thisRoutineName, routine)
         #update the views
         self.updateAllViews()
+    def fileSave(self,event=None, filename=None):
+        """Save file, revert to SaveAs if the file hasn't yet been saved
+        """
+        if filename==None:
+            filename = self.filename
+        if filename.startswith('untitled'):
+            if not self.fileSaveAs(filename):
+                return False #the user cancelled during saveAs
+        else:
+            self.exp.saveToXML(filename)
+        self.setIsModified(False)
+        return True
+    def fileSaveAs(self,event=None, filename=None):
+        """
+        """
+        if filename==None: filename = self.filename
+        initPath, filename = os.path.split(filename)
+
+        os.getcwd()
+        if sys.platform=='darwin':
+            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+        else:
+            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
+        returnVal=False
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=initPath,
+            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            #update exp name
+            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
+            self.exp.setExpName(shortName)
+            #actually save
+            self.fileSave(event=None, filename=newPath)
+            self.filename = newPath
+            returnVal = 1
+        try: #this seems correct on PC, but not on mac
+            dlg.destroy()
+        except:
+            pass
+        self.updateWindowTitle()
+        return returnVal
+    def checkSave(self):
+        """Check whether we need to save before quitting
+        """
+        if hasattr(self, 'isModified') and self.isModified:
+            dlg = dialogs.MessageDialog(self,'Experiment has changed. Save before quitting?', type='Warning')
+            resp = dlg.ShowModal()
+            dlg.Destroy()
+            if resp  == wx.ID_CANCEL: return False #return, don't quit
+            elif resp == wx.ID_YES: 
+                if not self.fileSave(): return False #user might cancel during save
+            elif resp == wx.ID_NO: pass #don't save just quit
+        return 1
+    def fileClose(self, event=None, checkSave=True):
+        """Not currently used? Frame is closed rather than file"""
+        if checkSave:
+            ok = self.checkSave()
+            if not ok: return False#user cancelled
+        #close self
+        self.routinePanel.removePages()
+        self.filename = 'untitled.psyexp'
+        self.resetUndoStack()#will add the current exp as the start point for undo
+        self.updateAllViews()
+        return 1
     def updateAllViews(self):
         self.flowPanel.redrawFlow()
         self.routinePanel.redrawRoutines()
@@ -1611,7 +1721,6 @@ class BuilderFrame(wx.Frame):
         """
         if newVal==None:
             newVal= self.getIsModified()
-            print 'found newval to be ', newVal
         else: self.isModified=newVal
 #        elif newVal==False:
 #            self.lastSavedCopy=copy.copy(self.exp)
@@ -1620,72 +1729,8 @@ class BuilderFrame(wx.Frame):
 #        if newVal:
         self.toolbar.EnableTool(self.IDs.tbFileSave, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
-
     def getIsModified(self):
         return self.isModified
-    def fileSave(self,event=None, filename=None):
-        """Save file, revert to SaveAs if the file hasn't yet been saved
-        """
-        if filename==None:
-            filename = self.filename
-        if filename.startswith('untitled'):
-            self.fileSaveAs(filename)
-        else:
-            self.exp.saveToXML(filename)
-
-        self.setIsModified(False)
-    def fileSaveAs(self,event=None, filename=None):
-        """
-        """
-        if filename==None: filename = self.filename
-        initPath, filename = os.path.split(filename)
-
-        os.getcwd()
-        if sys.platform=='darwin':
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
-        else:
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
-
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=initPath,
-            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
-            #update exp name
-            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
-            self.exp.setExpName(shortName)
-            #actually save
-            self.fileSave(event=None, filename=newPath)
-            self.filename = newPath
-        try: #this seems correct on PC, but not on mac
-            dlg.destroy()
-        except:
-            pass
-        self.updateWindowTitle()
-    def checkSave(self):
-        """Check whether we need to save before quitting
-        """
-        if hasattr(self, 'isModified') and self.isModified:
-            dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %self.filename,
-                caption='Warning', style=wx.YES_NO|wx.CANCEL )
-            resp = dlg.ShowModal()
-            sys.stdout.flush()
-            dlg.Destroy()
-            if resp  == wx.ID_CANCEL: return 0 #return, don't quit
-            elif resp == wx.ID_YES: self.fileSave() #save then quit
-            elif resp == wx.ID_NO: pass #don't save just quit
-        return 1
-    def fileClose(self, event=None, checkSave=True):
-        """Not currently used? Frame is closed rather than file"""
-        if checkSave:
-            ok = self.checkSave()
-            if not ok: return -1#user cancelled
-        #close self
-        self.routinePanel.removePages()
-        self.filename = 'untitled.psyexp'
-        self.resetUndoStack()#will add the current exp as the start point for undo
-        self.updateAllViews()
-        return 1
     def resetUndoStack(self):
         """Reset the undo stack. e.g. do this *immediately after* creating a new exp.
 
@@ -1725,7 +1770,6 @@ class BuilderFrame(wx.Frame):
         or -1 if redo failed (probably can't undo)
         """
         if (self.currentUndoLevel)>=len(self.currentUndoStack):
-            print self.currentUndoLevel, len(self.currentUndoStack)
             return -1#can't undo
         self.currentUndoLevel+=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
@@ -1772,7 +1816,7 @@ class BuilderFrame(wx.Frame):
         shortName, ext = os.path.splitext(scriptName)
 
         #set the directory and add to path
-        os.chdir(path)
+        if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
         f = open(fullPath, 'w')
         f.write(script.getvalue())
         f.close()
@@ -1841,6 +1885,5 @@ class BuilderFrame(wx.Frame):
         if dlg.OK:
             self.addToUndoStack("edit experiment settings")
             self.setIsModified(True)
-        print self.exp.settings.params['Units'], self.exp.settings.params['Units'].val
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
