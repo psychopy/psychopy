@@ -14,16 +14,16 @@ class Preferences:
     def __init__(self):
         self.prefsCfg=None#the config object for the preferences
         self.appDataCfg=None #the config object for the app data (users don't need to see)
-        
+
         self.general=None
         self.coder=None
         self.builder=None
-        self.connections=None        
+        self.connections=None
         self.paths={}#this will remain a dictionary
-        
+
         self.getPaths()
-        self.loadAll()            
-        
+        self.loadAll()
+
     def getPaths(self):
         #on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath= os.path.abspath(__file__)
@@ -41,7 +41,7 @@ class Preferences:
         if os.path.isdir(join(dirApp, 'Resources')):
             dirResources = join(dirApp, 'Resources')
         else:dirResources = dirApp
-        
+
         self.paths['psychopy']=dirPsychoPy
         self.paths['appDir']=dirApp
         self.paths['appFile']=join(dirApp, 'PsychoPy.py')
@@ -53,8 +53,8 @@ class Preferences:
         self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
 
     def loadAll(self):
-        """A function to allow a class with attributes to be loaded from a 
-        pickle file necessarily without having the same attribs (so additional 
+        """A function to allow a class with attributes to be loaded from a
+        pickle file necessarily without having the same attribs (so additional
         attribs can be added in future).
         """
         self._validator=configobjValidate.Validator()
@@ -66,15 +66,15 @@ class Preferences:
         self.prefsCfg.validate(self._validator, copy=False)#validate after the merge
         #simplify namespace
         self.general=self.prefsCfg['general']
-        self.app = self.prefsCfg['app'] 
+        self.app = self.prefsCfg['app']
         self.coder=self.prefsCfg['coder']
         self.builder=self.prefsCfg['builder']
-        self.connections=self.prefsCfg['connections'] 
+        self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
 
         #override some platfrom-specific settings
         if sys.platform=='darwin':
-            self.prefsCfg['app']['allowImportModules']=False            
+            self.prefsCfg['app']['allowImportModules']=False
         #connections
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
     def saveAppData(self):
@@ -92,10 +92,10 @@ class Preferences:
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
-        cfg.validate(self._validator, copy=True)  
-        return cfg   
-    def loadSitePrefs(self):        
-        #load against the spec, then validate and save to a file 
+        cfg.validate(self._validator, copy=True)
+        return cfg
+    def loadSitePrefs(self):
+        #load against the spec, then validate and save to a file
         #(this won't overwrite existing values, but will create additional ones if necess)
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
@@ -107,7 +107,7 @@ class Preferences:
             "the file can be found at %s" %self.paths['sitePrefsFile']]
         cfg.filename = self.paths['userPrefsFile']
         return cfg
-    def loadUserPrefs(self):  
+    def loadUserPrefs(self):
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         #create file and validate based on template, but then close and reopen
         #if we validate the file that we actually use then all the settings will be
@@ -115,15 +115,23 @@ class Preferences:
         #then add user prefs
         #BUT we also can't write an actual file, because that kills easy_install,
         #so now using a StringIO object
-        cfg1 = configobj.ConfigObj(join(self.paths['userPrefs'], 'tmp'), configspec=prefsSpec)
-        cfg1.validate(self._validator, copy=False)#copy means all settings get saved   
+
+        #check/create path for tmp file
+        if not os.path.isdir(self.paths['userPrefs']):
+            try: os.makedirs(self.paths['userPrefs'])
+            except:
+                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %tmpPath
+
+        tmpPath = join(self.paths['userPrefs'], 'tmp')
+        cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
+        cfg1.validate(self._validator, copy=False)#copy means all settings get saved
         cfg1.initial_comment=["#preferences set in this file will override the site-prefs",
             "#to set a preference here simply copy and paste from the site-prefs file",
             "the file can be found at %s" %self.paths['userPrefsFile']]
         buff=StringIO.StringIO()
         cfg1.write()
         #then create the actual cfg from this stringIO object
-        cfg = configobj.ConfigObj(join(self.paths['userPrefs'], 'tmp'), configspec=prefsSpec)
+        cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg.filename = self.paths['userPrefsFile']
         return cfg
     def getAutoProxy(self):
@@ -133,4 +141,3 @@ class Preferences:
             return urllib.getproxies()['http']
         else:
             return ""
-        

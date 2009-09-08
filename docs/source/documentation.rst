@@ -7,17 +7,17 @@ Contents:
    :maxdepth: 1
    
    overview
+   contributing
    installation
    gettingStarted
    builder/builder
    coder/coder
-   api/api
    prefs
    timing/timing
    recipes/recipes
    faqs/faqs
+   api/api
    psyexp
-   contributing
    glossary
    indices
 

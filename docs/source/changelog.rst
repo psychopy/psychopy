@@ -8,6 +8,17 @@ Changelog
 PsychoPy 1.50
 ------------------------------
 
+PsychoPy 1.50.02
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED problem loading .psydat files component variables were being saved but not reloaded
+* removed debugging messages that were appearing in Coder output panel
+
+PsychoPy 1.50.01
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED problem creating prefs file on first use
+* FIXED problem with removing (identical) routines in Flow panel
+* FIXED problem with avbin import (OS X standalone version)
+
 PsychoPy 1.50.00
 ~~~~~~~~~~~~~~~~~~~~~~
 * ADDED A preview of the new application structure and GUI
@@ -20,7 +31,7 @@ PsychoPy 1.50.00
 * BACKWARDS NONCOMPAT: added 'all_mean' (and similar) data types to TrialHandler.saveAsText and these are now default
 * ADDED TrialType object to data (extends traditional dicts so that trial.SF can be used as well as trial['SF'])
 * converted docs/website to sphinx rather than wiki (contained in svn)
-* FIXED bug with MovieStim not displaying corretly after SimpleImageStim
+* FIXED bug with MovieStim not displaying correctly after SimpleImageStim
 * FIXED incorrect wx sizing of app(IDE) under OS X on opening
 * CHANGED license to GPL (more restrictive, preventing proprietary use)
 * CHANGED gui dialogs are centered on screen rather than wx default position

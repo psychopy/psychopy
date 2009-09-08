@@ -8,7 +8,7 @@ import keyword, os, sys, string, StringIO, glob, platform
 import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
-from psychopy.app import stdOutRich
+from psychopy.app import stdOutRich, dialogs
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -800,9 +800,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
         # was it still not found?
         if loc == -1:
-            dlg = wx.MessageDialog(self, 'Unable to find the search text.',
-                          'Not found!',
-                          wx.OK | wx.ICON_INFORMATION)
+            dlg = dialogs.MessageDialog(self, message='Unable to find "%s"' %findstring,type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:               
@@ -846,13 +844,13 @@ class CoderFrame(wx.Frame):
         self.ignoreErrors = False
         
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
-            self.appData['winH'], self.appData['winH'] =wx.DefaultSize
+            self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
         wx.Frame.__init__(self, parent, ID, title,
                          (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']))
                   
-        self.panel = wx.Panel(self)      
+        #self.panel = wx.Panel(self)      
         self.Hide()#ugly to see it all initialise
         #create icon
         if sys.platform=='darwin':
@@ -885,7 +883,7 @@ class CoderFrame(wx.Frame):
         self.makeToolbar()#must be before the paneManager for some reason                 
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
-                  
+        
         #create an editor pane
         self.paneManager.SetFlags(wx.aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
@@ -954,10 +952,9 @@ class CoderFrame(wx.Frame):
         if self.appData['auiPerspective']:
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
-            self.SetMinSize(wx.Size(800, 800)) #min size for the whole window
+            self.SetMinSize(wx.Size(600, 800)) #min size for the whole window
             self.Fit()
             self.paneManager.Update()
-            self.SetMinSize(wx.Size(200, 200)) #min size for the whole window
         self.SendSizeEvent()
 
     def makeMenus(self):
@@ -1239,8 +1236,7 @@ class CoderFrame(wx.Frame):
             doc = self.notebook.GetPage(ii)
             filename=doc.filename
             if doc.UNSAVED:
-                dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
-                    caption='Warning', style=wx.YES_NO|wx.CANCEL|wx.CENTER )
+                dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
@@ -1254,8 +1250,9 @@ class CoderFrame(wx.Frame):
         close the frame or hide it
         """
         if self.app.builder==None and platform.system()!='Darwin':
-            if not self.app.quitting: self.app.quit()
-            return#app.quit() will have closed the frame already
+            if not self.app.quitting: 
+                self.app.quit()
+                return#app.quit() will have closed the frame already
             
         if checkSave: self.checkSave()#check all files before initiating close of any
         
@@ -1342,7 +1339,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
-        self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
+        self.SetLabel('PsychoPy Coder - %s' %self.currentDoc.filename)
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')
             self.currentDoc.analyseScript()
@@ -1443,8 +1440,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
             sys.stdout.flush()
-            dlg = wx.MessageDialog(self, message='Save changes to %s before quitting?' %filename,
-                caption='Warning', style=wx.YES_NO|wx.CANCEL )
+            dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename,type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()
@@ -1603,7 +1599,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc.Cut()#let the text ctrl handle this
     def paste(self, event):
         foc= self.FindFocus()
-        foc.Paste()
+        if hasattr(foc, 'paste'): foc.Paste()
     def undo(self, event):
         self.currentDoc.Undo()
     def redo(self, event):
