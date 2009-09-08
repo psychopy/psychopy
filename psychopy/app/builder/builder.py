@@ -1402,7 +1402,7 @@ class BuilderFrame(wx.Frame):
                           Right())
         self._mgr.AddPane(self.flowPanel, 
                           wx.aui.AuiPaneInfo().
-                          Name("Flow").Caption("Flow").
+                          Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
                           RightDockable(True).LeftDockable(True).CloseButton(False).
                           Bottom())
         #tell the manager to 'commit' all the changes just made
@@ -1413,8 +1413,9 @@ class BuilderFrame(wx.Frame):
             self._mgr.LoadPerspective(self.appData['auiPerspective'])
         self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
         self.Fit()
-        self._mgr.Update()
-            
+        self.SendSizeEvent()
+        self._mgr.Update()        
+        
         #self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
@@ -1572,8 +1573,9 @@ class BuilderFrame(wx.Frame):
     def closeFrame(self, event=None, checkSave=True):
 
         if self.app.coder==None and platform.system()!='Darwin':
-            if not self.app.quitting: self.app.quit()
-            return#app.quit() will have closed the frame already
+            if not self.app.quitting: 
+                self.app.quit()
+                return#app.quit() will have closed the frame already
 
         if checkSave:
             ok=self.checkSave()
