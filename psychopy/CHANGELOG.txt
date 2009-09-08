@@ -14,6 +14,7 @@ PsychoPy 1.50.02
 * removed debugging messages that were appearing in Coder output panel
 * FIXED long-standing problem (OS X only) with save-unchanged dialogs that won't go away
 * FIXED problem with 'cancel' not always working on save-unchanged dialogs
+* ADDED warning dialog if user adds component without having any routines
 
 PsychoPy 1.50.01
 ~~~~~~~~~~~~~~~~~~~~~~

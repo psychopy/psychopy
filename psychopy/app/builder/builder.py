@@ -667,9 +667,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
 
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane, self)
     def getCurrentRoutine(self):
-        return self.getCurrentPage().routine
+        routinePage=self.getCurrentPage()
+        if routinePage:
+            return routinePage.routine
+        else: #no routine page
+            return None
     def getCurrentPage(self):
-        return self.GetPage(self.GetSelection())
+        if self.GetSelection()>=0:
+            return self.GetPage(self.GetSelection())
+        else:#there are no routine pages
+            return None
     def addRoutinePage(self, routineName, routine):
 #        routinePage = RoutinePage(parent=self, routine=routine)
         routinePage = RoutineCanvas(notebook=self, routine=routine)
@@ -747,6 +754,10 @@ class ComponentsPanel(scrolled.ScrolledPanel):
     def onComponentAdd(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
+        if not currRoutinePage:
+            dialogs.MessageDialog(self,"Create a routine (Experiment menu) before adding components", 
+                type='Info', title='Error').ShowModal()
+            return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         #get component name
         newClassStr = self.componentFromID[evt.GetId()]
@@ -764,7 +775,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
-
+        return True
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False):
         """Create a set of ctrls for a particular Component Parameter, to be
