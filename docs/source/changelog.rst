@@ -8,6 +8,11 @@ Changelog
 PsychoPy 1.50
 ------------------------------
 
+PsychoPy 1.50.02
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED problem loading .psydat files component variables were being saved but not reloaded
+* removed debugging messages that were appearing in Coder output panel
+
 PsychoPy 1.50.01
 ~~~~~~~~~~~~~~~~~~~~~~
 * FIXED problem creating prefs file on first use

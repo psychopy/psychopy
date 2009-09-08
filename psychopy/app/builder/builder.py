@@ -1545,7 +1545,7 @@ class BuilderFrame(wx.Frame):
 
         if checkSave:
             ok=self.checkSave()
-            if not ok: return -1
+            if not ok: return False
         self.appData['prevFile']=self.filename
         self.Destroy()
         self.app.builder=None
@@ -1556,7 +1556,8 @@ class BuilderFrame(wx.Frame):
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""
         # check whether existing file is modified
-        if closeCurrent: self.fileClose()
+        if closeCurrent: #if no exp exists then don't try to close it
+            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment()
         self.resetUndoStack()
@@ -1573,8 +1574,8 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
-#        if closeCurrent:
-#            self.fileClose()#close the existing (and prompt for save if necess)
+        if closeCurrent:
+            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.exp.loadFromXML(filename)
         self.resetUndoStack()
         self.setIsModified(False)
@@ -1585,6 +1586,71 @@ class BuilderFrame(wx.Frame):
             self.routinePanel.addRoutinePage(thisRoutineName, routine)
         #update the views
         self.updateAllViews()
+    def fileSave(self,event=None, filename=None):
+        """Save file, revert to SaveAs if the file hasn't yet been saved
+        """
+        if filename==None:
+            filename = self.filename
+        if filename.startswith('untitled'):
+            if not self.fileSaveAs(filename):
+                return False #the user cancelled during saveAs
+        else:
+            self.exp.saveToXML(filename)
+        self.setIsModified(False)
+        return True
+    def fileSaveAs(self,event=None, filename=None):
+        """
+        """
+        if filename==None: filename = self.filename
+        initPath, filename = os.path.split(filename)
+
+        os.getcwd()
+        if sys.platform=='darwin':
+            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+        else:
+            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
+        returnVal=False
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=initPath,
+            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            #update exp name
+            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
+            self.exp.setExpName(shortName)
+            #actually save
+            self.fileSave(event=None, filename=newPath)
+            self.filename = newPath
+            returnVal = 1
+        try: #this seems correct on PC, but not on mac
+            dlg.destroy()
+        except:
+            pass
+        self.updateWindowTitle()
+        return returnVal
+    def checkSave(self):
+        """Check whether we need to save before quitting
+        """
+        if hasattr(self, 'isModified') and self.isModified:
+            dlg = dialogs.WarningDialog(self,'Experiment has changed. Save before quitting?')
+            resp = dlg.ShowModal()
+            dlg.Destroy()
+            if resp  == wx.ID_CANCEL: return False #return, don't quit
+            elif resp == wx.ID_YES: 
+                if not self.fileSave(): return False #user might cancel during save
+            elif resp == wx.ID_NO: pass #don't save just quit
+        return 1
+    def fileClose(self, event=None, checkSave=True):
+        """Not currently used? Frame is closed rather than file"""
+        if checkSave:
+            ok = self.checkSave()
+            if not ok: return False#user cancelled
+        #close self
+        self.routinePanel.removePages()
+        self.filename = 'untitled.psyexp'
+        self.resetUndoStack()#will add the current exp as the start point for undo
+        self.updateAllViews()
+        return 1
     def updateAllViews(self):
         self.flowPanel.redrawFlow()
         self.routinePanel.redrawRoutines()
@@ -1612,70 +1678,8 @@ class BuilderFrame(wx.Frame):
 #        if newVal:
         self.toolbar.EnableTool(self.IDs.tbFileSave, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
-
     def getIsModified(self):
         return self.isModified
-    def fileSave(self,event=None, filename=None):
-        """Save file, revert to SaveAs if the file hasn't yet been saved
-        """
-        if filename==None:
-            filename = self.filename
-        if filename.startswith('untitled'):
-            self.fileSaveAs(filename)
-        else:
-            self.exp.saveToXML(filename)
-
-        self.setIsModified(False)
-    def fileSaveAs(self,event=None, filename=None):
-        """
-        """
-        if filename==None: filename = self.filename
-        initPath, filename = os.path.split(filename)
-
-        os.getcwd()
-        if sys.platform=='darwin':
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
-        else:
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
-
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=initPath,
-            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
-            #update exp name
-            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
-            self.exp.setExpName(shortName)
-            #actually save
-            self.fileSave(event=None, filename=newPath)
-            self.filename = newPath
-        try: #this seems correct on PC, but not on mac
-            dlg.destroy()
-        except:
-            pass
-        self.updateWindowTitle()
-    def checkSave(self):
-        """Check whether we need to save before quitting
-        """
-        if hasattr(self, 'isModified') and self.isModified:
-            dlg = dialogs.WarningDialog(self,'Experiment has changed. Save before quitting?')
-            resp = dlg.ShowModal()
-            dlg.Destroy()
-            if resp  == wx.ID_CANCEL: return 0 #return, don't quit
-            elif resp == wx.ID_YES: self.fileSave() #save then quit
-            elif resp == wx.ID_NO: pass #don't save just quit
-        return 1
-    def fileClose(self, event=None, checkSave=True):
-        """Not currently used? Frame is closed rather than file"""
-        if checkSave:
-            ok = self.checkSave()
-            if not ok: return -1#user cancelled
-        #close self
-        self.routinePanel.removePages()
-        self.filename = 'untitled.psyexp'
-        self.resetUndoStack()#will add the current exp as the start point for undo
-        self.updateAllViews()
-        return 1
     def resetUndoStack(self):
         """Reset the undo stack. e.g. do this *immediately after* creating a new exp.
 

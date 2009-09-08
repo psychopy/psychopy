@@ -442,7 +442,7 @@ class Window:
         that is understood by PIL (tif, jpg, bmp, png...)
 
         Usage:
-            - ``myWin.writeMovieFrames('frame.tif')``
+            - ``myWin.saveMovieFrames('frame.tif')``
                 #writes a series of frames as frame001.tif, frame002.tif etc...
 
         """

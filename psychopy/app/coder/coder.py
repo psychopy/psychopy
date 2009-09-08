@@ -1341,7 +1341,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc.filename=filename
             self.setFileModified(False)
         
-        self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
+        self.SetLabel('PsychoPy Coder - %s' %self.currentDoc.filename)
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')
             self.currentDoc.analyseScript()

@@ -12,6 +12,8 @@ PsychoPy 1.50.02
 ~~~~~~~~~~~~~~~~~~~~~~
 * FIXED problem loading .psydat files component variables were being saved but not reloaded
 * removed debugging messages that were appearing in Coder output panel
+* FIXED long-standing problem (OS X only) with save-unchanged dialogs that won't go away
+* FIXED problem with 'cancel' not always working on save-unchanged dialogs
 
 PsychoPy 1.50.01
 ~~~~~~~~~~~~~~~~~~~~~~
