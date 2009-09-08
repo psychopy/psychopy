@@ -844,7 +844,7 @@ class CoderFrame(wx.Frame):
         self.ignoreErrors = False
         
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
-            self.appData['winH'], self.appData['winH'] =wx.DefaultSize
+            self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
         wx.Frame.__init__(self, parent, ID, title,
                          (self.appData['winX'], self.appData['winY']),
@@ -883,7 +883,7 @@ class CoderFrame(wx.Frame):
         self.makeToolbar()#must be before the paneManager for some reason                 
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
-                  
+        
         #create an editor pane
         self.paneManager.SetFlags(wx.aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
@@ -952,10 +952,9 @@ class CoderFrame(wx.Frame):
         if self.appData['auiPerspective']:
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
-            self.SetMinSize(wx.Size(800, 800)) #min size for the whole window
+            self.SetMinSize(wx.Size(600, 800)) #min size for the whole window
             self.Fit()
             self.paneManager.Update()
-            self.SetMinSize(wx.Size(200, 200)) #min size for the whole window
         self.SendSizeEvent()
 
     def makeMenus(self):

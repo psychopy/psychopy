@@ -22,7 +22,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.dpi=self.app.dpi
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = (8*self.dpi,2*self.dpi))
         self.SetBackgroundColour(canvasColour)
-        #self.panel = wx.Panel(self,-1,size=(600,200))
         self.needUpdate=True
         self.maxWidth  = 14*self.dpi
         self.maxHeight = 3*self.dpi
@@ -298,7 +297,10 @@ class FlowPanel(wx.ScrolledWindow):
         """
         name=routine.name
         font = self.GetFont()
-        font.SetPointSize(1200/self.dpi)
+        if platform.system()=='Darwin':
+            font.SetPointSize(1400/self.dpi)
+        else:
+            font.SetPointSize(1000/self.dpi)
         r, g, b = rgb
 
         #get size based on text
@@ -338,7 +340,10 @@ class FlowPanel(wx.ScrolledWindow):
 
         #add a name label that can be clicked on
         font = self.GetFont()
-        font.SetPointSize(800/self.dpi)
+        if platform.system()=='Darwin':
+            font.SetPointSize(800/self.dpi)
+        else:
+            font.SetPointSize(800/self.dpi)
         self.SetFont(font); dc.SetFont(font)
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
@@ -1340,11 +1345,9 @@ class DlgExperimentProperties(_BaseParamsDlg):
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
-                 pos=wx.DefaultPosition, size=(800, 600),files=None,
+                 pos=wx.DefaultPosition, files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
-        wx.Frame.__init__(self, parent, id, title, pos, size, style)
-
-        self.panel = wx.Panel(self)
+                 
         self.app=app
         self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
@@ -1352,6 +1355,15 @@ class BuilderFrame(wx.Frame):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
+        
+        if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
+            self.appData['winH'], self.appData['winW'] =wx.DefaultSize
+            self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+        wx.Frame.__init__(self, parent, id, title, (self.appData['winX'], self.appData['winY']),
+                         size=(self.appData['winW'],self.appData['winH']),
+                         style=style)
+
+        self.panel = wx.Panel(self)
 
         # create our panels
         self.flowPanel=FlowPanel(frame=self)
@@ -1378,23 +1390,32 @@ class BuilderFrame(wx.Frame):
             self.resetUndoStack() #so that the above 2 changes don't show up as undo-able
             self.setIsModified(False)
 
-        if True: #control the panes using aui manager
-            self._mgr = wx.aui.AuiManager(self)
-            self._mgr.AddPane(self.routinePanel,wx.CENTER, 'Routines')
-            self._mgr.AddPane(self.componentButtons, wx.RIGHT)
-            self._mgr.AddPane(self.flowPanel,wx.BOTTOM, 'Flow')
-#             tell the manager to 'commit' all the changes just made
-            self._mgr.Update()
-        else:
-            self.routineSizer = wx.BoxSizer(wx.HORIZONTAL)
-            self.routineSizer.Add(self.routinePanel, 0, wx.ALIGN_LEFT|wx.EXPAND, 15)
-            self.routineSizer.Add(self.componentButtons,0, wx.ALIGN_RIGHT, 15)
-            self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-            self.mainSizer.Add(self.routineSizer, 1)
-            self.mainSizer.Add(self.flowPanel, 1, wx.ALIGN_BOTTOM)
-            self.SetSizer(self.mainSizer)
-
-        self.SetAutoLayout(True)
+        #control the panes using aui manager
+        self._mgr = wx.aui.AuiManager(self)
+        self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+                          Name("Routines").Caption("Routines").
+                          CenterPane(). #'center panes' expand to fill space
+                          CloseButton(False).MaximizeButton(True))
+        self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+                          Name("Components").Caption("Components").
+                          RightDockable(True).LeftDockable(True).CloseButton(False).
+                          Right())
+        self._mgr.AddPane(self.flowPanel, 
+                          wx.aui.AuiPaneInfo().
+                          Name("Flow").Caption("Flow").
+                          RightDockable(True).LeftDockable(True).CloseButton(False).
+                          Bottom())
+        #tell the manager to 'commit' all the changes just made
+        self._mgr.Update()
+        
+        #self.SetSizer(self.mainSizer)#not necessary for aui type controls
+        if self.appData['auiPerspective']:
+            self._mgr.LoadPerspective(self.appData['auiPerspective'])
+        self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
+        self.Fit()
+        self._mgr.Update()
+            
+        #self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
     def makeToolbar(self):
@@ -1558,6 +1579,22 @@ class BuilderFrame(wx.Frame):
             ok=self.checkSave()
             if not ok: return False
         self.appData['prevFile']=self.filename
+        
+        #get size and window layout info
+        if self.IsIconized():
+            self.Iconize(False)#will return to normal mode to get size info
+            self.appData['state']='normal'
+        elif self.IsMaximized():
+            self.Maximize(False)#will briefly return to normal mode to get size info
+            self.appData['state']='maxim'
+        else:
+            self.appData['state']='normal'
+        self.appData['auiPerspective'] = self._mgr.SavePerspective()
+        self.appData['winW'], self.appData['winH']=self.GetSize()
+        self.appData['winX'], self.appData['winY']=self.GetPosition() 
+        if sys.platform=='darwin':
+            self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+        
         self.Destroy()
         self.app.builder=None
         return 1#indicates that check was successful
