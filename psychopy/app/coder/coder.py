@@ -1599,7 +1599,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc.Cut()#let the text ctrl handle this
     def paste(self, event):
         foc= self.FindFocus()
-        foc.Paste()
+        if hasattr(foc, 'paste'): foc.Paste()
     def undo(self, event):
         self.currentDoc.Undo()
     def redo(self, event):
