@@ -25,22 +25,14 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(yesBtn, wx.ALIGN_RIGHT)
         elif type=='Info':#just an OK button
-            okBtn=wx.Button(self,wx.ID_YES,'OK')
+            okBtn=wx.Button(self,wx.ID_OK,'OK')
             okBtn.SetDefault()
-            self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_CANCEL)
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
             btnSizer.Add(okBtn, wx.ALIGN_RIGHT)
         #configure sizers and fit
         sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
         self.Center()
         self.SetSizerAndFit(sizer)
-#    def onYes(self,event):
-#        self.EndModal(wx.ID_YES)
-#    def onNo(self,event):
-#        self.EndModal(wx.ID_NO)
-#    def onCancel(self,event):
-#        self.EndModal(wx.ID_CANCEL)
-#    def onOK(self,event):
-#        self.EndModal(wx.ID_OK)
     def onButton(self,event):
         self.EndModal(event.GetId())
         
