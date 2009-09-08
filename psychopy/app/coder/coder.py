@@ -800,9 +800,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
         # was it still not found?
         if loc == -1:
-            dlg = wx.MessageDialog(self, 'Unable to find the search text.',
-                          'Not found!',
-                          wx.OK | wx.ICON_INFORMATION)
+            dlg = dialogs.MessageDialog(self, message='Unable to find "%s"' %findstring,type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:               
@@ -1239,7 +1237,7 @@ class CoderFrame(wx.Frame):
             doc = self.notebook.GetPage(ii)
             filename=doc.filename
             if doc.UNSAVED:
-                dlg = dialogs.WarningDialog(self,message='Save changes to %s before quitting?' %filename)
+                dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
@@ -1442,7 +1440,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
             sys.stdout.flush()
-            dlg = dialogs.WarningDialog(self,message='Save changes to %s before quitting?' %filename)
+            dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename,type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()

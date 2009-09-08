@@ -1576,6 +1576,7 @@ class BuilderFrame(wx.Frame):
             filename = dlg.GetPath()
         if closeCurrent:
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
+        self.exp = experiment.Experiment()
         self.exp.loadFromXML(filename)
         self.resetUndoStack()
         self.setIsModified(False)
@@ -1632,7 +1633,7 @@ class BuilderFrame(wx.Frame):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
-            dlg = dialogs.WarningDialog(self,'Experiment has changed. Save before quitting?')
+            dlg = dialogs.MessageDialog(self,'Experiment has changed. Save before quitting?', type='Warning')
             resp = dlg.ShowModal()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL: return False #return, don't quit

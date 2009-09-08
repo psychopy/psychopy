@@ -422,7 +422,7 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             #warn user that data will be lost
-            dlg = dialogs.WarningDialog(self,message='Save changes to monitor settings before quitting?')
+            dlg = dialogs.MessageDialog(self,message='Save changes to monitor settings before quitting?',type='Warning')
             resp = dlg.ShowModal()
             if resp  == wx.ID_CANCEL:
                 return 1 #return before quitting
@@ -441,8 +441,8 @@ class MainFrame(wx.Frame):
                 #it didnt' really change
                 return 1
             #warn user that data will be lost
-            dlg = wx.MessageDialog(self, 'Save changes to monitor?',
-                'Warning', wx.YES_NO|wx.CANCEL )
+            dlg = dialogs.MessageDialog(self, 'Save changes to monitor?',
+                type='Warning')
             resp = dlg.ShowModal()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL:
@@ -542,9 +542,9 @@ class MainFrame(wx.Frame):
 
     def onDeleteMon(self, event):
         monToDel = self.currentMonName
-        dlg = wx.MessageDialog(self, 'Are you sure you want to delete all details for? '+\
+        dlg = dialogs.MessageDialog(parent=self, message='Are you sure you want to delete all details for? '+\
             monToDel + ' (cannot be undone)',
-            'Warning', wx.YES_NO)
+            type='Warning')
         response = dlg.ShowModal()
         dlg.Destroy()
         if response == wx.ID_YES:
@@ -558,14 +558,13 @@ class MainFrame(wx.Frame):
             #load most recent calibration instead
             self.onChangeMonSelection(event=None)#this will load calibration "-1" (last calib)
             self.updateCalibList()
-        pass
 
     def onDeleteCalib(self, event):
         calToDel = self.ctrlCalibList.GetStringSelection()
         #warn user that data will be lost
-        dlg = wx.MessageDialog(self, 'Are you sure you want to delete this calibration? '+\
+        dlg = dialogs.MessageDialog(parent=self, message='Are you sure you want to delete this calibration? '+\
             '(cannot be undone)',
-            'Warning', wx.YES_NO)
+            type='Warning')
         if dlg.ShowModal() == wx.ID_YES:
             #delete it
             self.currentMon.delCalib(calToDel)

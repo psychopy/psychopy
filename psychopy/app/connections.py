@@ -4,7 +4,6 @@
 
 import urllib2, time, platform, sys, zipfile, os
 import psychopy
-
 import wx
 
 class UpdatesDlg(wx.MessageDialog):
@@ -106,8 +105,7 @@ def checkForUpdates(app, proxy=None, currVersion=psychopy.__version__):
         msg = "PsychoPy v%s is available (you are running %s). " %(info['version'], currVersion)
         msg+= "For details see full changelog at\nhttp://www.psychopy.org/changelog.html"
         msg+= "\n\nDo you want to update?\n\nYes = install\nCancel = not now\nNo = skip this version"
-        dlg = wx.MessageDialog(None, style=wx.YES_NO|wx.CANCEL|wx.CENTER,
-            message=msg, caption='New version available')
+        dlg = dialogs.MessageDialog(None, message=msg, type='Warning', title='New version available')
         retVal = dlg.ShowModal()
         if retVal==wx.ID_YES: updatePsychoPy()
         elif retVal==wx.ID_CANCEL:pass
