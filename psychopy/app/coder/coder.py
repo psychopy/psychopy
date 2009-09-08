@@ -850,7 +850,7 @@ class CoderFrame(wx.Frame):
                          (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']))
                   
-        self.panel = wx.Panel(self)      
+        #self.panel = wx.Panel(self)      
         self.Hide()#ugly to see it all initialise
         #create icon
         if sys.platform=='darwin':
@@ -1250,8 +1250,9 @@ class CoderFrame(wx.Frame):
         close the frame or hide it
         """
         if self.app.builder==None and platform.system()!='Darwin':
-            if not self.app.quitting: self.app.quit()
-            return#app.quit() will have closed the frame already
+            if not self.app.quitting: 
+                self.app.quit()
+                return#app.quit() will have closed the frame already
             
         if checkSave: self.checkSave()#check all files before initiating close of any
         
