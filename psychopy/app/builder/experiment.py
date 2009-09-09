@@ -167,7 +167,7 @@ class Experiment:
         if 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
         if 'valType' in paramNode.keys(): 
             params[name].valType = paramNode.get('valType')
-            if params[name].valType=='bool': exec("params[name].val=%s" %params[name].valType)
+            if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys(): 
             params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
