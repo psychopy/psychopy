@@ -7,6 +7,9 @@ Changelog
 
 PsychoPy 1.50
 ------------------------------
+* FIXED problem with loading files (monitor fullScr incorrectly reloaded)
+* FIXED problem with Paste in coder
+
 
 PsychoPy 1.50.02
 ~~~~~~~~~~~~~~~~~~~~~~
