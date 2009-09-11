@@ -88,26 +88,28 @@ class KeyboardComponent(BaseComponent):
         else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
-        buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
-        buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
         
         #how do we store it?
-        if store=='first key':#then see if a key has already been pressed
-            buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
+        if store!='nothing' or storeRT or storeCorr:
+            #we are going to store something
+            buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
-            buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
-        elif store=='last key':
-            buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
-        elif store=='all keys':
-            buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
-        #get RT
-        if storeRT:
-            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
-        #check if correct (if necess)
-        if storeCorr:
-            buff.writeIndented("#was this 'correct'?\n" %self.params)
-            buff.writeIndented("if (%(correctIf)s): %(name)s.corr=1\n" %(self.params))
-            buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
+            if store=='first key':#then see if a key has already been pressed
+                buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
+                buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
+                buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
+            elif store=='last key':
+                buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
+            elif store=='all keys':
+                buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
+            #get RT
+            if storeRT:
+                buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+            #check if correct (if necess)
+            if storeCorr:
+                buff.writeIndented("#was this 'correct'?\n" %self.params)
+                buff.writeIndented("if (%(correctIf)s): %(name)s.corr=1\n" %(self.params))
+                buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
         #does the response end the trial?
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)

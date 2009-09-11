@@ -1308,7 +1308,7 @@ class CoderFrame(wx.Frame):
             
             #create an editor window to put the text in
             p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
-                
+            
             #load text from document
             if os.path.isfile(filename):
                 self.currentDoc.SetText(open(filename).read())
