@@ -1873,9 +1873,9 @@ class BuilderFrame(wx.Frame):
     def compileScript(self, event=None):
         script = self.exp.writeScript()
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
+        self.app.showCoder()#make sure coder is visible
         self.app.coder.fileNew(filepath=name)
         self.app.coder.currentDoc.SetText(script.getvalue())
-        self.app.showCoder()#make sure coder is visible
     def setExperimentSettings(self,event=None):
         component=self.exp.settings
         dlg = DlgExperimentProperties(frame=self,
