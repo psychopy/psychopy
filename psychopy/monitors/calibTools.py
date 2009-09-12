@@ -5,10 +5,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from calibData import *
-from psychopy import log, event, serial
-import psychopy.visual #must be imported this way because of mutual import
+from psychopy import __version__, log, serial
 import time
-__version__ = psychopy.__version__
     
 import string, os, time, glob, cPickle, sys
 from copy import deepcopy, copy
@@ -870,7 +868,7 @@ def getLumSeriesPR650(lumLevels=8,
             that the visual system is performing as expected).
 
     """
-
+    import psychopy.event, psychopy.visual
     #setup pr650
     if isinstance(photometer, Photometer):
         pr650=photometer
@@ -914,7 +912,7 @@ def getLumSeriesPR650(lumLevels=8,
     myWin.flip()
 
     #stay like this until key press (or 30secs has passed)
-    event.waitKeys(30)
+    psychopy.event.waitKeys(30)
 
     #what are the test values of luminance
     if (type(lumLevels) is int) or (type(lumLevels) is float):
@@ -944,7 +942,7 @@ def getLumSeriesPR650(lumLevels=8,
             myWin.flip()
             time.sleep(0.5)#allowing the screen to settle (no good reason!)
             #check for quit request
-            for thisKey in event.getKeys():
+            for thisKey in psychopy.event.getKeys():
                 if thisKey in ['q', 'Q']:
                     myWin.close()
                     return numpy.array([])
@@ -960,7 +958,7 @@ def getLumSeriesPR650(lumLevels=8,
                     lumsList[gun,valN] =  pr650.lastLum
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
-                event.waitKeys()
+                psychopy.event.waitKeys()
 
     myWin.close() #we're done with the visual stimuli
     if havePR650:       return lumsList
@@ -976,6 +974,8 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
         'photometer' could be a photometer object or a serial port name on which
         a photometer
     """
+    import psychopy.event, psychopy.visual
+    
     if isinstance(photometer, Photometer):
         pr650=photometer
     else:
@@ -997,7 +997,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     testPatch.draw()
     myWin.flip()
     #stay like this until key press (or 30secs has passed)
-    event.waitKeys(30)
+    psychopy.event.waitKeys(30)
     spectra=[]
     for thisColor in [[1,-1,-1], [-1,1,-1], [-1,-1,1]]:
         #update stimulus
