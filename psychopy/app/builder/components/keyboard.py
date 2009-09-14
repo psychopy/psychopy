@@ -130,15 +130,14 @@ class KeyboardComponent(BaseComponent):
         elif store=='all keys': index=""
         
         #write the actual code
-        if store!='nothing':
+        if store!='nothing' and currLoop:
             buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            if currLoop:
-                buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
-                                   %(currLoop.params['name'],name,name,index))
-                if self.params['storeCorrect'].val==True:
-                    buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \
-                                       %(currLoop.params['name'], name, name))
-                if self.params['storeResponseTime'].val==True:
-                    buff.writeIndented("    %s.addData('%s.rt',%s.rt)\n" \
-                                       %(currLoop.params['name'], name, name))
+            buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
+                               %(currLoop.params['name'],name,name,index))
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \
+                                   %(currLoop.params['name'], name, name))
+            if self.params['storeResponseTime'].val==True:
+                buff.writeIndented("    %s.addData('%s.rt',%s.rt)\n" \
+                                   %(currLoop.params['name'], name, name))
             
