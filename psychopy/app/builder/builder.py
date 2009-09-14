@@ -667,10 +667,10 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.dpi=self.app.dpi
         wx.aui.AuiNotebook.__init__(self, frame, id)
 
+        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return#we haven't yet added an exp
-
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane, self)
+        
     def getCurrentRoutine(self):
         routinePage=self.getCurrentPage()
         if routinePage:
@@ -703,15 +703,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp
         """
-        #todo: check that the user really wants the routine deleted
         routine = self.GetPage(event.GetSelection()).routine
+        name=routine.name
+        print 'currentRoutine is', name
         #update experiment object and flow window (if this is being used)
-        if routine.name in self.frame.exp.routines.keys():
-            del self.frame.exp.routines[routine.name]
+        if name in self.frame.exp.routines.keys():
+            del self.frame.exp.routines[name]
         if routine in self.frame.exp.flow:
-            self.frame.exp.flow.remove(routine)
+            self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.redrawFlow()
-        self.frame.addToUndoStack("remove routine %" %routine.name)
+        self.frame.addToUndoStack("remove routine %s" %(name))
     def redrawRoutines(self):
         """Removes all the routines, adds them back and sets current back to orig
         """

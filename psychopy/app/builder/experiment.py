@@ -491,6 +491,11 @@ class Flow(list):
         self.insert(int(pos), newRoutine)
     def removeComponent(self,component,id=None):
         """Removes a Loop, LoopTerminator or Routine from the flow
+        
+        For a Loop (or initiator or terminator) to be deleted we can simply remove
+        the object using normal list syntax. For a Routine there may be more than 
+        one instance in the Flow, so either choose which one by specifying the id, or all
+        instances will be removed (suitable if the Routine has been deleted).
         """
         if component.getType() in ['LoopInitiator', 'LoopTerminator']:
             component=component.loop#and then continue to do the next
@@ -500,7 +505,12 @@ class Flow(list):
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
-            del self[id]
+            if id==None: 
+                #if the user removes an entire Routine we need to remove all antries in the Flow
+                #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
+                for id, compToDel in enumerate(self):
+                    if component.name==compToDel.name: del self[id]
+            else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
     def writeCode(self, s):
 
