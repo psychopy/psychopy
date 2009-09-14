@@ -213,9 +213,9 @@ class FlowPanel(wx.ScrolledWindow):
             return#we haven't yet added an exp
         expFlow = self.frame.exp.flow #retrieve the current flow from the experiment
         pdc=self.pdc
-        
+
         self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
-        
+
         pdc.Clear()#clear the screen
         pdc.RemoveAll()#clear all objects (icon buttons)
         pdc.BeginDrawing()
@@ -318,14 +318,14 @@ class FlowPanel(wx.ScrolledWindow):
         #draw text
         dc.SetTextForeground(rgb)
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
-        
+
         self.componentFromID[id]=routine
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
 
         return endX
-    def drawLoop(self,dc,name,loop,id, 
+    def drawLoop(self,dc,name,loop,id,
             startX,endX,
             base,height,rgb=[0,0,0]):
         xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
@@ -670,7 +670,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return#we haven't yet added an exp
-        
+
     def getCurrentRoutine(self):
         routinePage=self.getCurrentPage()
         if routinePage:
@@ -761,7 +761,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         if not currRoutinePage:
-            dialogs.MessageDialog(self,"Create a routine (Experiment menu) before adding components", 
+            dialogs.MessageDialog(self,"Create a routine (Experiment menu) before adding components",
                 type='Info', title='Error').ShowModal()
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
@@ -1091,7 +1091,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-            
+
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):
@@ -1348,7 +1348,7 @@ class BuilderFrame(wx.Frame):
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, files=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
-                 
+
         self.app=app
         self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
@@ -1356,7 +1356,7 @@ class BuilderFrame(wx.Frame):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        
+
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -1401,22 +1401,22 @@ class BuilderFrame(wx.Frame):
                           Name("Components").Caption("Components").
                           RightDockable(True).LeftDockable(True).CloseButton(False).
                           Right())
-        self._mgr.AddPane(self.flowPanel, 
+        self._mgr.AddPane(self.flowPanel,
                           wx.aui.AuiPaneInfo().
                           Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
                           RightDockable(True).LeftDockable(True).CloseButton(False).
                           Bottom())
         #tell the manager to 'commit' all the changes just made
         self._mgr.Update()
-        
+
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.appData['auiPerspective']:
             self._mgr.LoadPerspective(self.appData['auiPerspective'])
         self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
         self.Fit()
         self.SendSizeEvent()
-        self._mgr.Update()        
-        
+        self._mgr.Update()
+
         #self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
@@ -1542,19 +1542,19 @@ class BuilderFrame(wx.Frame):
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
-        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'*.psyexp'))
-        #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
+        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
         ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(demoList)))
         self.demos={}
         for n in range(len(demoList)):
             self.demos[ID_DEMOS[n]] = demoList[n]
         self.demosMenu = wx.Menu()
-        #menuBar.Append(self.demosMenu, '&Demos')
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
+            if shortname=="__init__.py": continue
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
+        menuBar.Append(self.demosMenu, '&Demos')
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1568,13 +1568,11 @@ class BuilderFrame(wx.Frame):
         self.helpMenu.Append(self.IDs.about, "&About...", "About PsychoPy")
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
 
-        self.demosMenu
-        self.helpMenu.AppendSubMenu(self.demosMenu, 'PsychoPy Demos')
         self.SetMenuBar(menuBar)
     def closeFrame(self, event=None, checkSave=True):
 
         if self.app.coder==None and platform.system()!='Darwin':
-            if not self.app.quitting: 
+            if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already
 
@@ -1582,7 +1580,7 @@ class BuilderFrame(wx.Frame):
             ok=self.checkSave()
             if not ok: return False
         self.appData['prevFile']=self.filename
-        
+
         #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
@@ -1594,10 +1592,10 @@ class BuilderFrame(wx.Frame):
             self.appData['state']='normal'
         self.appData['auiPerspective'] = self._mgr.SavePerspective()
         self.appData['winW'], self.appData['winH']=self.GetSize()
-        self.appData['winX'], self.appData['winY']=self.GetPosition() 
+        self.appData['winX'], self.appData['winY']=self.GetPosition()
         if sys.platform=='darwin':
             self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
-        
+
         self.Destroy()
         self.app.builder=None
         return 1#indicates that check was successful
@@ -1688,7 +1686,7 @@ class BuilderFrame(wx.Frame):
             resp = dlg.ShowModal()
             dlg.Destroy()
             if resp  == wx.ID_CANCEL: return False #return, don't quit
-            elif resp == wx.ID_YES: 
+            elif resp == wx.ID_YES:
                 if not self.fileSave(): return False #user might cancel during save
             elif resp == wx.ID_NO: pass #don't save just quit
         return 1
@@ -1808,8 +1806,12 @@ class BuilderFrame(wx.Frame):
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
         self.editMenu.Enable(wx.ID_UNDO,enable)
     def loadDemo(self, event=None):
-        #todo: loadDemo
-        pass
+        fileDir = self.demos[event.GetId()]
+        files = glob.glob(os.path.join(fileDir,'*.psydat'))
+        if len(files)==0:
+            print "Found no psyexp files in %s" %fileDir
+        else:
+            fileOpen(event=None, filename=files[0], closeCurrent=True)
     def runFile(self, event=None):
         script = self.exp.writeScript()
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
