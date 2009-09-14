@@ -440,7 +440,7 @@ class StairHandler:
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm')\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsPickle(filename+'.psydat')\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
     def getType(self):
         return 'StairHandler'

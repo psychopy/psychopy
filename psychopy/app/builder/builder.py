@@ -1807,11 +1807,11 @@ class BuilderFrame(wx.Frame):
         self.editMenu.Enable(wx.ID_UNDO,enable)
     def loadDemo(self, event=None):
         fileDir = self.demos[event.GetId()]
-        files = glob.glob(os.path.join(fileDir,'*.psydat'))
+        files = glob.glob(os.path.join(fileDir,'*.psyexp'))
         if len(files)==0:
             print "Found no psyexp files in %s" %fileDir
         else:
-            fileOpen(event=None, filename=files[0], closeCurrent=True)
+            self.fileOpen(event=None, filename=files[0], closeCurrent=True)
     def runFile(self, event=None):
         script = self.exp.writeScript()
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
