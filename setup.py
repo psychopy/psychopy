@@ -11,14 +11,14 @@ thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
 packages = ['psychopy','psychopy.ext','psychopy.serial',
-                'psychopy.demos.coder','psychopy.demos.builder.stroop',
+                'psychopy.demos.coder','psychopy.demos.builder',
                 'psychopy.monitors',
                 'psychopy.app','psychopy.app.coder',
                 'psychopy.app.builder','psychopy.app.builder.components',
                 'psychopy.app.Resources',
                 ]
 
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg', '*.psyexp']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg', '*.csv','*.psyexp']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
