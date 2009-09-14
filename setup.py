@@ -10,14 +10,15 @@ import psychopy
 thisVersion=psychopy.__version__
 
 #define the extensions to compile if necess
-packages = ['psychopy','psychopy.ext','psychopy.serial','psychopy.demos',
+packages = ['psychopy','psychopy.ext','psychopy.serial',
+                'psychopy.demos.coder','psychopy.demos.builder.stroop',
                 'psychopy.monitors',
                 'psychopy.app','psychopy.app.coder',
                 'psychopy.app.builder','psychopy.app.builder.components',
                 'psychopy.app.Resources',
                 ]
 
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg', '*.psyexp']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
@@ -53,6 +54,6 @@ setup(name="PsychoPy",
     classifiers=['Development Status :: 4 - Beta',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
+          'Operating System :: Linux',
           'Programming Language :: Python'],
     )
