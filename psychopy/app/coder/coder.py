@@ -1078,17 +1078,15 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.psychopyTutorial, self.app.followLink)
         
         self.demosMenu = wx.Menu()
-        
+        menuBar.Append(self.demosMenu, '&Demos')    
         #for demos we need a dict where the event ID will correspond to a filename
-        self.demoList = glob.glob(os.path.join(self.paths['demos'],'*.py'))
+        self.demoList = glob.glob(os.path.join(self.paths['demos'],'coder','*.py'))
         #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
         self.ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
         self.demos={}
         for n in range(len(self.demoList)):
-            self.demos[self.ID_DEMOS[n]] = self.demoList[n]
-        
-        menuBar.Append(self.demosMenu, '&Demos') 
+            self.demos[self.ID_DEMOS[n]] = self.demoList[n]   
         for thisID in self.ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
             if shortname=="__init__.py": continue
