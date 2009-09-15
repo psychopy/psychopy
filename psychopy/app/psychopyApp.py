@@ -125,7 +125,7 @@ class PsychoPyApp(wx.App):
                     mainFrame='coder'
                     args = args[1:]#can remove that argument
             #did we get .py or .psyexp files?
-            elif args[0][-7:]=='.psyExp':
+            elif args[0][-7:]=='.psyexp':
                     mainFrame='builder'
                     exps=[args[0]]
             elif args[0][-3:]=='.py':
