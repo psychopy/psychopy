@@ -52,7 +52,12 @@ class BaseComponent:
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
             if thisParam.updates==updateType:
-                buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], thisParamName.capitalize(), thisParam) )
+                if thisParamName=='sf':
+                    paramCaps=SF #setSF, not SetSf
+                if thisParamName=='color': 
+                    paramCaps=self.params['colourSpace'].upper() #setRGB, not setColour
+                else:paramCaps=thisParamName.capitalize()
+                buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'],paramCaps, thisParam) )
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
