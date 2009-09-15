@@ -10,11 +10,14 @@ PsychoPy 1.50
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
-* FIXED bug with loading files (monitor fullScr incorrectly reloaded)
-* FIXED bug with Paste in coder
-* FIXED bug with drop-down boxes in builder
-* FIXED bug with removed routines remaining in Flow and InsertRoutineDlg
+* FIXED (Builder) bug with loading files (monitor fullScr incorrectly reloaded)
+* FIXED (Coder) bug with Paste in coder
+* FIXED (Builder) bug with drop-down boxes
+* FIXED (Builder) bug with removed routines remaining in Flow and InsertRoutineDlg
 * MOVED demos to demos/scripts and added demos/exps (for forthcoming Builder demos)
+* CHANGED (Builder) creating a new file in Builder (by any means) automatically adds a 'trial' Routine
+* FIXED (Builder) various bugs with the Patch component initialisation (params being ignored)
+* FIXED (Builder) better default parameters for text component
 
 PsychoPy 1.50.02
 ~~~~~~~~~~~~~~~~~~~~~~

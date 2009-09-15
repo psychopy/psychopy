@@ -65,7 +65,7 @@ class SettingsComponent:
         fullScr = self.params['Full-screen window']
         monitor=self.params['Monitor']
         if self.params['Units'].val=='use prefs': unitsCode=""
-        else: unitsCode=", units=%s" %self.params['Units'].val
+        else: unitsCode=", units=%s" %self.params['Units']
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))

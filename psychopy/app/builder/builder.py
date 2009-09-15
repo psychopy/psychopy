@@ -1378,18 +1378,15 @@ class BuilderFrame(wx.Frame):
         self.stdoutOrig = sys.stdout
         self.stderrOrig = sys.stderr
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
-
-        #setup a blank exp
-        if self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
+        
+        #setup a default exp
+        if len(files) and os.path.isfile(files[0]):
+            self.fileOpen(filename=files[0], closeCurrent=False)
+        elif self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
             self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
         else:
             self.lastSavedCopy=None
             self.fileNew(closeCurrent=False)#don't try to close before opening
-            self.exp.addRoutine('trial') #create the trial routine as an example
-            self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow
-            self.updateAllViews()
-            self.resetUndoStack() #so that the above 2 changes don't show up as undo-able
-            self.setIsModified(False)
 
         #control the panes using aui manager
         self._mgr = wx.aui.AuiManager(self)
@@ -1609,7 +1606,10 @@ class BuilderFrame(wx.Frame):
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment()
+        self.exp.addRoutine('trial') #create the trial routine as an example
+        self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow
         self.resetUndoStack()
+        self.setIsModified(False)
         self.updateAllViews()
     def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
