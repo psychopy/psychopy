@@ -12,7 +12,7 @@ class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', image='sin', mask='none', sf=1, interpolate='linear',
         units='window units', colour=[1,1,1], colourSpace='rgb',
-        pos=[0,0], size=[0,0], ori=0, phase=0.0, texRes='128',
+        pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
         times=[0,1]):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
@@ -45,7 +45,7 @@ class PatchComponent(VisualComponent):
         buff.writeIndented("%(name)s=visual.PatchStim(win=win, tex=%(image)s, mask=%(mask)s,\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(self.params) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(self.params))# no newline - start optional parameters
-        if self.params['units']!='window units': buff.write(", units=%(units)s" %(self.params) )
+        if self.params['units'].val!='window units': buff.write(", units=%(units)s" %(self.params) )
         if self.params['interpolate']=='linear': buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
         buff.write(")\n" %(self.params))#finish with newline
