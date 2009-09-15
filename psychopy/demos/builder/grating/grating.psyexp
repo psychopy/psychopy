@@ -17,7 +17,7 @@
         <Param name="name" val="gabor" valType="code" updates="constant"/>
         <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="ori" val="expInfo['ori']" valType="code" updates="constant"/>
-        <Param name="mask" val="guass" valType="str" updates="constant"/>
+        <Param name="mask" val="gauss" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="interpolate" val="linear" valType="str" updates="constant"/>
         <Param name="times" val="[0.5,3]" valType="code" updates="constant"/>
