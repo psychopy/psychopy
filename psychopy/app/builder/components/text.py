@@ -12,8 +12,8 @@ class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', 
                  text='"Hint: Use double quotes for text (or this looks like a variable)"', 
-                 font='arial',units='window units', colour=[1,1,1], colourSpace='rgb',
-                 pos=[0,0], letterHeight=1, ori=0, times=[0,1]):
+                 font='Arial',units='window units', colour=[1,1,1], colourSpace='rgb',
+                 pos=[0,0], letterHeight=0.1, ori=0, times=[0,1]):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units, 
                     colour=colour, colourSpace=colourSpace,
