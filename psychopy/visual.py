@@ -468,7 +468,7 @@ class Window:
         Fullscreen mode for PyGame contexts must be set during initialisation
         of the Window() class
         """
-        if self.winType is 'glut':
+        if self.winType=='glut':
             if self._isFullScr:
                 GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
                 self._isFullScr=0
@@ -480,14 +480,14 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
-        if self.winType is 'GLUT':
+        if self.winType=='GLUT':
             GLUT.glutDestroyWindow(self.handle)
-        elif self.winType is 'pyglet':
+        elif self.winType=='pyglet':
             self.winHandle.close()
         else:
             #pygame.quit()
             pygame.display.quit()
-        if self.bitsMode is not None:
+        if self.bitsMode!=None:
             self.bits.reset()
 
     def go(self):
@@ -512,11 +512,11 @@ class Window:
         The **units** can be 'norm'(normalised),'pix'(pixels),'cm' or
         'stroke_font'. The **font** argument is only used if units='stroke_font'
         """
-        if units is "norm":
+        if units=="norm":
             thisScale = numpy.array([1.0,1.0])
         elif units in ["pix", "pixels"]:
             thisScale = 2.0/numpy.array(self.size)
-        elif units is "cm":
+        elif units=="cm":
             #windowPerCM = windowPerPIX / CMperPIX
             #                       = (window      /winPIX)        / (scrCm                               /scrPIX)
             if (self.scrWidthCM in [0,None]) or (self.scrWidthPIX in [0, None]):
@@ -531,7 +531,7 @@ class Window:
                 core.wait(1.0); core.quit()
             cmScale = (numpy.array([2.0,2.0])/self.size)/(float(self.scrWidthCM)/float(self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
-        elif units is "stroke_font":
+        elif units=="stroke_font":
             thisScale = numpy.array([2*font.letterWidth,2*font.letterWidth]/self.size/38.0)
         #actually set the scale as appropriate
         thisScale = thisScale/numpy.asarray(prevScale)#allows undoing of a previous scaling procedure
@@ -612,7 +612,7 @@ class Window:
             #make mouse invisible. Could go further and make it 'exclusive' (but need to alter x,y handling then)
             self.winHandle._mouse_visible=False
         self.winHandle.on_resize = self.onResize
-        if self.pos is None:
+        if self.pos==None:
             #work out where the centre should be
             self.pos = [ (thisScreen.width-self.size[0])/2 , (thisScreen.height-self.size[1])/2 ]
         self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
@@ -643,7 +643,7 @@ class Window:
         winSettings = pygame.OPENGL|pygame.DOUBLEBUF#|pygame.OPENGLBLIT #these are ints stored in pygame.locals
         if self._isFullScr:
             winSettings = winSettings | pygame.FULLSCREEN
-        elif self.pos is None:
+        elif self.pos==None:
             #centre video
             os.environ['SDL_VIDEO_CENTERED']="1"
         else: os.environ['SDL_VIDEO_WINDOW_POS']= '%i,%i' %(self.pos[0], self.pos[1])
@@ -815,7 +815,7 @@ class _BaseVisualStim:
         NB this method does not flag the need for updates any more - that is 
         done by specific methods as described above.
         """
-        if op is None: op=''
+        if op==None: op=''
         #format the input value as float vectors
         if type(val) in [tuple,list]:
             val=numpy.asarray(val,float)
@@ -4044,16 +4044,16 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True
-    elif tex is "circle":
+    elif tex == "circle":
         rad=makeRadialMatrix(res)
         intensity = (rad<=1)*2-1 
         fromFile=0
-    elif tex is "gauss":
+    elif tex == "gauss":
         rad=makeRadialMatrix(res)
         sigma = 1/3.0;
         intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
         fromFile=0
-    elif tex is "radRamp":#a radial ramp
+    elif tex == "radRamp":#a radial ramp
         rad=makeRadialMatrix(res)
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
