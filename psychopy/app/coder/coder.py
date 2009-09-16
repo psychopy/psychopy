@@ -1364,7 +1364,7 @@ class CoderFrame(wx.Frame):
                     
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
-    def fileSave(self,event, filename=None, doc=None):
+    def fileSave(self,event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used. If the ``filename`` is 
         ``None`` then the ``doc``'s current filename is used or a dlg is presented to 
