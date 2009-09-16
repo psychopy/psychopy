@@ -3,20 +3,20 @@
 Flow
 ----------------
 
-In the Flow view a number of Routines can be combined to form an experiment. For instance, your study may have a Routine that presented initial instructions and waited for a key to be pressed, followed by a Routine that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel.
+In the Flow panel a number of :doc:`Routines </builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine </builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine </builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel.
 
 Adding Routines
 ~~~~~~~~~~~~~~~~~
 
-The Routines that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a Routine into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your Routines you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your Routine. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
+The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your :doc:`Routine </builder/routines>`. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
 
 .. Ref: Loops
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of Routines and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a Routine (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more Routines and other loops (i.e. they can be nested).
+Loops control the repetition of :doc:`Routines </builder/routines>` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
 
-As with components in Routines, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
+As with components in :doc:`Routines </builder/routines>`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
 
 Method of Constants
 ^^^^^^^^^^^^^^^^^^^
@@ -30,11 +30,11 @@ Selecting a loop type of `random` or `sequential` will result in a :term:`method
 
 would represent 4 different conditions (trial types) with parameters ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
 
-If the loop type is `sequential` then, on each iteration of the Routine(s), the next row will be selected in order, whereas under the `random` type the next row will be selected randomly. `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
+If the loop type is `sequential` then, on each iteration of the :doc:`Routine(s) </builder/routines>`, the next row will be selected in order, whereas under the `random` type the next row will be selected randomly. `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
 
 Staircase methods
 ^^^^^^^^^^^^^^^^^^^
-The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down. Unlike the `random` or `sequential` loops, which can have multiple varying parameters, a staircase only has one parameter, called `intensity`.
+The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down. Unlike the `random` or `sequential` loops, which can have multiple varying parameters, a staircase only has one parameter, called `intensity`.
 
 .. ref: accessing params
 
