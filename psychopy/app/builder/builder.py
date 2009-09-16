@@ -1365,6 +1365,13 @@ class BuilderFrame(wx.Frame):
                          style=style)
 
         self.panel = wx.Panel(self)
+        #create icon
+        if sys.platform=='darwin':
+            pass#doesn't work and not necessary - handled by application bundle
+        else:
+            iconFile = os.path.join(self.paths['resources'], 'psychopy.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
 
         # create our panels
         self.flowPanel=FlowPanel(frame=self)
