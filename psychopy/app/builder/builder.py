@@ -1387,7 +1387,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         #setup a default exp
-        if len(files) and os.path.isfile(files[0]):
+        if files!=None and len(files) and os.path.isfile(files[0]):
             self.fileOpen(filename=files[0], closeCurrent=False)
         elif self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
             self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
