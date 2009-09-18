@@ -101,11 +101,17 @@ class Preferences:
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=True)#copy means all settings get saved
         if len(cfg['general']['userPrefsFile'])==0:
+            #create file for first time
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']#set path to home
-        else: self.paths['userPrefsFile']=cfg['general']['userPrefsFile']#set app path to user override
+        elif not os.path.isfile(cfg['general']['userPrefsFile']):
+            print 'Prefs file %s was not found.\nUsing file %s' %(cfg['general']['userPrefsFile'], self.paths['userPrefsFile'])
+            cfg['general']['userPrefsFile']=self.paths['userPrefsFile']#set path to home            
+        else: #set the path to the config
+            self.paths['userPrefsFile']=cfg['general']['userPrefsFile']#set app path to user override
         cfg.initial_comment=["#preferences set in this file apply to all users",
             "the file can be found at %s" %self.paths['sitePrefsFile']]
-        cfg.filename = self.paths['userPrefsFile']
+        cfg.filename = self.paths['sitePrefsFile']
+        cfg.write()
         return cfg
     def loadUserPrefs(self):
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
@@ -120,7 +126,7 @@ class Preferences:
         if not os.path.isdir(self.paths['userPrefs']):
             try: os.makedirs(self.paths['userPrefs'])
             except:
-                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %tmpPath
+                print "PsychoPy failed to create folder %s. Settings will be read-only" %tmpPath
 
         tmpPath = join(self.paths['userPrefs'], 'tmp')
         cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)

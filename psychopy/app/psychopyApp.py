@@ -309,12 +309,11 @@ class PreferencesDlg(wx.Frame):
             try: os.makedirs(dirname)
             except: 
                 page.SetReadOnly(True)
-                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
         #check for file write access
         if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
             page.SetReadOnly(True)
-            print "PsychoPy can't write to folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
-                
+            print "PsychoPy (PreferencesDlg) can't write to folder %s." %dirname
+            
         return page
     def close(self, event=None):
         self.Destroy()
