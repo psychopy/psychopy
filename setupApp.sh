@@ -9,5 +9,6 @@ rm psychopy/prefSite.cfg
 sudo rm -r build
 sudo rm -r dist/PsychoPy2.app
 python setupApp.py py2app #don't run this as sudo
+sudo rm dist/PsychoPy2.app/Contents/Resources/lib/python2.5/psychopy/prefsSite.cfg#so that user doesn;t get /jwp/.psychopy for prefs
 
 sudo chmod -R g+w dist/PsychoPy2.app
