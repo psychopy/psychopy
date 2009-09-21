@@ -1686,6 +1686,7 @@ class CoderFrame(wx.Frame):
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
-        filename = evt.GetString().split('"')[1]
-        lineNumber = int(evt.GetString().split(',')[1][5:])
+        tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ',1)
+        filename = tmpFilename.split('File "',1)[1]
+        lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)
