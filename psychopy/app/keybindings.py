@@ -1,9 +1,9 @@
 """Set the key bindings for the PsychoPy app"""
-#NB Ctrl- becomes Cmd- automatically on Apple platform
-#All letter keys should be upper case 
+# NB Ctrl- becomes Cmd- automatically on Apple platform
+# All letter keys should be upper case 
 import platform
 
-open="Ctrl+O"
+open = "Ctrl+O"
 new = 'Ctrl+N'
 save = "Ctrl+S"
 saveAs="Ctrl+Shift+S"
