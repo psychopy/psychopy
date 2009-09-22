@@ -29,7 +29,7 @@ redoDarwin = 'Ctrl+Shift+Z'
 
 compileScript = 'Ctrl+Shift+F5'  # builder only
 analyseCode = 'F4'  # coder only
-runScript = 'Ctrl+R'
+runScript = 'F5'
 stopScript = 'Shift+F5'
 comment = "Ctrl+'"
 uncomment = "Ctrl+Shift+'"
