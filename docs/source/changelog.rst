@@ -12,6 +12,7 @@ PsychoPy 1.50.05
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
 * FIXED (Builder) failed to open from Coder view menu (or cmd/ctrl L)
+* FIXED loading of user prefs file
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
