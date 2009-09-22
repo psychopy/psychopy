@@ -1066,7 +1066,7 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()       
-        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
+        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
         
         #---_help---#000000#FFFFFF--------------------------------------------------

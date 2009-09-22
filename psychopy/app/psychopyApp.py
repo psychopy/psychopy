@@ -83,7 +83,7 @@ class MenuFrame(wx.Frame):
 
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, '&View')
-        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
+        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
         self.viewMenu.Append(self.app.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
         wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
