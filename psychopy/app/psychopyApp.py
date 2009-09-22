@@ -100,8 +100,13 @@ class PsychoPyApp(wx.App):
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.IDs=wxIDs
-        self.keys=keybindings
         self.quitting=False
+        
+        self.keys=keybindings
+        if platform.system() == 'Darwin':
+            self.keys.redo = self.keys.redoDarwin
+        elif platform.system() == 'Windows':
+            self.keys.quit = self.keys.quitWindows
 
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
@@ -252,6 +257,8 @@ let me/us know at psychopy-users@googlegroups.com"""
 
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
+        
+        
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
         wx.Frame.__init__(self, parent, ID, title, size=(500,700))
