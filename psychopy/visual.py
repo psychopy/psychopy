@@ -587,13 +587,14 @@ class Window:
             log.info('configured pyglet screen %i' %self.screen)
         else: 
             log.error("Requested an unavailable screen number")
+        #if fullscreen check screen size
         if self._isFullScr:
-            w,h = None,None
-        else:
-            w,h = self.size
+            self._checkMatchingSizes(self.size,[thisScreen.width, thisScreen.height])
+            w=h=None
+        else:w,h=self.size
         if self.allowGUI: style=None
         else: style='borderless'
-        self.winHandle = pyglet.window.Window(width=w, height=h,
+        self.winHandle = pyglet.window.Window(width=w,height=h,
                                               caption="PsychoPy", 
                                               fullscreen=self._isFullScr,
                                               config=config,
@@ -623,7 +624,14 @@ class Window:
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except: pass#doesn't matter
-
+    def _checkMatchingSizes(self, requested,actual):
+        """Checks whether the requested and actual screen sizes differ. If not
+        then a warning is output and the window size is set to actual
+        """  
+        if list(requested)!=list(actual):
+            log.warning("User requested fullscreen with size %s, but screen is actually %s. Using actual size" \
+                %(requested, actual))
+            self.size=numpy.array(actual)            
     def _setupPygame(self):
         self.winType = "pygame"
         global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
@@ -634,7 +642,7 @@ class Window:
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
-
+            
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pygame.image.load(iconFile)
@@ -644,6 +652,9 @@ class Window:
         winSettings = pygame.OPENGL|pygame.DOUBLEBUF#|pygame.OPENGLBLIT #these are ints stored in pygame.locals
         if self._isFullScr:
             winSettings = winSettings | pygame.FULLSCREEN
+            #check screen size if full screen
+            scrInfo=pygame.display.Info()  
+            self._checkMatchingSizes(self.size,[scrInfo.current_w,scrInfo.current_h])
         elif self.pos==None:
             #centre video
             os.environ['SDL_VIDEO_CENTERED']="1"
