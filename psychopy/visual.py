@@ -375,6 +375,7 @@ class Window:
         if self.viewScale != None:
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
+            GL.glOrtho(-1,1,-1,1,-1,1)
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
         if self.viewPos != None:
             GL.glMatrixMode(GL.GL_MODELVIEW)
