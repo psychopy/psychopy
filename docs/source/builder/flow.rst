@@ -1,4 +1,4 @@
-.. Ref: Flow
+.. _Flow:
 
 Flow
 ----------------
@@ -10,7 +10,7 @@ Adding Routines
 
 The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your :doc:`Routine </builder/routines>`. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
 
-.. Ref: Loops
+.. _Loops:
 
 Loops
 ~~~~~~~~~~~~~~~
@@ -19,7 +19,7 @@ Loops control the repetition of :doc:`Routines </builder/routines>` and the choi
 As with components in :doc:`Routines </builder/routines>`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
 
 Method of Constants
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 Selecting a loop type of `random` or `sequential` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. In this case, a file must be provided that describes the parameters for the repeats. This should be a :term:`csv` file in which columns refer to parameters that are needed to describe stimuli etc and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. The top row should give headers; text labels describing the contents of that column (which must also not include spaces or other characters other than letters, numbers or underscores). For example a csv file containing the following table::
 
   ori	text	corrAns

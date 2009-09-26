@@ -93,7 +93,7 @@ class Window:
                 The monitor to be used during the experiment
             units :  *None*, 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
-            screen : *1*, 2 (or higher if you have many screens)
+            screen : *0*, 1 (or higher if you have many screens)
                 Specifies the physical screen that stimuli will appear on (pyglet winType only)
             viewScale : *None* or [x,y]
                 Can be used to apply a custom scaling to the current units of the window.  

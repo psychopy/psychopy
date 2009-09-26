@@ -1,4 +1,4 @@
-Settings preferences
+Preferences
 ====================================
 
 todo - help on setting preferences
