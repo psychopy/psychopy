@@ -269,8 +269,9 @@ class PreferencesDlg(wx.Frame):
         self.app=app
         self.prefs={'user':app.prefs.userPrefsCfg,
                     'site':app.prefs.prefsCfg}
+        self.prefPagesOrder = ['site', 'user']
 
-        for n, prefsType in enumerate(['site','user']):
+        for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
             self.nb.AddPage(sitePage,prefsType)
             self.pageIDs[prefsType]=n
@@ -327,9 +328,10 @@ class PreferencesDlg(wx.Frame):
     def quit(self,event=None):
         self.close()
         self.app.quit()
+        
     def save(self, event=None):
-        ok=1
-        for prefsType in ['site','user']:
+        pageCurrent = self.nb.GetSelection()  
+        for prefsType in self.prefPagesOrder:
             pageText = self.getPageText(prefsType)
             filePath = self.paths['%sPrefsFile' %prefsType]
             if self.isChanged(prefsType):
@@ -337,7 +339,9 @@ class PreferencesDlg(wx.Frame):
                 f.write(pageText)
                 f.close()
                 print "saved", filePath
-        return ok
+        self.nb.ChangeSelection(pageCurrent) 
+        return 1  # ok
+    
     def getPageText(self,prefsType):
         """Get the prefs text for a given page
         """
