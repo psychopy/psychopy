@@ -42,7 +42,7 @@ import sys, os, threading, time, platform
 from psychopy import preferences
 from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
-from psychopy.app import coder, builder, keybindings, wxIDs, connections
+from psychopy.app import coder, builder, wxIDs, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
@@ -99,14 +99,9 @@ class PsychoPyApp(wx.App):
         self.SetAppName('PsychoPy2')
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
+        self.keys = self.prefs.keys
         self.IDs=wxIDs
         self.quitting=False
-        
-        self.keys=keybindings
-        if platform.system() == 'Darwin':
-            self.keys.redo = self.keys.redoDarwin
-        elif platform.system() == 'Windows':
-            self.keys.quit = self.keys.quitWindows
 
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
@@ -261,7 +256,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
-        wx.Frame.__init__(self, parent, ID, title, size=(500,700))
+        wx.Frame.__init__(self, parent, ID, title, size=(700,700))
         panel = wx.Panel(self)
         self.nb = wx.Notebook(panel)
         self.pageIDs={}#store the page numbers
@@ -269,7 +264,7 @@ class PreferencesDlg(wx.Frame):
         self.app=app
         self.prefs={'user':app.prefs.userPrefsCfg,
                     'site':app.prefs.prefsCfg}
-        self.prefPagesOrder = ['site', 'user']
+        self.prefPagesOrder = ['site', 'user']  # JRG: will eventually be site, user, keys
 
         for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
@@ -333,9 +328,9 @@ class PreferencesDlg(wx.Frame):
         pageCurrent = self.nb.GetSelection()  
         for prefsType in self.prefPagesOrder:
             pageText = self.getPageText(prefsType)
-            filePath = self.paths['%sPrefsFile' %prefsType]
+            filePath = self.paths['%sPrefsFile' % prefsType]
             if self.isChanged(prefsType):
-                f=open(filePath,'w')
+                f = open(filePath, 'w')
                 f.write(pageText)
                 f.close()
                 print "saved", filePath
