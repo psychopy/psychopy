@@ -8,7 +8,6 @@ save = "Ctrl+S"
 saveAs = "Ctrl+Shift+S"
 close = 'Ctrl+W'
 quit = 'Ctrl+Q'
-quitWindows = 'Alt+F4'
 
 cut = 'Ctrl+X'
 copy = 'Ctrl+C'
@@ -21,14 +20,11 @@ find = 'Ctrl+F'
 findAgain = 'Ctrl+G'
 undo = 'Ctrl+Z'
 redo = 'Ctrl+Y'
-redoDarwin = 'Ctrl+Shift+Z'
 
 compileScript = 'Ctrl+Shift+F5'  # builder only
 analyseCode = 'F4'  # coder only
 runScript = 'F5'
 stopScript = 'Shift+F5'
-runScriptDarwin = 'Ctrl+R'
-stopScriptDarwin = 'Ctrl+.'
 comment = "Ctrl+'"
 uncomment = "Ctrl+Shift+'"
 fold = 'Ctrl+Home'

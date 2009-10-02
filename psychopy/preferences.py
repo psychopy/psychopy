@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx, wx.stc
-import os, sys, urllib, StringIO
+import os, sys, urllib, StringIO, platform
 from shutil import copyfile
 import configobj, configobjValidate, re
 
@@ -52,7 +52,7 @@ class Preferences:
         self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg')
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
         self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
-
+        
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
         pickle file necessarily without having the same attribs (so additional
@@ -61,8 +61,11 @@ class Preferences:
         self._validator=configobjValidate.Validator()
         self.appDataCfg = self.loadAppData()
         self.prefsCfg = self.loadSitePrefs()
+        self.platformPrefsCfg = self.loadPlatformPrefs()
         self.userPrefsCfg = self.loadUserPrefs()
-        #merge site prefs and user prefs
+        
+        # merge site, platform, and user prefs; order matters
+        self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
         #simplify namespace
@@ -73,48 +76,46 @@ class Preferences:
         self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
            
-        # ------start keybindings stuff----------------------------------
+        # ------start keybindings stuff----move into its own def eventually?------------------------------
         self.keys = self.prefsCfg['keybindings'] # == dict, with items in u'___' format
         
-        # now convert dict --> tmpFile in python syntax, import tmpFile --> self.keys
-        file = open(join(self.paths['userPrefs'], "tmpKeys.py"), "w") # add try ... except?
-        badMenuLabel = False  # flag illegal user-entered keybindings
-        for k in self.keys.keys():
-            # need to do more validation: deny duplicate bindings, etc
-            # ideally tweak user input to be regular, rather than ignore if irregular
-            if not re.match("^[a-zA-Z][a-zA-Z0-9_]+$", str(k)): # configobj might do this; ? better: validate against wxIDs.py
-                badMenuLabel = True
-            regex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+([^a-z]{1,1}|F\d{1,2}|Home|Tab|Del|Space|Enter){0,1}$")
-            if regex.match(str(self.keys[k])):
-                if str(self.keys[k]).find("'") > -1: qDelim = '"'
-                else: qDelim = "'"
-                file.write("%s" %str(k) + " = " + qDelim + str(self.keys[k]) + qDelim + "\n")
-            else:
-                pass  # ideally warn the user
-        file.close()
-        
-        if badMenuLabel:
-            # print "bad menu-item from pref files, reverting to app defaults"
+        # now convert dict --> tmpFile in python syntax, import tmpFile --> self.keys in str() format
+        useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
+        try:
+            file = open(join(self.paths['userPrefs'], "tmpKeys.py"), "w")
+            keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+([^a-z]{1,1}|F\d{1,2}|Home|Tab|Del|Space|Enter){0,1}$")
+            menuRegex = re.compile("^[a-zA-Z][a-zA-Z0-9_]*$")
+            for k in self.keys.keys():
+                # need to do more validation: deny duplicate bindings, etc
+                # ideally tweak user input to be regular, rather than ignore if irregular
+                if not menuRegex.match(str(k)): # configobj might do this already?
+                    print "bad menu-item in preference file(s)" # will user ever see this?
+                    useAppDefaultKeys = True
+                if keyRegex.match(str(self.keys[k])):
+                    if str(self.keys[k]).find("'") > -1: quoteDelim = '"'
+                    else: quoteDelim = "'"
+                    file.write("%s" % str(k) + " = " + quoteDelim + str(self.keys[k]) + quoteDelim + "\n")
+                else:
+                    pass  # silently ignore bad key-codes; ideally warn the user
+            file.close()  # ?? file never closed if an exception is thrown by something other than open()
+        except:
+            print "PsychoPy could not make a temp file in %s" % join(self.paths['userPrefs'], "tmpKeys.py")
+            useAppDefaultKeys = True
+
+        if useAppDefaultKeys:
+            print "using default keybindings"
             from psychopy.app import keybindings
             self.keys = keybindings
         else:
             sys.path.append(self.paths['userPrefs'])
             import tmpKeys
             self.keys = tmpKeys
-        os.remove(join(self.paths['userPrefs'], "tmpKeys.py")) # ? also remove tmpKeys.pyc
-        
-        # eventually handle psychopy-default platform-specific stuff using platform.cfg files, rather than hard-coding it
-        if sys.platform.lower().startswith('dar'):
-            self.keys.redo = self.keys.redoDarwin
-            self.keys.runScript = self.keys.runScriptDarwin
-            self.keys.stopScript = self.keys.stopScriptDarwin
-        elif sys.platform.lower().startswith('win'):
-            self.keys.quit = self.keys.quitWindows
+        if os.path.isfile(join(self.paths['userPrefs'], "tmpKeys.py")):
+            os.remove(join(self.paths['userPrefs'], "tmpKeys.py"))
+        if os.path.isfile(join(self.paths['userPrefs'], "tmpKeys.pyc")):
+            os.remove(join(self.paths['userPrefs'], "tmpKeys.pyc"))
         # ----end keybindings stuff------------------------------------
 
-        #override some platfrom-specific settings
-        if sys.platform=='darwin':
-            self.prefsCfg['app']['allowModuleImports']=False
         #connections
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
         
@@ -151,13 +152,22 @@ class Preferences:
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
         cfg.initial_comment = ["### === SITE PREFERENCES:  prefs set here apply to all users ===== ###",
-                               "", "   Any line in green that starts with a '#' is merely a comment, all others are functional",
+                               "", "A line in green that starts with a '#' is merely a comment (like this one), others are functional",
                                "", "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
         cfg.write()
         return cfg
     
+    def loadPlatformPrefs(self):
+        # platform-dependent over-ride of default (= no-arch) pref settings; hide from user
+        plat = platform.system()
+        platPrefsCfg = join(self.paths['psychopy'], 'prefs' + plat + '.cfg')
+        prefsSpec = configobj.ConfigObj(platPrefsCfg, encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(platPrefsCfg, configspec=prefsSpec)
+        cfg.validate(self._validator, copy=False) 
+        return cfg
+        
     def loadUserPrefs(self):
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         #create file and validate based on template, but then close and reopen
@@ -178,16 +188,17 @@ class Preferences:
         cfg1.validate(self._validator, copy=False)  #copy True = grab sections AND SETTINGS from sitePrefsSpec
         cfg1.initial_comment = ["### === USER PREFERENCES:  prefs set here override the SITE-wide prefs ===== ###", "",
             "To set a preference here, copy & paste the syntax from the 'site' page, then edit the value",
-            "Be sure to place it in the right section ([general], [app], and so on)",
-            "Any line in green text that starts with a '#' is a comment; all other lines are functional"
+            "Be sure to place it in the correct section (under [general], [app], and so on)",
+            "Any line in green text that starts with a '#' is a comment (like this one); other lines are functional"
             "", ""]
         cfg1.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         
-        buff = StringIO.StringIO()  # ?JRG: where / how used?
-        cfg1.write() 
+        buff = StringIO.StringIO()
+        cfg1.write()
         #then create the actual cfg from this stringIO object
         cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg.filename = self.paths['userPrefsFile']
+        os.remove(tmpPath)
         return cfg
     
     def getAutoProxy(self):
