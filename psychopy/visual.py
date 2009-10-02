@@ -4017,7 +4017,9 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = tex.astype(numpy.float32)
         if intensity.max()>1 or intensity.min()<-1:
             log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
-        wasLum = True
+        if len(tex.shape)==3:
+            wasLum=False
+        else: wasLum = True
         ##is it 1D?
         if tex.shape[0]==1:
             stim._tex1D=True
