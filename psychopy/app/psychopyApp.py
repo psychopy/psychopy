@@ -102,7 +102,7 @@ class PsychoPyApp(wx.App):
         self.keys = self.prefs.keys
         self.IDs=wxIDs
         self.quitting=False
-
+        
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
@@ -150,9 +150,12 @@ class PsychoPyApp(wx.App):
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
-        if self.prefs.connections['allowUsageStats']:
+        # on mac OS 10.6, I had no internet connection, and the app crashed (python crashed with a bus error)
+        # so I added the check whether the proxy is ''; try ... except did not work for this
+        if self.prefs.connections['allowUsageStats'] and self.prefs.connections['proxy'] <> '':
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
+        
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
         def ShowTip(self):
@@ -171,9 +174,8 @@ class PsychoPyApp(wx.App):
                 config.Write("tips", str( (showTip, index) ))
                 config.Flush()"""
 
-
-
         return True
+
     def showCoder(self, event=None, fileList=None):
         if self.coder==None:
             self.coder=coder.CoderFrame(None, -1,
@@ -263,8 +265,9 @@ class PreferencesDlg(wx.Frame):
         self.paths = app.prefs.paths
         self.app=app
         self.prefs={'user':app.prefs.userPrefsCfg,
-                    'site':app.prefs.prefsCfg}
-        self.prefPagesOrder = ['site', 'user']  # JRG: will eventually be site, user, keys
+                    'site':app.prefs.prefsCfg,
+                    'keys':app.prefs.keysCfg}
+        self.prefPagesOrder = ['site', 'user', 'keys'] 
 
         for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
@@ -326,7 +329,7 @@ class PreferencesDlg(wx.Frame):
         
     def save(self, event=None):
         pageCurrent = self.nb.GetSelection()  
-        for prefsType in self.prefPagesOrder:
+        for prefsType in self.prefs.keys():
             pageText = self.getPageText(prefsType)
             filePath = self.paths['%sPrefsFile' % prefsType]
             if self.isChanged(prefsType):

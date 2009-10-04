@@ -20,11 +20,11 @@ class Preferences:
         self.builder=None
         self.connections=None
         self.paths={}#this will remain a dictionary
-        self.keys={}  # for keybindings
+        self.keys = {}  # for keybindings
         
         self.getPaths()
         self.loadAll()
-
+        
     def getPaths(self):
         #on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath= os.path.abspath(__file__)
@@ -52,6 +52,7 @@ class Preferences:
         self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg')
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
         self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
+        self.paths['keysPrefsFile']=join(self.paths['psychopy'], 'prefsKeys.cfg')
         
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
@@ -63,11 +64,16 @@ class Preferences:
         self.prefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
         self.userPrefsCfg = self.loadUserPrefs()
+        self.keysCfg = self.loadKeysPrefs()
         
         # merge site, platform, and user prefs; order matters
         self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
+        del self.prefsCfg['keybindings']  # only appeared there because of the merge
+        if not 'keybindings' in self.userPrefsCfg.keys():  
+            self.userPrefsCfg['keybindings'] = {}  # want a keybindings section in userPrefs even if empty
+        
         #simplify namespace
         self.general=self.prefsCfg['general']
         self.app = self.prefsCfg['app']
@@ -75,11 +81,24 @@ class Preferences:
         self.builder=self.prefsCfg['builder']
         self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
-           
-        # ------start keybindings stuff----move into its own def eventually?------------------------------
-        self.keys = self.prefsCfg['keybindings'] # == dict, with items in u'___' format
+          
+        # keybindings: merge general + platform + user prefs; NB: self.keys means keybindings
+        self.keysCfg.merge(self.platformPrefsCfg)
+        self.keysCfg.merge(self.userPrefsCfg)
+        #self.keysCfg.validate(self._validator, copy=False)  # need a keysSpec file before this does anything?
+        for keyOfPref in self.keysCfg.keys(): # idea: hide / remove non-keybindings sections from this cfg
+            if keyOfPref <> 'keybindings': del self.keysCfg[keyOfPref]
+        self.keys = self.keysCfg['keybindings'] # == dict, with items in u'___' format
+        self.keys = self.convertKeys() # no longer a dict, no longer u'___' format
         
-        # now convert dict --> tmpFile in python syntax, import tmpFile --> self.keys in str() format
+        # connections:
+        if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
+    
+    def convertKeys(self):
+        """a function to convert a keybindings dict from cfg files to self.keys
+        as expected elsewhere in the app; uses a tmpFile written in python syntax
+        (created in the user ./psychopy2 directory), import tmpFile --> self.keys
+        """
         useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
         try:
             file = open(join(self.paths['userPrefs'], "tmpKeys.py"), "w")
@@ -99,7 +118,7 @@ class Preferences:
                     pass  # silently ignore bad key-codes; ideally warn the user
             file.close()  # ?? file never closed if an exception is thrown by something other than open()
         except:
-            print "PsychoPy could not make a temp file in %s" % join(self.paths['userPrefs'], "tmpKeys.py")
+            print "PsychoPy (preferences.py) could not make a temp file in %s (or less likely: could not processs keybindings)" % join(self.paths['userPrefs'], "tmpKeys.py")
             useAppDefaultKeys = True
 
         if useAppDefaultKeys:
@@ -114,10 +133,8 @@ class Preferences:
             os.remove(join(self.paths['userPrefs'], "tmpKeys.py"))
         if os.path.isfile(join(self.paths['userPrefs'], "tmpKeys.pyc")):
             os.remove(join(self.paths['userPrefs'], "tmpKeys.pyc"))
-        # ----end keybindings stuff------------------------------------
-
-        #connections
-        if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
+        
+        return self.keys
         
     def saveAppData(self):
         """Save the various setting to the appropriate files (or discard, in some cases)
@@ -129,7 +146,8 @@ class Preferences:
     def resetSitePrefs(self):
         """Reset the site preferences to the original defaults (to reset user prefs, just delete entries)
         """
-        os.remove(self.paths['sitePrefsFile'])
+        if os.path.isfile(self.paths['sitePrefsFile']):
+            os.remove(self.paths['sitePrefsFile'])
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
@@ -146,26 +164,34 @@ class Preferences:
         if len(cfg['general']['userPrefsFile']) == 0:
             #create file for first time
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home
+            tmp = open(cfg['general']['userPrefsFile'], 'a')  # create empty file; use 'a' to append, just safer
+            tmp.close()  # idea: sidestep warning message in 2nd run of pp if user does not save prefs in 1st run
         elif not os.path.isfile(cfg['general']['userPrefsFile']):
             print 'Prefs file %s was not found.\nUsing file %s' %(cfg['general']['userPrefsFile'], self.paths['userPrefsFile'])
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home            
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
-        cfg.initial_comment = ["### === SITE PREFERENCES:  prefs set here apply to all users ===== ###",
-                               "", "A line in green that starts with a '#' is merely a comment (like this one), others are functional",
-                               "", "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
+        cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###",
+                               "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
         cfg.write()
         return cfg
     
     def loadPlatformPrefs(self):
-        # platform-dependent over-ride of default (= no-arch) pref settings; hide from user
-        plat = platform.system()
-        platPrefsCfg = join(self.paths['psychopy'], 'prefs' + plat + '.cfg')
+        # platform-dependent over-ride of default sitePrefs
+        platPrefsCfg = join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg')
         prefsSpec = configobj.ConfigObj(platPrefsCfg, encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(platPrefsCfg, configspec=prefsSpec)
         cfg.validate(self._validator, copy=False) 
+        return cfg
+    
+    def loadKeysPrefs(self):
+        # platform-general (no-arch) keybindings 
+        noarchKeysCfg = join(self.paths['psychopy'], 'prefsKeys.cfg')
+        prefsSpec = configobj.ConfigObj(noarchKeysCfg, encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(noarchKeysCfg, ) #, configspec=prefsSpec)  # not current done as a spec file
+        #cfg.validate(self._validator, copy=False) # makes sens if there's a spec file
         return cfg
         
     def loadUserPrefs(self):
@@ -187,10 +213,9 @@ class Preferences:
         cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg1.validate(self._validator, copy=False)  #copy True = grab sections AND SETTINGS from sitePrefsSpec
         cfg1.initial_comment = ["### === USER PREFERENCES:  prefs set here override the SITE-wide prefs ===== ###", "",
-            "To set a preference here, copy & paste the syntax from the 'site' page, then edit the value",
-            "Be sure to place it in the correct section (under [general], [app], and so on)",
-            "Any line in green text that starts with a '#' is a comment (like this one); other lines are functional"
-            "", ""]
+            "To set a preference here: copy & paste the syntax from the 'site' or 'keys' page", 
+            "placing it under the correct section ([general], [app], etc.) then edit the value",
+            "A line in green text that starts with a '#' is a comment (like this line)", ""]
         cfg1.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         
         buff = StringIO.StringIO()
@@ -198,7 +223,7 @@ class Preferences:
         #then create the actual cfg from this stringIO object
         cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
         cfg.filename = self.paths['userPrefsFile']
-        os.remove(tmpPath)
+        if os.path.isfile(tmpPath): os.remove(tmpPath)
         return cfg
     
     def getAutoProxy(self):
