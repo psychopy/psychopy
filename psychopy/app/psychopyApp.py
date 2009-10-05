@@ -151,7 +151,7 @@ class PsychoPyApp(wx.App):
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         # on mac OS 10.6, I had no internet connection, and the app crashed (python crashed with a bus error)
-        # so I added the check whether the proxy is ''; try ... except did not work for this
+        # try statsThread.start() except pass also crashed. so I added a check whether the proxy is ''
         if self.prefs.connections['allowUsageStats'] and self.prefs.connections['proxy'] <> '':
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
@@ -267,8 +267,8 @@ class PreferencesDlg(wx.Frame):
         self.prefs={'user':app.prefs.userPrefsCfg,
                     'site':app.prefs.prefsCfg,
                     'keys':app.prefs.keysCfg}
-        self.prefPagesOrder = ['site', 'user', 'keys'] 
-
+        self.prefPagesOrder = ['site', 'user', 'keys']
+        
         for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
             self.nb.AddPage(sitePage,prefsType)
@@ -282,7 +282,7 @@ class PreferencesDlg(wx.Frame):
         self.fileMenu = wx.Menu()
         item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys.save)
         self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys.close)
+        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close prefs\t%s" %app.keys.close)
         self.Bind(wx.EVT_MENU, self.close, item)
         self.fileMenu.AppendSeparator()
         item = self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %app.keys.quit, "Terminate the application")

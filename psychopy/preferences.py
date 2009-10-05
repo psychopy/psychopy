@@ -180,18 +180,16 @@ class Preferences:
     
     def loadPlatformPrefs(self):
         # platform-dependent over-ride of default sitePrefs
-        platPrefsCfg = join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg')
-        prefsSpec = configobj.ConfigObj(platPrefsCfg, encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(platPrefsCfg, configspec=prefsSpec)
+        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg'), configspec=prefsSpec)
         cfg.validate(self._validator, copy=False) 
         return cfg
     
     def loadKeysPrefs(self):
         # platform-general (no-arch) keybindings 
-        noarchKeysCfg = join(self.paths['psychopy'], 'prefsKeys.cfg')
-        prefsSpec = configobj.ConfigObj(noarchKeysCfg, encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(noarchKeysCfg, ) #, configspec=prefsSpec)  # not current done as a spec file
-        #cfg.validate(self._validator, copy=False) # makes sens if there's a spec file
+        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsKeys.cfg'), configspec=prefsSpec)  
+        cfg.validate(self._validator, copy=False) 
         return cfg
         
     def loadUserPrefs(self):
@@ -207,18 +205,21 @@ class Preferences:
         if not os.path.isdir(self.paths['userPrefs']):
             try: os.makedirs(self.paths['userPrefs'])
             except:
-                print "PsychoPy failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']  # was: tmpPath
-
-        tmpPath = join(self.paths['userPrefs'], 'tmp')
+                print "PsychoPy (preferences.py) failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']  # was: tmpPath
+        if os.path.exists(self.paths['userPrefsFile']):
+            tmpPath = self.paths['userPrefsFile']
+        else:
+            tmpPath = join(self.paths['userPrefs'], 'tmp')
+            
         cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
-        cfg1.validate(self._validator, copy=False)  #copy True = grab sections AND SETTINGS from sitePrefsSpec
-        cfg1.initial_comment = ["### === USER PREFERENCES:  prefs set here override the SITE-wide prefs ===== ###", "",
+        cfg1.validate(self._validator, copy=False)
+        cfg1.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
             "To set a preference here: copy & paste the syntax from the 'site' or 'keys' page", 
             "placing it under the correct section ([general], [app], etc.) then edit the value",
             "A line in green text that starts with a '#' is a comment (like this line)", ""]
         cfg1.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         
-        buff = StringIO.StringIO()
+        #buff = StringIO.StringIO()
         cfg1.write()
         #then create the actual cfg from this stringIO object
         cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
