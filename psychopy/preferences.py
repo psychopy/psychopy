@@ -210,37 +210,23 @@ class Preferences:
         
     def loadUserPrefs(self):
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
-        #create file and validate based on template, but then close and reopen
-        #if we validate the file that we actually use then all the settings will be
-        #inserted and will override sitePrefs with defaults
-        #then add user prefs
-        #BUT we also can't write an actual file, because that kills easy_install,
-        #so now using a StringIO object
-
-        #check/create path for tmp file
+        #check/create path for user prefs
         if not os.path.isdir(self.paths['userPrefs']):
             try: os.makedirs(self.paths['userPrefs'])
             except:
                 print "PsychoPy (preferences.py) failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']  # was: tmpPath
-        if os.path.exists(self.paths['userPrefsFile']):
-            tmpPath = self.paths['userPrefsFile']
-        else:
-            tmpPath = join(self.paths['userPrefs'], 'tmp')
-            
-        cfg1 = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
-        cfg1.validate(self._validator, copy=False)
-        cfg1.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
+        #then get the configuration file
+        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
+        cfg.validate(self._validator, copy=False)
+        cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
             "To set a preference here: copy & paste the syntax from the 'site' or 'keys' page", 
             "placing it under the correct section ([general], [app], etc.) then edit the value",
             "A line in green text that starts with a '#' is a comment (like this line)", ""]
-        cfg1.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
-        
-        #buff = StringIO.StringIO()
-        cfg1.write()
-        #then create the actual cfg from this stringIO object
-        cfg = configobj.ConfigObj(tmpPath, configspec=prefsSpec)
-        cfg.filename = self.paths['userPrefsFile']
-        if os.path.isfile(tmpPath): os.remove(tmpPath)
+        cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
+        #writing to a file outside the site-packages causes easy_install to die (for security reasons)
+        #so we need to find a way to either identify that easy_install is running and skip this line
+        #or write it to a different location.
+        cfg.write()#so that the user can see the available sections and the initial comment to help 
         return cfg
     
     def getAutoProxy(self):
