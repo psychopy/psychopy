@@ -223,10 +223,6 @@ class Preferences:
             "placing it under the correct section ([general], [app], etc.) then edit the value",
             "A line in green text that starts with a '#' is a comment (like this line)", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
-        #writing to a file outside the site-packages causes easy_install to die (for security reasons)
-        #so we need to find a way to either identify that easy_install is running and skip this line
-        #or write it to a different location.
-        cfg.write()#so that the user can see the available sections and the initial comment to help 
         return cfg
     
     def getAutoProxy(self):
