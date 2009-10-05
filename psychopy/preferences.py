@@ -102,23 +102,39 @@ class Preferences:
         useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
         try:
             file = open(join(self.paths['userPrefs'], "tmpKeys.py"), "w")
-            keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+([^a-z]{1,1}|F\d{1,2}|Home|Tab|Del|Space|Enter){0,1}$")
-            menuRegex = re.compile("^[a-zA-Z][a-zA-Z0-9_]*$")
+            keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
+            menuRegex = re.compile("^(open|new|save|saveAs|close|quit|cut|copy|paste|"\
+                                   "duplicate|indent|dedent|smartIndent|find|findAgain|"\
+                                   "undo|redo|comment|uncomment|fold|analyseCode|compileScript|"\
+                                   "runScript|stopScript|switchToBuilder|switchToCoder){1,1}$")
+            usedKeys = []
             for k in self.keys.keys():
-                # need to do more validation: deny duplicate bindings, etc
-                # ideally tweak user input to be regular, rather than ignore if irregular
-                if not menuRegex.match(str(k)): # configobj might do this already?
-                    print "bad menu-item in preference file(s)" # will user ever see this?
+                if self.keys[k] in usedKeys and str(k).find("switchTo") < 0:
+                    print "PsychoPy (preferences.py):  duplicate key %s" % str(self.keys[k])
                     useAppDefaultKeys = True
-                if keyRegex.match(str(self.keys[k])):
-                    if str(self.keys[k]).find("'") > -1: quoteDelim = '"'
-                    else: quoteDelim = "'"
-                    file.write("%s" % str(k) + " = " + quoteDelim + str(self.keys[k]) + quoteDelim + "\n")
                 else:
-                    pass  # silently ignore bad key-codes; ideally warn the user
+                    usedKeys.append(self.keys[k])
+                if not menuRegex.match(str(k)):
+                    print "PsychoPy (preferences.py):  unrecognized menu-item '%s'" % str(k) 
+                    useAppDefaultKeys = True
+                # make user input more regular
+                r = re.compile("(?i)Ctrl[+-]")
+                self.keys[k] = r.sub('Ctrl+', str(self.keys[k])) # here convert to str()
+                r = re.compile("(?i)Shift[+-]")
+                self.keys[k] = r.sub('Shift+', self.keys[k])
+                r = re.compile("(?i)Alt[+-]")
+                self.keys[k] = r.sub('Alt+', self.keys[k])
+                self.keys[k] = "".join([j.capitalize()+"+" for j in str(self.keys[k]).split("+")])[:-1] 
+                if keyRegex.match(self.keys[k]):
+                    if self.keys[k].find("'") > -1: quoteDelim = '"'
+                    else: quoteDelim = "'"
+                    file.write("%s" % str(k) + " = " + quoteDelim + self.keys[k] + quoteDelim + "\n")
+                else:
+                    print "PsychoPy (preferences.py):  bad key %s (menu-item %s)" % (str(self.keys[k]), str(k))
             file.close()  # ?? file never closed if an exception is thrown by something other than open()
         except:
-            print "PsychoPy (preferences.py) could not make a temp file in %s (or less likely: could not processs keybindings)" % join(self.paths['userPrefs'], "tmpKeys.py")
+            print "PsychoPy (preferences.py) could not make a temp file in %s (or less likely: could not processs keybindings)" \
+                    % join(self.paths['userPrefs'], "tmpKeys.py")
             useAppDefaultKeys = True
 
         if useAppDefaultKeys:
