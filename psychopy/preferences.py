@@ -69,7 +69,8 @@ class Preferences:
         self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        del self.prefsCfg['keybindings']  # appeared after merge with platform prefs which can have keybindings
+        if 'keybindings' in self.prefsCfg:
+            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
         
         #simplify namespace
         self.general=self.prefsCfg['general']
@@ -211,15 +212,13 @@ class Preferences:
             for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
+            cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
+                    "#   changes here will take effect the next time you start PsychoPy",
+                    """#   enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
             if platform.system() == 'Darwin':
-                cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
-                    "#   changes here will take effect the next time you start PsychoPy",
-                    """#   enclose single-quote within double " (eg: "Ctrl+'")""",
-                    "#   Ctrl is not available as a key modifier; use Cmd+", ""]
-            else:
-                cfg.initial_comment = ["##  --- Key-bindings:  what key does what function in the menus -----  ##",
-                    "#   changes here will take effect the next time you start PsychoPy",
-                    """#   enclose single-quote within double " (eg: "Ctrl+'")""", ""]
+                cfg.initial_comment.append("#   Ctrl is not available as a key modifier; use Cmd+")
+            cfg.initial_comment.append("")
+            cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
             try:
                 cfg.write()
