@@ -52,7 +52,7 @@ class Preferences:
         self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg')
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
         self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
-        self.paths['keysPrefsFile']=join(self.paths['psychopy'], 'prefsKeys.cfg')
+        self.paths['keysPrefsFile']=join(self.paths['psychopy'], 'prefsSiteKeys.cfg')
         
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
@@ -64,15 +64,12 @@ class Preferences:
         self.prefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
         self.userPrefsCfg = self.loadUserPrefs()
-        self.keysCfg = self.loadKeysPrefs()
         
         # merge site, platform, and user prefs; order matters
         self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        del self.prefsCfg['keybindings']  # only appeared there because of the merge
-        if not 'keybindings' in self.userPrefsCfg.keys():  
-            self.userPrefsCfg['keybindings'] = {}  # want a keybindings section in userPrefs even if empty
+        del self.prefsCfg['keybindings']  # appeared after merge with platform prefs which can have keybindings
         
         #simplify namespace
         self.general=self.prefsCfg['general']
@@ -82,73 +79,69 @@ class Preferences:
         self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
           
-        # keybindings: merge general + platform + user prefs; NB: self.keys means keybindings
-        self.keysCfg.merge(self.platformPrefsCfg)
-        self.keysCfg.merge(self.userPrefsCfg)
-        #self.keysCfg.validate(self._validator, copy=False)  # need a keysSpec file before this does anything?
-        for keyOfPref in self.keysCfg.keys(): # idea: hide / remove non-keybindings sections from this cfg
-            if keyOfPref <> 'keybindings': del self.keysCfg[keyOfPref]
-        self.keys = self.keysCfg['keybindings'] # == dict, with items in u'___' format
-        self.keys = self.convertKeys() # no longer a dict, no longer u'___' format
+        # keybindings: merge general + platform prefs; userPrefs should not have keybindings
+        self.keysCfg = self.loadKeysPrefs()
+        self.keyDict = self.keysCfg['keybindings'] # == dict, with items in u'___' format
+        self.keys = self.convertKeyDict() # no longer a dict, no longer u'___' format
         
         # connections:
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
     
-    def convertKeys(self):
+    def convertKeyDict(self):
         """a function to convert a keybindings dict from cfg files to self.keys
         as expected elsewhere in the app; uses a tmpFile written in python syntax
         (created in the user ./psychopy2 directory), import tmpFile --> self.keys
         """
         useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
-        try:
-            file = open(join(self.paths['userPrefs'], "tmpKeys.py"), "w")
+        try: 
+            tmpFile = join(self.paths['psychopy'], "tmpKeys.py")
+            file = open(tmpFile, "w")  # I tried this as StringIO obj, but couldn't import its contents as python code (is there a way?)
+            usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
             menuRegex = re.compile("^(open|new|save|saveAs|close|quit|cut|copy|paste|"\
                                    "duplicate|indent|dedent|smartIndent|find|findAgain|"\
                                    "undo|redo|comment|uncomment|fold|analyseCode|compileScript|"\
-                                   "runScript|stopScript|switchToBuilder|switchToCoder){1,1}$")
-            usedKeys = []
-            for k in self.keys.keys():
-                if self.keys[k] in usedKeys and str(k).find("switchTo") < 0:
-                    print "PsychoPy (preferences.py):  duplicate key %s" % str(self.keys[k])
+                                   "runScript|stopScript|switchToBuilder|switchToCoder)$")
+            for k in self.keyDict.keys():
+                keyK = str(self.keyDict[k])
+                k = str(k)
+                if keyK in usedKeys and k.find("switchTo") < 0:  # hard-code allowed duplicates (e.g., Ctrl+L)
+                    print "PsychoPy (preferences.py):  duplicate key %s" % keyK
                     useAppDefaultKeys = True
                 else:
-                    usedKeys.append(self.keys[k])
-                if not menuRegex.match(str(k)):
-                    print "PsychoPy (preferences.py):  unrecognized menu-item '%s'" % str(k) 
+                    usedKeys.append(keyK)
+                if not menuRegex.match(k):
+                    print "PsychoPy (preferences.py):  unrecognized menu-item '%s'" % k 
                     useAppDefaultKeys = True
-                # make user input more regular
-                r = re.compile("(?i)Ctrl[+-]")
-                self.keys[k] = r.sub('Ctrl+', str(self.keys[k])) # here convert to str()
-                r = re.compile("(?i)Shift[+-]")
-                self.keys[k] = r.sub('Shift+', self.keys[k])
-                r = re.compile("(?i)Alt[+-]")
-                self.keys[k] = r.sub('Alt+', self.keys[k])
-                self.keys[k] = "".join([j.capitalize()+"+" for j in str(self.keys[k]).split("+")])[:-1] 
-                if keyRegex.match(self.keys[k]):
-                    if self.keys[k].find("'") > -1: quoteDelim = '"'
+                # standardize user input
+                keyK = re.sub(r"(?i)Ctrl[+-]", 'Ctrl+', keyK)  
+                keyK = re.sub(r"(?i)Cmd[+-]", 'Ctrl+', keyK)
+                keyK = re.sub(r"(?i)Shift[+-]", 'Shift+', keyK)
+                keyK = re.sub(r"(?i)Alt[+-]", 'Alt+', keyK)
+                keyK = "".join([j.capitalize()+"+" for j in keyK.split("+")])[:-1] 
+                # screen / validate
+                if keyRegex.match(keyK) and not re.match(r"(F\d{1,2}).+", keyK):
+                    if self.keyDict[k].find("'") > -1: quoteDelim = '"'
                     else: quoteDelim = "'"
-                    file.write("%s" % str(k) + " = " + quoteDelim + self.keys[k] + quoteDelim + "\n")
+                    file.write("%s" % str(k) + " = " + quoteDelim + keyK + quoteDelim + "\n")
                 else:
-                    print "PsychoPy (preferences.py):  bad key %s (menu-item %s)" % (str(self.keys[k]), str(k))
-            file.close()  # ?? file never closed if an exception is thrown by something other than open()
+                    print "PsychoPy (preferences.py):  bad key %s (menu-item %s)" % keyK, k
+            file.close()
         except:
-            print "PsychoPy (preferences.py) could not make a temp file in %s (or less likely: could not processs keybindings)" \
-                    % join(self.paths['userPrefs'], "tmpKeys.py")
+            print "PsychoPy (preferences.py) could not create temp file %s (or could not processs keybindings)" % tmpFile
             useAppDefaultKeys = True
 
         if useAppDefaultKeys:
-            print "using default keybindings"
+            print "using default key bindings"
             from psychopy.app import keybindings
             self.keys = keybindings
         else:
-            sys.path.append(self.paths['userPrefs'])
-            import tmpKeys
+            from psychopy import tmpKeys
             self.keys = tmpKeys
-        if os.path.isfile(join(self.paths['userPrefs'], "tmpKeys.py")):
-            os.remove(join(self.paths['userPrefs'], "tmpKeys.py"))
-        if os.path.isfile(join(self.paths['userPrefs'], "tmpKeys.pyc")):
-            os.remove(join(self.paths['userPrefs'], "tmpKeys.pyc"))
+        if os.path.isfile(tmpFile):
+            os.remove(tmpFile)
+        if os.path.isfile(tmpFile+"c"):
+            os.remove(tmpFile+"c")
         
         return self.keys
         
@@ -164,6 +157,9 @@ class Preferences:
         """
         if os.path.isfile(self.paths['sitePrefsFile']):
             os.remove(self.paths['sitePrefsFile'])
+        if os.path.isfile(self.paths['keysPrefsFile']):
+            os.remove(self.paths['keysPrefsFile'])
+            
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
@@ -195,17 +191,27 @@ class Preferences:
         return cfg
     
     def loadPlatformPrefs(self):
-        # platform-dependent over-ride of default sitePrefs
-        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg'), configspec=prefsSpec)
-        cfg.validate(self._validator, copy=False) 
+        # platform-dependent over-ride of default sitePrefs; validate later (e.g., after merging with platform-general prefs)
+        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg'))
         return cfg
     
     def loadKeysPrefs(self):
-        # platform-general (no-arch) keybindings 
-        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsKeys.cfg'), configspec=prefsSpec)  
-        cfg.validate(self._validator, copy=False) 
+        """function to load keybindings file, or create a fresh one if its missing
+        don't cfg.validate() here because key-info is string, too variable to use explicit 'option'
+        do validate later in convertKeyDict() using reg-ex's
+        """
+        if not os.path.isfile(self.paths['keysPrefsFile']):  # then its the first run, or first after resetSitePrefs()
+            # copy default + platform-specific key prefs --> newfile to be used on subsequent runs, user can edit + save it
+            cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsKeys.cfg'))
+            cfg.merge(self.platformPrefsCfg)
+            for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
+                if keyOfPref <> 'keybindings':
+                    del self.keysCfg[keyOfPref]
+            cfg.filename = self.paths['keysPrefsFile']
+            cfg.write()
+        else:
+            cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
+        
         return cfg
         
     def loadUserPrefs(self):
@@ -219,7 +225,7 @@ class Preferences:
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=False)
         cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
-            "To set a preference here: copy & paste the syntax from the 'site' or 'keys' page", 
+            "To set a preference here: copy & paste the syntax from the 'site' page", 
             "placing it under the correct section ([general], [app], etc.) then edit the value",
             "A line in green text that starts with a '#' is a comment (like this line)", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]

@@ -306,7 +306,11 @@ class PreferencesDlg(wx.Frame):
 
         buff=StringIO.StringIO()
         prefs.write(buff)
-        page.SetText(buff.getvalue())
+        if sys.platform == 'darwin' and 'keybindings' in prefs.keys():
+            # display Cmd+ instead of Ctrl+, because that's how the keys will work
+            page.SetText(buff.getvalue().replace('Ctrl+','Cmd+'))
+        else:
+            page.SetText(buff.getvalue())
         buff.close()
 
         #check that the folder exists
