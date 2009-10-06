@@ -162,11 +162,12 @@ class Preferences:
     def resetSitePrefs(self):
         """Reset the site preferences to the original defaults (to reset user prefs, just delete entries)
         """
-        if os.path.isfile(self.paths['sitePrefsFile']):
-            os.remove(self.paths['sitePrefsFile'])
-        if os.path.isfile(self.paths['keysPrefsFile']):
-            os.remove(self.paths['keysPrefsFile'])
-            
+        if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
+        if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
+        siteKeys = join(self.paths['psychopy'], 'siteKeys.py')
+        if os.path.isfile(siteKeys):  os.remove(siteKeys)
+        if os.path.isfile(siteKeys + "c"):  os.remove(siteKeys + "c")
+        
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
