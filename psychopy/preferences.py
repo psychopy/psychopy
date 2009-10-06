@@ -20,7 +20,7 @@ class Preferences:
         self.builder=None
         self.connections=None
         self.paths={}#this will remain a dictionary
-        self.keys = {}  # for keybindings
+        self.keys = {}  # does not remain a dictionary
         
         self.getPaths()
         self.loadAll()
@@ -90,40 +90,43 @@ class Preferences:
     
     def convertKeyDict(self):
         """a function to convert a keybindings dict from cfg files to self.keys
-        as expected elsewhere in the app; uses a tmpFile written in python syntax
-        (created in the user ./psychopy2 directory), import tmpFile --> self.keys
+        as expected elsewhere in the app; uses a siteKeysFile written in python syntax
+        in the site-packages psychopy/app/ directory
+        if possible, will create and then import siteKeys.py --> self.keys
         """
-        useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
+        useDefaultKeys = False
+        siteKeysFile = join(self.paths['appDir'], "siteKeys.py")
+            
         try: 
-            tmpFile = join(self.paths['psychopy'], "tmpKeys.py")
-            try:
-                file = open(tmpFile, "w")  # I tried this as StringIO obj, but couldn't import its contents as python code (is there a way?)
-            except:
-                print "Psychopy (preferences) failed to open temp file %s" % tmpFile
-                useAppDefaultKeys = True
+            file = open(siteKeysFile, "w") # if no write permission: will try to use exisiting siteKeys.py file,
+                # and if that does not work, fall back to using keybindings.py
             usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
-            menuRegex = re.compile("^(open|new|save|saveAs|close|quit|cut|copy|paste|"\
-                                   "duplicate|indent|dedent|smartIndent|find|findAgain|"\
-                                   "undo|redo|comment|uncomment|fold|analyseCode|compileScript|"\
-                                   "runScript|stopScript|switchToBuilder|switchToCoder)$")
+            # extract legal menu items from cfg file, convert to regex syntax
+            menuFile = open("prefsKeys.cfg", "r")
+            menuList = []
+            for line in menuFile:
+                if line.find("=") > -1:
+                    menuList.append(line.split()[0] + "|")
+            menuFile.close()
+            menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
             for k in self.keyDict.keys():
                 keyK = str(self.keyDict[k])
                 k = str(k)
                 if keyK in usedKeys and k.find("switchTo") < 0:  # hard-code allowed duplicates (e.g., Ctrl+L)
                     print "PsychoPy (preferences.py):  duplicate key %s" % keyK
-                    useAppDefaultKeys = True
+                    useDefaultKeys = True
                 else:
                     usedKeys.append(keyK)
-                if not menuRegex.match(k):
+                if not re.match(menuRegex, k):
                     print "PsychoPy (preferences.py):  unrecognized menu-item '%s'" % k 
-                    useAppDefaultKeys = True
+                    useDefaultKeys = True
                 # standardize user input
                 keyK = re.sub(r"(?i)Ctrl[+-]", 'Ctrl+', keyK)  
                 keyK = re.sub(r"(?i)Cmd[+-]", 'Ctrl+', keyK)
                 keyK = re.sub(r"(?i)Shift[+-]", 'Shift+', keyK)
                 keyK = re.sub(r"(?i)Alt[+-]", 'Alt+', keyK)
-                keyK = "".join([j.capitalize()+"+" for j in keyK.split("+")])[:-1] 
+                keyK = "".join([j.capitalize() + "+" for j in keyK.split("+")])[:-1] 
                 # screen / validate
                 if keyRegex.match(keyK) and not re.match(r"(F\d{1,2}).+", keyK):
                     if self.keyDict[k].find("'") > -1: quoteDelim = '"'
@@ -133,20 +136,16 @@ class Preferences:
                     print "PsychoPy (preferences.py):  bad key %s (menu-item %s)" % keyK, k
             file.close()
         except:
-            print "PsychoPy (preferences.py) could not create temp file %s (or could not processs keybindings)" % tmpFile
-            useAppDefaultKeys = True
+            pass
 
-        if useAppDefaultKeys:
-            print "using default key bindings"
+        try:
+            if useDefaultKeys: raise Exception()
+            from psychopy.app import siteKeys
+            self.keys = siteKeys        
+        except:
             from psychopy.app import keybindings
             self.keys = keybindings
-        else:
-            from psychopy import tmpKeys
-            self.keys = tmpKeys
-        if os.path.isfile(tmpFile):
-            os.remove(tmpFile)
-        if os.path.isfile(tmpFile+"c"):
-            os.remove(tmpFile+"c")
+        # don't os.remove(siteKeysFile) -- use on subsequent runs if that user lacks write permission for psychopy/app/siteKeys.py
         
         return self.keys
         
