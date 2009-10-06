@@ -211,6 +211,15 @@ class Preferences:
             for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
+            if platform.system() == 'Darwin':
+                cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
+                    "#   changes here will take effect the next time you start PsychoPy",
+                    """#   enclose single-quote within double " (eg: "Ctrl+'")""",
+                    "#   Ctrl is not available as a key modifier; use Cmd+", ""]
+            else:
+                cfg.initial_comment = ["##  --- Key-bindings:  what key does what function in the menus -----  ##",
+                    "#   changes here will take effect the next time you start PsychoPy",
+                    """#   enclose single-quote within double " (eg: "Ctrl+'")""", ""]
             cfg.filename = self.paths['keysPrefsFile']
             try:
                 cfg.write()
