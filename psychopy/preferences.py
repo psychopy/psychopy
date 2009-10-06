@@ -91,23 +91,26 @@ class Preferences:
     def convertKeyDict(self):
         """a function to convert a keybindings dict from cfg files to self.keys
         as expected elsewhere in the app; uses a siteKeysFile written in python syntax
-        in the site-packages psychopy/app/ directory
+        in the site-packages psychopy/ directory
         if possible, will create and then import siteKeys.py --> self.keys
         """
         useDefaultKeys = False
-        siteKeysFile = join(self.paths['appDir'], "siteKeys.py")
+        siteKeysFile = join(self.paths['psychopy'], "siteKeys.py")
             
         try: 
             file = open(siteKeysFile, "w") # if no write permission: will try to use exisiting siteKeys.py file,
                 # and if that does not work, fall back to using keybindings.py
+            file.write("# key-bindings file, created by admin user on first run, used site-wide\n")
             usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
             # extract legal menu items from cfg file, convert to regex syntax
-            menuFile = open("prefsKeys.cfg", "r")
+            menuFile = open(join(self.paths['psychopy'], "prefsKeys.cfg"), "r")
             menuList = []
             for line in menuFile:
                 if line.find("=") > -1:
                     menuList.append(line.split()[0] + "|")
+            if platform.system() == "Windows":
+                file.write("#" + str(menuList)+"\n")  # windows versions failed to generate a proper regex; maybe the str() helped? weird
             menuFile.close()
             menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
             for k in self.keyDict.keys():
@@ -140,7 +143,7 @@ class Preferences:
 
         try:
             if useDefaultKeys: raise Exception()
-            from psychopy.app import siteKeys
+            from psychopy import siteKeys
             self.keys = siteKeys        
         except:
             from psychopy.app import keybindings
