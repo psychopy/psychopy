@@ -95,7 +95,11 @@ class Preferences:
         useAppDefaultKeys = False  # flag bad situations in which to give up and go with app defaults
         try: 
             tmpFile = join(self.paths['psychopy'], "tmpKeys.py")
-            file = open(tmpFile, "w")  # I tried this as StringIO obj, but couldn't import its contents as python code (is there a way?)
+            try:
+                file = open(tmpFile, "w")  # I tried this as StringIO obj, but couldn't import its contents as python code (is there a way?)
+            except:
+                print "Psychopy (preferences) failed to open temp file %s" % tmpFile
+                useAppDefaultKeys = True
             usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
             menuRegex = re.compile("^(open|new|save|saveAs|close|quit|cut|copy|paste|"\
@@ -206,9 +210,12 @@ class Preferences:
             cfg.merge(self.platformPrefsCfg)
             for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if keyOfPref <> 'keybindings':
-                    del self.keysCfg[keyOfPref]
+                    del cfg[keyOfPref]
             cfg.filename = self.paths['keysPrefsFile']
-            cfg.write()
+            try:
+                cfg.write()
+            except:
+                print "failed to write to %s" % self.paths['keysPrefsFile']
         else:
             cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
         
