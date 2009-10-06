@@ -89,17 +89,20 @@ class Preferences:
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
     
     def convertKeyDict(self):
-        """a function to convert a keybindings dict from cfg files to self.keys
-        as expected elsewhere in the app; uses a siteKeysFile written in python syntax
-        in the site-packages psychopy/ directory
-        if possible, will create and then import siteKeys.py --> self.keys
+        """a function to convert a keybindings dict from (merged) cfg files to self.keys
+        as expected elsewhere in the app, using a persistent file, psychopy/siteKeys.py
         """
+        # logic: if no write permission for this user in site-packages psychopy/ directory, assume the user
+        # is not an admin so try to use an exisiting siteKeys.py file created by an admin earlier
+        # (and if that does not exist, then fall back to using keybindings.py for this user)
+        # if the user does have write permission, then (re)create the siteKeys.py file, from
+        # a merge of defaults + platform + possibly edited key prefs (as returned by loadKeysPrefs prior to calling this function)
+        
         useDefaultKeys = False
         siteKeysFile = join(self.paths['psychopy'], "siteKeys.py")
-            
+        
         try: 
-            file = open(siteKeysFile, "w") # if no write permission: will try to use exisiting siteKeys.py file,
-                # and if that does not work, fall back to using keybindings.py
+            file = open(siteKeysFile, "w")  # if admin user, (re)create siteKeys.py file
             file.write("# key-bindings file, created by admin user on first run, used site-wide\n")
             usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
@@ -110,7 +113,9 @@ class Preferences:
                 if line.find("=") > -1:
                     menuList.append(line.split()[0] + "|")
             if platform.system() == "Windows":
-                file.write("#" + str(menuList)+"\n")  # windows versions failed to generate a proper regex; maybe the str() helped? weird
+                file.write("#" + str(menuList)+"\n")
+                # without this, on windows PP failed to generate the menuList / menuRegex properly and the app would not start
+                # no idea why the file.write() solved the issue, maybe the str() helped? weird!
             menuFile.close()
             menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
             for k in self.keyDict.keys():
@@ -130,7 +135,7 @@ class Preferences:
                 keyK = re.sub(r"(?i)Shift[+-]", 'Shift+', keyK)
                 keyK = re.sub(r"(?i)Alt[+-]", 'Alt+', keyK)
                 keyK = "".join([j.capitalize() + "+" for j in keyK.split("+")])[:-1] 
-                # screen / validate
+                # validate user input
                 if keyRegex.match(keyK) and not re.match(r"(F\d{1,2}).+", keyK):
                     if self.keyDict[k].find("'") > -1: quoteDelim = '"'
                     else: quoteDelim = "'"
@@ -148,7 +153,6 @@ class Preferences:
         except:
             from psychopy.app import keybindings
             self.keys = keybindings
-        # don't os.remove(siteKeysFile) -- use on subsequent runs if that user lacks write permission for psychopy/app/siteKeys.py
         
         return self.keys
         
@@ -184,14 +188,13 @@ class Preferences:
         if len(cfg['general']['userPrefsFile']) == 0:
             #create file for first time
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home
-            tmp = open(cfg['general']['userPrefsFile'], 'a')  # create empty file; use 'a' to append, just safer
-            tmp.close()  # idea: sidestep warning message in 2nd run of pp if user does not save prefs in 1st run
         elif not os.path.isfile(cfg['general']['userPrefsFile']):
             print 'Prefs file %s was not found.\nUsing file %s' %(cfg['general']['userPrefsFile'], self.paths['userPrefsFile'])
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home            
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
         cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###",
+                               "  (some settings require restarting as an admin user before they will have any effect)",
                                "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
