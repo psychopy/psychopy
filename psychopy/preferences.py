@@ -112,10 +112,8 @@ class Preferences:
             for line in menuFile:
                 if line.find("=") > -1:
                     menuList.append(line.split()[0] + "|")
-            if platform.system() == "Windows":
-                file.write("#" + str(menuList)+"\n")
-                # without this, on windows PP failed to generate the menuList / menuRegex properly and the app would not start
-                # no idea why the file.write() solved the issue, maybe the str() helped? weird!
+            if platform.system() == "Windows":  # update: seems no longer necessary
+                file.write("#" + str(menuList)+"\n")  # I added this to help debug a windows-only menuRegex issue, and this solved it (!)
             menuFile.close()
             menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
             for k in self.keyDict.keys():
@@ -135,8 +133,8 @@ class Preferences:
                 keyK = re.sub(r"(?i)Shift[+-]", 'Shift+', keyK)
                 keyK = re.sub(r"(?i)Alt[+-]", 'Alt+', keyK)
                 keyK = "".join([j.capitalize() + "+" for j in keyK.split("+")])[:-1] 
-                # validate user input
-                if keyRegex.match(keyK) and not re.match(r"(F\d{1,2}).+", keyK):
+                # validate user input, not a perfect filter but should be pretty good
+                if keyRegex.match(keyK):
                     if self.keyDict[k].find("'") > -1: quoteDelim = '"'
                     else: quoteDelim = "'"
                     file.write("%s" % str(k) + " = " + quoteDelim + keyK + quoteDelim + "\n")
