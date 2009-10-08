@@ -39,7 +39,7 @@ if not hasattr(sys, 'frozen'):
 import wx
 
 import sys, os, threading, time, platform
-from psychopy import preferences
+from psychopy import preferences, configobj, configobjValidate
 from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
 from psychopy.app import coder, builder, wxIDs, connections
@@ -265,8 +265,10 @@ class PreferencesDlg(wx.Frame):
         self.pageIDs={}#store the page numbers
         self.paths = app.prefs.paths
         self.app=app
+        
         self.prefs={'user':app.prefs.userPrefsCfg,
-                    'site':app.prefs.prefsCfg,
+                    #'site':app.prefs.prefsCfg,
+                    'site':app.prefs.sitePrefsCfg,
                     'keys':app.prefs.keysCfg}
         self.prefPagesOrder = ['user', 'site', 'keys']
         
@@ -292,6 +294,7 @@ class PreferencesDlg(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
+        # return to last pref page that was viewed: # self.app.prefs.pageCurrent did not work on Win or Linux
         self.nb.ChangeSelection(app.prefs.pageCurrent)
 
     def makePage(self, prefs):
@@ -342,6 +345,11 @@ class PreferencesDlg(wx.Frame):
         self.app.quit()
         
     def save(self, event=None):
+        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
+        app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
+        app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
+
         pageCurrent = self.nb.GetSelection()  
         for prefsType in self.prefs.keys():
             pageText = self.getPageText(prefsType)

@@ -66,20 +66,21 @@ class Preferences:
         """
         self._validator=configobjValidate.Validator()
         self.appDataCfg = self.loadAppData()
-        self.prefsCfg = self.loadSitePrefs()
+        self.sitePrefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
         self.userPrefsCfg = self.loadUserPrefs()
         
         # merge site, platform, and user prefs; order matters
-        self.prefsCfg.merge(self.platformPrefsCfg)
+        self.sitePrefsCfg.merge(self.platformPrefsCfg)
+        # save site + platform only as 'site' prefs:
+        prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        self.prefsCfg = configobj.ConfigObj(self.sitePrefsCfg, configspec=prefsSpec)
+        self.prefsCfg.validate(self._validator, copy=False)
+        #self.prefsCfg.filename = hopefully not needed
         self.prefsCfg.merge(self.userPrefsCfg)
-        # for displaying to the user (in pref pages), it would be less confusing to have site-prefs not reflect user-override
-        # one solution: keep a separate self.sitePrefsCfg for display, then merge after saving prefs:
-        # self.prefsCfg = self.sitePrefsCfg
-        # self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        if 'keybindings' in self.prefsCfg:
-            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
+        if 'keybindings' in self.prefsCfg: del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
+        if 'keybindings' in self.sitePrefsCfg: del self.sitePrefsCfg['keybindings']
         
         #simplify namespace
         self.general=self.prefsCfg['general']
@@ -238,7 +239,7 @@ class Preferences:
                     "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
                     """Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
             if platform.system() == 'Darwin':
-                cfg.initial_comment.append("Ctrl+ is not available as a key modifier; use Cmd+")
+                cfg.initial_comment.append("Ctrl is not available as a key modifier; use Cmd")
             cfg.initial_comment.append("")
             cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
