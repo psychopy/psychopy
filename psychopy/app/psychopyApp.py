@@ -97,6 +97,7 @@ class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
+        
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
@@ -266,11 +267,11 @@ class PreferencesDlg(wx.Frame):
         self.paths = app.prefs.paths
         self.app=app
         
-        self.prefs={'user':app.prefs.userPrefsCfg,
-                    #'site':app.prefs.prefsCfg,
-                    'site':app.prefs.sitePrefsCfg,
-                    'keys':app.prefs.keysCfg}
-        self.prefPagesOrder = ['user', 'site', 'keys']
+        self.prefs={'user' : app.prefs.userPrefsCfg,
+                    'site' : app.prefs.sitePrefsCfg,
+                    'keys' : app.prefs.keysCfg,
+                    'help' : app.prefs.helpPrefsCfg}
+        self.prefPagesOrder = ['user', 'site', 'keys', 'help']
         
         for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
@@ -332,7 +333,7 @@ class PreferencesDlg(wx.Frame):
         except:  # no write-access so make the textctrl read-only
             page.SetReadOnly(True)
             page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0000FF")  # comments in blue == read-only page
-            print "Preferences:  %s prefs are read-only" % prefs.filename[-8:-4][:4]
+            #print "%s prefs are read-only" % prefs.filename[-8:-4][:4]
         return page
     
     def close(self, event=None):

@@ -54,10 +54,17 @@ class Preferences:
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         self.paths['userPrefs']=dirUserPrefs
-        self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg')
+        self.paths['userPrefsFile']=join(dirUserPrefs, 'prefsUser.cfg') 
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
-        self.paths['sitePrefsFile']=join(self.paths['psychopy'], 'prefsSite.cfg')
-        self.paths['keysPrefsFile']=join(self.paths['psychopy'], 'prefsSiteKeys.cfg')
+        self.paths['sitePrefsFile'] = join(self.paths['psychopy'], 'prefsSite.cfg')
+        self.paths['keysPrefsFile'] = join(self.paths['psychopy'], 'prefsSiteKeys.cfg')
+        self.paths['helpPrefsFile'] = join(self.paths['psychopy'], 'prefsHelp.cfg')
+        
+        if platform.system() == 'Windows':
+            self.paths['usePrefsTemplate'] = 'C:\Documents and Settings\<USERNAME_HERE>\psychopy2'
+        else:
+            self.paths['usePrefsTemplate'] = '~<USERNAME_HERE>/.psychopy2'
+        #self.paths['userPrefsFile'] = self.paths['usePrefsTemplate'].replace('<USERNAME_HERE>', username)
         
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
@@ -69,10 +76,11 @@ class Preferences:
         self.sitePrefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
         self.userPrefsCfg = self.loadUserPrefs()
+        self.helpPrefsCfg = self.loadHelpPrefs()
         
-        # merge site, platform, and user prefs; order matters
+        # merge general, platform, and user prefs; order matters
         self.sitePrefsCfg.merge(self.platformPrefsCfg)
-        # save site + platform only as 'site' prefs:
+        # set general + platform as 'site' prefs:
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         self.prefsCfg = configobj.ConfigObj(self.sitePrefsCfg, configspec=prefsSpec)
         self.prefsCfg.validate(self._validator, copy=False)
@@ -175,7 +183,7 @@ class Preferences:
             os.makedirs(self.paths['userPrefs'])
         self.appDataCfg.write()
     def resetSitePrefs(self):
-        """Reset the site preferences to the original defaults (to reset user prefs, just delete entries)
+        """Reset the site preferences to the original defaults
         """
         # confirmationDlg here? probably not necessary, as you have to manually type 'True' and then save
         if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
@@ -183,7 +191,7 @@ class Preferences:
         siteKeys = join(self.paths['psychopy'], 'siteKeys.py')
         if os.path.isfile(siteKeys):  os.remove(siteKeys)
         if os.path.isfile(siteKeys + "c"):  os.remove(siteKeys + "c")
-        print "All site prefs and keybindings reset to defaults. To reset user prefs, just delete entries."
+        print "Site prefs and key-bindings RESET to defaults"
         
     def loadAppData(self):
         #fetch appData too against a config spec
@@ -207,9 +215,8 @@ class Preferences:
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
         cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###", "",
-                               "Some settings require restarting before they will have any effect.",
-                               "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
-                               "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
+                               "See the 'help' page.",
+                               "", "##  General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
         try:
@@ -223,6 +230,11 @@ class Preferences:
         cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefs' + platform.system() + '.cfg'))
         return cfg
     
+    def loadHelpPrefs(self):
+        cfg = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsHelp.cfg'))
+        cfg.filename = self.paths['helpPrefsFile']
+        return cfg
+    
     def loadKeysPrefs(self):
         """function to load keybindings file, or create a fresh one if its missing
         don't currently have a spec for keys, do validate later in convertKeyDict() using reg-ex's
@@ -234,12 +246,10 @@ class Preferences:
             for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
-            cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##", "",
-                    "Changes here will take effect the next time you start %s PsychoPy.",
-                    "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
-                    """Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
+            cfg.initial_comment = ["###  === KEY-BINDINGS:  menu-key assignments, apply to all users =====  ###", "",
+                    "See the 'help' page."]
             if platform.system() == 'Darwin':
-                cfg.initial_comment.append("Ctrl is not available as a key modifier; use Cmd")
+                cfg.initial_comment.append("NB:  Ctrl is not available as a key modifier; use Cmd")
             cfg.initial_comment.append("")
             cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
@@ -253,6 +263,11 @@ class Preferences:
         return cfg
         
     def loadUserPrefs(self):
+        if platform.system() == 'Windows':
+            self.username = os.environ['USERNAME']
+        else:
+            self.username = os.popen('id -un', 'r').read()[:-1]  # whoami
+
         prefsSpec = configobj.ConfigObj(join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         #check/create path for user prefs
         if not os.path.isdir(self.paths['userPrefs']):
@@ -262,10 +277,8 @@ class Preferences:
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
-        cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
-            "To set a preference here: copy & paste the syntax from the 'site' page", 
-            "placing it under the correct section ([general], [app], etc.) then edit the value",
-            "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').", ""]
+        cfg.initial_comment = ["### === USER PREFERENCES for '"+self.username+"':  override the SITE prefs ===== ###", "",
+            "See the 'help' page for how to use.", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         return cfg
     
