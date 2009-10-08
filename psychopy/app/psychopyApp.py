@@ -342,6 +342,8 @@ class PreferencesDlg(wx.Frame):
                 f.close()
                 print "saved", filePath
         self.nb.ChangeSelection(pageCurrent) 
+        self.app.prefs = preferences.Preferences()
+        self.app.keys = self.app.prefs.keys
         return 1  # ok
     
     def getPageText(self,prefsType):

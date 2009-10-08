@@ -242,7 +242,7 @@ class Preferences:
                 print "PsychoPy (preferences.py) failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']  # was: tmpPath
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
-        cfg.validate(self._validator, copy=False)
+        #cfg.validate(self._validator, copy=False)  # merge first then validate
         cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
             "To set a preference here: copy & paste the syntax from the 'site' page", 
             "placing it under the correct section ([general], [app], etc.) then edit the value",
