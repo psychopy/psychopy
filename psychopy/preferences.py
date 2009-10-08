@@ -25,12 +25,17 @@ class Preferences:
         self.getPaths()
         self.loadAll()
         
+        if self.prefsCfg['app']['resetSitePrefs']:
+            self.resetSitePrefs()
+            self.loadAll()
+            # ideally now close the preferencesDlg in the main app and re-open
+        
     def getPaths(self):
         #on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath= os.path.abspath(__file__)
         dirPsychoPy = os.path.split(thisFileAbsPath)[0]
         #paths to user settings
-        if sys.platform=='win32':
+        if platform.system() == 'Windows':
             dirUserPrefs = join(os.environ['APPDATA'],'psychopy2') #the folder where the user cfg file is stored
         else:
             dirUserPrefs = join(os.environ['HOME'], '.psychopy2')
@@ -68,7 +73,13 @@ class Preferences:
         # merge site, platform, and user prefs; order matters
         self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
+        # for displaying to the user (in pref pages), it would be less confusing to have site-prefs not reflect user-override
+        # one solution: keep a separate self.sitePrefsCfg for display, then merge after saving prefs:
+        # self.prefsCfg = self.sitePrefsCfg
+        # self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
+        if 'keybindings' in self.prefsCfg:
+            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
         
         #simplify namespace
         self.general=self.prefsCfg['general']
@@ -79,12 +90,9 @@ class Preferences:
         self.appData = self.appDataCfg
           
         # keybindings: merge general + platform prefs; userPrefs should not have keybindings
-        if 'keybindings' in self.prefsCfg:
-            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
         for section in self.prefsCfg.keys():
             if not section in self.userPrefsCfg.keys():
                 self.userPrefsCfg[section] = {}
-
         self.keysCfg = self.loadKeysPrefs()
         self.keyDict = self.keysCfg['keybindings'] # == dict, with items in u'___' format
         self.keys = self.convertKeyDict() # no longer a dict, no longer u'___' format
@@ -168,11 +176,13 @@ class Preferences:
     def resetSitePrefs(self):
         """Reset the site preferences to the original defaults (to reset user prefs, just delete entries)
         """
+        # confirmationDlg here? probably not necessary, as you have to manually type 'True' and then save
         if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
         if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
         siteKeys = join(self.paths['psychopy'], 'siteKeys.py')
         if os.path.isfile(siteKeys):  os.remove(siteKeys)
         if os.path.isfile(siteKeys + "c"):  os.remove(siteKeys + "c")
+        print "All site prefs and keybindings reset to defaults. To reset user prefs, just delete entries."
         
     def loadAppData(self):
         #fetch appData too against a config spec
@@ -191,13 +201,13 @@ class Preferences:
             #create file for first time
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home
         elif not os.path.isfile(cfg['general']['userPrefsFile']):
-            print 'Prefs file %s was not found.\nUsing file %s' %(cfg['general']['userPrefsFile'], self.paths['userPrefsFile'])
+            print 'Prefs file %s was not found.\nUsing location %s' %(cfg['general']['userPrefsFile'], self.paths['userPrefsFile'])
             cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home            
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
-        cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###",
-                               "  Some settings require restarting before they will have any effect.",
-                               "  You can edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
+        cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###", "",
+                               "Some settings require restarting before they will have any effect.",
+                               "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
                                "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
@@ -223,12 +233,12 @@ class Preferences:
             for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
-            cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
-                    "  Changes here will take effect the next time you start PsychoPy.",
-                    "  You can edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
-                    """  Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
+            cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##", "",
+                    "Changes here will take effect the next time you start %s PsychoPy.",
+                    "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').",
+                    """Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
             if platform.system() == 'Darwin':
-                cfg.initial_comment.append("#   Ctrl is not available as a key modifier; use Cmd+")
+                cfg.initial_comment.append("Ctrl+ is not available as a key modifier; use Cmd+")
             cfg.initial_comment.append("")
             cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
@@ -247,14 +257,14 @@ class Preferences:
         if not os.path.isdir(self.paths['userPrefs']):
             try: os.makedirs(self.paths['userPrefs'])
             except:
-                print "PsychoPy (preferences.py) failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']  # was: tmpPath
+                print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
-            "  To set a preference here: copy & paste the syntax from the 'site' page", 
-            "  placing it under the correct section ([general], [app], etc.) then edit the value",
-            "  You can edit this page if comment lines (#...) are green; blue means read-only ('frozen').", ""]
+            "To set a preference here: copy & paste the syntax from the 'site' page", 
+            "placing it under the correct section ([general], [app], etc.) then edit the value",
+            "Edit this page if comment lines (#...) are green; blue means read-only ('frozen').", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         return cfg
     

@@ -333,6 +333,7 @@ class PreferencesDlg(wx.Frame):
         return page
     
     def close(self, event=None):
+        # ideally check for unsaved edits, warn, allow chance to save
         app.prefs.pageCurrent = self.nb.GetSelection()
         self.Destroy()
         
