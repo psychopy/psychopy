@@ -69,8 +69,6 @@ class Preferences:
         self.prefsCfg.merge(self.platformPrefsCfg)
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        if 'keybindings' in self.prefsCfg:
-            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
         
         #simplify namespace
         self.general=self.prefsCfg['general']
@@ -81,6 +79,12 @@ class Preferences:
         self.appData = self.appDataCfg
           
         # keybindings: merge general + platform prefs; userPrefs should not have keybindings
+        if 'keybindings' in self.prefsCfg:
+            del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
+        for section in self.prefsCfg.keys():
+            if not section in self.userPrefsCfg.keys():
+                self.userPrefsCfg[section] = {}
+
         self.keysCfg = self.loadKeysPrefs()
         self.keyDict = self.keysCfg['keybindings'] # == dict, with items in u'___' format
         self.keys = self.convertKeyDict() # no longer a dict, no longer u'___' format
@@ -192,11 +196,15 @@ class Preferences:
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
         cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###",
-                               "  (some settings require restarting as an admin user before they will have any effect)",
+                               "  Some settings require restarting before they will have any effect.",
+                               "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.",
                                "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
-        cfg.write()
+        try:
+            cfg.write()
+        except:
+            pass
         return cfg
     
     def loadPlatformPrefs(self):
@@ -217,8 +225,9 @@ class Preferences:
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
             cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
-                    "#   changes here will take effect the next time you start PsychoPy",
-                    """#   enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
+                    "  Changes here will take effect the next time you start PsychoPy",
+                    "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.",
+                    """  Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
             if platform.system() == 'Darwin':
                 cfg.initial_comment.append("#   Ctrl is not available as a key modifier; use Cmd+")
             cfg.initial_comment.append("")
@@ -244,9 +253,9 @@ class Preferences:
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
-            "To set a preference here: copy & paste the syntax from the 'site' page", 
-            "placing it under the correct section ([general], [app], etc.) then edit the value",
-            "A line in green text that starts with a '#' is a comment (like this line)", ""]
+            "  To set a preference here: copy & paste the syntax from the 'site' page", 
+            "  placing it under the correct section ([general], [app], etc.) then edit the value",
+            "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         return cfg
     

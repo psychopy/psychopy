@@ -301,7 +301,7 @@ class PreferencesDlg(wx.Frame):
             page.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:Courier,size:12d")
         page.StyleClearAll()  # Reset all to be like the default
         page.SetLexer(wx.stc.STC_LEX_PROPERTIES)
-        page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF0000")
+        page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF5555,bold")
         page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#007F00")
 
         buff=StringIO.StringIO()
@@ -313,20 +313,25 @@ class PreferencesDlg(wx.Frame):
             page.SetText(buff.getvalue())
         buff.close()
 
-        #check that the folder exists
+        # check that the folder exists
         dirname = os.path.dirname(prefs.filename)
         if not os.path.isdir(dirname):
             try: os.makedirs(dirname)
             except: 
                 page.SetReadOnly(True)
-        #check for file write access
-        if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
+        # check for file write access: [this did not work for me: #if not os.access(dirname,os.W_OK):]
+        try:
+            f = open(prefs.filename, 'a')  # check write-access by trying to append
+            f.close()
+        except:  # no write-access so make the textctrl read-only
             page.SetReadOnly(True)
-            print "PsychoPy (PreferencesDlg) can't write to folder %s." %dirname
-            
+            page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#FF0000")  # comments in red == read-only page
+            print "Preferences:  %s is read-only" % prefs.filename[-8:-4][:4]
         return page
+    
     def close(self, event=None):
         self.Destroy()
+        
     def quit(self,event=None):
         self.close()
         self.app.quit()
@@ -337,10 +342,13 @@ class PreferencesDlg(wx.Frame):
             pageText = self.getPageText(prefsType)
             filePath = self.paths['%sPrefsFile' % prefsType]
             if self.isChanged(prefsType):
-                f = open(filePath, 'w')
-                f.write(pageText)
-                f.close()
-                print "saved", filePath
+                try:
+                    f = open(filePath, 'w')
+                    f.write(pageText)
+                    f.close()
+                    print "saved", filePath
+                except:
+                    pass
         self.nb.ChangeSelection(pageCurrent) 
         self.app.prefs = preferences.Preferences()
         self.app.keys = self.app.prefs.keys
@@ -355,7 +363,7 @@ class PreferencesDlg(wx.Frame):
         filePath = self.paths['%sPrefsFile' %prefsType]
         if not os.path.isfile(filePath):
             return True
-        f = open(filePath, 'r+')
+        f = open(filePath, 'r')  # 'r+' fails if the file does not have write permission
         savedTxt = f.read()
         f.close()
         #find the notebook page
