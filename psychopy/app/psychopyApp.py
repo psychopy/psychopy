@@ -100,7 +100,7 @@ class PsychoPyApp(wx.App):
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
-        self.prefs.pageCurrent = 0  # go back to last opened page of prefs if you re-open preferencesDlg
+        self.prefs.pageCurrent = 0  # track last viewed page of prefs, return there if you re-open preferencesDlg
         self.IDs=wxIDs
         self.quitting=False
         
@@ -268,7 +268,7 @@ class PreferencesDlg(wx.Frame):
         self.prefs={'user':app.prefs.userPrefsCfg,
                     'site':app.prefs.prefsCfg,
                     'keys':app.prefs.keysCfg}
-        self.prefPagesOrder = ['site', 'user', 'keys']
+        self.prefPagesOrder = ['user', 'site', 'keys']
         
         for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
@@ -292,7 +292,7 @@ class PreferencesDlg(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-        self.nb.ChangeSelection(self.app.prefs.pageCurrent)
+        self.nb.ChangeSelection(app.prefs.pageCurrent)
 
     def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
@@ -333,7 +333,7 @@ class PreferencesDlg(wx.Frame):
         return page
     
     def close(self, event=None):
-        self.app.prefs.pageCurrent = self.nb.GetSelection()
+        app.prefs.pageCurrent = self.nb.GetSelection()
         self.Destroy()
         
     def quit(self,event=None):
@@ -353,7 +353,8 @@ class PreferencesDlg(wx.Frame):
                     print "saved", filePath
                 except:
                     pass
-        self.nb.ChangeSelection(pageCurrent) 
+        self.nb.ChangeSelection(pageCurrent)
+        # reload / refresh:
         self.app.prefs = preferences.Preferences()
         self.app.keys = self.app.prefs.keys
         return 1  # ok
