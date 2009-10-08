@@ -197,7 +197,7 @@ class Preferences:
             self.paths['userPrefsFile'] = cfg['general']['userPrefsFile']  #set app path to user override
         cfg.initial_comment = ["### === SITE PREFERENCES:  settings here apply to all users ===== ###",
                                "  Some settings require restarting before they will have any effect.",
-                               "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.",
+                               "  You can edit the page if comment lines (#...) are green; blue means read-only ('frozen').",
                                "", "##  --- General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
@@ -214,8 +214,7 @@ class Preferences:
     
     def loadKeysPrefs(self):
         """function to load keybindings file, or create a fresh one if its missing
-        don't cfg.validate() here because key-info is string, too variable to use explicit 'option'
-        do validate later in convertKeyDict() using reg-ex's
+        don't currently have a spec for keys, do validate later in convertKeyDict() using reg-ex's
         """
         if not os.path.isfile(self.paths['keysPrefsFile']):  # then its the first run, or first after resetSitePrefs()
             # copy default + platform-specific key prefs --> newfile to be used on subsequent runs, user can edit + save it
@@ -225,8 +224,8 @@ class Preferences:
                 if keyOfPref <> 'keybindings':
                     del cfg[keyOfPref]
             cfg.initial_comment = ["##  --- Key-bindings:  What key does what function in the menus -----  ##",
-                    "  Changes here will take effect the next time you start PsychoPy",
-                    "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.",
+                    "  Changes here will take effect the next time you start PsychoPy.",
+                    "  You can edit the page if comment lines (#...) are green; blue means read-only ('frozen').",
                     """  Enclose single-quote ' within double-quote " (eg: "Ctrl+'")"""]
             if platform.system() == 'Darwin':
                 cfg.initial_comment.append("#   Ctrl is not available as a key modifier; use Cmd+")
@@ -255,7 +254,7 @@ class Preferences:
         cfg.initial_comment = ["### === USER PREFERENCES:  settings here override the SITE-wide prefs ===== ###", "",
             "  To set a preference here: copy & paste the syntax from the 'site' page", 
             "  placing it under the correct section ([general], [app], etc.) then edit the value",
-            "  If comment lines (starting with #) are in green, you can edit the page; red means read-only.", ""]
+            "  You can edit the page if comment lines (#...) are green; blue means read-only ('frozen').", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
         return cfg
     

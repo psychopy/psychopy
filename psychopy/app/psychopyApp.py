@@ -100,6 +100,7 @@ class PsychoPyApp(wx.App):
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
+        self.prefs.pageCurrent = 0  # go back to last opened page of prefs if you re-open preferencesDlg
         self.IDs=wxIDs
         self.quitting=False
         
@@ -290,6 +291,8 @@ class PreferencesDlg(wx.Frame):
 
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
+        
+        self.nb.ChangeSelection(self.app.prefs.pageCurrent)
 
     def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
@@ -325,11 +328,12 @@ class PreferencesDlg(wx.Frame):
             f.close()
         except:  # no write-access so make the textctrl read-only
             page.SetReadOnly(True)
-            page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#FF0000")  # comments in red == read-only page
-            print "Preferences:  %s is read-only" % prefs.filename[-8:-4][:4]
+            page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0000FF")  # comments in blue == read-only page
+            print "Preferences:  %s prefs are read-only" % prefs.filename[-8:-4][:4]
         return page
     
     def close(self, event=None):
+        self.app.prefs.pageCurrent = self.nb.GetSelection()
         self.Destroy()
         
     def quit(self,event=None):
