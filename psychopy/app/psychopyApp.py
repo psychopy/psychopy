@@ -97,7 +97,6 @@ class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
-        
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
@@ -326,14 +325,16 @@ class PreferencesDlg(wx.Frame):
             try: os.makedirs(dirname)
             except: 
                 page.SetReadOnly(True)
-        # check for file write access: [this did not work for me: #if not os.access(dirname,os.W_OK):]
+        # make the text read-only?
         try:
-            f = open(prefs.filename, 'a')  # check write-access by trying to append
+            if prefs.filename.find("prefsHelp.cfg") > -1: raise Exception()  # read-only if a protected page, like prefsHelp.cfg
+            f = open(prefs.filename, 'a')  # read-only if write-access fails; this test did not work for me: os.access(dirname,os.W_OK)
             f.close()
-        except:  # no write-access so make the textctrl read-only
-            page.SetReadOnly(True)
-            page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0000FF")  # comments in blue == read-only page
-            #print "%s prefs are read-only" % prefs.filename[-8:-4][:4]
+        except:  # make the textctrl read-only, and comment color blue
+            if prefs.filename.find("prefsUser.cfg") < 0:  # user prefs should always be editable
+                page.SetReadOnly(True)
+                page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0033BB")
+                #print "%s prefs are read-only" % prefs.filename[-8:-4][:4]
         return page
     
     def close(self, event=None):
@@ -346,7 +347,7 @@ class PreferencesDlg(wx.Frame):
         self.app.quit()
         
     def save(self, event=None):
-        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['psychopy'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
         app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
         app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
         app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
