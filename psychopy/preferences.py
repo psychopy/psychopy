@@ -2,13 +2,18 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import wx, wx.stc
-import os, sys, urllib, StringIO, platform
-from shutil import copyfile
-import configobj, configobjValidate, re
+#import wx, wx.stc
+import os, urllib, platform, re
+#import sys, StringIO
+#from shutil import copyfile
+import configobj, configobjValidate
 
 #GET PATHS------------------
 join = os.path.join
+if platform.system() == 'Windows':
+    activeUser = os.environ['USERNAME']
+else:
+    activeUser = os.popen('id -un', 'r').read()[:-1]  # whoami
 
 class Preferences:
     def __init__(self):
@@ -28,7 +33,7 @@ class Preferences:
         if self.prefsCfg['app']['resetSitePrefs']:
             self.resetSitePrefs()
             self.loadAll()
-            # ideally now close the preferencesDlg in the main app and re-open
+            # ideally now refresh the preferencesDlg display in the main app, if its open
         
     def getPaths(self):
         #on mac __file__ might be a local path, so make it the full path
@@ -56,17 +61,17 @@ class Preferences:
         self.paths['sitePrefsFile'] = join(self.paths['prefs'], 'mySitePrefs.cfg')
         self.paths['keysPrefsFile'] = join(self.paths['prefs'], 'mySiteKeys.cfg')
         self.paths['helpPrefsFile'] = join(self.paths['prefs'], 'prefsHelp.cfg')
-        #self.paths['userPrefsFile']  # define later
+        #self.paths['userPrefsFile']  # defined later, after userPrefsTemplate
         
         #paths to user settings
-        # set user-related (userPref, appData) paths in loadAll() ==> AFTER load site-prefs
+        # better: set user-related (userPref, appData) paths in loadAll() ==> AFTER load site-prefs
         if platform.system() == 'Windows':
-            prefTemplate = 'C:\Documents and Settings\USERNAME\psychopy2'
-        elif platform.system() == 'Darwin':
-            prefTemplate = join('/Users/USERNAME', '.psychopy2')
+            prefTemplate = 'C:\Documents and Settings\USERNAME\Application Data\psychopy2\userPrefs.cfg'
+        elif platform.system() == 'Darwin':  # os.path.expanduser("~")
+            prefTemplate = '/Users/USERNAME/.psychopy2/userPrefs.cfg'
         else:
-            prefTemplate = join('/home/USERNAME', '.psychopy2')
-        self.paths['userPrefsTemplate'] = join(prefTemplate, 'userPrefs.cfg')
+            prefTemplate = '/home/USERNAME/.psychopy2/userPrefs.cfg'
+        self.paths['userPrefsTemplate'] = prefTemplate
         self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
         self.paths['userPrefsFile']=join(dirUserPrefs, 'userPrefs.cfg')
         self.paths['userPrefsDir']=dirUserPrefs
@@ -216,10 +221,6 @@ class Preferences:
         prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=True)  #copy means all settings get saved
-        if platform.system() == 'Windows':
-            activeUser = os.environ['USERNAME']
-        else:
-            activeUser = os.popen('id -un', 'r').read()[:-1]  # whoami
         if len(cfg['general']['userPrefsTemplate']) == 0:
             #create the template for first time
             cfg['general']['userPrefsTemplate'] = self.paths['userPrefsTemplate']  #set path to home
@@ -232,8 +233,8 @@ class Preferences:
             self.paths['userPrefsFile'] = cfg['general']['userPrefsTemplate'].replace('USERNAME', activeUser)  #set app path to user override
         cfg.initial_comment = ["###", "###     SITE PREFERENCES:  settings here apply to all users; see 'help'",
                                       "###    ---------------------------------------------------------------------", "",
-                               "##  General settings, e.g. about scripts, rather than any aspect of the app -----  ##"]
-        cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['sitePrefsFile']]
+                               "###  General settings, e.g. about scripts, rather than any aspect of the app -----"]
+        cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
         try:
             cfg.write()
@@ -267,9 +268,9 @@ class Preferences:
             cfg.initial_comment = ["###", "###     KEY-BINDINGS:  menu-key assignments, apply to all users; see 'help'",
                                           "###    ---------------------------------------------------------------------"]
             if platform.system() == 'Darwin':
-                cfg.initial_comment.append("##      NB:  Ctrl is not available as a key modifier, use Cmd; quit is always Cmd+Q")
+                cfg.initial_comment.append("###     NB:  Ctrl is not available as a key modifier, use Cmd; quit is always Cmd+Q")
             cfg.initial_comment.append("")
-            cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
+            cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
             try:
                 cfg.write()
@@ -286,11 +287,6 @@ class Preferences:
         key-bindings, but outside it (where user prefs will live) is not allowed
         by easy_install (security risk)
         """
-        if platform.system() == 'Windows':
-            activeUser = os.environ['USERNAME']
-        else:
-            activeUser = os.popen('id -un', 'r').read()[:-1]  # whoami
-
         prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         #check/create path for user prefs
         if not os.path.isdir(self.paths['userPrefsDir']):
@@ -302,7 +298,7 @@ class Preferences:
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         cfg.initial_comment = ["###", "###     USER PREFERENCES for '" + activeUser + "' (override SITE prefs; see 'help')",
                                       "###    ---------------------------------------------------------------------", ""]
-        cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
+        cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['userPrefsFile']]
         # don't cfg.write(), see explanation above
         return cfg
     

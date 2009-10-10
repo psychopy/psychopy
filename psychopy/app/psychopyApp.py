@@ -100,7 +100,7 @@ class PsychoPyApp(wx.App):
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
-        self.prefs.pageCurrent = 0  # track last viewed page of prefs, return there if you re-open preferencesDlg
+        self.prefs.pageCurrent = 0  # track last viewed page of prefs, to return there
         self.IDs=wxIDs
         self.quitting=False
         
@@ -339,34 +339,38 @@ class PreferencesDlg(wx.Frame):
     
     def close(self, event=None):
         app.prefs.pageCurrent = self.nb.GetSelection()
-        #self.checkForUnsaved()        
+        self.checkForUnsaved()        
         self.Destroy()
         
-    def quit(self,event=None):
-        #self.checkForUnsaved()        
+    def quit(self, event=None):
+        self.checkForUnsaved()        
         self.close()
         self.app.quit()
         
-    #raw_input() is not going to work for this, want a GUI pop-up (php-style alert)
-    #def checkForUnsaved(self, event=None):
-    #    notAllSaved = False
-    #    for prefsType in self.prefs.keys():
-    #        filePath = self.paths['%sPrefsFile' % prefsType]
-    #        if self.isChanged(prefsType):
-    #            notAllSaved = True
-    #            break
-    #    if notAllSaved:
-    #        wantToSave = raw_input("save edits [Y]? ")
-    #        if wantToSave in ['', 'y', 'Y', 'yes', 'Yes', 'YES']:
-    #            self.save()
+    def checkForUnsaved(self, event=None):
+        pageCurrent = self.nb.GetSelection()
+        if app.prefs.prefsCfg['app']['autoSavePrefs']:
+            for prefsType in self.prefs.keys():
+                if self.isChanged(prefsType):
+                   print "auto-",
+                   break
+            self.save()
+        else:
+            for prefsType in self.prefs.keys():
+                if self.isChanged(prefsType):
+                   print "changes NOT saved: ",
+                   break
+        #self.nb.ChangeSelection(pageCurrent)
+        app.prefs.pageCurrent = pageCurrent
         
     def save(self, event=None):
-        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        # user changes are to two separate cfg's; merge to set values to actually use now 
+        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
         app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
         app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
 
-        pageCurrent = self.nb.GetSelection()  
+        pageCurrent = self.nb.GetSelection()
         for prefsType in self.prefs.keys():
             pageText = self.getPageText(prefsType)
             filePath = self.paths['%sPrefsFile' % prefsType]
@@ -378,10 +382,10 @@ class PreferencesDlg(wx.Frame):
                     print "saved", filePath
                 except:
                     pass
-        self.nb.ChangeSelection(pageCurrent)
         # reload / refresh:
         self.app.prefs = preferences.Preferences()
         self.app.keys = self.app.prefs.keys
+        self.nb.ChangeSelection(pageCurrent)
         return 1  # ok
     
     def getPageText(self,prefsType):

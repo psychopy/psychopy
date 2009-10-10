@@ -9,20 +9,20 @@
 # to restore: just remove the text 'NOT_IMPLEMENTED'
 
 [general]
-# a template used for all user prefs filenames: 'USERNAME' is replaced with user login)
-userPrefsTemplate = string(default='')
-# winType is the backend for drawing ('pyglet' or 'pygame')
-winType = option('pyglet', 'pygame', default='pyglet')
-# default units for windows and visual stimuli (deg', 'norm', 'cm', 'pix')
-units = option('deg', 'norm', 'cm', 'pix', default='norm')
-fullscr = boolean(default='False')
-allowGUI = boolean(default='True')
-# 'version' is for internal usage, not for the user
-version = string(default='')
+  # a template used for all user prefs filenames: 'USERNAME' is replaced with user login)
+  userPrefsTemplate = string(default='')
+  # winType is the backend for drawing ('pyglet' or 'pygame')
+  winType = option('pyglet', 'pygame', default='pyglet')
+  # default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix')
+  units = option('deg', 'norm', 'cm', 'pix', default='norm')
+  fullscr = boolean(default='False')
+  allowGUI = boolean(default='True')
+  # 'version' is for internal usage, not for the user
+  version = string(default='')
 
-##  Application settings, applied to coder and builder windows -----  ##
+###  Application settings, applied to coder, builder, & prefs windows -----
 [app]
-# NB: icons on OS X are always large, unless you have a recent version of wx (2.8.7.1 works)
+# NB: icons on OS X are large unless you have a recent version of wx (2.8.7.1 works)
 largeIcons = boolean(default='True')
 # defaultView can be 'last' (retrieve prev windows), 'builder' or 'coder'
 defaultView = option('last', 'builder', 'coder', default='last')
@@ -34,8 +34,10 @@ allowModuleImports = boolean(default='False')
 importLibs = option('none', 'thread', 'inline', default='none')
 # will reset site & key prefs to defaults immediately (see 'help' page)
 resetSitePrefs = boolean(default='False')
+# automatically save any unsaved prefs before closing the window (not completely tested)
+autoSavePrefs = boolean(default='False')
 
-##  Settings for the coder and builder windows, and connections -----  ##
+###  Settings for the coder and builder windows, and connections -----
 [coder]
 # Font is a list of font names - the first found on the system will be used
 outputFont = list(default=list('courier', 'Courier New'))
@@ -66,4 +68,3 @@ autoProxy = boolean(default=True)
 allowUsageStats = boolean(default=True)
 # checkForUpdates is not yet implemented:
 checkForUpdates = NOT_IMPLEMENTED boolean(default=True)  
-
