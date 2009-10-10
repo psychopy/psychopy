@@ -268,7 +268,7 @@ class PreferencesDlg(wx.Frame):
         
         self.prefs={'user' : app.prefs.userPrefsCfg,
                     'site' : app.prefs.sitePrefsCfg,
-                    'keys' : app.prefs.keysCfg,
+                    'keys' : app.prefs.keysPrefsCfg,
                     'help' : app.prefs.helpPrefsCfg}
         self.prefPagesOrder = ['user', 'site', 'keys', 'help']
         
@@ -338,13 +338,27 @@ class PreferencesDlg(wx.Frame):
         return page
     
     def close(self, event=None):
-        # ideally check for unsaved edits, warn, allow chance to save
         app.prefs.pageCurrent = self.nb.GetSelection()
+        #self.checkForUnsaved()        
         self.Destroy()
         
     def quit(self,event=None):
+        #self.checkForUnsaved()        
         self.close()
         self.app.quit()
+        
+    #raw_input() is not going to work for this, want a GUI pop-up (php-style alert)
+    #def checkForUnsaved(self, event=None):
+    #    notAllSaved = False
+    #    for prefsType in self.prefs.keys():
+    #        filePath = self.paths['%sPrefsFile' % prefsType]
+    #        if self.isChanged(prefsType):
+    #            notAllSaved = True
+    #            break
+    #    if notAllSaved:
+    #        wantToSave = raw_input("save edits [Y]? ")
+    #        if wantToSave in ['', 'y', 'Y', 'yes', 'Yes', 'YES']:
+    #            self.save()
         
     def save(self, event=None):
         prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)

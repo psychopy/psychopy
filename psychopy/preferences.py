@@ -53,22 +53,23 @@ class Preferences:
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         self.paths['prefs'] = join(dirPsychoPy, 'prefs')
-        self.paths['sitePrefsFile'] = join(self.paths['prefs'], 'prefsSite.cfg')
-        self.paths['keysPrefsFile'] = join(self.paths['prefs'], 'prefsSiteKeys.cfg')
+        self.paths['sitePrefsFile'] = join(self.paths['prefs'], 'mySitePrefs.cfg')
+        self.paths['keysPrefsFile'] = join(self.paths['prefs'], 'mySiteKeys.cfg')
         self.paths['helpPrefsFile'] = join(self.paths['prefs'], 'prefsHelp.cfg')
-        self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
-        self.paths['userPrefs']=dirUserPrefs
-        self.paths['userPrefsFile']=join(dirUserPrefs, 'userPrefs.cfg')
+        #self.paths['userPrefsFile']  # define later
         
         #paths to user settings
         # set user-related (userPref, appData) paths in loadAll() ==> AFTER load site-prefs
         if platform.system() == 'Windows':
-            prefdir = 'C:\Documents and Settings\USERNAME\psychopy2'
+            prefTemplate = 'C:\Documents and Settings\USERNAME\psychopy2'
         elif platform.system() == 'Darwin':
-            prefdir = '/Users/USERNAME/.psychopy2'
+            prefTemplate = join('/Users/USERNAME', '.psychopy2')
         else:
-            prefdir = '/home/USERNAME/.psychopy2'
-        self.paths['userPrefsTemplate'] = join(prefdir, 'userPrefs.cfg')
+            prefTemplate = join('/home/USERNAME', '.psychopy2')
+        self.paths['userPrefsTemplate'] = join(prefTemplate, 'userPrefs.cfg')
+        self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
+        self.paths['userPrefsFile']=join(dirUserPrefs, 'userPrefs.cfg')
+        self.paths['userPrefsDir']=dirUserPrefs
         
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
@@ -79,21 +80,22 @@ class Preferences:
         self.appDataCfg = self.loadAppData()
         self.sitePrefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
+        self.helpPrefsCfg = self.loadHelpPrefs()
         
         # ? load user prefs only after loading site prefs, to get userPrefFile 
         self.userPrefsCfg = self.loadUserPrefs()
-        self.helpPrefsCfg = self.loadHelpPrefs()
         
         # merge general, platform, and user prefs; order matters
         self.sitePrefsCfg.merge(self.platformPrefsCfg)
         # set general + platform as 'site' prefs:
-        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         self.prefsCfg = configobj.ConfigObj(self.sitePrefsCfg, configspec=prefsSpec)
         self.prefsCfg.validate(self._validator, copy=False)
         
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        if 'keybindings' in self.prefsCfg: del self.prefsCfg['keybindings']  # can appear after merge with platform prefs
+        # can appear after merge with platform prefs:
+        if 'keybindings' in self.prefsCfg: del self.prefsCfg['keybindings']
         if 'keybindings' in self.sitePrefsCfg: del self.sitePrefsCfg['keybindings']
         
         #simplify namespace
@@ -104,14 +106,13 @@ class Preferences:
         self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
         
-        # make user prefs have same sections as site prefs = out of order though
-        for section in self.prefsCfg.keys():
-            if not section in self.userPrefsCfg.keys():
-                self.userPrefsCfg[section] = {}
+        # make user prefs have same sections as site prefs; want same order (not there yet)
+        
+        self.userPrefsCfg.validate(self._validator, copy=False)
           
-        # keybindings: merge general + platform prefs; userPrefs should not have keybindings
-        self.keysCfg = self.loadKeysPrefs()
-        self.keyDict = self.keysCfg['keybindings'] # == dict, with items in u'___' format
+        # keybindings:
+        self.keysPrefsCfg = self.loadKeysPrefs()  # = merged general + platform prefs, used in psychopyApp.py too
+        self.keyDict = self.keysPrefsCfg['keybindings'] # == dict, with items in u'___' format
         self.keys = self.convertKeyDict() # no longer a dict, no longer u'___' format
         
         # connections:
@@ -119,19 +120,19 @@ class Preferences:
     
     def convertKeyDict(self):
         """a function to convert a keybindings dict from (merged) cfg files to self.keys
-        as expected elsewhere in the app, using a persistent file, psychopy/siteKeys.py
+        as expected elsewhere in the app, using a persistent file, psychopy/mySiteKeys.py
         """
         # logic: if no write permission for this user in site-packages psychopy/ directory, assume the user
-        # is not an admin so try to use an exisiting siteKeys.py file created by an admin earlier
+        # is not an admin so try to use an exisiting mySiteKeys.py file created by an admin earlier
         # (and if that does not exist, then fall back to using keybindings.py for this user)
-        # if the user does have write permission, then (re)create the siteKeys.py file, from
+        # if the user does have write permission, then (re)create the mySiteKeys.py file, from
         # a merge of defaults + platform + possibly edited key prefs (as returned by loadKeysPrefs prior to calling this function)
         
         useDefaultKeys = False
-        siteKeysFile = join(self.paths['prefs'], "siteKeys.py")
+        mySiteKeys = join(self.paths['prefs'], "mySiteKeys.py")
         
         try: 
-            file = open(siteKeysFile, "w")  # if admin user, (re)create siteKeys.py file
+            file = open(mySiteKeys, "w")  # if admin user, (re)create mySiteKeys.py file
             file.write("# key-bindings file, created by admin user on first run, used site-wide\n")
             usedKeys = []
             keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
@@ -175,8 +176,8 @@ class Preferences:
 
         try:
             if useDefaultKeys: raise Exception()
-            from psychopy import siteKeys
-            self.keys = siteKeys        
+            from psychopy.prefs import mySiteKeys
+            self.keys = mySiteKeys
         except:
             from psychopy.app import keybindings
             self.keys = keybindings
@@ -187,18 +188,19 @@ class Preferences:
         """Save the various setting to the appropriate files (or discard, in some cases)
         """
         self.appDataCfg.validate(self._validator, copy=True)#copy means all settings get saved
-        if not os.path.isdir(self.paths['userPrefs']):
-            os.makedirs(self.paths['userPrefs'])
+        if not os.path.isdir(self.paths['userPrefsDir']):
+            os.makedirs(self.paths['userPrefsDir'])
         self.appDataCfg.write()
+        
     def resetSitePrefs(self):
         """Reset the site preferences to the original defaults
         """
-        # confirmationDlg here? probably not necessary, as you have to manually type 'True' and then save
+        # confirmation probably not necessary: you have to manually type 'True' and then save
         if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
         if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
-        siteKeys = join(self.paths['prefs'], 'siteKeys.py')
-        if os.path.isfile(siteKeys):  os.remove(siteKeys)
-        if os.path.isfile(siteKeys + "c"):  os.remove(siteKeys + "c")
+        mySiteKeys = join(self.paths['prefs'], 'mySiteKeys.py')
+        if os.path.isfile(mySiteKeys):        os.remove(mySiteKeys)
+        if os.path.isfile(mySiteKeys + "c"):  os.remove(mySiteKeys + "c")
         print "Site prefs and key-bindings RESET to defaults"
         
     def loadAppData(self):
@@ -211,7 +213,7 @@ class Preferences:
     def loadSitePrefs(self):
         #load against the spec, then validate and save to a file
         #(this won't overwrite existing values, but will create additional ones if necess)
-        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
         cfg.validate(self._validator, copy=True)  #copy means all settings get saved
         if platform.system() == 'Windows':
@@ -253,19 +255,19 @@ class Preferences:
         """function to load keybindings file, or create a fresh one if its missing
         don't currently have a spec for keys, do validate later in convertKeyDict() using reg-ex's
         """
+        keysSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.spec'), encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.cfg'), configspec=keysSpec)
+        cfg.merge(self.platformPrefsCfg)
+        cfg.validate(self._validator, copy=True)  #copy means all settings get saved
         if not os.path.isfile(self.paths['keysPrefsFile']):  # then its the first run, or first after resetSitePrefs()
             # copy default + platform-specific key prefs --> newfile to be used on subsequent runs, user can edit + save it
-            prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeysSpec.cfg'), encoding='UTF8', list_values=False)
-            cfg = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.cfg'), configspec=prefsSpec)
-            cfg.merge(self.platformPrefsCfg)
             cfg.validate(self._validator, copy=True)  #copy means all settings get saved
-            for keyOfPref in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
-                if keyOfPref <> 'keybindings':
-                    del cfg[keyOfPref]
+            for k in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
+                if k <> 'keybindings': del cfg[k]
             cfg.initial_comment = ["###", "###     KEY-BINDINGS:  menu-key assignments, apply to all users; see 'help'",
                                           "###    ---------------------------------------------------------------------"]
             if platform.system() == 'Darwin':
-                cfg.initial_comment.append("##      NB:  Ctrl is not available as a key modifier; use Cmd")
+                cfg.initial_comment.append("##      NB:  Ctrl is not available as a key modifier, use Cmd; quit is always Cmd+Q")
             cfg.initial_comment.append("")
             cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['keysPrefsFile']]
             cfg.filename = self.paths['keysPrefsFile']
@@ -274,28 +276,34 @@ class Preferences:
             except:
                 print "failed to write to %s" % self.paths['keysPrefsFile']
         else:
-            cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
+            pass #cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
         
         return cfg
         
     def loadUserPrefs(self):
+        """load user prefs, if any; don't save to a file because doing so will
+        break easy_install. saving to files within the psychopy/ is fine, eg for
+        key-bindings, but outside it (where user prefs will live) is not allowed
+        by easy_install (security risk)
+        """
         if platform.system() == 'Windows':
             activeUser = os.environ['USERNAME']
         else:
             activeUser = os.popen('id -un', 'r').read()[:-1]  # whoami
 
-        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSpec.cfg'), encoding='UTF8', list_values=False)
+        prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         #check/create path for user prefs
-        if not os.path.isdir(self.paths['userPrefs']):
-            try: os.makedirs(self.paths['userPrefs'])
+        if not os.path.isdir(self.paths['userPrefsDir']):
+            try: os.makedirs(self.paths['userPrefsDir'])
             except:
-                print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefs']
+                print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir']
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         cfg.initial_comment = ["###", "###     USER PREFERENCES for '" + activeUser + "' (override SITE prefs; see 'help')",
                                       "###    ---------------------------------------------------------------------", ""]
         cfg.final_comment = ["", "", "[this page is stored at %s]" % self.paths['userPrefsFile']]
+        # don't cfg.write(), see explanation above
         return cfg
     
     def getAutoProxy(self):
