@@ -98,8 +98,8 @@ class Preferences:
           
         # keybindings:
         self.keysPrefsCfg = self.loadKeysPrefs()  # = merged general + platform prefs, used in psychopyApp.py too
-        self.keyDict = self.keysPrefsCfg['keybindings'] # == dict, with items in u'___' format
-        self.keys = self.convertKeyDict() # no longer a dict, no longer u'___' format
+        self.keyDict = self.keysPrefsCfg['keybindings']  # == dict, with items in u'___' format
+        self.keys = self.convertKeyDict()  # no longer a dict, no longer u'___' format
         
         # connections:
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
@@ -205,7 +205,7 @@ class Preferences:
         if len(cfg['general']['userPrefsTemplate']) == 0:
             #create the template for first time
             if platform.system() == 'Windows':
-                self.paths['userPrefsTemplate'] = "C:\Document and Settings\USERNAME\psychopy2\prefsUser.cfg"
+                self.paths['userPrefsTemplate'] = "C:\Documents and Settings\USERNAME\Application Data\psychopy2\prefsUser.cfg"
             elif platform.system() == 'Darwin':
                 self.paths['userPrefsTemplate'] = '/Users/USERNAME/.psychopy2/prefsUser.cfg'
             else:
