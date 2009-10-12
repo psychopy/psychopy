@@ -358,7 +358,7 @@ class PreferencesDlg(wx.Frame):
         else:
             for prefsType in self.prefs.keys():
                 if self.isChanged(prefsType):
-                   print "changes NOT saved: ",
+                   print "new / edited preferences NOT saved"
                    break
         #self.nb.ChangeSelection(pageCurrent)
         app.prefs.pageCurrent = pageCurrent

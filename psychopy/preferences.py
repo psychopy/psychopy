@@ -2,10 +2,7 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-#import wx, wx.stc
 import os, urllib, platform, re
-#import sys, StringIO
-#from shutil import copyfile
 import configobj, configobjValidate
 
 #GET PATHS------------------
@@ -24,7 +21,7 @@ class Preferences:
         self.coder=None
         self.builder=None
         self.connections=None
-        self.paths={}#this will remain a dictionary
+        self.paths = {}  # this will remain a dictionary
         self.keys = {}  # does not remain a dictionary
         
         self.getPaths()
@@ -39,13 +36,7 @@ class Preferences:
         #on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath= os.path.abspath(__file__)
         dirPsychoPy = os.path.split(thisFileAbsPath)[0]
-        if platform.system() == 'Windows':
-            dirUserPrefs = join(os.environ['APPDATA'],'psychopy2') #the folder where the user cfg file is stored
-        else:
-            dirUserPrefs = join(os.environ['HOME'], '.psychopy2')
-        #from the directory for preferences work out the path for preferences (incl filename)
-#        if not os.path.isdir(dirUserPrefs):
-#            os.makedirs(dirUserPrefs)
+
         #path to Resources (icons etc)
         dirApp = join(dirPsychoPy, 'app')
         if os.path.isdir(join(dirApp, 'Resources')):
@@ -58,23 +49,11 @@ class Preferences:
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         self.paths['prefs'] = join(dirPsychoPy, 'prefs')
+        
         self.paths['sitePrefsFile'] = join(self.paths['prefs'], 'mySitePrefs.cfg')
         self.paths['keysPrefsFile'] = join(self.paths['prefs'], 'mySiteKeys.cfg')
         self.paths['helpPrefsFile'] = join(self.paths['prefs'], 'prefsHelp.cfg')
-        #self.paths['userPrefsFile']  # defined later, after userPrefsTemplate
-        
-        #paths to user settings
-        # better: set user-related (userPref, appData) paths in loadAll() ==> AFTER load site-prefs
-        if platform.system() == 'Windows':
-            prefTemplate = 'C:\Documents and Settings\USERNAME\Application Data\psychopy2\userPrefs.cfg'
-        elif platform.system() == 'Darwin':  # os.path.expanduser("~")
-            prefTemplate = '/Users/USERNAME/.psychopy2/userPrefs.cfg'
-        else:
-            prefTemplate = '/home/USERNAME/.psychopy2/userPrefs.cfg'
-        self.paths['userPrefsTemplate'] = prefTemplate
-        self.paths['appDataFile']=join(dirUserPrefs,'appData.cfg')
-        self.paths['userPrefsFile']=join(dirUserPrefs, 'userPrefs.cfg')
-        self.paths['userPrefsDir']=dirUserPrefs
+        # note self.paths['userPrefsFile'] gets defined later, after userPrefsTemplate
         
     def loadAll(self):
         """A function to allow a class with attributes to be loaded from a
@@ -82,13 +61,18 @@ class Preferences:
         attribs can be added in future).
         """
         self._validator=configobjValidate.Validator()
-        self.appDataCfg = self.loadAppData()
-        self.sitePrefsCfg = self.loadSitePrefs()
         self.platformPrefsCfg = self.loadPlatformPrefs()
         self.helpPrefsCfg = self.loadHelpPrefs()
+        self.sitePrefsCfg = self.loadSitePrefs()
         
-        # ? load user prefs only after loading site prefs, to get userPrefFile 
+        # now set user path(s), which can depend on the site prefs
+        self.paths['userPrefsTemplate'] = self.sitePrefsCfg['general']['userPrefsTemplate']
+        # note: self.paths['userPrefsDir'] gets set in loadSitePrefs()
+        self.paths['appDataFile'] = join(self.paths['userPrefsDir'], 'appData.cfg')
+        self.paths['userPrefsFile'] = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
+        
         self.userPrefsCfg = self.loadUserPrefs()
+        self.appDataCfg = self.loadAppData()
         
         # merge general, platform, and user prefs; order matters
         self.sitePrefsCfg.merge(self.platformPrefsCfg)
@@ -99,7 +83,8 @@ class Preferences:
         
         self.prefsCfg.merge(self.userPrefsCfg)
         self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        # can appear after merge with platform prefs:
+        self.userPrefsCfg.validate(self._validator, copy=False)
+        # a 'keybindings' section can appear after merge with platform prefs:
         if 'keybindings' in self.prefsCfg: del self.prefsCfg['keybindings']
         if 'keybindings' in self.sitePrefsCfg: del self.sitePrefsCfg['keybindings']
         
@@ -110,10 +95,6 @@ class Preferences:
         self.builder=self.prefsCfg['builder']
         self.connections=self.prefsCfg['connections']
         self.appData = self.appDataCfg
-        
-        # make user prefs have same sections as site prefs; want same order (not there yet)
-        
-        self.userPrefsCfg.validate(self._validator, copy=False)
           
         # keybindings:
         self.keysPrefsCfg = self.loadKeysPrefs()  # = merged general + platform prefs, used in psychopyApp.py too
@@ -223,11 +204,17 @@ class Preferences:
         cfg.validate(self._validator, copy=True)  #copy means all settings get saved
         if len(cfg['general']['userPrefsTemplate']) == 0:
             #create the template for first time
+            if platform.system() == 'Windows':
+                self.paths['userPrefsTemplate'] = "C:\Document and Settings\USERNAME\psychopy2\prefsUser.cfg"
+            elif platform.system() == 'Darwin':
+                self.paths['userPrefsTemplate'] = '/Users/USERNAME/.psychopy2/prefsUser.cfg'
+            else:
+                self.paths['userPrefsTemplate'] = '/home/USERNAME/.psychopy2/prefsUser.cfg'
             cfg['general']['userPrefsTemplate'] = self.paths['userPrefsTemplate']  #set path to home
             self.paths['userPrefsFile'] = self.paths['userPrefsTemplate'].replace('USERNAME', activeUser)
-        elif not os.path.isfile(self.paths['userPrefsFile']):
+            self.paths['userPrefsDir'] = self.paths['userPrefsFile'].replace('prefsUser.cfg', '')
+        elif 'userPrefsFile' in self.paths.keys() and not os.path.isfile(self.paths['userPrefsFile']):
             print 'Prefs file %s was not found.\nUsing location %s' %(self.paths['userPrefsFile'], self.paths['userPrefsFile'])
-            #cfg['general']['userPrefsFile']=self.paths['userPrefsFile']  #set path to home            
             self.paths['userPrefsFile'] = cfg['general']['userPrefsTemplate'].replace('USERNAME', activeUser)
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsTemplate'].replace('USERNAME', activeUser)  #set app path to user override
@@ -236,6 +223,7 @@ class Preferences:
                                "###  General settings, e.g. about scripts, rather than any aspect of the app -----"]
         cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['sitePrefsFile']]
         cfg.filename = self.paths['sitePrefsFile']
+        self.paths['userPrefsDir'] = self.paths['userPrefsFile'].replace('prefsUser.cfg', '')
         try:
             cfg.write()
         except:
@@ -254,7 +242,8 @@ class Preferences:
     
     def loadKeysPrefs(self):
         """function to load keybindings file, or create a fresh one if its missing
-        don't currently have a spec for keys, do validate later in convertKeyDict() using reg-ex's
+        use a spec file for keys (to ensure that there's at least a default value for all menu items)
+        also validate later in convertKeyDict() using reg-ex's
         """
         keysSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.spec'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.cfg'), configspec=keysSpec)
@@ -277,7 +266,7 @@ class Preferences:
             except:
                 print "failed to write to %s" % self.paths['keysPrefsFile']
         else:
-            pass #cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
+            cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
         
         return cfg
         
