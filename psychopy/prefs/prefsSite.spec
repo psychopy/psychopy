@@ -6,6 +6,8 @@
 
 # in this spec file, '# NOT_IMPLEMENTED' --> hide / delete prefs that have not been implemented, yet retain for later implementation
 
+# each line should have a default= ___, and it should appear as the last item on the line
+
 ### General settings
 [general]
   # userPrefsTemplate is a template used for all user prefs filenames: 'USERNAME' is replaced with user login

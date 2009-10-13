@@ -76,16 +76,14 @@ class Preferences:
         
         # merge general, platform, and user prefs; order matters
         self.sitePrefsCfg.merge(self.platformPrefsCfg)
-        # set general + platform as 'site' prefs:
         prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         self.prefsCfg = configobj.ConfigObj(self.sitePrefsCfg, configspec=prefsSpec)
-        self.prefsCfg.validate(self._validator, copy=False)
         
         self.prefsCfg.merge(self.userPrefsCfg)
-        validateResult = self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
-        if validateResult != True: self.resetBadPrefsToDefault(self.prefsCfg, validateResult, prefsSpec)
-        validateResult = self.userPrefsCfg.validate(self._validator, copy=False)
-        if validateResult != True: self.resetBadPrefsToDefault(self.userPrefsCfg, validateResult, prefsSpec)
+        resultOfValidate = self.prefsCfg.validate(self._validator, copy=False)  # validate after the merge
+        self.restoreBadPrefs(self.prefsCfg, resultOfValidate)
+        resultOfValidate = self.userPrefsCfg.validate(self._validator, copy=False)
+        self.restoreBadPrefs(self.userPrefsCfg, resultOfValidate)
         # a 'keybindings' section can appear after merge with platform prefs:
         if 'keybindings' in self.prefsCfg: del self.prefsCfg['keybindings']
         if 'keybindings' in self.sitePrefsCfg: del self.sitePrefsCfg['keybindings']
@@ -195,43 +193,44 @@ class Preferences:
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appDataSpec.cfg'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
-        cfg.validate(self._validator, copy=True)
+        resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
+        self.restoreBadPrefs(cfg, resultOfValidate)
         return cfg
 
-    def resetBadPrefsToDefault(self, cfg, validateResult, spec):
-        for (section_list, key, _) in configobj.flatten_errors(cfg, validateResult):
+    def restoreBadPrefs(self, cfg, resultOfValidate):
+        if resultOfValidate == True:
+            return
+        for (section_list, key, _) in configobj.flatten_errors(cfg, resultOfValidate):
             if key is not None:
                 type, default = cfg.configspec[', '.join(section_list)][key].split('default')
-                section = ''.join(section_list)  # don't bother with nested sections in psychopy prefs
-                #cmdString = ('cfg["%s"]["%s"] %s' % (section, key, default)).replace(')', '', -1).replace('=', '', 1)
-                if section.find('NOT_IMPLEMENTED') < 0:
-                    default = default.replace(')','').replace('=','')
-                    if default[0] in ['"', "'"]:
-                        default = default[1:-1]
-                    # type conversion:
-                    if type.find('boolean(') > -1:
-                        default = bool(default)
-                    elif type.find('option(') > -1:
-                        pass
-                    elif type.find('integer(') > -1:
-                        default = int(default)
-                    elif type.find('float(') > -1:
-                        default = float(default)
-                    elif type.find('list(') > -1:  # this is not correct behavior, but avoids errors
-                        default = []
-                    else:  # for now assume string
-                        default = str(default)
-                    cfg[section][key] = default
+                default = default.replace(')','').replace('=','')  # assume default=value) comes at the end of the line
+                section = ''.join(section_list)  # == assume there are no nested sections in psychopy prefs
+                if default[0] in ['"', "'"]:
+                    default = default[1:-1]
+                # type conversion:
+                if type.find('boolean(') > -1:
+                    default = bool(default)
+                elif type.find('option(') > -1:
+                    pass
+                elif type.find('integer(') > -1:
+                    default = int(default)
+                elif type.find('float(') > -1:
+                    default = float(default)
+                elif type.find('list(') > -1:
+                    default = []  # not correct, but avoids some fatal crashes when starting with bad saved values
+                else:
+                    default = str(default)
+                cfg[section][key] = default
             else:
-                print 'The following section was missing' % ', '.join(section_list)        
+                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)  # hopefully not encountered...
         
     def loadSitePrefs(self):
         #load against the spec, then validate and save to a file
         #(this won't overwrite existing values, but will create additional ones if necess)
         prefsSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(self.paths['sitePrefsFile'], configspec=prefsSpec)
-        validateResult = cfg.validate(self._validator, copy=True, preserve_errors=True)
-        if validateResult != True: self.resetBadPrefsToDefault(cfg, validateResult, prefsSpec)
+        resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
+        self.restoreBadPrefs(cfg, resultOfValidate)
         if len(cfg['general']['userPrefsTemplate']) == 0:
             #create the template for first time
             if platform.system() == 'Windows':
@@ -278,12 +277,11 @@ class Preferences:
         keysSpec = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.spec'), encoding='UTF8', list_values=False)
         cfg = configobj.ConfigObj(join(self.paths['prefs'], 'prefsKeys.cfg'), configspec=keysSpec)
         cfg.merge(self.platformPrefsCfg)
-        validateResult = cfg.validate(self._validator, copy=True)  #copy means all settings get saved
-        if validateResult != True:
-            self.resetBadPrefsToDefault(cfg, validateResult, keysSpec)
+        resultOfValidate = cfg.validate(self._validator, copy=True)
+        self.restoreBadPrefs(cfg, resultOfValidate)
         if not os.path.isfile(self.paths['keysPrefsFile']):  # then its the first run, or first after resetSitePrefs()
             # copy default + platform-specific key prefs --> newfile to be used on subsequent runs, user can edit + save it
-            cfg.validate(self._validator, copy=True)  #copy means all settings get saved
+            #cfg.validate(self._validator, copy=True)  #copy means all settings get saved
             for k in cfg.keys(): # remove non-keybindings sections from this cfg because platformPrefs might contain them
                 if k <> 'keybindings': del cfg[k]
             cfg.initial_comment = ["###", "###     KEY-BINDINGS:  menu-key assignments, apply to all users; see 'help'",
@@ -299,7 +297,7 @@ class Preferences:
                 print "failed to write to %s" % self.paths['keysPrefsFile']
         else:
             cfg = configobj.ConfigObj(self.paths['keysPrefsFile'])
-        
+            
         return cfg
         
     def loadUserPrefs(self):

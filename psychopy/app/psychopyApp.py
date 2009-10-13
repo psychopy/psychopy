@@ -300,7 +300,6 @@ class PreferencesDlg(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-        # return to last pref page that was viewed: # self.app.prefs.pageCurrent did not work on Win or Linux
         try:
             self.nb.ChangeSelection(app.prefs.pageCurrent)
         except:
@@ -343,7 +342,6 @@ class PreferencesDlg(wx.Frame):
             if prefs.filename.find("prefsUser.cfg") < 0:  # user prefs should always be editable
                 page.SetReadOnly(True)
                 page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0033BB")
-                #print "%s prefs are read-only" % prefs.filename[-8:-4][:4]
         return page
     
     def close(self, event=None):
@@ -377,7 +375,6 @@ class PreferencesDlg(wx.Frame):
                    print "auto-",
                    break
             self.save()
-        #self.nb.ChangeSelection(pageCurrent)
         app.prefs.pageCurrent = pageCurrent
         
     def save(self, event=None):
@@ -385,8 +382,6 @@ class PreferencesDlg(wx.Frame):
         prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
         app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
-        validateResult = app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
-        if validateResult != True: preferences.resetBadPrefsToDefault(app.prefs.prefsCfg, validateResult, prefsSpec)
 
         pageCurrent = self.nb.GetSelection()
         for prefsType in self.prefs.keys():
@@ -401,8 +396,9 @@ class PreferencesDlg(wx.Frame):
                 except:
                     pass
         # reload / refresh:
-        self.app.prefs = preferences.Preferences()
+        self.app.prefs = preferences.Preferences()  # validation happens in here
         self.app.keys = self.app.prefs.keys
+        
         self.nb.ChangeSelection(pageCurrent)
         return 1  # ok
     
