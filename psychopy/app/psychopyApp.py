@@ -100,7 +100,7 @@ class PsychoPyApp(wx.App):
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
-        self.prefs.pageCurrent = 0  # track last viewed page of prefs, to return there
+        self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.quitting=False
         
@@ -110,7 +110,13 @@ class PsychoPyApp(wx.App):
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
             mainFrame = self.prefs.appData['lastFrame']
-        else: mainFrame= self.prefs.app['defaultView']
+        else:
+            # configobjValidate should take care of this situation (?), but doesn't:
+            if self.prefs.app['defaultView'] in ['last', 'coder', 'builder', 'both']:
+                mainFrame = self.prefs.app['defaultView']
+            else:
+                self.prefs.app['defaultView'] = 'both'
+                mainFrame = 'both'
         #then override the main frame by command options and passed files
         scripts=[]; exps=[]
         if len(sys.argv)>1:
@@ -146,8 +152,8 @@ class PsychoPyApp(wx.App):
 
         #create both frame for coder/builder as necess
         self.coder = self.builder = None
-        if mainFrame in ['coder','both']: self.showCoder(fileList=scripts)
-        if mainFrame in ['both','builder']: self.showBuilder(fileList=exps)
+        if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
+        if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
@@ -295,7 +301,10 @@ class PreferencesDlg(wx.Frame):
         self.SetMenuBar(self.menuBar)
         
         # return to last pref page that was viewed: # self.app.prefs.pageCurrent did not work on Win or Linux
-        self.nb.ChangeSelection(app.prefs.pageCurrent)
+        try:
+            self.nb.ChangeSelection(app.prefs.pageCurrent)
+        except:
+            pass # the above can throw an error if prefs already open
 
     def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
@@ -349,17 +358,25 @@ class PreferencesDlg(wx.Frame):
         
     def checkForUnsaved(self, event=None):
         pageCurrent = self.nb.GetSelection()
+        # better: copied from coder line 1232+; example of how to call: coder line 1444
+        #for ii in range(self.notebook.GetPageCount()):
+        #    doc = self.nb.GetPage(ii)
+        #    filename=doc.filename
+        #    if doc.UNSAVED:
+        #        dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
+        #        resp = dlg.ShowModal()
+        #        sys.stdout.flush()
+        #        dlg.Destroy()
+        #        if resp  == wx.ID_CANCEL: return 0 #return, don't quit
+        #        elif resp == wx.ID_YES: self.save() #save then quit
+        #        elif resp == wx.ID_NO: pass #don't save just quit        
+ 
         if app.prefs.prefsCfg['app']['autoSavePrefs']:
             for prefsType in self.prefs.keys():
                 if self.isChanged(prefsType):
                    print "auto-",
                    break
             self.save()
-        else:
-            for prefsType in self.prefs.keys():
-                if self.isChanged(prefsType):
-                   print "new / edited preferences NOT saved"
-                   break
         #self.nb.ChangeSelection(pageCurrent)
         app.prefs.pageCurrent = pageCurrent
         
@@ -368,7 +385,8 @@ class PreferencesDlg(wx.Frame):
         prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
         app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
         app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
-        app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
+        validateResult = app.prefs.prefsCfg.validate(configobjValidate.Validator(), copy=False)
+        if validateResult != True: preferences.resetBadPrefsToDefault(app.prefs.prefsCfg, validateResult, prefsSpec)
 
         pageCurrent = self.nb.GetSelection()
         for prefsType in self.prefs.keys():

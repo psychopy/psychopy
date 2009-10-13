@@ -4,9 +4,7 @@
 # e.g., prefsDarwin.cfg makes PsychpoPy feel more Mac-like by default
 # users can then further customize their prefs by editing the user prefs page within PsychoPy
 
-# in this spec file, 'NOT_IMPLEMENTED' --> hide / delete prefs that have not been implemented, yet retain for later implementation
-# (idea: corrupting that pref --> config(_validate) fails, so that pref is ignored along with its comment on the preceeding line)
-# to restore: just remove the text 'NOT_IMPLEMENTED'
+# in this spec file, '# NOT_IMPLEMENTED' --> hide / delete prefs that have not been implemented, yet retain for later implementation
 
 ### General settings
 [general]
@@ -26,8 +24,8 @@
 [app]
   # NB: icons on OS X are large (?: unless you have a recent version of wx? wx 2.8.7.1 gives me small icons)
   largeIcons = boolean(default='True')
-  # defaultView can be 'last' (retrieve prev windows), 'builder' or 'coder'
-  defaultView = option('last', 'builder', 'coder', default='last')
+  # defaultView can be 'builder', 'coder', 'both', or 'last' (retrieve previous windows)
+  defaultView = option('last', 'builder', 'coder', 'both', default='last')
   # leave runScripts as 'process':
   runScripts = option('process','thread', 'inline', default='process')
   # on win32 only, we can allow module imports for analysis of code:
@@ -54,7 +52,7 @@
 
 [builder]
   # default time units can be 'sec' or 'ms'
-  defaultTimeUnits = NOT_IMPLEMENTED option('sec', 'ms', default='sec')
+# NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'ms', default='sec')
   reloadPrevExp = boolean(default=False)
   # add your own components (comma-separated list; just a comma means an empty list):
   componentsFolders = list(default=list('~/.psychopy2/components',))
@@ -66,7 +64,6 @@
   proxy = string(default="")
   # autoProxy means override above proxy with values found in environment if possible
   autoProxy = boolean(default=True)
-  # please DO allow anonymous stats to be sent to www.psychopy.org/usage, its helpful for development
   allowUsageStats = boolean(default=True)
   # checkForUpdates is not yet implemented:
-  checkForUpdates = NOT_IMPLEMENTED boolean(default=True)  
+# NOT_IMPLEMENTED checkForUpdates = boolean(default=True)  
