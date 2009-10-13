@@ -1435,6 +1435,9 @@ class CoderFrame(wx.Frame):
         except:
             pass
     def fileClose(self, event, filename=None, checkSave=True):        
+        if self.currentDoc == None:
+            self.closeFrame()  # so a coder window with no files responds like the builder window to self.keys.close
+            return
         if filename==None:
             filename = self.currentDoc.filename
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
