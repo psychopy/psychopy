@@ -200,30 +200,13 @@ class Preferences:
     def restoreBadPrefs(self, cfg, resultOfValidate):
         if resultOfValidate == True:
             return
+        vtor = configobjValidate.Validator()
         for (section_list, key, _) in configobj.flatten_errors(cfg, resultOfValidate):
             if key is not None:
-                type, default = cfg.configspec[', '.join(section_list)][key].split('default')
-                default = default.replace(')','').replace('=','')  # assume default=value) comes at the end of the line
-                section = ''.join(section_list)  # == assume there are no nested sections in psychopy prefs
-                if default[0] in ['"', "'"]:
-                    default = default[1:-1]
-                # type conversion:
-                if type.find('boolean(') > -1:
-                    default = bool(default)
-                elif type.find('option(') > -1:
-                    pass
-                elif type.find('integer(') > -1:
-                    default = int(default)
-                elif type.find('float(') > -1:
-                    default = float(default)
-                elif type.find('list(') > -1:
-                    default = []  # not correct, but avoids some fatal crashes when starting with bad saved values
-                else:
-                    default = str(default)
-                cfg[section][key] = default
+                cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
             else:
-                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)  # hopefully not encountered...
-        
+                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
+    
     def loadSitePrefs(self):
         #load against the spec, then validate and save to a file
         #(this won't overwrite existing values, but will create additional ones if necess)
