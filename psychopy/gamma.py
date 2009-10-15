@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy, sys, platform, ctypes, ctypes.util
+from pyglet.gl import gl_info
 
 #import platform specific C++ libs for controlling gamma
 if sys.platform=='win32':
@@ -25,7 +26,7 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
         newGamma.shape=[3,1]
     elif type(newGamma) is numpy.ndarray:
         newGamma.shape=[3,1]
-    if newGamma==1.0:
+    if numpy.all(newGamma)==1.0:
         newLUT = createLinearRamp(pygletWindow, rampType)
         newLUT = numpy.tile(newLUT,(3,1))
     else:
@@ -118,43 +119,40 @@ def createLinearRamp(win, rampType=None):
     """
     if rampType==None:
         #try to determine rampType from heuristics
-        if win.winType=='pygame':            
-            return -1#we can't estimate rampType for a pygame window so hope(!) that SDL gamma function controls it correctly
-        else:
-            #get sys info
-            driver = gl_info.get_renderer()
-            opSys=platform.system()
-            if opSys=='Darwin':
-                isOSX=True
-                osxVer=platform.mac_ver()[0]
-            else: 
-                isOSX=False
-                osxVer=None
-                
-            #try to deduce ramp type
-            if isOSX:
-                if 'NVIDIA' in driver:                 
-                    if ("10.5"<osxVer<"10.6"):#leopard nVidia cards don't finish at 1.0!
-                        rampType=2
-                    if ("10.6"<osxVer):#snow leopard cards are plain crazy!
-                        rampType=3
-                else: #is ATI or unkown manufacturer, default to (1:256)/256
-                    #this is certainly correct for radeon2600 on 10.5.8 and radeonX1600 on 10.4.9
-                    rampType=1
-            else:#for win32 and linux this is sensible, not clear about Vista and Windows7
-                rampType=0
-                
-            if rampType==0:
-                ramp = numpy.linspace(0.0, 1.0, num=256)
-            elif rampType==1:
-                ramp = numpy.linspace(1/256.0,1.0,num=256)
-            elif rampType==2:
-                ramp = numpy.linspace(0, 1023.0/1024,num=1024)
-            elif rampType==3:
-                ramp = numpy.linspace(0, 1023.0/1024,num=1024)
-                ramp[512:] = ramp[512:]-1/256.0
-                
-            return ramp
+        #get sys info
+        driver = gl_info.get_renderer()
+        opSys=platform.system()
+        if opSys=='Darwin':
+            isOSX=True
+            osxVer=platform.mac_ver()[0]
+        else: 
+            isOSX=False
+            osxVer=None
             
+        #try to deduce ramp type
+        if isOSX:
+            if 'NVIDIA' in driver:                 
+                if ("10.5"<osxVer<"10.6"):#leopard nVidia cards don't finish at 1.0!
+                    rampType=2
+                if ("10.6"<osxVer):#snow leopard cards are plain crazy!
+                    rampType=3
+            else: #is ATI or unkown manufacturer, default to (1:256)/256
+                #this is certainly correct for radeon2600 on 10.5.8 and radeonX1600 on 10.4.9
+                rampType=1
+        else:#for win32 and linux this is sensible, not clear about Vista and Windows7
+            rampType=0
             
-            
+        if rampType==0:
+            ramp = numpy.linspace(0.0, 1.0, num=256)
+        elif rampType==1:
+            ramp = numpy.linspace(1/256.0,1.0,num=256)
+        elif rampType==2:
+            ramp = numpy.linspace(0, 1023.0/1024,num=1024)
+        elif rampType==3:
+            ramp = numpy.linspace(0, 1023.0/1024,num=1024)
+            ramp[512:] = ramp[512:]-1/256.0
+        print 'using rampType', rampType
+        return ramp
+        
+        
+        
