@@ -13,6 +13,9 @@ PsychoPy 1.50.05
 (changes in SVN)
 * FIXED (Builder) failed to open from Coder view menu (or cmd/ctrl L)
 * FIXED loading of user prefs file
+* ADDED keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
+* ADDED workarounds for bug-ridden Apple graphics drivers (platform and version specific)
+* ADDED NxNx3 (ie RGB) numpy arrays can now be used as textures
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
