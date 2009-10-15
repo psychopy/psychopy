@@ -205,7 +205,7 @@ class Window:
             self.gamma = monitor.getGammaGrid()[1:,2]
         elif monitor.getGamma()!=None:
             self.gamma = monitor.getGamma()
-        else: self.gamma = [1.0,1.0,1.0] #gamma wasn't set anywhere
+        else: self.gamma = None #gamma wasn't set anywhere
         
         #colour conversions
         dkl_rgb = monitor.getDKL_RGB()
@@ -216,7 +216,7 @@ class Window:
         if lms_rgb!=None:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
-
+        
         #setup context and openGL()
         if winType==None:#choose the default windowing
             self.winType=prefs.general['winType']
@@ -252,7 +252,7 @@ class Window:
         self.frameIntervals=[]
         
         self._refreshThreshold=1/50.0
-        if list(self.gamma)!=[1,1,1]:
+        if self.gamma!=None:
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = core.getTime()
         
