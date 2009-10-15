@@ -1,4 +1,4 @@
-Experiment Components
+Components
 -------------------------------
 
 Routines in the Builder contain any number of components, which typically define the parameters of a stimulus or an input/output device.
