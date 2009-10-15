@@ -230,6 +230,9 @@ class Preferences:
             self.paths['userPrefsFile'] = cfg['general']['userPrefsTemplate'].replace('USERNAME', activeUser)
         else: #set the path to the config
             self.paths['userPrefsFile'] = cfg['general']['userPrefsTemplate'].replace('USERNAME', activeUser)  #set app path to user override
+        # if its the first run, also replace the USERNAME in the componentsFolder pref with the current (= presumably admin) userID; might not be, if the admin does not save site prefs
+        if self.platformPrefsCfg['builder']['componentsFolders'][0].find('USERNAME') > -1:
+            self.platformPrefsCfg['builder']['componentsFolders'][0] = self.platformPrefsCfg['builder']['componentsFolders'][0].replace('USERNAME', activeUser)
         cfg.initial_comment = ["###", "###     SITE PREFERENCES:  settings here apply to all users; see 'help'",
                                       "###    ---------------------------------------------------------------------", "",
                                "###  General settings, e.g. about scripts, rather than any aspect of the app -----"]

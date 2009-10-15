@@ -56,7 +56,7 @@
   # default time units can be 'sec' or 'ms'
 # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'ms', default='sec')
   reloadPrevExp = boolean(default=False)
-  # add your own components (comma-separated list; just a comma means an empty list):
+  # for the admin user to add custom components (comma-separated list)
   componentsFolders = list(default=list('~/.psychopy2/components',))
   # a list of components to hide (eg, because you never use them)
   hiddenComponents = list(default=list(),)
