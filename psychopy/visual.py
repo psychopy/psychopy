@@ -4,11 +4,11 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import psychopy.misc
 import psychopy #so we can get the __path__
-from psychopy import core, ext, log, preferences
+from psychopy import core, ext, log, preferences, monitors
 import psychopy.event
-import monitors
+#misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
+import psychopy.misc
 import Image
 import sys, os, time, glob, copy
 import makeMovies
