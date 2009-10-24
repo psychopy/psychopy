@@ -3,7 +3,7 @@ Preferences
 
 
 Overview
-------------
+----------
 You can customize things for yourself (as a 'user'), or for everyone on this 
 computer (the 'site'). Your user preferences over-ride the site preferences
 (which in turn override the default settings that come with PsychoPy2).
@@ -18,12 +18,12 @@ copy something to get the syntax right, then edit to change the value. Most 'sit
 prefs have a note of explanation on the line above them (as a commment).
 
 Notes
--------
+----------
 A site-admin can change what key-presses have what effect in PsychoPy's menus:
 just edit the <key-code> on the 'keys' page to to what you want for all users.
 It is not possible to set up different key-bindings for individual users.
 
-Be sure to paste it under the proper section, or else it will be ignored.
+As a user, be sure to paste a setting under the proper section, or else it will be ignored.
 
 Not all changes take effect immediately. For example, changing the icon size
 will only be noticeable when you make a new builder or coder window.
@@ -32,6 +32,13 @@ Changes you make to prefs are not saved automatically, but can be by setting:
 autoSavePrefs = True
 For this to work, you have to close the preferences window using the menu or 
 keyboard (not using the operating system).
+
+The first time PsychoPy is run (presumably by an admin user), its a good idae to edit and
+save the site preferences. Ideally, the site preferences and the componentsFolders list
+should be in a location where: a) the admin user can edit them, b) all users will be able 
+to read them, and c) they will not be overwritten when you update PsychoPy. On a 
+Mac, /Users/Shared/PsychoPy2/ is a reasonable place. On Linux, /usr/local/psychopy2/
+would be a reasonable place (with care taken to set permissions appropriately). 
 
 How to...
 ----------
@@ -53,14 +60,14 @@ RESET the SITE and KEYS to defaults:  Set 'resetSitePrefs = True', and then save
 
 
 Glossary
-------------
+----------
 A COMMENT is any line starting with a #, such as this one.
 SETTINGS are shown in BLACK, and are paired with a value:
     setting = value
 A SECTION name is text enclosed in square brackets, like this:
 	[this_is_a_section_name]
 
-Values canbe numbers, true / false, strings, or even lists.
+Values can be numbers, true / false, strings, or even lists.
 A few settings require a comma-separated LIST instead of a value:
     my_list = item1, item2
 

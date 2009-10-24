@@ -10,7 +10,7 @@ join = os.path.join
 if platform.system() == 'Windows':
     activeUser = os.environ['USERNAME']
 else:
-    activeUser = os.popen('id -un', 'r').read()[:-1]  # whoami
+    activeUser = os.environ['USER']
 
 class Preferences:
     def __init__(self):
