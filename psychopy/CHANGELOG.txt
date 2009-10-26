@@ -16,6 +16,7 @@ PsychoPy 1.50.05
 * ADDED keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
 * ADDED workarounds for bug-ridden Apple graphics drivers (platform and version specific)
 * ADDED NxNx3 (ie RGB) numpy arrays can now be used as textures
+* FIXED MovieStim bug on win32 (was giving spurious avbin error if visual was imported before event)
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
