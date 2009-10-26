@@ -11,15 +11,18 @@ PsychoPy 1.50
 PsychoPy 1.50.05 
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
+
 * FIXED (Builder) failed to open from Coder view menu (or cmd/ctrl L)
 * FIXED loading of user prefs file
 * ADDED keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
 * ADDED workarounds for bug-ridden Apple graphics drivers (platform and version specific)
 * ADDED NxNx3 (ie RGB) numpy arrays can now be used as textures
+* FIXED MovieStim bug on win32 (was giving spurious avbin error if visual was imported before event)
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Sep 09)
+
 * FIXED (Builder) bug with loading files (monitor fullScr incorrectly reloaded)
 * FIXED (Coder) bug with Paste in coder
 * FIXED (Builder) bug with drop-down boxes
@@ -32,6 +35,7 @@ PsychoPy 1.50.04
 PsychoPy 1.50.02
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Sep 09)
+
 * FIXED bug loading .psydat (files component variables were being saved but not reloaded)
 * removed debugging messages that were appearing in Coder output panel
 * FIXED long-standing problem (OS X only) with "save unchanged" dialogs that won't go away
@@ -42,6 +46,7 @@ PsychoPy 1.50.02
 PsychoPy 1.50.01
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Sep 09)
+
 * FIXED problem creating prefs file on first use
 * FIXED problem with removing (identical) routines in Flow panel
 * FIXED problem with avbin import (OS X standalone version)
@@ -49,6 +54,7 @@ PsychoPy 1.50.01
 PsychoPy 1.50.00
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Sep 09)
+
 * ADDED A preview of the new application structure and GUI
 * ADDED performance enhancements (OS X now blocks on vblank, all platforms rush() if user has permissions)
 * ADDED config files. These are already used by the app, but not the library.
@@ -71,6 +77,7 @@ PsychoPy 1.00
 PsychoPy 1.00.04
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Jul 09)
+
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
 * CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
 * CHANGED pyglet textures to use numpy->ctypes rather than numpy->string
@@ -79,6 +86,7 @@ PsychoPy 1.00.04
 PsychoPy 1.00.03
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Jul 09)
+
 * FIXED initialisation bug with SimpleImageStimulus
 * FIXED "useShaders" buglet for TextStim
 * CHANGED IDE on win32 to run scripts as processes rather than imports (gives better error messages)
@@ -88,6 +96,7 @@ PsychoPy 1.00.03
 PsychoPy 1.00.02
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Jun 09)
+
 * ADDED SimpleImageStimulus for simple blitting of raw, unscaled images
 * ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
 * RENAMED DotStim.setDirection to setDir for consistency (the attribute is dir not direction)
@@ -101,6 +110,7 @@ PsychoPy 1.00.02
 PsychoPy 1.00.01
 ~~~~~~~~~~~~~~~~~~~~~~
 (released Feb 09)
+
 * FIXED buglet in windows standalone installer
 
 PsychoPy 1.00.00
