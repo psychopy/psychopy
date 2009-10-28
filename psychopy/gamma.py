@@ -151,7 +151,7 @@ def createLinearRamp(win, rampType=None):
         elif rampType==3:
             ramp = numpy.linspace(0, 1023.0/1024,num=1024)
             ramp[512:] = ramp[512:]-1/256.0
-        print 'using rampType', rampType
+
         return ramp
         
         

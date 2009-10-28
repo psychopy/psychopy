@@ -41,7 +41,7 @@ def getComponents(folder=None):
     if folder==None:
         folder = dirname(__file__)
     os.sys.path.append(folder)
-    components={}  
+    components={}
     #setup a default icon
     if 'default' not in icons.keys():
         icons['default']=getIcons(filename=None) 
