@@ -255,6 +255,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
+        info.AddDeveloper('Jeremy Gray')
         info.AddDocWriter('Jonathan Peirce')
 
         wx.AboutBox(info)
