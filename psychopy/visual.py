@@ -145,19 +145,20 @@ class Window:
         #if we have a monitors.Monitor object (psychopy 0.54 onwards)
         #convert to a Monitor object
         if monitor==None:
-            monitor = monitors.Monitor('__blank__')
+            self.monitor = monitors.Monitor('__blank__')
         if type(monitor) in [str, unicode]:
-            monitor = monitors.Monitor(monitor)
+            self.monitor = monitors.Monitor(monitor)
         elif type(monitor)==dict:
             #convert into a monitor object
-            monitor = monitors.Monitor('temp',currentCalib=monitor,verbose=False)
-        self.monitor = monitor
+            self.monitor = monitors.Monitor('temp',currentCalib=monitor,verbose=False)
+        else:
+            self.monitor = monitor
 
         #otherwise monitor will just be a dict
-        self.scrWidthCM=monitor.getWidth()
-        self.scrDistCM=monitor.getDistance()
+        self.scrWidthCM=self.monitor.getWidth()
+        self.scrDistCM=self.monitor.getDistance()
 
-        scrSize = monitor.getSizePix()
+        scrSize = self.monitor.getSizePix()
         if scrSize==None:
             self.scrWidthPIX=None
         else:self.scrWidthPIX=scrSize[0]
@@ -191,28 +192,36 @@ class Window:
             self.haveBits = True
 
         #gamma
-        if self.bitsMode!=None and hasattr(monitor, 'lineariseLums'):
-            #ideally we use bits++ and provide a complete linearised lookup table
+        if self.bitsMode!=None and hasattr(self.monitor, 'lineariseLums'):
+            #rather than a gamma value we could use bits++ and provide a complete linearised lookup table
             #using monitor.lineariseLums(lumLevels)
             self.gamma=None
         if gamma != None and (type(gamma) in [float, int]):
             #an integer that needs to be an array
             self.gamma=[gamma,gamma,gamma]
+            self.useNativeGamma=False
         elif gamma != None:# and (type(gamma) not in [float, int]):
             #an array (hopefully!)
             self.gamma=gamma
-        elif type(monitor.getGammaGrid())==numpy.ndarray:
-            self.gamma = monitor.getGammaGrid()[1:,2]
-        elif monitor.getGamma()!=None:
-            self.gamma = monitor.getGamma()
-        else: self.gamma = None #gamma wasn't set anywhere
+            self.useNativeGamma=False
+        elif type(self.monitor.getGammaGrid())==numpy.ndarray:
+            self.gamma = self.monitor.getGammaGrid()[1:,2]
+            if self.monitor.gammaIsDefault():
+                self.useNativeGamma=True
+            else:self.useNativeGamma=False
+        elif self.monitor.getGamma()!=None:
+            self.gamma = self.monitor.getGamma()
+            self.useNativeGamma=False
+        else: 
+            self.gamma = None #gamma wasn't set anywhere
+            self.useNativeGamma=True
         
         #colour conversions
-        dkl_rgb = monitor.getDKL_RGB()
+        dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
             self.dkl_rgb=dkl_rgb
         else: self.dkl_rgb = None
-        lms_rgb = monitor.getLMS_RGB()
+        lms_rgb = self.monitor.getLMS_RGB()
         if lms_rgb!=None:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
@@ -252,7 +261,11 @@ class Window:
         self.frameIntervals=[]
         
         self._refreshThreshold=1/50.0
-        if self.gamma!=None:
+        
+        if self.useNativeGamma:
+            log.info('Using gamma table of operating system')
+        else:
+            log.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = core.getTime()
         
@@ -3802,7 +3815,7 @@ class TextStim(_BaseVisualStim):
         """Set this stimulus to use shaders if possible.
         """
         if val==True and self.win._haveShaders==False:
-            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+            log.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.setText(self.text)  

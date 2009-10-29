@@ -7,6 +7,7 @@
 
 import numpy, sys, platform, ctypes, ctypes.util
 from pyglet.gl import gl_info
+from psychopy import log
 
 #import platform specific C++ libs for controlling gamma
 if sys.platform=='win32':
@@ -26,15 +27,10 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
         newGamma.shape=[3,1]
     elif type(newGamma) is numpy.ndarray:
         newGamma.shape=[3,1]
-    if numpy.all(newGamma)==1.0:
-        newLUT = createLinearRamp(pygletWindow, rampType)
-        newLUT = numpy.tile(newLUT,(3,1))
-    else:
-        if sys.platform=='darwin':
-            ramp = numpy.tile(numpy.arange(256, dtype=float)/256.0,(3,1))# OS X seems to (incorrectly) divide by 256 instead of 255
-        else: ramp = numpy.tile(numpy.arange(256, dtype=float)/255.0,(3,1))# (3x256) array
-        newLUT = ramp**(1/numpy.array(newGamma))# correctly handles 1 or 3x1 gamma vals
-    
+    #create LUT from gamma values        
+    newLUT = numpy.tile(createLinearRamp(pygletWindow, rampType), (3,1))#linear ramp
+    if numpy.all(newGamma==1.0)==False:
+        newLUT = newLUT**(1/numpy.array(newGamma))# correctly handles 1 or 3x1 gamma vals
     setGammaRamp(pygletWindow, newLUT)
     
 def setGammaRamp(pygletWindow, newRamp):
@@ -151,7 +147,7 @@ def createLinearRamp(win, rampType=None):
         elif rampType==3:
             ramp = numpy.linspace(0, 1023.0/1024,num=1024)
             ramp[512:] = ramp[512:]-1/256.0
-
+        log.info('Using gamma ramp type: %i' %rampType)
         return ramp
         
         
