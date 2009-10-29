@@ -16,3 +16,4 @@ def testMany():
         mov.draw()
         win.flip()
     win.close()
+   

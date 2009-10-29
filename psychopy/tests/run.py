@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-import nose
-nose.run()
+import nose, sys
 
-#def run():
-#    nose.run()
+argv = sys.argv
+argv.append('--verbosity=3')
+if 'cover' in argv: 
+    argv.remove('cover')
+    argv.append('--with-coverage')
+    argv.append('--cover-package=psychopy')
 
-#if __name__ == "__main__":
-#    run()
+nose.run(argv=argv)
