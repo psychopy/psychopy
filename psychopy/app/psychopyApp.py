@@ -39,10 +39,10 @@ if not hasattr(sys, 'frozen'):
 import wx
 
 import sys, os, threading, time, platform
-from psychopy import preferences
+from psychopy import preferences, configobj, configobjValidate
 from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
-from psychopy.app import coder, builder, keybindings, wxIDs, connections
+from psychopy.app import coder, builder, wxIDs, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
@@ -83,7 +83,7 @@ class MenuFrame(wx.Frame):
 
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, '&View')
-        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
+        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
         self.viewMenu.Append(self.app.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
         wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
@@ -99,17 +99,24 @@ class PsychoPyApp(wx.App):
         self.SetAppName('PsychoPy2')
         #set default paths and import options
         self.prefs = preferences.Preferences() #from preferences.py
+        self.keys = self.prefs.keys
+        self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
-        self.keys=keybindings
         self.quitting=False
-
+        
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
             mainFrame = self.prefs.appData['lastFrame']
-        else: mainFrame= self.prefs.app['defaultView']
+        else:
+            # configobjValidate should take care of this situation (?), but doesn't:
+            if self.prefs.app['defaultView'] in ['last', 'coder', 'builder', 'both']:
+                mainFrame = self.prefs.app['defaultView']
+            else:
+                self.prefs.app['defaultView'] = 'both'
+                mainFrame = 'both'
         #then override the main frame by command options and passed files
         scripts=[]; exps=[]
         if len(sys.argv)>1:
@@ -145,14 +152,17 @@ class PsychoPyApp(wx.App):
 
         #create both frame for coder/builder as necess
         self.coder = self.builder = None
-        if mainFrame in ['coder','both']: self.showCoder(fileList=scripts)
-        if mainFrame in ['both','builder']: self.showBuilder(fileList=exps)
+        if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
+        if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
-        if self.prefs.connections['allowUsageStats']:
+        # on mac OS 10.6, I had no internet connection, and the app crashed (python crashed with a bus error)
+        # try statsThread.start() except pass also crashed. so I added a check whether the proxy is ''
+        if self.prefs.connections['allowUsageStats'] and self.prefs.connections['proxy'] <> '':
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
+        
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
         def ShowTip(self):
@@ -171,9 +181,8 @@ class PsychoPyApp(wx.App):
                 config.Write("tips", str( (showTip, index) ))
                 config.Flush()"""
 
-
-
         return True
+
     def showCoder(self, event=None, fileList=None):
         if self.coder==None:
             self.coder=coder.CoderFrame(None, -1,
@@ -246,24 +255,31 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
+        info.AddDeveloper('Jeremy Gray')
         info.AddDocWriter('Jonathan Peirce')
 
         wx.AboutBox(info)
 
     def followLink(self, event):
         wx.LaunchDefaultBrowser(links[event.GetId()])
+        
+        
 class PreferencesDlg(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
-        wx.Frame.__init__(self, parent, ID, title, size=(500,700))
+        wx.Frame.__init__(self, parent, ID, title, size=(700,700))
         panel = wx.Panel(self)
         self.nb = wx.Notebook(panel)
         self.pageIDs={}#store the page numbers
         self.paths = app.prefs.paths
         self.app=app
-        self.prefs={'user':app.prefs.userPrefsCfg,
-                    'site':app.prefs.prefsCfg}
-
-        for n, prefsType in enumerate(['site','user']):
+        
+        self.prefs={'user' : app.prefs.userPrefsCfg,
+                    'site' : app.prefs.sitePrefsCfg,
+                    'keys' : app.prefs.keysPrefsCfg,
+                    'help' : app.prefs.helpPrefsCfg}
+        self.prefPagesOrder = ['user', 'site', 'keys', 'help']
+        
+        for n, prefsType in enumerate(self.prefPagesOrder):
             sitePage = self.makePage(self.prefs[prefsType])
             self.nb.AddPage(sitePage,prefsType)
             self.pageIDs[prefsType]=n
@@ -276,7 +292,7 @@ class PreferencesDlg(wx.Frame):
         self.fileMenu = wx.Menu()
         item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys.save)
         self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys.close)
+        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close prefs\t%s" %app.keys.close)
         self.Bind(wx.EVT_MENU, self.close, item)
         self.fileMenu.AppendSeparator()
         item = self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %app.keys.quit, "Terminate the application")
@@ -284,6 +300,11 @@ class PreferencesDlg(wx.Frame):
 
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
+        
+        try:
+            self.nb.ChangeSelection(app.prefs.pageCurrent)
+        except:
+            pass # the above can throw an error if prefs already open
 
     def makePage(self, prefs):
         page = wx.stc.StyledTextCtrl(parent=self.nb)
@@ -295,43 +316,93 @@ class PreferencesDlg(wx.Frame):
             page.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:Courier,size:12d")
         page.StyleClearAll()  # Reset all to be like the default
         page.SetLexer(wx.stc.STC_LEX_PROPERTIES)
-        page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF0000")
+        page.StyleSetSpec(wx.stc.STC_PROPS_SECTION,"fore:#FF5555,bold")
         page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#007F00")
 
         buff=StringIO.StringIO()
         prefs.write(buff)
-        page.SetText(buff.getvalue())
+        if sys.platform == 'darwin' and 'keybindings' in prefs.keys():
+            # display Cmd+ instead of Ctrl+, because that's how the keys will work
+            page.SetText(buff.getvalue().replace('Ctrl+','Cmd+'))
+        else:
+            page.SetText(buff.getvalue())
         buff.close()
 
-        #check that the folder exists
+        # check that the folder exists
         dirname = os.path.dirname(prefs.filename)
         if not os.path.isdir(dirname):
             try: os.makedirs(dirname)
             except: 
                 page.SetReadOnly(True)
-                print "PsychoPy failed to create  folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
-        #check for file write access
-        if not os.access(dirname,os.W_OK):#can only read so make the textctrl read-only
-            page.SetReadOnly(True)
-            print "PsychoPy can't write to folder %s. Site settings will be read-only (user settings are still configurable)" %dirname
-                
+        # make the text read-only?
+        try:
+            if prefs.filename.find("prefsHelp.cfg") > -1: raise Exception()  # read-only if a protected page, like prefsHelp.cfg
+            f = open(prefs.filename, 'a')  # read-only if write-access fails; this test did not work for me: os.access(dirname,os.W_OK)
+            f.close()
+        except:  # make the textctrl read-only, and comment color blue
+            if prefs.filename.find("prefsUser.cfg") < 0:  # user prefs should always be editable
+                page.SetReadOnly(True)
+                page.StyleSetSpec(wx.stc.STC_PROPS_COMMENT,"fore:#0033BB")
         return page
+    
     def close(self, event=None):
+        app.prefs.pageCurrent = self.nb.GetSelection()
+        self.checkForUnsaved()        
         self.Destroy()
-    def quit(self,event=None):
+        
+    def quit(self, event=None):
+        self.checkForUnsaved()        
         self.close()
         self.app.quit()
+        
+    def checkForUnsaved(self, event=None):
+        pageCurrent = self.nb.GetSelection()
+        # better: copied from coder line 1232+; example of how to call: coder line 1444
+        #for ii in range(self.notebook.GetPageCount()):
+        #    doc = self.nb.GetPage(ii)
+        #    filename=doc.filename
+        #    if doc.UNSAVED:
+        #        dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
+        #        resp = dlg.ShowModal()
+        #        sys.stdout.flush()
+        #        dlg.Destroy()
+        #        if resp  == wx.ID_CANCEL: return 0 #return, don't quit
+        #        elif resp == wx.ID_YES: self.save() #save then quit
+        #        elif resp == wx.ID_NO: pass #don't save just quit        
+ 
+        if app.prefs.prefsCfg['app']['autoSavePrefs']:
+            for prefsType in self.prefs.keys():
+                if self.isChanged(prefsType):
+                   print "auto-",
+                   break
+            self.save()
+        app.prefs.pageCurrent = pageCurrent
+        
     def save(self, event=None):
-        ok=1
-        for prefsType in ['site','user']:
+        # user changes are to two separate cfg's; merge to set values to actually use now 
+        prefsSpec = configobj.ConfigObj(os.path.join(self.paths['prefs'], 'prefsSite.spec'), encoding='UTF8', list_values=False)
+        app.prefs.prefsCfg = configobj.ConfigObj(app.prefs.sitePrefsCfg, configspec=prefsSpec)
+        app.prefs.prefsCfg.merge(app.prefs.userPrefsCfg)
+
+        pageCurrent = self.nb.GetSelection()
+        for prefsType in self.prefs.keys():
             pageText = self.getPageText(prefsType)
-            filePath = self.paths['%sPrefsFile' %prefsType]
+            filePath = self.paths['%sPrefsFile' % prefsType]
             if self.isChanged(prefsType):
-                f=open(filePath,'w')
-                f.write(pageText)
-                f.close()
-                print "saved", filePath
-        return ok
+                try:
+                    f = open(filePath, 'w')
+                    f.write(pageText)
+                    f.close()
+                    print "saved", filePath
+                except:
+                    pass
+        # reload / refresh:
+        self.app.prefs = preferences.Preferences()  # validation happens in here
+        self.app.keys = self.app.prefs.keys
+        
+        self.nb.ChangeSelection(pageCurrent)
+        return 1  # ok
+    
     def getPageText(self,prefsType):
         """Get the prefs text for a given page
         """
@@ -341,7 +412,7 @@ class PreferencesDlg(wx.Frame):
         filePath = self.paths['%sPrefsFile' %prefsType]
         if not os.path.isfile(filePath):
             return True
-        f = open(filePath, 'r+')
+        f = open(filePath, 'r')  # 'r+' fails if the file does not have write permission
         savedTxt = f.read()
         f.close()
         #find the notebook page

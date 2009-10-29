@@ -1365,6 +1365,13 @@ class BuilderFrame(wx.Frame):
                          style=style)
 
         self.panel = wx.Panel(self)
+        #create icon
+        if sys.platform=='darwin':
+            pass#doesn't work and not necessary - handled by application bundle
+        else:
+            iconFile = os.path.join(self.paths['resources'], 'psychopy.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
 
         # create our panels
         self.flowPanel=FlowPanel(frame=self)
@@ -1380,7 +1387,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         #setup a default exp
-        if len(files) and os.path.isfile(files[0]):
+        if files!=None and len(files) and os.path.isfile(files[0]):
             self.fileOpen(filename=files[0], closeCurrent=False)
         elif self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
             self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
@@ -1423,11 +1430,11 @@ class BuilderFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
 
-        if sys.platform=='win32' or sys.platform.startswith('linux'):
+        if sys.platform=='win32' or sys.platform.startswith('linux') or float(wx.version()[:3]) >= 2.8:
             if self.appPrefs['largeIcons']: toolbarSize=32
             else: toolbarSize=16
         else:
-            toolbarSize=32 #size 16 doesn't work on mac wx
+            toolbarSize=32 #size 16 doesn't work on mac wx; does work with wx.version() == '2.8.7.1 (mac-unicode)'
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
         new_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'filenew%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
@@ -1443,18 +1450,20 @@ class BuilderFrame(wx.Frame):
         preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
 
-        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [%s]" %self.app.keys.new, "Create new python file")
+        ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
+        if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
+        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys.new).replace('Ctrl+', ctrlKey), "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, "Open [%s]" %self.app.keys.open, "Open an existing file'")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys.open).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, "Save [%s]" %self.app.keys.save,  "Save current file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys.save).replace('Ctrl+', ctrlKey),  "Save current file")
         self.toolbar.EnableTool(self.IDs.tbFileSave, False)
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, "Save As... [%s]" %self.app.keys.saveAs, "Save current python file as...")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys.saveAs).replace('Ctrl+', ctrlKey), "Save current python file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, "Undo [%s]" %self.app.keys.undo, "Undo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" %self.app.keys.undo).replace('Ctrl+', ctrlKey), "Undo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [%s]" %self.app.keys.redo,  "Redo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" %self.app.keys.redo).replace('Ctrl+', ctrlKey),  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
@@ -1466,11 +1475,11 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
-        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, "Compile Script [%s]" %self.app.keys.compileScript,  "Compile to script")
+        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, ("Compile Script [%s]" %self.app.keys.compileScript).replace('Ctrl+', ctrlKey),  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
-        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run/t%s" %self.app.keys.runScript,  "Run experiment")
+        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, ("Run [%s]" %self.app.keys.runScript).replace('Ctrl+', ctrlKey),  "Run experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop/t%s" %self.app.keys.stopScript,  "Stop experiment")
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, ("Stop [%s]" %self.app.keys.stopScript).replace('Ctrl+', ctrlKey),  "Stop experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         self.toolbar.Realize()

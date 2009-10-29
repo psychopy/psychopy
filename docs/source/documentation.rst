@@ -10,10 +10,17 @@ Contents:
    contributing
    installation
    gettingStarted
+   
+.. toctree::
+   :maxdepth: 2
+   
+   general/general
    builder/builder
    coder/coder
-   prefs
-   timing/timing
+   
+.. toctree::
+   :maxdepth: 1
+   
    recipes/recipes
    faqs/faqs
    api/api
