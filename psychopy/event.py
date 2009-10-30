@@ -265,11 +265,13 @@ class Mouse:
         """Returns the new position of the mouse relative to the
         last call to getRel or getPos, in the same units as the :class:`~visual.Window`.
         """
-        if usePygame: relPosPix=mouse.get_rel()
+        if usePygame: 
+            relPosPix=mouse.get_rel()
+            return self._pix2windowUnits(self.relPosPix)
         else: 
-            #NB getPost() resets lastPos so must retrieve lastPos first
+            #NB getPost() resets lastPos so MUST retrieve lastPos first
             if self.lastPos is None: relPos = self.getPos()
-            else: relPos = -self.lastPos+self.getPos()
+            else: relPos = -self.lastPos+self.getPos()#DON't switch to (this-lastPos)
             return relPos
     
     def getWheelRel(self):
@@ -310,12 +312,12 @@ class Mouse:
         else: return mouseButtons
     def _pix2windowUnits(self, pos):
         if self.win.units=='pix': return pos
-        elif self.win.units=='norm': return pos*2.0/scr.size
+        elif self.win.units=='norm': return pos*2.0/self.win.size
         elif self.win.units=='cm': return psychopy.misc.pix2cm(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.pix2deg(pos, self.win.monitor)
     def _windowUnits2pix(self, pos):
         if self.win.units=='pix': return pos
-        elif self.win.units=='norm': return pos*scr.size/2.0
+        elif self.win.units=='norm': return pos*self.win.size/2.0
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
         
