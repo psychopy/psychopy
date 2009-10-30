@@ -1,3 +1,16 @@
+psychopy (1.50.05.dfsg-1~pre1) UNRELEASED; urgency=low
+
+  * Upstream release
+  * debian/control:
+    * BF: Recommends python-scipy
+    * RF: libavbin0 into Recommends from Suggests
+    * BF: matplotlib/lxml into Depends
+    * BF: Adjusted description (closes: #547255)
+    * Upgraded policy to 3.8.3 -- no changes are due
+  * Reverted to using wrapper script which invokes psychopy app via runpy
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 29 Oct 2009 23:14:51 -0400
+
 psychopy (1.50.04.dfsg-1) unstable; urgency=low
 
   * New upstream bugfix release
