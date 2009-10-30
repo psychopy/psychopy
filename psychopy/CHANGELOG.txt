@@ -14,6 +14,7 @@ PsychoPy 1.51.00
 
 * CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
 * CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window
+* FIXED: mouse in pyglet window does now get hidden with Window allowGUI=False
 * FIXED: (Builder) failed to open from Coder view menu (or cmd/ctrl L)
 * FIXED: failure to load user prefs file
 * ADDED: keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
