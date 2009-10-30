@@ -6,7 +6,7 @@
 #  e-mail:  yoh@onerussian.com                              ICQ#: 60653192
 #
 # COPYRIGHT: Yaroslav Halchenko 2009
-#
+# DESCRIPTION: Just a little wrapper to startup PsychoPy GUI.
 # LICENSE:
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -28,62 +28,5 @@
 #
 #-----------------\____________________________________/------------------
 
-print_help()
-{
-#print_version
-cat <<EOF
+python -c 'import runpy; runpy.run_module("psychopy.app.psychopyApp", run_name="__main__");' $*
 
-PsychoPy startup script.
-
-Usage: psychopy [-c|--coder|-m|--monitors|-b|--builder] [--version] [--help] [args]
-
-Options:
-  -c, --coder      starts IDE
-                    (default action if without any options)
-  -m, --monitor    starts Monitor Center
-
-  --version        prints version and exits
-  -h, --help       prints this help and exits
-
-  The last of the mentioned in command lines modes (e.g. coder) would start.
-
-  [args] are passed as command line arguments to corresponding module. Therefore
-  they could be filenames of files to open in coder, etc.
-
-EOF
-#   -b, --builder    starts Design builder
-}
-
-print_version()
-{
-	version=$(python -c "import psychopy; print psychopy.__version__")
-cat <<EOF
-
-PsychoPy version: $version
-
-EOF
-}
-
-CLOPTS=`getopt -o h,c,m --long help,version,monitor,coder -n '$0' -- "$@"`
-
-if [ $? != 0 ]; then
-	echo "Terminating..." >&2
-	exit 1
-fi
-
-# Note the quotes around `$CLOPTS': they are essential!
-eval set -- "$CLOPTS"
-
-module='PsychoPyIDE.PsychoPyIDE'; class=IDEApp
-while true ; do
-    case "$1" in
-        -h|--help) print_help; exit 0;;
-        --version) print_version; exit 0;;
-        -c|--coder) shift; module='PsychoPyIDE.PsychoPyIDE'; class=IDEApp;;
-        -m|--monitor) shift; module='monitors.MonitorCenter'; class=MonitorCenter;;
-        --) shift ; break ;;
-        *) echo "ERROR: Internal error! ($1)"; exit 1;;
-    esac
-done
-
-python -c "import $module as m; app=m.$class(0); app.MainLoop();" $*
