@@ -4,9 +4,15 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import os, glob, wx
+import os, glob, wx, Image
 from os.path import *
 import psychopy
+
+def pilToBitmap(pil):
+    image = wx.EmptyImage(pil.size[0], pil.size[1] )
+    image.SetData( pil.convert( "RGB").tostring() )
+    image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+    return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
 
 def getIcons(filename=None):
         """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image. 
@@ -16,12 +22,14 @@ def getIcons(filename=None):
         """
         if filename==None:
             filename=join(dirname(abspath(__file__)),'base.png')
-        im = wx.Image(filename)
-        icon = wx.BitmapFromImage(im)
+        im = Image.open(filename)
+        icon = pilToBitmap(im)
         #add the plus sign
-        add = wx.Image(join(dirname(abspath(__file__)),'edit_add.png'))
-        im.Paste(add.Copy(),0,0)
-        iconAdd = wx.BitmapFromImage(im)
+        add = Image.open(join(dirname(abspath(__file__)),'add.png'))
+        im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
+        #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
+        iconAdd = pilToBitmap(im)
+
         return icon, iconAdd
         
 def getComponents(folder=None):
@@ -33,7 +41,7 @@ def getComponents(folder=None):
     if folder==None:
         folder = dirname(__file__)
     os.sys.path.append(folder)
-    components={}  
+    components={}
     #setup a default icon
     if 'default' not in icons.keys():
         icons['default']=getIcons(filename=None) 

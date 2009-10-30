@@ -49,6 +49,6 @@ setup(name="PsychoPy",
     classifiers=['Development Status :: 4 - Beta',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: Microsoft :: Windows',
-          'Operating System :: Linux',
+          'Operating System :: POSIX',
           'Programming Language :: Python'],
     )

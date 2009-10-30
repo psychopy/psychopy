@@ -2,7 +2,7 @@
 Overview
 =====================================
 
-PsychoPy is an open-source package for running experiments in Python (a real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give scientists a free and simple stimulus presentation and control package. It is used by many labs worldwide for psychophysics, cognitive neuroscience and experimental psychology.
+PsychoPy is an open-source package for running experiments in `Python`_ (a real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give scientists a free and simple stimulus presentation and control package. It is used by many labs worldwide for psychophysics, cognitive neuroscience and experimental psychology.
 
 The code is fully platform independent (known to work on Windows, OS X and Linux), using Python and C libraries that are widely available. 
 
@@ -29,7 +29,7 @@ There are many advantages to using PsychoPy, but here are some of the key ones
 Platform Independence
 ----------------------
 
-The package is written almost entirely in Python using platform independent libraries (see list below). Since these are all available on all popular platforms PsychoPy will run anywhere and is limited only by your graphics card (make sure you have a decent 3D-accelerated card).
+The package is written almost entirely in `Python`_ using platform independent libraries (see list below). Since these are all available on all popular platforms PsychoPy will run anywhere and is limited only by your graphics card (make sure you have a decent 3D-accelerated card).
 
 How to cite PsychoPy
 ----------------------
@@ -45,4 +45,6 @@ PsychoPy is an open-source, community-driven project. It is written and provided
 * fixing a minor bug in the code
 * writing a little feature that can be added
 * if nothing else, then at least tell the primary developers that a bug exists - they likely don't know!
-For more information on how to view and edit the documentation and code see the section on :doc:`contributing` 
+For more information on how to view and edit the documentation and code see the section on :doc:`contributing`
+
+.. _Python: `http://www.python.org` 

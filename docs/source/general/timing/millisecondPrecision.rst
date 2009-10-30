@@ -23,11 +23,11 @@ Monitors have fixed refresh rates, typically 60 Hz for a flat-panel display, hig
 
 For ''CRT (cathode ray tube) screens'', the lines of pixels are drawn sequentially from the top to the bottom and once the bottom line has been drawn the screen is finished and the line returns to the top (the Vertical Blank Interval, VBI). Most of your frame interval is spent drawing the lines with 1-2ms being left for the VBI. This means that the pixels at the bottom are drawn '''up to 10 ms later''' than the pixels at the top of the screen. At what point are you going to say your stimulus 'appeared' to the participant? For flat panel displays, or (or LCD projectors) your image will be presented simultaneously all over the screen, but it takes up to 20 ms(!!) for your pixels to go all the way from black to white (manufacturers of these panels quote values of 3 ms for the fastest panels, but they certainly don't mean 3 ms white-to-black, I assume they mean 3 ms half-life).
 
-.. figure:: ../images/TopOfScreen.jpg
+.. figure:: ../../images/TopOfScreen.jpg
 
     Figure 1: photodiode trace at top of screen. The image above shows the luminance trace of a CRT recorded by a fast photo-sensitive diode at the top of the screen when a stimulus is requested (shown by the square wave). The square wave at the bottom is from a parallel port that indicates when the stimulus was flipped to the screen. Note that on a CRT the screen at any point is actually black for the majority of the time and just briefly bright. The visual system integrates over a large enough time window not to notice this. On the next frame after the stimulus 'presentation time' the luminance of the screen flash increased.
 
-.. figure:: ../images/BottOfScreen.jpg
+.. figure:: ../../images/BottOfScreen.jpg
 
     Figure 2: photodiode trace of the same large stimulus at bottom of screen. The image above shows comes from exactly the same script as the above but the photodiode is positioned at the bottom of the screen. In this case, after the stimulus is 'requested' the current frame (which is dark) finishes drawing and then, 10ms later than the above image, the screen goes bright at the bottom.
 

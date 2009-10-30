@@ -309,7 +309,14 @@ class Monitor:
         if gamma: self.setGamma(gamma)
         if notes: self.setNotes(notes)
         if useBits!=None: self.setUseBits(useBits)
-
+        
+    def gammaIsDefault(self):
+        if self.getGammaGrid()==None \
+            or numpy.alltrue(self.getGammaGrid()==numpy.array([[0,1,1],[0,1,1],[0,1,1],[0,1,1]])):
+            return True
+        else:
+            return False
+        
 #functions to set params of current calibration
     def setSizePix(self, pixels):
         self.currentCalib['sizePix']=pixels
@@ -651,8 +658,7 @@ class Monitor:
                 else: gamma = gammaGrid[1:4,2]
                 maxLumWhite = gammaGrid[0,1]
                 gammaWhite = gammaGrid[0,2]
-                if DEBUG: print 'using gamma grid'
-                if DEBUG: print gammaGrid
+                log.debug('using gamma grid'+str(gammaGrid))
             else:
                 #just do the calculation using gamma
                 minLum=0

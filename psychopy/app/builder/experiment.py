@@ -359,7 +359,7 @@ class TrialHandler:
         for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
             stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
-        buff.writeIndented("%(name)s.saveAsPickle(filename+'.psydat')\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")

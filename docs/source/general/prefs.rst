@@ -1,0 +1,81 @@
+Preferences
+====================================
+
+
+Overview
+----------
+You can customize things for yourself (as a 'user'), or for everyone on this 
+computer (the 'site'). Your user preferences over-ride the site preferences
+(which in turn override the default settings that come with PsychoPy2).
+
+Example
+----------
+If you like small, lean icons, copy the 'largeIcons = True' line from
+the 'site' page, and paste it into your 'user' page, under the section
+named [app]. (It goes under [app] because it is under [app] on the 'site' page.
+Then replace 'True' with 'False', and save your prefs. That is, in general just
+copy something to get the syntax right, then edit to change the value. Most 'site'
+prefs have a note of explanation on the line above them (as a commment).
+
+Notes
+----------
+A site-admin can change what key-presses have what effect in PsychoPy's menus:
+just edit the <key-code> on the 'keys' page to to what you want for all users.
+It is not possible to set up different key-bindings for individual users.
+
+As a user, be sure to paste a setting under the proper section, or else it will be ignored.
+
+Not all changes take effect immediately. For example, changing the icon size
+will only be noticeable when you make a new builder or coder window.
+
+Changes you make to prefs are not saved automatically, but can be by setting:
+autoSavePrefs = True
+For this to work, you have to close the preferences window using the menu or 
+keyboard (not using the operating system).
+
+The first time PsychoPy is run (presumably by an admin user), its a good idae to edit and
+save the site preferences. Ideally, the site preferences and the componentsFolders list
+should be in a location where: a) the admin user can edit them, b) all users will be able 
+to read them, and c) they will not be overwritten when you update PsychoPy. On a 
+Mac, /Users/Shared/PsychoPy2/ is a reasonable place. On Linux, /usr/local/psychopy2/
+would be a reasonable place (with care taken to set permissions appropriately). 
+
+How to...
+----------
+SET a pref:  Select and copy a 'setting = value', then paste it into the right 
+    section of your 'user' page, then edit the value part. Some settings require
+    restarting PsychoPy to take effect. 
+SET a key pref:  Only a user with write-permission for the psychopy prefs 
+    files can change the 'keys' prefs (doing so for the whole site). Just edit
+    the value in the 'keys' page, following the syntax there. You'll have to restart
+    PsychoPy to use the new key-bindings.
+RESET your user preferences:  Just delete them from your 'user' page, and save. If
+    that is not possible, you'll need to delete your userPrefsFile using your
+    computer's operating system to do so. (The file name is shown at the bottom
+    of your 'user' prefs page.) Then restart PsychoPy.
+RESET the SITE and KEYS to defaults:  Set 'resetSitePrefs = True', and then save
+    preferences. The site prefs are restored to the defaults that come with PsychoPy,
+    but you'll need to close and then open the preferences dialog to see the changes.
+    User prefs are NOT reset by this. keys are reset.
+
+
+Glossary
+----------
+A COMMENT is any line starting with a #, such as this one.
+SETTINGS are shown in BLACK, and are paired with a value:
+    setting = value
+A SECTION name is text enclosed in square brackets, like this:
+	[this_is_a_section_name]
+
+Values can be numbers, true / false, strings, or even lists.
+A few settings require a comma-separated LIST instead of a value:
+    my_list = item1, item2
+
+Just a comma alone means an empty list (you still need the comma).
+If comments are shown in GREEN, you can edit the settings on that page.
+If comments are BLUE, no editing is possible (the file is read-only).
+
+Each `setting = value` pair belongs to a section. Here, the setting
+'setting_52' belongs to the section 'section_5':
+    [section_5]
+    setting_52 = True

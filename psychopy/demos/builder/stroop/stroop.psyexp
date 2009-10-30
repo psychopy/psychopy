@@ -7,7 +7,7 @@
     <Param name="Experiment info" val="{'participant':'s_001', 'session':001}" valType="code" updates="None"/>
     <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
-    <Param name="Units" val="use prefs" valType="str" updates="None"/>
+    <Param name="Units" val="norm" valType="str" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>

@@ -1066,7 +1066,7 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()       
-        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Bulder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
+        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys.switchToBuilder, "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
         
         #---_help---#000000#FFFFFF--------------------------------------------------
@@ -1105,11 +1105,11 @@ class CoderFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
             
-        if sys.platform=='win32' or sys.platform.startswith('linux'):
+        if sys.platform=='win32' or sys.platform.startswith('linux') or float(wx.version()[:3]) >= 2.8:
             if self.appPrefs['largeIcons']: toolbarSize=32
             else: toolbarSize=16
         else:
-            toolbarSize=32 #size 16 doesn't work on mac wx
+            toolbarSize=32 #size 16 doesn't work on mac wx; does work with wx.version() == '2.8.7.1 (mac-unicode)'
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
         new_bmp = wx.Bitmap(os.path.join(self.paths['resources'], 'filenew%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         open_bmp = wx.Bitmap(os.path.join(self.paths['resources'], 'fileopen%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
@@ -1122,18 +1122,20 @@ class CoderFrame(wx.Frame):
         preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         
-        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, "New [Ctrl+N]", "Create new python file")
+        ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
+        if sys.platform == 'darwin': ctrlKey = 'Cmd+'    
+        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys.new).replace('Ctrl+', ctrlKey), "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, "Open [Ctrl+O]", "Open an existing file'")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" % self.app.keys.open).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, "Save [Ctrl+S]", "Save current file")        
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" % self.app.keys.save).replace('Ctrl+', ctrlKey), "Save current file")        
         self.toolbar.EnableTool(self.IDs.tbFileSave, False)
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, "Save As... [Ctrl+Shft+S]", "Save current python file as...")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" % self.app.keys.saveAs).replace('Ctrl+', ctrlKey), "Save current python file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, "Undo [Ctrl+U]", "Undo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" % self.app.keys.undo).replace('Ctrl+', ctrlKey), "Undo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, "Redo [Ctrl+R]", "Redo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" % self.app.keys.redo).replace('Ctrl+', ctrlKey), "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
@@ -1143,9 +1145,9 @@ class CoderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
-        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, "Run [F5]",  "Run current script")
+        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, ("Run [%s]" % self.app.keys.runScript).replace('Ctrl+', ctrlKey),  "Run current script")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, "Stop [Shift+F5]",  "Stop current script")
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, ("Stop [%s]" % self.app.keys.stopScript).replace('Ctrl+', ctrlKey),  "Stop current script")
         self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         self.toolbar.Realize()
@@ -1364,7 +1366,7 @@ class CoderFrame(wx.Frame):
                     
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
-    def fileSave(self,event, filename=None, doc=None):
+    def fileSave(self,event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used. If the ``filename`` is 
         ``None`` then the ``doc``'s current filename is used or a dlg is presented to 
@@ -1433,6 +1435,9 @@ class CoderFrame(wx.Frame):
         except:
             pass
     def fileClose(self, event, filename=None, checkSave=True):        
+        if self.currentDoc == None:
+            self.closeFrame()  # so a coder window with no files responds like the builder window to self.keys.close
+            return
         if filename==None:
             filename = self.currentDoc.filename
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
@@ -1686,6 +1691,7 @@ class CoderFrame(wx.Frame):
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
-        filename = evt.GetString().split('"')[1]
-        lineNumber = int(evt.GetString().split(',')[1][5:])
+        tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ',1)
+        filename = tmpFilename.split('File "',1)[1]
+        lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)

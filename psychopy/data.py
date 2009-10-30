@@ -371,7 +371,9 @@ class TrialHandler:
         This can be reloaded if necess and further analyses carried out.
         """
         #otherwise use default location
-        f = open(fileName+'.psydat', "wb")
+        if not fileName.endswith('.psydat'):
+            fileName+='.psydat'
+        f = open(fileName, "wb")
         cPickle.dump(self, f)
         f.close()
         

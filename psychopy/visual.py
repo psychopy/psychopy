@@ -4,11 +4,11 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import psychopy.misc
 import psychopy #so we can get the __path__
-from psychopy import core, ext, log, preferences
+from psychopy import core, ext, log, preferences, monitors
 import psychopy.event
-import monitors
+#misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
+import psychopy.misc
 import Image
 import sys, os, time, glob, copy
 import makeMovies
@@ -93,7 +93,7 @@ class Window:
                 The monitor to be used during the experiment
             units :  *None*, 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
-            screen : *1*, 2 (or higher if you have many screens)
+            screen : *0*, 1 (or higher if you have many screens)
                 Specifies the physical screen that stimuli will appear on (pyglet winType only)
             viewScale : *None* or [x,y]
                 Can be used to apply a custom scaling to the current units of the window.  
@@ -145,19 +145,20 @@ class Window:
         #if we have a monitors.Monitor object (psychopy 0.54 onwards)
         #convert to a Monitor object
         if monitor==None:
-            monitor = monitors.Monitor('__blank__')
+            self.monitor = monitors.Monitor('__blank__')
         if type(monitor) in [str, unicode]:
-            monitor = monitors.Monitor(monitor)
+            self.monitor = monitors.Monitor(monitor)
         elif type(monitor)==dict:
             #convert into a monitor object
-            monitor = monitors.Monitor('temp',currentCalib=monitor,verbose=False)
-        self.monitor = monitor
+            self.monitor = monitors.Monitor('temp',currentCalib=monitor,verbose=False)
+        else:
+            self.monitor = monitor
 
         #otherwise monitor will just be a dict
-        self.scrWidthCM=monitor.getWidth()
-        self.scrDistCM=monitor.getDistance()
+        self.scrWidthCM=self.monitor.getWidth()
+        self.scrDistCM=self.monitor.getDistance()
 
-        scrSize = monitor.getSizePix()
+        scrSize = self.monitor.getSizePix()
         if scrSize==None:
             self.scrWidthPIX=None
         else:self.scrWidthPIX=scrSize[0]
@@ -191,32 +192,40 @@ class Window:
             self.haveBits = True
 
         #gamma
-        if self.bitsMode!=None and hasattr(monitor, 'lineariseLums'):
-            #ideally we use bits++ and provide a complete linearised lookup table
+        if self.bitsMode!=None and hasattr(self.monitor, 'lineariseLums'):
+            #rather than a gamma value we could use bits++ and provide a complete linearised lookup table
             #using monitor.lineariseLums(lumLevels)
             self.gamma=None
         if gamma != None and (type(gamma) in [float, int]):
             #an integer that needs to be an array
             self.gamma=[gamma,gamma,gamma]
+            self.useNativeGamma=False
         elif gamma != None:# and (type(gamma) not in [float, int]):
             #an array (hopefully!)
             self.gamma=gamma
-        elif type(monitor.getGammaGrid())==numpy.ndarray:
-            self.gamma = monitor.getGammaGrid()[1:,2]
-        elif monitor.getGamma()!=None:
-            self.gamma = monitor.getGamma()
-        else: self.gamma = [1.0,1.0,1.0] #gamma wasn't set anywhere
+            self.useNativeGamma=False
+        elif type(self.monitor.getGammaGrid())==numpy.ndarray:
+            self.gamma = self.monitor.getGammaGrid()[1:,2]
+            if self.monitor.gammaIsDefault():
+                self.useNativeGamma=True
+            else:self.useNativeGamma=False
+        elif self.monitor.getGamma()!=None:
+            self.gamma = self.monitor.getGamma()
+            self.useNativeGamma=False
+        else: 
+            self.gamma = None #gamma wasn't set anywhere
+            self.useNativeGamma=True
         
         #colour conversions
-        dkl_rgb = monitor.getDKL_RGB()
+        dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
             self.dkl_rgb=dkl_rgb
         else: self.dkl_rgb = None
-        lms_rgb = monitor.getLMS_RGB()
+        lms_rgb = self.monitor.getLMS_RGB()
         if lms_rgb!=None:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
-
+        
         #setup context and openGL()
         if winType==None:#choose the default windowing
             self.winType=prefs.general['winType']
@@ -252,7 +261,11 @@ class Window:
         self.frameIntervals=[]
         
         self._refreshThreshold=1/50.0
-        if list(self.gamma)!=[1,1,1]:
+        
+        if self.useNativeGamma:
+            log.info('Using gamma table of operating system')
+        else:
+            log.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = core.getTime()
         
@@ -375,6 +388,7 @@ class Window:
         if self.viewScale != None:
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
+            GL.glOrtho(-1,1,-1,1,-1,1)
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
         if self.viewPos != None:
             GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -586,13 +600,14 @@ class Window:
             log.info('configured pyglet screen %i' %self.screen)
         else: 
             log.error("Requested an unavailable screen number")
+        #if fullscreen check screen size
         if self._isFullScr:
-            w,h = None,None
-        else:
-            w,h = self.size
+            self._checkMatchingSizes(self.size,[thisScreen.width, thisScreen.height])
+            w=h=None
+        else:w,h=self.size
         if self.allowGUI: style=None
         else: style='borderless'
-        self.winHandle = pyglet.window.Window(width=w, height=h,
+        self.winHandle = pyglet.window.Window(width=w,height=h,
                                               caption="PsychoPy", 
                                               fullscreen=self._isFullScr,
                                               config=config,
@@ -622,7 +637,14 @@ class Window:
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except: pass#doesn't matter
-
+    def _checkMatchingSizes(self, requested,actual):
+        """Checks whether the requested and actual screen sizes differ. If not
+        then a warning is output and the window size is set to actual
+        """  
+        if list(requested)!=list(actual):
+            log.warning("User requested fullscreen with size %s, but screen is actually %s. Using actual size" \
+                %(requested, actual))
+            self.size=numpy.array(actual)            
     def _setupPygame(self):
         self.winType = "pygame"
         global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
@@ -633,7 +655,7 @@ class Window:
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
-
+            
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pygame.image.load(iconFile)
@@ -643,6 +665,9 @@ class Window:
         winSettings = pygame.OPENGL|pygame.DOUBLEBUF#|pygame.OPENGLBLIT #these are ints stored in pygame.locals
         if self._isFullScr:
             winSettings = winSettings | pygame.FULLSCREEN
+            #check screen size if full screen
+            scrInfo=pygame.display.Info()  
+            self._checkMatchingSizes(self.size,[scrInfo.current_w,scrInfo.current_h])
         elif self.pos==None:
             #centre video
             os.environ['SDL_VIDEO_CENTERED']="1"
@@ -3790,7 +3815,7 @@ class TextStim(_BaseVisualStim):
         """Set this stimulus to use shaders if possible.
         """
         if val==True and self.win._haveShaders==False:
-            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+            log.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.setText(self.text)  
@@ -4005,7 +4030,9 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = tex.astype(numpy.float32)
         if intensity.max()>1 or intensity.min()<-1:
             log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
-        wasLum = True
+        if len(tex.shape)==3:
+            wasLum=False
+        else: wasLum = True
         ##is it 1D?
         if tex.shape[0]==1:
             stim._tex1D=True

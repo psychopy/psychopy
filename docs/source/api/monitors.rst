@@ -1,5 +1,5 @@
-:mod:`psychopy.monitors`
-===================================
+:mod:`psychopy.monitors` - for those that don't like Monitor Center
+======================================================================
 
 Most users won't need to use the code here. In general the Monitor Centre interface is sufficient
 and monitors setup that way can be passed as strings to :class:`~psychopy.visual.Window` s. If there
