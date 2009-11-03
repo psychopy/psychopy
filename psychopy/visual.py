@@ -625,7 +625,7 @@ class Window:
         self.winHandle.on_mouse_scroll = psychopy.event._onPygletMouseWheel
         if not self.allowGUI: 
             #make mouse invisible. Could go further and make it 'exclusive' (but need to alter x,y handling then)
-            self.winHandle._mouse_visible=False
+            self.winHandle.set_mouse_visible(False)
         self.winHandle.on_resize = self.onResize
         if self.pos==None:
             #work out where the centre should be
