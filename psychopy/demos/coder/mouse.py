@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 from psychopy import *
 """
-Handling of the mouse has changed under pyglet - you should now
-use a mouse object (from the event sub-module) to query the current
-mouse position etc.
+As of version 1.51 the mouse coordinates for
+    myMouse.getPos()
+    myMouse.setPos() #pygame only
+    myMouse.getRel()
+are in the same units as the window.
 
-You can also check the position of the wheel now too.
+You can also check the motion of the wheel with myMouse.getWheelRel() 
+(in two directions for the mac mighty mouse or equivalent!)
 """
 #create a window to draw in
 myWin = visual.Window((600.0,600.0), allowGUI=True)
@@ -30,9 +33,9 @@ while True: #continue until keypress
     mouse_dX,mouse_dY = myMouse.getRel()
     mouse1, mouse2, mouse3 = myMouse.getPressed()
     if (mouse1):
-        grating.setSF(mouse_dX/200.0, '+')
+        grating.setSF(mouse_dX, '+')
     elif (mouse3):
-        grating.setPos([mouse_dX/400.0, -mouse_dY/400.0], '+')
+        grating.setPos([mouse_dX, mouse_dY], '+')
         
     #Handle the wheel(s):
     # Y is the normal mouse wheel, but some (e.g. mighty mouse) have an x as well

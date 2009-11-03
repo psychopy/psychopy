@@ -12,7 +12,7 @@ thisVersion=psychopy.__version__
 #define the extensions to compile if necess
 packages = find_packages()
 #for the source dist this doesn't work - use the manifest.in file
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.cfg', '*.csv','*.psyexp']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mpg', '*.mp4', '*.cfg', '*.spec', '*.csv','*.psyexp']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise

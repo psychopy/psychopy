@@ -6,7 +6,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time
-import psychopy.core
+import psychopy.core, psychopy.misc
 import string, numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
@@ -225,37 +225,53 @@ class Mouse:
         if newPos is not None: self.setPos(newPos)
         
     def setPos(self,newPos=(0,0)):
-        """Sets the current postiion of the mouse (pygame only)
+        """Sets the current postiion of the mouse (pygame only), 
+        in the same units as the :class:`~visual.Window` (0,0) is at centre
         
         :Parameters:
             newPos : (x,y) or [x,y]
                 the new position on the screen
 
         """
-        if usePygame: mouse.set_pos(newPos)
+        newPosPix = self._windowUnits2pix(numpy.array(newPos))
+        if usePygame: 
+            newPosPix[1] = self.win.size[1]/2-newPosPix[1]
+            newPosPix[0] = self.win.size[0]/2+newPosPix[0]
+            print newPosPix
+            mouse.set_pos(newPosPix)
         else: print "pyglet does not support setting the mouse position yet"
         
     def getPos(self):
-        """Returns the current postion of the mouse
+        """Returns the current postion of the mouse, 
+        in the same units as the :class:`~visual.Window` (0,0) is at centre
         """
-        if usePygame: return mouse.get_pos()
-        else: 
+        if usePygame: #for pygame top left is 0,0
+            lastPosPix = numpy.array(mouse.get_pos())
+            #set (0,0) to centre
+            lastPosPix[1] = self.win.size[1]/2-lastPosPix[1]
+            lastPosPix[0] = lastPosPix[0]-self.win.size[0]/2
+        else: #for pyglet bottom left is 0,0
             #use default window if we don't have one
             if self.win: w = self.win.winHandle
             else: w=pyglet.window.get_platform().get_default_display().get_windows()[0]       
             #get position in window
-            self.lastPos= numpy.array([w._mouse_x,-w._mouse_y])
-            return self.lastPos
+            lastPosPix= numpy.array([w._mouse_x,w._mouse_y])
+            #set (0,0) to centre
+            lastPosPix = lastPosPix-self.win.size/2
+        self.lastPos = self._pix2windowUnits(lastPosPix)    
+        return self.lastPos
         
     def getRel(self):
         """Returns the new position of the mouse relative to the
-        last call to getRel or getPos
+        last call to getRel or getPos, in the same units as the :class:`~visual.Window`.
         """
-        if usePygame: return mouse.get_rel()
+        if usePygame: 
+            relPosPix=mouse.get_rel()
+            return self._pix2windowUnits(self.relPosPix)
         else: 
-            #NB getPost() resets lastPos so must retrieve lastPos first
+            #NB getPost() resets lastPos so MUST retrieve lastPos first
             if self.lastPos is None: relPos = self.getPos()
-            else: relPos = -self.lastPos+self.getPos()
+            else: relPos = -self.lastPos+self.getPos()#DON't switch to (this-lastPos)
             return relPos
     
     def getWheelRel(self):
@@ -294,11 +310,17 @@ class Mouse:
         """
         if usePygame: return mouse.get_pressed()
         else: return mouseButtons
+    def _pix2windowUnits(self, pos):
+        if self.win.units=='pix': return pos
+        elif self.win.units=='norm': return pos*2.0/self.win.size
+        elif self.win.units=='cm': return psychopy.misc.pix2cm(pos, self.win.monitor)
+        elif self.win.units=='deg': return psychopy.misc.pix2deg(pos, self.win.monitor)
+    def _windowUnits2pix(self, pos):
+        if self.win.units=='pix': return pos
+        elif self.win.units=='norm': return pos*self.win.size/2.0
+        elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
+        elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
         
-             
-
-
-
 def clearEvents(eventType=None):
     """Clears all events currently in the event buffer.
     Optional argument, eventType, specifies only certain types to be
