@@ -1,6 +1,7 @@
-psychopy (1.50.05.dfsg-1~pre1) UNRELEASED; urgency=low
+psychopy (1.51.00.dfsg-1) unstable; urgency=low
 
-  * Upstream release
+  * Upstream release: based Debian package on SVN rev 687,
+    git sha e829fc97e1a23b342630dd10312c345283c915e5.
   * debian/control:
     * BF: Recommends python-scipy
     * RF: libavbin0 into Recommends from Suggests
@@ -9,7 +10,7 @@ psychopy (1.50.05.dfsg-1~pre1) UNRELEASED; urgency=low
     * Upgraded policy to 3.8.3 -- no changes are due
   * Reverted to using wrapper script which invokes psychopy app via runpy
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 29 Oct 2009 23:14:51 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 03 Nov 2009 08:49:32 -0500
 
 psychopy (1.50.04.dfsg-1) unstable; urgency=low
 
