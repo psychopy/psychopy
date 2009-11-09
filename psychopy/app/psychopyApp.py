@@ -39,7 +39,9 @@ if not hasattr(sys, 'frozen'):
 import wx
 
 import sys, os, threading, time, platform
-from psychopy import preferences, configobj, configobjValidate
+from psychopy import preferences
+import configobj
+import validate as configobjValidate
 from psychopy.monitors import MonitorCenter
 #other app subpackages needs to be imported as explicitly in app
 from psychopy.app import coder, builder, wxIDs, connections

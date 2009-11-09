@@ -3,7 +3,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os, urllib, platform, re
-import configobj, configobjValidate
+import configobj
+import validate as configobjValidate
 
 #GET PATHS------------------
 join = os.path.join
