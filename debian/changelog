@@ -1,3 +1,11 @@
+psychopy (1.51.00.dfsg.2-1) unstable; urgency=low
+
+  * Include changlog modifications done by upstream between 
+    announced release and tagging
+  * BF: use system-wide installed configobj (Closes: #555341)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 09 Nov 2009 09:47:47 -0500
+
 psychopy (1.51.00.dfsg-1) unstable; urgency=low
 
   * Upstream release: based Debian package on SVN rev 687,
