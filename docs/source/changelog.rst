@@ -5,19 +5,28 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
-PsychoPy 1.50
+PsychoPy 1.51
 ------------------------------
 
-PsychoPy 1.50.05 
+PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
 
-* FIXED (Builder) failed to open from Coder view menu (or cmd/ctrl L)
-* FIXED loading of user prefs file
-* ADDED keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
-* ADDED workarounds for bug-ridden Apple graphics drivers (platform and version specific)
-* ADDED NxNx3 (ie RGB) numpy arrays can now be used as textures
-* FIXED MovieStim bug on win32 (was giving spurious avbin error if visual was imported before event)
+* CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
+* CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window
+* FIXED: mouse in pyglet window does now get hidden with Window allowGUI=False
+* FIXED: (Builder) failed to open from Coder view menu (or cmd/ctrl L)
+* FIXED: failure to load user prefs file
+* ADDED: keybindings can be handled from prefs dialog (thanks to Jeremy Gray)
+* ADDED: NxNx3 (ie RGB) numpy arrays can now be used as textures
+* FIXED: MovieStim bug on win32 (was giving spurious avbin error if visual was imported before event)
+
+NB. The changes to gamma handling should need no changes to your code, but could alter the gamma correction on 
+some machines. For setups/studies that require good gamma correction it is recommended that you recalibrate when 
+you install this version of PsychoPy.
+
+PsychoPy 1.50
+------------------------------
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
