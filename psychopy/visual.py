@@ -1873,14 +1873,14 @@ class RadialStim(PatchStim):
                  ori     =0.0,
                  texRes =64,
                  angularRes=100,
-                 visibleWedge=[0, 360],
-                 rgb   =[1.0,1.0,1.0],
+                 visibleWedge=(0, 360),
+                 rgb   =(1.0,1.0,1.0),
                  dkl=None,
                  lms=None,
                  contrast=1.0,
                  opacity=1.0,
                  depth=0,
-                 rgbPedestal = [0.0,0.0,0.0],
+                 rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False):
         """
         **Arguments:**
@@ -2203,9 +2203,9 @@ class RadialStim(PatchStim):
 
     def _updateMaskCoords(self):
         #calculate mask coords
-        self._maskCoords = numpy.zeros([self.angularRes, 3, 2]) + self.maskRadialPhase
-        self._maskCoords[:,1:3,:] = 1 + self.maskRadialPhase#all outer points have mask value of 1
-        self._visibleMask = self._maskCoords[self._visible,:,:].reshape(self._nVisible,2)
+        self._maskCoords = numpy.zeros([self.angularRes,3]) + self.maskRadialPhase
+        self._maskCoords[:,1:] = 1 + self.maskRadialPhase#all outer points have mask value of 1
+        self._visibleMask = self._maskCoords[self._visible,:]
 
 
     def _updateListShaders(self):
@@ -2332,7 +2332,7 @@ class RadialStim(PatchStim):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
     def setMask(self,value):        
-        """Users shouldn't use this method
+        """
         """
         self._maskName = value
         res = self.texRes#resolution of texture - 128 is bearable
@@ -2340,12 +2340,12 @@ class RadialStim(PatchStim):
         rad = numpy.arange(0,1+step,step)
         if type(self._maskName) == numpy.ndarray:
             #handle a numpy array
-            intensity = 255*maskName.astype(float)
+            intensity = 255*self._maskName.astype(float)
             res = len(intensity)
             fromFile=0
         elif type(self._maskName) == list:
             #handle a numpy array
-            intensity = 255*numpy.array(maskName, float)
+            intensity = 255*numpy.array(self._maskName, float)
             res = len(intensity)
             fromFile=0
         elif self._maskName == "circle":
