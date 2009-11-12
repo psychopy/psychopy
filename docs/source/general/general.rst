@@ -1,11 +1,16 @@
-General
+General issues
 ====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
+   monitors
    units
    colours
    prefs
+
+.. toctree::
+   :maxdepth: 2
+
    timing/timing
    

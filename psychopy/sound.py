@@ -312,9 +312,9 @@ class SoundPygame(_SoundBase):
             thisArray= (thisArray*2**7).astype(numpy.Int8)
         elif self.format == 8: 
             thisArray= ((thisArray+1)*2**7).astype(numpy.uint8)
-    
+        
         self._snd = sndarray.make_sound(thisArray)
-            
+        
         return True
 
 class SoundPyglet(_SoundBase):

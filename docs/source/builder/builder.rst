@@ -15,6 +15,7 @@ Contents:
    routines
    flow
    components
+   window
    outputs
    gotchas
 

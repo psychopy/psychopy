@@ -45,14 +45,17 @@ How to...
 SET a pref:  Select and copy a 'setting = value', then paste it into the right 
     section of your 'user' page, then edit the value part. Some settings require
     restarting PsychoPy to take effect. 
+
 SET a key pref:  Only a user with write-permission for the psychopy prefs 
     files can change the 'keys' prefs (doing so for the whole site). Just edit
     the value in the 'keys' page, following the syntax there. You'll have to restart
     PsychoPy to use the new key-bindings.
+
 RESET your user preferences:  Just delete them from your 'user' page, and save. If
     that is not possible, you'll need to delete your userPrefsFile using your
     computer's operating system to do so. (The file name is shown at the bottom
     of your 'user' prefs page.) Then restart PsychoPy.
+
 RESET the SITE and KEYS to defaults:  Set 'resetSitePrefs = True', and then save
     preferences. The site prefs are restored to the defaults that come with PsychoPy,
     but you'll need to close and then open the preferences dialog to see the changes.
@@ -62,8 +65,10 @@ RESET the SITE and KEYS to defaults:  Set 'resetSitePrefs = True', and then save
 Glossary
 ----------
 A COMMENT is any line starting with a #, such as this one.
+
 SETTINGS are shown in BLACK, and are paired with a value:
     setting = value
+
 A SECTION name is text enclosed in square brackets, like this:
 	[this_is_a_section_name]
 

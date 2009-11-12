@@ -1,0 +1,5 @@
+Window settings
+----------------
+
+todo
+=======
