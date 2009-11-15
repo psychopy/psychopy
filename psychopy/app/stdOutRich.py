@@ -56,12 +56,12 @@ class StdOutFrame(wx.Frame):
         
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
-        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys.save)
+        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save prefs\t%s" %app.keys['save'])
         self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys.close)
+        item = self.fileMenu.Append(wx.ID_CLOSE,   "&Close (prefs)\t%s" %app.keys['close'])
         self.Bind(wx.EVT_MENU, self.closeFrame, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(wx.ID_EXIT, "&Quit (entire app)\t%s" %app.keys.quit, "Terminate the application")
+        item = self.fileMenu.Append(wx.ID_EXIT, "&Quit (entire app)\t%s" %app.keys['quit'], "Terminate the application")
         self.Bind(wx.EVT_MENU, self.quit, item)
 
         self.menuBar.Append(self.fileMenu, "&File")

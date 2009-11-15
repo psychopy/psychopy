@@ -42,7 +42,7 @@
 ###  Settings for the coder and builder windows, and connections -----
 [coder]
   # Font is a list of font names - the first found on the system will be used
-  outputFont = list(default=list('courier', 'Courier New'))
+  outputFont = list(default=list('Courier', 'Courier New'))
   # Font size (in pts) takes an integer between 6 and 24
   codeFontSize = integer(6,24, default=12)
   outputFontSize = integer(6,24, default=12)
@@ -53,13 +53,12 @@
   reloadPrevFiles = boolean(default=True)
 
 [builder]
-  # default time units can be 'sec' or 'ms'
-# NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'ms', default='sec')
+  # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
   reloadPrevExp = boolean(default=False)
-  # for the admin user to add custom components (comma-separated list)
-  componentsFolders = list(default=list('~/.psychopy2/components',))
+  # for the user to add custom components (comma-separated list)
+  componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components',))
   # a list of components to hide (eg, because you never use them)
-  hiddenComponents = list(default=list(),)
+  hiddenComponents = list(default=list(,))
 
 [connections]
   # the http proxy (for usage stats and auto-updating, format is 000.000.000.000:0000)
@@ -68,4 +67,40 @@
   autoProxy = boolean(default=True)
   allowUsageStats = boolean(default=True)
   # checkForUpdates is not yet implemented:
-# NOT_IMPLEMENTED checkForUpdates = boolean(default=True)  
+  # NOT_IMPLEMENTED checkForUpdates = boolean(default=True)  
+
+[keyBindings]
+    # File:
+    open = string(default='Ctrl+O')
+    new = string(default='Ctrl+N')
+    save = string(default='Ctrl+S')
+    saveAs = string(default='Ctrl+Shift+S')
+    close = string(default='Ctrl+W')
+    quit = string(default='Ctrl+Q')
+    
+    # Edit:
+    cut = string(default='Ctrl+X')
+    copy = string(default='Ctrl+C')
+    paste = string(default='Ctrl+V')
+    duplicate = string(default='Ctrl+D')
+    indent = string(default='Ctrl+]')
+    dedent = string(default='Ctrl+[')
+    smartIndent = string(default='Shift+Tab')
+    find = string(default='Ctrl+F')
+    findAgain = string(default='Ctrl+G')
+    undo = string(default='Ctrl+Z')
+    redo = string(default='Ctrl+Shift+Z')
+    comment = string(default="Ctrl+'")
+    uncomment = string(default="Ctrl+Shift+'")
+    fold = string(default='Ctrl+Home')
+    
+    # Tools:
+    analyseCode = string(default='F4')
+    compileScript = string(default='F5')
+    runScript = string(default='Ctrl+R')
+    stopScript = string(default='Ctrl+.')
+    
+    # View:
+    switchToBuilder = string(default='Ctrl+L')
+    switchToCoder = string(default='Ctrl+L')
+    

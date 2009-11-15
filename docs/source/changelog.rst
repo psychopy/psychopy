@@ -12,6 +12,10 @@ PsychoPy 1.51.00
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
 
+PsychoPy 1.51.00 
+~~~~~~~~~~~~~~~~~~~~~~
+(released Nov 2009)
+
 * CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
 * CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window
 * FIXED: mouse in pyglet window does now get hidden with Window allowGUI=False
@@ -28,9 +32,8 @@ you install this version of PsychoPy.
 PsychoPy 1.50
 ------------------------------
 
-PsychoPy 1.50.04
-~~~~~~~~~~~~~~~~~~~~~~
-(released Sep 09)
+PsychoPy 1.50.04 (released Sep 09)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * FIXED (Builder) bug with loading files (monitor fullScr incorrectly reloaded)
 * FIXED (Coder) bug with Paste in coder

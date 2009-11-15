@@ -8,9 +8,19 @@ Changelog
 PsychoPy 1.51
 ------------------------------
 
-PsychoPy 1.51.00 
+PsychoPy 1.51.01
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
+
+* simplified prefs:
+       - no more site prefs (user prefs only)
+       - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
+* ADDED: script is saved by coder before running (can be turned off in prefs)
+* ADDED: Ctrl+W closes MonitorCenter window
+
+PsychoPy 1.51.00 
+~~~~~~~~~~~~~~~~~~~~~~
+(released Nov 2009)
 
 * CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
 * CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window

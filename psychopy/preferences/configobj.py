@@ -7,7 +7,7 @@
 # ConfigObj 4
 # http://www.voidspace.org.uk/python/configobj.html
 
-# Released subject to the modified BSD License
+# Released subject to the BSD License
 # Please see http://www.voidspace.org.uk/python/license.shtml
 
 # Scripts maintained at http://www.voidspace.org.uk/python/index.shtml
@@ -2110,7 +2110,7 @@ class ConfigObj(Section):
             if preserve_errors:
                 # We do this once to remove a top level dependency on the validate module
                 # Which makes importing configobj faster
-                from configobjValidate import VdtMissingValue
+                from validate import VdtMissingValue
                 self._vdtMissingValue = VdtMissingValue
                 
             section = self

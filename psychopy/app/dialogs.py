@@ -1,4 +1,6 @@
 import wx
+"""This is for general purpose dialogs, not related to particular functionality
+"""
 
 class MessageDialog(wx.Dialog):
     """For some reason the wx builtin message dialog has some issues on Mac OSX
