@@ -1,7 +1,149 @@
 import wx
-import configobj, validate
+import wx.lib.scrolledpanel as scrolled
+from wx.lib.agw import flatnotebook
 
-class PreferencesDlg(wx.Frame):
+import configobj, validate
+dlgSize = (600,500)
+
+class PreferencesDlg(wx.Dialog):
+    def __init__(self,app,prefs,
+            pos=wx.DefaultPosition, size=dlgSize,
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL|wx.RESIZE_BORDER):
+        wx.Dialog.__init__(self,None,-1,"PsychoPy Preferences",pos,size,style)
+        self.app=app
+        self.Center()
+        self.prefsCfg = self.app.prefs.userPrefsCfg
+        self.prefsSpec = self.app.prefs.prefsSpec
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        
+#        panel = wx.Panel(self)
+        self.nb = flatnotebook.FlatNotebook(self)
+        pages=[]
+        for sectionName in self.prefsCfg.keys():
+            prefsPage = self.makePrefsPage(parent=self.nb, 
+                prefsSection=self.prefsCfg[sectionName],
+                specSection = self.prefsSpec[sectionName])
+            self.nb.AddPage(prefsPage, sectionName)
+        sizer.Add(self.nb)
+        
+        #create buttons
+        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        btnsizer = wx.StdDialogButtonSizer()     
+        #ok
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("Save prefs (in all sections) and close window")
+        btn.Bind(wx.EVT_BUTTON, self.onOK)
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+        #cancel
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("Cancel any changes (to any panel)")
+        btn.Bind(wx.EVT_BUTTON, self.onCancel)
+        btnsizer.AddButton(btn)
+        #apply
+        btn = wx.Button(self, wx.ID_APPLY)
+        btn.SetHelpText("Apply these prefs (in all sections) and continue")
+        btn.Bind(wx.EVT_BUTTON, self.onApply)
+        btnsizer.AddButton(btn)    
+        #help
+        btn = wx.Button(self, wx.ID_HELP)
+        btn.SetHelpText("Get help on prefs")
+        btn.Bind(wx.EVT_BUTTON, self.onHelp)
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()    
+        #add buttons to dlg
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        self.SetSizerAndFit(sizer)
+        sizer.Fit(self)
+    def onHelp(self, event=None):
+        #this should be handled from app.followLink instead
+        wx.LaunchDefaultBrowser("http://www.psychopy.org/general/prefs.html")
+    def onApply(self, event=None):
+        self.setPrefsFromCtrls()
+    def onCancel(self, event=None):
+        self.Close()
+    def onOK(self, event=None):
+        self.setPrefsFromCtrls()
+        self.close()
+    def makePrefsPage(self, parent, prefsSection, specSection):
+        panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
+        vertBox = wx.BoxSizer(wx.VERTICAL)
+        for prefName in prefsSection.keys():
+            thisPref = prefsSection[prefName]
+            thisSpec = specSection[prefName]
+            ctrls = PrefCtrls(dlg=self, name=prefName, value=thisPref, spec=thisSpec)
+            ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
+            ctrlSizer.Add(ctrls.nameCtrl)
+            ctrlSizer.Add(ctrls.valueCtrl)
+            vertBox.Add(ctrlSizer)
+        panel.SetSizer(vertBox)
+        return panel
+    def addPrefCtrl(self, pref, label):
+        pass
+    def setPrefsFromCtrls(self):
+        pass#to do
+    
+class PrefCtrls:
+    def __init__(self, dlg, name, value, spec):
+        """Create a set of ctrls for a particular preference entry
+        """
+        self.pref=value
+        self.dlg = dlg
+        self.valueWidth = 100
+        self.nameCtrl = self.valueCtrl = None
+        
+        labelLength = wx.Size(100,30)#was 8*until v0.91.4
+        self.nameCtrl = wx.StaticText(self.dlg,-1,name,size=labelLength,
+                                        style=wx.ALIGN_RIGHT)
+        self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(value),
+                        size=wx.Size(self.valueWidth,-1))
+        #use the spec to work out which type of control to present (checkbox for bool, choice for list, textCtrl for string)
+#        if =='bool':
+#            #only True or False - use a checkbox
+#             self.valueCtrl = wx.CheckBox(self.dlg, size = wx.Size(self.valueWidth,-1))
+#             self.valueCtrl.SetValue(pref.val)
+#        elif ...:
+#            #there are limitted options - use a Choice control
+#            self.valueCtrl = wx.Choice(self.dlg, choices=param.allowedVals, size=wx.Size(self.valueWidth,-1))
+#            self.valueCtrl.SetStringSelection(unicode(param.val))
+#        else:
+#            #create the full set of ctrls
+#            self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
+#                        size=wx.Size(self.valueWidth,-1))
+
+    def _getCtrlValue(self, ctrl):
+        """Retrieve the current value form the control (whatever type of ctrl it
+        is, e.g. checkbox.GetValue, textctrl.GetStringSelection
+        """
+        """Different types of control have different methods for retrieving value.
+        This function checks them all and returns the value or None.
+        """
+        if ctrl==None: return None
+        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+            return ctrl.GetValue()
+        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
+            return ctrl.GetStringSelection()
+        elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
+            return ctrl.GetLabel()
+        else:
+            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            return None
+    def getValue(self):
+        """Get the current value of the value ctrl
+        """
+        return self._getCtrlValue(self.valueCtrl)
+    def getType(self):
+        """Get the current value of the type ctrl
+        """
+        if self.typeCtrl:
+            return self._getCtrlValue(self.typeCtrl)
+        
+class PreferencesDlgText(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
         wx.Frame.__init__(self, parent, ID, title, size=(700,700))
         panel = wx.Panel(self)
@@ -155,3 +297,10 @@ class PreferencesDlg(wx.Frame):
         #find the notebook page
         currTxt = self.getPageText(prefsType)
         return (currTxt!=savedTxt)
+    
+if __name__=='__main__':
+    import preferences
+    app = wx.PySimpleApp()
+    app.prefs=preferences.Preferences()
+    dlg = PreferencesDlg(app,'prefs')
+    dlg.ShowModal()

@@ -38,11 +38,15 @@ stopFile=wx.NewId()
 monitorCenter=wx.NewId()
 
 #help menu
+#these should be assigned to the relevant buttons/menu items in the app
+#AND for those with weblinks the relevant URL should be provided at top of psychopyApp.py
 about=wx.NewId()
 license=wx.NewId()
 psychopyTutorial=wx.NewId()
 psychopyHome=wx.NewId()
 psychopyReference=wx.NewId()
+#help pages (from help buttons)
+docsPrefsDlg=wx.NewId()
 
 #toolbar IDs
 tbFileNew=10

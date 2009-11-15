@@ -46,8 +46,8 @@ from psychopy.app import coder, builder, wxIDs, connections
 
 links={
     wxIDs.psychopyHome:"http://www.psychopy.org/",
-    wxIDs.psychopyReference:"http://www.psychopy.org/reference",
-    wxIDs.psychopyTutorial:"http://www.psychopy.org/home.php/Docs/Tutorials"
+    wxIDs.psychopyReference:"http://www.psychopy.org/api/",
+    wxIDs.psychopyTutorial:"http://www.psychopy.org/coder/tutorial1.html"
     }
 
 class PsychoSplashScreen(wx.SplashScreen):
