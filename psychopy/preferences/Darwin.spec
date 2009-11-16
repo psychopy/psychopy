@@ -10,9 +10,6 @@
 
 ### General settings
 [general]
-    # userPrefsTemplate is a template used for all user prefs filenames: 'USERNAME' is replaced with user login
-    # (don't change 'USERNAME' or 'prefsUser.cfg', or there will be errors) 
-    userPrefsTemplate = string(default='')
     # winType is the backend for drawing ('pyglet' or 'pygame')
     winType = option('pyglet', 'pygame', default='pyglet')
     # default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix')

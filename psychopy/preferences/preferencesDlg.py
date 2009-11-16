@@ -3,10 +3,10 @@ import wx.lib.scrolledpanel as scrolled
 from wx.lib.agw import flatnotebook
 
 import configobj, validate
-dlgSize = (600,500)
+dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
 
 class PreferencesDlg(wx.Dialog):
-    def __init__(self,app,prefs,
+    def __init__(self,app,
             pos=wx.DefaultPosition, size=dlgSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL|wx.RESIZE_BORDER):
         wx.Dialog.__init__(self,None,-1,"PsychoPy Preferences",pos,size,style)
@@ -19,13 +19,17 @@ class PreferencesDlg(wx.Dialog):
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
         
-#        panel = wx.Panel(self)
-        self.nb = flatnotebook.FlatNotebook(self)
-        pages=[]
+        #notebook, flatnotebook or something else?
+        
+        self.nb = flatnotebook.FlatNotebook(self)#flatNoteBook has the option to close pages (which we don't want)
+#        self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
+        
+        self.ctrls={}
         for sectionName in self.prefsCfg.keys():
             prefsPage = self.makePrefsPage(parent=self.nb, 
-                prefsSection=self.prefsCfg[sectionName],
-                specSection = self.prefsSpec[sectionName])
+                    sectionName=sectionName,
+                    prefsSection=self.prefsCfg[sectionName],
+                    specSection = self.prefsSpec[sectionName])
             self.nb.AddPage(prefsPage, sectionName)
         sizer.Add(self.nb)
         
@@ -70,38 +74,48 @@ class PreferencesDlg(wx.Dialog):
     def onOK(self, event=None):
         self.setPrefsFromCtrls()
         self.close()
-    def makePrefsPage(self, parent, prefsSection, specSection):
+    def makePrefsPage(self, parent, sectionName, prefsSection, specSection):
         panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
-        for prefName in prefsSection.keys():
+        #add each pref for this section
+        for prefName in specSection.keys():
+            #NB if something is in prefs but not in spec then it won't be shown (removes outdated prefs)
             thisPref = prefsSection[prefName]
             thisSpec = specSection[prefName]
-            ctrls = PrefCtrls(dlg=self, name=prefName, value=thisPref, spec=thisSpec)
+            ctrlName = sectionName+'.'+prefName
+            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)            
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
-            ctrlSizer.Add(ctrls.nameCtrl)
-            ctrlSizer.Add(ctrls.valueCtrl)
+            ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
+            ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
             vertBox.Add(ctrlSizer)
+        #size the panel and setup scrolling
         panel.SetSizer(vertBox)
+        panel.SetAutoLayout(1)
+        panel.SetupScrolling()
         return panel
-    def addPrefCtrl(self, pref, label):
-        pass
     def setPrefsFromCtrls(self):
-        pass#to do
-    
+        for sectionName in self.prefsCfg.keys():
+            for prefName in self.prefsSpec[sectionName].keys():
+                ctrlName = sectionName+'.'+prefName
+                ctrl = self.ctrls[ctrlName]
+                self.prefsCfg[sectionName][prefName]=ctrl.getValue()
+        self.prefs.saveUserPrefs()#includes a validation
+        #maybe then go back and set GUI from prefs again, because validation may have changed vals?
+        
 class PrefCtrls:
-    def __init__(self, dlg, name, value, spec):
+    def __init__(self, parent, name, value, spec):
         """Create a set of ctrls for a particular preference entry
         """
         self.pref=value
-        self.dlg = dlg
-        self.valueWidth = 100
+        self.parent = parent
+        valueWidth = 200
+        labelWidth = 200
         self.nameCtrl = self.valueCtrl = None
         
-        labelLength = wx.Size(100,30)#was 8*until v0.91.4
-        self.nameCtrl = wx.StaticText(self.dlg,-1,name,size=labelLength,
-                                        style=wx.ALIGN_RIGHT)
-        self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(value),
-                        size=wx.Size(self.valueWidth,-1))
+        self.nameCtrl = wx.StaticText(self.parent,-1,name,size=(labelWidth,-1),
+                                        style=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        self.valueCtrl = wx.TextCtrl(self.parent,-1,str(value),
+                        size=(valueWidth,-1))
         #use the spec to work out which type of control to present (checkbox for bool, choice for list, textCtrl for string)
 #        if =='bool':
 #            #only True or False - use a checkbox
@@ -117,7 +131,7 @@ class PrefCtrls:
 #                        size=wx.Size(self.valueWidth,-1))
 
     def _getCtrlValue(self, ctrl):
-        """Retrieve the current value form the control (whatever type of ctrl it
+        """Retrieve the current value from the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
         """
         """Different types of control have different methods for retrieving value.
@@ -131,17 +145,12 @@ class PrefCtrls:
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            print "failed to retrieve the value for: %s" %(ctrl.valueCtrl)
             return None
     def getValue(self):
         """Get the current value of the value ctrl
         """
         return self._getCtrlValue(self.valueCtrl)
-    def getType(self):
-        """Get the current value of the type ctrl
-        """
-        if self.typeCtrl:
-            return self._getCtrlValue(self.typeCtrl)
         
 class PreferencesDlgText(wx.Frame):
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy Preferences"):
@@ -302,5 +311,5 @@ if __name__=='__main__':
     import preferences
     app = wx.PySimpleApp()
     app.prefs=preferences.Preferences()
-    dlg = PreferencesDlg(app,'prefs')
+    dlg = PreferencesDlg(app)
     dlg.ShowModal()

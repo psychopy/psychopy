@@ -53,7 +53,7 @@ class Preferences:
             self.paths['userPrefsDir']= join(os.environ['APPDATA'],'psychopy2')
         else:
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
-      
+        
     def loadAll(self):
         """Load the user prefs and the application data
         """
@@ -65,9 +65,7 @@ class Preferences:
         
         self.userPrefsCfg = self.loadUserPrefs()
         self.appDataCfg = self.loadAppData()
-        
-        resultOfValidate = self.userPrefsCfg.validate(self._validator, copy=True)
-        self.restoreBadPrefs(self.userPrefsCfg, resultOfValidate)
+        self.validate()
         
         #simplify namespace
         self.general=self.userPrefsCfg['general']
@@ -151,44 +149,7 @@ class Preferences:
             self.keys = keybindings
         
         return self.keys
-        
-    def saveAppData(self):
-        """Save the various setting to the appropriate files (or discard, in some cases)
-        """
-        self.appDataCfg.validate(self._validator, copy=True)#copy means all settings get saved
-        if not os.path.isdir(self.paths['userPrefsDir']):
-            os.makedirs(self.paths['userPrefsDir'])
-        self.appDataCfg.write()
-        
-    def resetUserPrefs(self):
-        """Reset the site preferences to the original defaults
-        """
-        # confirmation probably not necessary: you have to manually type 'True' and then save
-        if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
-        if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
-        mySiteKeys = join(self.paths['prefs'], 'mySiteKeys.py')
-        if os.path.isfile(mySiteKeys):        os.remove(mySiteKeys)
-        if os.path.isfile(mySiteKeys + "c"):  os.remove(mySiteKeys + "c")
-        print "Site prefs and key-bindings RESET to defaults"
-        
-    def loadAppData(self):
-        #fetch appData too against a config spec
-        appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
-        resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
-        self.restoreBadPrefs(cfg, resultOfValidate)
-        return cfg
-
-    def restoreBadPrefs(self, cfg, resultOfValidate):
-        if resultOfValidate == True:
-            return
-        vtor = validate.Validator()
-        for (section_list, key, _) in configobj.flatten_errors(cfg, resultOfValidate):
-            if key is not None:
-                cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
-            else:
-                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
-        
+            
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so will
         break easy_install. Saving to files within the psychopy/ is fine, eg for
@@ -210,7 +171,53 @@ class Preferences:
         cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['userPrefsFile']]
         # don't cfg.write(), see explanation above
         return cfg
-    
+    def saveUserPrefs(self):
+        """Validate and save the various setting to the appropriate files (or discard, in some cases)
+        """
+        self.validate()
+        if not os.path.isdir(self.paths['userPrefsDir']):
+            os.makedirs(self.paths['userPrefsDir'])
+        self.userPrefsCfg.write()                
+    def resetUserPrefs(self):
+        """Reset the site preferences to the original defaults
+        """
+        # confirmation probably not necessary: you have to manually type 'True' and then save
+        if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
+        if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
+        mySiteKeys = join(self.paths['prefs'], 'mySiteKeys.py')
+        if os.path.isfile(mySiteKeys):        os.remove(mySiteKeys)
+        if os.path.isfile(mySiteKeys + "c"):  os.remove(mySiteKeys + "c")
+        print "Site prefs and key-bindings RESET to defaults"
+        
+    def loadAppData(self):
+        #fetch appData too against a config spec
+        appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False)
+        cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
+        resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
+        self.restoreBadPrefs(cfg, resultOfValidate)
+        return cfg
+    def saveAppData(self):
+        """Save the various setting to the appropriate files (or discard, in some cases)
+        """
+        self.appDataCfg.validate(self._validator, copy=True)#copy means all settings get saved
+        if not os.path.isdir(self.paths['userPrefsDir']):
+            os.makedirs(self.paths['userPrefsDir'])
+        self.appDataCfg.write()
+
+    def validate(self):
+        """Validate (user) preferences and reset invalid settings to defaults"""
+        resultOfValidate = self.userPrefsCfg.validate(self._validator, copy=True)
+        self.restoreBadPrefs(self.userPrefsCfg, resultOfValidate)
+    def restoreBadPrefs(self, cfg, resultOfValidate):
+        if resultOfValidate == True:
+            return
+        vtor = validate.Validator()
+        for (section_list, key, _) in configobj.flatten_errors(cfg, resultOfValidate):
+            if key is not None:
+                cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
+            else:
+                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
+        
     def getAutoProxy(self):
         """Fetch the proxy from the the system environment variables
         """
