@@ -79,6 +79,8 @@ class PreferencesDlg(wx.Dialog):
         vertBox = wx.BoxSizer(wx.VERTICAL)
         #add each pref for this section
         for prefName in specSection.keys():
+            if prefName in ['version']:#any other prefs not to show?
+                continue
             #NB if something is in prefs but not in spec then it won't be shown (removes outdated prefs)
             thisPref = prefsSection[prefName]
             thisSpec = specSection[prefName]
@@ -96,9 +98,11 @@ class PreferencesDlg(wx.Dialog):
     def setPrefsFromCtrls(self):
         for sectionName in self.prefsCfg.keys():
             for prefName in self.prefsSpec[sectionName].keys():
+                if prefName in ['version']:#any other prefs not to show?
+                    continue
                 ctrlName = sectionName+'.'+prefName
                 ctrl = self.ctrls[ctrlName]
-                self.prefsCfg[sectionName][prefName]=ctrl.getValue()
+                self.userPrefsCfg[sectionName][prefName]=ctrl.getValue()
         self.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
         
