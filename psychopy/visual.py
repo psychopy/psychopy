@@ -876,6 +876,8 @@ class _BaseVisualStim:
         if self.units in ['norm','pix']: self._sizeRendered=self.size
         elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+        else:
+            log.ERROR("Stimulus units should be 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
         if self.units in ['norm','pix']: self._posRendered=self.pos
