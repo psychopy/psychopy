@@ -1523,6 +1523,18 @@ class CoderFrame(wx.Frame):
         """Runs files by one of various methods
         """
         fullPath = self.currentDoc.filename
+        filename = os.path.split(fullPath)[1]
+        #does the file need saving before running?
+        if self.currentDoc.UNSAVED:
+            sys.stdout.flush()
+            dlg = dialogs.MessageDialog(self,message='Save changes to %s before running?' %filename,type='Warning')
+            resp = dlg.ShowModal()
+            sys.stdout.flush()
+            dlg.Destroy()
+            if resp  == wx.ID_CANCEL: return -1 #return, don't run
+            elif resp == wx.ID_YES: self.fileSave(None)#save then run
+            elif resp == wx.ID_NO:   pass #just run
+                
         #check syntax by compiling - errors printed (not raised as error)
         try:
             py_compile.compile(fullPath, doraise=False)
