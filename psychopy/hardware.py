@@ -170,7 +170,7 @@ class ForpBox:
         self.port.flushInput()
         
     def getEvents(self, returnRaw=False):
-        """Returns an list of unique events (one event per button pressed)
+        """Returns a list of unique events (one event per button pressed)
         AND stores a copy of the full list of events since last getEvents() 
         (stored as ForpBox.rawEvts)
         """

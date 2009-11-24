@@ -28,7 +28,7 @@ There are a couple of demos included with the package, that you can find in thei
 
 Stroop demo
 ==============
-This runs a digital demonstration of the Stroop effect [1]_. The experiment presents a series of coloured words written in coloured 'inks'. Subjects have to report the colour of the letters for each word, but find it harder to do so when the letters are not spelling out a different (incongruous) colour. Reaction times for the congruent trials (where letter colour matches the written word) are faster than for the incongruent trials.
+This runs a digital demonstration of the Stroop effect [1]_. The experiment presents a series of coloured words written in coloured 'inks'. Subjects have to report the colour of the letters for each word, but find it harder to do so when the letters are spelling out a different (incongruous) colour. Reaction times for the congruent trials (where letter colour matches the written word) are faster than for the incongruent trials.
 
 From this demo you should note:
  * How to setup a trial list in a .csv file

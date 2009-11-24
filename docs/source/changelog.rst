@@ -8,9 +8,15 @@ Changelog
 PsychoPy 1.51
 ------------------------------
 
-PsychoPy 1.51.00 
+PsychoPy 1.51.01
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
+
+* simplified prefs:
+       - no more site prefs (user prefs only)
+       - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
+* ADDED: script is saved by coder before running (can be turned off in prefs)
+* ADDED: Ctrl+W closes MonitorCenter window
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -32,8 +38,9 @@ you install this version of PsychoPy.
 PsychoPy 1.50
 ------------------------------
 
-PsychoPy 1.50.04 (released Sep 09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PsychoPy 1.50.04
+~~~~~~~~~~~~~~~~~~~~~~
+(released Sep 09)
 
 * FIXED (Builder) bug with loading files (monitor fullScr incorrectly reloaded)
 * FIXED (Coder) bug with Paste in coder
