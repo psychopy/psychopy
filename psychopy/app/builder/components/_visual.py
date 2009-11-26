@@ -54,11 +54,15 @@ class VisualComponent(_base.BaseComponent):
         """
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
-            if thisParamName=='colour':
+            if thisParamName=='image':
+                paramCaps='Tex' #setTex for PatchStim
+            elif thisParamName=='sf':
+                paramCaps='SF' #setSF, not SetSf
+            elif thisParamName=='colour':
                 #we need setRGB=colour (not setColour=colour)
-                thisParamName= self.params['colourSpace'].val.upper()#thisParam is the correct value, but the name is the space!
+                paramCaps= self.params['colourSpace'].val.upper()#thisParam is the correct value, but the name is the space!
             else:
-                thisParamName = thisParamName.capitalize()
+                paramCaps = thisParamName.capitalize()
             if thisParam.updates==updateType:
-                buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], thisParamName, thisParam)) 
+                buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], paramCaps, thisParam)) 
     
