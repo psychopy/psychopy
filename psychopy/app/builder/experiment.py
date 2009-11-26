@@ -339,7 +339,7 @@ class TrialHandler:
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
-        buff.writeIndented("%s=trials.trialList[0]#so we can initialise stimuli with first trial values\n" %self.thisName)
+        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with first trial values\n" %(self.thisName, self.params['name']))
 
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
@@ -409,12 +409,7 @@ class StairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
 
     def writeInitCode(self,buff):
-        #todo: write code to fetch trialList from file?
-        #create nice line-separated list of trialTypes
-        trialStr="[ \\\n"
-        for line in self.params['trialList'].val:
-            trialStr += "        %s,\n" %line
-        trialStr += "        ]"
+
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
