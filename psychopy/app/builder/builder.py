@@ -228,34 +228,35 @@ class FlowPanel(wx.ScrolledWindow):
         #step through components in flow
         currX=linePos[0]; gap=self.dpi/2
         pdc.DrawLine(x1=linePos[0]-gap,y1=linePos[1],x2=linePos[0],y2=linePos[1])
-        self.loopInits = []#these will be entry indices
-        self.loopTerms = []
-        loopIDs=[]#index of the entry (of the loopInit) in the flow
-        self.loops=[]#these will be copies of the actual loop obects
+        self.loops={}#NB the loop is itself the key!? and the value is further info about it
+        nestLevel=0
         self.gapMidPoints=[currX-gap/2]
-        for n, entry in enumerate(expFlow):
+        for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
-                loopIDs.append(n)
-                self.loopInits.append(currX)
-            if entry.getType()=='LoopTerminator':
-                self.loops.append(entry.loop)
-                self.loopTerms.append(currX)
-            if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, id=n,pos=[currX,linePos[1]-30])
+                self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
+                nestLevel+=1#start of loop so increment level of nesting 
+            elif entry.getType()=='LoopTerminator':
+                self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
+                nestLevel-=1#end of loop so decrement level of nesting
+            elif entry.getType()=='Routine':
+                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
             currX+=gap
 
         #draw the loops second
-        self.loopInits.reverse()#start with last initiator (paired with first terminator)
-        for n, loopInit in enumerate(self.loopInits):
-            name = self.loops[n].params['name'].val#name of the trialHandler/StairHandler
-            self.drawLoop(pdc,name,self.loops[n],id=loopIDs[n],
-                        startX=self.loopInits[n], endX=self.loopTerms[n],
-                        base=linePos[1],height=linePos[1]-60-n*15)
-            self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos[1]])
-            self.drawLoopEnd(pdc,pos=[self.loopTerms[n],linePos[1]])
+        for thisLoop in self.loops.keys():
+            thisInit = self.loops[thisLoop]['init']
+            thisTerm = self.loops[thisLoop]['term']
+            thisNest = self.loops[thisLoop]['nest']
+            thisId = self.loops[thisLoop]['id']
+            name = thisLoop.params['name'].val#name of the trialHandler/StairHandler
+            self.drawLoop(pdc,name,thisLoop,id=thisId,
+                        startX=thisInit, endX=thisTerm,
+                        base=linePos[1],height=linePos[1]-60+thisNest*20)
+            self.drawLoopStart(pdc,pos=[thisInit,linePos[1]])
+            self.drawLoopEnd(pdc,pos=[thisTerm,linePos[1]])
 
         #draw all possible locations for routines
         for n, xPos in enumerate(self.pointsToDraw):
