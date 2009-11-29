@@ -1,5 +1,0 @@
-Window settings
-----------------
-
-todo
-=======

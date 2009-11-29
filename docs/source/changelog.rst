@@ -17,6 +17,7 @@ PsychoPy 1.51.01
        - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
 * ADDED: script is saved by coder before running (can be turned off in prefs)
 * ADDED: Ctrl+W closes MonitorCenter window
+* ADDED: coder checks (and prompts) for filesave before running script
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~
