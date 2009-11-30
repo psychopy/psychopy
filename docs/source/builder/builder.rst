@@ -1,5 +1,9 @@
-Builder - generating experiments with a GUI
+.. _builder:
+
+Builder
 ================================================
+
+*Building experiments in a GUI*
 
 .. warning::
 

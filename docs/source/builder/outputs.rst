@@ -24,5 +24,5 @@ These files are designed to be used by experienced users with previous experienc
 
 Log files (.log)
 ========================
- 
- # Todo
+    Log files allow data output in a strictly chronological fashion (1 line per event). This has the disadvantage that information isn't associated with particular trial types etc., so you would have to reconstruct the way that the experiment ran yourself. But it has the key advantage that a great deal more information can potentially be output including errors or warnings etc.
+    As at version 1.51.00 the log files were not really being used and were not fully developed. But they will be! (If you notice that this note is still here in several versions time then let Jon know to update the info!!!)

@@ -1,4 +1,4 @@
-.. _Flow:
+.. _flow:
 
 Flow
 ----------------
@@ -10,7 +10,7 @@ Adding Routines
 
 The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your :doc:`Routine </builder/routines>`. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
 
-.. _Loops:
+.. _loops:
 
 Loops
 ~~~~~~~~~~~~~~~
