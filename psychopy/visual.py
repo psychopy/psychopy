@@ -3448,7 +3448,7 @@ class TextStim(_BaseVisualStim):
         else: self._winScale='pix' #set the window to have pixels coords
         
         self.pos= numpy.array(pos, float)
-
+        
         #height in pix (needs to be done after units)
         if self.units=='cm':
             if height==None: self.height = 1.0#default text height
@@ -3496,7 +3496,30 @@ class TextStim(_BaseVisualStim):
         self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
         
         self.needUpdate=True
-
+    def setHeight(self,height):
+        """Set the height of the letters (including the entire box that surrounds the letters
+        in the font). The width of the letters is then defined by the font. 
+        """        
+        #height in pix (needs to be done after units)
+        if self.units=='cm':
+            if height==None: self.height = 1.0#default text height
+            else: self.height = height
+            self.heightPix = psychopy.misc.cm2pix(self.height, self.win.monitor)
+        elif self.units in ['deg', 'degs']:
+            if height==None: self.height = 1.0
+            else: self.height = height
+            self.heightPix = psychopy.misc.deg2pix(self.height, self.win.monitor)
+        elif self.units=='norm':
+            if height==None: self.height = 0.1
+            else: self.height = height
+            self.heightPix = self.height*self.win.size[1]/2
+        else: #treat units as pix
+            if height==None: self.height = 20
+            else: self.height = height
+            self.heightPix = self.height            
+        #need to update the font to reflect the change
+        self.setFont(self.fontname)    
+        self.setText(self.text)
     def setFont(self, font):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -3540,7 +3563,7 @@ class TextStim(_BaseVisualStim):
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         self.needUpdate = True
 
-    def setText(self,value):
+    def setText(self,value=None):
         """Set the text to be rendered using the current font
         """
         if self._useShaders:
@@ -3552,10 +3575,11 @@ class TextStim(_BaseVisualStim):
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     
-    def _setTextShaders(self,value):
+    def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        self.text = value
+        if value!=None:            
+            self.text = value
         
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
@@ -3653,7 +3677,7 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
-    def _setTextNoShaders(self,value,operation=None):
+    def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
         self.text = value
