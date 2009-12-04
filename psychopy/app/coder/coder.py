@@ -1693,7 +1693,7 @@ class CoderFrame(wx.Frame):
         #changes the document flag, updates save buttons
         self.currentDoc.UNSAVED=isModified
         self.toolbar.EnableTool(self.IDs.tbFileSave, isModified)#disabled when not modified
-        self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'), isModified)
+        #self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'), isModified)
     def onProcessEnded(self, event):
         self.onIdle(event=None)#this is will check the stdout and stderr for any last messages
         self.scriptProcess=None
