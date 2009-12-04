@@ -18,6 +18,8 @@ PsychoPy 1.51.01
 * ADDED: script is saved by coder before running (can be turned off in prefs)
 * ADDED: Ctrl+W closes MonitorCenter window
 * ADDED: coder checks (and prompts) for filesave before running script
+* ADDED: setHeight to TextStim objects, so that character height can be set after initialisation
+* FIXED: bug in all RadialStim .set functions (default operation should be "" not None)
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~
