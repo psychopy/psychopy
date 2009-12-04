@@ -2062,29 +2062,29 @@ class RadialStim(PatchStim):
         self._updateList()#ie refresh display list
 
     def setSize(self, value, operation=None):
-        exec('self.size' + operation+ '=value')
+        self._set('size', value, operation)
         self._calcSizeRendered()
         self._updateXY()
         self.needUpdate=True
     def setAngularCycles(self,value,operation=None):
         """set the number of cycles going around the stimulus"""
-        exec('self.angularCycles' + operation+ '=value')
+        self._set('angularCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
     def setRadialCycles(self,value,operation=None):
         """set the number of texture cycles from centre to periphery"""
-        exec('self.radialCycles' + operation+ '=value')
+        self._set('radialCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
     def setAngularPhase(self,value, operation=None):
         """set the angular phase of the texture"""
-        exec('self.angularPhase' + operation+ '=value')
+        self._set('angularPhase', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
     def setRadialPhase(self,value, operation=None):
         """set the radial phase of the texture"""
+        self._set('radialPhase', value, operation)
         self._updateTextureCoords()
-        exec('self.radialPhase' + operation+ '=value')
         self.needUpdate=True
 
     def draw(self, win=None):
