@@ -1,4 +1,4 @@
-import zipfile, cStringIO, urllib2, socket
+import zipfile, cStringIO, urllib2, socket, sys, os
 import psychopy
 socket.setdefaulttimeout(10)
 
@@ -39,7 +39,6 @@ class Updater:
             latest[key]=keyInfo.replace('\n', '')
         return latest
     def fetchPsychoPy(self, v='latest'):
-        print 'here'
         if v=='latest':
             v=self.latest['version']
         
@@ -47,10 +46,31 @@ class Updater:
         URL = "http://psychopy.googlecode.com/files/PsychoPy-%s.zip" %(v)
         URL = 'http://downloads.egenix.com/python/locale-0.1.zip'
         page = urllib2.urlopen(URL)
-        print 'here2'
-        zfile = zipfile.ZipFile(cStringIO.StringIO(page.read()))
-        print zfile.printdir()
-
+        #download in chunks so that we can monitor progress and abort mid-way through
+        chunk=4096; read = 0
+        fileSize = int(page.info()['Content-Length'])
+        buffer=cStringIO.StringIO()
+        while read<fileSize:
+            buffer.write(page.read(chunk))
+            read+=chunk
+            print '.',; sys.stdout.flush()
+        print 'download complete'
+        page.close()
+        zfile = zipfile.ZipFile(buffer)
+        buffer.close()
+        return zfile
+    def installZipFile(self, zfile):
+        currPath=self.app.prefs.paths[psychopy]
+        rootPath,endPath=sys.path.split(currPath)
+        #depending on install method, needs diff handling
+        #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
+        if endPath=='psychopy':#e.g. the mac standalone app
+#            os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
+            os.mkdir(currPath+'X')
+            unzipTarget=currPath+'X'
+        
+        zfile.extractall(unzipTarget)
+        print 'installed to %s' %unzipTarget
 def unzip_file_into_dir(file, dir):
     os.mkdir(dir, 0777)
     zfobj = zipfile.ZipFile(file)
@@ -63,20 +83,23 @@ def unzip_file_into_dir(file, dir):
             outfile.close()
 
 #up = Updater()
-print 'here1'
-URL = 'http://www.psychology.nottingham.ac.uk/staff/jwp/teaching/c81MST.zip'
-URL = 'http://www.psychopy.org/test.zip'
-URL = "http://psychopy.googlecode.com/files/PsychoPy-1.51.01-py2.5.egg"
-headers={
-    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)',
-    'Accept-Language': 'en-us',
-    'Accept-Encoding': 'gzip, deflate, compress;q=0.9',
-    'Keep-Alive': '300',
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0',
-    }
-req = urllib2.Request(URL, None, headers)
-response = urllib2.urlopen(req)
-page  = urllib2.urlopen(URL)
-zfile = zipfile.ZipFile(cStringIO.StringIO(page.read()))
-print zfile.printdir()
+#up.fetchPsychoPy()
+
+#print 'here1'
+#URL = 'http://www.psychology.nottingham.ac.uk/staff/jwp/teaching/c81MST.zip'
+#URL = 'http://www.psychopy.org/test.zip'
+#URL = "https://psychopy.googlecode.com/files/PsychoPy-1.51.00.zip"
+#headers={
+#    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)',
+#    'Accept-Language': 'en-us',
+#    'Accept-Encoding': 'gzip, deflate, compress;q=0.9',
+#    'Keep-Alive': '300',
+#    'Connection': 'keep-alive',
+#    'Cache-Control': 'max-age=0',
+#    }
+#req = urllib2.Request(URL, None, headers)
+#response = urllib2.urlopen(req)
+#page  = urllib2.urlopen(URL)
+#print page.info()
+#zfile = zipfile.ZipFile(cStringIO.StringIO(page.read()))
+#print zfile.printdir()

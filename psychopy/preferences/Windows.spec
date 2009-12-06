@@ -63,8 +63,7 @@
     # autoProxy means override above proxy with values found in environment if possible
     autoProxy = boolean(default=True)
     allowUsageStats = boolean(default=True)
-    # checkForUpdates is not yet implemented:
-    # NOT_IMPLEMENTED checkForUpdates = boolean(default=True)
+    checkForUpdates = boolean(default=True)
   
 [keyBindings]
     # File:
