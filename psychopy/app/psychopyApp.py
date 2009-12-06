@@ -157,12 +157,9 @@ class PsychoPyApp(wx.App):
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
-        # on mac OS 10.6, I had no internet connection, and the app crashed (python crashed with a bus error)
-        # try statsThread.start() except pass also crashed. so I added a check whether the proxy is ''
-        if self.prefs.connections['allowUsageStats'] and self.prefs.connections['proxy'] <> '':
+        if self.prefs.connections['allowUsageStats']:
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
-        
         """This is in wx demo. Probably useful one day.
         #---------------------------------------------
         def ShowTip(self):
