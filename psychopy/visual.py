@@ -792,35 +792,35 @@ class _BaseVisualStim:
     def draw(self):
         raise NotImplementedError('abstract')
         
-    def setPos(self, newPos, operation=None, units=None):
+    def setPos(self, newPos, operation='', units=None):
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=None):
+    def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)
-    def setSize(self, newSize, operation=None, units=None):
+    def setSize(self, newSize, operation='', units=None):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
         self._calcSizeRendered()
         self.needUpdate=True
-    def setOri(self, newOri, operation=None):
+    def setOri(self, newOri, operation=''):
         self._set('ori',val=newOri, op=operation)
-    def setOpacity(self,newOpacity,operation=None):
+    def setOpacity(self,newOpacity,operation=''):
         self._set('opacity', newOpacity, operation)
         #opacity is coded by the texture, if not using shaders
         if not self._useShaders:
             self.setMask(self._maskName)
-    def setDKL(self, newDKL, operation=None):
+    def setDKL(self, newDKL, operation=''):
         self._set('dkl', value=newDKL, op=operation)
         self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
-    def setLMS(self, newLMS, operation=None):
+    def setLMS(self, newLMS, operation=''):
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=None):      
+    def setRGB(self, newRGB, operation=''):      
         self._set('rgb', newRGB, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setTex(self._texName)
-    def setContr(self, newContr, operation=None):     
+    def setContr(self, newContr, operation=''):     
         """Set the contrast of the stimulus
         """ 
         self._set('contr', newContr, operation)
@@ -1083,7 +1083,7 @@ class DotStim(_BaseVisualStim):
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
-    def setPos(self, newPos=None, operation=None, units=None):
+    def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
         log.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")        
@@ -1370,10 +1370,10 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glMatrixMode( GL.GL_PROJECTION )					
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
-    def setPos(self, newPos, operation=None, units=None):
+    def setPos(self, newPos, operation='', units=None):
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=None):
+    def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
@@ -1633,14 +1633,14 @@ class PatchStim(_BaseVisualStim):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
-    def setSF(self,value,operation=None):
+    def setSF(self,value,operation=''):
         self._set('sf', value, operation)
         self.needUpdate = 1
         self._calcCyclesPerStim()
-    def setPhase(self,value, operation=None):
+    def setPhase(self,value, operation=''):
         self._set('phase', value, operation)
         self.needUpdate = 1
-    def setContrast(self,value,operation=None):
+    def setContrast(self,value,operation=''):
         self._set('contrast', value, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
@@ -2061,27 +2061,27 @@ class RadialStim(PatchStim):
         self._updateXY()
         self._updateList()#ie refresh display list
 
-    def setSize(self, value, operation=None):
+    def setSize(self, value, operation=''):
         self._set('size', value, operation)
         self._calcSizeRendered()
         self._updateXY()
         self.needUpdate=True
-    def setAngularCycles(self,value,operation=None):
+    def setAngularCycles(self,value,operation=''):
         """set the number of cycles going around the stimulus"""
         self._set('angularCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialCycles(self,value,operation=None):
+    def setRadialCycles(self,value,operation=''):
         """set the number of texture cycles from centre to periphery"""
         self._set('radialCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setAngularPhase(self,value, operation=None):
+    def setAngularPhase(self,value, operation=''):
         """set the angular phase of the texture"""
         self._set('angularPhase', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialPhase(self,value, operation=None):
+    def setRadialPhase(self,value, operation=''):
         """set the radial phase of the texture"""
         self._set('radialPhase', value, operation)
         self._updateTextureCoords()
@@ -2772,7 +2772,7 @@ class ElementArrayStim:
             self.fieldPos=value
         else:
             exec('self.fieldPos'+operation+'=value')
-    def setPos(self, newPos=None, operation=None, units=None):
+    def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
         log.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
@@ -3171,16 +3171,16 @@ class TextStimGLUT:
         """
         self._set(attrib, val, op)
 
-    def setOri(self,value,operation=None):
+    def setOri(self,value,operation=''):
         self._set('ori', value, operation)
-    def setPos(self,value,operation=None):
+    def setPos(self,value,operation=''):
         self._set('pos', value, operation)
         self._calcPosRendered()
-    def setRGB(self,value, operation=None):
+    def setRGB(self,value, operation=''):
         self._set('rgb', value, operation)
-    def setOpacity(self,value,operation=None):
+    def setOpacity(self,value,operation=''):
         self._set('opacity', value, operation)
-    def setText(self,value,operation=None):
+    def setText(self,value,operation=''):
         self._set('text', value, operation)
         #also update the current length and height
         if self.strokeFont:
@@ -3196,7 +3196,7 @@ class TextStimGLUT:
                 #final two digits of name give height (but overestimated!)
                 self.height=float(self.fontName[-2:])-1
             else: self.height = 23.0 #(if the default 24pt font was used)
-    def setDepth(self,value, operation=None):
+    def setDepth(self,value, operation=''):
         self._set('depth', value, operation)
 
     def _updateListShaders(self):
@@ -3570,7 +3570,7 @@ class TextStim(_BaseVisualStim):
             self._setTextShaders(value)
         else:
             self._setTextNoShaders(value)
-    def setRGB(self,value, operation=None):
+    def setRGB(self,value, operation=''):
         self._set('rgb', value, operation)
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
@@ -3937,7 +3937,16 @@ class ShapeStim(_BaseVisualStim):
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
-    
+        
+    def setLineRGB(self, value, operation=''):      
+        """Set the rgb value for the line that forms the shape
+        """
+        self._set('lineRGB', value, operation)
+    def setFillRGB(self, value, operation=''):  
+        """Set the rgb value that will fill the shape
+        """    
+        self._set('fillRGB', value, operation)
+        
     def setVertices(self,value=None, operation=''):
         """Set the xy values of the vertices (relative to the centre of the field).
         Values should be:            
