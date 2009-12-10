@@ -1335,13 +1335,16 @@ class SimpleImageStim(_BaseVisualStim):
         if val!=self._useShaders:
             self._useShaders=val
             self.setImage()            
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
-        """        
+        """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
         #push the projection matrix and set to orthorgaphic
         GL.glMatrixMode(GL.GL_PROJECTION)						
         GL.glPushMatrix()									
