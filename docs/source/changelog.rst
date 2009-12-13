@@ -20,6 +20,7 @@ PsychoPy 1.51.01
 * ADDED: coder checks (and prompts) for filesave before running script
 * ADDED: setHeight to TextStim objects, so that character height can be set after initialisation
 * FIXED: bug in all RadialStim .set functions (default operation should be "" not None)
+* FIXED: on mac trying to save an unchanged document no longer inserts an 's'
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~

@@ -7,21 +7,26 @@ In PsychoPy, after providing information about your monitor, via the :doc:`monit
 
 Once set for a particular stimulus (or inherited from the doc:`..\builder\window` or :doc:`prefs`) the units control not only the location, but also size and spatial frequency of the stimulus where appropriate. For instance, a stimulus with degrees as its units, will set its size and location in degrees, and its spatial frequency in cycles per degree.
 
-For all units the centre of the screen is represented by coordinates (0,0), negative values mean down and/or left, positive values mean up and/or right/
+For all units the centre of the screen is represented by coordinates (0,0), negative values mean down/left, positive values mean up/right.
+
 
 Normalised units
 -------------------
 
 In normalised ('norm') units the window ranges in both x and y from -1 to +1. That is, the top right of the window has coordinates (1,1), the bottom left is (-1,-1). Note that, in this scheme, setting the height of the stimulus to be 1.0, will make it half the height of the window, not the full height (because the window has a total height of 1:-1 = 2!). Also note that specifying the width and height to be equal will not result in a square stimulus if your window is not square - the image will have the same aspect ratio as your window. e.g. on a 1024x768 window the size=(1,0.75) will be square.
 
-requires : No information
+Spatial frequency: cycles /per stimulus/ (so will scale with the size of the stimulus).
+
+requires : No monitor information
 
 Centimeters on screen
 ----------------------
 
-Set the size and location of the stimulus in centimeters on the screen. The spatial frequency will be take units of cycles/cm.
+Set the size and location of the stimulus in centimeters on the screen.
 
-requires : information about the screen width in cm and size in pixels
+Spatial frequency: cycles per cm.
+
+Requires : information about the screen width in cm and size in pixels
 
 assumes : pixels are square. Can be verified by drawing a stimulus with matching width and height and verifying that it is in fact square. For a :term:`CRT` this can be controlled by setting the size of the viewable screen (settings on the monitor itself).
 

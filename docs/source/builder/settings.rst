@@ -1,4 +1,4 @@
-.. _settings:
+.. _expSettings:
 
 Experiment settings
 ---------------------

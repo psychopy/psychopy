@@ -1495,8 +1495,8 @@ class PatchStim(_BaseVisualStim):
             - **sf:** 
                 a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
                 OR a single value (which will be applied to x and y).
-                Units are in cycles per 'units' (see above). For *deg*, *cm* and *norm* units th
-                default sf=1, for *pix* the default sf=1/size so that one cycle fits on the stim.
+                Where `units`=='deg' or 'cm' units are in cycles per deg/cm. 
+                If `units`=='norm' then sf units are in cycles per stimulus (so scale with stimulus size).
             - **ori:** 
                 orientation of stimulus in degrees.
             - **phase:** 
