@@ -1,3 +1,5 @@
+.. _units:
+
 Units for the window and stimuli
 ====================================
 
