@@ -9,6 +9,12 @@ import psychopy
 from psychopy.app import dialogs
 from psychopy import log
 
+
+"""The Updater class checks for updates and suggests that an update is carried 
+out if a new version is found. The actual update is handled by InstallUpdateDialog
+(via Updater.doUpdate() ). 
+"""
+
 class Updater:
     def __init__(self,app=None, proxy=None, runningVersion=None):
         """The updater will check for updates and download/install them if necess.
@@ -21,7 +27,7 @@ class Updater:
                 app.updater.checkForUpdates()#if updates are found further dialogs will prompt
         """
         self.app=app
-#        self.proxies=
+        if proxy==None: proxy=self.app.prefs.connections['proxy']
         if runningVersion==None:  self.runningVersion=psychopy.__version__
         else:  self.runningVersion=runningVersion
         
@@ -40,7 +46,6 @@ class Updater:
         #return output to original
         sys.stdout = origStdOut
         sys.stderr = origStdErr
-        print retVal
         self.Destroy()
         
     def setupProxies(self, proxy=None):
@@ -52,16 +57,17 @@ class Updater:
             urllib2.install_opener(opener)#this will now be used globally for ALL urllib2 opening
         else:
             pass#no proxy could be found so use none
-    def getLatestInfo(self):
+    def getLatestInfo(self, warnMsg=True):
         #open page
         URL = "http://www.psychopy.org/version.txt"
         try:
             page = urllib2.urlopen(URL)#proxies
         except:
-            msg="Couldn't connect to psychopy.org to check for updates. \n"+\
-                "Check internet settings (and proxy setting in PsychoPy Preferences)."
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
-            confirmDlg.ShowModal()
+            if warnMsg:
+                msg="Couldn't connect to psychopy.org to check for updates. \n"+\
+                    "Check internet settings (and proxy setting in PsychoPy Preferences)."
+                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
+                confirmDlg.ShowModal()
             return -1
         #parse update file as a dictionary
         latest={}
@@ -105,34 +111,40 @@ class Updater:
     def doUpdate(self):
         """Should be called from suggestUpdate (separate dialog to ask user whether they want to)
         """
-        dlg=InstallUpdateDialog(None,-1, app=self.app,updater=self)
+        dlg=InstallUpdateDialog(None,-1, app=self.app)#app contains a reciprocal pointer to this Updater object
 
 class InstallUpdateDialog(wx.Frame):
-    def __init__(self, parent, ID, app, updater):
+    def __init__(self, parent, ID, app):
         """Latest is optional extra. If not given it will be fetched.
         """
         self.app = app
-        self.runningVersion=updater.runningVersion
-        self.latest=updater.latest
+        #get latest version info if poss
+        if app.updater==None:
+            #user has turned off check for updates in prefs so check now
+            app.updater = updater = Updater(app=self.app)
+            self.latest=updater.getLatestUpdate(warnMsg=False)#don't need a warning - we'll provide one ourselves
+        else:
+            self.latest=app.updater.latest
+        self.runningVersion=app.updater.runningVersion
         wx.Frame.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
         
         mainSizer=wx.BoxSizer(wx.VERTICAL)
-        self.statusMessage = wx.StaticText(self,-1,
-            "PsychoPy v%s is available\nyou are running v%s)" %(self.latest['version'], self.runningVersion),
-            style=wx.ALIGN_CENTER)
+        
+        #set the actual content of the status message later in self.updateStatus()
+        msg = "x" 
+        self.statusMessage = wx.StaticText(self,-1,msg,style=wx.ALIGN_CENTER)
         mainSizer.Add(self.statusMessage,flag=wx.EXPAND|wx.ALL,border=5)
         #ctrls for auto-update from web
-        self.useLatestBtn = wx.RadioButton( self, -1, " Auto-update (latest) ", style = wx.RB_GROUP )
-        self.useLatestBtn.SetValue(True)
+        self.useLatestBtn = wx.RadioButton( self, -1, " Auto-update (will fetch latest version)", style = wx.RB_GROUP )
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn )
         self.progressBar = wx.Gauge(self, -1, 100, size=(250,25))
         mainSizer.Add(self.useLatestBtn,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
         mainSizer.Add(self.progressBar,flag=wx.EXPAND|wx.ALL,border=5)
         #ctrls for updating from specific zip file
-        self.useZipBtn = wx.RadioButton( self, -1, " Use zip file below " )
+        self.useZipBtn = wx.RadioButton( self, -1, " Use zip file below (download a PsychoPy release file ending .zip)" )
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useZipBtn )
         self.fileBrowseCtrl = wx.lib.filebrowsebutton.FileBrowseButton(
-            self, -1, size=(450, -1),changeCallback = self.onFileBrowse)
+            self, -1, size=(450, -1),changeCallback = self.onFileBrowse, fileMask='*.zip')
         mainSizer.Add(self.useZipBtn,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
         mainSizer.Add(self.fileBrowseCtrl,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
         #ctrls for buttons (install/cancel)
@@ -146,13 +158,34 @@ class InstallUpdateDialog(wx.Frame):
         btnSizer.Add(self.cancelBtn,flag=wx.ALIGN_RIGHT|wx.LEFT,border=5)
         mainSizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
         
-        self.currentSelection=self.useLatestBtn
-        self.onRadioSelect()#this will enable/dissable appropriate controlsfor the above
-        #positioning and sizing
-        self.Center()
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
+        
+        #positioning and sizing
+        self.updateStatus()
+        self.Center()
         self.Show()
+    def updateStatus(self):
+        """Check the current version and most recent version and update ctrls if necess
+        """
+        if self.latest==-1:
+            msg = "You are running PsychoPy v%s.\n " %(self.runningVersion) + \
+                "PsychoPy could not connect to the \n internet to check for more recent versions.\n" + \
+                "Check proxy settings in preferences."
+        elif self.latest==self.runningVersion:
+            msg = "You are running the latest version of PsychoPy (%s)\n " %(self.runningVersion) + \
+                "You can revert to a previous version by selecting a specific .zip source installation file" 
+        else:
+            msg = "PsychoPy v%s is available\nyou are running v%s)" %(self.latest['version'], self.runningVersion)
+        self.statusMessage.SetLabel(msg)
+        if self.latest==-1 or self.latest['version']==self.runningVersion:
+            self.currentSelection=self.useZipBtn
+            self.useZipBtn.SetValue(True)
+        else:
+            self.currentSelection=self.useLatestBtn
+            self.useLatestBtn.SetValue(True)
+        self.Fit()
+        self.onRadioSelect()#this will enable/disable additional controls for the above
     def onRadioSelect(self, event=None):
         """Set the controls of the appropriate selection to be disabled/enabled
         """
@@ -199,24 +232,40 @@ class InstallUpdateDialog(wx.Frame):
         return zfile
         
     def installZipFile(self, zfile):
-        if type(zfile)==str and os.path.isfile(zfile):
+        if type(zfile) in [str, unicode] and os.path.isfile(zfile):
             f=open(zfile)
             zfile=zipfile.ZipFile(f)
-            f.close()
         else:
             pass#todo: error checking - zfile should be a ZipFile or a filename
             
-        currPath=self.app.prefs.paths[psychopy]
-        rootPath,endPath=sys.path.split(currPath)
+        currPath=self.app.prefs.paths['psychopy']
         #depending on install method, needs diff handling
         #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
-        if endPath=='psychopy':#e.g. the mac standalone app
+        if currPath.endswith('psychopy'):#e.g. the mac standalone app
 #            os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
-            os.mkdir(currPath+'X')
             unzipTarget=currPath+'X'
-        
-        zfile.extractall(unzipTarget)
+            os.mkdir(unzipTarget)
+        else:
+            pass#todo: need to handle the setuptools installation
+            
+        #do the actual extraction
+        for name in zfile.namelist():
+            #check that this file is part of the psychopy (not metadata or docs)
+            if name.count('/psychopy/')<1: continue
+            
+            targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
+            targetContainer=os.path.split(targetFile)[0]
+            print 'making ', targetFile
+            if targetFile.endswith('/'):
+                os.mkdir(targetFile)#it's a folder
+            elif not os.path.isdir(targetContainer):
+                os.mkdir(targetContainer)#make the containing folder
+            else:
+                outfile = open(targetFile, 'wb')
+                outfile.write(zfile.read(name))
+                outfile.close()
         print 'installed to %s' %unzipTarget
+        self.Destroy()
     def doAutoInstall(self, v='latest'):
         if v=='latest':
             v=self.latest['version']
@@ -261,12 +310,9 @@ def sendUsageStats(proxy=None):
         systemInfo = platform.system()+platform.release()
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
         %(dateNow, systemInfo, v, miscInfo)
-    req = urllib2.Request(URL)
-    page = urllib2.urlopen(req)#proxies
     try:
         req = urllib2.Request(URL)
         page = urllib2.urlopen(req)#proxies
     except:
         log.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
-        pass#maybe proxy is wrong, maybe no internet connection etc...

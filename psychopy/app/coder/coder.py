@@ -1049,7 +1049,10 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
         self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys['stopScript'], "Run the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
-
+        
+        self.toolsMenu.AppendSeparator()
+        self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
+        wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()

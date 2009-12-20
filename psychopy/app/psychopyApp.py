@@ -103,6 +103,7 @@ class PsychoPyApp(wx.App):
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.quitting=False
+        self.updater=None#create an updater when it's needed
         
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
@@ -201,6 +202,9 @@ class PsychoPyApp(wx.App):
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
+    def openUpdater(self, event=None):
+        dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
+        
     def openMonitorCenter(self,event):
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
