@@ -161,6 +161,8 @@ class MainFrame(wx.Frame):
         fileMenu = wx.Menu()
         fileMenu.Append(idMenuSave,'Save\tCtrl+S', 'Save the current monitor')
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
+        fileMenu.Append(wx.ID_CLOSE,'Close Monitor Center\tCtrl+W', 'Close Monitor Center but (not other PsychoPy windows)')
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, '&File')
         self.SetMenuBar(menuBar)
 
