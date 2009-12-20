@@ -57,7 +57,7 @@ class Updater:
             urllib2.install_opener(opener)#this will now be used globally for ALL urllib2 opening
         else:
             pass#no proxy could be found so use none
-    def getLatestInfo(self, warnMsg=True):
+    def getLatestInfo(self, warnMsg=False):
         #open page
         URL = "http://www.psychopy.org/version.txt"
         try:
