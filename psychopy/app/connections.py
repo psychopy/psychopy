@@ -244,7 +244,7 @@ class InstallUpdateDialog(wx.Frame):
         if currPath.endswith('psychopy'):#e.g. the mac standalone app
 #            os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
             unzipTarget=currPath+'X'
-            os.mkdir(unzipTarget)
+            os.makedirs(unzipTarget)
         else:
             pass#todo: need to handle the setuptools installation
             
@@ -257,9 +257,9 @@ class InstallUpdateDialog(wx.Frame):
             targetContainer=os.path.split(targetFile)[0]
             print 'making ', targetFile
             if targetFile.endswith('/'):
-                os.mkdir(targetFile)#it's a folder
+                os.makedirs(targetFile)#it's a folder
             elif not os.path.isdir(targetContainer):
-                os.mkdir(targetContainer)#make the containing folder
+                os.makedirs(targetContainer)#make the containing folder
             else:
                 outfile = open(targetFile, 'wb')
                 outfile.write(zfile.read(name))

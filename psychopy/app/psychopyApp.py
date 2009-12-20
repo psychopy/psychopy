@@ -37,26 +37,16 @@ if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal('2.8')
 import wx
-
-import sys, os, threading, time, platform
-from psychopy import preferences
-from psychopy.monitors import MonitorCenter
-#other app subpackages needs to be imported as explicitly in app
-from psychopy.app import coder, builder, wxIDs, connections
-
-links={
-    wxIDs.psychopyHome:"http://www.psychopy.org/",
-    wxIDs.psychopyReference:"http://www.psychopy.org/api/",
-    wxIDs.psychopyTutorial:"http://www.psychopy.org/coder/tutorial1.html"
-    }
+import os
+from psychopy import preferences#needed by splash screen for the path to resources/psychopySplash.png
 
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
     """
-    def __init__(self, app):
-        self.app=app
-        splashFile = os.path.join(self.app.prefs.paths['resources'], 'psychopySplash.png')
+    def __init__(self):
+        prefs=preferences.Preferences()
+        splashFile = os.path.join(prefs.paths['resources'], 'psychopySplash.png')
         aBitmap = wx.Image(name = splashFile).ConvertToBitmap()
         splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.NO_BORDER
         # Call the constructor with the above arguments in exactly the
@@ -72,6 +62,9 @@ class PsychoSplashScreen(wx.SplashScreen):
         self.Fit()
         self.Close()
 
+#TIME CONSUMING imports (after splash)
+import sys, os, threading, time, platform
+    
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
     """
@@ -96,15 +89,28 @@ class MenuFrame(wx.Frame):
 class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
-        self.SetAppName('PsychoPy2')
-        #set default paths and import options
+        self.SetAppName('PsychoPy2')        
+        #show splash screen
+        splash = PsychoSplashScreen()
+        if splash:
+            splash.Show()
+        #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
+        #but then that they end up being local so keep track in self 
+        from psychopy.monitors import MonitorCenter
+        from psychopy.app import coder, builder, wxIDs, connections
+        #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.quitting=False
         self.updater=None#create an updater when it's needed
-        
+        #setup links for URLs
+        self.links={
+            wxIDs.psychopyHome:"http://www.psychopy.org/",
+            wxIDs.psychopyReference:"http://www.psychopy.org/api/",
+            wxIDs.psychopyTutorial:"http://www.psychopy.org/coder/tutorial1.html"
+            }
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
@@ -142,14 +148,8 @@ class PsychoPyApp(wx.App):
         else:
             args=[]
 
-        #connections.checkForUpdates(app=self)
-
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
-
-        splash = PsychoSplashScreen(self)
-        if splash:
-            splash.Show()
 
         #create both frame for coder/builder as necess
         self.coder = self.builder = None
@@ -161,6 +161,7 @@ class PsychoPyApp(wx.App):
         if self.prefs.connections['allowUsageStats']:
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
+        #connections.checkForUpdates(app=self)
         if self.prefs.connections['checkForUpdates']:
             self.updater=connections.Updater(app=self, proxy=self.prefs.connections['proxy'])
             self.updater.suggestUpdate(confirmationDlg=False)#check for updates (silently)
@@ -186,6 +187,7 @@ class PsychoPyApp(wx.App):
         return True
 
     def showCoder(self, event=None, fileList=None):
+        from psychopy.app import coder#have to reimport because it is ony local to __init__ so far
         if self.coder==None:
             self.coder=coder.CoderFrame(None, -1,
                       title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
@@ -195,6 +197,7 @@ class PsychoPyApp(wx.App):
         self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
     def showBuilder(self, event=None, fileList=None):
+        from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         if self.builder==None:
             self.builder=builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder",
@@ -206,6 +209,7 @@ class PsychoPyApp(wx.App):
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
     def openMonitorCenter(self,event):
+        from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
     def MacOpenFile(self,fileName):
