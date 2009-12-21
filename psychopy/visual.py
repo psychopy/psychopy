@@ -75,40 +75,40 @@ class Window:
     
     Pygame has fewer bells and whistles, but does seem a little faster in text rendering.
     Pygame is used for all sound production and for monitoring the joystick.
-        
-        :Parameters:
-            size : (800,600)
-                Size of the window in pixels (X,Y)
-            pos : *None* or (x,y)
-                Location of the window on the screen
-            rgb : [0,0,0]
-                Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
-            fullscr : *None*, True or False
-                Better timing can be achieved in full-screen mode            
-            allowGUI :  *None*, True or False (if None prefs are used) 
-                If set to False, window will be drawn with no frame and no buttons to close etc...
-            winType :  *None*, 'pyglet', 'pygame'
-                If None then PsychoPy will revert to user/site preferences
-            monitor : *None*, string or a `Monitor` object
-                The monitor to be used during the experiment
-            units :  *None*, 'norm' (normalised),'deg','cm','pix'
-                Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
-            screen : *0*, 1 (or higher if you have many screens)
-                Specifies the physical screen that stimuli will appear on (pyglet winType only)
-            viewScale : *None* or [x,y]
-                Can be used to apply a custom scaling to the current units of the window.  
-            viewPos : *None*, or [x,y]
-                If not None, redefines the origin for the window
-            viewOri : *0* or any numeric value
-                A single value determining the orientation of the view in degs
-            waitBlanking : *None*, True or False. 
-                After a call to flip() should we wait for the blank before the script continues
-            gamma : 1.0, 
-                Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
-            bitsMode : None, 'fast', ('slow' mode is deprecated). 
-                Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
-        
-        :note: Preferences. Some arguments (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
+    
+    :Parameters:
+    size : (800,600)
+        Size of the window in pixels (X,Y)
+    pos : *None* or (x,y)
+        Location of the window on the screen
+    rgb : [0,0,0]
+        Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
+    fullscr : *None*, True or False
+        Better timing can be achieved in full-screen mode            
+    allowGUI :  *None*, True or False (if None prefs are used) 
+        If set to False, window will be drawn with no frame and no buttons to close etc...
+    winType :  *None*, 'pyglet', 'pygame'
+        If None then PsychoPy will revert to user/site preferences
+    monitor : *None*, string or a `~psychopy.monitors.Monitor` object
+        The monitor to be used during the experiment
+    units :  *None*, 'norm' (normalised),'deg','cm','pix'
+        Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
+    screen : *0*, 1 (or higher if you have many screens)
+        Specifies the physical screen that stimuli will appear on (pyglet winType only)
+    viewScale : *None* or [x,y]
+        Can be used to apply a custom scaling to the current units of the window.  
+    viewPos : *None*, or [x,y]
+        If not None, redefines the origin for the window
+    viewOri : *0* or any numeric value
+        A single value determining the orientation of the view in degs
+    waitBlanking : *None*, True or False. 
+        After a call to flip() should we wait for the blank before the script continues
+    gamma : 1.0, 
+        Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
+    bitsMode : None, 'fast', ('slow' mode is deprecated). 
+        Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
+    
+    :note: Preferences. Some arguments (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
             
     """
     def __init__(self,
@@ -3378,55 +3378,39 @@ class TextStim(_BaseVisualStim):
                  fontFiles=[],
                  wrapWidth=None):
         """
-            **Arguments:**
-        
-                - **win:**
-                    a Window() object required - the stimulus must know where to draw itself!
-        
-                - **text**
-                    The text to be rendered
-        
-                - **pos**
-                    Position on the screen
-                    
-                - **depth**
-                    Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
-                    
-                - **rgb**
-                    The color of the text (ranging [-1,-1,-1] to [1,1,1])
-                    
-                - **opacity**
-                    How transparent the object will be (0 for transparent, 1 for opaque)
-        
-                - **units**
-                    "pix", "norm", "cm", "deg" only if you want to override the Window's default
-                    
-                - **ori**
-                    Orientation of the text
-                    
-                - **height**
-                    Height of the characters (including the ascent of the letter and the descent)
-                    
-                - **antialias**
-                    boolean to allow (or not) antialiasing the text
-                    
-                - **bold**
-                    Make the text bold (better to use a bold font name)
-                    
-                - **italic**
-                    Make the text italic (better to use an actual italic font)
-                    
-                - **alignHoriz**
-                    The horizontal alignment ('left', 'right' or 'center')
-                    
-                - **alignVert**
-                    The vertical alignment ('top', 'bottom' or 'center')
-                    
-                - **fontFiles**
-                    A list of additional files if the font is not in the standard system location (include the full path)
-                    
-                - **wrapWidth**
-                    The width the text should run before wrapping
+        :Parameters:        
+        - win:
+            A :class:`Window` object. Required - the stimulus must know where to draw itself
+        - text:
+            The text to be rendered
+        - pos:
+            Position on the screen            
+        - depth:
+            Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
+        - rgb:
+            The color of the text (ranging [-1,-1,-1] to [1,1,1])            
+        - opacity:
+            How transparent the object will be (0 for transparent, 1 for opaque)
+        - units: "pix", "norm", "cm", "deg"
+            Only if you want to override the Window's default            
+        - ori:
+            Orientation of the text            
+        - height:
+            Height of the characters (including the ascent of the letter and the descent)            
+        - antialias:
+            boolean to allow (or not) antialiasing the text            
+        - bold:
+            Make the text bold (better to use a bold font name)            
+        - italic:
+            Make the text italic (better to use an actual italic font)            
+        - alignHoriz:
+            The horizontal alignment ('left', 'right' or 'center')            
+        - alignVert:
+            The vertical alignment ('top', 'bottom' or 'center')            
+        - fontFiles:
+            A list of additional files if the font is not in the standard system location (include the full path)
+        - wrapWidth:
+            The width the text should run before wrapping
         """
         self.win = win
         if win._haveShaders: self._useShaders=True

@@ -19,8 +19,13 @@ PsychoPy 1.51.01
 * ADDED: Ctrl+W closes MonitorCenter window
 * ADDED: coder checks (and prompts) for filesave before running script
 * ADDED: setHeight to TextStim objects, so that character height can be set after initialisation
+* ADDED: setLineRGB, setFillRGB to ShapeStim
+* ADDED: ability to auto-update form PsychoPy source installer (zip files)
+* ADDED: Monitor Center can be closed with Ctrl-W
 * FIXED: bug in all RadialStim .set functions (default operation should be "" not None)
 * FIXED: on mac trying to save an unchanged document no longer inserts an 's'
+* FIXED: bug with SimpleImageStim not drawing to windows except #1
+* IMPROVED: Splash screen comes up faster to show the app is loading
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~
