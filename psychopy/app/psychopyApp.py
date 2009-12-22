@@ -37,8 +37,10 @@ if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal('2.8')
 import wx
-import os
+#NB keep imports to a minimum here because splash screen has not yet shown
+#e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences#needed by splash screen for the path to resources/psychopySplash.png
+import sys, os, threading, time, platform
 
 class PsychoSplashScreen(wx.SplashScreen):
     """
@@ -55,16 +57,13 @@ class PsychoSplashScreen(wx.SplashScreen):
                                  0, None)
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "Initialising PsychoPy and Libs",
+        self.status = wx.StaticText(self, -1, "Loading libraries...",
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
         self.Fit()
         self.Close()
-
-#TIME CONSUMING imports (after splash)
-import sys, os, threading, time, platform
-    
+        
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
     """
@@ -95,7 +94,8 @@ class PsychoPyApp(wx.App):
         if splash:
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
-        #but then that they end up being local so keep track in self 
+        #but then that they end up being local so keep track in self
+        splash.status.SetLabel("Loading PsychoPy2...")
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections
         #set default paths and prefs
