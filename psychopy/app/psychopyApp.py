@@ -57,7 +57,7 @@ class PsychoSplashScreen(wx.SplashScreen):
                                  0, None)
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "Loading libraries...",
+        self.status = wx.StaticText(self, -1, "  Loading libraries...",
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
@@ -95,7 +95,7 @@ class PsychoPyApp(wx.App):
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("Loading PsychoPy2...")
+        splash.status.SetLabel("  Loading PsychoPy2...")
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections
         #set default paths and prefs

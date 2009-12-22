@@ -329,10 +329,13 @@ class TrialHandler:
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
         #create nice line-separated list of trialTypes
-        trialStr="[ \\\n"
-        for line in self.params['trialList'].val:
-            trialStr += "        %s,\n" %line
-        trialStr += "        ]"
+        if self.params['trialList'].val==None:
+            trialStr="[None]"
+        else:
+            trialStr="[ \\\n"
+            for line in self.params['trialList'].val:
+                trialStr += "        %s,\n" %line
+            trialStr += "        ]"
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
@@ -354,10 +357,11 @@ class TrialHandler:
         buff.writeIndented("\n")
 
         #save data
-        ##a string to show all the available variables
+        ##a string to show all the available variables (if the trialList isn't just None or [None])
         stimOutStr="["
-        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
-            stimOutStr+= "'%s', " %variable
+        if self.params['trialList'].val not in [None, [None]]:
+            for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
+                stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)

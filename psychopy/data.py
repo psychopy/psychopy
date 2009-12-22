@@ -42,7 +42,10 @@ class TrialHandler:
         trialList: a simple list (or flat array) of trials.
             
             """
-        self.trialList =trialList
+        if trialList in [None, []]:#user wants an empty trialList
+            self.trialList = [None]#which corresponds to a list with a single empty entry
+        else:
+            self.trialList =trialList
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
         for n, entry in enumerate(trialList):
             if type(entry)==dict:
@@ -169,17 +172,13 @@ class TrialHandler:
         """Advances to next trial and returns it.        
         Updates attributes; thisTrial, thisTrialN and thisIndex        
         If the trials have ended this method will raise a StopIteration error.
-        This can be handled with code such as 
-        
-        ::
+        This can be handled with code such as::
         
             trials = TrialHandler(.......)
             for eachTrial in trials:#automatically stops when done
                 #do stuff           
                 
-        or
-        
-        ::
+        or::
         
             trials = TrialHandler(.......)
             while True: #ie forever
