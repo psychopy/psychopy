@@ -206,6 +206,7 @@ class PsychoPyApp(wx.App):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openUpdater(self, event=None):
+        import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
     def openMonitorCenter(self,event):

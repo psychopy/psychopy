@@ -11,7 +11,7 @@ from psychopy import log
 
 
 """The Updater class checks for updates and suggests that an update is carried 
-out if a new version is found. The actual update is handled by InstallUpdateDialog
+out if a new version is found. The actual updating is handled by InstallUpdateDialog
 (via Updater.doUpdate() ). 
 """
 
@@ -151,7 +151,7 @@ class InstallUpdateDialog(wx.Frame):
         self.installBtn = wx.Button(self,-1,'Install')
         self.Bind(wx.EVT_BUTTON, self.onInstall, self.installBtn )
         self.installBtn.SetDefault()
-        self.cancelBtn = wx.Button(self,-1,'Cancel')
+        self.cancelBtn = wx.Button(self,-1,'Close')
         self.Bind(wx.EVT_BUTTON, self.onCancel, self.cancelBtn )
         btnSizer=wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.installBtn,flag=wx.ALIGN_RIGHT)
@@ -208,30 +208,35 @@ class InstallUpdateDialog(wx.Frame):
         if self.currentSelection==self.useLatestBtn:
             self.doAutoInstall()
         else:
-            self.installZipFile(self.filename)
+            info = self.installZipFile(self.filename)
     def fetchPsychoPy(self, v='latest'):
+        info = ""
         if v=='latest':
             v=self.latest['version']
         
         #open page
         URL = "http://psychopy.googlecode.com/files/PsychoPy-%s.zip" %(v)
-        URL = 'http://downloads.egenix.com/python/locale-0.1.zip'
+#        URL = 'http://downloads.egenix.com/python/locale-0.1.zip'
         page = urllib2.urlopen(URL)
         #download in chunks so that we can monitor progress and abort mid-way through
         chunk=4096; read = 0
         fileSize = int(page.info()['Content-Length'])
         buffer=cStringIO.StringIO()
+        self.progressBar.SetRange(fileSize)
         while read<fileSize:
             buffer.write(page.read(chunk))
             read+=chunk
-            print '.',; sys.stdout.flush()
-        print 'download complete'
+            self.progressBar.SetValue(read)
+            self.Update()
+        info+= 'Successfully downloaded PsychoPy-%s.zip' %v
         page.close()
         zfile = zipfile.ZipFile(buffer)
-        buffer.close()
-        return zfile
+        #buffer.close()
+        return zfile, info
         
     def installZipFile(self, zfile):
+        info=""#return this at the end
+        
         if type(zfile) in [str, unicode] and os.path.isfile(zfile):
             f=open(zfile)
             zfile=zipfile.ZipFile(f)
@@ -239,41 +244,102 @@ class InstallUpdateDialog(wx.Frame):
             pass#todo: error checking - zfile should be a ZipFile or a filename
             
         currPath=self.app.prefs.paths['psychopy']
+        #any commands that are successfully executed may need to be undone if a later one fails
+        undoString = ""
         #depending on install method, needs diff handling
         #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
         if currPath.endswith('psychopy'):#e.g. the mac standalone app
-#            os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
-            unzipTarget=currPath+'X'
-            os.makedirs(unzipTarget)
-        else:
-            pass#todo: need to handle the setuptools installation
-            
+            unzipTarget=currPath
+            try: #to move existing PsychoPy
+                os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
+                undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
+            except:
+                return "Could not move existing PsychoPy installation (permissions error?)"
+        else:#setuptools-style installation
+            # find the .pth file that specifies the python dir
+            unzipTarget=currPath.replace(psychopy.__version__, v)
+            #create the new installation directory BEFORE changing pth file
+            try:
+                nUpdates, newInfo = self.updatePthFile(oldPath=currPath, newPath=unzipTarget)
+                info+=newInfo
+                if nUpdates==-1: #an update failed
+                    exec(undoString)#undo previous changes
+                    return info
+                undoString += 'self.updatePthFile(oldPath=unzipTarget, newPath=currPath)'                    
+            except:
+                exec(undoString)#undo previous changes
+                return "Could not update setuptools path (permissions error?)" %unzipTarget
+                
+        try:
+            os.makedirs(unzipTarget)#create the new installation directory AFTER renaming existing dir
+            undoString += 'os.remove'
+        except: #revert path rename and inform user
+            exec(undoString)#undo previous changes
+            return "Could not create new path (permissions error?):\n%s" %unzipTarget
+
         #do the actual extraction
-        for name in zfile.namelist():
+        for name in zfile.namelist():#for each file within the zip
             #check that this file is part of the psychopy (not metadata or docs)
             if name.count('/psychopy/')<1: continue
-            
-            targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
-            targetContainer=os.path.split(targetFile)[0]
-            print 'making ', targetFile
-            if targetFile.endswith('/'):
-                os.makedirs(targetFile)#it's a folder
-            elif not os.path.isdir(targetContainer):
-                os.makedirs(targetContainer)#make the containing folder
-            else:
-                outfile = open(targetFile, 'wb')
-                outfile.write(zfile.read(name))
-                outfile.close()
-        print 'installed to %s' %unzipTarget
-        self.Destroy()
+            #
+            print name
+            try:
+                targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
+                targetContainer=os.path.split(targetFile)[0]
+                if targetFile.endswith('/'):
+                    os.makedirs(targetFile)#it's a folder
+                elif not os.path.isdir(targetContainer):
+                    os.makedirs(targetContainer)#make the containing folder
+                else:
+                    outfile = open(targetFile, 'wb')
+                    outfile.write(zfile.read(name))
+                    outfile.close()
+            except:
+                exec(undoString)#undo previous changes
+                print 'failed to unzip file:', name
+                print sys.exc_info()[0]
+        info += 'Success. Changes to PsychoPy will be completed when the application is next run'
+        self.cancelBtn.SetDefault()
+        self.statusMessage.SetLabel(info)
+        return info
     def doAutoInstall(self, v='latest'):
         if v=='latest':
             v=self.latest['version']
         self.statusMessage.SetLabel("Downloading PsychoPy v%s" %v)
-        zipFile=self.fetchPsychoPy(v)
-        self.statusMessage.SetLabel("Downloaded PsychoPy v%s\nInstalling..." %v)
-        self.installZipFile(zipFile)        
-    
+        try: zipFile, info =self.fetchPsychoPy(v)
+        except:
+            self.statusMessage.SetLabel('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences')
+            return -1            
+        self.statusMessage.SetLabel(info)
+        self.installZipFile(zipFile)
+    def updatePthFile(oldPath, newPath):
+        """Searches site-packages for .pth files and replaces any instance of 
+        `oldPath` with `newPath`
+        """
+        from distutils.sysconfig import get_python_lib
+        siteDir=get_python_lib()
+        pthFiles = glob.glob(os.path.join(siteDir, '*.pth'))
+        enclosingSiteDir = os.path.split(siteDir)[0]#sometimes the site-packages dir isn't where the pth files are kept?
+        pthFiles.extend(glob.glob(os.path.join(enclosingSiteDir, '*.pth')))
+        nUpdates = 0#no paths updated
+        for filename in pthFiles:
+            lines = open(filename, 'r').readlines()
+            needSave=False
+            for lineN, line in enumerate(lines):
+                if oldPath in line: 
+                    lines[lineN] = line.replace(oldPath, newPath)
+                    needSave=True
+            if needSave:
+                try:
+                    f = open(filename, 'w')
+                    f.writelines(lines)
+                    f.close()
+                    nUpdates+=1
+                    info+='Updated PsychoPy path in ', filename                    
+                except:
+                    info+='Failed to update PsychoPy path in ', filename
+                    return -1, info
+        return nUpdates, info
 def sendUsageStats(proxy=None):
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
