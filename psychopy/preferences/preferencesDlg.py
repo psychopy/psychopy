@@ -73,7 +73,7 @@ class PreferencesDlg(wx.Dialog):
         self.Close()
     def onOK(self, event=None):
         self.setPrefsFromCtrls()
-        self.close()
+        self.Close()
     def makePrefsPage(self, parent, sectionName, prefsSection, specSection):
         panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
@@ -102,8 +102,8 @@ class PreferencesDlg(wx.Dialog):
                     continue
                 ctrlName = sectionName+'.'+prefName
                 ctrl = self.ctrls[ctrlName]
-                self.userPrefsCfg[sectionName][prefName]=ctrl.getValue()
-        self.prefs.saveUserPrefs()#includes a validation
+                self.prefsCfg[sectionName][prefName]=ctrl.getValue()
+        self.app.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
         
 class PrefCtrls:
