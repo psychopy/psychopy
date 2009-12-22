@@ -7,10 +7,6 @@ from psychopy import misc, gui, log
 import cPickle, shelve, string, sys, os, time, copy
 import numpy
 from scipy import optimize, special
-
-def ObjectArray(inputSeq):
-    #a wrapper of numpy array(xx,'O') objects
-    return numpy.array(inputSeq, 'O')
     
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
@@ -148,14 +144,14 @@ class TrialHandler:
         
         Useful for shuffling and then using as a reference.
         """
-        inputArray  = ObjectArray(inputArray)#make sure its an array
+        inputArray  = numpy.asarray(inputArray, 'O')#make sure its an array of objects (can be strings etc)
         #get some simple variables for later
         dims=inputArray.shape
         dimsProd=numpy.product(dims)
         dimsN = len(dims)
         dimsList = range(dimsN)
         listOfLists = []
-        arrayOfTuples = ObjectArray(numpy.ones(dimsProd))#this creates space for an array of any objects
+        arrayOfTuples = numpy.ones(dimsProd, 'O')#this creates space for an array of any objects
         
         #for each dimension create list of its indices (using modulo)
         for thisDim in dimsList:        
@@ -737,7 +733,7 @@ class DataHandler(dict):
         #if given dataShape use it - otherwise guess!
         if dataShape: self.dataShape=dataShape
         elif self.trials:
-            self.dataShape=list(ObjectArray(trials.trialList).shape)
+            self.dataShape=list(numpy.asarray(trials.trialList, 'O').shape)
             self.dataShape.append(trials.nReps)
             
         #initialise arrays now if poss
