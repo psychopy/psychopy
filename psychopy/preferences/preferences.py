@@ -4,7 +4,7 @@ import configobj, validate
 
 #GET PATHS------------------
 join = os.path.join
-if platform.system() == 'Windows':
+if platform.system() in ['Windows','Microsoft']:
     activeUser = os.environ['USERNAME']
 else:
     activeUser = os.environ['USER']
@@ -49,7 +49,7 @@ class Preferences:
         self.paths['resources']=dirResources
         
         self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
-        if platform.system()=='Windows':
+        if platform.system() in ['Windows','Microsoft']:
             self.paths['userPrefsDir']= join(os.environ['APPDATA'],'psychopy2')
         else:
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
@@ -108,7 +108,7 @@ class Preferences:
             for line in menuFile:
                 if line.find("=") > -1:
                     menuList.append(line.split()[0] + "|")
-            if platform.system() == "Windows":  # update: seems no longer necessary
+            if platform.system() in ['Windows','Microsoft']:  # update: seems no longer necessary
                 file.write("#" + str(menuList)+"\n")  # I added this to help debug a windows-only menuRegex issue, and this solved it (!)
             menuFile.close()
             menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
