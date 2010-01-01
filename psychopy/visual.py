@@ -206,7 +206,7 @@ class Window:
             self.useNativeGamma=False
         elif type(self.monitor.getGammaGrid())==numpy.ndarray:
             self.gamma = self.monitor.getGammaGrid()[1:,2]
-            if self.monitor.gammaIsDefault():
+            if self.monitor.gammaIsDefault(): #are we using the default gamma for all monitors?
                 self.useNativeGamma=True
             else:self.useNativeGamma=False
         elif self.monitor.getGamma()!=None:

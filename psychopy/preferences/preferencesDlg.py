@@ -1,6 +1,6 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
-from wx.lib.agw import flatnotebook
+from wx.lib import flatnotebook
 
 import configobj, validate
 dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
