@@ -517,6 +517,14 @@ class Window:
         self.frames = 0
         return fps
     
+    def setRGB(self, newRGB):
+        """Set the background colour of the screen using :ref:`RGB`
+        This new colour will only be updated on the next call to `Window.flip()`
+        """
+        global GL
+        self.rgb=newRGB
+        GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
+        
     def setScale(self, units, font='dummyFont', prevScale=[1.0,1.0]):
         """This method is called from within the draw routine and sets the
         scale of the OpenGL context to map between units. Could potentially be
