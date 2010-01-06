@@ -1,77 +1,119 @@
 Preferences
 ====================================
 
+.. _generalSettings:
 
-Overview
-----------
-You can customize things for yourself (as a 'user'), or for everyone on this 
-computer (the 'site'). Your user preferences over-ride the site preferences
-(which in turn override the default settings that come with PsychoPy2).
+General settings
+-------------------
+winType:
+    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here 
+    you can set the default backend to be used.
+    
+units:
+    Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overidden by individual experiments.
+    
+fullscr:
+    Should windows be created full screen by default? Can be overidden by individual experiments.
 
-Example
-----------
-If you like small, lean icons, copy the 'largeIcons = True' line from
-the 'site' page, and paste it into your 'user' page, under the section
-named [app]. (It goes under [app] because it is under [app] on the 'site' page.
-Then replace 'True' with 'False', and save your prefs. That is, in general just
-copy something to get the syntax right, then edit to change the value. Most 'site'
-prefs have a note of explanation on the line above them (as a commment).
+allowGUI:
+    When the window is created, should the frame of the window and the mouse pointer be visible.
+    If set to False then both will be hidden.
 
-Notes
-----------
-A site-admin can change what key-presses have what effect in PsychoPy's menus:
-just edit the <key-code> on the 'keys' page to to what you want for all users.
-It is not possible to set up different key-bindings for individual users.
+.. _applicationSettings:
 
-As a user, be sure to paste a setting under the proper section, or else it will be ignored.
+Application settings
+---------------------------
+These settings are common to all components of the application (Coder and Builder etc)
 
-Not all changes take effect immediately. For example, changing the icon size
-will only be noticeable when you make a new builder or coder window.
+largeIcons:
+    Do you want large icons (on some versions of wx on OS X this has no effect)
+    
+defaultView:
+    Determines which view(s) open when the PsychoPy app starts up. Default is 'last',
+    which fetches the same views as were open when PsychoPy last closed.
+    
+runScripts:
+    Don't ask. ;-) Just leave this option as 'process' for now!
+    
+allowModuleImports (only used by win32):
+    Allow modules to be imported at startup for analysis by source assistant. This will
+    cause startup to be slightly slower but will speedup the first analysis of a script. 
+  
+.. _coderSettings:
 
-Changes you make to prefs are not saved automatically, but can be by setting:
-autoSavePrefs = True
-For this to work, you have to close the preferences window using the menu or 
-keyboard (not using the operating system).
+Coder settings
+---------------------------
+outputFont:
+    a list of font names to be used in the output panel. The first found on the system will be used
+    
+fontSize (in pts):
+    an integer between 6 and 24 that specifies the size of fonts
+    
+codeFontSize = integer(6,24, default=12)
 
-The first time PsychoPy is run (presumably by an admin user), its a good idae to edit and
-save the site preferences. Ideally, the site preferences and the componentsFolders list
-should be in a location where: a) the admin user can edit them, b) all users will be able 
-to read them, and c) they will not be overwritten when you update PsychoPy. On a 
-Mac, /Users/Shared/PsychoPy2/ is a reasonable place. On Linux, /usr/local/psychopy2/
-would be a reasonable place (with care taken to set permissions appropriately). 
+outputFontSize = integer(6,24, default=12)
 
-How to...
-----------
-SET a pref:  Select and copy a 'setting = value', then paste it into the right section of your 'user' page, then edit the value part. Some settings require restarting PsychoPy to take effect. 
+showSourceAsst:
+    Do you want to show the `source assistant` panel (to the right of the Coder view)?
+    On windows this provides help about the current function if it can be found. On
+    OS X the source assistant is of limitted use and is disabled by default.
+    
+analysisLevel:
+    If using the source assistant, how much depth should PsychoPy try to analyse the 
+    current script? Lower values may reduce the amount of analysis performed and
+    make the Coder view more responsive (particularly for files that import many modules
+    and sub-modules).
 
-SET a key pref:  Only a user with write-permission for the psychopy prefs files can change the 'keys' prefs (doing so for the whole site). Just edit the value in the 'keys' page, following the syntax there. You'll have to restart PsychoPy to use the new key-bindings.
+analyseAuto:
+    If using the source assistant, should PsychoPy try to analyse the current script 
+    on every save/load of the file? The code can be analysed manually from the tools menu
+    
+showOutput:
+    Show the output panel in the Coder view. If shown all python output from the session
+    will be output to this panel. Otherwise it will be directed to the original location
+    (typically the terminal window that called PsychoPy application to open).
 
-RESET your user preferences:  Just delete them from your 'user' page, and save. If that is not possible, you'll need to delete your userPrefsFile using your  computer's operating system to do so. (The file name is shown at the bottom of your 'user' prefs page.) Then restart PsychoPy.
+reloadPrevFiles:
+    Should PsychoPy fetch the files that you previously had open when it launches?
 
-RESET the SITE and KEYS to defaults:  Set 'resetSitePrefs = True', and then save preferences. The site prefs are restored to the defaults that come with PsychoPy, but you'll need to close and then open the preferences dialog to see the changes. User prefs are NOT reset by this. keys are reset.
+.. _builderSettings:
 
+Builder settings
+---------------------------
+`reloadPrevExp` (default=False):
+    for the user to add custom components (comma-separated list)
+    
+componentsFolders:
+    a list of folder pathnames that can hold additional custom components for the Builder view
+    
+hiddenComponents:
+    a list of components to hide (eg, because you never use them)
+  
+.. _connectionSettings:
 
-Glossary
-----------
-A COMMENT is any line starting with a #, such as this one.
+Connection settings
+---------------------------
+proxy:
+    The proxy server used to connect to the internet if needed. Must be of the form `http://111.222.333.444:5555`
+    
+autoProxy:
+    PsychoPy should try to deduce the proxy automatically (if this is True and autoProxy is successful 
+    then the above field should contain a valid proxy address).
+    
+allowUsageStats:
+    Allow PsychoPy to ping a website at when the application starts up. **Please** leave this
+    set to True. The info sent is simply a string that gives the date, PsychoPy version and platform info.
+    There is no cost to you: no data is sent that could identify you and PsychoPy will not be delayed in starting as a result.
+    The aim is simple: if we can show that lots of people are using PsychoPy there is a greater chance of it being
+    improved faster in the future.
+    
+checkForUpdates:
+    PsychoPy can (hopefully) automatically fetch and install updates. This will only work for minor updates
+    and is still in a very experimental state (as of v1.51.00).
+  
+.. _keyBindings:
 
-SETTINGS are shown in BLACK, and are paired with a value:
-    setting = value
-
-A SECTION name is text enclosed in square brackets, like this:
-    [this_is_a_section_name]
-
-Values can be numbers, true / false, strings, or even lists.
-A few settings require a comma-separated LIST instead of a value:
-
-    my_list = item1, item2
-
-Just a comma alone means an empty list (you still need the comma).
-If comments are shown in GREEN, you can edit the settings on that page.
-If comments are BLUE, no editing is possible (the file is read-only).
-
-Each `setting = value` pair belongs to a section. Here, the setting
-'setting_52' belongs to the section 'section_5':
-
-    [section_5]
-    setting_52 = True
+Key bindings
+------------------
+There are many shortcut keys that you can use in PsychoPy. For instance did you realise that
+you can indent or outdent a block of code with Ctrl-[ and Ctrl-] ?
