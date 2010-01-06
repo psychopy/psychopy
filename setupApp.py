@@ -51,6 +51,7 @@ if platform == 'win32':
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
         options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp'],
+                                  excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
                                   frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
                                   resources=resources,
                                   argv_emulation=True,

@@ -2,13 +2,15 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import urllib2, time, platform, sys, zipfile, os, cStringIO
+import urllib2, socket
+import time, platform, sys, zipfile, os, cStringIO
 import wx
 import  wx.lib.filebrowsebutton
 import psychopy
 from psychopy.app import dialogs
 from psychopy import log
 
+socket.setdefaulttimeout(10)
 
 """The Updater class checks for updates and suggests that an update is carried 
 out if a new version is found. The actual updating is handled by InstallUpdateDialog
@@ -50,8 +52,10 @@ class Updater:
         
     def setupProxies(self, proxy=None):
         """Get proxies and insert into url opener"""
+        #try to get a proxy
         if proxy is None: proxies = urllib2.getproxies()
         else: proxies=urllib2.ProxyHandler({'http':proxy})
+        #if we got one install it
         if len(proxies.proxies['http'])>0:
             opener  = urllib2.build_opener(proxies)
             urllib2.install_opener(opener)#this will now be used globally for ALL urllib2 opening
@@ -131,7 +135,7 @@ class InstallUpdateDialog(wx.Frame):
         mainSizer=wx.BoxSizer(wx.VERTICAL)
         
         #set the actual content of the status message later in self.updateStatus()
-        msg = "x" 
+        msg = "x"
         self.statusMessage = wx.StaticText(self,-1,msg,style=wx.ALIGN_CENTER)
         mainSizer.Add(self.statusMessage,flag=wx.EXPAND|wx.ALL,border=5)
         #ctrls for auto-update from web
@@ -181,6 +185,7 @@ class InstallUpdateDialog(wx.Frame):
         if self.latest==-1 or self.latest['version']==self.runningVersion:
             self.currentSelection=self.useZipBtn
             self.useZipBtn.SetValue(True)
+            self.useLatestBtn.Disable()
         else:
             self.currentSelection=self.useLatestBtn
             self.useLatestBtn.SetValue(True)
@@ -200,6 +205,7 @@ class InstallUpdateDialog(wx.Frame):
         elif self.currentSelection==self.useZipBtn:
             self.fileBrowseCtrl.Enable()
             self.progressBar.Disable()
+            self.installBtn.Enable()#if this has been disabled by the fact that we couldn't connect
     def onCancel(self, event):
         self.Destroy()
     def onFileBrowse(self, event):
@@ -210,13 +216,14 @@ class InstallUpdateDialog(wx.Frame):
         else:
             info = self.installZipFile(self.filename)
     def fetchPsychoPy(self, v='latest'):
+        msg = "Attempting to fetch PsychoPy %s..." %(self.latest['version'])
+        self.statusMessage.SetLabel(msg)
         info = ""
         if v=='latest':
             v=self.latest['version']
         
         #open page
         URL = "http://psychopy.googlecode.com/files/PsychoPy-%s.zip" %(v)
-#        URL = 'http://downloads.egenix.com/python/locale-0.1.zip'
         page = urllib2.urlopen(URL)
         #download in chunks so that we can monitor progress and abort mid-way through
         chunk=4096; read = 0
@@ -224,9 +231,13 @@ class InstallUpdateDialog(wx.Frame):
         buffer=cStringIO.StringIO()
         self.progressBar.SetRange(fileSize)
         while read<fileSize:
-            buffer.write(page.read(chunk))
+            ch=page.read(chunk)
+            print 'got 1 chunk'
+            buffer.write(ch)
             read+=chunk
             self.progressBar.SetValue(read)
+            msg = "Fetched %i of %i kb of PsychoPy-%s.zip" %(read/1000, fileSize/1000, v)
+            self.statusMessage.SetLabel(msg)
             self.Update()
         info+= 'Successfully downloaded PsychoPy-%s.zip' %v
         page.close()
@@ -298,9 +309,11 @@ class InstallUpdateDialog(wx.Frame):
                 exec(undoString)#undo previous changes
                 print 'failed to unzip file:', name
                 print sys.exc_info()[0]
-        info += 'Success. Changes to PsychoPy will be completed when the application is next run'
+        info += 'Success. \nChanges to PsychoPy will be completed when the application is next run'
         self.cancelBtn.SetDefault()
+        self.installBtn.Disable()
         self.statusMessage.SetLabel(info)
+        self.Fit()
         return info
     def doAutoInstall(self, v='latest'):
         if v=='latest':

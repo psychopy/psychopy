@@ -161,7 +161,6 @@ class PsychoPyApp(wx.App):
         if self.prefs.connections['allowUsageStats']:
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
-        #connections.checkForUpdates(app=self)
         if self.prefs.connections['checkForUpdates']:
             self.updater=connections.Updater(app=self, proxy=self.prefs.connections['proxy'])
             self.updater.suggestUpdate(confirmationDlg=False)#check for updates (silently)
@@ -206,7 +205,7 @@ class PsychoPyApp(wx.App):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
     def openUpdater(self, event=None):
-        import connections
+        from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
     def openMonitorCenter(self,event):
