@@ -19,6 +19,7 @@ class TextComponent(VisualComponent):
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, ori=ori, times=times)
         self.type='Text'
+        self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         self.parentName=parentName

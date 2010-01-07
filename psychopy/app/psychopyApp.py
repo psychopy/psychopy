@@ -97,20 +97,16 @@ class PsychoPyApp(wx.App):
         #but then that they end up being local so keep track in self
         splash.status.SetLabel("  Loading PsychoPy2...")
         from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, wxIDs, connections
+        from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
+        self.urls=urls.urls
         self.quitting=False
         self.updater=None#create an updater when it's needed
         #setup links for URLs
-        self.links={
-            wxIDs.psychopyHome:"http://www.psychopy.org/",
-            wxIDs.psychopyReference:"http://www.psychopy.org/api/",
-            wxIDs.psychopyTutorial:"http://www.psychopy.org/coder/tutorial1.html"
-            }
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if platform.system()=='Darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
@@ -269,8 +265,15 @@ let me/us know at psychopy-users@googlegroups.com"""
 
         wx.AboutBox(info)
 
-    def followLink(self, event):
-        wx.LaunchDefaultBrowser(links[event.GetId()])
+    def followLink(self, event=None, url=None):
+        """Follow either an event id (which should be a key to a url defined in urls.py)
+        or follow a complete url (a string beginning "http://")
+        """
+        if event!=None:
+            wx.LaunchDefaultBrowser(self.urls[event.GetId()])
+        elif url!=None:
+            wx.LaunchDefaultBrowser(url)
+            
 
 if __name__=='__main__':
     app = PsychoPyApp(0)

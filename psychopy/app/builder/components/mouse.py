@@ -13,6 +13,7 @@ class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given times"""
     def __init__(self, exp, parentName, name='mouse', times=[0,1], save='final'):
         self.type='Mouse'
+        self.url="http://www.psychopy.org/builder/components/mouse.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
         #params

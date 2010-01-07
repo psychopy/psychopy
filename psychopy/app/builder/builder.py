@@ -113,7 +113,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.redrawFlow()
 
         #bring up listbox to choose the routine to add and/or create a new one
-        loopDlg = DlgLoopProperties(frame=self.frame)
+        loopDlg = DlgLoopProperties(frame=self.frame, 
+            helpUrl = self.app.urls['builder.loops'])
 
         if loopDlg.OK:
             handler=loopDlg.currentHandler
@@ -645,11 +646,15 @@ class RoutineCanvas(wx.ScrolledWindow):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
             componentName=event.EventObject.GetName()
             component=self.routine.getComponentFromName(componentName)
-
+        #does this component have a help page?
+        if hasattr(component, 'url'):helpUrl=component.url
+        else:helpUrl=None
+        #create the dialog
         dlg = DlgComponentProperties(frame=self.frame,
             title=component.params['name'].val+' Properties',
             params = component.params,
-            order = component.order)
+            order = component.order,
+            helpUrl=helpUrl)
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
@@ -771,11 +776,17 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         componentName = newClassStr.replace('Component','')
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name, exp=self.frame.exp)
+        #does this component have a help page?
+        if hasattr(newComp, 'url'):helpUrl=newComp.url
+        else:
+            helpUrl=None
+            print dir(newComp)
         #create component template
         dlg = DlgComponentProperties(frame=self.frame,
             title=componentName+' Properties',
             params = newComp.params,
-            order = newComp.order)
+            order = newComp.order,
+            helpUrl=helpUrl)
         compName = newComp.params['name']
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
@@ -911,13 +922,15 @@ class ParamCtrls:
         if self.updateCtrl:
             return self._getCtrlValue(self.updateCtrl)
 class _BaseParamsDlg(wx.Dialog):
-    def __init__(self,frame,title,params,order,suppressTitles=True,
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
+        self.helpUrl=helpUrl
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
@@ -989,14 +1002,20 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetForegroundColour(wx.RED)
         #add buttons for OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.StdDialogButtonSizer()
+        #help button if we know the url
+        if self.helpUrl!=None:
+            helpBtn = wx.Button(self, wx.ID_HELP)
+            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+            buttons.Add(helpBtn, wx.ALIGN_LEFT, wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
         self.checkName()
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-
+        buttons.Realize()    
         #put it all together
         self.mainSizer.Add(self.ctrlSizer)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
@@ -1039,11 +1058,17 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")
+    def onHelp(self, event=None):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
 class DlgLoopProperties(_BaseParamsDlg):
     def __init__(self,frame,title="Loop properties",loop=None,
+            helpUrl=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
+        self.helpUrl=helpUrl
         self.frame=frame
         self.exp=frame.exp
         self.app=frame.app
@@ -1253,15 +1278,18 @@ class DlgLoopProperties(_BaseParamsDlg):
             if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):
-    def __init__(self,frame,title,params,order,suppressTitles=True,
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
+                                helpUrl=helpUrl,
                                 pos=pos,size=size,style=style)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
+        print 'url=', self.helpUrl, helpUrl
 
         #for input devices:
         if 'storeCorrect' in self.params:
@@ -1572,8 +1600,8 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.helpMenu, '&Help')
         self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
         wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
-        self.helpMenu.Append(self.IDs.psychopyTutorial, "&PsychoPy Tutorial", "Go to the online PsychoPy tutorial")
-        wx.EVT_MENU(self, self.IDs.psychopyTutorial, self.app.followLink)
+        self.helpMenu.Append(self.IDs.builderHelp, "&PsychoPy Builder Help", "Go to the online documentation for PsychoPy Builder")
+        wx.EVT_MENU(self, self.IDs.builderHelp, self.app.followLink)
 
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(self.IDs.about, "&About...", "About PsychoPy")

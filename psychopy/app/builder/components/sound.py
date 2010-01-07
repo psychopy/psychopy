@@ -13,6 +13,7 @@ class SoundComponent(BaseComponent):
     def __init__(self, exp, parentName, name='', sound='A', 
             size=1, ori=0, times=[0,1]):
         self.type='Sound'
+        self.url="http://www.psychopy.org/builder/components/sound.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params

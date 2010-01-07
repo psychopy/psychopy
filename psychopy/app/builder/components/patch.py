@@ -19,6 +19,7 @@ class PatchComponent(VisualComponent):
                     colour=colour, colourSpace=colourSpace,
                     pos=pos, size=size, ori=ori, times=times)
         self.type='Patch'
+        self.url="http://www.psychopy.org/builder/components/patch.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params

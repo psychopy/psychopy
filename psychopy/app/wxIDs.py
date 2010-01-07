@@ -43,9 +43,11 @@ openUpdater=wx.NewId()
 #AND for those with weblinks the relevant URL should be provided at top of psychopyApp.py
 about=wx.NewId()
 license=wx.NewId()
-psychopyTutorial=wx.NewId()
+coderTutorial=wx.NewId()
+builderHelp=wx.NewId()
 psychopyHome=wx.NewId()
 psychopyReference=wx.NewId()
+api = wx.NewId()
 #help pages (from help buttons)
 docsPrefsDlg=wx.NewId()
 

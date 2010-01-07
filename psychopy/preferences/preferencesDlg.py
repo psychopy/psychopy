@@ -58,15 +58,21 @@ class PreferencesDlg(wx.Dialog):
         btn.SetHelpText("Get help on prefs")
         btn.Bind(wx.EVT_BUTTON, self.onHelp)
         btnsizer.AddButton(btn)
-        btnsizer.Realize()    
+        btnsizer.Realize()
         #add buttons to dlg
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
         sizer.Fit(self)
     def onHelp(self, event=None):
-        #this should be handled from app.followLink instead
-        wx.LaunchDefaultBrowser("http://www.psychopy.org/general/prefs.html")
+        """Uses self.app.followLink() and app/urls.py to go to correct url
+        """
+        currentPane = self.nb.GetPageText(self.nb.GetSelection())
+        urlName = "prefs.%s" %currentPane#what the url should be called in psychopy.app.urls
+        if urlName in self.app.urls.keys():
+            url = self.app.urls[urlName]
+        else: url=self.app.urls["prefs"]#couldn't find that section - use default prefs
+        self.app.followLink(url=url)
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
     def onCancel(self, event=None):

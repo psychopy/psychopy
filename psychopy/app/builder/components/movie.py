@@ -16,13 +16,14 @@ class MovieComponent(VisualComponent):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
                     pos=pos, size=size, ori=ori, times=times)
+        self.type='Movie'
+        self.url="http://www.psychopy.org/builder/components/movie.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params
         #these are normally added but we don't want them for a movie            
         del self.params['colour']
         del self.params['colourSpace']
-        self.type='Movie'
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A filename for the movie (including path)")        

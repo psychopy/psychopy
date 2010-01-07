@@ -13,6 +13,7 @@ class KeyboardComponent(BaseComponent):
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==str(thisTrial.corrAns)",storeResponseTime=True,times=[0,1]):
         self.type='Keyboard'
+        self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['gui'])
         self.parentName=parentName
