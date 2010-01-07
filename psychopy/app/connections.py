@@ -87,24 +87,42 @@ class Updater:
         
         if self.latest==-1: return -1#failed to find out about updates
         #have found 'latest'. Is it newer than running version?
-        if self.latest['version']>self.runningVersion and not (self.app.prefs.appData['skipVersion']==self.latest['version']):            
-            msg = "PsychoPy v%s is available (you are running %s).\n\n" %(self.latest['version'], self.runningVersion)
-            msg+= "For details see full changelog at\nhttp://www.psychopy.org/changelog.html"
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
-            confirmDlg.cancelBtn.SetLabel('Not now')
-            confirmDlg.noBtn.SetLabel('Skip this version')        
-            confirmDlg.yesBtn.SetDefault()    
-            resp=confirmDlg.ShowModal()
-            confirmDlg.Destroy()
-            #what did the user ask us to do?
-            if resp==wx.ID_CANCEL:
-                return 0#do nothing
-            if resp==wx.ID_NO:
-                self.app.prefs.appData['skipVersion']=self.latest['version']
-                self.app.prefs.saveAppData()
-                return 0#do nothing
-            if resp==wx.ID_YES:
-                self.doUpdate()
+        if self.latest['version']>self.runningVersion and not (self.app.prefs.appData['skipVersion']==self.latest['version']):
+            if self.latest['lastCompatible']<self.runningVersion:
+                #go to the updating window
+                msg = "PsychoPy v%s is available (you are running %s).\n\n" %(self.latest['version'], self.runningVersion)
+                msg+= "For details see full changelog at\nhttp://www.psychopy.org/changelog.html"
+                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
+                confirmDlg.cancelBtn.SetLabel('Not now')
+                confirmDlg.noBtn.SetLabel('Skip this version')        
+                confirmDlg.yesBtn.SetDefault()    
+                resp=confirmDlg.ShowModal()
+                confirmDlg.Destroy()
+                #what did the user ask us to do?
+                if resp==wx.ID_CANCEL:
+                    return 0#do nothing
+                if resp==wx.ID_NO:
+                    self.app.prefs.appData['skipVersion']=self.latest['version']
+                    self.app.prefs.saveAppData()
+                    return 0#do nothing
+                if resp==wx.ID_YES:
+                    self.doUpdate()
+            else:
+                #the latest version needs a full install, rather than an autoupdate
+                msg = "PsychoPy v%s is available (you are running %s).\n\n" %(self.latest['version'], self.runningVersion)
+                msg+= "This version is too big an update to be handled automatically.\n"
+                msg+= "Please fetch the latest version from www.psychopy.org and install manually."
+                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
+                confirmDlg.cancelBtn.SetLabel('Go to downloads')       
+                confirmDlg.cancelBtn.SetDefault()   
+                confirmDlg.noBtn.SetLabel('Go to changelog')    
+                confirmDlg.yesBtn.SetLabel('Later')              
+                resp=confirmDlg.ShowModal()
+                confirmDlg.Destroy()
+                if resp==wx.ID_CANCEL:
+                    self.app.followLink(url=self.app.urls['downloads'])
+                if resp==wx.ID_NO:
+                    self.app.followLink(url=self.app.urls['changelog'])
         elif not confirmationDlg:#don't confirm but return the latest version info
             return 0
         else:
@@ -180,12 +198,18 @@ class InstallUpdateDialog(wx.Frame):
             msg = "You are running the latest version of PsychoPy (%s)\n " %(self.runningVersion) + \
                 "You can revert to a previous version by selecting a specific .zip source installation file" 
         else:
-            msg = "PsychoPy v%s is available\nyou are running v%s)" %(self.latest['version'], self.runningVersion)
+            msg = "PsychoPy v%s is available\nYou are running v%s" %(self.latest['version'], self.runningVersion)
+            if self.latest['lastCompatible']<self.runningVersion:
+                msg+="\nYou can update to this version automatically"
+            else:
+                msg+="You cannot update to this version automatically.\nPlease fetch the latest version from www.psychopy.org"  
         self.statusMessage.SetLabel(msg)
-        if self.latest==-1 or self.latest['version']==self.runningVersion:
-            self.currentSelection=self.useZipBtn
-            self.useZipBtn.SetValue(True)
-            self.useLatestBtn.Disable()
+        if self.latest==-1 \
+            or self.latest['version']==self.runningVersion \
+            or self.latest['lastCompatible']>self.runningVersion:#can't auto-update
+                self.currentSelection=self.useZipBtn
+                self.useZipBtn.SetValue(True)
+                self.useLatestBtn.Disable()
         else:
             self.currentSelection=self.useLatestBtn
             self.useLatestBtn.SetValue(True)
