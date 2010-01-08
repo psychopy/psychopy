@@ -2,7 +2,7 @@
 from psychopy import core, visual, event
 
 #create a window to draw in
-myWin = visual.Window((600,600), monitor='testMonitor',allowGUI=False, rgb=(-1,-1,-1))
+myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, rgb=(-1,-1,-1))
 
 """There are two options for drawing image-based stimuli in PsychoPy:
     
@@ -15,7 +15,7 @@ myWin = visual.Window((600,600), monitor='testMonitor',allowGUI=False, rgb=(-1,-
     (or it may well appear stretched).
 """
 #INITIALISE SOME STIMULI
-beach = visual.SimpleImageStim(myWin, 'beach.jpg', pos=(0,1.50), units='deg')
+beach = visual.SimpleImageStim(myWin, 'beach.jpg', flipHoriz=True, pos=(0,1.50), units='deg')
 faceRGB = visual.PatchStim(myWin,tex='face.jpg', mask=None,
     pos=(0.5,-0.4), size=(1.0,1.0), sf=(1.0, 1.0))
 faceALPHA = visual.PatchStim(myWin,pos=(-0.7,-0.2),

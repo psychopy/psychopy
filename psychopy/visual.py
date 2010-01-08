@@ -1329,11 +1329,31 @@ class SimpleImageStim(_BaseVisualStim):
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.setImage(image)
+        #flip if necess
+        self.flipHoriz=False#initially it is false, then so the flip according to arg above
+        self.setFlipHoriz(flipHoriz)
+        self.flipVert=False#initially it is false, then so the flip according to arg above
+        self.setFlipVert(flipVert)
         #fix scaling to window coords
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
         self._calcPosRendered()
-    
+    def setFlipHoriz(self,newVal=True):
+        """If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        if newVal!=self.flipHoriz: #we need to make the flip
+            self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
+        self.flipHoriz=newVal
+        self._needStrUpdate=True
+    def setFlipVert(self,newVal=True):
+        """If set to True then the image will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        if newVal!=self.flipVert: #we need to make the flip
+            self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
+        self.flipVert=newVal
+        self._needStrUpdate=True
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
@@ -1342,7 +1362,10 @@ class SimpleImageStim(_BaseVisualStim):
             log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            self.setImage()            
+            self.setImage()
+    def _updateImageStr(self):
+        self._imStr=self.imArray.tostring()
+        self._needStrUpdate=False
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -1362,6 +1385,7 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glMatrixMode(GL.GL_MODELVIEW)							
         GL.glLoadIdentity()
         
+        if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
         GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1373,10 +1397,11 @@ class SimpleImageStim(_BaseVisualStim):
         #move to centre of stimulus and rotate
         GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
             self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
+            
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0],self.size[1],
             self.internalFormat,self.dataType, 
-            self.imArray.ctypes)
+            self._imStr)
         #return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode( GL.GL_PROJECTION )					
         GL.glPopMatrix()
@@ -1411,7 +1436,7 @@ class SimpleImageStim(_BaseVisualStim):
         else:
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray)
-            
+        self._needStrUpdate=True
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.

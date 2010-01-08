@@ -24,10 +24,11 @@ PsychoPy 1.60.00
 * ADDED: Monitor Center can be closed with Ctrl-W
 * ADDED: visual.Window now has a setRGB() method
 * ADDED: context-specific help buttons to Builder dialogs
+* IMPLEMENTED: code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
+* IMPROVED: Splash screen comes up faster to show the app is loading
 * FIXED: bug in RadialStim .set functions (default operation should be "" not None)
 * FIXED: on mac trying to save an unchanged document no longer inserts an 's'
 * FIXED: bug with SimpleImageStim not drawing to windows except #1
-* IMPROVED: Splash screen comes up faster to show the app is loading
 * FIXED: one bug preventing PsychoPy from running on vista/win7 (are there more?)
 
 PsychoPy 1.51.00 
