@@ -9,4 +9,4 @@ To work the demo needs a square image called face.jpg (e.g. :download:`../images
    :target: documentation.html
    :alt: draw a drifting plaid
 
-.. literalinclude:: face_jpg.py
+.. literalinclude:: face.py
