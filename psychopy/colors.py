@@ -1,34 +1,17 @@
-<<<<<<< HEAD:psychopy/colors.py
-
-=======
 from psychopy.misc import dkl2rgb, lms2rgb
->>>>>>> lib: added colors.py to handle named colors:psychopy/colors.py
+
 def hex2rgb(hexColor):
     """Convert a hex color string (e.g. "#05ff66") into a PsychoPy rgb triplet 
     ranging from -1:1
     """
     if hexColor[0] == '#': hexColor = hexColor[1:]
     elif hexColor[0:2].lower() == '0x': hexColor = hexColor[2:]
-<<<<<<< HEAD:psychopy/colors.py
-    if len(hexColor) < 6: hexColor = hexColor[0]+'0'+hexColor[1]+'0'+hexColor[2]+'0'    
-    return int(hexColor[0:2], 16)/127.5-1, int(hexColor[2:4], 16)/127.5-1, int(hexColor[4:6], 16)/127.5-1
-def hex2rgb2(hexColor):
-    """Convert a hex color string (e.g. "#05ff66") into a PsychoPy rgb triplet 
-    ranging from -1:1
-    """
-    if hexColor[0] == '#': hexColor = hexColor[1:]
-    elif hexColor[0:2].lower() == '0x': hexColor = hexColor[2:]
-    if len(hexColor) < 6: hexColor = '%6s' %hexColor
-    return int(hexColor[0:2], 16)/127.5-1, int(hexColor[2:4], 16)/127.5-1, int(hexColor[4:6], 16)/127.5-1
-    
-=======
     if len(hexColor)==3: hexColor = hexColor[0]+'0'+hexColor[1]+'0'+hexColor[2]+'0'    
     return int(hexColor[0:2], 16)/127.5-1, int(hexColor[2:4], 16)/127.5-1, int(hexColor[4:6], 16)/127.5-1
 
->>>>>>> lib: added colors.py to handle named colors:psychopy/colors.py
 """140 colors defined by most modern browsers (originally the standard colors of X11).
 Google for 140 web colors for further info""" 
-colorNames={
+colors={
     "aliceblue":(0.882352941176471,0.945098039215686,1),
     "antiquewhite":(0.96078431372549,0.843137254901961,0.686274509803922),
     "aqua":(-1,1,1),
@@ -177,7 +160,7 @@ colorNames={
     "yellow":(1,1,-1),
     "yellowgreen":(0.207843137254902,0.607843137254902,-0.607843137254902),
     }
-colorNamesHex={
+colorsHex={
     'aliceblue':'#F0F8FF',
     'antiquewhite':'#FAEBD7',
     'aqua':'#00FFFF',
@@ -319,7 +302,7 @@ colorNamesHex={
     'yellow':'#FFFF00',
     'yellowgreen':'#9ACD32'
     }
-colorNames255={
+colors255={
     "aliceblue":(240,248,255),
     "antiquewhite":(250,235,215),
     "aqua":(0,255,255),
