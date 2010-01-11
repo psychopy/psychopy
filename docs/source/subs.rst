@@ -1,0 +1,1 @@
+.. |PP| replace:: /PsychoPy/
