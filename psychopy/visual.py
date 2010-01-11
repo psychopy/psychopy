@@ -6,6 +6,7 @@
 
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log, preferences, monitors
+import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
