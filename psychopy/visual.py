@@ -455,15 +455,33 @@ class Window:
         im=im.convert('RGB')
         self.movieFrames.append(im)
 
-    def saveMovieFrames(self, fileName, mpgCodec='mpeg1video'):
+    def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
+        fps=30):
         """
         Writes any captured frames to disk. Will write any format
         that is understood by PIL (tif, jpg, bmp, png...)
-
-        Usage:
-            - ``myWin.saveMovieFrames('frame.tif')``
-                #writes a series of frames as frame001.tif, frame002.tif etc...
-
+        
+        :parameters:
+        
+            filename: name of file, including path (required)
+                The extension at the end of the file determines the type of file(s)
+                created. If an image type is given the multiple static frames are created.
+                If it is .gif then an animated GIF image is created (although you will get higher
+                quality GIF by saving PNG files and then combining them in dedicated 
+                image manipulation software (e.g. GIMP). On windows and linux `.mpeg` files
+                can be created if `pymedia` is installed. On OS X `.mov` files can be created
+                if the pyobjc-frameworks-QTKit is installed.
+            
+            mpgCodec: the code to be used **by pymedia** if the filename ends in .mpg
+            
+            fps: the frame rate to be used throughout the movie **only for quicktime (.mov) movies**
+            
+        Examples::
+            myWin.saveMovieFrames('frame.tif')#writes a series of static frames as frame001.tif, frame002.tif etc...
+            myWin.saveMovieFrames('stimuli.mov', fps=25)#on OS X only
+            myWin.saveMovieFrames('stimuli.gif')#but not great quality
+            myWin.saveMovieFrames('stimuli.mpg')#not on OS X
+            
         """
         fileRoot, fileExt = os.path.splitext(fileName)
         if len(self.movieFrames)==0:
@@ -472,7 +490,18 @@ class Window:
         else:
             log.info('writing %i frames' %len(self.movieFrames))
         if fileExt=='.gif': makeMovies.makeAnimatedGIF(fileName, self.movieFrames)
-        elif fileExt in ['.mpg', '.mpeg']: makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
+        elif fileExt in ['.mpg', '.mpeg']: 
+            if sys.platform=='darwin':
+                raise IOError('Mpeg movies are not currently available under OSX.'+\
+                    ' You can use quicktime movies (.mov) instead though.')
+            makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
+        elif fileExt in ['.mov', '.MOV']: 
+            if sys.platform!='darwin':
+                raise IOError('Quicktime movies are only currently available under OSX.'+\
+                    ' Try using mpeg compression instead (.mpg).')
+            mov = makeMovies.QuicktimeMovie(filename, fps=fps)
+            for frame in self.movieFrames:
+                mov.addFrame(frame, frameDuration)
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
@@ -823,7 +852,7 @@ class _BaseVisualStim:
         if not self._useShaders:
             self.setMask(self._maskName)
     def setDKL(self, newDKL, operation=''):
-        self._set('dkl', value=newDKL, op=operation)
+        self._set('dkl', val=newDKL, op=operation)
         self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
     def setLMS(self, newLMS, operation=''):
         self._set('lms', value=newLMS, op=operation)
