@@ -30,6 +30,12 @@ PsychoPy 1.60.00
 * FIXED: on mac trying to save an unchanged document no longer inserts an 's'
 * FIXED: bug with SimpleImageStim not drawing to windows except #1
 * FIXED: one bug preventing PsychoPy from running on vista/win7 (are there more?)
+* RESTRUCTURED: the serial package is no longer a part of core psychopy and is no longer required (except when hardware is actually being connected). This should now be installed as a dependency by users, but is still included with the Standalone packages.
+* RESTRUCTURED: preparing for further devices to be added, hardware is now a folder with files for each manufacturer. Now use e.g.::
+
+    from psychopy.hardware.PR import PR650
+    from psychopy.hardware.cedrus import RB730
+
 
 PsychoPy 1.51.00 
 ~~~~~~~~~~~~~~~~~~~~~~

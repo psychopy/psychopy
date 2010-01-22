@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-from psychopy.hardware import CedrusPad
+from psychopy.hardware import cedrus
 from psychopy import core
 import sys
 
-rb730 = CedrusPad(7,'RB730',baudrate=115200)
+rb730 = cedrus.RB730(7,'RB730',baudrate=115200)
 #get RB info
 print rb730.getInfo()
 print 'roundTrip:', rb730.measureRoundTrip()#this is the time taken to send a signal to the unit and back via USB
