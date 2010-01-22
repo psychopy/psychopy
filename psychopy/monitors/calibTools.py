@@ -5,9 +5,14 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from calibData import *
-from psychopy import __version__, log, serial
+from psychopy import __version__, log
 import time
-    
+
+try: 
+    import serial
+    haveSerial=True
+except:
+    haveSerial=False
 import string, os, time, glob, cPickle, sys
 from copy import deepcopy, copy
 
@@ -106,7 +111,11 @@ class Photometer:
         self.type=meterType
         self.isOpen=0
         self.lastQual=0
-
+        
+        if not haveSerial:
+            raise ImportError('The module serial is needed to connect to photometers. ' +\
+                "On most systems this can be installed with\n\t easy_install serial") 
+        
         try:
             #try to open the actual port
             if sys.platform =='darwin':

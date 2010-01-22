@@ -2,9 +2,14 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import serial, core, log
+from psychopy import core, log
 import struct, sys
-  
+
+try: 
+    import serial
+    haveSerial=True
+except:
+    haveSerial=False
 
 class CedrusPad:
     """Class to control/read a Cedrus RB-series response box"""
@@ -32,6 +37,11 @@ class CedrusPad:
                     
             
     def __init__(self, port, model='RB730', baudrate=115200, mode='XID'):
+        
+        if not haveSerial:
+            raise ImportError('The module serial is needed to connect to the Cedrus response pad. ' +\
+                "On most systems this can be installed with\n\t easy_install serial")
+                
         self.model = model
         #set name of port
         if type(port) in [int, float]:
@@ -161,6 +171,11 @@ class ForpBox:
     """
     def __init__(self, serialPort=1):
         """serialPort should be a number (where 1=COM1,...)"""
+        
+        if not haveSerial:
+            raise ImportError('The module serial is needed to connect to fORP. ' +\
+                "On most systems this can be installed with\n\t easy_install serial")
+                
         self.port = serial.Serial(serialPort-1, baudrate=19200, bytesize=8, parity='N', stopbits=1, timeout=0.001)
         self.port.open()
         self.rawEvts = []
@@ -220,6 +235,10 @@ class PR650:
         self.isOpen=0
         self.lastQual=0
         
+        if not haveSerial:
+            raise ImportError('The module serial is needed to connect to photometers. ' +\
+                "On most systems this can be installed with\n\t easy_install serial")
+                
         #list of codes for returns
         self.code={'OK':'000\r\n',#this is returned after measure
             '18':'Light Low',#these is returned at beginning of data
@@ -371,6 +390,11 @@ class MinoltaLS100:
     jwp (12/2003)
     """
     def __init__(self, port, verbose=True):
+        
+        if not haveSerial:
+            raise ImportError('The module serial is needed to connect to photometers. ' +\
+                "On most systems this can be installed with\n\t easy_install serial")
+                
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
             self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
