@@ -556,7 +556,10 @@ class Window:
         This new colour will only be updated on the next call to `Window.flip()`
         """
         global GL
-        self.rgb=newRGB
+        if type(newRGB) in [int, float]:
+            self.rgb=[newRGB, newRGB, newRGB]
+        else:
+            self.rgb=newRGB
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
         
     def setScale(self, units, font='dummyFont', prevScale=[1.0,1.0]):
