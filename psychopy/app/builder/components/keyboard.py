@@ -9,9 +9,10 @@ thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folde
 iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
-    """An event class for checking the keyboard at given times"""
+    """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
-            forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==str(thisTrial.corrAns)",storeResponseTime=True,times=[0,1]):
+            forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==str(thisTrial.corrAns)",storeResponseTime=True,
+            startTime=0.0, duration=1.0):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
@@ -21,14 +22,17 @@ class KeyboardComponent(BaseComponent):
         self.params={}
         self.order=['name','allowedKeys',
             'store','storeCorrect','correctIf',
-            'forceEndTrial','times']
+            'forceEndTrial','startTime']
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
         self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="The keys the user may press, e.g. a,b,q,left,right")  
-        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            hint="The keys the user may press, e.g. a,b,q,left,right")
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")
+            hint="The time that the keyboard starts being checked")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The length of time that the keyboard should be checked")
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")  
@@ -77,7 +81,7 @@ class KeyboardComponent(BaseComponent):
         continueName = self.exp.flow._currentRoutine._continueName
         
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         dedentAtEnd=1
         #create a clo
         if self.params['storeResponseTime'].val==True:

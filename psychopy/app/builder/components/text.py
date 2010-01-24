@@ -13,18 +13,18 @@ class TextComponent(VisualComponent):
     def __init__(self, exp, parentName, name='', 
                  text='"Hint: Use double quotes for text (or this looks like a variable)"', 
                  font='Arial',units='window units', colour=[1,1,1], colourSpace='rgb',
-                 pos=[0,0], letterHeight=0.1, ori=0, times=[0,1]):
+                 pos=[0,0], letterHeight=0.1, ori=0, startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units, 
                     colour=colour, colourSpace=colourSpace,
-                    pos=pos, ori=ori, times=times)
+                    pos=pos, ori=ori, startTime=startTime, duration=duration)
         self.type='Text'
         self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         self.parentName=parentName
         #params
-        self.order=['name']#make sure this is at top
+        self.order=['name','startTime','duration']#make sure this is at top
         self.params['text']=Param(text, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The text to be displayed")

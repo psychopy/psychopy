@@ -10,9 +10,9 @@ class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     def __init__(self, parentName, name='', units='window units', colour=[1,1,1],
-        pos=[0,0], size=[0,0], ori=0, times=[0,1], colourSpace='rgb'):
+        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration=1.0, colourSpace='rgb'):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
-        self.order=['name']#make name come first (others don't matter)
+        self.order=['name','startTime','duration']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name,  valType='code', updates='constant', 
             hint="Name of this stimulus")
@@ -33,15 +33,18 @@ class VisualComponent(_base.BaseComponent):
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Orientation of this stimulus (in deg)")
-        self.params['times']=Param(times, valType='code', allowedTypes=[],
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Start and end times for this stimulus (e.g. [0,1] or [[0,1],[2,3]] for a repeated appearance")
+            hint="The time that the stimulus is first presented")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The duration for which the stimulus is presented")
             
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         #set parameters that need updating every frame
         self.writeParamUpdates(buff, 'set every frame')
         #draw the stimulus

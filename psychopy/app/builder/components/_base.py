@@ -8,13 +8,13 @@ from psychopy.app.builder.experiment import Param
 
 class BaseComponent:
     """A template for components, defining the methods to be overridden"""
-    def __init__(self, exp, parentName, name='', times=[0,1]):
+    def __init__(self, exp, parentName, name='', startTime=0.0, duration=1.0):
         self.type='Base'
         self.exp=exp#so we can access the experiment if necess
         self.params={}
         self.params['name']=Param(name, valType='code', 
             hint="Name of this loop")
-        self.order=['name']#make name come first (others don't matter)
+        self.order=['name','startTime','duration']#make name come first (others don't matter)
     def writeInitCode(self,buff):
         pass
     def writeFrameCode(self,buff):
@@ -35,16 +35,15 @@ class BaseComponent:
         """Write the code for each frame that tests whether the component is being
         drawn/used.
         """
-        exec("times=%s" %self.params['times'].val)
-        if type(times[0]) in [int, float]:
-            times=[times]#make a list of lists
-        #write the code for the first repeat of the stimulus
-        buff.writeIndented("if (%.4f <= t < %.4f)" %(times[0][0], times[0][1]))
-        if len(times)>1:
-            for epoch in times[1:]: 
-                buff.write("\n")
-                buff.writeIndented("    or (%.f <= t < %.f)" %(epoch[0], epoch[1]))
-        buff.write(':\n')#the condition is done add the : and new line to finish        
+        exec('times=%s,%s' %(self.params['startTime'],self.params['duration']))
+        start=times[0]
+        #determine end from start and duration (if it exists)
+        if len(times)>1:end=sum(times)
+        else:end=-1
+        if self.params['duration'].val=='':
+            buff.writeIndented("if (%s <= t):\n" %(self.params['startTime']))            
+        else:
+            buff.writeIndented("if (%s<= t < %s):\n" %(self.params['startTime'],self.params['duration']))
     def writeParamUpdates(self, buff, updateType):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'

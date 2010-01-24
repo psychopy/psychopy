@@ -10,7 +10,7 @@ import csv, numpy
 from matplotlib import mlab
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-
+inf=1000000#a million can be infinite?!
 canvasColour=[200,200,200]#in prefs? ;-)
 
 class FlowPanel(wx.ScrolledWindow):
@@ -618,15 +618,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         #for the fill, draw once in white near-opaque, then in transp colour
         dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
         h = self.componentStep/2
-        exec("times=%s" %component.params['times'])
-        if type(times[0]) in [int,float]:
-            times=[times]
-        for thisOcc in times:#each occasion/occurence
-            st, end = thisOcc
-            xSt = self.timeXposStart + st/xScale
-            thisOccW = (end-st)/xScale
-            if thisOccW<2: thisOccW=2#make sure at least one pixel shows
-            dc.DrawRectangle(xSt, y, thisOccW,h )
+        exec("st = %s" %(component.params['startTime']))
+        #get end time if not -1(infinite)
+        if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
+        else: exec("duration = %s" %(component.params['duration']))
+        xSt = self.timeXposStart + st/xScale
+        w = duration/xScale
+        if w<2: w=2#make sure at least one pixel shows
+        dc.DrawRectangle(xSt, y, w,h )
 
         ##set an id for the region where the component.icon falls (so it can act as a button)
         #see if we created this already
@@ -711,7 +710,6 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         """
         routine = self.GetPage(event.GetSelection()).routine
         name=routine.name
-        print 'currentRoutine is', name
         #update experiment object and flow window (if this is being used)
         if name in self.frame.exp.routines.keys():
             del self.frame.exp.routines[name]
@@ -780,7 +778,6 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         if hasattr(newComp, 'url'):helpUrl=newComp.url
         else:
             helpUrl=None
-            print dir(newComp)
         #create component template
         dlg = DlgComponentProperties(frame=self.frame,
             title=componentName+' Properties',
@@ -1289,7 +1286,6 @@ class DlgComponentProperties(_BaseParamsDlg):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        print 'url=', self.helpUrl, helpUrl
 
         #for input devices:
         if 'storeCorrect' in self.params:

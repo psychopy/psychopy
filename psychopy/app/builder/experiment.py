@@ -604,9 +604,12 @@ class Routine(list):
                 return comp
         return None
     def getMaxTime(self):
-        maxTime=0;
+        maxTime=0
+        times=[]
         for event in self:
-            exec("times=%s" %event.params['times'].val)#convert params['times'].val into numeric
+            if event.params['duration'].val in ['-1', '']: maxTime=1000000
+            else:
+                exec("maxTime=%s" %event.params['duration'])#convert params['duration'].val into numeric
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime

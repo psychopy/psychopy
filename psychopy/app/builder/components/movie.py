@@ -12,10 +12,10 @@ class MovieComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', movie='', 
         units='window units', 
-        pos=[0,0], size=[0,0], ori=0, times=[0,1]):
+        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
-                    pos=pos, size=size, ori=ori, times=times)
+                    pos=pos, size=size, ori=ori, startTime=startTime, duration=duration)
         self.type='Movie'
         self.url="http://www.psychopy.org/builder/components/movie.html"
         self.exp=exp#so we can access the experiment if necess
