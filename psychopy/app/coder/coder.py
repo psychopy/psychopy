@@ -1545,7 +1545,9 @@ class CoderFrame(wx.Frame):
         except Exception, e:
             print "Problem compiling: %s" %e
 
-        print '\nRunning %s as %s' %(self.currentDoc.filename, self.appPrefs['runScripts'])
+        #provide a running... message
+        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)
         wx.EVT_IDLE(self, None)

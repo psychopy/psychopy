@@ -1381,7 +1381,7 @@ class BuilderFrame(wx.Frame):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -1855,20 +1855,23 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         path, scriptName = os.path.split(fullPath)
         shortName, ext = os.path.splitext(scriptName)
-
+        
         #set the directory and add to path
         if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
         f = open(fullPath, 'w')
         f.write(script.getvalue())
         f.close()
-
+        
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
-
+        
+        #provide a running... message
+        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
+        
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
-        self.stdoutFrame
-
+        
         if sys.platform=='win32':
             command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
@@ -1893,14 +1896,18 @@ class BuilderFrame(wx.Frame):
         text=""
         if self.scriptProcess.IsInputAvailable():
             stream = self.scriptProcess.GetInputStream()
-            text.append(stream.read())
+            text += stream.read()
         if self.scriptProcess.IsErrorAvailable():
             stream = self.scriptProcess.GetErrorStream()
-            text.append(stream.read())
-        if len(text):
-            self.stdoutFrame.write(text)
+            text += stream.read()
+        if len(text): self.stdoutFrame.write(text) #if some text hadn't yet been written (possible?)
+        if len(self.stdoutFrame.getText())>self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
+            
+        #provide a finihed... message
+        msg = "\n"+" Finished ".center(80,"#")#80 chars padded with #
+        
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig

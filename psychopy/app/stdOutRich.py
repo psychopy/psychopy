@@ -33,6 +33,14 @@ class StdOutRich(wx.richtext.RichTextCtrl):
                 self.EndURL()
                 self.EndBold()
                 self.EndTextColour()
+            elif len(re.findall('WARNING',thisLine))>0:
+                self.BeginTextColour([0,150,0])  
+                self.WriteText(thisLine)
+                self.EndTextColour()     
+            elif len(re.findall('ERROR', thisLine))>0:
+                self.BeginTextColour([150,0,0])
+                self.WriteText(thisLine)
+                self.EndTextColour()         
             else:
                 #line to write as simple text
                 self.WriteText(thisLine)
@@ -40,12 +48,12 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         self.ShowPosition(self.GetLastPosition() )
 
     def flush(self):
-        pass#not needed?
+        self.Flush()#not needed?
         
 class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
     """
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy StdOut", size=wx.DefaultSize):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, ID, title)
         panel = wx.Panel(self)
         
@@ -53,6 +61,7 @@ class StdOutFrame(wx.Frame):
         self.app=app
         self.stdoutOrig=sys.stdout
         self.stderrOrig=sys.stderr
+        self.lenLastRun=0
         
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
@@ -97,3 +106,8 @@ class StdOutFrame(wx.Frame):
         self.stdoutCtrl.flush()
     def onURL(self, evt):
         self.parent.onURL(evt)#just pass this one on
+    def getText(self):
+        """Return the text of the current buffer
+        """
+        return self.stdoutCtrl.GetValue()
+        
