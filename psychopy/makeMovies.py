@@ -378,7 +378,7 @@ class QuicktimeMovie(object):
         """
         if filename==None: filename = self.filename
         self.movie.writeToFile_withAttributes_(filename,
-            {QTKit.QTMovieFlatten:False})#if True then there is no inter-frame compression
+            {QTKit.QTMovieFlatten:True})#if True then there is no inter-frame compression
         #self.movie.updateMovieFile()#this doesn't use QTExport settings and you end up with large files (uncompressed in time)
     def __del__(self):
         """Remove any tmp files if possible (including any from previous runs that garbage collection wasn't able to collect)
