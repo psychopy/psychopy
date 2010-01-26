@@ -1,4 +1,4 @@
-:mod:`psychopy.hardware.cedrus` 
+Cedrus
 =============================================
 
 .. automodule:: psychopy.hardware.cedrus

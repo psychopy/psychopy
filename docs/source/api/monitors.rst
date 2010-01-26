@@ -20,14 +20,6 @@ You might also want to fetch the :class:`~psychopy.monitors.Photometer` class fo
     
 --------
     
-:class:`Photometer`
-------------------------------------
-.. autoclass:: psychopy.monitors.Photometer
-    :members: 
-    :undoc-members: 
-    
---------
-    
 :class:`GammaCalculator`
 ------------------------------------
 .. autoclass:: psychopy.monitors.GammaCalculator

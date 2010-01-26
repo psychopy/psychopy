@@ -1,4 +1,4 @@
-:mod:`psychopy.hardware.minolta` 
+Minolta
 =============================================
 
 .. automodule:: psychopy.hardware.minolta

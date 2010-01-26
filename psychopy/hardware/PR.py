@@ -1,7 +1,7 @@
 """PhotoResearch spectrophotometers
+See http://www.photoresearch.com/
 
-see http://www.photoresearch.com/
-
+--------
 """
 # Part of the PsychoPy library
 # Copyright (C) 2009 Jonathan Peirce
@@ -20,7 +20,8 @@ class PR650:
     well be expanded in the future
 
     usage::
-        myPR650 = Photometer(port)
+        from psychopy.hardware.pr import PR650
+        myPR650 = PR650(port)
         myPR650.measure()#make a measurement
         lum = myPR650.lastLum
         nm, power = myPR650.getLastSpectrum()#get a power spectrum for the last measurement

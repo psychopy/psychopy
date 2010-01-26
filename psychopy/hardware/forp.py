@@ -1,3 +1,8 @@
+"""fORP MR-compatible input devices (by CurrentDesigns)
+See http://www.curdes.com/WebHome.html
+
+----------
+"""
 # Part of the PsychoPy library
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).

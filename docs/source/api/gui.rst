@@ -1,6 +1,6 @@
 :mod:`psychopy.gui` - create dialogue boxes
 ===================================================
-        
+
 :class:`~psychopy.gui.DlgFromDict`
 ------------------------------------
 .. autoclass:: psychopy.gui.DlgFromDict

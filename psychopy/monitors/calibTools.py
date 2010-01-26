@@ -94,14 +94,16 @@ def findPR650(ports=None):
 
 class Photometer:
     """
-    DEPRECATED (v.1.60.00)
+    DEPRECATED (v.1.60.00):
     
     Import explicit flavour of photometer as needed e.g.::
         
-        from psychopy.hardware.PR import PR650
+        from psychopy.hardware.pr import PR650
         from psychopy.hardware.minolta import LS100
     """
-    
+    def __init__(self, port, meterType="PR650", verbose=True):
+        log.error(self.__doc__)
+        sys.exit()
 
 class Monitor:
     """Creates a monitor object for storing calibration details.
