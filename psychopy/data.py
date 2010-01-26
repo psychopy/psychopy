@@ -463,6 +463,8 @@ class StairHandler:
         return self
         
     def addData(self, result):
+        """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        """
         self.data.append(result)
         
         #increment the counter of correct scores
@@ -553,17 +555,13 @@ class StairHandler:
         Updates attributes: thisTrial, thisTrialN and thisIndex       
         
         If the trials have ended this method will raise a StopIteration error.
-        This can be handled with code such as 
-        
-        ::
+        This can be handled with code such as::
             
             staircase = StairHandler(.......)
             for eachTrial in staircase:#automatically stops when done
                 #do stuff
            
-        or
-            
-        ::
+        or::
             
             staircase = StairHandler(.......)
             while True: #ie forever
@@ -619,19 +617,7 @@ class StairHandler:
         Arguments:
             fileName 
                 will have .dlm appended (so you can double-click it to
-            	open in excel) and can include path info.            
-             
-            stimOut 
-                the stimulus attributes to be output. To use this you need to
-                use a list of dictionaries and give here the names of dictionary keys
-                that you want as strings            
-            dataOut 
-                a list of strings specifying the dataType and the analysis to
-                be performed. The data can be any of the types that
-                you added using trialHandler.data.add() and the anal can be either
-                'raw' or most things in the numpy library, including;
-                'mean','std','median','max','min'...
-            
+                open in excel) and can include path info.
         """
         
         #create the file or print to stdout

@@ -20,22 +20,24 @@
         <Param name="mask" val="gauss" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="interpolate" val="linear" valType="str" updates="constant"/>
-        <Param name="times" val="[0.5,3]" valType="code" updates="constant"/>
+        <Param name="sf" val="0.1" valType="code" updates="constant"/>
+        <Param name="duration" val="2.5" valType="code" updates="constant"/>
         <Param name="phase" val="trialClock.getTime()*2" valType="code" updates="set every frame"/>
+        <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="pix" valType="str" updates="None"/>
-        <Param name="sf" val="0.1" valType="code" updates="constant"/>
         <Param name="image" val="sin" valType="str" updates="constant"/>
         <Param name="size" val="[128,128]" valType="code" updates="constant"/>
       </PatchComponent>
       <KeyboardComponent name="resp">
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="times" val="[0.5,5.0]" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="[&quot;left&quot;,&quot;right&quot;]" valType="code" updates="constant"/>
+        <Param name="correctAns" val="'left'" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.5" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="[&quot;left&quot;,&quot;right&quot;]" valType="code" updates="constant"/>
+        <Param name="duration" val="4.5" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -46,8 +48,9 @@
         <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="times" val="[0, 10000]" valType="code" updates="constant"/>
+        <Param name="duration" val="10000" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="startTime" val="0" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
@@ -56,16 +59,32 @@
         <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
         <Param name="name" val="ready" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="times" val="[0, 10000]" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="correctAns" val="thisTrial.corrAns" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
+        <Param name="startTime" val="0" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="duration" val="10000" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
   </Routines>
   <Flow>
     <Routine name="instr"/>
+    <LoopInitiator loopType="StairHandler" name="trials">
+      <Param name="endPoints" val="[1, 2]" valType="num" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="min value" val="0" valType="num" updates="None"/>
+      <Param name="N reversals" val="" valType="code" updates="None"/>
+      <Param name="loopType" val="staircase" valType="str" updates="None"/>
+      <Param name="nReps" val="50" valType="num" updates="None"/>
+      <Param name="start value" val="0.5" valType="num" updates="None"/>
+      <Param name="N up" val="1" valType="code" updates="None"/>
+      <Param name="max value" val="1" valType="num" updates="None"/>
+      <Param name="N down" val="3" valType="code" updates="None"/>
+      <Param name="step type" val="log" valType="str" updates="None"/>
+      <Param name="step sizes" val="[0.8,0.8,0.4,0.4,0.2]" valType="num" updates="None"/>
+    </LoopInitiator>
     <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
   </Flow>
 </PsychoPy2experiment>

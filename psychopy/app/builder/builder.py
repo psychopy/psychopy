@@ -1084,7 +1084,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         #create instances of the two loop types
         if loop==None:
             self.trialHandler=experiment.TrialHandler(exp=self.exp, name='trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals='',
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
@@ -1098,7 +1098,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
-            experiment.TrialHandler(exp=self.exp, name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=loop.params['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
         self.params['name']=self.currentHandler.params['name']
 
         self.makeGlobalCtrls()
@@ -1264,7 +1264,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
             self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
     def getParams(self):
-        """retrieves data and re-inserts it into the handler and returns those handler params
+        """Retrieves data and re-inserts it into the handler and returns those handler params
         """
         #get data from input fields
         for fieldName in self.currentHandler.params.keys():

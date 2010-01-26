@@ -135,9 +135,16 @@ class KeyboardComponent(BaseComponent):
         elif store=='all keys': index=""
         
         #write the actual code
-        if store!='nothing' and currLoop:
+        if store!='nothing' and currLoop and currLoop.type=='StairHandler':
+            #data belongs to a StairHandler
             buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("    %s.addData(%s.corr)\n" \
+                                   %(currLoop.params['name'], name))
+        elif store!='nothing' and currLoop:
+            #data belongs to a TrialHandler
+            buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
+            buff.writeIndented("    %s.xxxxaddData('%s.keys',%s.keys%s)\n" \
                                %(currLoop.params['name'],name,name,index))
             if self.params['storeCorrect'].val==True:
                 buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \

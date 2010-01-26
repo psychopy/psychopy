@@ -1342,7 +1342,7 @@ class CoderFrame(wx.Frame):
                 self.notebook.SetSelection(len(self.getOpenFilenames())-1)
             self.currentDoc.filename=filename
             self.setFileModified(False)
-
+            self.currentDoc.SetFocus()
         self.SetLabel('PsychoPy Coder - %s' %self.currentDoc.filename)
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')

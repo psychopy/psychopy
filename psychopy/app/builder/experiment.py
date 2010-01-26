@@ -385,7 +385,7 @@ class TrialHandler:
 class StairHandler:
     """A staircase experimental control object.
     """
-    def __init__(self, exp, name, nReps, startVal, nReversals='None',
+    def __init__(self, exp, name, nReps='50', startVal='', nReversals='',
             nUp=1, nDown=3, minVal=0,maxVal=1,
             stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1]):
         """
@@ -428,11 +428,12 @@ class StairHandler:
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
+        print self.params
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndented("%s=data.StairHandler(nReps=%(name)s, extraInfo=expInfo,\n" %(self.params))
-        buff.writeIndented("    startVal=%(start value)s, stepSizes=%(step sizes)i, stepType=%(step type)s,\n" %self.params)
-        buff.writeIndented("    nReversals=%(nReversals)s, nTrials=%(nReps)i, \n" %self.params)
-        buff.writeIndented("    nUp=%(N up)i, nDown=%(N down)i,\n" %self.params)
+        buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
+        buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
+        buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
+        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
@@ -444,11 +445,6 @@ class StairHandler:
         buff.writeIndented("#staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        ##a string to show all the available variables
-        stimOutStr="["
-        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
-            stimOutStr+= "'%s', " %variable
-        stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm')\n" %self.params)
         buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
