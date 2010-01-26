@@ -24,6 +24,7 @@ PsychoPy 1.60.00
 * ADDED: ability to auto-update form PsychoPy source installer (zip files)
 * ADDED: Monitor Center can be closed with Ctrl-W
 * ADDED: visual.Window now has a setRGB() method
+* ADDED: visual.Window now has a clearBuffer() method
 * ADDED: context-specific help buttons to Builder dialogs
 * IMPLEMENTED: code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
 * IMPROVED: Splash screen comes up faster to show the app is loading

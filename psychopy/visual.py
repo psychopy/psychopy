@@ -422,6 +422,16 @@ class Window:
         """Deprecated: use Window.flip() instead        
         """
         self.flip(clearBuffer=True)#clearBuffer was the original behaviour for win.update()
+
+    def clearBuffer(self):
+        """Clear the back buffer (to which you are currently drawing) without flipping the window.
+        Useful if you want to generate movie sequences from the back buffer without actually 
+        taking the time to flip the window.
+        """
+        #reset returned buffer for next frame
+        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
+        self._defDepth=0.0#gets gradually updated through frame
         
     def getMovieFrame(self, buffer='front'):
         """
