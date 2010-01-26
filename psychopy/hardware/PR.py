@@ -21,9 +21,9 @@ class PR650:
 
     usage::
         myPR650 = Photometer(port)
-        print myPR650.measure()#print current luminance
-        nm, power = myPR650.getSpectrum()#get a power spectrum
-        
+        myPR650.measure()#make a measurement
+        lum = myPR650.lastLum
+        nm, power = myPR650.getLastSpectrum()#get a power spectrum for the last measurement
     """
     def __init__(self, port, verbose=True):
         if type(port) in [int, float]:
@@ -34,6 +34,7 @@ class PR650:
             self.portNumber=None
         self.isOpen=0
         self.lastQual=0
+        self.lastLum=None
         
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
@@ -102,6 +103,10 @@ class PR650:
 
 
     def measure(self, timeOut=30.0):
+        """Make a measurement with the device. For a PR650 the device is instructed 
+        to make a measurement and then subsequent commands are issued to retrieve 
+        info about that measurement
+        """
         t1 = time.clock()
         reply = self.sendMessage('m0\n', timeOut) #measure and hold data
         #using the hold data method the PR650 we can get interogate it
@@ -117,6 +122,11 @@ class PR650:
         else:
             log.warning("Didn't collect any data (extend timeout?)")
 
+    def getLastLum(self, parse=True):
+        """This retrieves the luminance (in cd/m**2) from the last call to ``.measure()``
+        """
+        return self.lastLum
+    
     def getLastSpectrum(self, parse=True):
         """This retrieves the spectrum from the last call to ``.measure()``
 
