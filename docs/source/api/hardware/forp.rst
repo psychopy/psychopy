@@ -1,4 +1,4 @@
-:mod:`psychopy.hardware.forp` 
+fORP response box
 =============================================
 
 .. automodule:: psychopy.hardware.forp

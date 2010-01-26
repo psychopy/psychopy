@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'keyboard.png')
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
-            forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==str(thisTrial.corrAns)",storeResponseTime=True,
+            forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
             startTime=0.0, duration=1.0):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
@@ -21,7 +21,7 @@ class KeyboardComponent(BaseComponent):
         #params
         self.params={}
         self.order=['name','allowedKeys',
-            'store','storeCorrect','correctIf',
+            'store','storeCorrect','correctAns',
             'forceEndTrial','startTime']
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
         self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
@@ -42,9 +42,9 @@ class KeyboardComponent(BaseComponent):
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
-        self.params['correctIf']=Param(correctIf, valType='code', allowedTypes=[],
+        self.params['correctAns']=Param(correctAns, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect? Might be helpful to add a corrAns column in the trialList")
+            hint="What is the 'correct' key? Might be helpful to add a correctAns column to your definition of trials in the loop")
         #todo: add response time clock to keyboard!!
         self.params['storeResponseTime']=Param(storeResponseTime, 
             valType='bool', 
@@ -113,7 +113,7 @@ class KeyboardComponent(BaseComponent):
             #check if correct (if necess)
             if storeCorr:
                 buff.writeIndented("#was this 'correct'?\n" %self.params)
-                buff.writeIndented("if (%(correctIf)s): %(name)s.corr=1\n" %(self.params))
+                buff.writeIndented("if (%(name)s.keys==str(%(correctAns)s)): %(name)s.corr=1\n" %(self.params))
                 buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
         #does the response end the trial?
         if forceEnd==True:

@@ -1298,17 +1298,17 @@ class DlgComponentProperties(_BaseParamsDlg):
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
     def onStoreCorrectChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
+        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctIf'].valueCtrl.Show()
-            self.paramCtrls['correctIf'].nameCtrl.Show()
-            #self.paramCtrls['correctIf'].typeCtrl.Show()
-            #self.paramCtrls['correctIf'].updateCtrl.Show()
+            self.paramCtrls['correctAns'].valueCtrl.Show()
+            self.paramCtrls['correctAns'].nameCtrl.Show()
+            #self.paramCtrls['correctAns'].typeCtrl.Show()
+            #self.paramCtrls['correctAns'].updateCtrl.Show()
         else:
-            self.paramCtrls['correctIf'].valueCtrl.Hide()
-            self.paramCtrls['correctIf'].nameCtrl.Hide()
-            #self.paramCtrls['correctIf'].typeCtrl.Hide()
-            #self.paramCtrls['correctIf'].updateCtrl.Hide()
+            self.paramCtrls['correctAns'].valueCtrl.Hide()
+            self.paramCtrls['correctAns'].nameCtrl.Hide()
+            #self.paramCtrls['correctAns'].typeCtrl.Hide()
+            #self.paramCtrls['correctAns'].updateCtrl.Hide()
         self.ctrlSizer.Layout()
         self.Fit()
         self.Refresh()
@@ -1334,7 +1334,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
     def onFullScrChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
+        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
