@@ -164,7 +164,18 @@ class Experiment:
         paramNode is the parameter node fetched from the xml file
         """
         name=paramNode.get('name')
-        if 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        if name=='times':#handle this parameter, deprecated in v1.60.00
+            exec('times=%s' %paramNode.get('val'))
+            params['startTime'].val =str(times[0])
+            params['duration'].val = str(times[1]-times[0])
+            return #times doesn't need to update its type or 'updates' rule
+        elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
+            corrIf=paramNode.get('val')
+            corrAns=corrIf.replace('resp.keys==str(','').replace(')','')
+            params['correctAns'].val=corrAns
+            name='correctAns'#then we can fetch thte other aspects correctly below
+        elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        #get the value type and update rate
         if 'valType' in paramNode.keys(): 
             params[name].valType = paramNode.get('valType')
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
