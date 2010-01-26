@@ -1627,7 +1627,7 @@ class PatchStim(_BaseVisualStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
         
         if dkl is not None:
-            self.dkl = dkl
+            self.dkl = numpy.array(dkl,float)
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms is not None:
             self.lms = lms
@@ -2042,7 +2042,7 @@ class RadialStim(PatchStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
 
         if dkl:
-            self.dkl = dkl
+            self.dkl = numpy.array(dkl,float)
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms:
             self.lms = lms
