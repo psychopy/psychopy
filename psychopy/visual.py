@@ -190,7 +190,7 @@ class Window:
         #setup bits++ if possible
         self.bitsMode = bitsMode #could be [None, 'fast', 'slow']
         if self.bitsMode!=None:
-            from psychopy import bits
+            from psychopy.hardware.crs import bits
             self.bits = bits.BitsBox(self)
             self.haveBits = True
 

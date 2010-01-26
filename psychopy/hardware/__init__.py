@@ -1,2 +1,2 @@
 
-__all__=['forp','cedrus','minolta','PR']
+__all__=['forp','cedrus','minolta','pr', 'crs']
