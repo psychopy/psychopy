@@ -48,7 +48,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         self.ShowPosition(self.GetLastPosition() )
 
     def flush(self):
-        self.Flush()#not needed?
+        pass#we need this so that stdout has a flush method, but can't do much with it
         
 class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
