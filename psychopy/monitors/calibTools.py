@@ -88,6 +88,7 @@ def findPR650(ports=None):
             log.info(' ...OK\n'); log.console.flush()
             break
         else:
+            pr650=None
             log.info('...Nope!\n\t'); log.console.flush()
     return pr650
 
@@ -784,7 +785,7 @@ def getLumSeriesPR650(lumLevels=8,
     if (type(lumLevels) is int) or (type(lumLevels) is float):
         toTest= DACrange(lumLevels)
     else: toTest= numpy.asarray(lumLevels)
-
+    
     if allGuns: guns=[0,1,2,3]#gun=0 is the white luminance measure
     else: allGuns=[0]
     lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hoold the measured luminance values

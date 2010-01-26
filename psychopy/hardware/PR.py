@@ -79,7 +79,7 @@ class PR650:
 
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
         """
-        send a command to the photometer and wait an alloted
+        send a command to the photometer and wait an allotted
         timeout for a response (Timeout should be long for low
         light measurements)
         """
