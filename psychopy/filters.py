@@ -1,10 +1,5 @@
 """
-Various useful functions for creating filters:
-	- ``makeGrating()`` #for various sin.sqr waves etc
-	- ``makeMask()`` #create a matrix to use as a mask
-	- ``maskGrating()`` #make and apply a mask to a matrix
-	- ``makeRadialMatrix()`` #make a matrix where intensity depends on radius
-	- ``makeGauss()`` #make a gaussian envelope
+Various useful functions for creating filters and textures (e.g. for PatchStim)
 	
 """
 # Part of the PsychoPy library
@@ -83,7 +78,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=[0.0,0.0]):
 		outArray=makeGauss(rad,mean=0.0,sd=0.33333)
 	else:
 		raise 'err', 'unknown shape'
-	return outArray
+	return outArray*2-1
 
 def makeRadialMatrix(matrixSize, center=[0.0,0.0], radius=1.0):
 	"""Generate a square matrix where each element val is
