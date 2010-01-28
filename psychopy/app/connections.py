@@ -200,9 +200,9 @@ class InstallUpdateDialog(wx.Frame):
         else:
             msg = "PsychoPy v%s is available\nYou are running v%s" %(self.latest['version'], self.runningVersion)
             if self.latest['lastCompatible']<self.runningVersion:
-                msg+="\nYou can update to this version automatically"
+                msg+="\nYou can update to the latest version automatically"
             else:
-                msg+="You cannot update to this version automatically.\nPlease fetch the latest version from www.psychopy.org"  
+                msg+="\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"  
         self.statusMessage.SetLabel(msg)
         if self.latest==-1 \
             or self.latest['version']==self.runningVersion \
