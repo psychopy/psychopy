@@ -11,7 +11,7 @@ import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
 import Image
-import sys, os, time, glob, copy
+import sys, os, platform, time, glob, copy
 import makeMovies
 
 import numpy
@@ -135,7 +135,8 @@ class Window:
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
         
         """
-        ext.rush() #no reason to turn off?
+        if hasattr(ext, 'rush'):
+            ext.rush() #no reason to turn off?
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -276,6 +277,12 @@ class Window:
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
+        #but override if not possible:
+        if platform.system() not in ['Darwin','Windows','Microsoft']:
+            self.waitBlanking=False
+        print 'xx', platform.system()=='Darwin', platform.mac_ver()[0]>='10.6', platform.mac_ver()[0]
+        if platform.system()=='Darwin' and platform.mac_ver()[0]>='10.6':
+            self.waitBlanking=False#Snow leopard doesn't support this?
         self.flip()#do a screen refresh straight away
 
     def setRecordFrameIntervals(self, value=True):
@@ -415,7 +422,7 @@ class Window:
         else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
         
-        if self.waitBlanking and (sys.platform in ['win32','darwin']):
+        if self.waitBlanking:
             ext.waitForVBL()
 
     def update(self):
