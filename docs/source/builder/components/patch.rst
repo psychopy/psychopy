@@ -11,6 +11,12 @@ Parameters
 name : a string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
+startTime : float or integer
+    The time (relative to the beginning of this Routine) that the stimulus should first appear.
+
+duration : float or integer
+    The duration for which the stimulus is presented.
+
 colour : triplet of values between -1 and 1 
     See :doc:`../../general/colours`
 
@@ -47,9 +53,6 @@ Texture Resolution : an integer (power of two)
 
 Units : deg, cm, pix, norm, or inherit from window
     See :doc:`../../general/units`
-
-Times : [start, stop]
-    A list of times (in secs) defining the start and stop times of the component. e.g. [0.5,2.0] will cause the patch to be presented for 1.5s starting at t=0.5. There can be multiple on/off times too, e.g. [[0.5,2.0],[3.0,4.5]] will cause the stimulus to appear twice for 1.5s each time.
 
 .. seealso::
 	

@@ -1,3 +1,4 @@
+.. _contribute:
 
 Contributing to the project
 =====================================
@@ -9,6 +10,8 @@ Why make it free?
 It has taken thousands of hours of programming to get PsychoPy where it is today and it is provided absolutely for free. If he had chosen to make people pay for PsychoPy then he could have spent all his time working on the code and fixing bugs. Because he made it free he has to work for a living and do this in odd spare moments. The reason to make it free, the reason that open source projects can be successful, is that more people  are likely to use them, and that those people are able to contribute back to the project, because they also have all the source code.
 
 **Please, please, please** make the effort to give a little back to this project. If you found the documentation hard to understand then think about how you would have preferred it to be written and contribute it.
+
+.. _svn:
 
 Accessing the svn repository
 -----------------------------

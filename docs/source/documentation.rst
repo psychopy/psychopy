@@ -15,8 +15,8 @@ Contents:
    :maxdepth: 2
    
    general/general
-   builder/builder
-   coder/coder
+   Builder - building experiments in a GUI <builder/builder>
+   Coder - writing experiments with scripts <coder/coder>
    
 .. toctree::
    :maxdepth: 1

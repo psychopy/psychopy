@@ -10,7 +10,7 @@ import csv, numpy
 from matplotlib import mlab
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-
+inf=1000000#a million can be infinite?!
 canvasColour=[200,200,200]#in prefs? ;-)
 
 class FlowPanel(wx.ScrolledWindow):
@@ -113,7 +113,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.redrawFlow()
 
         #bring up listbox to choose the routine to add and/or create a new one
-        loopDlg = DlgLoopProperties(frame=self.frame)
+        loopDlg = DlgLoopProperties(frame=self.frame, 
+            helpUrl = self.app.urls['builder.loops'])
 
         if loopDlg.OK:
             handler=loopDlg.currentHandler
@@ -228,34 +229,35 @@ class FlowPanel(wx.ScrolledWindow):
         #step through components in flow
         currX=linePos[0]; gap=self.dpi/2
         pdc.DrawLine(x1=linePos[0]-gap,y1=linePos[1],x2=linePos[0],y2=linePos[1])
-        self.loopInits = []#these will be entry indices
-        self.loopTerms = []
-        loopIDs=[]#index of the entry (of the loopInit) in the flow
-        self.loops=[]#these will be copies of the actual loop obects
+        self.loops={}#NB the loop is itself the key!? and the value is further info about it
+        nestLevel=0
         self.gapMidPoints=[currX-gap/2]
-        for n, entry in enumerate(expFlow):
+        for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
-                loopIDs.append(n)
-                self.loopInits.append(currX)
-            if entry.getType()=='LoopTerminator':
-                self.loops.append(entry.loop)
-                self.loopTerms.append(currX)
-            if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, id=n,pos=[currX,linePos[1]-30])
+                self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
+                nestLevel+=1#start of loop so increment level of nesting 
+            elif entry.getType()=='LoopTerminator':
+                self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
+                nestLevel-=1#end of loop so decrement level of nesting
+            elif entry.getType()=='Routine':
+                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
             currX+=gap
 
         #draw the loops second
-        self.loopInits.reverse()#start with last initiator (paired with first terminator)
-        for n, loopInit in enumerate(self.loopInits):
-            name = self.loops[n].params['name'].val#name of the trialHandler/StairHandler
-            self.drawLoop(pdc,name,self.loops[n],id=loopIDs[n],
-                        startX=self.loopInits[n], endX=self.loopTerms[n],
-                        base=linePos[1],height=linePos[1]-60-n*15)
-            self.drawLoopStart(pdc,pos=[self.loopInits[n],linePos[1]])
-            self.drawLoopEnd(pdc,pos=[self.loopTerms[n],linePos[1]])
+        for thisLoop in self.loops.keys():
+            thisInit = self.loops[thisLoop]['init']
+            thisTerm = self.loops[thisLoop]['term']
+            thisNest = self.loops[thisLoop]['nest']
+            thisId = self.loops[thisLoop]['id']
+            name = thisLoop.params['name'].val#name of the trialHandler/StairHandler
+            self.drawLoop(pdc,name,thisLoop,id=thisId,
+                        startX=thisInit, endX=thisTerm,
+                        base=linePos[1],height=linePos[1]-60+thisNest*20)
+            self.drawLoopStart(pdc,pos=[thisInit,linePos[1]])
+            self.drawLoopEnd(pdc,pos=[thisTerm,linePos[1]])
 
         #draw all possible locations for routines
         for n, xPos in enumerate(self.pointsToDraw):
@@ -616,15 +618,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         #for the fill, draw once in white near-opaque, then in transp colour
         dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
         h = self.componentStep/2
-        exec("times=%s" %component.params['times'])
-        if type(times[0]) in [int,float]:
-            times=[times]
-        for thisOcc in times:#each occasion/occurence
-            st, end = thisOcc
-            xSt = self.timeXposStart + st/xScale
-            thisOccW = (end-st)/xScale
-            if thisOccW<2: thisOccW=2#make sure at least one pixel shows
-            dc.DrawRectangle(xSt, y, thisOccW,h )
+        exec("st = %s" %(component.params['startTime']))
+        #get end time if not -1(infinite)
+        if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
+        else: exec("duration = %s" %(component.params['duration']))
+        xSt = self.timeXposStart + st/xScale
+        w = duration/xScale
+        if w<2: w=2#make sure at least one pixel shows
+        dc.DrawRectangle(xSt, y, w,h )
 
         ##set an id for the region where the component.icon falls (so it can act as a button)
         #see if we created this already
@@ -644,11 +645,15 @@ class RoutineCanvas(wx.ScrolledWindow):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
             componentName=event.EventObject.GetName()
             component=self.routine.getComponentFromName(componentName)
-
+        #does this component have a help page?
+        if hasattr(component, 'url'):helpUrl=component.url
+        else:helpUrl=None
+        #create the dialog
         dlg = DlgComponentProperties(frame=self.frame,
             title=component.params['name'].val+' Properties',
             params = component.params,
-            order = component.order)
+            order = component.order,
+            helpUrl=helpUrl)
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
@@ -705,7 +710,6 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         """
         routine = self.GetPage(event.GetSelection()).routine
         name=routine.name
-        print 'currentRoutine is', name
         #update experiment object and flow window (if this is being used)
         if name in self.frame.exp.routines.keys():
             del self.frame.exp.routines[name]
@@ -770,11 +774,16 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         componentName = newClassStr.replace('Component','')
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name, exp=self.frame.exp)
+        #does this component have a help page?
+        if hasattr(newComp, 'url'):helpUrl=newComp.url
+        else:
+            helpUrl=None
         #create component template
         dlg = DlgComponentProperties(frame=self.frame,
             title=componentName+' Properties',
             params = newComp.params,
-            order = newComp.order)
+            order = newComp.order,
+            helpUrl=helpUrl)
         compName = newComp.params['name']
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
@@ -910,13 +919,15 @@ class ParamCtrls:
         if self.updateCtrl:
             return self._getCtrlValue(self.updateCtrl)
 class _BaseParamsDlg(wx.Dialog):
-    def __init__(self,frame,title,params,order,suppressTitles=True,
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
+        self.helpUrl=helpUrl
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
@@ -988,14 +999,20 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetForegroundColour(wx.RED)
         #add buttons for OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.StdDialogButtonSizer()
+        #help button if we know the url
+        if self.helpUrl!=None:
+            helpBtn = wx.Button(self, wx.ID_HELP)
+            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+            buttons.Add(helpBtn, wx.ALIGN_LEFT, wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
         self.checkName()
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-
+        buttons.Realize()    
         #put it all together
         self.mainSizer.Add(self.ctrlSizer)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
@@ -1038,11 +1055,17 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")
+    def onHelp(self, event=None):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
 class DlgLoopProperties(_BaseParamsDlg):
     def __init__(self,frame,title="Loop properties",loop=None,
+            helpUrl=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
+        self.helpUrl=helpUrl
         self.frame=frame
         self.exp=frame.exp
         self.app=frame.app
@@ -1061,7 +1084,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         #create instances of the two loop types
         if loop==None:
             self.trialHandler=experiment.TrialHandler(exp=self.exp, name='trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals='',
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
@@ -1075,7 +1098,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
-            experiment.TrialHandler(exp=self.exp, name=paramsInit['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=loop.params['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
         self.params['name']=self.currentHandler.params['name']
 
         self.makeGlobalCtrls()
@@ -1241,7 +1264,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
             self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
     def getParams(self):
-        """retrieves data and re-inserts it into the handler and returns those handler params
+        """Retrieves data and re-inserts it into the handler and returns those handler params
         """
         #get data from input fields
         for fieldName in self.currentHandler.params.keys():
@@ -1252,11 +1275,13 @@ class DlgLoopProperties(_BaseParamsDlg):
             if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):
-    def __init__(self,frame,title,params,order,suppressTitles=True,
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
+                                helpUrl=helpUrl,
                                 pos=pos,size=size,style=style)
         self.frame=frame
         self.app=frame.app
@@ -1273,17 +1298,17 @@ class DlgComponentProperties(_BaseParamsDlg):
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
     def onStoreCorrectChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
+        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctIf'].valueCtrl.Show()
-            self.paramCtrls['correctIf'].nameCtrl.Show()
-            #self.paramCtrls['correctIf'].typeCtrl.Show()
-            #self.paramCtrls['correctIf'].updateCtrl.Show()
+            self.paramCtrls['correctAns'].valueCtrl.Show()
+            self.paramCtrls['correctAns'].nameCtrl.Show()
+            #self.paramCtrls['correctAns'].typeCtrl.Show()
+            #self.paramCtrls['correctAns'].updateCtrl.Show()
         else:
-            self.paramCtrls['correctIf'].valueCtrl.Hide()
-            self.paramCtrls['correctIf'].nameCtrl.Hide()
-            #self.paramCtrls['correctIf'].typeCtrl.Hide()
-            #self.paramCtrls['correctIf'].updateCtrl.Hide()
+            self.paramCtrls['correctAns'].valueCtrl.Hide()
+            self.paramCtrls['correctAns'].nameCtrl.Hide()
+            #self.paramCtrls['correctAns'].typeCtrl.Hide()
+            #self.paramCtrls['correctAns'].updateCtrl.Hide()
         self.ctrlSizer.Layout()
         self.Fit()
         self.Refresh()
@@ -1309,7 +1334,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
     def onFullScrChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctIf field accordingly"""
+        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
@@ -1356,7 +1381,7 @@ class BuilderFrame(wx.Frame):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -1452,18 +1477,18 @@ class BuilderFrame(wx.Frame):
 
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
-        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys.new).replace('Ctrl+', ctrlKey), "Create new python file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys.open).replace('Ctrl+', ctrlKey), "Open an existing file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys.save).replace('Ctrl+', ctrlKey),  "Save current file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current file")
         self.toolbar.EnableTool(self.IDs.tbFileSave, False)
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys.saveAs).replace('Ctrl+', ctrlKey), "Save current python file as...")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys['saveAs']).replace('Ctrl+', ctrlKey), "Save current python file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" %self.app.keys.undo).replace('Ctrl+', ctrlKey), "Undo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" %self.app.keys['undo']).replace('Ctrl+', ctrlKey), "Undo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" %self.app.keys.redo).replace('Ctrl+', ctrlKey),  "Redo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" %self.app.keys['redo']).replace('Ctrl+', ctrlKey),  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
@@ -1475,11 +1500,11 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
-        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, ("Compile Script [%s]" %self.app.keys.compileScript).replace('Ctrl+', ctrlKey),  "Compile to script")
+        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, ("Compile Script [%s]" %self.app.keys['compileScript']).replace('Ctrl+', ctrlKey),  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
-        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, ("Run [%s]" %self.app.keys.runScript).replace('Ctrl+', ctrlKey),  "Run experiment")
+        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, ("Run [%s]" %self.app.keys['runScript']).replace('Ctrl+', ctrlKey),  "Run experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, ("Stop [%s]" %self.app.keys.stopScript).replace('Ctrl+', ctrlKey),  "Stop experiment")
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, ("Stop [%s]" %self.app.keys['stopScript']).replace('Ctrl+', ctrlKey),  "Stop experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         self.toolbar.Realize()
@@ -1490,11 +1515,11 @@ class BuilderFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
-        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys.new)
-        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys.open)
-        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys.save)
-        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys.saveAs)
-        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys.close)
+        self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys['new'])
+        self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys['open'])
+        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
+        self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
+        self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
@@ -1505,14 +1530,14 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
         self.fileMenu.AppendSeparator()
-        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys.quit, "Terminate the program")
+        self.fileMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate the program")
         wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
 
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys.undo, "Undo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys.redo, "Redo last action", wx.ITEM_NORMAL)
+        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
 
         #---_tools---#000000#FFFFFF--------------------------------------------------
@@ -1521,17 +1546,21 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.monitorCenter, "Monitor Center", "To set information about your monitor")
         wx.EVT_MENU(self, self.IDs.monitorCenter,  self.app.openMonitorCenter)
 
-        self.toolsMenu.Append(self.IDs.compileScript, "Compile\t%s" %self.app.keys.compileScript, "Compile the exp to a script")
+        self.toolsMenu.Append(self.IDs.compileScript, "Compile\t%s" %self.app.keys['compileScript'], "Compile the exp to a script")
         wx.EVT_MENU(self, self.IDs.compileScript,  self.compileScript)
-        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys.runScript, "Run the current script")
+        self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys['runScript'], "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys.stopScript, "Abort the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys['stopScript'], "Abort the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
+        
+        self.toolsMenu.AppendSeparator()
+        self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
+        wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
-        self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys.switchToCoder, "Open a new Coder view")
+        self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
@@ -1567,8 +1596,8 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.helpMenu, '&Help')
         self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
         wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
-        self.helpMenu.Append(self.IDs.psychopyTutorial, "&PsychoPy Tutorial", "Go to the online PsychoPy tutorial")
-        wx.EVT_MENU(self, self.IDs.psychopyTutorial, self.app.followLink)
+        self.helpMenu.Append(self.IDs.builderHelp, "&PsychoPy Builder Help", "Go to the online documentation for PsychoPy Builder")
+        wx.EVT_MENU(self, self.IDs.builderHelp, self.app.followLink)
 
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(self.IDs.about, "&About...", "About PsychoPy")
@@ -1826,20 +1855,23 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         path, scriptName = os.path.split(fullPath)
         shortName, ext = os.path.splitext(scriptName)
-
+        
         #set the directory and add to path
         if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
         f = open(fullPath, 'w')
         f.write(script.getvalue())
         f.close()
-
+        
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
-
+        
+        #provide a running... message
+        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
+        
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
-        self.stdoutFrame
-
+        
         if sys.platform=='win32':
             command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
@@ -1864,14 +1896,18 @@ class BuilderFrame(wx.Frame):
         text=""
         if self.scriptProcess.IsInputAvailable():
             stream = self.scriptProcess.GetInputStream()
-            text.append(stream.read())
+            text += stream.read()
         if self.scriptProcess.IsErrorAvailable():
             stream = self.scriptProcess.GetErrorStream()
-            text.append(stream.read())
-        if len(text):
-            self.stdoutFrame.write(text)
+            text += stream.read()
+        if len(text): self.stdoutFrame.write(text) #if some text hadn't yet been written (possible?)
+        if len(self.stdoutFrame.getText())>self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
+            
+        #provide a finihed... message
+        msg = "\n"+" Finished ".center(80,"#")#80 chars padded with #
+        
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig

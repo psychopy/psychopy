@@ -11,33 +11,36 @@ iconFile = path.join(thisFolder,'sound.png')
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', sound='A', 
-            size=1, ori=0, times=[0,1]):
+            size=1, ori=0, startTime=0.0, duration=1.0):
         self.type='Sound'
+        self.url="http://www.psychopy.org/builder/components/sound.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params
-        self.order=['name']#make sure name comes first
+        self.order=['name','startTime','duration']#make sure name comes first
         self.params={}
         self.params['name']=Param(name,  valType='code', hint="A filename for the movie (including path)")  
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename")  
-        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            hint="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename")        
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A series of one or more onset/offset times, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")  
+            hint="The time that the sound starts")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The duration of the sound (ignored if sound is a file with fixed length)") 
 
     def writeInitCode(self,buff):
-        exec('times=%s' %self.params['times'])
-        duration = times[1]-times[0]
+        exec('duration= %s-%s' %(self.params['duration'],self.params['startTime']))
         s = "%s=sound.Sound(%s, secs=%s)\n" %(self.params['name'], self.params['sound'], duration)
         buff.writeIndented(s)  
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the start/end time test
         #set parameters that need updating every frame
         self.writeParamUpdates(buff, 'frame')
         buff.writeIndented("%s.play()\n" %(self.params['name'])) 
-        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the start/end time test
             

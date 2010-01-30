@@ -9,3 +9,5 @@ builddocs.sh
 appData.cfg
 PsyScope*
 psychopy1
+.hg*
+.coverage

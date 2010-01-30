@@ -7,7 +7,6 @@
 import os, glob, wx, Image
 from os.path import *
 import psychopy
-
 def pilToBitmap(pil):
     image = wx.EmptyImage(pil.size[0], pil.size[1] )
     image.SetData( pil.convert( "RGB").tostring() )

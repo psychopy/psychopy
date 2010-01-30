@@ -1,3 +1,5 @@
+.. _keyboard:
+
 Keyboard
 -------------------------------
 
@@ -9,7 +11,13 @@ Parameters
 ~~~~~~~~~~~~~~
 
 Name
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces)
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+
+StartTime : float or integer
+    The time (relative to the beginning of this Routine) that the keyboard should first be checked.
+
+Duration : float or integer
+    The duration for which the keyboard is checked.
 
 Allowed keys
     A list of allowed keys can be inserted e.g. ["m","z","1","2"]. If this box is left blank then any keys will be read. Only allowed keys count as having been pressed; any other key will not be stored and will not force the end of the Routine. Note that key names (even for number keys) should be given in inverted commas, as with text parameters. Cursor keys can be accessed with "up", "down", etc. 
@@ -24,11 +32,8 @@ Force end trial
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the `allowed` keys is pressed.
 
 Store response time
-    If checked then the response time will also be stored. This time will be taken from the onset of the keyboard component (see below).
-    
-Times
-    A list of times (in secs) defining the start and stop times of the component. e.g. [0.5,2.0] will cause the keyboard to be checked for 1.5s starting at t=0.5.
-    
+    If checked then the response time will also be stored. This time will be taken from the start of keyboard checking.
+        
 .. seealso::
 	
 	API reference for :mod:`~psychopy.event`

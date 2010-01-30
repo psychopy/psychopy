@@ -10,19 +10,23 @@ thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folde
 iconFile = path.join(thisFolder,'mouse.png')
 
 class MouseComponent(BaseComponent):
-    """An event class for checking the mouse location and buttons at given times"""
-    def __init__(self, exp, parentName, name='mouse', times=[0,1], save='final'):
+    """An event class for checking the mouse location and buttons at given timepoints"""
+    def __init__(self, exp, parentName, name='mouse', startTime=0.0, duration=1.0, save='final'):
         self.type='Mouse'
+        self.url="http://www.psychopy.org/builder/components/mouse.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
         #params
         self.order = ['name']#make sure that 'name' is at top of dlg
         self.params={}
         self.params['name']=Param(name, valType='str', allowedTypes=[],
-            hint="Even mice have names!") 
-        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            hint="Even mice have names!")            
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A series of one or more periods to read the mouse, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")
+            hint="The time that the mouse starts being checked")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The duration for which the mouse is checked")
         self.params['save']=Param(save, valType='str', allowedVals=['final values','every frame'])
     def writeInitCode(self,buff):
         pass#no need to initialise?
@@ -30,9 +34,9 @@ class MouseComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         self.writeParamUpdates(buff, 'frame')
         buff.writeIndented("TODO: check mouse")
-        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         
               

@@ -1,19 +1,21 @@
 Detecting dropped frames
 --------------------------
 
-Occasionally you will drop frames if you
+Occasionally you will drop frames if you:
+
 * try to do too much drawing
 * do it in an innefficient manner (write poor code)
 * have a poor computer/graphics card
 
 Things to avoid:
+
 * recreating textures for stimuli
-* building new stimuli from scratch (create them once at the top of your script and then change them using :meth:`stim.setOri(ori)`,`stim.setPos([x,y]...)`
+* building new stimuli from scratch (create them once at the top of your script and then change them using :meth:`stim.setOri(ori)`, `stim.setPos([x,y]...)`
 
 Turn on frame time recording
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The key sometimes is ''knowing'' if you are dropping frames. PsychoPy can help with that by keeping track of frame durations. By default, frame time tracking is turned off because many people don't need it, but it can be turned on any time after :class:`~psychopy.visual.Window` creation  :meth:`setRecordFrameIntervals(True)`, e.g.:
+The key sometimes is *knowing* if you are dropping frames. PsychoPy can help with that by keeping track of frame durations. By default, frame time tracking is turned off because many people don't need it, but it can be turned on any time after :class:`~psychopy.visual.Window` creation  :meth:`setRecordFrameIntervals`, e.g.:
 
     from psychopy import visual
     win = visual.Window([800,600])
@@ -31,7 +33,7 @@ The simplest way to check if a frame has been dropped is to get PsychoPy to repo
     win.setRecordFrameIntervals(True)
     win._refreshThreshold=1/85.0+0.004 #i've got 85Hz monitor and want to allow 4ms tolerance
     #set the log module to report warnings to the std output window (default is errors only)
-    log.console.setLevel(log.ERROR)
+    log.console.setLevel(log.WARNING)
 
 The above code will spit a warning message only if the the current frame AND the average of current and the previous frames exceed self._refreshThreshold value (often a long frame is making up for an 'apparently' brief previous frame - see below).
 

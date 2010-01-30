@@ -23,3 +23,5 @@ Glossary
     Adaptive staircase
         An experimental method whereby the choice of stimulus parameters is not pre-determined but based on previous responses. For example, the difficulty of a task might be varied trial-to-trial based on the participant's responses. These are often used to find psychophysical thresholds. Contrast this with the :term:`method of constants`.
 
+    CRT : Cathode Ray Tube
+

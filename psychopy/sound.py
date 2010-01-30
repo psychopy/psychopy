@@ -81,7 +81,9 @@ class _SoundBase:
             - you may want to specify which octave as well
             -----------------------------
             Or a string could represent a filename in the current
-            location, or mediaLocation, or a full path combo
+            location, or mediaLocation, or a full path combo. 
+            At the moment only .wav and .ogg files are supported (but others might be added
+            if we can create numpy arrays out of pyglet's sound files)
             -----------------------------
             Or by giving an Nx2 numpy array of floats (-1:1) you 
             can specify the sound yourself as a waveform
@@ -312,9 +314,9 @@ class SoundPygame(_SoundBase):
             thisArray= (thisArray*2**7).astype(numpy.Int8)
         elif self.format == 8: 
             thisArray= ((thisArray+1)*2**7).astype(numpy.uint8)
-    
+        
         self._snd = sndarray.make_sound(thisArray)
-            
+        
         return True
 
 class SoundPyglet(_SoundBase):

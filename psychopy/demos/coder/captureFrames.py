@@ -21,5 +21,6 @@ myWin.saveMovieFrames('frame.png')
 #myWin.saveMovieFrames('frame.jpg') #lossy, but highly compressed images
 #myWin.saveMovieFrames('myMovie.gif')# for better results, make your gif in gimp
 #myWin.saveMovieFrames('myMovie.mpg')#only on win32 so far (requires pymedia)
+#myWin.saveMovieFrames('myMovie.mov')#only on OS X (requires pyobjc-framework-QTKit)
 
 myWin.close()

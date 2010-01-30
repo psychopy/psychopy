@@ -5,12 +5,45 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
-PsychoPy 1.51
+
+PsychoPy 1.60 
 ------------------------------
 
-PsychoPy 1.51.00 
+PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
 (changes in SVN)
+
+* simplified prefs:
+       - no more site prefs (user prefs only)
+       - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
+* ADDED: script is saved by coder before running (can be turned off in prefs)
+* ADDED: key binding (def=Ctrl+W) to close MonitorCenter window
+* ADDED: coder checks (and prompts) for filesave before running script
+* ADDED: setHeight to TextStim objects, so that character height can be set after initialisation
+* ADDED: setLineRGB, setFillRGB to ShapeStim
+* ADDED: ability to auto-update form PsychoPy source installer (zip files)
+* ADDED: Monitor Center can be closed with Ctrl-W
+* ADDED: visual.Window now has a setRGB() method
+* ADDED: visual.Window now has a clearBuffer() method
+* ADDED: context-specific help buttons to Builder dialogs
+* ADDED: implementation of code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
+* ADDED: Butterworth filters to psychopy.filters (thanks Yaroslav Halchenko)
+* IMPROVED: Splash screen comes up faster to show the app is loading
+* FIXED: bug in RadialStim .set functions (default operation should be "" not None)
+* FIXED: on mac trying to save an unchanged document no longer inserts an 's'
+* FIXED: bug with SimpleImageStim not drawing to windows except #1
+* FIXED: one bug preventing PsychoPy from running on vista/win7 (are there more?)
+* CHANGED: builder components now have a 'startTime' and 'duration' rather than 'times'
+* CHANGED: psychopy.filters.makeMask() now returns a mask with values -1:1, not 0:1 (as expected by stimulus masks)
+* RESTRUCTURED: the serial package is no longer a part of core psychopy and is no longer required (except when hardware is actually being connected). This should now be installed as a dependency by users, but is still included with the Standalone packages.
+* RESTRUCTURED: preparing for further devices to be added, hardware is now a folder with files for each manufacturer. Now use e.g.::
+
+    from psychopy.hardware.PR import PR650
+    from psychopy.hardware.cedrus import RB730
+
+PsychoPy 1.51.00 
+------------------------------
+(released Nov 2009)
 
 * CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
 * CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window
