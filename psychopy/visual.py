@@ -280,7 +280,6 @@ class Window:
         #but override if not possible:
         if platform.system() not in ['Darwin','Windows','Microsoft']:
             self.waitBlanking=False
-        print 'xx', platform.system()=='Darwin', platform.mac_ver()[0]>='10.6', platform.mac_ver()[0]
         if platform.system()=='Darwin' and platform.mac_ver()[0]>='10.6':
             self.waitBlanking=False#Snow leopard doesn't support this?
         self.flip()#do a screen refresh straight away

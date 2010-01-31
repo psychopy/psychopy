@@ -144,7 +144,7 @@ class KeyboardComponent(BaseComponent):
         elif store!='nothing' and currLoop:
             #data belongs to a TrialHandler
             buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            buff.writeIndented("    %s.xxxxaddData('%s.keys',%s.keys%s)\n" \
+            buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
                                %(currLoop.params['name'],name,name,index))
             if self.params['storeCorrect'].val==True:
                 buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \

@@ -18,8 +18,9 @@
         <Param name="colour" val="thisTrial.rgb" valType="code" updates="set every repeat"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="times" val="[0.5,2.0]" valType="code" updates="constant"/>
+        <Param name="duration" val="1.5" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
@@ -28,10 +29,11 @@
         <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="times" val="[0.5,2.0]" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="['1','2','3']" valType="code" updates="constant"/>
+        <Param name="correctAns" val="thisTrial.corrAns" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
-        <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.5" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="['1','2','3']" valType="code" updates="constant"/>
+        <Param name="duration" val="1.5" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -42,8 +44,9 @@
         <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="times" val="[0, 10000]" valType="code" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="startTime" val="0" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
@@ -52,10 +55,11 @@
         <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
         <Param name="name" val="ready" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="times" val="[0, 10000]" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="correctAns" val="thisTrial.corrAns" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="correctIf" val="resp.keys==str(thisTrial.corrAns)" valType="code" updates="constant"/>
+        <Param name="startTime" val="0" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -66,8 +70,9 @@
         <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="times" val="[1.0, 2.0]" valType="code" updates="constant"/>
+        <Param name="duration" val="1.0" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
+        <Param name="startTime" val="1.0" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="arial" valType="str" updates="constant"/>

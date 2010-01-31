@@ -583,7 +583,7 @@ class RoutineCanvas(wx.ScrolledWindow):
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
-        tMax=self.getMaxTime()
+        tMax=self.getMaxTime()*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
