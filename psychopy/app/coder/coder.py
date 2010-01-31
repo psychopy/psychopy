@@ -158,8 +158,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                  style=0):
         wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
         #JWP additions
-        self.parent=parent
-        self.frame = frame
+        self.notebook=parent
+        self.coder = frame
         self.UNSAVED=False
         self.filename=""
         self.AUTOCOMPLETE = True
@@ -177,13 +177,14 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
         self.SetProperty("fold", "1")
-        self.SetProperty("tab.timmy.whinge.level", "1")
+        self.SetProperty("tab.timmy.whinge.level", "4")#4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetMargins(0,0)
         self.SetUseTabs(False)
         self.SetTabWidth(4)
-        self.SetViewWhiteSpace(False)
+        self.SetIndent(4)
+        self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         #self.SetBufferedDraw(False)
-        self.SetViewEOL(False)
+        self.SetViewEOL(self.coder.appData['showEOLs'])
         self.SetEOLMode(wx.stc.STC_EOL_LF)
         self.SetUseAntiAliasing(True)
         #self.SetUseHorizontalScrollBar(True)
@@ -198,7 +199,10 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
         self.SetMarginSensitive(2, True)
         self.SetMarginWidth(2, 12)
-
+        
+        #
+        self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
+        
         # Like a flattened tree control using square headers
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,    wx.stc.STC_MARK_BOXMINUS,          "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,        wx.stc.STC_MARK_BOXPLUS,           "white", "#808080")
@@ -449,7 +453,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             #self.Refresh(False)
 
 
-        if self.frame.prefs['showSourceAsst']:
+        if self.coder.prefs['showSourceAsst']:
             #check current word including .
             if charBefore== ord('('):
                 startPos = self.WordStartPosition(caretPos-2, True)
@@ -492,7 +496,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def updateSourceAsst(self,currWord, thisIs, helpText, thisType=None, knownAttrs=None):
             #update the source assistant window
-            sa = self.frame.sourceAsstWindow
+            sa = self.coder.sourceAsstWindow
             assert isinstance(sa, wx.richtext.RichTextCtrl)
             # clear the buffer
             sa.Clear()
@@ -692,7 +696,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         if successfulParse: #if we parsed the tokens then process them
 
             #import the libs used by the script
-            if self.frame.modulesLoaded:
+            if self.coder.modulesLoaded:
                 for thisLine in importStatements:
                     #check what file we're importing from
                     tryImport=ALLOW_MODULE_IMPORTS
@@ -726,7 +730,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     newAttrs=[]
 
                 #only dig deeper if we haven't exceeded the max level of analysis
-                if thisSymbol.find('.') < self.frame.prefs['analysisLevel']:
+                if thisSymbol.find('.') < self.coder.prefs['analysisLevel']:
                     #we should carry on digging deeper
                     for thisAttr in newAttrs:
                         #by appending the symbol it will also get analysed!
@@ -1057,6 +1061,27 @@ class CoderFrame(wx.Frame):
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
+        
+        #indent guides
+        self.indentGuideChk= self.viewMenu.AppendCheckItem(self.IDs.toggleIndentGuides, 
+            "&Indentation guides\t%s" %self.app.keys['toggleIndentGuides'],
+            "Shows guides in the editor for your indentation level")
+        self.indentGuideChk.Check(self.appData['showIndentGuides'])        
+        wx.EVT_MENU(self, self.IDs.toggleIndentGuides,  self.setShowIndentGuides)
+        #whitespace
+        self.showWhitespaceChk= self.viewMenu.AppendCheckItem(self.IDs.toggleWhitespace, 
+            "&Whitespace\t%s" %self.app.keys['toggleWhitespace'],
+            "Show whitespace characters in the code")
+        self.showWhitespaceChk.Check(self.appData['showWhitespace'])
+        wx.EVT_MENU(self, self.IDs.toggleWhitespace, self.setShowWhitespace)
+        #EOL markers
+        self.showEOLsChk= self.viewMenu.AppendCheckItem(self.IDs.toggleEOLs, 
+            "Show &EOLs\t%s" %self.app.keys['toggleEOLs'],
+            "Show End Of Line markers in the code")
+        self.showEOLsChk.Check(self.appData['showEOLs'])
+        wx.EVT_MENU(self, self.IDs.toggleEOLs, self.setShowEOLs)
+        
+        self.viewMenu.AppendSeparator()
         #output window
         self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output",
                                                   "shows the output (and error messages) from your script")
@@ -1652,7 +1677,22 @@ class CoderFrame(wx.Frame):
             sys.stderr = self._origStdErr
 
         self.paneManager.Update()
-
+    def setShowIndentGuides(self, event):
+        #show/hide the source assistant (from the view menu control)
+        newVal = self.indentGuideChk.IsChecked()
+        self.appData['showIndentGuides']=newVal
+        for ii in range(self.notebook.GetPageCount()):
+            self.notebook.GetPage(ii).SetIndentationGuides(newVal)
+    def setShowWhitespace(self, event):
+        newVal = self.showWhitespaceChk.IsChecked()
+        self.appData['showWhitespace']=newVal
+        for ii in range(self.notebook.GetPageCount()):
+            self.notebook.GetPage(ii).SetViewWhiteSpace(newVal)
+    def setShowEOLs(self, event):
+        newVal = self.showEOLsChk.IsChecked()
+        self.appData['showEOLs']=newVal
+        for ii in range(self.notebook.GetPageCount()):
+            self.notebook.GetPage(ii).SetViewEOL(newVal)
     def setSourceAsst(self, event):
         #show/hide the source assistant (from the view menu control)
         if not self.sourceAsstChk.IsChecked():
