@@ -29,6 +29,7 @@ PsychoPy 1.60.00
 * ADDED: implementation of code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
 * ADDED: Butterworth filters to psychopy.filters (thanks Yaroslav Halchenko)
 * ADDED: options to view whitespace, EOLs and indent guides in Coder
+* ADDED: auto-scaling of time axis in Routines panel
 * IMPROVED: Splash screen comes up faster to show the app is loading
 * FIXED: bug in RadialStim .set functions (default operation should be "" not None)
 * FIXED: on mac trying to save an unchanged document no longer inserts an 's'
