@@ -18,7 +18,7 @@
         <Param name="colour" val="thisTrial.rgb" valType="code" updates="set every repeat"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="1.5" valType="code" updates="constant"/>
+        <Param name="duration" val="1.0" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
