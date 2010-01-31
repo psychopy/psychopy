@@ -5,7 +5,7 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
-import sys, os, glob, copy, platform
+import sys, os, glob, copy, platform, py_compile
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
