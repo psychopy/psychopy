@@ -16,6 +16,7 @@ PsychoPy 1.60.00
 * simplified prefs:
        - no more site prefs (user prefs only)
        - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
+* ADDED: full implementation of staircase to Builder loops and included a demo for it to Builder
 * CHANGED: builder components now have a 'startTime' and 'duration' rather than 'times'
 * ADDED: QuickTime output option for movies (OSX only)
 * ADDED: script is saved by coder before running (can be turned off in prefs)
