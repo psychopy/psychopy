@@ -180,7 +180,7 @@ class SuggestUpdateDialog(wx.Dialog):
     def onButton(self,event):
         self.EndModal(event.GetId())
         
-class InstallUpdateDialog(wx.Frame):
+class InstallUpdateDialog(wx.Dialog):
     def __init__(self, parent, ID, app):
         """Latest is optional extra. If not given it will be fetched.
         """
@@ -193,10 +193,9 @@ class InstallUpdateDialog(wx.Frame):
         else:
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
-        wx.Frame.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
+        wx.Dialog.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
         
         mainSizer=wx.BoxSizer(wx.VERTICAL)
-        
         #set the actual content of the status message later in self.updateStatus()
         msg = "x"
         self.statusMessage = wx.StaticText(self,-1,msg,style=wx.ALIGN_CENTER)
@@ -231,7 +230,7 @@ class InstallUpdateDialog(wx.Frame):
         #positioning and sizing
         self.updateStatus()
         self.Center()
-        self.Show()
+        self.ShowModal()
     def updateStatus(self):
         """Check the current version and most recent version and update ctrls if necess
         """
@@ -301,7 +300,6 @@ class InstallUpdateDialog(wx.Frame):
         self.progressBar.SetRange(fileSize)
         while read<fileSize:
             ch=page.read(chunk)
-            print 'got 1 chunk'
             buffer.write(ch)
             read+=chunk
             self.progressBar.SetValue(read)
