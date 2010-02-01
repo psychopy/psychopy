@@ -11,7 +11,7 @@ PsychoPy 1.60
 
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
-(changes in SVN)
+Released Feb 2010
 
 * simplified prefs:
        - no more site prefs (user prefs only)
