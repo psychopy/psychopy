@@ -11,13 +11,15 @@ PsychoPy 1.60
 
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
-(changes in SVN)
+Released Feb 2010
 
 * simplified prefs:
        - no more site prefs (user prefs only)
        - changed key bindings for compileScript(F5), runScript(Ctrl+R), stopScript(Ctrl+.)
+* ADDED: full implementation of staircase to Builder loops and included a demo for it to Builder
+* CHANGED: builder components now have a 'startTime' and 'duration' rather than 'times'
+* ADDED: QuickTime output option for movies (OSX only)
 * ADDED: script is saved by coder before running (can be turned off in prefs)
-* ADDED: key binding (def=Ctrl+W) to close MonitorCenter window
 * ADDED: coder checks (and prompts) for filesave before running script
 * ADDED: setHeight to TextStim objects, so that character height can be set after initialisation
 * ADDED: setLineRGB, setFillRGB to ShapeStim
@@ -26,14 +28,15 @@ PsychoPy 1.60.00
 * ADDED: visual.Window now has a setRGB() method
 * ADDED: visual.Window now has a clearBuffer() method
 * ADDED: context-specific help buttons to Builder dialogs
-* ADDED: implementation of code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
+* ADDED: implemented of code to flip SimpleImageStim (added new methods flipHoriz() and flipVert())
 * ADDED: Butterworth filters to psychopy.filters (thanks Yaroslav Halchenko)
+* ADDED: options to view whitespace, EOLs and indent guides in Coder
+* ADDED: auto-scaling of time axis in Routines panel
 * IMPROVED: Splash screen comes up faster to show the app is loading
 * FIXED: bug in RadialStim .set functions (default operation should be "" not None)
 * FIXED: on mac trying to save an unchanged document no longer inserts an 's'
 * FIXED: bug with SimpleImageStim not drawing to windows except #1
 * FIXED: one bug preventing PsychoPy from running on vista/win7 (are there more?)
-* CHANGED: builder components now have a 'startTime' and 'duration' rather than 'times'
 * CHANGED: psychopy.filters.makeMask() now returns a mask with values -1:1, not 0:1 (as expected by stimulus masks)
 * RESTRUCTURED: the serial package is no longer a part of core psychopy and is no longer required (except when hardware is actually being connected). This should now be installed as a dependency by users, but is still included with the Standalone packages.
 * RESTRUCTURED: preparing for further devices to be added, hardware is now a folder with files for each manufacturer. Now use e.g.::
