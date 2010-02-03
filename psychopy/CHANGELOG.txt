@@ -9,6 +9,11 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.01
+~~~~~~~~~~~~~~~~~~~~~~
+* FIXED minor bug with the new psychophysicsStaircase demo (Builder)
+* FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
+
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2010

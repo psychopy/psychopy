@@ -15,12 +15,16 @@ except: serial=False
 
 class LS100:
     """A class to define a Minolta LS100 (or LS110?) photometer
-
+    
+    You need to connect a LS100 to the serial (RS232) port and 
+    **when you turn it on press the F key** on the device. This will put it into 
+    the correct mode to communicate with the serial port.
+    
     usage::
         
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
-        print phot.measure()
+        print phot.getLum()
         
     """
     def __init__(self, port, verbose=True):
@@ -89,7 +93,6 @@ class LS100:
     def measure(self):
         """Measure the current luminance and set .lastLum to this value"""
         reply = self.sendMessage('MES')
-        print reply, type(reply)
         if self.checkOK(reply):
             lum = float(reply.split()[-1])
             return lum
@@ -131,7 +134,7 @@ class LS100:
         #send the message
         self.com.write(message)
         self.com.flush()
-        print 'charsWaiting:', self.com.inWaiting()
+        
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
         log.debug(message)#send complete message
