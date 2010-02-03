@@ -3,7 +3,7 @@ Upstream-Name: psychopy
 Upstream-Source-Location: http://www.psychopy.org
 
 Files: *
-Copyright: Copyright, 2002-2009, Jon W. Peirce
+Copyright: Copyright, 2002-2010, Jon W. Peirce
 License: GPL-3+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,6 @@ License: GPL-3+
     can be found in `/usr/share/common-licenses/GPL-3'.
 
 Files: debian/*
-Copyright: Copyright, 2007-2009,
+Copyright: Copyright, 2007-2010,
   Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
 License: GPL-2
