@@ -7,10 +7,6 @@ from psychopy import misc, gui, log
 import cPickle, shelve, string, sys, os, time, copy
 import numpy
 from scipy import optimize, special
-
-def ObjectArray(inputSeq):
-    #a wrapper of numpy array(xx,'O') objects
-    return numpy.array(inputSeq, 'O')
     
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
@@ -46,7 +42,10 @@ class TrialHandler:
         trialList: a simple list (or flat array) of trials.
             
             """
-        self.trialList =trialList
+        if trialList in [None, []]:#user wants an empty trialList
+            self.trialList = [None]#which corresponds to a list with a single empty entry
+        else:
+            self.trialList =trialList
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
         for n, entry in enumerate(trialList):
             if type(entry)==dict:
@@ -148,14 +147,14 @@ class TrialHandler:
         
         Useful for shuffling and then using as a reference.
         """
-        inputArray  = ObjectArray(inputArray)#make sure its an array
+        inputArray  = numpy.asarray(inputArray, 'O')#make sure its an array of objects (can be strings etc)
         #get some simple variables for later
         dims=inputArray.shape
         dimsProd=numpy.product(dims)
         dimsN = len(dims)
         dimsList = range(dimsN)
         listOfLists = []
-        arrayOfTuples = ObjectArray(numpy.ones(dimsProd))#this creates space for an array of any objects
+        arrayOfTuples = numpy.ones(dimsProd, 'O')#this creates space for an array of any objects
         
         #for each dimension create list of its indices (using modulo)
         for thisDim in dimsList:        
@@ -173,17 +172,13 @@ class TrialHandler:
         """Advances to next trial and returns it.        
         Updates attributes; thisTrial, thisTrialN and thisIndex        
         If the trials have ended this method will raise a StopIteration error.
-        This can be handled with code such as 
-        
-        ::
+        This can be handled with code such as::
         
             trials = TrialHandler(.......)
             for eachTrial in trials:#automatically stops when done
                 #do stuff           
                 
-        or
-        
-        ::
+        or::
         
             trials = TrialHandler(.......)
             while True: #ie forever
@@ -468,6 +463,8 @@ class StairHandler:
         return self
         
     def addData(self, result):
+        """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        """
         self.data.append(result)
         
         #increment the counter of correct scores
@@ -558,17 +555,13 @@ class StairHandler:
         Updates attributes: thisTrial, thisTrialN and thisIndex       
         
         If the trials have ended this method will raise a StopIteration error.
-        This can be handled with code such as 
-        
-        ::
+        This can be handled with code such as::
             
             staircase = StairHandler(.......)
             for eachTrial in staircase:#automatically stops when done
                 #do stuff
            
-        or
-            
-        ::
+        or::
             
             staircase = StairHandler(.......)
             while True: #ie forever
@@ -624,19 +617,7 @@ class StairHandler:
         Arguments:
             fileName 
                 will have .dlm appended (so you can double-click it to
-            	open in excel) and can include path info.            
-             
-            stimOut 
-                the stimulus attributes to be output. To use this you need to
-                use a list of dictionaries and give here the names of dictionary keys
-                that you want as strings            
-            dataOut 
-                a list of strings specifying the dataType and the analysis to
-                be performed. The data can be any of the types that
-                you added using trialHandler.data.add() and the anal can be either
-                'raw' or most things in the numpy library, including;
-                'mean','std','median','max','min'...
-            
+                open in excel) and can include path info.
         """
         
         #create the file or print to stdout
@@ -737,7 +718,7 @@ class DataHandler(dict):
         #if given dataShape use it - otherwise guess!
         if dataShape: self.dataShape=dataShape
         elif self.trials:
-            self.dataShape=list(ObjectArray(trials.trialList).shape)
+            self.dataShape=list(numpy.asarray(trials.trialList, 'O').shape)
             self.dataShape.append(trials.nReps)
             
         #initialise arrays now if poss

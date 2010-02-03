@@ -5,7 +5,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, os, time, threading
-from ext import rush
+
+try:from ext import rush
+except: pass
+
 runningThreads=[]
 try:
     import pyglet.media

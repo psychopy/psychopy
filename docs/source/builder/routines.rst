@@ -1,4 +1,4 @@
-.. _Routines:
+.. _routines:
 
 Routines
 -------------

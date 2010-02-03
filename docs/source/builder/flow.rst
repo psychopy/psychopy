@@ -1,4 +1,4 @@
-.. _Flow:
+.. _flow:
 
 Flow
 ----------------
@@ -10,13 +10,15 @@ Adding Routines
 
 The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your :doc:`Routine </builder/routines>`. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
 
-.. _Loops:
+.. _loops:
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of :doc:`Routines </builder/routines>` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
+Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
 
-As with components in :doc:`Routines </builder/routines>`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
+As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
+
+.. _trialTypes:
 
 Method of Constants
 ^^^^^^^^^^^^^^^^^^^^^
@@ -30,7 +32,7 @@ Selecting a loop type of `random` or `sequential` will result in a :term:`method
 
 would represent 4 different conditions (trial types) with parameters ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
 
-If the loop type is `sequential` then, on each iteration of the :doc:`Routine(s) </builder/routines>`, the next row will be selected in order, whereas under the `random` type the next row will be selected randomly. `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
+If the loop type is `sequential` then, on each iteration of the :ref:`routines`, the next row will be selected in order, whereas under the `random` type the next row will be selected randomly. `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
 
 Staircase methods
 ^^^^^^^^^^^^^^^^^^^

@@ -164,7 +164,18 @@ class Experiment:
         paramNode is the parameter node fetched from the xml file
         """
         name=paramNode.get('name')
-        if 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        if name=='times':#handle this parameter, deprecated in v1.60.00
+            exec('times=%s' %paramNode.get('val'))
+            params['startTime'].val =str(times[0])
+            params['duration'].val = str(times[1]-times[0])
+            return #times doesn't need to update its type or 'updates' rule
+        elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
+            corrIf=paramNode.get('val')
+            corrAns=corrIf.replace('resp.keys==str(','').replace(')','')
+            params['correctAns'].val=corrAns
+            name='correctAns'#then we can fetch thte other aspects correctly below
+        elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        #get the value type and update rate
         if 'valType' in paramNode.keys(): 
             params[name].valType = paramNode.get('valType')
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
@@ -329,17 +340,20 @@ class TrialHandler:
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
         #create nice line-separated list of trialTypes
-        trialStr="[ \\\n"
-        for line in self.params['trialList'].val:
-            trialStr += "        %s,\n" %line
-        trialStr += "        ]"
+        if self.params['trialList'].val==None:
+            trialStr="[None]"
+        else:
+            trialStr="[ \\\n"
+            for line in self.params['trialList'].val:
+                trialStr += "        %s,\n" %line
+            trialStr += "        ]"
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
-        buff.writeIndented("%s=trials.trialList[0]#so we can initialise stimuli with first trial values\n" %self.thisName)
+        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with first trial values\n" %(self.thisName, self.params['name']))
 
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
@@ -354,10 +368,11 @@ class TrialHandler:
         buff.writeIndented("\n")
 
         #save data
-        ##a string to show all the available variables
+        ##a string to show all the available variables (if the trialList isn't just None or [None])
         stimOutStr="["
-        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
-            stimOutStr+= "'%s', " %variable
+        if self.params['trialList'].val not in [None, [None]]:
+            for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
+                stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
@@ -370,7 +385,7 @@ class TrialHandler:
 class StairHandler:
     """A staircase experimental control object.
     """
-    def __init__(self, exp, name, nReps, startVal, nReversals='None',
+    def __init__(self, exp, name, nReps='50', startVal='', nReversals='',
             nUp=1, nDown=3, minVal=0,maxVal=1,
             stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1]):
         """
@@ -409,20 +424,17 @@ class StairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
 
     def writeInitCode(self,buff):
-        #todo: write code to fetch trialList from file?
-        #create nice line-separated list of trialTypes
-        trialStr="[ \\\n"
-        for line in self.params['trialList'].val:
-            trialStr += "        %s,\n" %line
-        trialStr += "        ]"
+
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
+        if self.params['N reversals'].val in ["", None, 'None']:
+            self.params['N reversals'].val='0' 
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndented("%s=data.StairHandler(nReps=%(name)s, extraInfo=expInfo,\n" %(self.params))
-        buff.writeIndented("    startVal=%(start value)s, stepSizes=%(step sizes)i, stepType=%(step type)s,\n" %self.params)
-        buff.writeIndented("    nReversals=%(nReversals)s, nTrials=%(nReps)i, \n" %self.params)
-        buff.writeIndented("    nUp=%(N up)i, nDown=%(N down)i,\n" %self.params)
+        buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
+        buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
+        buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
+        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s)\n" %self.params)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
@@ -434,11 +446,6 @@ class StairHandler:
         buff.writeIndented("#staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        ##a string to show all the available variables
-        stimOutStr="["
-        for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
-            stimOutStr+= "'%s', " %variable
-        stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm')\n" %self.params)
         buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
@@ -605,9 +612,12 @@ class Routine(list):
                 return comp
         return None
     def getMaxTime(self):
-        maxTime=0;
+        maxTime=0
+        times=[]
         for event in self:
-            exec("times=%s" %event.params['times'].val)#convert params['times'].val into numeric
+            if event.params['duration'].val in ['-1', '']: maxTime=1000000
+            else:
+                exec("maxTime=%s" %event.params['duration'])#convert params['duration'].val into numeric
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime

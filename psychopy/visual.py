@@ -6,11 +6,12 @@
 
 import psychopy #so we can get the __path__
 from psychopy import core, ext, log, preferences, monitors
+import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
 import Image
-import sys, os, time, glob, copy
+import sys, os, platform, time, glob, copy
 import makeMovies
 
 import numpy
@@ -75,41 +76,7 @@ class Window:
     
     Pygame has fewer bells and whistles, but does seem a little faster in text rendering.
     Pygame is used for all sound production and for monitoring the joystick.
-        
-        :Parameters:
-            size : (800,600)
-                Size of the window in pixels (X,Y)
-            pos : *None* or (x,y)
-                Location of the window on the screen
-            rgb : [0,0,0]
-                Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
-            fullscr : *None*, True or False
-                Better timing can be achieved in full-screen mode            
-            allowGUI :  *None*, True or False (if None prefs are used) 
-                If set to False, window will be drawn with no frame and no buttons to close etc...
-            winType :  *None*, 'pyglet', 'pygame'
-                If None then PsychoPy will revert to user/site preferences
-            monitor : *None*, string or a `Monitor` object
-                The monitor to be used during the experiment
-            units :  *None*, 'norm' (normalised),'deg','cm','pix'
-                Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
-            screen : *0*, 1 (or higher if you have many screens)
-                Specifies the physical screen that stimuli will appear on (pyglet winType only)
-            viewScale : *None* or [x,y]
-                Can be used to apply a custom scaling to the current units of the window.  
-            viewPos : *None*, or [x,y]
-                If not None, redefines the origin for the window
-            viewOri : *0* or any numeric value
-                A single value determining the orientation of the view in degs
-            waitBlanking : *None*, True or False. 
-                After a call to flip() should we wait for the blank before the script continues
-            gamma : 1.0, 
-                Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
-            bitsMode : None, 'fast', ('slow' mode is deprecated). 
-                Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
-        
-        :note: Preferences. Some arguments (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
-            
+    
     """
     def __init__(self,
                  size = (800,600),
@@ -130,9 +97,46 @@ class Window:
                  viewPos  = None,
                  viewOri  = 0.0,
                  waitBlanking=True):
+        """        
+        :Parameters:
+        
+            size : (800,600)
+                Size of the window in pixels (X,Y)
+            pos : *None* or (x,y)
+                Location of the window on the screen
+            rgb : [0,0,0]
+                Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
+            fullscr : *None*, True or False
+                Better timing can be achieved in full-screen mode            
+            allowGUI :  *None*, True or False (if None prefs are used) 
+                If set to False, window will be drawn with no frame and no buttons to close etc...
+            winType :  *None*, 'pyglet', 'pygame'
+                If None then PsychoPy will revert to user/site preferences
+            monitor : *None*, string or a `~psychopy.monitors.Monitor` object
+                The monitor to be used during the experiment
+            units :  *None*, 'norm' (normalised),'deg','cm','pix'
+                Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
+                See :ref:`units` for explanation of options.
+            screen : *0*, 1 (or higher if you have many screens)
+                Specifies the physical screen that stimuli will appear on (pyglet winType only)
+            viewScale : *None* or [x,y]
+                Can be used to apply a custom scaling to the current units of the :class:`~psychopy.visual.Window`.  
+            viewPos : *None*, or [x,y]
+                If not None, redefines the origin for the window
+            viewOri : *0* or any numeric value
+                A single value determining the orientation of the view in degs
+            waitBlanking : *None*, True or False. 
+                After a call to flip() should we wait for the blank before the script continues
+            gamma : 1.0, 
+                Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
+            bitsMode : None, 'fast', ('slow' mode is deprecated). 
+                Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
+            
+            :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
+        
         """
-        """
-        ext.rush() #no reason to turn off?
+        if hasattr(ext, 'rush'):
+            ext.rush() #no reason to turn off?
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
@@ -187,7 +191,7 @@ class Window:
         #setup bits++ if possible
         self.bitsMode = bitsMode #could be [None, 'fast', 'slow']
         if self.bitsMode!=None:
-            from psychopy import bits
+            from psychopy.hardware.crs import bits
             self.bits = bits.BitsBox(self)
             self.haveBits = True
 
@@ -206,7 +210,7 @@ class Window:
             self.useNativeGamma=False
         elif type(self.monitor.getGammaGrid())==numpy.ndarray:
             self.gamma = self.monitor.getGammaGrid()[1:,2]
-            if self.monitor.gammaIsDefault():
+            if self.monitor.gammaIsDefault(): #are we using the default gamma for all monitors?
                 self.useNativeGamma=True
             else:self.useNativeGamma=False
         elif self.monitor.getGamma()!=None:
@@ -273,6 +277,11 @@ class Window:
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
+        #but override if not possible:
+        if platform.system() not in ['Darwin','Windows','Microsoft']:
+            self.waitBlanking=False
+        if platform.system()=='Darwin' and platform.mac_ver()[0]>='10.6':
+            self.waitBlanking=False#Snow leopard doesn't support this?
         self.flip()#do a screen refresh straight away
 
     def setRecordFrameIntervals(self, value=True):
@@ -288,8 +297,10 @@ class Window:
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
         
-        Arguments:
-            - fileName (=None). The filename (including path if necessary) in which to store the data
+        :Parameters:
+            
+        fileName : *None* or the filename (including path if necessary) in which to store the data.
+            If None then 'lastFrameIntervals.log' will be used.
             
         """
         if fileName==None: 
@@ -312,7 +323,7 @@ class Window:
         This default handler updates the GL viewport to cover the entire
         window and sets the ``GL_PROJECTION`` matrix to be orthagonal in
         window space.  The bottom-left corner is (0, 0) and the top-right
-        corner is the width and height of the window in pixels.
+        corner is the width and height of the :class:`~psychopy.visual.Window` in pixels.
 
         Override this event handler with your own to create another
         projection, for example in perspective.
@@ -410,13 +421,23 @@ class Window:
         else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
         
-        if self.waitBlanking and (sys.platform in ['win32','darwin']):
+        if self.waitBlanking:
             ext.waitForVBL()
 
     def update(self):
         """Deprecated: use Window.flip() instead        
         """
         self.flip(clearBuffer=True)#clearBuffer was the original behaviour for win.update()
+
+    def clearBuffer(self):
+        """Clear the back buffer (to which you are currently drawing) without flipping the window.
+        Useful if you want to generate movie sequences from the back buffer without actually 
+        taking the time to flip the window.
+        """
+        #reset returned buffer for next frame
+        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
+        self._defDepth=0.0#gets gradually updated through frame
         
     def getMovieFrame(self, buffer='front'):
         """
@@ -450,15 +471,33 @@ class Window:
         im=im.convert('RGB')
         self.movieFrames.append(im)
 
-    def saveMovieFrames(self, fileName, mpgCodec='mpeg1video'):
+    def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
+        fps=30):
         """
         Writes any captured frames to disk. Will write any format
         that is understood by PIL (tif, jpg, bmp, png...)
-
-        Usage:
-            - ``myWin.saveMovieFrames('frame.tif')``
-                #writes a series of frames as frame001.tif, frame002.tif etc...
-
+        
+        :parameters:
+        
+            filename: name of file, including path (required)
+                The extension at the end of the file determines the type of file(s)
+                created. If an image type is given the multiple static frames are created.
+                If it is .gif then an animated GIF image is created (although you will get higher
+                quality GIF by saving PNG files and then combining them in dedicated 
+                image manipulation software (e.g. GIMP). On windows and linux `.mpeg` files
+                can be created if `pymedia` is installed. On OS X `.mov` files can be created
+                if the pyobjc-frameworks-QTKit is installed.
+            
+            mpgCodec: the code to be used **by pymedia** if the filename ends in .mpg
+            
+            fps: the frame rate to be used throughout the movie **only for quicktime (.mov) movies**
+            
+        Examples::
+            myWin.saveMovieFrames('frame.tif')#writes a series of static frames as frame001.tif, frame002.tif etc...
+            myWin.saveMovieFrames('stimuli.mov', fps=25)#on OS X only
+            myWin.saveMovieFrames('stimuli.gif')#but not great quality
+            myWin.saveMovieFrames('stimuli.mpg')#not on OS X
+            
         """
         fileRoot, fileExt = os.path.splitext(fileName)
         if len(self.movieFrames)==0:
@@ -467,7 +506,18 @@ class Window:
         else:
             log.info('writing %i frames' %len(self.movieFrames))
         if fileExt=='.gif': makeMovies.makeAnimatedGIF(fileName, self.movieFrames)
-        elif fileExt in ['.mpg', '.mpeg']: makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
+        elif fileExt in ['.mpg', '.mpeg']: 
+            if sys.platform=='darwin':
+                raise IOError('Mpeg movies are not currently available under OSX.'+\
+                    ' You can use quicktime movies (.mov) instead though.')
+            makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
+        elif fileExt in ['.mov', '.MOV']: 
+            if sys.platform!='darwin':
+                raise IOError('Quicktime movies are only currently available under OSX.'+\
+                    ' Try using mpeg compression instead (.mpg).')
+            mov = makeMovies.QuicktimeMovie(filename, fps=fps)
+            for frame in self.movieFrames:
+                mov.addFrame(frame, frameDuration)
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
@@ -480,7 +530,7 @@ class Window:
         """Toggles fullscreen mode (GLUT only).
 
         Fullscreen mode for PyGame contexts must be set during initialisation
-        of the Window() class
+        of the :class:`~psychopy.visual.Window`
         """
         if self.winType=='glut':
             if self._isFullScr:
@@ -517,14 +567,25 @@ class Window:
         self.frames = 0
         return fps
     
+    def setRGB(self, newRGB):
+        """Set the background colour of the screen using :ref:`RGB`
+        This new colour will only be updated on the next call to `Window.flip()`
+        """
+        global GL
+        if type(newRGB) in [int, float]:
+            self.rgb=[newRGB, newRGB, newRGB]
+        else:
+            self.rgb=newRGB
+        GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
+        
     def setScale(self, units, font='dummyFont', prevScale=[1.0,1.0]):
         """This method is called from within the draw routine and sets the
         scale of the OpenGL context to map between units. Could potentially be
         called by the user in order to draw OpenGl objects manually
         in each frame.
 
-        The **units** can be 'norm'(normalised),'pix'(pixels),'cm' or
-        'stroke_font'. The **font** argument is only used if units='stroke_font'
+        The `units` can be 'norm'(normalised),'pix'(pixels),'cm' or
+        'stroke_font'. The `font` parameter is only used if units='stroke_font'
         """
         if units=="norm":
             thisScale = numpy.array([1.0,1.0])
@@ -792,35 +853,35 @@ class _BaseVisualStim:
     def draw(self):
         raise NotImplementedError('abstract')
         
-    def setPos(self, newPos, operation=None, units=None):
+    def setPos(self, newPos, operation='', units=None):
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=None):
+    def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)
-    def setSize(self, newSize, operation=None, units=None):
+    def setSize(self, newSize, operation='', units=None):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
         self._calcSizeRendered()
         self.needUpdate=True
-    def setOri(self, newOri, operation=None):
+    def setOri(self, newOri, operation=''):
         self._set('ori',val=newOri, op=operation)
-    def setOpacity(self,newOpacity,operation=None):
+    def setOpacity(self,newOpacity,operation=''):
         self._set('opacity', newOpacity, operation)
         #opacity is coded by the texture, if not using shaders
         if not self._useShaders:
             self.setMask(self._maskName)
-    def setDKL(self, newDKL, operation=None):
-        self._set('dkl', value=newDKL, op=operation)
+    def setDKL(self, newDKL, operation=''):
+        self._set('dkl', val=newDKL, op=operation)
         self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
-    def setLMS(self, newLMS, operation=None):
+    def setLMS(self, newLMS, operation=''):
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=None):      
+    def setRGB(self, newRGB, operation=''):      
         self._set('rgb', newRGB, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setTex(self._texName)
-    def setContr(self, newContr, operation=None):     
+    def setContr(self, newContr, operation=''):     
         """Set the contrast of the stimulus
         """ 
         self._set('contr', newContr, operation)
@@ -872,12 +933,14 @@ class _BaseVisualStim:
             self._updateListShaders()
         else: self._updateListNoShaders()  
     def _calcSizeRendered(self):
-        """Calculate the size of the stimulus in coords of the window (normalised or pixels)"""
+        """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix']: self._sizeRendered=self.size
         elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+        else:
+            log.ERROR("Stimulus units should be 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
+        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
@@ -929,26 +992,22 @@ class DotStim(_BaseVisualStim):
                  noiseDots='position'):
         """
         :Parameters:
-            win : `Window` object 
-                the stimulus must know where to draw itself!
+        
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
             units : **None**, 'norm', 'cm', 'deg' or 'pix'  
-                If None then the current units of the `Window` will be used. If 'norm'
-                then the window goes from -1:1 in each direction. If any of the others
-                are used then some info about the `Monitor` must be provided 
-                (e.g. from MonitorCenter.py)
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
             nDots : int
                 number of dots to be generated
             fieldPos : (x,y) or [x,y]
-                specifying the centre of the stimulus.
-                The origin is the screen centre, the units are determined
-                by `units` (see above).
+                specifying the location of the centre of the stimulus.
             fieldSize : a single value, specifying the diameter of the field
-                Units are specified by `units` (see above).
                 Sizes can be negative and can extend beyond the window.
             fieldShape : *'sqr'* or 'circle' 
                 Defines the envelope used to present the dots
             dotSize
-                in specified *units* (overridden if `element` is specified)
+                in specified `units` (overridden if `element` is specified)
             dotLife : int
                 Number of frames each dot lives for (default=3, -1=infinite)
             dir : float (degrees)
@@ -969,10 +1028,7 @@ class DotStim(_BaseVisualStim):
                 or a single value (which will be applied to all guns).
                 RGB vals are applied to simple textures and to greyscale
                 image files but not to RGB images.
-
-                **NB** units range -1:1 (so 0.0 is GREY). This is the convention
-                throughout PsychoPy because most vision studies are conducted on a
-                grey screen and colors represent deviations from this screen color.
+                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth : 0,
@@ -984,7 +1040,7 @@ class DotStim(_BaseVisualStim):
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
-                """
+            """
         self.win = win
         
         self.nDots = nDots
@@ -1047,15 +1103,17 @@ class DotStim(_BaseVisualStim):
     def _set(self, attrib, val, op=''):
         """Use this to set attributes of your stimulus after initialising it.
 
-        **arguments:**
-            - attrib = a string naming any of the attributes of the stimulus (set during init)
-            - val = the value to be used in the operation on the attrib
-            - op = a string representing the operation to be performed (optional) most maths operators apply ('+','-','*'...)
+        :Parameters:
+        
+        attrib : a string naming any of the attributes of the stimulus (set during init)
+        val : the value to be used in the operation on the attrib
+        op : a string representing the operation to be performed (optional) most maths operators apply ('+','-','*'...)
 
-        **examples:**
-            - myStim.set('rgb',0) #will simply set all guns to zero (black)
-            - myStim.set('rgb',0.5,'+') #will increment all 3 guns by 0.5
-            - myStim.set('rgb',(1.0,0.5,0.5),'*') # will keep the red gun the same and halve the others
+        examples::
+        
+            myStim.set('rgb',0) #will simply set all guns to zero (black)
+            myStim.set('rgb',0.5,'+') #will increment all 3 guns by 0.5
+            myStim.set('rgb',(1.0,0.5,0.5),'*') # will keep the red gun the same and halve the others
 
         """
         #format the input value as float vectors
@@ -1081,7 +1139,7 @@ class DotStim(_BaseVisualStim):
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
-    def setPos(self, newPos=None, operation=None, units=None):
+    def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
         log.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")        
@@ -1256,7 +1314,7 @@ class SimpleImageStim(_BaseVisualStim):
     gfx card. The advantage, however is that the stimulus will always be in its
     original aspect ratio, with no interplotation or other transformation. It is always 
     
-    SimpleImageStim does not support a depth argument (the OpenGL method
+    SimpleImageStim does not support a depth parameter (the OpenGL method
     that draws the pixels does not support it). Simple images will obscure any other 
     stimulus type.
     
@@ -1275,34 +1333,28 @@ class SimpleImageStim(_BaseVisualStim):
                  flipHoriz=False,
                  flipVert=False):
         """
-        **Arguments:**
+        :Parameters:
 
-            - **win:** 
-                a Window() object required - the stimulus must know where to draw itself!
-
-            - **image** 
+            
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
+            image :
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
                 (which is almost all).
-
-            - **units:**
-                For SimpleImages the units only relate to the position of the image
-                + None (use the current units of the Window)
-                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
-
-            - **pos:** 
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options. 
+            pos : 
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be position beyond the
                 window!
-
-            - **contrast**
+            contrast :
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus)
-
-            - **opacity**
+            opacity :
                 1.0 is opaque, 0.0 is transparent
                 
         """
@@ -1319,11 +1371,31 @@ class SimpleImageStim(_BaseVisualStim):
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.setImage(image)
+        #flip if necess
+        self.flipHoriz=False#initially it is false, then so the flip according to arg above
+        self.setFlipHoriz(flipHoriz)
+        self.flipVert=False#initially it is false, then so the flip according to arg above
+        self.setFlipVert(flipVert)
         #fix scaling to window coords
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
         self._calcPosRendered()
-    
+    def setFlipHoriz(self,newVal=True):
+        """If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        if newVal!=self.flipHoriz: #we need to make the flip
+            self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
+        self.flipHoriz=newVal
+        self._needStrUpdate=True
+    def setFlipVert(self,newVal=True):
+        """If set to True then the image will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        if newVal!=self.flipVert: #we need to make the flip
+            self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
+        self.flipVert=newVal
+        self._needStrUpdate=True
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
@@ -1332,14 +1404,20 @@ class SimpleImageStim(_BaseVisualStim):
             log.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            self.setImage()            
-    def draw(self):
+            self.setImage()
+    def _updateImageStr(self):
+        self._imStr=self.imArray.tostring()
+        self._needStrUpdate=False
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
-        """        
+        """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
         #push the projection matrix and set to orthorgaphic
         GL.glMatrixMode(GL.GL_PROJECTION)						
         GL.glPushMatrix()									
@@ -1349,6 +1427,7 @@ class SimpleImageStim(_BaseVisualStim):
         GL.glMatrixMode(GL.GL_MODELVIEW)							
         GL.glLoadIdentity()
         
+        if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
         GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1360,21 +1439,22 @@ class SimpleImageStim(_BaseVisualStim):
         #move to centre of stimulus and rotate
         GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
             self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
+            
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0],self.size[1],
             self.internalFormat,self.dataType, 
-            self.imArray.ctypes)
+            self._imStr)
         #return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode( GL.GL_PROJECTION )					
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
-    def setPos(self, newPos, operation=None, units=None):
+    def setPos(self, newPos, operation='', units=None):
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=None):
+    def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the window (normalised or pixels)"""
+        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['pix', 'pixels']: self._posRendered=self.pos
         elif self.units=='norm': self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
@@ -1398,7 +1478,7 @@ class SimpleImageStim(_BaseVisualStim):
         else:
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray)
-            
+        self._needStrUpdate=True
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -1455,98 +1535,87 @@ class PatchStim(_BaseVisualStim):
                  rgbPedestal = [0.0,0.0,0.0],
                  interpolate=False):
         """
-        **Arguments:**
-
-            - **win:** 
-                a Window() object required - the stimulus must know where to draw itself!
-
-            - **tex** 
+        :Parameters:
+    
+            win : 
+                a :class:`~psychopy.visual.Window` object (required)
+            tex : 
                 The texture forming the image
-                + 'sin','sqr',None
-                + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging -1:1
-
-            - **mask:**
+                            
+                + **'sin'**,'sqr',None
+                + or the name of an image file (most formats supported)
+                + or a numpy array (1xN or NxN) ranging -1:1
+                
+            mask :
                 The alpha mask (forming the shape of the image)
-                + None, 'circle', 'gauss'
-                + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging -1:1
-
-            - **units:**
-                + None (use the current units of the Window)
-                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
-
-            - **pos:** 
+                              
+                + **None**, 'circle', 'gauss'
+                + or the name of an image file (most formats supported)
+                + or a numpy array (1xN or NxN) ranging -1:1   
+                         
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
+            pos :
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be position beyond the
-                window!
-            - **size:** 
+                window!                
+            size :
                 a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
                 OR a single value (which will be applied to x and y).
                 Units are specified by 'units' (see above).
-                Sizes can be negative and can extend beyond the window.
-            - **sf:** 
+                Sizes can be negative and can extend beyond the window.                
+            sf:
                 a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
                 OR a single value (which will be applied to x and y).
-                Units are in cycles per 'units' (see above). For *deg*, *cm* and *norm* units th
-                default sf=1, for *pix* the default sf=1/size so that one cycle fits on the stim.
-            - **ori:** 
-                orientation of stimulus in degrees.
-            - **phase:** 
+                Where `units` == 'deg' or 'cm' units are in cycles per deg/cm. 
+                If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
+            ori:
+                orientation of stimulus in degrees                
+            phase:
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y
                 OR a single value (which will be applied to x and y).
                 Phase of the stimulus in each direction.
                 **NB** phase has modulus 1 (rather than 360 or 2*pi)
                 This is a little unconventional but has the nice effect
                 that setting phase=t*n drifts a stimulus at n Hz
-
-            - **texRes:** 
+            texRes:
                 resolution of the texture (if not loading from an image file)
-
-            - **rgb:** 
+            rgb:
                 a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
                 or a single value (which will be applied to all guns).
                 RGB vals are applied to simple textures and to greyscale
                 image files but not to RGB images.
-
-                **NB** units range -1:1 (so 0.0 is GREY). Again this is
-                unconventional but it's great for vision scientists
-                because they usually change things relative to a
-                midpoint rather than relative to black.
-
-            - **dkl:** 
+                See :ref:`rgb`
+            dkl:
                 a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
                 specifying the coordinates of the stimuli in cone-opponent
-                space (Derrington, Krauskopf, Lennie 1984)
+                space (Derrington, Krauskopf, Lennie 1984).  See :ref:`dkl` for further info.
                 Triplets represent [elevation, azimuth, magnitude].
                 Note that the monitor must be calibrated for this to be
                 accurate (if not, example phosphors from a Sony Trinitron
                 CRT will be used).
-
-            - **lms:** 
+            lms:
                 a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
                 specifying the coordinates of the stimuli in cone space
                 Triplets represent relative modulation of each cone [L, M, S].
+                See :ref:`lms` for further info.
                 Note that the monitor must be calibrated for this to be
                 accurate (if not, example phosphors from a Sony Trinitron
                 CRT will be used).
-
-            - **contrast**
+            contrast:
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus)
-
-            - **opacity**
+                values given in the color description of the stimulus).
+            opacity:
                 1.0 is opaque, 0.0 is transparent
-
-            - **depth**
+            depth:
                 This can potentially be used (not tested!) to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
                 but could do if that's really useful(?!)
-
+                
         """
         
         self.win = win
@@ -1574,7 +1643,7 @@ class PatchStim(_BaseVisualStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
         
         if dkl is not None:
-            self.dkl = dkl
+            self.dkl = numpy.array(dkl,float)
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms is not None:
             self.lms = lms
@@ -1631,14 +1700,14 @@ class PatchStim(_BaseVisualStim):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
-    def setSF(self,value,operation=None):
+    def setSF(self,value,operation=''):
         self._set('sf', value, operation)
         self.needUpdate = 1
         self._calcCyclesPerStim()
-    def setPhase(self,value, operation=None):
+    def setPhase(self,value, operation=''):
         self._set('phase', value, operation)
         self.needUpdate = 1
-    def setContrast(self,value,operation=None):
+    def setContrast(self,value,operation=''):
         self._set('contrast', value, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
@@ -1873,106 +1942,84 @@ class RadialStim(PatchStim):
                  ori     =0.0,
                  texRes =64,
                  angularRes=100,
-                 visibleWedge=[0, 360],
-                 rgb   =[1.0,1.0,1.0],
+                 visibleWedge=(0, 360),
+                 rgb   =(1.0,1.0,1.0),
                  dkl=None,
                  lms=None,
                  contrast=1.0,
                  opacity=1.0,
                  depth=0,
-                 rgbPedestal = [0.0,0.0,0.0],
+                 rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False):
         """
-        **Arguments:**
+        :Parameters:
 
-            - **win:**
-                a Window() object required - the stimulus must know where to draw itself!
-
-            - **tex**
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
+            tex :
                 The texture forming the image
-                + 'sqrXsqr', 'sinXsin', 'sin','sqr',None
-                + **or** the name of an image file (most formats supported)
-                + **or** a numpy array (1xN or NxN) ranging -1:1
-
-            - **mask:**
+                
+                - 'sqrXsqr', 'sinXsin', 'sin','sqr',None
+                - or the name of an image file (most formats supported)
+                - or a numpy array (1xN or NxN) ranging -1:1
+                
+            mask :
                 Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
-                from the centre of the stimulus to the surround.
+                from the centre of the stimulus to the surround.            
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
+            pos :
+                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+                Stimuli can be position beyond the window!
+            size :
+                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
+                OR a single value (which will be applied to x and y).
+                Sizes can be negative and stimuli can extend beyond the window.
+            ori : 
+                orientation of stimulus in degrees.
+            texRes : (default= *128* )
+                resolution of the texture (if not loading from an image file)
+            angularRes : (default= *100* )
+                100, the number of triangles used to make the sti
+            radialPhase :
+                the phase of the texture from the centre to the perimeter
+                of the stimulus
+            angularPhase : 
+                the phase of the texture around the stimulus
+            rgb :
+                a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
+                or a single value (which will be applied to all guns).
+                RGB vals are applied to simple textures and to greyscale
+                image files but not to RGB images.
 
-            - **units:**
-                + None (use the current units of the Window)
-                + **or** 'norm' (normalised: window goes from -1:1 in each direction)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
+                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
 
-            - **pos:**
-                    a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                    The origin is the screen centre, the units are determined
-                    by units (see above). Stimuli can be position beyond the
-                    window!
-
-            - **size:**
-                    a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                    OR a single value (which will be applied to x and y).
-                    Units are specified by 'units' (see above).
-
-                    Sizes can be negative and can extend beyond the window.
-
-            - **sf:**
-                    + a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
-                    + OR a single value (which will be applied to x and y).
-
-                    Units are in cycles per 'units' (see above)
-
-            - **ori:** orientation of stimulus in degrees.
-
-            - **texRes:** 128, resolution of the texture (if not loading from an image file)
-
-            - **angularRes:** 100, the number of triangles used to make the stim
-
-            - **radialPhase:**
-                    the phase of the texture from the centre to the perimeter
-                    of the stimulus
-
-            - **angularPhase:** the phase of the texture around the stimulus
-
-            - **rgb:**
-                    a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
-                    or a single value (which will be applied to all guns).
-                    RGB vals are applied to simple textures and to greyscale
-                    image files but not to RGB images.
-
-                    **NB** units range -1:1 (so 0.0 is GREY). This might seem
-                    strange but it's great for vision scientists
-                    because they usually change things relative to a
-                    midpoint rather than relative to black.
-
-            - **dkl:** a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
-                    specifying the coordinates of the stimuli in cone-opponent
-                    space (Derrington, Krauskopf, Lennie 1984)
-                    Triplets represent [elevation, azimuth, magnitude].
-                    Note that the monitor must be calibrated for this to be
-                    accurate (if not, example phosphors from a Sony Trinitron
-                    CRT will be used).
-
-            - **lms:** a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
-                    specifying the coordinates of the stimuli in cone space
-                    Triplets represent relative modulation of each cone [L, M, S].
-                    Note that the monitor must be calibrated for this to be
-                    accurate (if not, example phosphors from a Sony Trinitron
-                    CRT will be used).
-
-            - **contrast** 1.0,
-                    How far the stimulus deviates from the middle grey.
-                    Contrast can vary -1:1 (this is a multiplier for the
-                    values given in the color description of the stimulus)
-
-            - **opacity** 1.0,
-                    1.0 is opaque, 0.0 is transparent
-
-            - **depth** 0,
-                    This can potentially be used (not tested!) to choose which
-                    stimulus overlays which. (more negative values are nearer).
-                    At present the window does not do perspective rendering
-                    but could do if that's really useful(?!)
+            dkl : a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
+                specifying the coordinates of the stimuli in cone-opponent
+                space (Derrington, Krauskopf, Lennie 1984). See :ref:`dkl` for further info.
+                Triplets represent [elevation, azimuth, magnitude].
+                Note that the monitor must be calibrated for this to be
+                accurate (if not, example phosphors from a Sony Trinitron
+                CRT will be used).
+            lms : a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
+                specifying the coordinates of the stimuli in cone space
+                Triplets represent relative modulation of each cone [L, M, S].
+                See :ref:`lms` for further info.
+                Note that the monitor must be calibrated for this to be
+                accurate (if not, example phosphors from a Sony Trinitron
+                CRT will be used).
+            contrast : (default= *1.0* )
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus)
+            opacity :
+                1.0 is opaque, 0.0 is transparent
+            depth :
+                This can potentially be used (not tested!) to choose which
+                stimulus overlays which. (more negative values are nearer).
+                At present the window does not do perspective rendering
+                but could do if that's really useful(?!)
 
         """
         self.win = win
@@ -2011,7 +2058,7 @@ class RadialStim(PatchStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
 
         if dkl:
-            self.dkl = dkl
+            self.dkl = numpy.array(dkl,float)
             self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
         elif lms:
             self.lms = lms
@@ -2059,30 +2106,30 @@ class RadialStim(PatchStim):
         self._updateXY()
         self._updateList()#ie refresh display list
 
-    def setSize(self, value, operation=None):
-        exec('self.size' + operation+ '=value')
+    def setSize(self, value, operation=''):
+        self._set('size', value, operation)
         self._calcSizeRendered()
         self._updateXY()
         self.needUpdate=True
-    def setAngularCycles(self,value,operation=None):
+    def setAngularCycles(self,value,operation=''):
         """set the number of cycles going around the stimulus"""
-        exec('self.angularCycles' + operation+ '=value')
+        self._set('angularCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialCycles(self,value,operation=None):
+    def setRadialCycles(self,value,operation=''):
         """set the number of texture cycles from centre to periphery"""
-        exec('self.radialCycles' + operation+ '=value')
+        self._set('radialCycles', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setAngularPhase(self,value, operation=None):
+    def setAngularPhase(self,value, operation=''):
         """set the angular phase of the texture"""
-        exec('self.angularPhase' + operation+ '=value')
+        self._set('angularPhase', value, operation)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialPhase(self,value, operation=None):
+    def setRadialPhase(self,value, operation=''):
         """set the radial phase of the texture"""
+        self._set('radialPhase', value, operation)
         self._updateTextureCoords()
-        exec('self.radialPhase' + operation+ '=value')
         self.needUpdate=True
 
     def draw(self, win=None):
@@ -2203,9 +2250,9 @@ class RadialStim(PatchStim):
 
     def _updateMaskCoords(self):
         #calculate mask coords
-        self._maskCoords = numpy.zeros([self.angularRes, 3, 2]) + self.maskRadialPhase
-        self._maskCoords[:,1:3,:] = 1 + self.maskRadialPhase#all outer points have mask value of 1
-        self._visibleMask = self._maskCoords[self._visible,:,:].reshape(self._nVisible,2)
+        self._maskCoords = numpy.zeros([self.angularRes,3]) + self.maskRadialPhase
+        self._maskCoords[:,1:] = 1 + self.maskRadialPhase#all outer points have mask value of 1
+        self._visibleMask = self._maskCoords[self._visible,:]
 
 
     def _updateListShaders(self):
@@ -2332,7 +2379,7 @@ class RadialStim(PatchStim):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
     def setMask(self,value):        
-        """Users shouldn't use this method
+        """
         """
         self._maskName = value
         res = self.texRes#resolution of texture - 128 is bearable
@@ -2340,12 +2387,12 @@ class RadialStim(PatchStim):
         rad = numpy.arange(0,1+step,step)
         if type(self._maskName) == numpy.ndarray:
             #handle a numpy array
-            intensity = 255*maskName.astype(float)
+            intensity = 255*self._maskName.astype(float)
             res = len(intensity)
             fromFile=0
         elif type(self._maskName) == list:
             #handle a numpy array
-            intensity = 255*numpy.array(maskName, float)
+            intensity = 255*numpy.array(self._maskName, float)
             res = len(intensity)
             fromFile=0
         elif self._maskName == "circle":
@@ -2426,50 +2473,68 @@ class ElementArrayStim:
                  texRes=48):
         
         """
-        **Arguments:**
+        :Parameters:
         
-            - **win:** a Window() object required - the stimulus must know where to draw itself!
-                            
-            - **units:**
-                + None (use the current units of the Window)
-                + **or** 'norm' (normalised: window voes from -1:1 in each direction)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
-                  
-            - **fieldPos:** The centre of the array of elements
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
+                                 
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
             
-            - **fieldSize:** The size of the array of elements (this will be overridden by setting explicit xy positions for the elements)
-                        
-            - **fieldShape:** The shape of the array ('circle' or 'sqr')
+            fieldPos : 
+                The centre of the array of elements
+                                
+            fieldSize : 
+                The size of the array of elements (this will be overridden by setting explicit xy positions for the elements)
             
-            - **nElements:** number of elements in the array
+            fieldShape : 
+                The shape of the array ('circle' or 'sqr')        
             
-            - **sizes:** an array of sizes Nx1, Nx2 or a single value
+            nElements : 
+                number of elements in the array     
+               
+            sizes : 
+                an array of sizes Nx1, Nx2 or a single value      
+              
+            xys : 
+                the xy positions of the elements, relative to the field centre (fieldPos)   
+                 
+            rgbs : 
+                specifying the colour(s) of the elements. 
+                Should be Nx1 (different greys), Nx3 (different colors) or 1x3 (for a single colour)
             
-            - **xys:** the xy positions of the elements, relative to the field centre (fieldPos)
+            opacities : 
+                the opacity of each element (Nx1 or a single value)
             
-            - **rgbs:** specifying the colour(s) of the elements. Should be Nx1 (different greys), Nx3 (different colors)or 1x3 (for a single colour)
+            depths : 
+                the depths of the elements (Nx1), relative the overall depth of the field (fieldDepth)
             
-            - **opacities:** the opacity of each element (Nx1 or a single value)
-
-            - **depths:** the depths of the elements (Nx1), relative the overall depth of the field (fieldDepth)
+            fieldDepth : 
+                the depth of the field (will be added to the depths of the elements)
             
-            - **fieldDepth:** the depth of the field (will be added to the depths of the elements)
+            oris : 
+                the orientations of the elements (Nx1 or a single value)
             
-            - **oris:** the orientations of the elements (Nx1 or a single value)
+            sfs : 
+                the spatial frequencies of the elements (Nx1, Nx2 or a single value)
             
-            - **sfs:** the spatial frequencies of the elements (Nx1, Nx2 or a single value)
+            contrs : 
+                the contrasts of the elements, ranging -1 to +1 (Nx1 or a single value)
             
-            - **contrs:** the contrasts of the elements, ranging -1 to +1 (Nx1 or a single value)
+            phases : 
+                the spatial phase of the texture on the stimulus (Nx1 or a single value)
             
-            - **phases:** the spatial phase of the texture on the stimulus (Nx1 or a single value)
+            elementTex : 
+                the texture, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
             
-            - **elementTex:** the texture, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
+            elementMask : 
+                the mask, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
             
-            - **elementMask:** the mask, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
-            
-            - **texRes:** the number of pixels in the textures, unless an array or image is provided                       
-                    
-                """
+            texRes : 
+                the number of pixels in the textures, unless an array or image is provided                       
+        
+        """
         self.win = win        
         if units in [None, "", []]:
             self.units = win.units
@@ -2770,7 +2835,7 @@ class ElementArrayStim:
             self.fieldPos=value
         else:
             exec('self.fieldPos'+operation+'=value')
-    def setPos(self, newPos=None, operation=None, units=None):
+    def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
         log.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
@@ -2967,36 +3032,28 @@ class MovieStim(_BaseVisualStim):
                  flipHoriz = False,
                  opacity=1.0):
         """
-        **Arguments:**
+        :Parameters:
 
-            - **win:** a Window() object required - the stimulus must know where to draw itself
-
-            - **filename:**
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
+            filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that 
                 AVbin can read (e.g. mpeg, DivX)
-                
-            - **units:**
-                + None (use 'pix')
-                + **or** 'norm' (normalised: window goes from -1:1)
-                + **or**  'cm','pix','deg' (but these real-world units need you to give sufficient info about your monitor, see below)
-                
-            - **pos**:
-                position of the centre of the movie, given in the units specified
-                
-            - **flipVert**:
-                bool (True/False or 1/-1) if True then the movie will be top-bottom flipped
-                
-            - **flipHoriz**:
-                bool (True/False or 1/-1) if True then the movie will be right-left flipped
-            
-            - **ori**:
-                orientation of the stimulus in degrees
-                
-            - **size**:
-                size of the stimulus in units given. If not specified then the movie will take its
-                original dimensions. Thes can be interrogated by 
-                
-            - **opacity**:
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
+            pos :
+                position of the centre of the movie, given in the units specified                
+            flipVert : True or *False*
+                If True then the movie will be top-bottom flipped                
+            flipHoriz : True or *False*
+                If True then the movie will be right-left flipped            
+            ori :
+                Orientation of the stimulus in degrees                
+            size :
+                Size of the stimulus in units given. If not specified then the movie will take its
+                original dimensions.                
+            opacity :
                 the movie can be made transparent by reducing this
         """
         self.win = win 
@@ -3169,16 +3226,16 @@ class TextStimGLUT:
         """
         self._set(attrib, val, op)
 
-    def setOri(self,value,operation=None):
+    def setOri(self,value,operation=''):
         self._set('ori', value, operation)
-    def setPos(self,value,operation=None):
+    def setPos(self,value,operation=''):
         self._set('pos', value, operation)
         self._calcPosRendered()
-    def setRGB(self,value, operation=None):
+    def setRGB(self,value, operation=''):
         self._set('rgb', value, operation)
-    def setOpacity(self,value,operation=None):
+    def setOpacity(self,value,operation=''):
         self._set('opacity', value, operation)
-    def setText(self,value,operation=None):
+    def setText(self,value,operation=''):
         self._set('text', value, operation)
         #also update the current length and height
         if self.strokeFont:
@@ -3194,7 +3251,7 @@ class TextStimGLUT:
                 #final two digits of name give height (but overestimated!)
                 self.height=float(self.fontName[-2:])-1
             else: self.height = 23.0 #(if the default 24pt font was used)
-    def setDepth(self,value, operation=None):
+    def setDepth(self,value, operation=''):
         self._set('depth', value, operation)
 
     def _updateListShaders(self):
@@ -3373,55 +3430,40 @@ class TextStim(_BaseVisualStim):
                  fontFiles=[],
                  wrapWidth=None):
         """
-            **Arguments:**
-        
-                - **win:**
-                    a Window() object required - the stimulus must know where to draw itself!
-        
-                - **text**
-                    The text to be rendered
-        
-                - **pos**
-                    Position on the screen
-                    
-                - **depth**
-                    Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
-                    
-                - **rgb**
-                    The color of the text (ranging [-1,-1,-1] to [1,1,1])
-                    
-                - **opacity**
-                    How transparent the object will be (0 for transparent, 1 for opaque)
-        
-                - **units**
-                    "pix", "norm", "cm", "deg" only if you want to override the Window's default
-                    
-                - **ori**
-                    Orientation of the text
-                    
-                - **height**
-                    Height of the characters (including the ascent of the letter and the descent)
-                    
-                - **antialias**
-                    boolean to allow (or not) antialiasing the text
-                    
-                - **bold**
-                    Make the text bold (better to use a bold font name)
-                    
-                - **italic**
-                    Make the text italic (better to use an actual italic font)
-                    
-                - **alignHoriz**
-                    The horizontal alignment ('left', 'right' or 'center')
-                    
-                - **alignVert**
-                    The vertical alignment ('top', 'bottom' or 'center')
-                    
-                - **fontFiles**
-                    A list of additional files if the font is not in the standard system location (include the full path)
-                    
-                - **wrapWidth**
-                    The width the text should run before wrapping
+        :Parameters:        
+            win: A :class:`Window` object. 
+                Required - the stimulus must know where to draw itself
+            text: 
+                The text to be rendered
+            pos: 
+                Position on the screen            
+            depth: 
+                Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
+            rgb: 
+                The color of the text (ranging [-1,-1,-1] to [1,1,1])            
+            opacity: 
+                How transparent the object will be (0 for transparent, 1 for opaque)
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.      
+            ori: 
+                Orientation of the text            
+            height: 
+                Height of the characters (including the ascent of the letter and the descent)            
+            antialias: 
+                boolean to allow (or not) antialiasing the text            
+            bold: 
+                Make the text bold (better to use a bold font name)            
+            italic: 
+                Make the text italic (better to use an actual italic font)            
+            alignHoriz: 
+                The horizontal alignment ('left', 'right' or 'center')            
+            alignVert: 
+                The vertical alignment ('top', 'bottom' or 'center')            
+            fontFiles: 
+                A list of additional files if the font is not in the standard system location (include the full path)
+            wrapWidth: 
+                The width the text should run before wrapping
         """
         self.win = win
         if win._haveShaders: self._useShaders=True
@@ -3446,7 +3488,7 @@ class TextStim(_BaseVisualStim):
         else: self._winScale='pix' #set the window to have pixels coords
         
         self.pos= numpy.array(pos, float)
-
+        
         #height in pix (needs to be done after units)
         if self.units=='cm':
             if height==None: self.height = 1.0#default text height
@@ -3494,7 +3536,30 @@ class TextStim(_BaseVisualStim):
         self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
         
         self.needUpdate=True
-
+    def setHeight(self,height):
+        """Set the height of the letters (including the entire box that surrounds the letters
+        in the font). The width of the letters is then defined by the font. 
+        """        
+        #height in pix (needs to be done after units)
+        if self.units=='cm':
+            if height==None: self.height = 1.0#default text height
+            else: self.height = height
+            self.heightPix = psychopy.misc.cm2pix(self.height, self.win.monitor)
+        elif self.units in ['deg', 'degs']:
+            if height==None: self.height = 1.0
+            else: self.height = height
+            self.heightPix = psychopy.misc.deg2pix(self.height, self.win.monitor)
+        elif self.units=='norm':
+            if height==None: self.height = 0.1
+            else: self.height = height
+            self.heightPix = self.height*self.win.size[1]/2
+        else: #treat units as pix
+            if height==None: self.height = 20
+            else: self.height = height
+            self.heightPix = self.height            
+        #need to update the font to reflect the change
+        self.setFont(self.fontname)    
+        self.setText(self.text)
     def setFont(self, font):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -3538,22 +3603,24 @@ class TextStim(_BaseVisualStim):
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         self.needUpdate = True
 
-    def setText(self,value):
+    def setText(self,value=None):
         """Set the text to be rendered using the current font
         """
+        value = unicode(value)
         if self._useShaders:
             self._setTextShaders(value)
         else:
             self._setTextNoShaders(value)
-    def setRGB(self,value, operation=None):
+    def setRGB(self,value, operation=''):
         self._set('rgb', value, operation)
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     
-    def _setTextShaders(self,value):
+    def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        self.text = value
+        if value!=None:            
+            self.text = value
         
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
@@ -3651,7 +3718,7 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
-    def _setTextNoShaders(self,value,operation=None):
+    def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
         self.text = value
@@ -3851,39 +3918,54 @@ class ShapeStim(_BaseVisualStim):
                  interpolate=True):
         """
         :Parameters:
-            win : `Window` object 
-                the stimulus must know where to draw itself!
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
-                If None then the current units of the `Window` will be used. If 'norm'
-                then the window goes from -1:1 in each direction. If any of the others
-                are used then some info about the `Monitor` must be provided 
-                (e.g. from MonitorCenter.py)  
-            lineRGB : (r,g,b) or [r,g,b] or a single intensity value 
-                or a single value (which will be applied to all guns).
-            fillRGB : (r,g,b) or [r,g,b] or a single intensity value 
-                or a single value (which will be applied to all guns).                
-                **NB** units range -1:1 (so 0.0 is GREY). This is the convention
-                throughout PsychoPy because most vision studies are conducted on a
-                grey screen and colors represent deviations from this screen color.
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+                
+            units :  **None**, 'norm', 'cm', 'deg' or 'pix'  
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+                See :ref:`units` for explanation of other options.
+                
+            lineRGB :
+             
+                - (r,g,b) or [r,g,b] 
+                - or a single intensity value (which will be applied to all guns).
+                
+                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                
+            fillRGB : 
+            
+                - (r,g,b) or [r,g,b] 
+                - or a single intensity value (which will be applied to all guns).
+                
+                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                
             lineWidth : int (or float?) 
                 specifying the line width in **pixels**
+                
             vertices : a list of lists or a numpy array (Nx2) 
                 specifying xy positions of each vertex
+                
             closeShape : True or False
                 Do you want the last vertex to be automatically connected to the first?
+                
             pos : tuple, list or 2x1 array
                 the position of the anchor for the stimulus (relative to which the vertices are drawn)
+                
             ori : float or int
                 the shape can be rotated around the anchor
+                
             opacity : float
                 1.0 is opaque, 0.0 is transparent
+                
             depth : 0
                 This can be used to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
                 but could do if that's really useful(?!)
+                
             interpolate : True or False
                 If True the edge of the line will be antialiased.
+                
                 """
         self.win = win
         self.opacity = opacity
@@ -3911,7 +3993,16 @@ class ShapeStim(_BaseVisualStim):
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
-    
+        
+    def setLineRGB(self, value, operation=''):      
+        """Set the rgb value for the line that forms the shape
+        """
+        self._set('lineRGB', value, operation)
+    def setFillRGB(self, value, operation=''):  
+        """Set the rgb value that will fill the shape
+        """    
+        self._set('fillRGB', value, operation)
+        
     def setVertices(self,value=None, operation=''):
         """Set the xy values of the vertices (relative to the centre of the field).
         Values should be:            

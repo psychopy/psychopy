@@ -27,6 +27,9 @@ openCoderView = wx.NewId()
 openBuilderView = wx.NewId()
 toggleOutput=wx.NewId()
 toggleSourceAsst=wx.NewId()
+toggleIndentGuides=wx.NewId()
+toggleWhitespace=wx.NewId()
+toggleEOLs=wx.NewId()
 
 #tools menu
 analyzeNow=wx.NewId()
@@ -36,13 +39,20 @@ compileScript=wx.NewId()
 runFile=wx.NewId()
 stopFile=wx.NewId()
 monitorCenter=wx.NewId()
+openUpdater=wx.NewId()
 
 #help menu
+#these should be assigned to the relevant buttons/menu items in the app
+#AND for those with weblinks the relevant URL should be provided at top of psychopyApp.py
 about=wx.NewId()
 license=wx.NewId()
-psychopyTutorial=wx.NewId()
+coderTutorial=wx.NewId()
+builderHelp=wx.NewId()
 psychopyHome=wx.NewId()
 psychopyReference=wx.NewId()
+api = wx.NewId()
+#help pages (from help buttons)
+docsPrefsDlg=wx.NewId()
 
 #toolbar IDs
 tbFileNew=10

@@ -9,25 +9,30 @@ thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folde
 iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
-    """An event class for checking the keyboard at given times"""
+    """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
-            forceEndTrial=True,storeCorrect=False,correctIf="resp.keys==str(thisTrial.corrAns)",storeResponseTime=True,times=[0,1]):
+            forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
+            startTime=0.0, duration=1.0):
         self.type='Keyboard'
+        self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['gui'])
         self.parentName=parentName
         #params
         self.params={}
         self.order=['name','allowedKeys',
-            'store','storeCorrect','correctIf',
-            'forceEndTrial','times']
+            'store','storeCorrect','correctAns',
+            'forceEndTrial','startTime']
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
         self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="The keys the user may press, e.g. a,b,q,left,right")  
-        self.params['times']=Param(times, valType='code', allowedTypes=[],
+            hint="The keys the user may press, e.g. a,b,q,left,right")
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A series of one or more periods to read the keyboard, e.g. [2.0,2.5] or [[2.0,2.5],[3.0,3.8]]")
+            hint="The time that the keyboard starts being checked")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The length of time that the keyboard should be checked")
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")  
@@ -37,9 +42,9 @@ class KeyboardComponent(BaseComponent):
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
-        self.params['correctIf']=Param(correctIf, valType='code', allowedTypes=[],
+        self.params['correctAns']=Param(correctAns, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect? Might be helpful to add a corrAns column in the trialList")
+            hint="What is the 'correct' key? Might be helpful to add a correctAns column to your definition of trials in the loop")
         #todo: add response time clock to keyboard!!
         self.params['storeResponseTime']=Param(storeResponseTime, 
             valType='bool', 
@@ -76,7 +81,7 @@ class KeyboardComponent(BaseComponent):
         continueName = self.exp.flow._currentRoutine._continueName
         
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the times test
+        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         dedentAtEnd=1
         #create a clo
         if self.params['storeResponseTime'].val==True:
@@ -108,7 +113,7 @@ class KeyboardComponent(BaseComponent):
             #check if correct (if necess)
             if storeCorr:
                 buff.writeIndented("#was this 'correct'?\n" %self.params)
-                buff.writeIndented("if (%(correctIf)s): %(name)s.corr=1\n" %(self.params))
+                buff.writeIndented("if (%(name)s.keys==str(%(correctAns)s)): %(name)s.corr=1\n" %(self.params))
                 buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
         #does the response end the trial?
         if forceEnd==True:
@@ -130,7 +135,14 @@ class KeyboardComponent(BaseComponent):
         elif store=='all keys': index=""
         
         #write the actual code
-        if store!='nothing' and currLoop:
+        if store!='nothing' and currLoop and currLoop.type=='StairHandler':
+            #data belongs to a StairHandler
+            buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("    %s.addData(%s.corr)\n" \
+                                   %(currLoop.params['name'], name))
+        elif store!='nothing' and currLoop:
+            #data belongs to a TrialHandler
             buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
             buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
                                %(currLoop.params['name'],name,name,index))
