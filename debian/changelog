@@ -1,10 +1,13 @@
-psychopy (1.51.00.dfsg.2-1) unstable; urgency=low
+psychopy (1.60.00.dfsg-1) unstable; urgency=low
 
+  * New upstream release
+  * debian/control: Upgraded policy to 3.8.4 -- no changes are due
+  * debian/copyright: years
   * Include changlog modifications done by upstream between 
     announced release and tagging
   * BF: use system-wide installed configobj (Closes: #555341)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 09 Nov 2009 09:47:47 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 02 Feb 2010 22:49:11 -0500
 
 psychopy (1.51.00.dfsg-1) unstable; urgency=low
 
