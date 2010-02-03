@@ -39,7 +39,7 @@ class PR650:
         
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
-                "On most systems this can be installed with\n\t easy_install serial")
+                "On most systems this can be installed with\n\t easy_install pyserial")
                 
         #list of codes for returns
         self.code={'OK':'000\r\n',#this is returned after measure
@@ -122,12 +122,28 @@ class PR650:
             else: self.lastLum = 0.0
         else:
             log.warning("Didn't collect any data (extend timeout?)")
+    def getLum(self):
+        """Makes a measurement and returns the luminance value
+        """
+        self.measure()
+        return self.getLastLum()
+    def getSpectrum(self, parse=True):
+        """Makes a measurement and returns the current power spectrum
+        
+        If ``parse=True`` (default):
+            The format is a num array with 100 rows [nm, power]
 
-    def getLastLum(self, parse=True):
+        If ``parse=False`` (default):
+            The output will be the raw string from the PR650 and should then
+            be passed to ``.parseSpectrumOutput()``. It's slightly more
+            efficient to parse R,G,B strings at once than each individually.
+        """
+        self.measure()
+        return self.getLastSpectrum(parse=parse)
+    def getLastLum(self):
         """This retrieves the luminance (in cd/m**2) from the last call to ``.measure()``
         """
         return self.lastLum
-    
     def getLastSpectrum(self, parse=True):
         """This retrieves the spectrum from the last call to ``.measure()``
 

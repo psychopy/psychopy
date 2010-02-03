@@ -42,7 +42,7 @@ class RB730:
         
         if not serial:
             raise ImportError('The module serial is needed to connect to the Cedrus response pad. ' +\
-                "On most systems this can be installed with\n\t easy_install serial")
+                "On most systems this can be installed with\n\t easy_install pyserial")
                 
         self.model = 'RB703'
         #set name of port

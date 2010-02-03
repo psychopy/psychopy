@@ -29,7 +29,7 @@ class ButtonBox:
         
         if not serial:
             raise ImportError('The module serial is needed to connect to fORP. ' +\
-                "On most systems this can be installed with\n\t easy_install serial")
+                "On most systems this can be installed with\n\t easy_install pyserial")
                 
         self.port = serial.Serial(serialPort-1, baudrate=19200, bytesize=8, parity='N', stopbits=1, timeout=0.001)
         self.port.open()

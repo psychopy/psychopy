@@ -8,7 +8,7 @@ See http://www.konicaminolta.com/instruments
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import core, log
-import struct, sys
+import struct, sys, time
 
 try: import serial
 except: serial=False
@@ -27,8 +27,8 @@ class LS100:
         
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
-                "On most systems this can be installed with\n\t easy_install serial")
-                
+                "On most systems this can be installed with\n\t easy_install pyserial")
+        self.verbose=verbose
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
             self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
@@ -48,32 +48,33 @@ class LS100:
             'ER20\r\n':'EEPROM error (the photometer needs repair)',
             'ER30\r\n':'Photometer battery exhausted',}
         
+#        try:
+        #try to open the actual port
+        if sys.platform =='darwin':
+            self.com = serial.Serial(self.portString)
+        elif sys.platform=='win32':
+            self.com = serial.Serial(self.portString)
+        else: log.error("I don't know how to handle serial ports on %s" %sys.platform)
+        
         try:
-            #try to open the actual port
-            if sys.platform =='darwin':
-                self.com = serial.Serial(self.portString)
-            elif sys.platform=='win32':
-                self.com = serial.Serial(self.portString)
-            else: log.error("I don't know how to handle serial ports on %s" %sys.platform)
-
+            self.com.setByteSize(7)#this is a slightly odd characteristic of the Minolta LS100
             self.com.setBaudrate(4800)
             self.com.setParity(serial.PARITY_EVEN)#none
             self.com.setStopbits(serial.STOPBITS_TWO)
             self.com.open()
             self.isOpen=1
             log.info("Successfully opened %s" %self.portString)
-            self.OK = True
-            time.sleep(0.5) #wait while establish connection
-            reply = self.clearMemory()        #clear memory (and get OK)
+            time.sleep(0.2)
+            self.OK = self.clearMemory()        #clear memory (and get OK)
+        
         except:
-            if verbose: log.error("Couldn't open serial port %s" %self.portString)
+            if verbose: log.error("Couldn't connect to Minolta LS100/110 on %s" %self.portString)
             self.OK = False
             return None #NB the user still receives a photometer object but with .OK=False
 
         #also check that the reply is what was expected
-        self.OK = self.checkOK(reply)
         if self.OK:
-            reply = self.sendMessage('MDS,04')#set to use absolute measurements
+            self.setMode('04')#set to use absolute measurements
     def setMode(self, mode='04'):
         """Set the mode for measurements. Returns True (success) or False 
         
@@ -88,10 +89,21 @@ class LS100:
     def measure(self):
         """Measure the current luminance and set .lastLum to this value"""
         reply = self.sendMessage('MES')
+        print reply, type(reply)
         if self.checkOK(reply):
-            print reply
-            lum = float(reply[-6:])
-        self.lastLum
+            lum = float(reply.split()[-1])
+            return lum
+        else:return False
+    def getLum(self):
+        """Makes a measurement and returns the luminance value
+        """
+        return self.measure()
+    def clearMemory(self):
+        """Clear the memory of the device from previous measurements
+        """
+        reply=self.sendMessage('CLE')
+        ok = self.checkOK(reply)
+        return ok
     def checkOK(self,msg):
         """Check that the message from the photometer is OK. 
         If there's an error print it.
@@ -99,17 +111,19 @@ class LS100:
         Then return True (OK) or False.
         """        
         #also check that the reply is what was expected
-        if reply[0:2] != 'OK':
-            if verbose: log.error(self.codes[reply])
+        if msg[0:2] != 'OK':
+            if self.verbose: 
+                log.error('Error message from Minolta LS100/110:' + self.codes[msg]); sys.stdout.flush()
             return False
         else: 
             return True
         
-    def sendMessage(self, message, timeout=0.5):
+    def sendMessage(self, message, timeout=2):
         """Send a command to the photometer and wait an alloted
         timeout for a response.
         """
-        if message[-1]!='\r\n': message+='\r\n'     #append a newline if necess
+        if message[-2:]!='\r\n':
+            message+='\r\n'     #append a newline if necess
 
         #flush the read buffer first
         self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
@@ -117,27 +131,12 @@ class LS100:
         #send the message
         self.com.write(message)
         self.com.flush()
-        
+        print 'charsWaiting:', self.com.inWaiting()
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
         log.debug(message)#send complete message
         retVal= self.com.readline()
-        
         return retVal
 
-    def measure(self, timeOut=30.0):
-        t1 = time.clock()
-        reply = self.sendMessage('m0\n', timeOut) #measure and hold data
-        #using the hold data method the PR650 we can get interogate it
-        #several times for a single measurement
 
-        if reply==self.codes['OK']:
-            raw = self.sendMessage('d2')
-            xyz = string.split(raw,',')#parse into words
-            self.lastQual = str(xyz[0])
-            if self.codes[self.lastQual]=='OK':
-                self.lastLum = float(xyz[3])
-            else: self.lastLum = 0.0
-        else:
-            log.warning("Didn't collect any data (extend timeout?)")
 
