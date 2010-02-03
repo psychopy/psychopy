@@ -55,7 +55,7 @@
         <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
         <Param name="units" val="pix" valType="str" updates="None"/>
         <Param name="image" val="none" valType="str" updates="constant"/>
-        <Param name="size" val="[3, 3" valType="code" updates="constant"/>
+        <Param name="size" val="[3, 3]" valType="code" updates="constant"/>
       </PatchComponent>
     </Routine>
     <Routine name="instr">
