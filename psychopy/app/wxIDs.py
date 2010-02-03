@@ -27,6 +27,9 @@ openCoderView = wx.NewId()
 openBuilderView = wx.NewId()
 toggleOutput=wx.NewId()
 toggleSourceAsst=wx.NewId()
+toggleIndentGuides=wx.NewId()
+toggleWhitespace=wx.NewId()
+toggleEOLs=wx.NewId()
 
 #tools menu
 analyzeNow=wx.NewId()

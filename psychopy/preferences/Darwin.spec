@@ -97,5 +97,8 @@
     stopScript = string(default='Ctrl+.')
 
     # View:
+    toggleWhitespace = string(default='Ctrl+Shift+W')
+    toggleEOLs = string(default='Ctrl+Shift+L')
+    toggleIndentGuides = string(default='Ctrl+Shift+I')
     switchToBuilder = string(default='Ctrl+L')
     switchToCoder = string(default='Ctrl+L')

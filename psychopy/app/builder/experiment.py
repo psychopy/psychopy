@@ -428,12 +428,13 @@ class StairHandler:
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
-        print self.params
+        if self.params['N reversals'].val in ["", None, 'None']:
+            self.params['N reversals'].val='0' 
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
-        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
+        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s)\n" %self.params)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")

@@ -5,7 +5,7 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.aui
-import sys, os, glob, copy, platform
+import sys, os, glob, copy, platform, py_compile
 import csv, numpy
 from matplotlib import mlab
 import experiment, components
@@ -453,7 +453,6 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.iconXpos = 100 #the left hand edge of the icons
         self.timeXposStart = 200
         self.timeXposEnd = 600
-        self.timeMax = 10
 
         # create a PseudoDC to record our drawing
         self.pdc = wx.PseudoDC()
@@ -475,20 +474,25 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
-
+        self.Bind(wx.EVT_SIZE, self.onResize)
+        
+    def onResize(self, event):
+        self.sizePix=event.GetSize()
+        self.timeXposStart = 200
+        self.timeXposEnd = self.sizePix[0]-100
+        self.redrawRoutine()#then redraw visible
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
         return (event.GetX() + (xView * xDelta),
             event.GetY() + (yView * yDelta))
-
     def OffsetRect(self, r):
         """Offset the rectangle, r, to appear in the given position in the window
         """
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
         r.OffsetXY(-(xView*xDelta),-(yView*yDelta))
-
+        
     def OnMouse(self, event):
         if event.LeftDown():
             x,y = self.ConvertEventCoords(event)
@@ -559,42 +563,53 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.DrawToDCClipped(dc,r)
 
     def redrawRoutine(self):
-
         self.pdc.Clear()#clear the screen
         self.pdc.RemoveAll()#clear all objects (icon buttons)
 
         self.pdc.BeginDrawing()
         #draw timeline at bottom of page
         yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
-        self.drawTimeLine(self.pdc,self.yPosTop,yPosBottom)
+        self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
         yPos = self.yPosTop
 
         for n, component in enumerate(self.routine):
             self.drawComponent(self.pdc, component, yPos)
             yPos+=self.componentStep
 
-        self.SetVirtualSize((self.maxWidth, yPos))
+        self.SetVirtualSize((self.maxWidth, yPos+50))#the 50 allows space for labels below the time axis
         self.pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
 
-    def drawTimeLine(self, dc, yPosTop, yPosBottom):
+    def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
+        """Draws the grid of lines and labels the time axes
+        """
+        tMax=self.getMaxTime()*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
+        #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
                     x2=xEnd,y2=yPosTop)
         dc.DrawLine(x1=xSt,y1=yPosBottom,
                     x2=xEnd,y2=yPosBottom)
-        for lineN in range(10):
-            dc.DrawLine(xSt+lineN/xScale, yPosTop,
-                    xSt+lineN/xScale, yPosBottom+2)
+        #draw vertical time points
+        unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/10.0#gives roughly 1/10 the width, but in rounded to base 10 of 0.1,1,10...
+        if tMax/unitSize<3: unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/50.0#gives units of 2 (0.2,2,20)
+        elif tMax/unitSize<6: unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/20.0#gives units of 5 (0.5,5,50)
+        for lineN in range(int(numpy.ceil(tMax/unitSize))):
+            dc.DrawLine(xSt+lineN*unitSize/xScale, yPosTop-4,#vertical line
+                    xSt+lineN*unitSize/xScale, yPosBottom+4)
+            dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosTop-20)#label above
+            if yPosBottom>300:#if bottom of grid is far away then draw labels here too
+                dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosBottom+10)#label below
         #add a label
         font = self.GetFont()
         font.SetPointSize(1000/self.dpi)
         dc.SetFont(font)
-        dc.DrawText('t (secs)',xEnd+5,
-            yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+        dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+        if yPosBottom>300:#if bottom of grid is far away then draw labels here too
+            dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
         thisIcon = components.icons[component.getType()][0]#index 0 is main icon
@@ -660,9 +675,20 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.frame.addToUndoStack("edit %s" %component.params['name'])
 
     def getSecsPerPixel(self):
-        return float(self.timeMax)/(self.timeXposEnd-self.timeXposStart)
-
-
+        return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
+    def getMaxTime(self):  
+        """What the last (predetermined) stimulus time to be presented. If 
+        there are no components or they have code-based times then will default
+        to 10secs
+        """      
+        maxTime=0
+        for n, component in enumerate(self.routine):
+            try:exec('thisT=%(startTime)s+%(duration)s' %component.params)
+            except:thisT=0
+            maxTime=max(maxTime,thisT)
+        if maxTime==0:#if there are no components
+            maxTime=10
+        return maxTime
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
     """
@@ -675,7 +701,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return#we haven't yet added an exp
-
+        
     def getCurrentRoutine(self):
         routinePage=self.getCurrentPage()
         if routinePage:

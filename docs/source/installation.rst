@@ -36,16 +36,29 @@ There are different ways to install PsychoPy on a mac that will suit different u
     
     (thanks James Kyles for that).
 
-* For PPC macs (or for intel mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution <http://www.enthought.com/products/epddownload.php>`_. It's free (for academic use) and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below. One advantage to this is that you can then upgrade versions with;
-    ``sudo /usr/local/bin/easy_install-2.5 -N -Z -U psychopy``
+* For PPC macs (or for intel mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution <http://www.enthought.com/products/epddownload.php>`_. It's free (for academic use) and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below. One advantage to this is that you can then upgrade versions with::
+    
+    sudo /usr/local/bin/easy_install-2.5 -N -Z -U psychopy
 
 Linux:
 ~~~~~~~~~~~~~~~~~~~~~~
-PsychoPy is in the Debian packages index so users of Debian-based distributions (e.g. Ubuntu) can simply do;
+For **Debian** users, PsychoPy is in the Debian packages index so you can simply do::
     
-    ``sudo apt-get install psychopy``
+    sudo apt-get install psychopy
 
-For non-Debian systems you need to install the dependencies below manually and then PsychoPy (with easy_install?). Thanks to Yaroslav Halchenko for his work on the Debian package.
+For **Debian-based** distributions (e.g. Ubuntu):
+	
+	#. Add the following sources in Synaptic, in the Configuration>Repository dialog box, under "Other software"::
+	
+	    deb http://neuro.debian.net/debian karmic main contrib non-free 
+	    deb-src http://neuro.debian.net/debian karmic main contrib non-free 
+	
+	#. Then follow the 'Package authentification' procedure described in http://neuro.debian.net/ 
+	#. Then install the psychopy package under Synaptic or through `sudo apt-get install psychopy` which will install all dependencies. 
+
+For **non-Debian** systems you need to install the dependencies below manually and then PsychoPy (with easy_install?). 
+
+Thanks to Yaroslav Halchenko for his work on the Debian package.
 
 .. _dependencies:
 

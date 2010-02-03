@@ -6,10 +6,13 @@ import urllib2, socket
 import time, platform, sys, zipfile, os, cStringIO
 import wx
 import  wx.lib.filebrowsebutton
+try:
+    from agw import hyperlink as wxhl
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hyperlink as wxhl
 import psychopy
 from psychopy.app import dialogs
 from psychopy import log
-
 socket.setdefaulttimeout(10)
 
 """The Updater class checks for updates and suggests that an update is carried 
@@ -88,14 +91,9 @@ class Updater:
         if self.latest==-1: return -1#failed to find out about updates
         #have found 'latest'. Is it newer than running version?
         if self.latest['version']>self.runningVersion and not (self.app.prefs.appData['skipVersion']==self.latest['version']):
-            if self.latest['lastCompatible']<self.runningVersion:
+            if self.latest['lastUpdatable']<=self.runningVersion:
                 #go to the updating window
-                msg = "PsychoPy v%s is available (you are running %s).\n\n" %(self.latest['version'], self.runningVersion)
-                msg+= "For details see full changelog at\nhttp://www.psychopy.org/changelog.html"
-                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
-                confirmDlg.cancelBtn.SetLabel('Not now')
-                confirmDlg.noBtn.SetLabel('Skip this version')        
-                confirmDlg.yesBtn.SetDefault()    
+                confirmDlg = SuggestUpdateDialog(self.latest, self.runningVersion)
                 resp=confirmDlg.ShowModal()
                 confirmDlg.Destroy()
                 #what did the user ask us to do?
@@ -135,7 +133,54 @@ class Updater:
         """
         dlg=InstallUpdateDialog(None,-1, app=self.app)#app contains a reciprocal pointer to this Updater object
 
-class InstallUpdateDialog(wx.Frame):
+class SuggestUpdateDialog(wx.Dialog):
+    """A dialog explaining that a new version is available with a link to the changelog
+    """
+    def __init__(self,latest,runningVersion):
+        wx.Dialog.__init__(self,None,-1,title='PsychoPy2 auto-updater')
+        sizer=wx.BoxSizer(wx.VERTICAL)
+        
+        #info about current version
+        msg1 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
+            label="PsychoPy v%s is available (you are running %s)." %(latest['version'],runningVersion))
+        if latest['lastCompatible']>runningVersion:
+            msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
+            label="This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully.")
+            msg2.SetForegroundColour([200,0,0])
+        else: msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
+            label="There are no known compatibility\nissues with your current version.")
+        changelogLink = wxhl.HyperLinkCtrl(self, wx.ID_ANY, "View complete Changelog",
+                                        URL="http://www.psychopy.org/changelog.html")
+                                        
+        msg3 = wx.StaticText(self,-1,"Should PsychoPy update itself?")
+        sizer.Add(msg1,flag=wx.ALL|wx.CENTER,border=15)
+        sizer.Add(msg2,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=15)
+        sizer.Add(changelogLink,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=5)
+        sizer.Add(msg3,flag=wx.ALL|wx.CENTER,border=15)
+        
+        #add buttons
+        btnSizer=wx.BoxSizer(wx.HORIZONTAL)        
+        self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
+        self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Not now')
+        self.noBtn=wx.Button(self,wx.ID_NO,'Skip this version')
+        self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
+        self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
+        self.yesBtn.SetDefault()
+        btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
+        btnSizer.Add((60, 20), 0, wx.EXPAND)
+        btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
+        btnSizer.Add((5, 20), 0)
+        btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+
+        #configure sizers and fit
+        sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
+        self.Center()
+        self.SetSizerAndFit(sizer)
+    def onButton(self,event):
+        self.EndModal(event.GetId())
+        
+class InstallUpdateDialog(wx.Dialog):
     def __init__(self, parent, ID, app):
         """Latest is optional extra. If not given it will be fetched.
         """
@@ -148,10 +193,9 @@ class InstallUpdateDialog(wx.Frame):
         else:
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
-        wx.Frame.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
+        wx.Dialog.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
         
         mainSizer=wx.BoxSizer(wx.VERTICAL)
-        
         #set the actual content of the status message later in self.updateStatus()
         msg = "x"
         self.statusMessage = wx.StaticText(self,-1,msg,style=wx.ALIGN_CENTER)
@@ -186,7 +230,7 @@ class InstallUpdateDialog(wx.Frame):
         #positioning and sizing
         self.updateStatus()
         self.Center()
-        self.Show()
+        self.ShowModal()
     def updateStatus(self):
         """Check the current version and most recent version and update ctrls if necess
         """
@@ -256,7 +300,6 @@ class InstallUpdateDialog(wx.Frame):
         self.progressBar.SetRange(fileSize)
         while read<fileSize:
             ch=page.read(chunk)
-            print 'got 1 chunk'
             buffer.write(ch)
             read+=chunk
             self.progressBar.SetValue(read)

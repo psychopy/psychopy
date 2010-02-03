@@ -11,7 +11,10 @@ skipVersion=string(default='')  #skipping any updates of this version
     state = option('normal','maxim', default='normal')
     fileHistory = list(default=list())  #files in history
     prevFiles = list(default=list())  #file open on last save
-
+    showIndentGuides = boolean(default=True)
+    showWhitespace = boolean(default=True)
+    showEOLs= boolean(default=False)
+    
 [builder]
     winX = integer(default=50)
     winY = integer(default=50)
