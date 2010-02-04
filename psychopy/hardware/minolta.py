@@ -24,7 +24,7 @@ class LS100:
         
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
-        if phot.OK:#then we successfuly made a connection and can send/receive
+        if phot.OK:#then we successfully made a connection and can send/receive
             print phot.getLum()
         
     :troubleshooting:
@@ -36,20 +36,26 @@ class LS100:
             log.console.setLevel(log.INFO)#will give a little more info
             log.console.setLevel(log.DEBUG)#will export a log of all communications
             
-    :Error messages:
-            ``ERROR: Couldn't connect to Minolta LS100/110 on ____``:
-                This likely means that the device is not connected to that port, or has not been 
-                turned on with the F button depressed.
+        If you're using a keyspan adapter (at least on OS X) be aware that it needs 
+        a driver installed. Otherwise no ports wil be found.
             
-            ``ERROR: No reply from Photometer``:
-                The port was found, the connection was made and an initial command worked,
-                but then the device stopped communating. If the first measurement taken with 
-                the device after connecting does not yield a reasonble intensity the device can 
-                sulk (not a technical term!). The "[" on the display will disappear and you can no
-                longer communicate with the device. Turn it off and on again (with F depressed)
-                and use a reasonably bright screen for your first measurement. Subsequent
-                measurements can be dark (or we really would be in trouble!!).
-                
+        Error messages:
+        
+        ``ERROR: Couldn't connect to Minolta LS100/110 on ____``:
+            This likely means that the device is not connected to that port 
+            (although the port has been found and opened). Check that the device
+            has the `[` in the bottom right of the display; if not turn off 
+            and on again holding the `F` key.
+        
+        ``ERROR: No reply from LS100``:
+            The port was found, the connection was made and an initial command worked,
+            but then the device stopped communating. If the first measurement taken with 
+            the device after connecting does not yield a reasonble intensity the device can 
+            sulk (not a technical term!). The "[" on the display will disappear and you can no
+            longer communicate with the device. Turn it off and on again (with F depressed)
+            and use a reasonably bright screen for your first measurement. Subsequent
+            measurements can be dark (or we really would be in trouble!!).
+            
     """
     def __init__(self, port, verbose=True):
         
@@ -67,6 +73,9 @@ class LS100:
         self.lastQual=0
         self.lastLum=None
         self.type='LS100'
+        self.com=False
+        self.OK=True#until we fail
+        
         self.codes={
             'ER00\r\n':'Unknown command sent to LS100/LS110',
             'ER01\r\n':'Setting error',
@@ -76,33 +85,30 @@ class LS100:
             'ER20\r\n':'EEPROM error (the photometer needs repair)',
             'ER30\r\n':'Photometer battery exhausted',}
         
-#        try:
-        #try to open the actual port
-        if sys.platform =='darwin':
-            self.com = serial.Serial(self.portString)
-        elif sys.platform=='win32':
-            self.com = serial.Serial(self.portString)
-        else: log.error("I don't know how to handle serial ports on %s" %sys.platform)
-        
-        try:
+        #try to open the port
+        if sys.platform in ['darwin', 'win32']: 
+            try:self.com = serial.Serial(self.portString)
+            except:
+                self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
+        else:
+            self._error("I don't know how to handle serial ports on %s" %sys.platform)
+        #setup the params for PR650 comms
+        if self.OK:
             self.com.setByteSize(7)#this is a slightly odd characteristic of the Minolta LS100
             self.com.setBaudrate(4800)
             self.com.setParity(serial.PARITY_EVEN)#none
             self.com.setStopbits(serial.STOPBITS_TWO)
-            self.com.open()
-            self.isOpen=1
+            try:
+                self.com.open()
+                self.isOpen=1
+            except:
+                self._error("Couldn't open serial port %s" %self.portString)
+                
+        if self.OK:#we have an open com port. try to send a command
+            self.OK = self.setMode('04')#set to use absolute measurements
+            
+        if self.OK:# we have successfully sent and read a command
             log.info("Successfully opened %s" %self.portString)
-            time.sleep(0.2)
-            self.OK = self.clearMemory()        #clear memory (and get OK)
-        
-        except:
-            if verbose: log.error("Couldn't connect to Minolta LS100/110 on %s" %self.portString)
-            self.OK = False
-            return None #NB the user still receives a photometer object but with .OK=False
-
-        #also check that the reply is what was expected
-        if self.OK:
-            self.setMode('04')#set to use absolute measurements
     def setMode(self, mode='04'):
         """Set the mode for measurements. Returns True (success) or False 
         
@@ -139,8 +145,8 @@ class LS100:
         """        
         #also check that the reply is what was expected
         if msg[0:2] != 'OK':
-            if msg=='': log.error('No reply from Photometer'); sys.stdout.flush()
-            else: log.error('Error message from Photometer:' + self.codes[msg]); sys.stdout.flush()
+            if msg=='': log.error('No reply from LS100'); sys.stdout.flush()
+            else: log.error('Error message from LS100:' + self.codes[msg]); sys.stdout.flush()
             return False
         else: 
             return True
@@ -164,5 +170,8 @@ class LS100:
         retVal= self.com.readline()
         return retVal
 
+    def _error(self, msg):
+        self.OK=False
+        log.error(msg)
 
 
