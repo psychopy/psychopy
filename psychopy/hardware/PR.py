@@ -15,15 +15,15 @@ except: serial=False
 
 class PR650:
     """An interface to the PR650 via the serial port.
-
+    
     example usage::
     
         from psychopy.hardware.pr import PR650
         myPR650 = PR650(port)
         myPR650.getLum()#make a measurement
         nm, power = myPR650.getLastSpectrum()#get a power spectrum for the last measurement
-        
-    N.B. psychopy.hardware.findPhotometer() will locate and return any supported 
+    
+    N.B. :func:`psychopy.hardware.findPhotometer()` will locate and return any supported 
     device for you so you can also do::
     
         from psychopy import hardware

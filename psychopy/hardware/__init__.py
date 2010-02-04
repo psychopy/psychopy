@@ -43,7 +43,7 @@ def findPhotometer(ports=None):
             ports.extend(glob.glob('/dev/tty.Key*'))#some are Keyspan.1 or Keyserial.1
             ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
             if len(ports)==0: 
-                log.error("PscyhoPy couldn't find likely serial port in /dev/tty.* Check for " \
+                log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* Check for " \
                     +"serial port name manually, check drivers installed etc...")
                 return -1
         elif sys.platform=='win32':
@@ -64,7 +64,7 @@ def findPhotometer(ports=None):
                 return photom#we found one so stop looking
             else:
                 if photom.com and photom.com.isOpen: 
-                    print 'closing port'
+                    log.info('closing port')
                     photom.com.close()
 
         #If we got here we didn't find one

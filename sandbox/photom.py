@@ -4,6 +4,6 @@ from psychopy.hardware import pr
 
 log.console.setLevel(log.DEBUG)
 #phot = pr.PR650('/dev/tty.USA19H1d1P1.1')
-phot = hardware.findPhotometer(['/dev/tty.KeySerial1.'])
+phot = hardware.findPhotometer()
 if phot!=None:
     print phot.getLum()

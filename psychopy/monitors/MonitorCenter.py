@@ -6,13 +6,16 @@
 
 import wx
 from wx import grid
-from psychopy import monitors
+from psychopy import monitors, hardware, log
 from psychopy.app import dialogs
 import time, os
-DEBUG=True
+DEBUG=False
 NOTEBOOKSTYLE = False
 NO_MEASUREMENTS=False
 
+if DEBUG: log.console.setLevel(log.DEBUG)
+else:log.console.setLevel(log.INFO)
+    
 try:
     import matplotlib
     matplotlib.use('WXAgg')
@@ -99,7 +102,7 @@ class MainFrame(wx.Frame):
         self.currentCalibName=None
         self.unSavedMonitor=False
         self.comPort = 1
-        self.PR650=None
+        self.photom=None
         
         #start building the frame
         wx.Frame.__init__(self, parent, -1, title,size=wx.DefaultSize,
@@ -298,9 +301,9 @@ class MainFrame(wx.Frame):
         #com port entry number
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #self.comPortLabel.Disable()
-        #PR650 button
-        self.btnGetPR650 = wx.Button(parent, -1, "Get PR650")
-        wx.EVT_BUTTON(self, self.btnGetPR650.GetId(), self.onBtnGetPR650)
+        #photometer button
+        self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
+        wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
         
         #gamma controls
         self.btnCalibrateGamma = wx.Button(
@@ -308,7 +311,7 @@ class MainFrame(wx.Frame):
         wx.EVT_BUTTON(self, self.btnCalibrateGamma.GetId(), self.onCalibGammaBtn)
         self.btnTestGamma = wx.Button(
             parent, -1, "Gamma Test...")
-        if not DEBUG: self.btnTestGamma.Enable(False)
+        self.btnTestGamma.Enable(False)
         #self.choiceLinearMethod = wx.Choice(parent, -1, 
                                               #choices=['a+(bx)^gamma','(a+bx)^gamma','interpolate'])
         #wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
@@ -318,7 +321,7 @@ class MainFrame(wx.Frame):
         wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
         self.btnCalibrateColor = wx.Button(
             parent, -1, "Chromatic Calibration...")
-        if not DEBUG: self.btnCalibrateColor.Enable(False)
+        self.btnCalibrateColor.Enable(False)
         wx.EVT_BUTTON(self, self.btnCalibrateColor.GetId(), self.onCalibColorBtn)
         self.btnPlotGamma = wx.Button(
             parent, -1, "Plot gamma")
@@ -327,7 +330,7 @@ class MainFrame(wx.Frame):
             parent, -1, "Plot spectra")
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
         
-        photometerBox.AddMany([self.btnGetPR650,self.comPortLabel,
+        photometerBox.AddMany([self.btnFindPhotometer,self.comPortLabel,
                                self.btnCalibrateGamma, (0,0),#self.choiceLinearMethod,
                                self.btnTestGamma, self.btnPlotGamma,
                                self.btnCalibrateColor, self.btnPlotSpectra])
@@ -669,17 +672,16 @@ class MainFrame(wx.Frame):
             autoMode = calibDlg.methodChoiceBx.GetStringSelection()        
             #run the calibration itself
             lumLevels=monitors.DACrange(nPoints)
-            lumsPre = monitors.getLumSeriesPR650(photometer=self.PR650,
+            lumsPre = monitors.getLumSeries(photometer=self.photom,
                                                  lumLevels=lumLevels,
                                                  useBits=useBits,
                                                  autoMode=autoMode,
-                                                 winSize=self.currentMon.getSizePix(),
-                                                 stimSize=stimSize)
+                                                 winSize=[800,600],#self.currentMon.getSizePix(),
+                                                 stimSize=stimSize, monitor=self.currentMon)
             
             #allow user to type in values
             if autoMode=='semi':
                 inputDlg = GammaLumValsDlg(lumLevels, parent=self)
-                print 'built dlg'
                 lumsPre = inputDlg.show()#will be [] if user cancels
                 inputDlg.Destroy()
                 
@@ -693,21 +695,21 @@ class MainFrame(wx.Frame):
             self.doGammaFits(lumLevels,lumsPre)
 
         else:
-            print 'No lum values captured/entered'
+            log.warning('No lum values captured/entered')
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLineariseMethod()
         currentCal = self.currentMon.currentCalib['gammaGrid']
         if linMethod == 3:
             #create new interpolator functions for the monitor
-            print 'Creating linear interpolation for gamma'
+            log.info('Creating linear interpolation for gamma')
             self.currentMon.lineariseLums(0.5, newInterpolators=True)
             for gun in [0,1,2,3]:
                 currentCal[gun,0]=lums[gun,0]#min
                 currentCal[gun,1]=lums[gun,-1]#max
                 currentCal[gun,2]=-1.0#gamma makes no sense for this method
         else:
-            print 'Fitting gamma equation(%i) to luminance data' %linMethod
+            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min
@@ -739,7 +741,7 @@ class MainFrame(wx.Frame):
         autoMode = calibDlg.methodChoiceBx.GetStringSelection()
         
         lumLevels=monitors.DACrange(nPoints)
-        lumsPost = monitors.getLumSeriesPR650(photometer=self.PR650,
+        lumsPost = monitors.getLumSeries(photometer=self.photom,
                                               lumLevels=lumLevels,
                                               useBits=useBits,
                                               autoMode=autoMode,
@@ -761,7 +763,7 @@ class MainFrame(wx.Frame):
         else:
             #do spectral measurement:
             useBits=self.currentMon.getUseBits()
-            nm, spectra = monitors.getRGBspectra(stimSize=0.5, photometer=self.PR650, winSize=self.currentMon.getSizePix())
+            nm, spectra = monitors.getRGBspectra(stimSize=0.5, photometer=self.photom, winSize=self.currentMon.getSizePix())
             self.currentMon.setSpectra(nm,spectra)
             self.btnPlotSpectra.Enable(True)#can definitely now plot spectra
             self.unSavedMonitor=True
@@ -782,25 +784,20 @@ class MainFrame(wx.Frame):
         self.currentMon.setUseBits(newVal)
         self.unSavedMonitor=True
         
-    def onBtnGetPR650(self, event):
+    def onBtnFindPhotometer(self, event):
         #search all ports
-        self.PR650 = monitors.findPR650()
+        self.photom = hardware.findPhotometer()
         
-        if self.PR650!=None and self.PR650.OK:
-            self.btnGetPR650.Disable()
+        if self.photom!=None and self.photom.OK:
+            self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
             self.btnTestGamma.Enable(True)
-            self.btnCalibrateColor.Enable(True)
-            self.comPortLabel.SetLabel('PR650 found on %s' %self.PR650.portString)
+            if hasattr(self.photom, 'getSpectrum'):
+                self.btnCalibrateColor.Enable(True)
+            self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
         else:
-            self.PR650=None
+            self.photom=None
         
-    #def onChgComPort(self, event):
-        #thisVal = self.setComPort.GetValue()
-        #if type(thisVal)==int:
-            #self.comPort=thisVal
-            #self.userSetComPort = True
-            
     def plotGamma(self, event=None):  
         figTitle = '%s %s Gamma Functions' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
@@ -873,7 +870,6 @@ class MainFrame(wx.Frame):
 class GammaLumValsDlg(wx.Dialog):
     #a dialogue to get the luminance values recorded for each level
     def __init__(self, levels):
-        print 'trying to create lum vals dlg'
         wx.Dialog.__init__(self, parent, -1, 'Input recorded luminance values',
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
             )
@@ -907,8 +903,7 @@ class GammaLumValsDlg(wx.Dialog):
         self.SetSizerAndFit(self.sizer)     
         
     def show(self):
-        #show dialog and retrieve data   
-        print 'showing'
+        #show dialog and retrieve data  
         ok = self.ShowModal()
         if  ok == wx.ID_OK:
             #get data from input fields
@@ -927,7 +922,6 @@ class GammaDlg(wx.Dialog):
         self.nPoints = 8
         assert isinstance(monitor, monitors.Monitor)
         self.useBits=monitor.getUseBits()
-
 
         wx.Dialog.__init__(self, parent, -1, 'Gamma Calibration',
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
@@ -963,7 +957,7 @@ class GammaDlg(wx.Dialog):
         mainSizer.Add(btnOK, flag=wx.ALIGN_RIGHT)
         btnCANC = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         mainSizer.Add(btnCANC, flag=wx.ALIGN_RIGHT)
-
+        self.Center()
         #mainSizer.Fit(self)
         self.SetAutoLayout(True)
         self.SetSizerAndFit(mainSizer)
@@ -973,7 +967,6 @@ class GammaDlg(wx.Dialog):
 
 class MonitorCenter(wx.App):
     def OnInit(self):
-        print 'running MonitorCenter'
         frame = MainFrame(None,'PsychoPy Monitor Center')
         frame.Show(True)
         self.SetTopWindow(frame)
