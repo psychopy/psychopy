@@ -24,8 +24,32 @@ class LS100:
         
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
-        print phot.getLum()
+        if phot.OK:#then we successfuly made a connection and can send/receive
+            print phot.getLum()
         
+    :troubleshooting:
+        
+        Various messages are printed to the log regarding the function of this device, 
+        but to see them you need to set the printing of the log to the correct level::
+            from psychopy import log
+            log.console.setLevel(log.ERROR)#error messages only
+            log.console.setLevel(log.INFO)#will give a little more info
+            log.console.setLevel(log.DEBUG)#will export a log of all communications
+            
+    :Error messages:
+            ``ERROR: Couldn't connect to Minolta LS100/110 on ____``:
+                This likely means that the device is not connected to that port, or has not been 
+                turned on with the F button depressed.
+            
+            ``ERROR: No reply from Photometer``:
+                The port was found, the connection was made and an initial command worked,
+                but then the device stopped communating. If the first measurement taken with 
+                the device after connecting does not yield a reasonble intensity the device can 
+                sulk (not a technical term!). The "[" on the display will disappear and you can no
+                longer communicate with the device. Turn it off and on again (with F depressed)
+                and use a reasonably bright screen for your first measurement. Subsequent
+                measurements can be dark (or we really would be in trouble!!).
+                
     """
     def __init__(self, port, verbose=True):
         
@@ -42,7 +66,7 @@ class LS100:
         self.isOpen=0
         self.lastQual=0
         self.lastLum=None
-        
+        self.type='LS100'
         self.codes={
             'ER00\r\n':'Unknown command sent to LS100/LS110',
             'ER01\r\n':'Setting error',
@@ -115,13 +139,13 @@ class LS100:
         """        
         #also check that the reply is what was expected
         if msg[0:2] != 'OK':
-            if self.verbose: 
-                log.error('Error message from Minolta LS100/110:' + self.codes[msg]); sys.stdout.flush()
+            if msg=='': log.error('No reply from Photometer'); sys.stdout.flush()
+            else: log.error('Error message from Photometer:' + self.codes[msg]); sys.stdout.flush()
             return False
         else: 
             return True
         
-    def sendMessage(self, message, timeout=2):
+    def sendMessage(self, message, timeout=2.0):
         """Send a command to the photometer and wait an alloted
         timeout for a response.
         """
@@ -130,14 +154,13 @@ class LS100:
 
         #flush the read buffer first
         self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
-
         #send the message
         self.com.write(message)
         self.com.flush()
         
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
-        log.debug(message)#send complete message
+        log.debug('Sent command:'+message[:-2])#send complete message
         retVal= self.com.readline()
         return retVal
 

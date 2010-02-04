@@ -58,13 +58,12 @@ pr650code={'OK':'000\r\n',#this is returned after measure
     }
 
 def findPR650(ports=None):
-    """Try to find a COM port with a PR650 connected! Returns a Photometer object
-    e.g.::
-    
-        pr650 = findPR650([portNumber, anotherPortNumber])#tests specific ports only
-        pr650 = findPR650() #sweeps ports 0 to 10 searching for PR650
-        
+    """DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which
+    finds a wider range of devices   
     """
+    log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
+    +"finds a wider range of devices")
+    print 'here'
     if ports==None:
         if sys.platform=='darwin':
             ports=[]
