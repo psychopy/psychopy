@@ -772,12 +772,12 @@ def getLumSeries(lumLevels=8,
         initRGB= 0.5**(1/2.0)*2-1
     else: initRGB=0.8
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 0, rgb=initRGB, size=winSize,
+    myWin = psychopy.visual.Window(fullscr = 1, rgb=initRGB, size=winSize,
         gamma=gamma,units='norm',monitor=monitor,allowGUI=False,
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,
-        pos=(0,-0.95), rgb=-1.0)    
+        pos=(0,-0.95), rgb=[1,-1,-1])    
     noise = numpy.random.rand(512,512).round()*2-1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
         sf=[winSize[0]/512.0, winSize[1]/512.0])

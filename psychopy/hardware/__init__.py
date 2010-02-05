@@ -9,7 +9,7 @@ def findPhotometer(ports=None):
     successfully opens then it will try to issue a command to the device. If it 
     responds with one of the expected values then it is assumed to be the 
     appropriate device. 
-        
+    
     :parameters:
         
         ports : a list of ports to search
@@ -58,9 +58,12 @@ def findPhotometer(ports=None):
     for thisPort in ports:
         log.info(str(thisPort)); log.console.flush()
         for Photometer in photometers:
-            photom = Photometer(port=thisPort, verbose=True)
+            photom = Photometer(port=thisPort)
             if photom.OK: 
                 log.info(' ...found a %s\n' %(photom.type)); log.console.flush()
+                #we're now sure that this is the correct device and that it's configured
+                #now increase the number of attempts made to communicate for temperamental devices!
+                if hasattr(photom,'setMaxAttempts'):photom.setMaxAttempts(10)
                 return photom#we found one so stop looking
             else:
                 if photom.com and photom.com.isOpen: 

@@ -86,6 +86,7 @@ class LS100:
         self.type='LS100'
         self.com=False
         self.OK=True#until we fail
+        self.maxAttempts=maxAttempts
         
         self.codes={
             'ER00\r\n':'Unknown command',
@@ -116,8 +117,11 @@ class LS100:
                 self._error("Couldn't open serial port %s" %self.portString)
                 
         if self.OK:#we have an open com port. try to send a command
-            time.sleep(0.2)
-            self.OK = self.setMode('04')#set to use absolute measurements
+            for repN in range(self.maxAttempts):
+                time.sleep(0.2)
+                if self.setMode('04'):#set to use absolute measurements
+                    self.OK=True
+                    break#no need to keep going
         if self.OK:# we have successfully sent and read a command
             log.info("Successfully opened %s" %self.portString)
     def setMode(self, mode='04'):
@@ -162,7 +166,7 @@ class LS100:
         else: 
             return True
         
-    def sendMessage(self, message, timeout=2.0):
+    def sendMessage(self, message, timeout=20.0):
         """Send a command to the photometer and wait an alloted
         timeout for a response.
         """
@@ -171,19 +175,28 @@ class LS100:
 
         #flush the read buffer first
         self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
-        #send the message
-        self.com.write(message)
-        self.com.flush()
-        time.sleep(0.1)
-        
-        #get feedback (within timeout limit)
-        self.com.setTimeout(timeout)
-        log.debug('Sent command:'+message[:-2])#send complete message
-        retVal= self.com.readline()
+        for attemptN in range(self.maxAttempts):
+            #send the message
+            time.sleep(0.1)
+            self.com.write(message)
+            self.com.flush()
+            time.sleep(0.1)            
+            #get reply (within timeout limit)
+            self.com.setTimeout(timeout)
+            log.debug('Sent command:'+message[:-2])#send complete message
+            retVal= self.com.readline()
+            if len(retVal)>0:break#we got a reply so can stop trying
+            
         return retVal
 
     def _error(self, msg):
         self.OK=False
         log.error(msg)
-
+    def setMaxAttempts(self, maxAttempts):
+        """Changes the number of attempts to send a message and read the output
+        Typically this should be low initially, if you aren't sure that the device
+        is setup correctly but then, after the first successful reading, set it
+        higher.
+        """
+        self.maxAttempts=maxAttempts
 
