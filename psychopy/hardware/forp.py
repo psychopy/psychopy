@@ -7,7 +7,7 @@ See http://www.curdes.com/WebHome.html
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import core, log
+from psychopy import log
 import struct, sys
 
 try: import serial

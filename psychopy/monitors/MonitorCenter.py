@@ -928,7 +928,7 @@ class GammaDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, 'Gamma Calibration',
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
             )
-        mainSizer =  wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        mainSizer =  wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
 
         #select method of calib (auto, semi-auto, manual)
         #todo: make the input  tablefor manual method
@@ -948,21 +948,21 @@ class GammaDlg(wx.Dialog):
         self.labelStimSize = wx.StaticText(self, -1, 'Patch size (fract of screen):')
         self.ctrlStimSize = wx.TextCtrl(self, -1,'0.3')
 
-        pad=20
-        mainSizer.Add((0,0),wx.ALL, pad)
-        mainSizer.Add(self.methodChoiceBx,wx.ALL, pad)
-        mainSizer.Add(self.labelNPoints,wx.ALL, pad)
-        mainSizer.Add( self.ctrlNPoints,wx.ALL, pad)
-        mainSizer.Add(self.labelStimSize,wx.ALL, pad)
-        mainSizer.Add( self.ctrlStimSize,wx.ALL, pad)
-        mainSizer.Add((0,0),wx.ALL, pad)
-        mainSizer.Add(self.ctrlUseBits,wx.ALL, pad)
+        pad=5
+        mainSizer.Add((0,0),1,wx.ALL, pad)
+        mainSizer.Add(self.methodChoiceBx,1,wx.ALL, pad)
+        mainSizer.Add(self.labelNPoints,1,wx.ALL, pad)
+        mainSizer.Add( self.ctrlNPoints,1,wx.ALL, pad)
+        mainSizer.Add(self.labelStimSize,1,wx.ALL, pad)
+        mainSizer.Add( self.ctrlStimSize,1,wx.ALL, pad)
+        mainSizer.Add((0,0),1,wx.ALL, pad)
+        mainSizer.Add(self.ctrlUseBits,1,wx.ALL, pad)
 
         btnOK = wx.Button(self, wx.ID_OK, " OK ")
         btnOK.SetDefault()
-        mainSizer.Add(btnOK, flag=wx.ALIGN_RIGHT)
+        mainSizer.Add(btnOK,1,wx.TOP|wx.BOTTOM|wx.ALIGN_RIGHT, pad)
         btnCANC = wx.Button(self, wx.ID_CANCEL, " Cancel ")
-        mainSizer.Add(btnCANC, flag=wx.ALIGN_RIGHT)
+        mainSizer.Add(btnCANC,1,wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, pad)
         self.Center()
         #mainSizer.Fit(self)
         self.SetAutoLayout(True)

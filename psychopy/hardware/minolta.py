@@ -7,7 +7,7 @@ See http://www.konicaminolta.com/instruments
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import core, log
+from psychopy import log
 import struct, sys, time
 
 try: import serial
@@ -105,7 +105,7 @@ class LS100:
                 self._error("Couldn't open serial port %s" %self.portString)
                 
         if self.OK:#we have an open com port. try to send a command
-            time.sleep(1.0)
+            time.sleep(0.2)
             self.OK = self.setMode('04')#set to use absolute measurements
         if self.OK:# we have successfully sent and read a command
             log.info("Successfully opened %s" %self.portString)
@@ -126,7 +126,7 @@ class LS100:
         if self.checkOK(reply):
             lum = float(reply.split()[-1])
             return lum
-        else:return False
+        else: return -1
     def getLum(self):
         """Makes a measurement and returns the luminance value
         """
@@ -163,6 +163,7 @@ class LS100:
         #send the message
         self.com.write(message)
         self.com.flush()
+        time.sleep(0.1)
         
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
