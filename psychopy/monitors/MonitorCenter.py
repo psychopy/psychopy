@@ -948,11 +948,15 @@ class GammaDlg(wx.Dialog):
         self.labelStimSize = wx.StaticText(self, -1, 'Patch size (fract of screen):')
         self.ctrlStimSize = wx.TextCtrl(self, -1,'0.3')
 
-        mainSizer.AddMany([(0,0),self.methodChoiceBx,
-            self.labelNPoints, self.ctrlNPoints,
-            self.labelStimSize, self.ctrlStimSize,
-            (0,0),self.ctrlUseBits
-            ])
+        pad=20
+        mainSizer.Add((0,0),wx.ALL, pad)
+        mainSizer.Add(self.methodChoiceBx,wx.ALL, pad)
+        mainSizer.Add(self.labelNPoints,wx.ALL, pad)
+        mainSizer.Add( self.ctrlNPoints,wx.ALL, pad)
+        mainSizer.Add(self.labelStimSize,wx.ALL, pad)
+        mainSizer.Add( self.ctrlStimSize,wx.ALL, pad)
+        mainSizer.Add((0,0),wx.ALL, pad)
+        mainSizer.Add(self.ctrlUseBits,wx.ALL, pad)
 
         btnOK = wx.Button(self, wx.ID_OK, " OK ")
         btnOK.SetDefault()
