@@ -26,7 +26,18 @@ class LS100:
         phot = minolta.LS100(port)
         if phot.OK:#then we successfully made a connection and can send/receive
             print phot.getLum()
+    
+    :parameters:
         
+        port: string
+            the serial port that should be checked
+        
+        maxAttempts: int 
+            If the device doesn't respond first time how many attempts should be made?
+            If you're certain that this is the correct port and the device is on
+            and correctly configured then this could be set high. If not then set 
+            this low.
+    
     :troubleshooting:
         
         Various messages are printed to the log regarding the function of this device, 
@@ -57,12 +68,12 @@ class LS100:
             measurements can be dark (or we really would be in trouble!!).
             
     """
-    def __init__(self, port, verbose=True):
+    def __init__(self, port, maxAttempts=1):
         
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
                 "On most systems this can be installed with\n\t easy_install pyserial")
-        self.verbose=verbose
+
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
             self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
