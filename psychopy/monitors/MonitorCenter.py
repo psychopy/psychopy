@@ -292,15 +292,14 @@ class MainFrame(wx.Frame):
         return infoBoxSizer
 
     def makeCalibBox(self, parent):
-                
+        
         boxLabel = wx.StaticBox(parent, -1, 'Calibration')
         boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         calibBox = wx.StaticBoxSizer(boxLabel)
-                
+        
         photometerBox = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
         #com port entry number
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
-        #self.comPortLabel.Disable()
         #photometer button
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
@@ -316,7 +315,6 @@ class MainFrame(wx.Frame):
                                               #choices=['a+(bx)^gamma','(a+bx)^gamma','interpolate'])
         #wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
         
-        
         #color controls
         wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
         self.btnCalibrateColor = wx.Button(
@@ -330,10 +328,11 @@ class MainFrame(wx.Frame):
             parent, -1, "Plot spectra")
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
         
-        photometerBox.AddMany([self.btnFindPhotometer,self.comPortLabel,
-                               self.btnCalibrateGamma, (0,0),#self.choiceLinearMethod,
-                               self.btnTestGamma, self.btnPlotGamma,
-                               self.btnCalibrateColor, self.btnPlotSpectra])
+        photometerBox.AddMany([self.btnFindPhotometer,(0,0),
+                                self.comPortLabel,(0,0),
+                                self.btnCalibrateGamma, (0,0),#self.choiceLinearMethod,
+                                self.btnTestGamma, self.btnPlotGamma,
+                                self.btnCalibrateColor, self.btnPlotSpectra])
         
         #-----------------------
         #----GAMMA------------
@@ -786,6 +785,8 @@ class MainFrame(wx.Frame):
         
     def onBtnFindPhotometer(self, event):
         #search all ports
+        self.comPortLabel.SetLabel('Scanning ports...')
+        self.Update()
         self.photom = hardware.findPhotometer()
         
         if self.photom!=None and self.photom.OK:
@@ -796,6 +797,7 @@ class MainFrame(wx.Frame):
                 self.btnCalibrateColor.Enable(True)
             self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
         else:
+            self.comPortLabel.SetLabel('None found (for LS100 try again)')
             self.photom=None
         
     def plotGamma(self, event=None):  
