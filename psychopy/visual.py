@@ -543,6 +543,7 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
+        self.setMouseVisible(True)
         if self.winType=='GLUT':
             GLUT.glutDestroyWindow(self.handle)
         elif self.winType=='pyglet':
@@ -552,7 +553,7 @@ class Window:
             pygame.display.quit()
         if self.bitsMode!=None:
             self.bits.reset()
-
+        
     def go(self):
         """start the display loop (GLUT only)"""
         self.frameClock.reset()
