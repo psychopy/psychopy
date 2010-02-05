@@ -435,8 +435,7 @@ class Window:
         taking the time to flip the window.
         """
         #reset returned buffer for next frame
-        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         self._defDepth=0.0#gets gradually updated through frame
         
     def getMovieFrame(self, buffer='front'):
