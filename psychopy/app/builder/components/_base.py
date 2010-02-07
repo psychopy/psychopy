@@ -13,7 +13,7 @@ class BaseComponent:
         self.exp=exp#so we can access the experiment if necess
         self.params={}
         self.params['name']=Param(name, valType='code', 
-            hint="Name of this loop")
+            hint="Name of this component")
         self.order=['name','startTime','duration']#make name come first (others don't matter)
     def writeInitCode(self,buff):
         pass

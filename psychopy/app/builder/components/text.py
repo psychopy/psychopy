@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'text.png')
 class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', 
-                 text='"Hint: Use double quotes for text (or this looks like a variable)"', 
+                 text='Any text\n\nincluding line breaks', 
                  font='Arial',units='window units', colour=[1,1,1], colourSpace='rgb',
                  pos=[0,0], letterHeight=0.1, ori=0, startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
@@ -25,7 +25,7 @@ class TextComponent(VisualComponent):
         self.parentName=parentName
         #params
         self.order=['name','startTime','duration']#make sure this is at top
-        self.params['text']=Param(text, valType='code', allowedTypes=[],
+        self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The text to be displayed")
         self.params['font']=Param(font, valType='str', allowedTypes=[],
@@ -41,10 +41,7 @@ class TextComponent(VisualComponent):
         if self.params['units'].val=='window units': units=""
         else: units="units=%(units)s, " %self.params 
         #do writing of init
-        text = self.params['text'].val
-        #turn "some text" into """some text""" so that line breaks don't kill the script 
-        if text.startswith('"') and not text.startswith('"""'):
-            text= '""'+text+'""' 
+        text = str(self.params['text'])
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s,\n" %(self.params))
         buff.writeIndented("    text=%s,\n" %text)
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))

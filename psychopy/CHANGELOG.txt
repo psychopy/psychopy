@@ -14,7 +14,9 @@ PsychoPy 1.60.01
 * FIXED minor bug with the new psychophysicsStaircase demo (Builder)
 * FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
 * FIXED bug in the new win.clearBuffer() method
-
+* CHANGED builder component variables so that the user inputs are interpretted 
+    as literal text unless preceded by $, in which case they are treated as
+    variables/python code
 
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~

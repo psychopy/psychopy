@@ -178,6 +178,10 @@ class Experiment:
         #get the value type and update rate
         if 'valType' in paramNode.keys(): 
             params[name].valType = paramNode.get('valType')
+            # compatibility checks: 
+            if name in ['correctAns','allowedKeys','text'] and paramNode.get('valType')=='code':
+                params[name].valType='str'# these components were changed in v1.60.01
+            #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys(): 
             params[name].updates = paramNode.get('updates')
@@ -292,9 +296,14 @@ class Param:
             except:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
-            return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
+            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
+                return "%s" %(self.val[1:])#override the string type and return as code
+            else:
+                return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
         elif self.valType == 'code':
-            return "%s" %(self.val)
+            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
+                return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
+            else: return "%s" %(self.val)
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
