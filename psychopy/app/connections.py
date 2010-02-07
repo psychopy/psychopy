@@ -359,15 +359,13 @@ class InstallUpdateDialog(wx.Dialog):
         for name in zfile.namelist():#for each file within the zip
             #check that this file is part of the psychopy (not metadata or docs)
             if name.count('/psychopy/')<1: continue
-            #
-            print name
             try:
                 targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
                 targetContainer=os.path.split(targetFile)[0]
-                if targetFile.endswith('/'):
-                    os.makedirs(targetFile)#it's a folder
-                elif not os.path.isdir(targetContainer):
+                if not os.path.isdir(targetContainer):
                     os.makedirs(targetContainer)#make the containing folder
+                if targetFile.endswith('/'):
+                    os.makedirs(targetFile)#it's a folder                
                 else:
                     outfile = open(targetFile, 'wb')
                     outfile.write(zfile.read(name))
