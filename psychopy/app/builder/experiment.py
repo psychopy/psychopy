@@ -80,7 +80,8 @@ class Experiment:
         for lib in self.psychopyLibs:
             libString = libString+separator+lib
             separator=", "#for the second lib upwards we need a comma
-        s.writeIndented("from numpy import * #many different maths functions\n")
+        s.writeIndented("from numpy import * #many different maths functions\n") 
+        s.writeIndented("from numpy.random import * #maths randomisation functions\n")
         s.writeIndented("import os #handy system and path functions\n")
         s.writeIndented("from psychopy import %s\n" %libString)
         s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
