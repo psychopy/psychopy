@@ -36,16 +36,16 @@ If the loop type is `sequential` then, on each iteration of the :ref:`routines`,
 
 Staircase methods
 ^^^^^^^^^^^^^^^^^^^
-The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down. Unlike the `random` or `sequential` loops, which can have multiple varying parameters, a staircase only has one parameter, called `intensity`.
+The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
 
-.. ref: accessing params
+.. _accessingParams:
 
 Accessing loop parameters from components
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The parameters from your loops are accessible to any component enclosed within that loop. PsychoPy creates a variable name that represents the current iteration of your loop by making it singular and capital and prepending 'this'. Examples:
+The parameters from your loops are accessible to any component enclosed within that loop. PsychoPy creates a variable name that represents the current iteration of your loop by making it singular and capital and prepending 'this'. Example scenarios:
 
-#. You have want to loop randomly over some conditions in a loop called `trials`. Your conditions are stored in a csv file with headings 'ori', 'text', 'corrAns' which you provide to this loop. You can then access these values from any component using `thisTrial.ori`, `thisTrial.text`, and `thisTrial.corrAns`
-#. You create a random loop called `blocks` and give it a csv file with a single column called movie. On each repeat you can access this with `thisBlock.movie`
-#. You create a staircase loop called `stairs`. On each trial you can access the current value in the staircase with `thisStair.intensity`
+#. You want to loop randomly over some conditions in a loop called `trials`. Your conditions are stored in a csv file with headings 'ori', 'text', 'corrAns' which you provide to this loop. You can then access these values from any component using `$thisTrial.ori`, `$thisTrial.text`, and `$thisTrial.corrAns`
+#. You create a random loop called `blocks` and give it a csv file with a single column called movie. On each repeat you can access this with `$thisBlock.movie`
+#. You create a staircase loop called `stairs`. On each trial you can access the current value in the staircase with `$thisStair`
 
-When you set a component to use a value from your loop, e.g. you set the colour of your text to `thisTrial.rgb` you should **remember to change the component parameter from `constant` to `set every repeat` or `set every frame`** or it won't have any effect!
+When you set a component to use a value from your loop, e.g. you set the colour of your text to `$thisTrial.rgb` you should **remember to change the component parameter from `constant` to `set every repeat` or `set every frame`** or it won't have any effect!

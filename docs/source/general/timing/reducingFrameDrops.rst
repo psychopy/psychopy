@@ -2,7 +2,7 @@
 Reducing dropped frames
 --------------------------
 
-There are many things that can affect the speed at which drawing is achieved on your computer. These include, but are probably not limited to; your graphics card, CPU, operating system, running programs, stimuli, and your code itself. Of these, the CPU and the OS appear to make rather little difference. To determine whether you are actually dropping frames see :doc:`detectingDroppedFrames`.
+There are many things that can affect the speed at which drawing is achieved on your computer. These include, but are probably not limited to; your graphics card, CPU, operating system, running programs, stimuli, and your code itself. Of these, the CPU and the OS appear to make rather little difference. To determine whether you are actually dropping frames see :doc:`detectingFrameDrops`.
 
 Things to change on your system:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

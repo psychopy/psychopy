@@ -27,8 +27,7 @@ def makeGrating(res,
             cycles:float or int (default=1.0)
                 the number of grating cycles within the array 
             phase: float or int (default=0.0)
-                the phase of the grating in degrees (NB this differs to most 
-                PsychoPy phase arguments which use units of fraction of a cycle) 
+                the phase of the grating in degrees (NB this differs to most PsychoPy phase arguments which use units of fraction of a cycle) 
             gratType: 'sin', 'sqr', 'ramp' or 'sinXsin' (default="sin")
                 the type of grating to be 'drawn'
             contr: float (default=1.0)
