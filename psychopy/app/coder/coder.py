@@ -846,7 +846,7 @@ class CoderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.currentDoc=None
         self.ignoreErrors = False
-
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -969,7 +969,7 @@ class CoderFrame(wx.Frame):
         menuBar.Append(self.fileMenu, '&File')
 
         #create a file history submenu
-        self.fileHistory = wx.FileHistory()
+        self.fileHistory = wx.FileHistory(maxFiles=10)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
