@@ -33,7 +33,7 @@ class Dlg(wx.Dialog):
         else: print 'user cancelled'
     """
     def __init__(self,title='PsychoPy dialogue',
-            pos=wx.DefaultPosition, size=wx.DefaultSize,
+            pos=None, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         try:
@@ -49,7 +49,8 @@ class Dlg(wx.Dialog):
         #prepare a frame in which to hold objects
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         #self.addText('')#insert some space at top of dialogue
-        self.Center()
+        if pos==None:
+            self.Center()
     def addText(self, text):
         textLength = wx.Size(8*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
@@ -104,6 +105,7 @@ class Dlg(wx.Dialog):
             self.data=[]
             #get data from input fields
             for n in range(len(self.inputFields)):
+                thisName = self.inputFieldNames[n]
                 thisVal = self.inputFields[n].GetValue()
                 thisType= self.inputFieldTypes[n]
                 #try to handle different types of input from strings
@@ -118,7 +120,8 @@ class Dlg(wx.Dialog):
                 elif thisType==bool:#a num array or string?
                     if thisVal in ['True','true']: self.data.append(True)
                     elif thisVal in ['False','false']: self.data.append(True)
-                    else: log.error('%s should be True/False but given type %s' %(thisType,thisVal)
+                    else: 
+                        raise TypeError("%s should be 'True' or 'False' but '%s' was entered" %(thisName, thisVal))
                 else:
                     log.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)
