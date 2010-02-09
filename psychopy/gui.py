@@ -115,6 +115,10 @@ class Dlg(wx.Dialog):
                     exec("self.data.append(numpy.array("+thisVal+"))")
                 elif thisType==str:#a num array or string?
                     self.data.append(thisVal)
+                elif thisType==bool:#a num array or string?
+                    if thisVal in ['True','true']: self.data.append(True)
+                    elif thisVal in ['False','false']: self.data.append(True)
+                    else: log.error('%s should be True/False but given type %s' %(thisType,thisVal)
                 else:
                     log.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)
