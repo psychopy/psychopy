@@ -306,7 +306,7 @@ class Param:
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
-            elif (type(self.val) in [str, unicode]) andself.val.startswith("\$"): 
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
                 return "%s" %(self.val[1:])#the user actually wanted just the $
             else:#provide the code
                 return "%s" %(self.val)
@@ -632,7 +632,7 @@ class Routine(list):
         for event in self:
             if event.params['duration'].val in ['-1', '']: maxTime=1000000
             else:
-                exec("maxTime=%s" %event.params['duration'])#convert params['duration'].val into numeric
+                exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime
