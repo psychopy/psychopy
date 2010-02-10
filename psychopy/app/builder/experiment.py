@@ -299,12 +299,17 @@ class Param:
         elif self.valType == 'str':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#override the string type and return as code
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+                return "%s" %(self.val[1:])#the user actually wanted just the $
             else:
                 return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
-            else: return "%s" %(self.val)
+            elif (type(self.val) in [str, unicode]) andself.val.startswith("\$"): 
+                return "%s" %(self.val[1:])#the user actually wanted just the $
+            else: 
+                return "%s" %(self.val)
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
