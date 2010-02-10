@@ -48,10 +48,11 @@ class Preferences:
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         
-        self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
         if platform.system() in ['Windows','Microsoft']:
+            self.paths['prefsSpecFile']= join(prefSpecDir,'Windows.spec')
             self.paths['userPrefsDir']= join(os.environ['APPDATA'],'psychopy2')
         else:
+            self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
         
     def loadAll(self):
