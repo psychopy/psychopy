@@ -27,10 +27,10 @@ try:
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
     import _shadersPyglet
     import gamma
-    havePyglet=True    
+    havePyglet=True
 except:
-    havePyglet=False    
-
+    havePyglet=False
+    
 #import _shadersPygame
 try:
     import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
@@ -230,18 +230,23 @@ class Window:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
         
-        #setup context and openGL()
-        if winType==None:#choose the default windowing
-            self.winType=prefs.general['winType']
-        else:
-            self.winType = winType
-        
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
             log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
             self.blendMode='average' #resort to the simpler blending without float rendering
         else: self.blendMode=blendMode
         
+        #setup context and openGL()
+        if winType==None:#choose the default windowing
+            self.winType=prefs.general['winType']
+        else:
+            self.winType = winType
+        if self.winType=='pyglet' and not havePyglet:
+            log.warning("Requested pyglet backend but pyglet is not installed or not fully working")
+            self.winType='pygame'
+        if self.winType=='pygame' and not havePygame:
+            log.warning("Requested pygame backend but pygame is not installed or not fully working")
+            self.winType='pyglet'
         #setup the context
         if self.winType == "glut": self._setupGlut()
         elif self.winType == "pygame": self._setupPygame()
