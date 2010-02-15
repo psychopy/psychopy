@@ -299,7 +299,7 @@ class FlowPanel(wx.ScrolledWindow):
         """
         name=routine.name
         font = self.GetFont()
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             font.SetPointSize(1400/self.dpi)
         else:
             font.SetPointSize(1000/self.dpi)
@@ -342,7 +342,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         #add a name label that can be clicked on
         font = self.GetFont()
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             font.SetPointSize(800/self.dpi)
         else:
             font.SetPointSize(800/self.dpi)
@@ -1632,7 +1632,7 @@ class BuilderFrame(wx.Frame):
         self.SetMenuBar(menuBar)
     def closeFrame(self, event=None, checkSave=True):
 
-        if self.app.coder==None and platform.system()!='Darwin':
+        if self.app.coder==None and sys.platform!='darwin':
             if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already

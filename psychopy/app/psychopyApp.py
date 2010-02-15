@@ -108,7 +108,7 @@ class PsychoPyApp(wx.App):
         self.updater=None#create an updater when it's needed
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
@@ -233,7 +233,7 @@ class PsychoPyApp(wx.App):
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
             frame.Destroy()#because closeFrame actually just Hides the frame
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             self.menuFrame.Destroy()
         sys.exit()#really force a quit
     def showPrefs(self, event):

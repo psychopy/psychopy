@@ -281,9 +281,9 @@ class Window:
         
         self.waitBlanking = waitBlanking
         #but override if not possible:
-        if platform.system() not in ['Darwin','Windows','Microsoft']:
+        if sys.platform not in ['darwin','win32']:
             self.waitBlanking=False
-        if platform.system()=='Darwin' and platform.mac_ver()[0]>='10.6':
+        if sys.platform=='darwin' and platform.mac_ver()[0]>='10.6':
             self.waitBlanking=False#Snow leopard doesn't support this?
         self.flip()#do a screen refresh straight away
 

@@ -442,14 +442,20 @@ def sendUsageStats(proxy=None):
         urllib2.install_opener(opener)
 
     #get platform-specific info
-    if platform.system()=='Darwin':
+    if sys.platform=='darwin':
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" %(OSXver, architecture)
-    elif platform.system()=='Linux':
+    elif sys.platform=='linux':
         systemInfo = '%s_%s_%s' % (
-            platform.system(),
+            'Linux',
             ':'.join([x for x in platform.dist() if x != '']),
             platform.release())
+    elif sys.platform=='win32':
+        ver=sys.getwindowsversion()
+        if len(ver[4])>0:
+            systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
+        else:
+            systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
     else:
         systemInfo = platform.system()+platform.release()
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
