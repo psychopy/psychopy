@@ -3,12 +3,12 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys
+import sys, platform
 
 def rush():#dummy method. will be overridden by imports below
     pass
 
-if sys.platform=='win32':
+if sys.platform=='win32' and platform.release()!='Vista':
     from win32 import *
 elif sys.platform=='darwin':
     from darwin import *

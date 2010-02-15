@@ -135,8 +135,6 @@ class Window:
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
         
         """
-        if hasattr(ext, 'rush'):
-            ext.rush() #no reason to turn off?
         self.size = numpy.array(size, numpy.int)
         self.pos = pos                 
         if type(rgb)==float or type(rgb)==int: #user may give a luminance val
