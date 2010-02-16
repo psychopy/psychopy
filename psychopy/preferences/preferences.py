@@ -1,5 +1,5 @@
 
-import os, urllib, platform, re
+import os, sys, urllib, platform, re
 import configobj, validate
 
 #GET PATHS------------------
