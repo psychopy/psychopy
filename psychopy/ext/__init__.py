@@ -7,7 +7,7 @@ import sys, platform
 
 def rush():#dummy method. will be overridden by imports below
     pass
-def waitForVBL()
+def waitForVBL():
     pass
     
 if sys.platform=='win32' and sys.getwindowsversion()[0]<6:#NB vista is version 6
