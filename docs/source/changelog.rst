@@ -9,6 +9,18 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.03
+~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED buglet in gui.py converting 'false' to True in dialogs (thanks Michael MacAskill)
+
+PsychoPy 1.60.02
+~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
+* CHANGED ext.rush() is no longer run by default on creation of a window. It seems to be causing more probs and providing little enhancement.
+* FIXED error messages from vista/7 trying to import pywintypes.dll
+
 PsychoPy 1.60.01
 ~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2010

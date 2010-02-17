@@ -119,7 +119,7 @@ class Dlg(wx.Dialog):
                     self.data.append(thisVal)
                 elif thisType==bool:#a num array or string?
                     if thisVal in ['True','true']: self.data.append(True)
-                    elif thisVal in ['False','false']: self.data.append(True)
+                    elif thisVal in ['False','false']: self.data.append(False)
                     else: 
                         raise TypeError("%s should be 'True' or 'False' but '%s' was entered" %(thisName, thisVal))
                 else:
