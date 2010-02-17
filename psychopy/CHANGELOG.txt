@@ -15,6 +15,8 @@ PsychoPy 1.60.02
 
 PsychoPy 1.60.01
 ~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
 * FIXED minor bug with the new psychophysicsStaircase demo (Builder)
 * FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
 * FIXED bug in the new win.clearBuffer() method

@@ -11,11 +11,15 @@ PsychoPy 1.60
 
 PsychoPy 1.60.01
 ~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
 * FIXED minor bug with the new psychophysicsStaircase demo (Builder)
 * FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
 * FIXED bug in the new win.clearBuffer() method
 * CHANGED builder component variables so that the user inputs are interpretted as literal text unless preceded by $, in which case they are treated as variables/python code
 * CHANGED builder handling of keyboard 'allowedKeys' parameter. Instead of `['1','2','q']` you can now simply use `12q` to indicate those three keys. If you want a key like `'right'` and `'left'` you now have to use `$['right','left']`
+* TWITTER follow on http://twitter.com/psychopy
+* FIXED? win32 version now compatible with Vista/7? Still compatible with XP?
 
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~

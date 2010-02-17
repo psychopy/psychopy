@@ -1,4 +1,4 @@
-version:1.60.00
+version:1.60.01
 info:many improvements to Builder and a new auto-updating feature
-lastCompatible:1.60.00
+lastUpdatable:1.60.01
 lastCompatible:1.60.00
