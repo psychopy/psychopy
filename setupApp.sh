@@ -1,7 +1,7 @@
 echo DID YOU UPDATE THE CHANGELOG?
-sudo python setup.py sdist --format=zip#create the tar.gz version
-sudo python setup.py egg_info #to upload info to pypi
-sudo python setup.py bdist_egg #an egg file for distribution
+sudo python setup.py sdist --format=zip
+sudo python setup.py egg_info
+sudo python setup.py bdist_egg
 #then handle the mac app bundle
 rm psychopy/demos/*.pyc
 rm psychopy/prefSite.cfg
