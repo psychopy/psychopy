@@ -85,8 +85,7 @@ changed: sidebar, rootrellink, header, footer,
         
           {%- if pagename != "search" %}
       
-          <div id="searchbox" style="display: none">
-      
+          <div id="searchbox" style="display: none">      
             <h3>{{ _('Searches') }}</h3>
             <form action="http://www.google.com/cse" id="cse-search-box">
                 <input type="hidden" name="cx" value="partner-pub-0861691574026297:eyw5n7-ugep" />
@@ -109,6 +108,40 @@ changed: sidebar, rootrellink, header, footer,
               </p>
           </div>
           <script type="text/javascript">$('#searchbox').show(0);</script>
+      
+        <h3>Twitter</h3>
+        <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+        <script>
+        new TWTR.Widget({
+          version: 2,
+          type: 'profile',
+          rpp: 4,
+          interval: 6000,
+          width: 'auto',
+          height: 300,
+          theme: {
+            shell: {
+              background: '#86989B',
+              color: '#ffffff'
+            },
+            tweets: {
+              background: '#ffffff',
+              color: '#000000',
+              links: '#4aed05'
+            }
+          },
+          features: {
+            scrollbar: false,
+            loop: false,
+            live: false,
+            hashtags: true,
+            timestamp: true,
+            avatars: false,
+            behavior: 'all'
+          }
+        }).render().setUser('psychopy').start();
+        </script>
+    
           {%- endif %}
           {%- endblock %}
         </div>
