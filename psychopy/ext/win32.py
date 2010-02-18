@@ -6,7 +6,34 @@
 There are no c extensions for windows at the moment - everything is done
 from the pywin32 extensions.
 """
-import win32process, win32api#comes from pywin32 libraries
+#these are correct for win32, not sure about 64bit versions
+   #DEFINE NORMAL_PRIORITY_CLASS 32
+   #DEFINE IDLE_PRIORITY_CLASS 64
+   #DEFINE HIGH_PRIORITY_CLASS 128
+   #DEFINE REALTIME_PRIORITY_CLASS 1600
+    #define THREAD_PRIORITY_IDLE            -15
+    #define THREAD_PRIORITY_LOWEST          -2
+    #define THREAD_PRIORITY_BELOW_NORMAL    -1
+    #define THREAD_PRIORITY_NORMAL          0
+    #define THREAD_PRIORITY_ABOVE_NORMAL    1
+    #define THREAD_PRIORITY_HIGHEST         2
+    #define THREAD_PRIORITY_TIME_CRITICAL   15
+    
+from ctypes import windll
+windll=windll.kernel32
+
+NORMAL_PRIORITY_CLASS    =32
+IDLE_PRIORITY_CLASS      =64
+HIGH_PRIORITY_CLASS      =128
+REALTIME_PRIORITY_CLASS  =1600
+THREAD_PRIORITY_IDLE         =   -15
+THREAD_PRIORITY_LOWEST       =   -2
+THREAD_PRIORITY_BELOW_NORMAL =   -1
+THREAD_PRIORITY_NORMAL       =   0
+THREAD_PRIORITY_ABOVE_NORMAL =   1
+THREAD_PRIORITY_HIGHEST      =   2
+THREAD_PRIORITY_TIME_CRITICAL=   15
+
 def rush(value=True):    
     """Raise the priority of the current thread/process 
     Win32 and OS X only so far - on linux use os.nice(niceIncrement)
@@ -18,14 +45,14 @@ def rush(value=True):
     keys within the display loop). Otherwise you could end up locked
     out and having to reboot!
     """
-    thr=win32api.GetCurrentThread()
-    pr =win32api.GetCurrentProcess()
+    thr=windll.GetCurrentThread()
+    pr =windll.GetCurrentProcess()
     if value:
-            win32process.SetPriorityClass(pr, win32process.REALTIME_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_TIME_CRITICAL)
+            windll.SetPriorityClass(pr, REALTIME_PRIORITY_CLASS)
+            windll.SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL)
     else:
-            win32process.SetPriorityClass(pr, win32process.NORMAL_PRIORITY_CLASS)
-            win32process.SetThreadPriority(thr, win32process.THREAD_PRIORITY_NORMAL)
+            windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS)
+            windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL)
 
 def waitForVBL():
     """Not implemented on win32 yet

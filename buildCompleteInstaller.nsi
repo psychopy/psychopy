@@ -12,7 +12,7 @@
 
   ;Name and file
   Name "PsychoPy2"
-  !Define Version "1.60.02"
+  !Define Version "1.60.03"
   OutFile "StandalonePsychoPy-${Version}-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy2"
   
