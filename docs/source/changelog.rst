@@ -13,6 +13,7 @@ PsychoPy 1.60.03
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * FIXED buglet in gui.py converting 'false' to True in dialogs (thanks Michael MacAskill)
+* FIXED bug in winXP version introduced by fixes to the winVista version! Now both should be fine!!
 
 PsychoPy 1.60.02
 ~~~~~~~~~~~~~~~~~~~~~~
