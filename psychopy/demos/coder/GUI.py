@@ -11,7 +11,7 @@ else:
     print 'User Cancelled'
 
 #this alternative uses a Dlg and you manually extract the data (maybe more control?!)
-myDlg = gui.Dlg(title="JWP's experiment", pos=(2000,400))
+myDlg = gui.Dlg(title="JWP's experiment", pos=(200,400))
 myDlg.addText('Subject info')
 myDlg.addField('Name:')
 myDlg.addField('Age:', 21)

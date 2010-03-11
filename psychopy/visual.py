@@ -1151,7 +1151,8 @@ class DotStim(_BaseVisualStim):
         self._calcFieldCoordsRendered()
     def setFieldCoherence(self,val, op=''):
         self._set('coherence', val, op)
-        self._calcFieldCoordsRendered()
+        self._signalDots = numpy.zeros(self.nDots, dtype=bool)
+        self._signalDots[0:int(self.coherence*self.nDots)]=True
     def setNDots(self,val, op=''):
         self._set('nDots', val, op)
     def setDir(self,val, op=''):
