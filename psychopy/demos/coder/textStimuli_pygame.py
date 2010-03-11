@@ -4,7 +4,7 @@ import sys
 
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,
-				monitor='testMonitor', units ='cm', winType='pygame')
+            monitor='testMonitor', units ='cm', winType='pygame')
 myWin.setRecordFrameIntervals(True)
 
 if sys.platform=='win32':
