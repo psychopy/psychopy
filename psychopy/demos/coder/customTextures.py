@@ -31,11 +31,6 @@ bigStim = visual.PatchStim(win, tex=radialTexture, mask=mainMask,
 subStim = visual.PatchStim(win, tex=radialTexture_sub, pos=(-128,128), mask=subMask,
    rgb=[1,1,1], size=256, sf=1.0/256, interpolate=True)
 
-try:
-    instruction = visual.TextStim(win, pos=(0,0), text='[Enter] to start', rgb=-1)
-except:
-    pass
-
 bigStim.draw()
 subStim.draw()
 
@@ -45,10 +40,7 @@ while True:
         bigStim.draw()
         subStim.setOri(i/10) #control speed 
         subStim.draw()
-        try:
-            instruction.draw()
-        except:
-            pass
+        
         win.flip()
     
     #smooth reversal to anticlockwise    

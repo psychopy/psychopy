@@ -9,6 +9,11 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.04
+~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED build error (OS X 10.6 only)
+
 PsychoPy 1.60.03
 ~~~~~~~~~~~~~~~~~~~~~~
 
