@@ -9,6 +9,12 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.05
+~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
+* FIXED bug in autoupdater for installs with setuptools-style directory structure
+
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~
 
