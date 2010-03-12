@@ -312,21 +312,31 @@ class InstallUpdateDialog(wx.Dialog):
         #buffer.close()
         return zfile, info
         
-    def installZipFile(self, zfile):
+    def installZipFile(self, zfile, v=None):
+        """If v is provided this will be used as new version number, otherwise try and retrieve
+        a version number from zip file name 
+        """
         info=""#return this at the end
         
-        if type(zfile) in [str, unicode] and os.path.isfile(zfile):
+        if type(zfile) in [str, unicode] and os.path.isfile(zfile):#zfile is filename not an actual file
+            if v==None: #try and deduce it
+                zFilename = os.path.split(zfile)[-1]
+                searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
+                if searchName!=None:
+                    v=searchName.group(0)[:-1]
+                else:log.warning("Couldn't deduce version from zip file: %s" %zFilename)
             f=open(zfile)
             zfile=zipfile.ZipFile(f)
-        else:
-            pass#todo: error checking - zfile should be a ZipFile or a filename
+        else:#assume here that zfile is a ZipFile
+            pass#todo: error checking - is it a zipfile?
             
         currPath=self.app.prefs.paths['psychopy']
         #any commands that are successfully executed may need to be undone if a later one fails
         undoString = ""
         #depending on install method, needs diff handling
         #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
-        if currPath.endswith('psychopy'):#e.g. the mac standalone app
+        versionInPath = re.findall('psychopy-.*/',currPath)#does the path contain any version number?
+        if len(versionInPath)==0:#e.g. the mac standalone app
             unzipTarget=currPath
             try: #to move existing PsychoPy
                 os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
@@ -334,8 +344,9 @@ class InstallUpdateDialog(wx.Dialog):
             except:
                 return "Could not move existing PsychoPy installation (permissions error?)"
         else:#setuptools-style installation
+            versionInPath=versionInPath[0][:-1]#take the first occurence and exclude the final slash
             # find the .pth file that specifies the python dir
-            unzipTarget=currPath.replace(psychopy.__version__, v)
+            unzipTarget=currPath.replace(versionInPath, "psychopy-%s" %v)
             #create the new installation directory BEFORE changing pth file
             try:
                 nUpdates, newInfo = self.updatePthFile(oldPath=currPath, newPath=unzipTarget)
@@ -389,7 +400,7 @@ class InstallUpdateDialog(wx.Dialog):
             self.statusMessage.SetLabel('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences')
             return -1            
         self.statusMessage.SetLabel(info)
-        self.installZipFile(zipFile)
+        self.installZipFile(zipFile, v)
     def updatePthFile(oldPath, newPath):
         """Searches site-packages for .pth files and replaces any instance of 
         `oldPath` with `newPath`
