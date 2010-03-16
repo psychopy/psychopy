@@ -27,9 +27,9 @@ class MouseComponent(BaseComponent):
         self.params['duration']=Param(duration, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The duration for which the mouse is checked")
-        self.params['save']=Param(save, valType='str', allowedVals=['final values','every frame'])
+        self.params['save mouse pos']=Param(save, valType='str', allowedVals=['final values','every frame'])
     def writeInitCode(self,buff):
-        pass#no need to initialise?
+        buff.writeIndented("%(name)s=event.Mouse()\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
