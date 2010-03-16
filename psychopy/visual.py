@@ -1481,7 +1481,7 @@ class SimpleImageStim(_BaseVisualStim):
             self.dataType = GL.GL_FLOAT
         else:
             self.dataType = GL.GL_UNSIGNED_BYTE
-            self.imArray = psychopy.misc.float_uint8(self.imArray)
+            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
         self._needStrUpdate=True
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
