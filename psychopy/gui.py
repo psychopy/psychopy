@@ -74,7 +74,7 @@ class Dlg(wx.Dialog):
                                         size=labelLength,
                                         style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        inputBox = wx.TextCtrl(self,-1,str(initial),size=(5*len(str(initial))+16,25))
+        inputBox = wx.TextCtrl(self,-1,unicode(initial),size=(5*len(unicode(initial))+16,25))
         container.Add(inputBox,1)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
         
@@ -95,7 +95,7 @@ class Dlg(wx.Dialog):
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         OK = wx.Button(self, wx.ID_OK, " OK ")
         OK.SetDefault()
-        buttons.Add(OK)	
+        buttons.Add(OK)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL)
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
@@ -109,13 +109,13 @@ class Dlg(wx.Dialog):
                 thisVal = self.inputFields[n].GetValue()
                 thisType= self.inputFieldTypes[n]
                 #try to handle different types of input from strings
-                log.debug("%s: %s" %(self.inputFieldNames[n], str(thisVal)))
+                log.debug("%s: %s" %(self.inputFieldNames[n], unicode(thisVal)))
                 if thisType in [tuple,list,float,int]:
                     #probably a tuple or list
                     exec("self.data.append("+thisVal+")")#evaluate it
                 elif thisType==numpy.ndarray:
                     exec("self.data.append(numpy.array("+thisVal+"))")
-                elif thisType==str:#a num array or string?
+                elif thisType in [str,unicode]:#a num array or string?
                     self.data.append(thisVal)
                 elif thisType==bool:#a num array or string?
                     if thisVal in ['True','true']: self.data.append(True)
