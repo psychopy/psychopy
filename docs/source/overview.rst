@@ -47,4 +47,4 @@ PsychoPy is an open-source, community-driven project. It is written and provided
 * if nothing else, then at least tell the primary developers that a bug exists - they likely don't know!
 For more information on how to view and edit the documentation and code see the section on :doc:`contributing`
 
-.. _Python: `http://www.python.org` 
+.. _Python: http://www.python.org

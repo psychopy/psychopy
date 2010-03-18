@@ -1,10 +1,15 @@
 """This module provides read/write access to the parallel port on a PC.
 
-This is a wrapper around Dincer Aydin's `winioport` for
+This is a wrapper around Dincer Aydin's `winioport`_ for
 reading and writing to the parallel port, but adds the following additional functions for convenience.
 
-On windows winioport equires either port95.exe or DLPortIO to be installed.
-An alternative (e.g. on Linux) might be to install pyParallel and call that manually.
+On windows `winioport`_ requires the `PortIO driver`_ to be installed.
+
+An alternative (e.g. on Linux) might be to install pyParallel and call that directly.
+
+.. _winioport: http://www.dinceraydin.com/python/indexeng.html
+.. _PortIO driver: http://www.driverlinx.com/DownLoad/dnload.htm#Windows 95/NT Port I/O Driver?ID=1268914636723
+
 """
 
 import _parallel #this is Dincer Aydin's module
