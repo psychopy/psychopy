@@ -26,7 +26,15 @@ VIDEOENCODEDCOMMS =  0x00080000 # needs to be set so that LUT is read from scree
 DEBUG=True
 
 class BitsBox:
-    """The main class to control a bits++ box
+    """The main class to control a bits++ box.
+    
+    This is usually a class added within the window object and is typically accessed from there.
+    e.g.::
+        
+        from psychopy import visual
+        win = visual.Window([800,600], bitsMode=‘fast’)
+        win.bits.setContrast(0.5)#use bits++ to reduce the whole screen contrast by 50%
+        
     """
     def __init__(self,
                     win,

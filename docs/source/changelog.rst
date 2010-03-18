@@ -9,13 +9,22 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.05
+~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
+* FIXED bug in autoupdater for installs with setuptools-style directory structure
+* FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled
+
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~
+Released March 2010
 
 * FIXED build error (OS X 10.6 only)
 
 PsychoPy 1.60.03
 ~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
 
 * FIXED buglet in gui.py converting 'false' to True in dialogs (thanks Michael MacAskill)
 * FIXED bug in winXP version introduced by fixes to the winVista version! Now both should be fine!!

@@ -67,8 +67,11 @@
 
 
 import ctypes                                       # import ctypes module 
-port = ctypes.windll.dlportio                       # load dlportio.dll functions
-
+try:
+    port = ctypes.windll.dlportio                       # load dlportio.dll functions
+except:
+    print "Could not import DLportIO driver, parallel Ports not available"
+    
 baseAddress = 0x378                                 # printerport base address, edit to suit your port
 statusRegAdrs = baseAddress + 1                     # status register address
 ctrlRegAdrs = baseAddress + 2                       # control register address
