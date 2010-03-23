@@ -1204,7 +1204,7 @@ class DotStim(_BaseVisualStim):
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
 
-            GL.glColor4f(self.rgb[0], self.rgb[1], self.rgb[2], 1.0)
+            GL.glColor4f(self.rgb[0]*2-1, self.rgb[1]*2-1, self.rgb[2]*2-1, 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
