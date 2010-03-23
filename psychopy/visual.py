@@ -1010,7 +1010,7 @@ class DotStim(_BaseVisualStim):
             fieldShape : *'sqr'* or 'circle' 
                 Defines the envelope used to present the dots
             dotSize
-                in specified `units` (overridden if `element` is specified)
+                in specified pixels (overridden if `element` is specified)
             dotLife : int
                 Number of frames each dot lives for (default=3, -1=infinite)
             dir : float (degrees)
