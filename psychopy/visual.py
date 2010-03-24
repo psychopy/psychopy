@@ -579,6 +579,7 @@ class Window:
             self.rgb=[newRGB, newRGB, newRGB]
         else:
             self.rgb=newRGB
+        if self.winType=='pyglet': self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
         
     def setScale(self, units, font='dummyFont', prevScale=[1.0,1.0]):
@@ -1010,7 +1011,7 @@ class DotStim(_BaseVisualStim):
             fieldShape : *'sqr'* or 'circle' 
                 Defines the envelope used to present the dots
             dotSize
-                in specified pixels (overridden if `element` is specified)
+                specified in pixels (overridden if `element` is specified)
             dotLife : int
                 Number of frames each dot lives for (default=3, -1=infinite)
             dir : float (degrees)
@@ -1204,7 +1205,7 @@ class DotStim(_BaseVisualStim):
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
 
-            GL.glColor4f(self.rgb[0]*2-1, self.rgb[1]*2-1, self.rgb[2]*2-1, 1.0)
+            GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
