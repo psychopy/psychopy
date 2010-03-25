@@ -9,7 +9,7 @@ import  wx.lib.filebrowsebutton
 try:
     from agw import hyperlink as wxhl
 except ImportError: # if it's not there locally, try the wxPython lib.
-    import wx.lib.agw.hyperlink as wxhl
+    import wx.lib.hyperlink as wxhl
 import psychopy
 from psychopy.app import dialogs
 from psychopy import log
