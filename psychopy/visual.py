@@ -853,21 +853,26 @@ class _BaseVisualStim:
     Not finished...?
     """
     def __init__(self):
-        raise NotImplementedError('abstract')
+        raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.__init__')
     def draw(self):
-        raise NotImplementedError('abstract')
-        
+        raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', units=None):
+        """Set the stimulus position in the specified (or inheritted) `units`
+        """
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
     def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)
     def setSize(self, newSize, operation='', units=None):
+        """Set the stimulus size [X,Y] in the specified (or inheritted) `units`
+        """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
         self._calcSizeRendered()
         self.needUpdate=True
     def setOri(self, newOri, operation=''):
+        """Set the stimulus orientation in degrees
+        """
         self._set('ori',val=newOri, op=operation)
     def setOpacity(self,newOpacity,operation=''):
         self._set('opacity', newOpacity, operation)
@@ -875,19 +880,122 @@ class _BaseVisualStim:
         if not self._useShaders:
             self.setMask(self._maskName)
     def setDKL(self, newDKL, operation=''):
+        """DEPRECATED since v1.60.05: Please use setColor
+        """
         self._set('dkl', val=newDKL, op=operation)
         self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
     def setLMS(self, newLMS, operation=''):
+        """DEPRECATED since v1.60.05: Please use setColor
+        """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=''):      
+    def setRGB(self, newRGB, operation=''):
+        """DEPRECATED since v1.60.05: Please use setColor
+        """
         self._set('rgb', newRGB, operation)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            self.setTex(self._texName)
-    def setContr(self, newContr, operation=''):     
+        _setTexIfNoShaders(self)
+    def _setColor(self, color, colorSpace=None, operation='',
+                    rgbAttrib='rgb', #or 'fillRGB' etc
+                    colorAttrib='color'):#or 'fillColor' etc
+        """Provides the workings needed by setColor, and can perform this for
+        any arbitrary color type (e.g. fillColor,lineColor etc)  
+        """
+        
+        if type(color) in [str, unicode]:
+            if color.lower() in colors.colors255.keys():
+                self.rgb= numpy.array(colors.colors255[color.lower()], float)
+                self.colorSpace='named'
+                self.color=color
+                _setTexIfNoShaders(self)
+                return
+            elif color[0]=='#' or color[0:2]=='0x':
+                    self.rgb=numpy.array(colors.hex2rgb255(color))
+                    self.colorSpace='hex'
+                    self.color=color
+                    _setTexIfNoShaders(self)
+                    return
+#                except:
+#                    pass#this will be handled with AttributeError below
+            #we got a string, but it isn't in the list of named colors and doesn't work as a hex
+            raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+        elif type(color) in [float, int]:
+            color=numpy.asarray([color,color,color],float)
+        elif type(color) in [tuple,list]:
+            color=numpy.asarray(color,float)
+        else:
+            raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
+        
+        #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
+        #check if colorSpace is given
+        if colorSpace==None: colorSpace=self.colorSpace
+        #check whether combining sensible colorSpaces (should be fine if staying with 
+        if self.colorSpace in ['named','hex']:
+                raise AttributeError("setColor cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
+                    %(operation))
+        if operation!='' and colorSpace!=self.colorSpace:
+                raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
+                    %(operation, self.colorSpace, colorSpace))
+        else:#OK to update current color
+            exec('self.color'+operation+'=color')#if no operation then just assign
+        #convert new self.color to rgb space
+        if colorSpace in ['rgb','rgb255']: self.rgb=self.color
+        elif colorSpace=='dkl': self.rgb=colors.dkl2rgb(self.color, self.win.dkl_rgb)
+        elif colorSpace=='lms': self.rgb=colors.lms2rgb(self.color, self.win.lms_rgb)
+        #do the actual assignment/combination        
+        self.colorSpace=colorSpace#store for future ref and for drawing
+        #if needed, set the texture too
+        _setTexIfNoShaders(self)
+    def setColor(self, color, colorSpace=None, operation=''):
+        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        about the various ways to specify colors and their various implications.
+        
+        :Parameters:
+        
+        color : 
+            Can be specified in one of many ways. If a string is given then it
+            is interpreted as the name of the color. Any of the standard html/X11
+            `color names <http://www.w3schools.com/html/html_colornames.asp>` 
+            can be used. e.g.::
+                
+                myStim.setColor('white')
+                myStim.setColor('RoyalBlue')#(the case is actually ignored)
+            
+            A hex value can be provided, also formatted as with web colors. This can be
+            provided as a string that begins with # (not using python's usual 0x000000 format)::
+                
+                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
+                
+            You can also provide a triplet of values, which refer to the coordinates
+            in one of the `colorSpaces`_. If no color space is specified then the color 
+            space most recently used for this stimulus is used again.
+            
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red colour in rgb space
+                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
+                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
+            
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x]. 
+            
+                myStim.setColor(255, 'rgb255') #all guns o max
+            
+        colorSpace : string or None
+        
+            defining which of the `colorSpaces`_ to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation). 
+            
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+            
+            for colors specified as a triplet of values (or single intensity value)
+            the new value will perform this operation on the previous color
+            
+                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
+                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+        """
+    def setContr(self, newContr, operation=''):
         """Set the contrast of the stimulus
-        """ 
+        """
         self._set('contr', newContr, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
@@ -988,7 +1096,9 @@ class DotStim(_BaseVisualStim):
                  dotLife = 3,
                  dir    =0.0,
                  speed  =0.5,
-                 rgb    =[1.0,1.0,1.0],
+                 rgb    =None,
+                 color=[1.0,1.0,1.0],
+                 colorSpace='rgb',
                  opacity =1.0,
                  depth  =0,
                  element=None,
@@ -1077,12 +1187,20 @@ class DotStim(_BaseVisualStim):
         self._dotSizeRendered=None
         self._speedRendered=None
         self._fieldSizeRendered=None
-        self._fieldPosRendered=None
+        self._fieldPosRendered=None        
         
-        if type(rgb) in [float, int]: #user may give a luminance val
-            self.rgb=numpy.array((rgb,rgb,rgb), float)
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(dkl, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(lms, colorSpace='lms')
         else:
-            self.rgb = numpy.array(rgb, float)
+            self.setColor(color)            
 
         self.depth=depth
         """initialise the dots themselves - give them all random dir and then
@@ -1204,8 +1322,10 @@ class DotStim(_BaseVisualStim):
                 GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
-
-            GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
+            if self.colorSpace in ['rgb','dkl','lms']:
+                GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
+            else:
+                GL.glColor4f(self.rgb[0]/255.0, self.rgb[1]/255.0, self.rgb[2]/255.0, 1.0)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
@@ -1531,9 +1651,11 @@ class PatchStim(_BaseVisualStim):
                  ori     =0.0,
                  phase   =(0.0,0.0),
                  texRes =128,
-                 rgb   =[1.0,1.0,1.0],
+                 rgb   =None,
                  dkl=None,
                  lms=None,
+                 color=[1.0,1.0,1.0],
+                 colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
                  depth=0,
@@ -1637,24 +1759,25 @@ class PatchStim(_BaseVisualStim):
         self.opacity = opacity
         self.interpolate=interpolate
         
-        #for rgb allow user to give a single val and apply to all channels
-        if type(rgb)==float or type(rgb)==int: #user may give a luminance val
-            self.rgb=numpy.array((rgb,rgb,rgb), float)
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='lms')
         else:
-            self.rgb = numpy.asarray(rgb, float)
+            self.setColor(color)
+            
+        #NB Pedestal isn't currently being used during rendering - this is a place-holder
         if type(rgbPedestal)==float or type(rgbPedestal)==int: #user may give a luminance val
             self.rgbPedestal=numpy.array((rgbPedestal,rgbPedestal,rgbPedestal), float)
         else:
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
         
-        if dkl is not None:
-            self.dkl = numpy.array(dkl,float)
-            self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
-        elif lms is not None:
-            self.lms = lms
-            #log.warning('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
-            self.rgb = psychopy.misc.lms2rgb(lms, win.lms_rgb)
-
         #phase (ranging 0:1)
         if type(phase) in [tuple,list]:
             self.phase = numpy.array(phase, float)
@@ -1748,10 +1871,14 @@ class PatchStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
-
-        desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-        if numpy.any(desiredRGB**2.0>1.0):
-            desiredRGB=[0.6,0.6,0.4]
+        
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+            if numpy.any(desiredRGB**2.0>1.0):
+                desiredRGB=[0.6,0.6,0.4]
+            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+        else:
+            desiredRGB = (self.rgb*self.contrast)/255.0
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -1948,7 +2075,9 @@ class RadialStim(PatchStim):
                  texRes =64,
                  angularRes=100,
                  visibleWedge=(0, 360),
-                 rgb   =(1.0,1.0,1.0),
+                 rgb   =None,
+                 color=[1.0,1.0,1.0],
+                 colorSpace='rgb',
                  dkl=None,
                  lms=None,
                  contrast=1.0,
@@ -2052,24 +2181,24 @@ class RadialStim(PatchStim):
         self.setPhase = None
         self.setSF = None
 
-        #for rgb allow user to give a single val and apply to all channels
-        if type(rgb)==float or type(rgb)==int: #user may give a luminance val
-            self.rgb=numpy.array((rgb,rgb,rgb), float)
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(dkl, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(lms, colorSpace='lms')
         else:
-            self.rgb = numpy.asarray(rgb, float)
+            self.setColor(color)
+            
         if type(rgbPedestal)==float or type(rgbPedestal)==int: #user may give a luminance val
             self.rgbPedestal=numpy.array((rgbPedestal,rgbPedestal,rgbPedestal), float)
         else:
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
-
-        if dkl:
-            self.dkl = numpy.array(dkl,float)
-            self.rgb = psychopy.misc.dkl2rgb(dkl, win.dkl_rgb)
-        elif lms:
-            self.lms = lms
-            #warn('LMS-to-RGB conversion is not properly tested yet - it should NOT be used for proper research!')
-            self.rgb = psychopy.misc.lms2rgb(lms, win.lms_rgb)
-
+            
         self.depth=depth
 
         #size
@@ -3149,271 +3278,6 @@ class MovieStim(_BaseVisualStim):
         #not called, for some reason?!
         self.playing=-1
 
-class TextStimGLUT:
-    """DEPRECATED - please use TextStim instead - they're much nicer!"""
-    def __init__(self,win,
-                 text="Hello World",
-                 font="GLUT_BITMAP_TIMES_ROMAN_24",
-                 pos=(0.0,0.0),
-                 depth=0,
-                 rgb=(1.0,1.0,1.0),
-                 opacity=1.0,
-                 units="",
-                 ori=0.0,
-                 letterWidth=10.0,
-                 lineWidth=1.0,
-                 alignHoriz='center',
-                 alignVert='center'):
-        self.win = win
-        if win._haveShaders: self._useShaders=True#by default, this is a good thing
-        else: self._useShaders=False
-        
-        if len(units): self.units = units
-        else: self.units = win.units
-        
-        self.pos= numpy.array(pos, float)
-        if type(font) in [unicode, str]:
-            self.fontName=font
-            exec('self.font=GLUT.'+font)
-        else:#presumably was an actual GLUT font enumerator
-            self.font = font
-        if self.font in [GLUT.GLUT_STROKE_ROMAN, GLUT.GLUT_STROKE_MONO_ROMAN]:
-            self.strokeFont=1
-        else: self.strokeFont=0
-        self.text='' #just a placeholder set below
-        self.setText(text) #some additional things get set with text
-        self.needUpdate =1
-        self.opacity= opacity
-        self.contrast= 1.0
-        self.alignHoriz = alignHoriz
-        self.alignVert = alignVert
-
-        if type(rgb) in [float, int]: #user may give a luminance val
-            self.rgb=numpy.asarray((rgb,rgb,rgb), float)
-        else:
-            self.rgb = numpy.asarray(rgb, float)
-
-        self.depth=depth
-
-        self._listID = GL.glGenLists(1)
-        #initialise textures for stimulus
-        if self.win.winType=="pyglet":
-            self.texID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.texID))
-        else:
-            self._texID = GL.glGenTextures(1)
-        #self._setColorTex()
-
-        #setup scaling for the window
-        if self.units=='norm': self._winScale='norm'
-        else: self._winScale='pix' #set the window to have pixels coords
-        self._calcPosRendered()
-        
-        self.ori=ori
-        self.lineWidth=lineWidth
-        self.letterWidth=letterWidth#width of each character in pix
-        GL.glEnable(GL.GL_LINE_SMOOTH)#nicer for stroke fonts
-
-    def _set(self,attrib,val,op=''):
-        #can handle single value in -> multi out (e.g. size->h,w)
-        if op=='' or op==None:
-            exec('self.'+attrib+'*=0') #set all values in array to 0
-            exec('self.'+attrib+'+=val') #then add the value to array
-        else:
-            exec('self.'+attrib+op+'=val')
-        self.needUpdate =1
-
-    def set(self, attrib, val, op=''):
-        """DEPRECATED
-        TextStim.set() is obselete and may not be supported in future
-        versions of PsychoPy. Use the specific method for each parameter instead
-        (e.g. setOri(), setText()...)
-        """
-        self._set(attrib, val, op)
-
-    def setOri(self,value,operation=''):
-        self._set('ori', value, operation)
-    def setPos(self,value,operation=''):
-        self._set('pos', value, operation)
-        self._calcPosRendered()
-    def setRGB(self,value, operation=''):
-        self._set('rgb', value, operation)
-    def setOpacity(self,value,operation=''):
-        self._set('opacity', value, operation)
-    def setText(self,value,operation=''):
-        self._set('text', value, operation)
-        #also update the current length and height
-        if self.strokeFont:
-            if len(self.text)==1:
-                self.length = GLUT.glutStrokeWidth(self.font, ord(self.text))
-            else: self.length = GLUT.glutStrokeLength(self.font, self.text)
-            self.height = 100.0 #roughly!
-        else:
-            if len(self.text)==1:
-                self.length = GLUT.glutBitmapWidth(self.font, ord(self.text))
-            else: self.length = GLUT.glutBitmapLength(self.font, self.text)
-            if self.fontName:
-                #final two digits of name give height (but overestimated!)
-                self.height=float(self.fontName[-2:])-1
-            else: self.height = 23.0 #(if the default 24pt font was used)
-    def setDepth(self,value, operation=''):
-        self._set('depth', value, operation)
-
-    def _updateListShaders(self):
-        """
-        The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-        GL.glPushMatrix()
-
-        #load Null textures into multitexteureARB - they interfere with glColor
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, self.opacity)
-
-        self.win.setScale(self.units)
-        GL.glTranslatef(self.pos[0],self.pos[1],0)#NB depth is set already
-        if self.strokeFont:#draw stroke font stims
-            GL.glLineWidth(self.lineWidth)
-            GL.glPopMatrix()#get rid of the scaling matrix for positioning
-            GL.glPushMatrix()#and make a new one for drawing the characters
-            #NB:scaling stroke_fonts requires that we move to the right position
-            #to start drawing (setScale above) and then change the scale again
-            #so that the letters are spaced correctly
-            #alignment
-            self.win.setScale('stroke_font', self) #special usage of setScale
-            if self.alignHoriz =='center':
-                #self.win.setScale('pix')
-                GL.glTranslatef(-self.length/2, -self.height/2, 0.0)
-            elif self.alignHoriz =='right':
-                GL.glTranslatef(-self.length, -self.height, 0.0)
-            else:#no need to change
-                pass
-            #stroke fonts rotate
-            GL.glRotatef(self.ori,0.0,0.0,1.0)
-
-            for characters in self.text:
-                GLUT.glutStrokeCharacter(self.font,ord(characters))
-        else:#draw bitmap font stims
-            self.win.setScale('pix', self, prevScale=unitScale)
-            #how much to move left
-            if self.alignHoriz =='center': left = -self.length/2.0
-            elif self.alignHoriz =='right':left = -self.length
-            else: left = 0.0
-            #how much to move bottom
-            if self.alignVert =='center': bottom = -self.height/2.0
-            elif self.alignVert =='top': bottom = -self.height
-            else: bottom = 0.0
-            #do the actual move
-            GL.glRasterPos3f(left,bottom,0)
-
-            for characters in self.text:
-                GLUT.glutBitmapCharacter(self.font,ord(characters))
-
-        GL.glPopMatrix()
-
-        GL.glEndList()
-        self.needUpdate=0
-
-    def _updateListNoShaders(self):
-        """
-        The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-        GL.glPushMatrix()
-
-        #load Null textures into multitexteureARB - they interfere with glColor
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, self.opacity)
-
-        unitScale = self.win.setScale(self.units)
-        GL.glTranslatef(self.pos[0],self.pos[1],0)#NB depth is set already
-        if self.strokeFont:#draw stroke font stims
-            GL.glLineWidth(self.lineWidth)
-            GL.glPopMatrix()#get rid of the scaling matrix for positioning
-            GL.glPushMatrix()#and make a new one for drawing the characters
-            #NB:scaling stroke_fonts requires that we move to the right position
-            #to start drawing (setScale above) and then change the scale again
-            #so that the letters are spaced correctly
-            #alignment
-            self.win.setScale('stroke_font', self) #special usage of setScale
-            if self.alignHoriz =='center':
-                #self.win.setScale('pix')
-                GL.glTranslatef(-self.length/2, -self.height/2, 0.0)
-            elif self.alignHoriz =='right':
-                GL.glTranslatef(-self.length, -self.height, 0.0)
-            else:#no need to change
-                pass
-            #stroke fonts rotate
-            GL.glRotatef(self.ori,0.0,0.0,1.0)
-
-            for characters in self.text:
-                GLUT.glutStrokeCharacter(self.font,ord(characters))
-        else:#draw bitmap font stims
-            self.win.setScale('pix', self, prevScale=unitScale)
-            #how much to move left
-            if self.alignHoriz =='center': left = -self.length/2.0
-            elif self.alignHoriz =='right':left = -self.length
-            else: left = 0.0
-            #how much to move bottom
-            if self.alignVert =='center': bottom = -self.height/2.0
-            elif self.alignVert =='top': bottom = -self.height
-            else: bottom = 0.0
-            #do the actual move
-            GL.glRasterPos3f(left,bottom,0)
-
-            for characters in self.text:
-                GLUT.glutBitmapCharacter(self.font,ord(characters))
-
-        GL.glPopMatrix()
-
-        GL.glEndList()
-        self.needUpdate=0
-
-    def draw(self, win=None):
-        """
-        Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
-        stimulus to appear on that frame and then update the screen
-        again.
-        
-        If win is specified then override the normal window of this stimulus.
-        """
-        #set the window to draw to
-        if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
-
-        #work out next default depth
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
-        GL.glPushMatrix()#push before the list, pop after
-        if self.needUpdate: self._updateList()
-        GL.glCallList(self._listID)
-        GL.glPopMatrix()#push before the list, pop after
-
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
@@ -3422,7 +3286,9 @@ class TextStim(_BaseVisualStim):
                  font="",
                  pos=(0.0,0.0),
                  depth=0,
-                 rgb=(1.0,1.0,1.0),
+                 rgb=None,
+                 color=[1.0,1.0,1.0],
+                 colorSpace='rgb',
                  opacity=1.0,
                  units="",
                  ori=0.0,
@@ -3526,10 +3392,12 @@ class TextStim(_BaseVisualStim):
             pyglet.font.add_file(thisFont)
         self.setFont(font)
 
-        if type(rgb) in [float, int]: #user may give a luminance val
-            self.rgb=numpy.asarray((rgb,rgb,rgb), float)
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
         else:
-            self.rgb = numpy.asarray(rgb, float)
+            self.setColor(color)
 
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
@@ -3620,7 +3488,59 @@ class TextStim(_BaseVisualStim):
         self._set('rgb', value, operation)
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
-    
+    def setColor(self, color, colorSpace=None, operation=''):
+        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        about the various ways to specify colors and their various implications.
+        
+        :Parameters:
+        
+        color :
+            Can be specified in one of many ways. If a string is given then it
+            is interpreted as the name of the color. Any of the standard html/X11
+            `color names <http://www.w3schools.com/html/html_colornames.asp>` 
+            can be used. e.g.::
+                
+                myStim.setColor('white')
+                myStim.setColor('RoyalBlue')#(the case is actually ignored)
+            
+            A hex value can be provided, also formatted as with web colors. This can be
+            provided as a string that begins with # (not using python's usual 0x000000 format)::
+                
+                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
+                
+            You can also provide a triplet of values, which refer to the coordinates
+            in one of the `colorSpaces`_. If no color space is specified then the color 
+            space most recently used for this stimulus is used again.
+            
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red colour in rgb space
+                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
+                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
+            
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x]. 
+            
+                myStim.setColor(255, 'rgb255') #all guns o max
+            
+        colorSpace : string or None
+        
+            defining which of the `colorSpaces`_ to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation). 
+            
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+            
+            for colors specified as a triplet of values (or single intensity value)
+            the new value will perform this operation on the previous color
+            
+                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
+                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+        """
+        #call setColor from super class
+        _BaseVisualStim.setColor(self, color, colorSpace=colorSpace, operation=operation)
+        #but then update text objects if necess
+        if not self._useShaders:
+            self.setText(self.text)#need to render the text again to a texture
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
@@ -3842,10 +3762,15 @@ class TextStim(_BaseVisualStim):
         
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=numpy.array([0.6,0.6,0.4]) 
-            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)#this has no effect - pyglet later sets it to 1,1,1?
+            if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+                desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+                if numpy.any(desiredRGB**2.0>1.0):
+                    desiredRGB=[0.6,0.6,0.4]
+                GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+            else:
+                desiredRGB = (self.rgb*self.contrast)/255.0
+            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+        
             GL.glUseProgram(self.win._progSignedTexFont)#self.win._progSignedTex)
 #            GL.glUniform3iv(GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"), 1,
 #                desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float))) #set the texture to be texture unit 0
@@ -3893,8 +3818,6 @@ class TextStim(_BaseVisualStim):
             self.setText(self.text)  
             self.needUpdate=True
             
-
-        
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.
     
@@ -3911,9 +3834,12 @@ class ShapeStim(_BaseVisualStim):
     def __init__(self,
                  win,
                  units  ='',
-                 lineRGB=[1,1,1],
+                 lineRGB=[1.0,1.0,1.0],
                  lineWidth=1.0,
-                 fillRGB=[0.8,0.8,0.8],
+                 fillRGB=[1.0,1.0,1.0],
+                 fillColor=[1.0,1.0,1.0],
+                 lineColor=[1.0,1.0,1.0],
+                 colorSpace='rgb',
                  vertices=[ [-0.5,0],[0,+0.5],[+0.5,0] ],
                  closeShape=True,
                  pos= [0,0],
@@ -3972,6 +3898,11 @@ class ShapeStim(_BaseVisualStim):
                 If True the edge of the line will be antialiased.
                 
                 """
+        
+        #rename setColor to _setColor (because users shouldn't use this for shapeStims)
+        self._setColor=self.setColor
+        del self.setColor
+        
         self.win = win
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
@@ -3999,14 +3930,19 @@ class ShapeStim(_BaseVisualStim):
         self.setVertices(vertices)
         self._calcVerticesRendered()
         
-    def setLineRGB(self, value, operation=''):      
-        """Set the rgb value for the line that forms the shape
+    def setLineRGB(self, value, operation=''):
+        """DEPRECATED since v1.60.05: Please use setLineColor
         """
         self._set('lineRGB', value, operation)
-    def setFillRGB(self, value, operation=''):  
-        """Set the rgb value that will fill the shape
-        """    
+    def setFillRGB(self, value, operation=''):
+        """DEPRECATED since v1.60.05: Please use setFillColor
+        """
         self._set('fillRGB', value, operation)
+    def setLineColor(self, color, colorSpace=None, operation=''):
+        #run the original setColor, which creates color and 
+        self._setColor(color, colorSpace=colorSpace, operation=operation)
+    def setFillColor(self, color, colorSpace=None, operation=''):
+        self._setColor(color, colorSpace=colorSpace, operation=operation)
         
     def setVertices(self,value=None, operation=''):
         """Set the xy values of the vertices (relative to the centre of the field).
@@ -4284,5 +4220,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                         data.shape[0],data.shape[1], 0,
                         pixFormat, dataType, texture)
-                    
+        
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
+def _setTexIfNoShaders(obj):
+    """Useful decorator for classes that need to update Texture after other properties
+    """
+    if not obj._useShaders and hasattr(obj, 'setTex'): 
+        obj.setTex(self._texName)

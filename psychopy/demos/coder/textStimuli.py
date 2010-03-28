@@ -20,7 +20,7 @@ fpsText = visual.TextStim(myWin,
                         pos=(-0.98, -0.98), text='starting...',
                         font=sans, 
                         alignHoriz = 'left',alignVert='bottom',
-                        rgb=[+1,-1,-1])
+                        color='red')
 rotating = visual.TextStim(myWin,text="Fonts \nrotate!",pos=(0, 0),#and can have line breaks
                         rgb=[-1.0,-1,1],units='deg',
                         ori=0, height = 1.0,

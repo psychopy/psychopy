@@ -322,7 +322,7 @@ class Monitor:
             return self.currentCalib['spectraNM'], self.currentCalib['spectraRGB']
         else:
             return None, None
-    def getDKL_RGB(self, RECOMPUTE=True):
+    def getDKL_RGB(self, RECOMPUTE=False):
         """Returns the DKL->RGB conversion matrix.
         If one has been saved this will be returned.
         Otherwise, if power spectra are available for the
@@ -338,7 +338,7 @@ class Monitor:
         else:
             return self.currentCalib['dkl_rgb']
 
-    def getLMS_RGB(self, RECOMPUTE=True):
+    def getLMS_RGB(self, RECOMPUTE=False):
         """Returns the LMS->RGB conversion matrix.
         If one has been saved this will be returned.
         Otherwise (if power spectra are available for the
