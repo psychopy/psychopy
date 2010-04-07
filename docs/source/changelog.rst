@@ -12,6 +12,9 @@ PsychoPy 1.60
 PsychoPy 1.60.05
 ~~~~~~~~~~~~~~~~~~~~~~
 
+* CHANGED color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
+* ADDED colors can be specified by name or hex color spec (e.g. '#E9967A' or 'DarkSalmon') instead of RGB values
+* REMOVED TextStimGLUT (assuming nobody uses GLUT backend anymore)
 * FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
 * FIXED bug in autoupdater for installs with setuptools-style directory structure
 * FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled

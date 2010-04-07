@@ -1,4 +1,5 @@
-.. _colorSpaces:
+.. _colorspaces:
+
 Color spaces
 ====================================
 

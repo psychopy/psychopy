@@ -62,8 +62,8 @@ with the line:
 Then, within the loop (make sure it has the same indentation as the other lines) add the lines:
 
 .. literalinclude:: tutorial1.py
-   :lines: 12-15
-
+   :lines: 17-18
+   
 the first line counts how many keys have been pressed since the last frame. If more than zero are found then we break out of the never-ending loop. The second line clears the event buffer and should always be called after you've collected the events you want (otherwise it gets full of events that we don't care about like the mouse moving around etc...).
 
 Your :download:`finished script <tutorial1.py>` should look something like this:
