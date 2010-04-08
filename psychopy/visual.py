@@ -901,48 +901,62 @@ class _BaseVisualStim:
         any arbitrary color type (e.g. fillColor,lineColor etc)  
         """
         
+        #ho this works:
+        #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
+        #color represents the color in the native space
+        #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
+        #rgb is calculated from converting color
+        #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
+        #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+        
         if type(color) in [str, unicode]:
             if color.lower() in colors.colors255.keys():
-                self.rgb= numpy.array(colors.colors255[color.lower()], float)
-                self.colorSpace='named'
-                self.color=color
+                #set rgb, color and colorSpace
+                setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
+                setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
+                setattr(self,colorAttrib,color) #e.g. self.color='red'
                 _setTexIfNoShaders(self)
                 return
             elif color[0]=='#' or color[0:2]=='0x':
-                    self.rgb=numpy.array(colors.hex2rgb255(color))
-                    self.colorSpace='hex'
-                    self.color=color
-                    _setTexIfNoShaders(self)
-                    return
+                setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
+                setattr(self,colorAttrib,color) #e.g. self.color='#000000'
+                setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
+                _setTexIfNoShaders(self)
+                return
 #                except:
 #                    pass#this will be handled with AttributeError below
             #we got a string, but it isn't in the list of named colors and doesn't work as a hex
             raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
         elif type(color) in [float, int]:
-            color=numpy.asarray([color,color,color],float)
+            color = numpy.asarray([color,color,color],float)
         elif type(color) in [tuple,list]:
-            color=numpy.asarray(color,float)
+            color = numpy.asarray(color,float)
+        elif color==None:
+            setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
+            setattr(self,colorAttrib,None) #e.g. self.color='#000000'
+            setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
+            _setTexIfNoShaders(self)
         else:
             raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
         
         #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
-        #check if colorSpace is given
-        if colorSpace==None: colorSpace=self.colorSpace
-        #check whether combining sensible colorSpaces (should be fine if staying with 
-        if self.colorSpace in ['named','hex']:
-                raise AttributeError("setColor cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
+        #check if colorSpace is given and use self.colorSpace if not
+        if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
+        #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
+        if getattr(self,colorAttrib+'Space') in ['named','hex']:
+                raise AttributeError("_setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
                     %(operation))
-        if operation!='' and colorSpace!=self.colorSpace:
+        if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
                 raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                     %(operation, self.colorSpace, colorSpace))
         else:#OK to update current color
-            exec('self.color'+operation+'=color')#if no operation then just assign
+            exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
         #convert new self.color to rgb space
-        if colorSpace in ['rgb','rgb255']: self.rgb=self.color
-        elif colorSpace=='dkl': self.rgb=colors.dkl2rgb(self.color, self.win.dkl_rgb)
-        elif colorSpace=='lms': self.rgb=colors.lms2rgb(self.color, self.win.lms_rgb)
-        #do the actual assignment/combination        
-        self.colorSpace=colorSpace#store for future ref and for drawing
+        newColor=getattr(self, colorAttrib)
+        if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+        elif colorSpace=='dkl': setattr(self,rgbAttrib, colors.dkl2rgb(newColor, self.win.dkl_rgb) )
+        elif colorSpace=='lms': setattr(self,rgbAttrib, colors.lms2rgb(newColor, self.win.lms_rgb) )
+        setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
         #if needed, set the texture too
         _setTexIfNoShaders(self)
     def setColor(self, color, colorSpace=None, operation=''):
@@ -993,6 +1007,9 @@ class _BaseVisualStim:
                 thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
                 thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
         """
+        self._setColor(color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='rgb', #or 'fillRGB' etc
+                    colorAttrib='color')
     def setContr(self, newContr, operation=''):
         """Set the contrast of the stimulus
         """
@@ -1765,12 +1782,12 @@ class PatchStim(_BaseVisualStim):
             self.setColor(rgb, colorSpace='rgb')
         elif dkl!=None:
             log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='dkl')
+            self.setColor(dkl, colorSpace='dkl')
         elif lms!=None:
             log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='lms')
+            self.setColor(lms, colorSpace='lms')
         else:
-            self.setColor(color)
+            self.setColor(color, colorSpace=colorSpace)
             
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
         if type(rgbPedestal)==float or type(rgbPedestal)==int: #user may give a luminance val
@@ -3834,19 +3851,20 @@ class ShapeStim(_BaseVisualStim):
     def __init__(self,
                  win,
                  units  ='',
-                 lineRGB=[1.0,1.0,1.0],
                  lineWidth=1.0,
-                 fillRGB=[1.0,1.0,1.0],
-                 fillColor=[1.0,1.0,1.0],
-                 lineColor=[1.0,1.0,1.0],
-                 colorSpace='rgb',
-                 vertices=[ [-0.5,0],[0,+0.5],[+0.5,0] ],
+                 lineColor=(1.0,1.0,1.0),
+                 lineColorSpace='rgb',
+                 fillColor=(0.0,0.0,0.0),
+                 fillColorSpace='rgb',
+                 vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  closeShape=True,
-                 pos= [0,0],
+                 pos= (0,0),
                  ori=0.0,
                  opacity=1.0,
                  depth  =0,
-                 interpolate=True):
+                 interpolate=True,
+                 lineRGB=None,
+                 fillRGB=None):
         """
         :Parameters:
             win :
@@ -3899,9 +3917,6 @@ class ShapeStim(_BaseVisualStim):
                 
                 """
         
-        #rename setColor to _setColor (because users shouldn't use this for shapeStims)
-        self._setColor=self.setColor
-        del self.setColor
         
         self.win = win
         self.opacity = opacity
@@ -3916,20 +3931,28 @@ class ShapeStim(_BaseVisualStim):
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
         #'rendered' coordinates represent the stimuli in the scaled coords of the window
-        #(i.e. norm for units==norm, but pix for all other units)        
-        if type(lineRGB) in [float, int]: #user may give a luminance val
-            self.lineRGB=numpy.array((lineRGB,lineRGB,lineRGB), float)
-        elif lineRGB==None: self.lineRGB=None
-        else: self.lineRGB = numpy.array(lineRGB, float)        
-        if type(fillRGB) in [float, int]: #user may give a luminance val
-            self.fillRGB=numpy.array((fillRGB,fillRGB,fillRGB), float)
-        elif fillRGB==None: self.fillRGB=None
-        else: self.fillRGB = numpy.array(fillRGB, float)
+        #(i.e. norm for units==norm, but pix for all other units)  
+        
+        self._useShaders=False#since we don't ned to combine textures with colors
+        self.lineColorSpace=lineColorSpace
+        if lineRGB!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setLineColor(lineRGB, colorSpace='rgb')
+        else:
+            self.setLineColor(lineColor, colorSpace=lineColorSpace)
+            
+        self.fillColorSpace=fillColorSpace
+        if fillRGB!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setFillColor(fillRGB, colorSpace='rgb')
+        else:
+            self.setFillColor(fillColor, colorSpace=fillColorSpace)
+                    
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
-        
+    
     def setLineRGB(self, value, operation=''):
         """DEPRECATED since v1.60.05: Please use setLineColor
         """
@@ -3940,9 +3963,14 @@ class ShapeStim(_BaseVisualStim):
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation=''):
         #run the original setColor, which creates color and 
-        self._setColor(color, colorSpace=colorSpace, operation=operation)
+        self._setColor(color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='lineRGB',#the name for this rgb value
+                    colorAttrib='lineColor')#the name for this color
     def setFillColor(self, color, colorSpace=None, operation=''):
-        self._setColor(color, colorSpace=colorSpace, operation=operation)
+        #run the original setColor, which creates color and 
+        self._setColor(color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='fillRGB',#the name for this rgb value
+                    colorAttrib='fillColor')#the name for this color
         
     def setVertices(self,value=None, operation=''):
         """Set the xy values of the vertices (relative to the centre of the field).
@@ -4005,16 +4033,26 @@ class ShapeStim(_BaseVisualStim):
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._verticesRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
         else:
             GL.glVertexPointerd(self._verticesRendered)
-        
+                
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts>2: #draw a filled polygon first       
             if self.fillRGB!=None:
-                GL.glColor4f(self.fillRGB[0]*0.5+0.5, self.fillRGB[1]*0.5+0.5, self.fillRGB[2]*0.5+0.5, self.opacity)
+                #convert according to colorSpace
+                if self.fillColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+                    fillRGB = (self.fillRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
+                else:fillRGB = self.fillRGB/255.0
+                #then draw
+                GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
         if self.lineRGB!=None:
+                #convert according to colorSpace
+            if self.lineColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+                lineRGB = (self.lineRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
+            else:lineRGB = self.lineRGB/255.0
+            #then draw
             GL.glLineWidth(self.lineWidth)
             GL.glTranslatef(0,0,_depthIncrements[win.winType]/2.0)
-            GL.glColor4f(self.lineRGB[0]*0.5+0.5, self.lineRGB[1]*0.5+0.5, self.lineRGB[2]*0.5+0.5, self.opacity)
+            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
             if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)        
             else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)       
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)

@@ -9,7 +9,6 @@ wedge1 = visual.RadialStim(win, tex='sqrXsqr', rgb=1,size=1,
     visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
 wedge2 = visual.RadialStim(win, tex='sqrXsqr', rgb=-1,size=1,
     visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
-    
 t=0
 rotationRate = 0.01 #revs per sec
 flashPeriod = 0.1 #seconds for one B-W cycle (ie 1/Hz)
