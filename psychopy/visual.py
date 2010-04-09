@@ -582,7 +582,7 @@ class Window:
         if self.winType=='pyglet': self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
         
-    def setScale(self, units, font='dummyFont', prevScale=[1.0,1.0]):
+    def setScale(self, units, font='dummyFont', prevScale=(1.0,1.0)):
         """This method is called from within the draw routine and sets the
         scale of the OpenGL context to map between units. Could potentially be
         called by the user in order to draw OpenGl objects manually
@@ -1114,7 +1114,7 @@ class DotStim(_BaseVisualStim):
                  dir    =0.0,
                  speed  =0.5,
                  rgb    =None,
-                 color=[1.0,1.0,1.0],
+                 color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity =1.0,
                  depth  =0,
@@ -1671,12 +1671,12 @@ class PatchStim(_BaseVisualStim):
                  rgb   =None,
                  dkl=None,
                  lms=None,
-                 color=[1.0,1.0,1.0],
+                 color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
                  depth=0,
-                 rgbPedestal = [0.0,0.0,0.0],
+                 rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False):
         """
         :Parameters:
@@ -2093,7 +2093,7 @@ class RadialStim(PatchStim):
                  angularRes=100,
                  visibleWedge=(0, 360),
                  rgb   =None,
-                 color=[1.0,1.0,1.0],
+                 color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  dkl=None,
                  lms=None,
@@ -2611,7 +2611,7 @@ class ElementArrayStim:
                  nElements = 100,
                  sizes = 2.0,
                  xys = None,
-                 rgbs = [1.0,1.0,1.0],
+                 rgbs = (1.0,1.0,1.0),
                  opacities = 1.0,
                  depths = 0,
                  fieldDepth = 0,
@@ -3304,7 +3304,7 @@ class TextStim(_BaseVisualStim):
                  pos=(0.0,0.0),
                  depth=0,
                  rgb=None,
-                 color=[1.0,1.0,1.0],
+                 color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity=1.0,
                  units="",

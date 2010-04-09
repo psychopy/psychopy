@@ -209,7 +209,7 @@ class TrialHandler:
         return self.thisTrial
     def saveAsText(self,fileName, 
                    stimOut=[], 
-                   dataOut=['n','all_mean','all_std', 'all_raw'],
+                   dataOut=('n','all_mean','all_std', 'all_raw'),
                    delim='\t',
                    matrixOnly=False,
                    appendFile=True,
@@ -248,7 +248,8 @@ class TrialHandler:
         
         dataHead=[]#will store list of data headers
         dataAnal=dict([])	#will store data that has been analyzed
-        if type(dataOut)!=list: dataOut = [dataOut]
+        if type(dataOut)==str: dataout=[dataOut]#don't do list convert or we get a list of letters
+        elif type(dataOut)!=list: dataOut = list(dataOut)
         
         #expand any 'all' dataTypes to be the full list of available dataTypes
         allDataTypes=self.data.keys()
@@ -373,7 +374,7 @@ class TrialHandler:
         f.close()
         
     def printAsText(self, stimOut=[], 
-                    dataOut=['all_mean', 'all_std', 'all_raw'],
+                    dataOut=('all_mean', 'all_std', 'all_raw'),
                     delim='\t',
                     matrixOnly=False,
                   ):
@@ -679,7 +680,7 @@ class StairHandler:
         f.close()
         
     def printAsText(self, stimOut=[], 
-                    dataOut=['rt_mean','rt_std', 'acc_raw'],
+                    dataOut=('rt_mean','rt_std', 'acc_raw'),
                     delim='\t',
                     matrixOnly=False,
                   ):

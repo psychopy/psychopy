@@ -60,7 +60,7 @@ def makeGrating(res,
                     return
     return intensity
 
-def maskMatrix(matrix, shape='circle', radius=1.0, center=[0.0,0.0]):
+def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0,0.0)):
     """Make and apply a mask to an input matrix (e.g. a grating)
     
        :Parameters:
@@ -74,10 +74,10 @@ def maskMatrix(matrix, shape='circle', radius=1.0, center=[0.0,0.0]):
             center:  2x1 tuple or list (default=[0.0,0.0])
                 the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
     """
-    alphaMask = makeMask(matrix.shape[0],shape,radius, center=[0.0,0.0])
+    alphaMask = makeMask(matrix.shape[0],shape,radius, center=(0.0,0.0))
     return matrix*alphaMask
 
-def makeMask(matrixSize, shape='circle', radius=1.0, center=[0.0,0.0]):
+def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0)):
     """
     Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
     
@@ -103,7 +103,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=[0.0,0.0]):
             raise 'err', 'unknown shape'
     return outArray*2-1
 
-def makeRadialMatrix(matrixSize, center=[0.0,0.0], radius=1.0):
+def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
     

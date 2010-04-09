@@ -18,12 +18,12 @@ cycles=6
 res=512
 radius = filters.makeRadialMatrix(res)
 radialTexture = np.sin(radius*2*np.pi*cycles)
-mainMask = filters.makeMask(res)*2-1
+mainMask = filters.makeMask(res)
 
 #select the upper left quadrant of our radial stimulus
 radialTexture_sub = radialTexture[256:,0:256]
 #and create an appropriate mask for it
-subMask = filters.makeMask(res, radius=0.5, center=[-0,0])*2-1
+subMask = filters.makeMask(res, radius=0.5, center=[-0,0])
 
 bigStim = visual.PatchStim(win, tex=radialTexture, mask=mainMask,
    rgb=[1,1,1], size=512, sf=1.0/512, interpolate=True)
