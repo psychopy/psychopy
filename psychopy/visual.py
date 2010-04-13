@@ -1686,7 +1686,7 @@ class PatchStim(_BaseVisualStim):
             tex : 
                 The texture forming the image
                             
-                + **'sin'**,'sqr',None
+                + **'sin'**,'sqr', 'saw', 'tri', None
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
                 
@@ -2680,10 +2680,10 @@ class ElementArrayStim:
                 the texture, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
             
             elementMask : 
-                the mask, to be used by all elements (e.g. 'sin', 'sqr',.. , 'myTexture.tif', numpy.ones([48,48]))
+                the mask, to be used by all elements (e.g. 'circle', 'gauss',.. , 'myTexture.tif', numpy.ones([48,48]))
             
             texRes : 
-                the number of pixels in the textures, unless an array or image is provided                       
+                the number of pixels in the textures (overridden if an array or image is provided)                       
         
         """
         self.win = win        
@@ -4124,20 +4124,27 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = numpy.ones([res,res],numpy.float32)
         wasLum = True
     elif tex == "sin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
         intensity = numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqr":#square wave (symmetric duty cycle)
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
         sinusoid = numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
+        wasLum = True
+    elif tex == "saw":
+        onePeriodX, intensity = numpy.mgrid[0:res, -1.0:1.00000001:2.0/res]
+        wasLum = True
+    elif tex == "tri":
+        onePeriodX, intensity = numpy.mgrid[0:res, -1.0:3.00000001:4.0/res]#-1:3 means the middle is at +1
+        intensity[:,int(res/2.0+1):] = 2.0-intensity[:,int(res/2.0+1):]#remove from 3 to get back down to -1
         wasLum = True
     elif tex == "sinXsin":
         onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
         intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqrXsqr":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = crustnumpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
         sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True
