@@ -1,18 +1,30 @@
 from psychopy import core
 
-info = core.RuntimeInfo(author='<your experiment author>', version='<1.x>', verbose=True)
+# gather system and other details as they are at execution-time, save in a dict-like object:
+info = core.RuntimeInfo(
+        author = 'Your Name Here (i.e., the author of your experiment script)', 
+        version = '<1.0, i.e., your experiment script version>', 
+        verbose = True # True means everything; which might be too much for some situations
+        ) 
 
-print "formatted for writing into a log file:"
-print info # same as str(info)
+print """
+System and other run-time conifguration is now saved in /info/, a dict-like object.
+Printing it will print str(info). This format is intended to be useful for writing to a data file 
+in a human readable form, including comments and a meaningful order:"""
+print info
+print """If that's more than you want in every data file, try verbose = False."""
 
-print
-print "Because its a dict, you can extract single items, based on a key:"
-print "psychopy_version = %s" % (info['psychopy_version'])
-infoKeys = info.keys()
-infoKeys.sort()
-print "Possible keys to use: \n%s" % (infoKeys)
+print """
+Because info is really a dict, you can extract single items using their keys, e.g.:
+psychopy_version = """,
+print info['psychopy_version']
 
-print
-print "Finally, here's the same info in python syntax (for recovering a dict)"
-print "You might write this format into a data file, and later import your data file into python"
+print """
+Possible keys to use:"""
+print info.keys()
+
+print """
+Finally, here's the same info in python syntax, using repr(info). You could write this format into 
+a data file, and its fairly readable, only slightly less than the str(info) version. Because its 
+python syntax you could later simply import your data file into python:"""
 print "info = %s" % (repr(info))
