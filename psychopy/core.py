@@ -173,12 +173,13 @@ class RuntimeInfo(dict):
         from psychopy import visual
         tmpwin = visual.Window([10,10])
         tmpwin.setRecordFrameIntervals()
-        for f in range(30): # need to stabilize?
+        for f in range(30): # wait to stabilize
             tmpwin.flip()
         t = tmpwin.fps() # reset fps() estimate
         for f in range(frameSamples): 
             tmpwin.flip()
-        profileInfo += '    "framesPerSecond": "%.2f  (%s-frame sample)",\n' % (tmpwin.fps(),str(frameSamples))
+        profileInfo += '    "framesPerSecond": "%.2f", \n       #FPS is from a %s-frame sample\n' % (
+            tmpwin.fps(),str(frameSamples))
         
         profileInfo += '  #Python: ------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'

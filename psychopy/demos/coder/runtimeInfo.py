@@ -9,7 +9,7 @@ info = core.RuntimeInfo(
         ) 
 
 print """
-System and other run-time conifguration is now saved in /info/, a dict-like object.
+System and other run-time configuration is now saved in /info/, a dict-like object.
 Printing it will print str(info). This format is intended to be useful for writing to a data file 
 in a human readable form, including comments and a meaningful order:"""
 print info
