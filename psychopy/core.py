@@ -98,6 +98,8 @@ def shellCall(shellCmd, stderr=False):
 
 def svnversion(dir='.'):
     """Tries to discover the svn version (revision #) for a directory.
+    
+    Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
     """
     svnrev = ''
     if sys.platform in ['darwin', 'linux2', 'freebsd']:
@@ -142,7 +144,7 @@ class RuntimeInfo(dict):
         profileInfo = '  #PsychoPy:  see http://www.psychopy.org\n'
         profileInfo += '    "psychopy_version": "'+psychopy.__version__+'",\n'
         
-        profileInfo += '  #Experiment script:\n'
+        profileInfo += '  #Experiment script: ------\n'
         profileInfo += '    "experiment_scriptName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
         profileInfo += '    "experiment_scriptAuthor": "'+author.replace('"','')+'",\n'
         profileInfo += '    "experiment_scriptVersion": "'+version.replace('"','')+'",\n'
@@ -153,7 +155,7 @@ class RuntimeInfo(dict):
         if svnrev: 
             profileInfo += '    "experiment_svnRev": "'+svnrev+'",\n'
         
-        profileInfo += '  #System:\n'
+        profileInfo += '  #System: ------\n'
         profileInfo += '    "hostname": "'+platform.node().replace('"','')+'",\n'
         profileInfo += '    "platform": "'+sys.platform
         if sys.platform=='darwin':
@@ -167,7 +169,7 @@ class RuntimeInfo(dict):
         profileInfo += '    "monitor": "(not implemented)",\n'
         profileInfo += '    "fps": "(not implemented)",\n'
         
-        profileInfo += '  #Python:\n'
+        profileInfo += '  #Python: ------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
         
         if verbose:
@@ -185,7 +187,7 @@ class RuntimeInfo(dict):
             profileInfo += '    "python_executable": "'+sys.executable.replace('"','')+'",\n'
             
             # OpenGL info:
-            profileInfo += '  #OpenGL:\n'
+            profileInfo += '  #OpenGL: ------\n'
             tmpwin = visual.Window([10,10]) # some drivers want a window open first
             from pyglet.gl import gl_info
             profileInfo += '    "openGL_vendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
