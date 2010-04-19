@@ -19,6 +19,7 @@ PsychoPy 1.60.05
 * FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
 * FIXED bug in autoupdater for installs with setuptools-style directory structure
 * FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled
+* CHANGED console (stdout) default logging level to WARNING. More messages will appear here than before
 
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~
