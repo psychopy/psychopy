@@ -517,7 +517,7 @@ class Window:
             if sys.platform!='darwin':
                 raise IOError('Quicktime movies are only currently available under OSX.'+\
                     ' Try using mpeg compression instead (.mpg).')
-            mov = makeMovies.QuicktimeMovie(filename, fps=fps)
+            mov = makeMovies.QuicktimeMovie(fileName, fps=fps)
             for frame in self.movieFrames:
                 mov.addFrame(frame, frameDuration)
         elif len(self.movieFrames)==1:
@@ -1206,18 +1206,13 @@ class DotStim(_BaseVisualStim):
         self._fieldSizeRendered=None
         self._fieldPosRendered=None        
         
+        self._useShaders=False#not needed for dots?
         self.colorSpace=colorSpace
         if rgb!=None:
             log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb')
-        elif dkl!=None:
-            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
-        elif lms!=None:
-            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
         else:
-            self.setColor(color)            
+            self.setColor(color)
 
         self.depth=depth
         """initialise the dots themselves - give them all random dir and then
@@ -2796,7 +2791,7 @@ class ElementArrayStim:
         self.needVertexUpdate=True
             
     def setOris(self,value,operation=''):
-        """Set the orientation for each element. 
+        """Set the orientation for each element.
         Should either be a single value or an Nx1 array/list
         """
         #make into an array
