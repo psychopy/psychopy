@@ -96,7 +96,7 @@ def shellCall(shellCmd, stderr=False):
     else:
         return stdoutData
 
-def svnversion(dir='.'):
+def svnVersion(dir='.'):
     """Tries to discover the svn version (revision #) for a directory.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
@@ -109,37 +109,38 @@ def svnversion(dir='.'):
         svnrev = ''
         tmpin = os.path.join(dir,'tmp.in')
         f = open(tmpin,'w')
-        f.write('$WCREV$ [$WCDATE$]')
+        f.write('$WCREV$')
         f.close()
         tmph = os.path.join(dir,'tmp.h')
         stdout,stderr = shellCall('subwcrev "'+dir+'" "'+tmpin+'" "'+tmph+'"',stderr=True)
         os.unlink(tmpin)
         if stderr == None:
             f = open(tmph,'r')
-            svnrev = f.readline()
+            svnrev = f.readline() # likely contained in stdout as well
             f.close()
             os.unlink(tmph)
-    if len(svnrev):
-        if svnrev != 'exported': 
-            svnrev = 'r'+svnrev
-    else: svnrev = None
+    if svnrev == '':
+        svnrev = None
 
     return svnrev
 
 
 class RuntimeInfo(dict):
-    """Return a dict-like object holding run-time info about PsychoPy, the experiment script,
-    the system & OS, python & packages, and openGL.
+    """Return a dict-like object holding run-time details, such as version info.
     
-    The experiment script is sys.argv[0], but you have to feed in your author and version info.
-    verbose=True reports more detail, including OpenGL info
+    Returns info about PsychoPy, your experiment script, the system & OS, python & packages, and openGL.
+    
+    The experiment script is assumed to be sys.argv[0], but you have to feed in your author and version info.
+    verbose=True reports more detail, including OpenGL info.
+    Estimates the screen refresh rate in frames per second, defaulting to frameSamples=120.
+    Quirk: Your information (such as author) cannot contain double-quote characters (they are removed).
     """
-    def __init__(self, author='', version='', verbose=False):
+    def __init__(self, author='', version='', verbose=False, frameSamples=120):
         dict.__init__(self) #this will cause an object to be created with all the same methods as a dict
         
-        # the approach here is backwards to control item order and appearance in the __str__ method
-        # so first build up a string that is formatted nicely for a log file (including comments)
-        # then convert to dict
+        # to control item order and appearance in the __str__ method, first build
+        # up a string that is formatted nicely for a log file (including comments),
+        # then convert to dict (which deletes comments, and is not ordered)
         import psychopy
         profileInfo = '  #PsychoPy:  see http://www.psychopy.org\n'
         profileInfo += '    "psychopy_version": "'+psychopy.__version__+'",\n'
@@ -151,7 +152,7 @@ class RuntimeInfo(dict):
         profileInfo += '    "experiment_runDate": "'+time.ctime()+'",\n'
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         profileInfo += '    "experiment_fullPath": "'+scriptDir+'",\n'
-        svnrev = svnversion(dir=scriptDir)
+        svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
             profileInfo += '    "experiment_svnRev": "'+svnrev+'",\n'
         
@@ -166,14 +167,23 @@ class RuntimeInfo(dict):
         elif sys.platform in ['win32']:
             profileInfo += ' windowsversion='+repr(sys.getwindowsversion())
         profileInfo += '",\n'
-        profileInfo += '    "monitor": "(not implemented)",\n'
-        profileInfo += '    "fps": "(not implemented)",\n'
+        #profileInfo += '    "monitor": "(not implemented)",\n'
+        
+        # set up a window, for frames-per-second and GL-info; some drivers want a window open first
+        from psychopy import visual
+        tmpwin = visual.Window([10,10])
+        tmpwin.setRecordFrameIntervals()
+        for f in range(30): # need to stabilize?
+            tmpwin.flip()
+        t = tmpwin.fps() # reset fps() estimate
+        for f in range(frameSamples): 
+            tmpwin.flip()
+        profileInfo += '    "framesPerSecond": "%.2f  (%s-frame sample)",\n' % (tmpwin.fps(),str(frameSamples))
         
         profileInfo += '  #Python: ------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
         
         if verbose:
-            from psychopy import visual
             # External python packages:
             import numpy; profileInfo += '    "numpy_version": "'+numpy.__version__.replace('"','')+'",\n'
             import scipy; profileInfo += '    "scipy_version": "'+scipy.__version__.replace('"','')+'",\n'
@@ -188,7 +198,6 @@ class RuntimeInfo(dict):
             
             # OpenGL info:
             profileInfo += '  #OpenGL: ------\n'
-            tmpwin = visual.Window([10,10]) # some drivers want a window open first
             from pyglet.gl import gl_info
             profileInfo += '    "openGL_vendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
             profileInfo += '    "openGL_renderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
@@ -200,7 +209,8 @@ class RuntimeInfo(dict):
                 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
             for ext in extensionsOfInterest:
                 profileInfo += '    "'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
-            tmpwin.close()
+        
+        tmpwin.close()
         
         # store the string version for later use, eg, printing
         self.stringRepr = profileInfo

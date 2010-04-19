@@ -2,9 +2,10 @@ from psychopy import core
 
 # gather system and other details as they are at execution-time, save in a dict-like object:
 info = core.RuntimeInfo(
-        author = 'Your Name Here (i.e., the author of your experiment script)', 
-        version = '<1.0, i.e., your experiment script version>', 
-        verbose = True # True means everything; which might be too much for some situations
+        author = 'Jeremy Gray (you would put the author of your experiment script here)', 
+        version = '1.0 (replace with your experiment script version, if you like)', 
+        verbose = True, # True means everything; which might be too much for some situations
+        frameSamples = 120 # how many frames to use for estimating the refresh rate
         ) 
 
 print """
@@ -15,9 +16,9 @@ print info
 print """If that's more than you want in every data file, try verbose = False."""
 
 print """
-Because info is really a dict, you can extract single items using their keys, e.g.:
-psychopy_version = """,
-print info['psychopy_version']
+Because info is a dict, you can extract single items using their keys, e.g.:
+psychopy_version = %s""" % info['psychopy_version']
+print "framesPerSecond = %s" % info['framesPerSecond']
 
 print """
 Possible keys to use:"""
@@ -25,6 +26,6 @@ print info.keys()
 
 print """
 Finally, here's the same info in python syntax, using repr(info). You could write this format into 
-a data file, and its fairly readable, only slightly less than the str(info) version. Because its 
-python syntax you could later simply import your data file into python:"""
+a data file, and its fairly readable, only slightly less than the str(info) version. But because its 
+python syntax you could later simply import your data file into python to reconstruct the dict:"""
 print "info = %s" % (repr(info))
