@@ -102,7 +102,7 @@ class LogFile:
         the message to all logfiles of a given level.
         """
         self._log.stream.write(text)
-    def print(self, text):
+    def writeline(self, text):
         """As `LogFile.write` but adds a \n at the end of the text
         """
         self._log.stream.write(text+'\n')
