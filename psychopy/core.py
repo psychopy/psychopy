@@ -4,7 +4,7 @@
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, time, threading
+import sys, platform, os, time, threading
 import subprocess, shlex
 
 try: from ext import rush
@@ -100,7 +100,7 @@ def svnversion(dir='.'):
     """Tries to discover the svn version (revision #) for a directory.
     """
     svnrev = ''
-    if core.sys.platform in ['darwin', 'linux2', 'freebsd']:
+    if sys.platform in ['darwin', 'linux2', 'freebsd']:
         svnrev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True) 
         if stderr: svnrev = ''
     else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
@@ -155,22 +155,23 @@ class RuntimeInfo(dict):
         
         profileInfo += '  #System:\n'
         profileInfo += '    "hostname": "'+platform.node().replace('"','')+'",\n'
-        profileInfo += '    "platform": "'+core.sys.platform
-        if core.sys.platform=='darwin':
+        profileInfo += '    "platform": "'+sys.platform
+        if sys.platform=='darwin':
             OSXver, junk, architecture = platform.mac_ver()
             profileInfo += ' '+OSXver+' '+architecture
-        elif core.sys.platform == 'linux2':
+        elif sys.platform == 'linux2':
             profileInfo += ' '+platform.release()
-        elif core.sys.platform in ['win32']:
+        elif sys.platform in ['win32']:
             profileInfo += ' windowsversion='+repr(sys.getwindowsversion())
         profileInfo += '",\n'
         profileInfo += '    "monitor": "(not implemented)",\n'
         profileInfo += '    "fps": "(not implemented)",\n'
         
         profileInfo += '  #Python:\n'
-        profileInfo += '    "python_version": "'+core.sys.version.split()[0]+'",\n'
+        profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
         
         if verbose:
+            from psychopy import visual
             # External python packages:
             import numpy; profileInfo += '    "numpy_version": "'+numpy.__version__.replace('"','')+'",\n'
             import scipy; profileInfo += '    "scipy_version": "'+scipy.__version__.replace('"','')+'",\n'
