@@ -133,23 +133,21 @@ def msPerFrame(myWin, frames=120, avg=12):
     frames = max(40, frames) # lower bound of 40
     avg = max(4,avg)
     avg = min(frames/2,avg)
-    saveWB = myWin.waitBlanking # so can restore later
-    myWin.waitBlanking = True # maybe this will help on linux?
     
     t = [0 for i in range(frames)]
     ftdiff = [0 for i in range(frames)]
     for i in range(20): # just to warm things up
         myWin.flip()
     
-    t[0] = time.time()
+    c = Clock()
+    t[0] = c.getTime()
     # accumulate secs per frame for a bunch of frames:
     t[0] = time.time()
     for i in range(1,frames):
         myWin.flip()
-        t[i] = time.time()
+        t[i] = c.getTime()
         ftdiff[i] = t[i] - t[i-1]
 
-    myWin.waitBlanking = saveWB
     ftdiff.sort() # sort the frame times
     secPerFrame = sum(ftdiff[ (frames-avg)/2 : (frames+avg)/2 ]) / avg # average a slice from the middle
     
