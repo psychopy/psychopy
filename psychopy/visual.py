@@ -1281,24 +1281,32 @@ class DotStim(_BaseVisualStim):
         self._set('fieldPos', val, op)
         self._calcFieldCoordsRendered()
     def setFieldCoherence(self,val, op=''):
+        """Change the coherence (%) of the DotStim. This will be rounded according 
+        to the number of dots in the stimulus.
+        """
         self._set('coherence', val, op)
+        self.coherence=round(self.coherence*self.nDots)/self.nDots#store actual coherence rounded by nDots
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
         self._signalDots[0:int(self.coherence*self.nDots)]=True
-    def setNDots(self,val, op=''):
-        self._set('nDots', val, op)
+        #for 'direction' method we need to update the direction of the number 
+        #of signal dots immediately, but for other methods it will be done during updateXY
+        if self.noiseDots == 'direction': 
+            self._dotsDir=numpy.random.rand(self.nDots)*2*pi
+            self._dotsDir[self._signalDots]=self.dir*pi/180
     def setDir(self,val, op=''):
-        """Set the direction of the signal dotSize (in degrees)
-         """
+        """Change the direction of the signal dots (units in degrees)
+        """
         #check which dots are signal
         signalDots = self._dotsDir==(self.dir*pi/180)        
-        self._set('dir', val, op)        
+        self._set('dir', val, op)
         #dots currently moving in the signal direction also need to update their direction
         self._dotsDir[signalDots] = self.dir*pi/180
     def setSpeed(self,val, op=''):
+        """Change the speed of the dots (in stimulus `units` per second)
+        """
         self._set('speed', val, op)
     def draw(self, win=None):
-        """
-        Draw the stimulus in its relevant window. You must call
+        """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
@@ -1363,9 +1371,9 @@ class DotStim(_BaseVisualStim):
                 new=numpy.random.uniform(-1, 1, [nDots*2,2])#fetch twice as many as needed
                 inCircle= (numpy.hypot(new[:,0],new[:,1])<1)
                 if sum(inCircle)>=nDots:
-                    return new[inCircle,:][:nDots,:]*self.fieldSize/2
+                    return new[inCircle,:][:nDots,:]*self.fieldSize/2.0
         else:
-            return numpy.random.uniform(-self.fieldSize, self.fieldSize, [nDots,2])
+            return numpy.random.uniform(-self.fieldSize/2.0, self.fieldSize/2.0, [nDots,2])
         
     def _update_dotsXY(self):
         """
@@ -1377,7 +1385,7 @@ class DotStim(_BaseVisualStim):
         #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
-            dead = (self._dotsLife<0.0)
+            dead = (self._dotsLife<=0.0)
             self._dotsLife[dead]=self.dotLife
         else:
             dead=numpy.zeros(self.nDots, dtype=bool)
@@ -1413,7 +1421,7 @@ class DotStim(_BaseVisualStim):
             
         #handle boundaries of the field
         if self.fieldShape in  ['square', 'sqr']:
-            dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2)
+            dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2.0) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2.0)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
