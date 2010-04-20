@@ -6,6 +6,7 @@
 
 import sys, platform, os, time, threading
 import subprocess, shlex
+#from numpy import *
 
 try: from ext import rush
 except: pass
@@ -65,7 +66,7 @@ def wait(secs, hogCPUperiod=0.2):
     
     If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function will be used,
     which is not especially precise, but allows the cpu to perform housekeeping. In
-    the final hogCPUperiod the more precise, but method of constantly polling the clock 
+    the final hogCPUperiod the more precise method of constantly polling the clock 
     is used for greater precision.
     """
     #initial relaxed period, using sleep (better for system resources etc)
@@ -89,8 +90,10 @@ def shellCall(shellCmd, stderr=False):
     """Calls a system command via subprocess, returns the stdout from the command.
     
     returns (stdout,stderr) if kwarg stderr==True
-    """  
-    stdoutData, stderrData = subprocess.Popen(shlex.split(shellCmd),stdout=subprocess.PIPE).communicate()
+    """
+    
+    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args
+    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE).communicate()
     if stderr:
         return stdoutData, stderrData
     else:
@@ -101,12 +104,11 @@ def svnVersion(dir='.'):
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
     """
-    svnrev = ''
     if sys.platform in ['darwin', 'linux2', 'freebsd']:
         svnrev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True) 
-        if stderr: svnrev = ''
+        if stderr:
+            svnrev = None
     else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
-        svnrev = ''
         tmpin = os.path.join(dir,'tmp.in')
         f = open(tmpin,'w')
         f.write('$WCREV$')
@@ -119,11 +121,40 @@ def svnVersion(dir='.'):
             svnrev = f.readline() # likely contained in stdout as well
             f.close()
             os.unlink(tmph)
-    if svnrev == '':
-        svnrev = None
-
+        else:
+            svnrev = None
+    
     return svnrev
 
+def msPerFrame(myWin, frames=120, avg=12):
+    """estimates the monitor refresh rate
+    record a bunch of frame-times, return an average value that 
+    """
+    frames = max(40, frames) # lower bound of 40
+    avg = max(4,avg)
+    avg = min(frames/2,avg)
+    saveWB = myWin.waitBlanking # so can restore later
+    myWin.waitBlanking = True # maybe this will help on linux?
+    
+    t = [0 for i in range(frames)]
+    ftdiff = [0 for i in range(frames)]
+    for i in range(20): # just to warm things up
+        myWin.flip()
+    
+    t[0] = time.time()
+    # accumulate secs per frame for a bunch of frames:
+    t[0] = time.time()
+    for i in range(1,frames):
+        myWin.flip()
+        t[i] = time.time()
+        ftdiff[i] = t[i] - t[i-1]
+
+    myWin.waitBlanking = saveWB
+    ftdiff.sort() # sort the frame times
+    secPerFrame = sum(ftdiff[ (frames-avg)/2 : (frames+avg)/2 ]) / avg # average a slice from the middle
+    
+    return secPerFrame * 1000.  # return ms
+    
 
 class RuntimeInfo(dict):
     """Return a dict-like object holding run-time details, such as version info.
@@ -141,9 +172,9 @@ class RuntimeInfo(dict):
         # to control item order and appearance in the __str__ method, first build
         # up a string that is formatted nicely for a log file (including comments),
         # then convert to dict (which deletes comments, and is not ordered)
-        import psychopy
+        from psychopy import __version__, visual
         profileInfo = '  #PsychoPy:  see http://www.psychopy.org\n'
-        profileInfo += '    "psychopy_version": "'+psychopy.__version__+'",\n'
+        profileInfo += '    "psychopy_version": "'+__version__+'",\n'
         
         profileInfo += '  #Experiment script: ------\n'
         profileInfo += '    "experiment_scriptName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
@@ -166,20 +197,16 @@ class RuntimeInfo(dict):
             profileInfo += ' '+platform.release()
         elif sys.platform in ['win32']:
             profileInfo += ' windowsversion='+repr(sys.getwindowsversion())
+        else:
+            profileInfo += ' [?]'
         profileInfo += '",\n'
         #profileInfo += '    "monitor": "(not implemented)",\n'
         
         # set up a window, for frames-per-second and GL-info; some drivers want a window open first
-        from psychopy import visual
         tmpwin = visual.Window([10,10])
-        tmpwin.setRecordFrameIntervals()
-        for f in range(30): # wait to stabilize
-            tmpwin.flip()
-        t = tmpwin.fps() # reset fps() estimate
-        for f in range(frameSamples): 
-            tmpwin.flip()
-        profileInfo += '    "framesPerSecond": "%.2f", \n       #FPS is from a %s-frame sample\n' % (
-            tmpwin.fps(),str(frameSamples))
+        msPF = msPerFrame(tmpwin,frames=120,avg=12)
+        profileInfo += '    "framesPerSecond": "%.2f",\n' % (1000./msPF)
+        profileInfo += '    "msPerFrame": "%.2f",\n' % (msPF)
         
         profileInfo += '  #Python: ------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
@@ -213,7 +240,7 @@ class RuntimeInfo(dict):
         
         tmpwin.close()
         
-        # store the string version for later use, eg, printing
+        # cache the string version for use in __repr__() and __str__()
         self.stringRepr = profileInfo
         
         # convert string to dict
@@ -221,7 +248,7 @@ class RuntimeInfo(dict):
         for k in d.keys():
             self[k] = d[k]
         
-    def __repr__(self):    
+    def __repr__(self):
         # returns nicer format string, still legal python dict
         return '{'+self.stringRepr+'}'
     

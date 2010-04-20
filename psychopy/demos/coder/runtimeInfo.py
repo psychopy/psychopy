@@ -18,7 +18,6 @@ print """If that's more than you want in every data file, try verbose = False.""
 print """
 Because info is a dict, you can extract single items using their keys, e.g.:
 psychopy_version = %s""" % info['psychopy_version']
-print "framesPerSecond = %s" % info['framesPerSecond']
 
 print """
 Possible keys to use:"""
@@ -29,3 +28,7 @@ Finally, here's the same info in python syntax, using repr(info). You could writ
 a data file, and its fairly readable, only slightly less than the str(info) version. But because its 
 python syntax you could later simply import your data file into python to reconstruct the dict:"""
 print "info = %s" % (repr(info))
+
+print
+print "framesPerSecond = %s" % info['framesPerSecond']
+print "msPerFrame = %s" % info["msPerFrame"]
