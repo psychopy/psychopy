@@ -1,7 +1,8 @@
 # runtimeInfo.py: a demo showing some use-cases for class RuntimeInfo()
 
-__author__ = 'Jeremy "R." Gray' # these are used in the demo, like you might in your experiments
-__version__ = "v1'0"
+# these are used in the demo, like you might in your experiment:
+__author__ = 'Jeremy "R." Gray' # note that double-quotes will be silently removed
+__version__ = "v1.0 a' " # single quotes are not removed, eg, for O'Connor 
 
 from psychopy import core, visual
 
@@ -9,11 +10,11 @@ from psychopy import core, visual
 myWin = visual.Window((100,100),monitor='testMonitor') 
     # fullScr=True gives better timing, but is more confusing for this demo
 
-# then gather run-time info, and save in a dict-like object (all parameters are optional):
+# then gather run-time info, and save in a dict-like object. All parameters are optional:
 info = core.RuntimeInfo(
-        author=__author__+'; <-- your name goes here (plus whatever else, such as this comment); double-quotes are """""""silently removed"""""" ', 
-        version=__version__+"; <-- your experiment version info; single quotes '''''''are unchanged''''''' ", 
-        verbose=True, # True means everything; which might be too much for some situations
+        author=__author__+'; <-- your name goes here (plus whatever else, e.g.,email, or this comment)',
+        version=__version__+"; <-- your experiment version info",
+        verbose=True, # True means everything; which might be more than you want all the time
         win=myWin,  # default=None, which is fine
         ) 
 
