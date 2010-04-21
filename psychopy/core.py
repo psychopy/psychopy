@@ -253,12 +253,12 @@ class RuntimeInfo(dict):
                 strthing = str(thing).replace('"','').replace('\n','')
                 profileInfo += '    "win_'+winAttr+'": "'+strthing+'",\n'
                 
-        msPF = msPerFrame(win,frames=60)
-        profileInfo += '    "msPerFrame": "%.2f",\n' % (msPF)
-        if verbose:
+        if not verbose:
+            msPF = msPerFrame(win,frames=60)
+            profileInfo += '    "msPerFrame": "%.2f",\n' % (msPF)
+        else:
             msPFmoreFrames = msPerFrame(win,frames=120)
-            #possible graphics-card driver diagnostic: ratio should be 1.00, otherwise something is off
-            profileInfo += '    "msPerFrameRatio": "%.2f",\n' % (msPF / msPFmoreFrames)
+            profileInfo += '    "msPerFrame": "%.2f",\n' % (msPFmoreFrames)
             profileInfo += '    "framesPerSecond": "%.2f",\n' % (1000. / msPFmoreFrames)
         
         profileInfo += '  #Python: ---------\n'
