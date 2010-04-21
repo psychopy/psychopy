@@ -5,9 +5,16 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, platform, os, time, threading
-import subprocess, shlex
-#from numpy import *
+import subprocess, shlex, numpy
 
+# these are for RuntimeInfo():
+from psychopy import __version__
+from pyglet.gl import gl_info
+import scipy, matplotlib, pyglet
+try: from pygame import __version__ as pygameVersion
+except: pygameVersion = ''
+
+#  
 try: from ext import rush
 except: pass
 
@@ -126,55 +133,75 @@ def svnVersion(dir='.'):
     
     return svnrev
 
-def msPerFrame(myWin, frames=120, avg=12):
+def msPerFrame(myWin, frames=60):
     """estimates the monitor refresh rate
-    record a bunch of frame-times, return an average value that 
+    
+    times at least 40 frames, returns the average of the six times nearest the median (in ms)
     """
-    frames = max(40, frames) # lower bound of 40
-    avg = max(4,avg)
-    avg = min(frames/2,avg)
+    frames = max(40, frames)  # lower bound of 40 frames to sample
+    num2avg = 6  # how many to average from the middle
     
-    t = [0 for i in range(frames)]
-    ftdiff = [0 for i in range(frames)]
-    for i in range(20): # just to warm things up
+    t  = [] # clock times
+    ft = [] # frame-times
+    for i in range(5): # wake everybody up
         myWin.flip()
-    
-    c = Clock()
-    t[0] = c.getTime()
+    t.append(getTime())
     # accumulate secs per frame for a bunch of frames:
-    t[0] = time.time()
-    for i in range(1,frames):
+    for i in range(frames):
         myWin.flip()
-        t[i] = c.getTime()
-        ftdiff[i] = t[i] - t[i-1]
-
-    ftdiff.sort() # sort the frame times
-    secPerFrame = sum(ftdiff[ (frames-avg)/2 : (frames+avg)/2 ]) / avg # average a slice from the middle
+        t.append(getTime()) # this is core.getTime()
+    ft = [t[i] - t[i-1] for i in range(1,len(t))] 
+    ft.sort() # sort in order to get a slice around the median, and average it:
+    secPerFrame = numpy.average(ft[ (frames-num2avg)/2 : (frames+num2avg)/2 ])
     
     return secPerFrame * 1000.  # return ms
     
 
 class RuntimeInfo(dict):
-    """Return a dict-like object holding run-time details, such as version info.
+    """Returns a snapshot of your configuration at run-time, intended to be useful for immediate or archival use.
     
-    Returns info about PsychoPy, your experiment script, the system & OS, python & packages, and openGL.
+    Finds and returns a dict-like object with info about PsychoPy, your experiment script, your window and monitor
+    settings (if any), the system & OS, python & packages, and openGL.
     
-    The experiment script is assumed to be sys.argv[0], but you have to feed in your author and version info.
-    verbose=True reports more detail, including OpenGL info.
-    Estimates the screen refresh rate in frames per second, defaulting to frameSamples=120.
-    Quirk: Your information (such as author) cannot contain double-quote characters (they are removed).
+    The value in sys.argv[0] is assumed to be your "experiment script". You have to explicitly provide
+    any desired author and version info. Your information (such as author) cannot contain double-quote characters
+    (they are removed). Setting verbose=True reports more detail, including OpenGL info.
+    The screen refresh rate is estimates in ms-per-frame by returning the median of 60 samples.
+    If the directory containing your script is under version control using svn, the revision number is discovered.
     """
-    def __init__(self, author='', version='', verbose=False, frameSamples=120):
-        dict.__init__(self) #this will cause an object to be created with all the same methods as a dict
+    
+    # these lists control what attributes are reported if win=myWin. all desired attributes/properties
+    # need a legal internal name, e.g., win.winType. if it is callable, its gets called, e.g., win.monitor.getWidth()
+    winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
+    winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals',
+                          'waitBlanking', '_haveShaders', '_refreshThreshold']
+    
+    # if 'monitor' is in winAttrList, then these items are reported on, as win.monitor.X:
+    monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
+    monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
+    
+    GLextensionsOfInterest=['GL_ARB_multitexture', 
+                'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
+                'GL_ARB_shader_objects','GL_ARB_vertex_shader',
+                'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
+            
+    def __init__(self, author='', version='', verbose=False, win=None):
+        """This is where most of the work gets done: saving various settings and so on into a data structure.
+        To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
+        info and is formatted nicely (e.g., includes comments). At the end of __init__, the string gets converted
+        to a dict.
+        NB: Adding code to this section is like writing in php: you have to think in terms of creating strings
+        that will evaluate to legal syntax, requiring some care to sanitize values that might cause eval() to
+        break. So its good to do .replace('"','') a fair amount if a string could have double-quotes
+        Aim to generate lines that are legal dict key:val pair:  '   "uniqueTag": "value_as_string",\n'
+        """
+        dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
-        # to control item order and appearance in the __str__ method, first build
-        # up a string that is formatted nicely for a log file (including comments),
-        # then convert to dict (which deletes comments, and is not ordered)
-        from psychopy import __version__, visual
-        profileInfo = '  #PsychoPy:  see http://www.psychopy.org\n'
+        from psychopy import visual
+        profileInfo = '  #PsychoPy: --- http://www.psychopy.org ---\n'
         profileInfo += '    "psychopy_version": "'+__version__+'",\n'
         
-        profileInfo += '  #Experiment script: ------\n'
+        profileInfo += '  #Experiment script: ---------\n'
         profileInfo += '    "experiment_scriptName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
         profileInfo += '    "experiment_scriptAuthor": "'+author.replace('"','')+'",\n'
         profileInfo += '    "experiment_scriptVersion": "'+version.replace('"','')+'",\n'
@@ -185,7 +212,7 @@ class RuntimeInfo(dict):
         if svnrev: 
             profileInfo += '    "experiment_svnRev": "'+svnrev+'",\n'
         
-        profileInfo += '  #System: ------\n'
+        profileInfo += '  #System: ---------\n'
         profileInfo += '    "hostname": "'+platform.node().replace('"','')+'",\n'
         profileInfo += '    "platform": "'+sys.platform
         if sys.platform=='darwin':
@@ -198,58 +225,86 @@ class RuntimeInfo(dict):
         else:
             profileInfo += ' [?]'
         profileInfo += '",\n'
-        #profileInfo += '    "monitor": "(not implemented)",\n'
         
-        # set up a window, for frames-per-second and GL-info; some drivers want a window open first
-        tmpwin = visual.Window([10,10])
-        msPF = msPerFrame(tmpwin,frames=120,avg=12)
-        profileInfo += '    "framesPerSecond": "%.2f",\n' % (1000./msPF)
+        # need a window for frames-per-second, and some drivers want a window open
+        if win == None:
+            win = visual.Window([10,10],monitor="testMonitor")
+            usingTempWin = True  # only close the temp window later
+        else:  # we were passed a window instance, use it for timing and profile it here:
+            usingTempWin = False
+            profileInfo += '  # Window: ---------\n'
+            if verbose:
+                self.winAttrList += self.winAttrListVerbose            
+            if 'monitor' in self.winAttrList: # add the desired monitor.properties to winAttrList
+                i = self.winAttrList.index('monitor') # retain position info, put monitor stuff here
+                del(self.winAttrList[i])
+                if verbose: self.monAttrList += self.monAttrListVerbose
+                for monAttr in self.monAttrList:
+                    self.winAttrList.insert(i, 'monitor.' + monAttr)
+                    i += 1
+            for winAttr in self.winAttrList: 
+                try:
+                    thing = eval('win.'+winAttr)
+                except AttributeError:
+                    print 'Warning (AttributeError): Window instance has no attribute', winAttr
+                    continue
+                if hasattr(thing, '__call__'):
+                    thing = thing()
+                strthing = str(thing).replace('"','').replace('\n','')
+                profileInfo += '    "win_'+winAttr+'": "'+strthing+'",\n'
+                
+        msPF = msPerFrame(win,frames=60)
         profileInfo += '    "msPerFrame": "%.2f",\n' % (msPF)
+        if verbose:
+            msPFmoreFrames = msPerFrame(win,frames=120)
+            #possible graphics-card driver diagnostic: ratio should be 1.00, otherwise something is off
+            profileInfo += '    "msPerFrameRatio": "%.2f",\n' % (msPF / msPFmoreFrames)
+            profileInfo += '    "framesPerSecond": "%.2f",\n' % (1000. / msPFmoreFrames)
         
-        profileInfo += '  #Python: ------\n'
+        profileInfo += '  #Python: ---------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
         
         if verbose:
             # External python packages:
-            import numpy; profileInfo += '    "numpy_version": "'+numpy.__version__.replace('"','')+'",\n'
-            import scipy; profileInfo += '    "scipy_version": "'+scipy.__version__.replace('"','')+'",\n'
-            import matplotlib; profileInfo += '    "matplotlib_version": "'+matplotlib.__version__.replace('"','')+'",\n'
-            import pyglet; profileInfo += '    "pyglet_version": "'+pyglet.__version__.replace('"','')+'",\n'
-            try: import pygame; profileInfo += '    "pygame_version": "'+pygame.__version__.replace('"','')+'",\n'
-            except: pass
+            #import numpy, scipy, matplotlib, pyglet
+            profileInfo += '    "numpy_version": "'+numpy.__version__.replace('"','')+'",\n'
+            #import scipy
+            profileInfo += '    "scipy_version": "'+scipy.__version__.replace('"','')+'",\n'
+            #import matplotlib
+            profileInfo += '    "matplotlib_version": "'+matplotlib.__version__.replace('"','')+'",\n'
+            #import pyglet
+            profileInfo += '    "pyglet_version": "'+pyglet.__version__.replace('"','')+'",\n'
+            #try: import pygame; pygameVersion = pygame.__version__
+            #except: pygameVersion = ''
+            profileInfo += '    "pygame_version": "'+pygameVersion.replace('"','')+'",\n'
             
             # Python gory details:
             profileInfo += '    "python_fullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
             profileInfo += '    "python_executable": "'+sys.executable.replace('"','')+'",\n'
             
             # OpenGL info:
-            profileInfo += '  #OpenGL: ------\n'
-            from pyglet.gl import gl_info
+            profileInfo += '  #OpenGL: ---------\n'
+            #from pyglet.gl import gl_info
             profileInfo += '    "openGL_vendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
             profileInfo += '    "openGL_renderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
             profileInfo += '    "openGL_version": "'+gl_info.get_version().replace('"','')+'",\n'
-            
-            extensionsOfInterest=['GL_ARB_multitexture', 
-                'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
-                'GL_ARB_shader_objects','GL_ARB_vertex_shader',
-                'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
-            for ext in extensionsOfInterest:
+            for ext in self.GLextensionsOfInterest:
                 profileInfo += '    "'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
-        
-        tmpwin.close()
+        if usingTempWin:
+            win.close()
         
         # cache the string version for use in __repr__() and __str__()
         self.stringRepr = profileInfo
         
         # convert string to dict
-        d = eval('{'+profileInfo+'}')
-        for k in d.keys():
-            self[k] = d[k]
+        tmpDict = eval('{'+profileInfo+'}')
+        for k in tmpDict.keys():
+            self[k] = tmpDict[k]
         
     def __repr__(self):
-        # returns nicer format string, still legal python dict
-        return '{'+self.stringRepr+'}'
+        # returns string that is quite readable, and also legal python dict syntax
+        return '{\n'+self.stringRepr+'}'
     
     def __str__(self):
-        # for easier human reading (e.g., in a log file)
+        # cleaned-up for easiest human-reading (e.g., in a log file), no longer legal python syntax
         return self.stringRepr.replace('"','').replace(',\n','\n')
