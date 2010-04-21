@@ -11,8 +11,8 @@ myWin = visual.Window((100,100),monitor='testMonitor')
 
 # then gather run-time info, and save in a dict-like object (all parameters are optional):
 info = core.RuntimeInfo(
-        author=__author__+'; your name goes here (as author of your experiments); double-quotes are """""""silently removed"""""")', 
-        version=__version__+"; your experiment version info; single quotes '''''''are unchanged''''''' ", 
+        author=__author__+'; <-- your name goes here (plus whatever else, such as this comment); double-quotes are """""""silently removed"""""" ', 
+        version=__version__+"; <-- your experiment version info; single quotes '''''''are unchanged''''''' ", 
         verbose=True, # True means everything; which might be too much for some situations
         win=myWin,  # default=None, which is fine
         ) 
