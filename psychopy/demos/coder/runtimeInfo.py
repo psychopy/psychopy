@@ -27,31 +27,32 @@ what to do with it--probably print some or all of it, likely into a data file or
 for writing to a data file in a human readable form:
 """
 print info
-print """If that's more detail than you want in every data file, try verbose = False."""
+print """If that's more detail than you want in every data file, try verbose = False.
 
-print """
+NB. systemProcPsEax takes a snapshot of running processes (mac, linux), including how they were 
+called. If another application you are running was very poorly written from a security standpoint, and requires 
+password or other sensitive information as an argument to a script (in the clear), that information could 
+get written into a data or log file. There's no reason these days for applications to be written that way--but its still
+possible to do. (And its not the fault of RuntimeInfo() of PsychoPy for revealing it.)
+
 Here's the same info in python syntax. To get this, use "print repr(info)". You could write this format into 
 a data file, and its fairly readable, only slightly less than the str(info) version. But because its 
 python syntax you could later simply import your data file into python to reconstruct the dict:
-"""
-print "info = %s" % repr(info)
 
-print """
 Because info is a dict, you can extract single items using their keys, e.g.:
-  psychopy_version = %s""" % info['psychopy_version']
-print "  msPerFrameAvg (average all samples, at least 50) = %s" % info["msPerFrameAvg"]
-print "  msPerFrameMd6 (average of 6 samples taken at the median) = %s" % info["msPerFrameMd6"]
-print "  msPerFrameSD (standard deviation of all samples, at least 50) = %s" % info["msPerFrameSD"],
+  psychopyVersion = %s""" % info['psychopyVersion']
+print "  windowMsPerFrameAvg (average all samples, at least 50) = %s" % info["windowMsPerFrameAvg"]
+print "  windowMsPerFrameMd6 (average of 6 samples taken at the median) = %s" % info["windowMsPerFrameMd6"]
+print "  windowMsPerFrameSD (standard deviation of all samples, at least 50) = %s" % info["windowMsPerFrameSD"],
 
-# in key: value pairs, most values are strings: type(info["win__isFullScr"]) == type('abc')
+# in key: value pairs, most values are strings: type(info["windowIsFullScr"]) == type('abc')
 # but you can eval() them:
-if eval(info["win__isFullScr"]): print "(full-screen)"
+if eval(info["windowIsFullScr"]): print "(full-screen)"
 else: print "(NOT full-screen)"
 
 # some keys are only conditionally present, depending on what RuntimeInfo you ask for
 # sometimes you need to check if a key exists before using it:
 try: 
-    print "  monitor = %s" % info["win_monitor.name"]
+    print "  monitor = %s" % info["windowMonitor.name"]
 except:
     pass
-    

@@ -11,8 +11,6 @@ import subprocess, shlex, numpy
 from psychopy import __version__
 from pyglet.gl import gl_info
 import scipy, matplotlib, pyglet
-try: from pygame import __version__ as pygameVersion
-except: pygameVersion = ''
 
 #  
 try: from ext import rush
@@ -182,6 +180,9 @@ class RuntimeInfo(dict):
     The screen refresh rate is estimated in ms-per-frame by returning the median of 60 samples.
     If the directory containing your script is under version control using svn, the revision number is discovered.
     """
+    
+    # REFACTORING PLANS: 1. accumulate a dict in init, then format as strings in repr and str
+    
     def __init__(self, author=None, version=None, verbose=False, win=None, progressBar=False):
         """This is where most of the work gets done: saving various settings and so on into a data structure.
         To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
@@ -214,32 +215,40 @@ class RuntimeInfo(dict):
         
         # start of string construction:
         profileInfo = '  #PsychoPy: --- http://www.psychopy.org ---\n'
-        profileInfo += '    "psychopy_version": "'+__version__+'",\n'
+        profileInfo += '    "psychopyVersion": "'+__version__+'",\n'
         
         profileInfo += '  #Experiment script: ---------\n'
-        profileInfo += '    "experiment_scriptName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
-        if author:  profileInfo += '    "experiment_scriptAuthor": "'+author.replace('"','')+'",\n'
-        if version: profileInfo += '    "experiment_scriptVersion": "'+version.replace('"','')+'",\n'
-        profileInfo += '    "experiment_runDate": "'+time.ctime()+'",\n'
+        profileInfo += '    "experimentName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
+        if author:  profileInfo += '    "experimentAuthor": "'+author.replace('"','')+'",\n'
+        if version: profileInfo += '    "experimentVersion": "'+version.replace('"','')+'",\n'
+        profileInfo += '    "experimentRunDateTime": "'+time.ctime()+'",\n'
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        profileInfo += '    "experiment_fullPath": "'+scriptDir+'",\n'
+        profileInfo += '    "experimentFullPath": "'+scriptDir+'",\n'
         svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
-            profileInfo += '    "experiment_svnRev": "'+svnrev+'",\n'
+            profileInfo += '    "experimentDirSVNRev": "'+svnrev+'",\n'
         
         profileInfo += '  #System: ---------\n'
-        profileInfo += '    "hostname": "'+platform.node().replace('"','')+'",\n'
-        profileInfo += '    "platform": "'+sys.platform
-        if sys.platform=='darwin':
+        profileInfo += '    "systemHostName": "'+platform.node().replace('"','')+'",\n'
+        profileInfo += '    "systemPlatform": "'+sys.platform
+        if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
             profileInfo += ' '+OSXver+' '+architecture
-        elif sys.platform == 'linux2':
+        elif sys.platform in ['linux2']:
             profileInfo += ' '+platform.release()
         elif sys.platform in ['win32']:
             profileInfo += ' windowsversion='+repr(sys.getwindowsversion())
         else:
             profileInfo += ' [?]'
         profileInfo += '",\n'
+        if verbose:
+            try:
+                proc = shellCall("ps -eax")
+                proc = proc.strip().replace('\n','\\n')
+                if verbose:
+                    profileInfo += '   "systemProcPsEax": "'+proc.replace('"','')+'",\n'
+            except:
+                pass
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:
@@ -252,11 +261,13 @@ class RuntimeInfo(dict):
                 i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
                 del(winAttrList[i])
                 for monAttr in monAttrList:
+                    #while monAttr[0]=='_':  ## CANT do this here -- need the actual name when retrive its value (later)
+                    #    monAttr = monAttr[1:]
                     winAttrList.insert(i, 'monitor.' + monAttr)
                     i += 1
             for winAttr in winAttrList: 
                 try:
-                    thing = eval('win.'+winAttr) 
+                    thing = eval('win.'+winAttr)
                 except AttributeError:
                     print 'Warning (AttributeError): Window instance has no attribute', winAttr
                     continue
@@ -266,40 +277,46 @@ class RuntimeInfo(dict):
                         print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
                         continue
                 strthing = str(thing).replace('"','').replace('\n','')
+                while winAttr[0]=='_':
+                    winAttr = winAttr[1:]
                 if winAttr in ['monitor.getDistance','monitor.getWidth']:
                     strthing += ' cm'
-                profileInfo += '    "win_'+winAttr+'": "'+strthing+'",\n'
+                winAttr = winAttr[0].capitalize()+winAttr[1:]
+                winAttr = winAttr.replace('Monitor._','Monitor.')
+                profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
                 
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
-        profileInfo += '    "secPerRefresh": "%.5f",\n' % (msPFavg/1000.)
-        profileInfo += '    "msPerFrameAvg": "%.2f",\n' % (msPFavg)
-        profileInfo += '    "msPerFrameMd6": "%.2f",\n' % (msPF6md)
-        profileInfo += '    "msPerFrameSD":  "%.2f",\n' % (msPFstd)
+        profileInfo += '    "windowSecPerRefresh": "%.5f",\n' % (msPFavg/1000.)
+        profileInfo += '    "windowMsPerFrameAvg": "%.2f",\n' % (msPFavg)
+        profileInfo += '    "windowMsPerFrameMd6": "%.2f",\n' % (msPF6md)
+        profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
         
         
         profileInfo += '  #Python: ---------\n'
-        profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'
+        profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
         
         if verbose:
             # External python packages:
-            profileInfo += '    "numpy_version": "'+numpy.__version__.replace('"','')+'",\n'
-            profileInfo += '    "scipy_version": "'+scipy.__version__.replace('"','')+'",\n'
-            profileInfo += '    "matplotlib_version": "'+matplotlib.__version__.replace('"','')+'",\n'
-            profileInfo += '    "pyglet_version": "'+pyglet.__version__.replace('"','')+'",\n'
-            profileInfo += '    "pygame_version": "'+pygameVersion.replace('"','')+'",\n'
+            profileInfo += '    "pythonNumpyVersion": "'+numpy.__version__.replace('"','')+'",\n'
+            profileInfo += '    "pythonScipyVersion": "'+scipy.__version__.replace('"','')+'",\n'
+            profileInfo += '    "pythonMatplotlibVersion": "'+matplotlib.__version__.replace('"','')+'",\n'
+            profileInfo += '    "pythonPygletVersion": "'+pyglet.__version__.replace('"','')+'",\n'
+            try: from pygame import __version__ as pygameVersion
+            except: pygameVersion = '(no pygame)'
+            profileInfo += '    "pythonPygameVersion": "'+pygameVersion.replace('"','')+'",\n'
             
             # Python gory details:
-            profileInfo += '    "python_fullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
-            profileInfo += '    "python_executable": "'+sys.executable.replace('"','')+'",\n'
+            profileInfo += '    "pythonFullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
+            profileInfo += '    "pythonExecutable": "'+sys.executable.replace('"','')+'",\n'
             
             # OpenGL info:
             profileInfo += '  #OpenGL: ---------\n'
             #from pyglet.gl import gl_info
-            profileInfo += '    "openGL_vendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
-            profileInfo += '    "openGL_renderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
-            profileInfo += '    "openGL_version": "'+gl_info.get_version().replace('"','')+'",\n'
+            profileInfo += '    "openGLVendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
+            profileInfo += '    "openGLRenderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
+            profileInfo += '    "openGLVersion": "'+gl_info.get_version().replace('"','')+'",\n'
             for ext in GLextensionsOfInterest:
-                profileInfo += '    "'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
+                profileInfo += '    "openGLext'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
         if usingTempWin:
             win.close()
         
