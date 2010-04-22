@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+
+"""This demo requires a graphics card that supports OpenGL2 extensions. 
+
+It shows how to manipulate an arbitrary set of elements using numpy arrays
+and avoiding for loops in your code for optimised performance.
+
+see also the elementArrayStim demo
+
+"""
+
 from psychopy import visual, event, makeMovies, misc
 import numpy
 
@@ -11,7 +21,8 @@ dotsRadius=(numpy.random.rand(nDots)**0.5)*2
 speed=numpy.random.rand(nDots)*maxSpeed
 
 win = visual.Window([800,600],rgb=-1)
-dot = visual.PatchStim(win, rgb=1, tex=None, mask='circle', size=dotSize)
+dots = visual.ElementArrayStim(win, elementTex=None, elementMask='circle', 
+    nElements=nDots, sizes=dotSize)
 
 for frameN in range(400):
     
@@ -23,11 +34,7 @@ for frameN in range(400):
     
     dotsX, dotsY = misc.pol2cart(dotsTheta,dotsRadius)
     dotsX *= 0.75 #to account for wider aspect ratio
-    for dotN in range(nDots):
-        dot.setPos( (dotsX[dotN], dotsY[dotN]) )
-        dot.draw()
+    dots.setXYs(numpy.array([dotsX, dotsY]).transpose())
+    dots.draw()
     
     win.flip()
-    win.getMovieFrame()
-    
-win.saveMovieFrames('starfield.mpg')    
