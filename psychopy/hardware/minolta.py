@@ -114,14 +114,21 @@ class LS100:
                 self.com.open()
                 self.isOpen=1
             except:
-                self._error("Couldn't open serial port %s" %self.portString)
+                self._error("Opened serial port %s, but couldn't connect to LS100" %self.portString)
                 
         if self.OK:#we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
                 time.sleep(0.2)
-                if self.setMode('04'):#set to use absolute measurements
-                    self.OK=True
-                    break#no need to keep going
+                for n in range(10):
+                    reply = self.sendMessage('MDS,04')#set to use absolute measurements
+                    if reply[0:2] == 'OK': 
+                        self.OK=True
+                        break
+                    elif reply not in self.codes.keys(): 
+                        self.OK=False
+                        break#wasn't valid
+                    else:
+                        self.OK=False #false so far but keep trying
         if self.OK:# we have successfully sent and read a command
             log.info("Successfully opened %s" %self.portString)
     def setMode(self, mode='04'):
@@ -166,7 +173,7 @@ class LS100:
         else: 
             return True
         
-    def sendMessage(self, message, timeout=20.0):
+    def sendMessage(self, message, timeout=5.0):
         """Send a command to the photometer and wait an alloted
         timeout for a response.
         """

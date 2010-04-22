@@ -772,8 +772,8 @@ def getLumSeries(lumLevels=8,
         initRGB= 0.5**(1/2.0)*2-1
     else: initRGB=0.8
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 1, rgb=initRGB, size=winSize,
-        gamma=gamma,units='norm',monitor=monitor,allowGUI=False,
+    myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
+        gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,
@@ -827,7 +827,7 @@ def getLumSeries(lumLevels=8,
                 rgb = [lum,lum,lum]
             
             backPatch.draw()
-            testPatch.setRGB(rgb)
+            testPatch.setColor(rgb)
             testPatch.draw()
             myWin.flip()
             
@@ -910,7 +910,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     spectra=[]
     for thisColor in [[1,-1,-1], [-1,1,-1], [-1,-1,1]]:
         #update stimulus
-        testPatch.setRGB(thisColor)
+        testPatch.setColor(thisColor)
         testPatch.draw()
         myWin.flip()
         #make measurement

@@ -4274,5 +4274,5 @@ def createTexture(tex, id, pixFormat, stim, res=128):
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
     """
-    if not obj._useShaders and hasattr(obj, 'setTex'): 
-        obj.setTex(self._texName)
+    if not obj._useShaders and hasattr(obj, 'setTex') and hasattr(obj, '_texName'): 
+        obj.setTex(obj._texName)
