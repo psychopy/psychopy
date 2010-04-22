@@ -133,14 +133,19 @@ def svnVersion(dir='.'):
     
     return svnrev
 
-def msPerFrame(myWin, frames=60):
-    """estimates the monitor refresh rate
+def msPerFrame(myWin, frames=60, progressBar=True):
+    """assesses the monitor refresh rate, and SD of refresh rate under current conditions
     
-    times at least 40 frames, returns the average of the six times nearest the median (in ms)
+    times at least 50 frames, returns the average of all, the avg of the six at the median (in ms),
+    and the standard deviation of all frames
     """
-    frames = max(40, frames)  # lower bound of 40 frames to sample
+    from psychopy import visual
+    frames = max(50, frames)  # lower bound of 50 samples--need enough to estimate the SD
     num2avg = 6  # how many to average from the middle
-    
+    pbar = visual.ShapeStim(myWin, lineWidth=1,
+                            lineColor=(.2,.2,1),lineColorSpace='rgb',
+                            fillColor=(0,0,1),fillColorSpace='rgb',
+                            vertices=[[-.5,-.05],[-.5,.05],[-.5,.05],[-.5,-.05]])
     t  = [] # clock times
     ft = [] # frame-times
     for i in range(5): # wake everybody up
@@ -148,13 +153,21 @@ def msPerFrame(myWin, frames=60):
     t.append(getTime())
     # accumulate secs per frame for a bunch of frames:
     for i in range(frames):
+        if progressBar:
+            f = -.5 + float(i)/frames # right end of progress bar
+            pbar.setVertices([[-.5,-.05], [-.5,.05], [f,.05], [f+.04,0], [f,-.05]])
+            pbar.draw()
         myWin.flip()
         t.append(getTime()) # this is core.getTime()
+    myWin.flip()
     ft = [t[i] - t[i-1] for i in range(1,len(t))] 
     ft.sort() # sort in order to get a slice around the median, and average it:
     secPerFrame = numpy.average(ft[ (frames-num2avg)/2 : (frames+num2avg)/2 ])
+    msPF6md = 1000 * secPerFrame
+    msPFavg = 1000 * numpy.average(ft)
+    msPFstd = 1000 * numpy.std(ft)
     
-    return secPerFrame * 1000.  # return ms
+    return msPFavg, msPFstd, msPF6md
     
 
 class RuntimeInfo(dict):
@@ -169,36 +182,37 @@ class RuntimeInfo(dict):
     The screen refresh rate is estimated in ms-per-frame by returning the median of 60 samples.
     If the directory containing your script is under version control using svn, the revision number is discovered.
     """
-    def __init__(self, author=None, version=None, verbose=False, win=None):
+    def __init__(self, author=None, version=None, verbose=False, win=None, progressBar=False):
         """This is where most of the work gets done: saving various settings and so on into a data structure.
         To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
         info and is formatted nicely (e.g., includes comments). At the end of __init__, the string gets converted
         to a dict.
         NB: Adding code to this section is like writing in php: you have to think in terms of creating strings
         that will evaluate to legal syntax, requiring some care to sanitize values that might cause eval() to
-        break. So its good to do .replace('"','') a fair amount if a string could have double-quotes
-        Aim to generate lines that are legal dict key:val pair:  '   "uniqueTag": "value_as_string",\n'
+        break. So its good to do .replace('"','') for strings that could have double-quotes.
+        Aim to generate lines that contain legal dict key:val pairs, or comments:
+          '   "uniqueTag": "value_as_string",\n'
+          '   "uniqueTag": "value_as_string", # tag-specific comment here\n'
+          '  #comment or other note\n'
         """
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
-        from psychopy import visual # have to do this here
+        from psychopy import visual # have to do this here not at the top of core.py (visual imports core)
         
         # These 'configuration lists' control what attributes are reported.
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
         # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
         winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
-        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals',
-                              'waitBlanking', '_haveShaders', '_refreshThreshold']
-        if verbose: winAttrList += winAttrListVerbose            
-                
+        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
+        if verbose: winAttrList += winAttrListVerbose
         # if 'monitor' is in winAttrList, then these items are reported, as win.monitor.X:
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
         monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
         if verbose: monAttrList += monAttrListVerbose
-                    
         GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
             'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
-            
+        
+        # start of string construction:
         profileInfo = '  #PsychoPy: --- http://www.psychopy.org ---\n'
         profileInfo += '    "psychopy_version": "'+__version__+'",\n'
         
@@ -229,7 +243,7 @@ class RuntimeInfo(dict):
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:
-            win = visual.Window([100,100],monitor="testMonitor") # the temp window
+            win = visual.Window(fullscr=True,monitor="testMonitor",allowGUI=False) # the temp window
             usingTempWin = True  
         else:  # we were passed a window instance, use it for timing and profile it here:
             usingTempWin = False  # later avoid closing user's window
@@ -249,22 +263,19 @@ class RuntimeInfo(dict):
                 if hasattr(thing, '__call__'):
                     try: thing = thing()
                     except:
-                        print 'Warning: could not get a value from', thing+'()  (expects arguments?)'
+                        print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
                         continue
                 strthing = str(thing).replace('"','').replace('\n','')
                 if winAttr in ['monitor.getDistance','monitor.getWidth']:
                     strthing += ' cm'
                 profileInfo += '    "win_'+winAttr+'": "'+strthing+'",\n'
                 
-        if not verbose:
-            msPF = msPerFrame(win,frames=60)
-            profileInfo += '    "secPerRefresh": "%.5f",\n' % (msPF/1000.)
-            profileInfo += '    "msPerFrame": "%.2f",\n' % (msPF)
-        else:
-            msPFmoreFrames = msPerFrame(win,frames=120)
-            profileInfo += '    "secPerRefresh": "%.5f",\n' % (msPFmoreFrames/1000)
-            profileInfo += '    "msPerFrame": "%.2f",\n' % (msPFmoreFrames)
-            profileInfo += '    "framesPerSecond": "%.2f",\n' % (1000. / msPFmoreFrames)
+        msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
+        profileInfo += '    "secPerRefresh": "%.5f",\n' % (msPFavg/1000.)
+        profileInfo += '    "msPerFrameAvg": "%.2f",\n' % (msPFavg)
+        profileInfo += '    "msPerFrameMd6": "%.2f",\n' % (msPF6md)
+        profileInfo += '    "msPerFrameSD":  "%.2f",\n' % (msPFstd)
+        
         
         profileInfo += '  #Python: ---------\n'
         profileInfo += '    "python_version": "'+sys.version.split()[0]+'",\n'

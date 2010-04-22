@@ -1,21 +1,22 @@
-# runtimeInfo.py: a demo showing some use-cases for class RuntimeInfo()
+# runtimeInfo.py: a demo showing some use-cases for class core.RuntimeInfo() and core.msPerFrame()
 
-# these are used in the demo, like you might in your experiment:
-__author__ = 'Jeremy "R." Gray' # note that double-quotes will be silently removed
-__version__ = "v1.0 a' " # single quotes are not removed, eg, for O'Connor 
+# these are used in the demo, in the way you might in your experiment:
+__author__ = 'Jeremy "R." Gray' # double-quotes will be silently removed
+__version__ = "v1.0 a' " # single quotes are left alone, eg, O'Connor 
 
 from psychopy import core, visual
 
 # when creating an experiment, define your window (& monitor):
-myWin = visual.Window((100,100),monitor='testMonitor') 
-    # fullScr=True gives better timing, but is more confusing for this demo
+myWin = visual.Window((200,200), fullscr=1, monitor='testMonitor',allowGUI=False)
+    # fullscr=True gives better timing (100x smaller SD in some cases)
 
 # then gather run-time info, and save in a dict-like object. All parameters are optional:
 info = core.RuntimeInfo(
-        author=__author__+'; <-- your name goes here (plus whatever else, e.g.,email, or this comment)',
+        author=__author__+'; <-- your name goes here (plus whatever else, e.g., email)',
         version=__version__+"; <-- your experiment version info",
-        verbose=True, # True means everything; which might be more than you want all the time
-        win=myWin,  # default=None, which is fine
+        verbose=True, # True means report on everything
+        win=myWin,    # a psychopy.visual.Window() instance
+        progressBar=True # some eye-candy to avoid a blank screen
         ) 
 
 print """
@@ -38,8 +39,19 @@ print "info = %s" % repr(info)
 print """
 Because info is a dict, you can extract single items using their keys, e.g.:
   psychopy_version = %s""" % info['psychopy_version']
-print "  msPerFrame = %s" % info["msPerFrame"]
+print "  msPerFrameAvg (average all samples, at least 50) = %s" % info["msPerFrameAvg"]
+print "  msPerFrameMd6 (average of 6 samples taken at the median) = %s" % info["msPerFrameMd6"]
+print "  msPerFrameSD (standard deviation of all samples, at least 50) = %s" % info["msPerFrameSD"],
 
-# some keys are only conditionally present, depending on how you configure your RuntimeInfo, so check if they exist:
-if "win_monitor.name" in info.keys(): 
+# in key: value pairs, most values are strings: type(info["win__isFullScr"]) == type('abc')
+# but you can eval() them:
+if eval(info["win__isFullScr"]): print "(full-screen)"
+else: print "(NOT full-screen)"
+
+# some keys are only conditionally present, depending on what RuntimeInfo you ask for
+# sometimes you need to check if a key exists before using it:
+try: 
     print "  monitor = %s" % info["win_monitor.name"]
+except:
+    pass
+    
