@@ -7,7 +7,7 @@ __version__ = "v1.0 a' " # single quotes are left alone, eg, O'Connor
 from psychopy import core, visual
 
 # when creating an experiment, define your window (& monitor):
-myWin = visual.Window((200,200), fullscr=1, monitor='testMonitor',allowGUI=False)
+myWin = visual.Window((200,200), fullscr=True, monitor='testMonitor',allowGUI=False)
     # fullscr=True gives better timing (100x smaller SD in some cases)
 
 # then gather run-time info, and save in a dict-like object. All parameters are optional:
@@ -28,12 +28,6 @@ for writing to a data file in a human readable form:
 """
 print info
 print """If that's more detail than you want in every data file, try verbose = False.
-
-NB. systemProcPsEax takes a snapshot of running processes (mac, linux), including how they were 
-called. If another application you are running was very poorly written from a security standpoint, and requires 
-password or other sensitive information as an argument to a script (in the clear), that information could 
-get written into a data or log file. There's no reason these days for applications to be written that way--but its still
-possible to do. (And its not the fault of RuntimeInfo() of PsychoPy for revealing it.)
 
 Here's the same info in python syntax. To get this, use "print repr(info)". You could write this format into 
 a data file, and its fairly readable, only slightly less than the str(info) version. But because its 

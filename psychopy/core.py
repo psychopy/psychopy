@@ -243,7 +243,7 @@ class RuntimeInfo(dict):
         profileInfo += '",\n'
         if verbose:
             try:
-                proc = shellCall("ps -eax")
+                proc = shellCall("ps -e")
                 proc = proc.strip().replace('\n','\\n')
                 if verbose:
                     profileInfo += '   "systemProcPsEax": "'+proc.replace('"','')+'",\n'
