@@ -282,7 +282,7 @@ class RuntimeInfo(dict):
             elif sys.platform == 'linux2':
                 proc = shellCall("ps -u "+os.environ['USER'])
             else:
-                raise
+                raise UnsupportedPlatform
             systemProcPsu = []
             systemProcPsuFlagged = []
             for cmd in [i.split() for i in proc.splitlines()]:
@@ -297,9 +297,11 @@ class RuntimeInfo(dict):
             else:
                 profileInfo += str(len(systemProcPsu))+'",\n'
             profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
-        except:
+        except UnsupportedPlatform:
             profileInfo += '    "systemUserProcesses": "[?]",\n'
             profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
+        except:
+            raise
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:
