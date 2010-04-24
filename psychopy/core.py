@@ -277,7 +277,12 @@ class RuntimeInfo(dict):
         except:
             profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
         try:
-            proc = shellCall("ps -U "+os.environ['USER'])
+            if sys.platform == 'darwin':
+                proc = shellCall("ps -U "+os.environ['USER'])
+            elif sys.platform == 'linux2':
+                proc = shellCall("ps -u "+os.environ['USER'])
+            else:
+                raise
             systemProcPsu = []
             systemProcPsuFlagged = []
             for cmd in [i.split() for i in proc.splitlines()]:
@@ -293,6 +298,7 @@ class RuntimeInfo(dict):
                 profileInfo += str(len(systemProcPsu))+'",\n'
             profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
         except:
+            profileInfo += '    "systemUserProcesses": "[?]",\n'
             profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
         
         # need a window for frames-per-second, and some drivers want a window open
