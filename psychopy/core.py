@@ -271,37 +271,43 @@ class RuntimeInfo(dict):
             profileInfo += '    "systemUsers": "'+str(len(uList))+'",\n'
         except:
             profileInfo += '    "systemUsers": "[?]",\n'
+            
         try:
             profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
             #self['systemUser'] = os.environ['USER']
         except:
             profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
+            
         try:
-            if sys.platform == 'darwin':
-                proc = shellCall("ps -U "+os.environ['USER'])
-            elif sys.platform == 'linux2':
-                proc = shellCall("ps -u "+os.environ['USER'])
+            proc = shellCall("ps -U "+os.environ['USER'])
+            if sys.platform in ['darwin']:
+                cmdStr = 'COMMAND'
+            elif sys.platform in ['linux2']:
+                cmdStr = 'CMD'
             else:
-                raise UnsupportedPlatform
-            systemProcPsu = []
-            systemProcPsuFlagged = []
-            for cmd in [i.split() for i in proc.splitlines()]:
-                if cmd[4] not in appIgnoreList:
-                    systemProcPsu.append([cmd[4],cmd[0]]) # --> CMD, PID
-                for app in appFlagList:
-                    if cmd[4].lower().find(app.lower())>-1: # case insensitive
-                        systemProcPsuFlagged.append([app,cmd[4],cmd[0]])
-            profileInfo += '    "systemUserProcesses": "'
-            if verbose and userProcsDetailed:
-                profileInfo += repr(systemProcPsu)+'",\n'
-            else:
-                profileInfo += str(len(systemProcPsu))+'",\n'
-            profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
-        except UnsupportedPlatform:
-            profileInfo += '    "systemUserProcesses": "[?]",\n'
-            profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
+                cmdStr = 'CMD'
         except:
-            raise
+            proc = ' PID CMD'
+        systemProcPsu = []
+        systemProcPsuFlagged = []
+        procLines = proc.splitlines()
+        cmd = procLines[0].split().index(cmdStr)
+        pid = procLines[0].split().index('PID')
+        for pr in [i.split() for i in procLines]: #one process (one line)
+            if pr[cmd] not in appIgnoreList:
+                systemProcPsu.append([pr[cmd],pr[pid]]) 
+            for app in appFlagList:
+                if pr[4].lower().find(app.lower())>-1: # case insensitive
+                    systemProcPsuFlagged.append([app,pr[cmd],pr[pid]])
+        profileInfo += '    "systemUserProcesses": "'
+        if verbose and userProcsDetailed:
+            profileInfo += repr(systemProcPsu)+'",\n'
+        else:
+            profileInfo += str(len(systemProcPsu))+'",\n'
+        profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
+        #except:
+        #    profileInfo += '    "systemUserProcesses": "[?]",\n'
+        #    profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:
@@ -318,16 +324,16 @@ class RuntimeInfo(dict):
                     i += 1
             for winAttr in winAttrList: 
                 try:
-                    thing = eval('win.'+winAttr)
+                    attrValue = eval('win.'+winAttr)
                 except AttributeError:
                     print 'Warning (AttributeError): Window instance has no attribute', winAttr
                     continue
-                if hasattr(thing, '__call__'):
-                    try: thing = thing()
+                if hasattr(attrValue, '__call__'):
+                    try: attrValue = attrValue()
                     except:
                         print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
                         continue
-                strthing = str(thing).replace('"','').replace('\n','')
+                strthing = str(attrValue).replace('"','').replace('\n','')
                 while winAttr[0]=='_':
                     winAttr = winAttr[1:]
                 if winAttr in ['monitor.getDistance','monitor.getWidth']:
@@ -336,15 +342,11 @@ class RuntimeInfo(dict):
                 winAttr = winAttr.replace('Monitor._','Monitor.')
                 profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
         
-        #t = visual.TextStim(win=win, text='... sampling refresh rate ...', italic=True)
-        #t.draw()
-        #win.flip()
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
         profileInfo += '    "windowSecPerRefresh": "%.5f",\n' % (msPFavg/1000.)
         profileInfo += '    "windowMsPerFrameAvg": "%.2f",\n' % (msPFavg)
         profileInfo += '    "windowMsPerFrameMed6": "%.2f",\n' % (msPF6md)
         profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
-        
         
         profileInfo += '  #Python: ---------\n'
         profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
