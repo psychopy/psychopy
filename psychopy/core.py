@@ -134,26 +134,36 @@ def svnVersion(dir='.'):
 def msPerFrame(myWin, frames=60, progressBar=True):
     """assesses the monitor refresh rate, and SD of refresh rate under current conditions
     
-    times at least 50 frames, returns the average of all, the avg of the six at the median (in ms),
+    times at least 60 frames, returns the average of all, the avg of the six at the median (in ms),
     and the standard deviation of all frames
     """
-    from psychopy import visual
-    frames = max(50, frames)  # lower bound of 50 samples--need enough to estimate the SD
+    # extend: 1. allow display of a specific stim during refresh testing?
+    # 2. allow other than norm units for progress bars
+    # 3. allow clearBuff = False, so user can display something and then test refresh during that static display
+    #    e.g., perhaps have an "any-key to end" option
+    
+    from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
+    
+    frames = max(60, frames)  # lower bound of 60 samples--need enough to estimate the SD
     num2avg = 6  # how many to average from the middle
-    pbar = visual.ShapeStim(myWin, lineWidth=1,
-                            lineColor=(.2,.2,1),lineColorSpace='rgb',
-                            fillColor=(0,0,1),fillColorSpace='rgb',
-                            vertices=[[-.5,-.05],[-.5,.05],[-.5,.05],[-.5,-.05]])
+    if myWin.units != 'norm': # so far things are hard coded in norm units, bad
+        progressBar = False
+    if progressBar:
+        vAdj = -0.35
+        pbar = visual.ShapeStim(myWin, lineWidth=1, lineColor=(.2,.2,1), lineColorSpace='rgb',
+                    fillColor=(0,0,1),fillColorSpace='rgb', vertices=[[-.5,vAdj-.05],[-.5,vAdj+.05],[-.5,vAdj+.05],[-.5,vAdj-.05]])
+        
     t  = [] # clock times
     ft = [] # frame-times
     for i in range(5): # wake everybody up
         myWin.flip()
-    t.append(getTime())
+    
     # accumulate secs per frame for a bunch of frames:
+    t.append(getTime()) # core.getTime()
     for i in range(frames):
         if progressBar:
             f = -.5 + float(i)/frames # right end of progress bar
-            pbar.setVertices([[-.5,-.05], [-.5,.05], [f,.05], [f+.04,0], [f,-.05]])
+            pbar.setVertices([[-.5,vAdj-.05], [-.5,vAdj+.05], [f,vAdj+.05], [f+.04,vAdj], [f,vAdj-.05]])
             pbar.draw()
         myWin.flip()
         t.append(getTime()) # this is core.getTime()
@@ -161,29 +171,30 @@ def msPerFrame(myWin, frames=60, progressBar=True):
     ft = [t[i] - t[i-1] for i in range(1,len(t))] 
     ft.sort() # sort in order to get a slice around the median, and average it:
     secPerFrame = numpy.average(ft[ (frames-num2avg)/2 : (frames+num2avg)/2 ])
-    msPF6md = 1000 * secPerFrame
+    msPFmd6 = 1000 * secPerFrame
     msPFavg = 1000 * numpy.average(ft)
     msPFstd = 1000 * numpy.std(ft)
     
-    return msPFavg, msPFstd, msPF6md
+    return msPFavg, msPFstd, msPFmd6
     
 
 class RuntimeInfo(dict):
     """Returns a snapshot of your configuration at run-time, intended to be useful for immediate or archival use.
     
-    Finds and returns a dict-like object with info about PsychoPy, your experiment script, your window and monitor
-    settings (if any), the system & OS, python & packages, and openGL.
+    Finds and returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
+    your window and monitor settings (if any), python & packages, and openGL.
     
     The value in sys.argv[0] is assumed to be your "experiment script". You have to explicitly provide
     any desired author and version info. Your information (such as author) cannot contain double-quote characters
-    (they are removed). Setting verbose=True reports more detail, including OpenGL info.
-    The screen refresh rate is estimated in ms-per-frame by returning the median of 60 samples.
+    (they are removed), but single-quotes are fine. Setting verbose=True reports more detail, including OpenGL info.
+    The screen refresh rate is estimated in ms-per-frame by msPerFrame(), which is passed progressBar sa an arg.
     If the directory containing your script is under version control using svn, the revision number is discovered.
+    if verbose and getUserProcs='detailed', then return names and PID's of the user's other concurrent processes.
     """
     
     # REFACTORING PLANS: 1. accumulate a dict in init, then format as strings in repr and str
     
-    def __init__(self, author=None, version=None, verbose=False, win=None, progressBar=False):
+    def __init__(self, author=None, version=None, win=None, verbose=False, progressBar=False, userProcsDetailed=False):
         """This is where most of the work gets done: saving various settings and so on into a data structure.
         To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
         info and is formatted nicely (e.g., includes comments). At the end of __init__, the string gets converted
@@ -241,18 +252,52 @@ class RuntimeInfo(dict):
         else:
             profileInfo += ' [?]'
         profileInfo += '",\n'
-        if verbose:
-            try:
-                proc = shellCall("ps -e")
-                proc = proc.strip().replace('\n','\\n')
-                if verbose:
-                    profileInfo += '   "systemProcPsEax": "'+proc.replace('"','')+'",\n'
-            except:
-                pass
+        
+        # find context info: What other processes are currently active for this user?
+        appFlagList = [# if these apps are active, flag them as such:
+            'Firefox','Safari','Explorer','Netscape', 'Opera', 
+            'iTunes', 'BitTorrent', 
+            'VirtualBox','Parallels','VMware']
+        appIgnoreList = [# always ignore these:
+            'ps','login','-tcsh','COMMAND', 'CMD']
+        
+        try:
+            users = shellCall("who -q").splitlines()[0].split()
+            uList = []
+            while len(users):
+                u = users.pop()
+                if u not in uList:
+                    uList += [u]
+            profileInfo += '    "systemUsers": "'+str(len(uList))+'",\n'
+        except:
+            profileInfo += '    "systemUsers": "[?]",\n'
+        try:
+            profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
+            #self['systemUser'] = os.environ['USER']
+        except:
+            profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
+        try:
+            proc = shellCall("ps -U "+os.environ['USER'])
+            systemProcPsu = []
+            systemProcPsuFlagged = []
+            for cmd in [i.split() for i in proc.splitlines()]:
+                if cmd[4] not in appIgnoreList:
+                    systemProcPsu.append([cmd[4],cmd[0]]) # --> CMD, PID
+                for app in appFlagList:
+                    if cmd[4].lower().find(app.lower())>-1: # case insensitive
+                        systemProcPsuFlagged.append([app,cmd[4],cmd[0]])
+            profileInfo += '    "systemUserProcesses": "'
+            if verbose and userProcsDetailed:
+                profileInfo += repr(systemProcPsu)+'",\n'
+            else:
+                profileInfo += str(len(systemProcPsu))+'",\n'
+            profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
+        except:
+            profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:
-            win = visual.Window(fullscr=True,monitor="testMonitor",allowGUI=False) # the temp window
+            win = visual.Window(fullscr=True,monitor="testMonitor",allowGUI=False,units='norm') # a temp window
             usingTempWin = True  
         else:  # we were passed a window instance, use it for timing and profile it here:
             usingTempWin = False  # later avoid closing user's window
@@ -261,8 +306,6 @@ class RuntimeInfo(dict):
                 i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
                 del(winAttrList[i])
                 for monAttr in monAttrList:
-                    #while monAttr[0]=='_':  ## CANT do this here -- need the actual name when retrive its value (later)
-                    #    monAttr = monAttr[1:]
                     winAttrList.insert(i, 'monitor.' + monAttr)
                     i += 1
             for winAttr in winAttrList: 
@@ -284,11 +327,14 @@ class RuntimeInfo(dict):
                 winAttr = winAttr[0].capitalize()+winAttr[1:]
                 winAttr = winAttr.replace('Monitor._','Monitor.')
                 profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
-                
+        
+        #t = visual.TextStim(win=win, text='... sampling refresh rate ...', italic=True)
+        #t.draw()
+        #win.flip()
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
         profileInfo += '    "windowSecPerRefresh": "%.5f",\n' % (msPFavg/1000.)
         profileInfo += '    "windowMsPerFrameAvg": "%.2f",\n' % (msPFavg)
-        profileInfo += '    "windowMsPerFrameMd6": "%.2f",\n' % (msPF6md)
+        profileInfo += '    "windowMsPerFrameMed6": "%.2f",\n' % (msPF6md)
         profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
         
         

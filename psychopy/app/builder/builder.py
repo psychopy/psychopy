@@ -1604,6 +1604,7 @@ class BuilderFrame(wx.Frame):
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
         demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
+        demoList.sort(key=str.lower)
         ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(demoList)))
         self.demos={}
