@@ -1110,6 +1110,7 @@ class CoderFrame(wx.Frame):
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
         self.demoList = glob.glob(os.path.join(self.paths['demos'],'coder','*.py'))
+        self.demoList.sort(key=str.lower)
         #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
         self.ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
