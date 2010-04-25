@@ -9,7 +9,7 @@ from psychopy import core, visual
 # when creating an experiment, first define your window (& monitor):
 myWin = visual.Window((200,200), fullscr=False, monitor='testMonitor', allowGUI=False, units='norm')
 
-# then gather run-time info, and save in a dict-like object. All parameters are optional:
+# then gather run-time info. All parameters are optional:
 info = core.RuntimeInfo(
         author=__author__+'; <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
         version=__version__+"; <-- your experiment version info",
@@ -26,7 +26,7 @@ what to do with it--probably print some or all of it, likely into a data file or
 "print info" will give you the same as "print str(info)". This format is intended to be useful 
 for writing to a data file in a human readable form:"""
 print info
-print """If that's more detail than you want in every data file, try verbose = False."""
+print """If that's more detail than you want, try verbose = False."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 
 # a data file, and its fairly readable. And because its python syntax you could later simply 
@@ -35,9 +35,10 @@ print """If that's more detail than you want in every data file, try verbose = F
 print """
 Because info is a dict, you can extract single items using their keys, e.g.:
   psychopyVersion = %s""" % info['psychopyVersion']
-print "  average refresh time, 60 samples = %s" % info["windowMsPerFrameAvg"]
-print "  average of 6 samples at the median = %s" % info["windowMsPerFrameMed6"]
-print "  standard deviation, same 60 samples = %s" % info["windowMsPerFrameSD"]
+print """test of the screen refresh (60 samples):
+  %s = average refresh time""" % info["windowMsPerFrameAvg"]
+print "  %s = median (average of the 6 times nearest the median time)" % info["windowMsPerFrameMed6"]
+print "  %s = standard deviation" % info["windowMsPerFrameSD"]
 
 # Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
 refreshSDwarningLevel = 0.10 ##ms
@@ -51,4 +52,4 @@ if float(eval(info["windowMsPerFrameSD"])) > refreshSDwarningLevel:
     and re-run the demo."""
 
 print """
-(Scroll up to see the text output of the demo -- the progress-bar is not the demo!!)"""
+(Scroll up to see the text output of the demo -- the progress-bar was not it!!)"""

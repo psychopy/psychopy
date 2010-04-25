@@ -266,7 +266,7 @@ class RuntimeInfo(dict):
             'Firefox','Safari','Explorer','Netscape', 'Opera', 
             'iTunes', 'BitTorrent', 'Office',
             'VirtualBox','VBoxClient', # VM host or client is likely to cause timing trouble
-            'Parallels','VMware',
+            'Parallels','VMware', 'Coherence', 
             #'update-notifier'
             ]
         appIgnoreList = [# always ignore these, exact match:
@@ -299,22 +299,35 @@ class RuntimeInfo(dict):
                 cmdStr = 'CMD'
             elif sys.platform in ['win32']: # placeholder for windows; for now just bail
                 raise
+                proc, err = shellCall("tasklist", stderr=True) # "tasklist /m" gives modules as well
+                if err:
+                    print 'tasklist error', err
+                    raise
             else: # guess about freebsd based on darwin... 
                 proc,err = shellCall("ps -U "+os.environ['USER'],stderr=True)
                 if err: raise
                 cmdStr = 'COMMAND'
             systemProcPsu = []
             systemProcPsuFlagged = []
-            procLines = proc.splitlines()
-            cmd = procLines[0].split().index(cmdStr)
-            pid = procLines[0].split().index('PID')
-            for p in [i for i in procLines]: #one process (one line)
+            procLines = proc.splitlines() 
+            firstLine = procLines.pop(0) # == header info - labels saying which column means what
+            if sys.platform not in ['win32']:
+                cmd = firstLine.split().index(cmdStr) # columns and column labels vary across platforms
+                pid = firstLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
+            else:
+                junk = procLines.pop(0)
+                cmd = 0
+                pid = 1
+            for p in [i for i in procLines]: # one process per line
                 pr = p.split()
                 if pr[cmd] not in appIgnoreList:
                     systemProcPsu.append([pr[cmd],pr[pid]]) 
                     for app in appFlagList:
                         if p.lower().find(app.lower())>-1:
-                            systemProcPsuFlagged.append([app,pr[cmd],pr[pid]])
+                            if verbose:
+                                systemProcPsuFlagged.append([app, pr[pid], pr[cmd]])
+                            else:
+                                systemProcPsuFlagged.append([app, pr[pid], ''])
             profileInfo += '    "systemUserProcesses": "'
             if verbose and userProcsDetailed:
                 profileInfo += repr(systemProcPsu)+'",\n'
