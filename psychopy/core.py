@@ -215,9 +215,9 @@ class RuntimeInfo(dict):
           '   "uniqueTag": "value_as_string", # tag-specific comment here\n'
           '  #comment or other note\n'
         """
-        dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
+        from psychopy import visual # have to do this in __init__ (visual imports core)
         
-        from psychopy import visual # have to do this here not at the top of core.py (visual imports core)
+        dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
         # These 'configuration lists' control what attributes are reported.
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
@@ -233,10 +233,10 @@ class RuntimeInfo(dict):
             'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
         
         # start of string construction:
-        profileInfo = '  #PsychoPy: --- http://www.psychopy.org ---\n'
+        profileInfo = '  #[[ PsychoPy ]] #--- http://www.psychopy.org ---\n'
         profileInfo += '    "psychopyVersion": "'+__version__+'",\n'
         
-        profileInfo += '  #Experiment script: ---------\n'
+        profileInfo += '  #[[ Experiment ]] #---------\n'
         profileInfo += '    "experimentName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
         if author:  profileInfo += '    "experimentAuthor": "'+author.replace('"','')+'",\n'
         if version: profileInfo += '    "experimentVersion": "'+version.replace('"','')+'",\n'
@@ -245,9 +245,9 @@ class RuntimeInfo(dict):
         profileInfo += '    "experimentFullPath": "'+scriptDir+'",\n'
         svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
-            profileInfo += '    "experimentDirSVNRev": "'+svnrev+'",\n'
+            profileInfo += '    "experimentDirSVNRevision": "'+svnrev+'",\n'
         
-        profileInfo += '  #System: ---------\n'
+        profileInfo += '  #[[ System ]] #---------\n'
         profileInfo += '    "systemHostName": "'+platform.node().replace('"','')+'",\n'
         profileInfo += '    "systemPlatform": "'+sys.platform
         if sys.platform in ['darwin']:
@@ -261,27 +261,10 @@ class RuntimeInfo(dict):
             profileInfo += ' [?]'
         profileInfo += '",\n'
         
-        # find context info: What other processes are currently active for this user?
-        appFlagList = [# if these apps are active, flag them:
-            'Firefox','Safari','Explorer','Netscape', 'Opera', 
-            'iTunes', 'BitTorrent', 'Office',
-            'VirtualBox','VBoxClient', # VM host or client is likely to cause timing trouble
-            'Parallels','VMware', 'Coherence', 
-            #'update-notifier'
-            ]
-        appIgnoreList = [# always ignore these, exact match:
-            'ps','login','-tcsh','bash','gnome-session','COMMAND','CMD',
-             '/Applications/iTunes.app/Contents/Resources/iTunesHelper.app/Contents/MacOS/iTunesHelper',
-            ]
-        
+        # count all unique people (user IDs logged in), and find current user name
         try:
             users = shellCall("who -q").splitlines()[0].split()
-            uList = []
-            while len(users): # only retain unique user (people instead of logins)
-                u = users.pop()
-                if u not in uList:
-                    uList += [u]
-            profileInfo += '    "systemUsers": "'+str(len(uList))+'",\n'
+            profileInfo += '    "systemUsers": "'+str(len(set(users)))+'",\n'
         except:
             profileInfo += '    "systemUsers": "[?]",\n'
             
@@ -289,45 +272,66 @@ class RuntimeInfo(dict):
         except:
             try: profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
             except: profileInfo += '    "systemUser": "[?]",\n'
-            
+        
+        # find context info: What other processes are currently active for this user?
+        appFlagList = [# flag these apps if active, case-insensitive match:
+            'Firefox','Safari','Explorer','Netscape', 'Opera', # web browsers can burn CPU cycles
+            'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
+            'mdimport', # can have high CPU
+            'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Word etc is launched by 'LaunchCFMApp'
+            'VirtualBox','VBoxClient', # virtual machine as host or client
+            'Parallels', 'Coherence',
+            'VMware',
+            #'update-notifier'
+            ]
+        appIgnoreList = [# always ignore these, exact match:
+            'ps','login','-tcsh','bash',
+            'iTunesHelper',
+            ]
+        #appLaunchers = ['LaunchCFMApp'] # if the app is just a launcher, look for app name in the launcher's arguments
+        
+        # assess concurrently active processes owner by the current user:
         try:
             if sys.platform in ['darwin']:
-                proc = shellCall("ps -U "+os.environ['USER'])
+                # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
+                proc = shellCall("ps -c -U "+os.environ['USER'])
                 cmdStr = 'COMMAND'
             elif sys.platform in ['linux2']:
-                proc = shellCall("ps -U "+os.environ['USER'])
+                proc = shellCall("ps -c -U "+os.environ['USER'])
                 cmdStr = 'CMD'
-            elif sys.platform in ['win32']: # placeholder for windows; for now just bail
-                #raise
+            elif sys.platform in ['win32']: 
                 proc, err = shellCall("tasklist", stderr=True) # "tasklist /m" gives modules as well
                 if err:
-                    print 'tasklist error', err
+                    print 'tasklist error:', err
                     raise
             else: # guess about freebsd based on darwin... 
                 proc,err = shellCall("ps -U "+os.environ['USER'],stderr=True)
                 if err: raise
-                cmdStr = 'COMMAND'
+                cmdStr = 'COMMAND' # or 'CMD'?
             systemProcPsu = []
             systemProcPsuFlagged = []
             procLines = proc.splitlines() 
-            firstLine = procLines.pop(0) # == header info - labels saying which column means what
+            headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
-                cmd = firstLine.split().index(cmdStr) # columns and column labels vary across platforms
-                pid = firstLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
-            else:
-                junk = procLines.pop(0)
+                cmd = headerLine.split().index(cmdStr) # columns and column labels vary across platforms
+                pid = headerLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
+            else: # this works for win XP, for output from 'tasklist'
+                procLines.pop(0)
                 cmd = 0
                 pid = 1
-            for p in [i for i in procLines]: # one process per line
-                pr = p.split()
+            for p in procLines:
+                pr = p.split() # info fields for this process
                 if pr[cmd] not in appIgnoreList:
-                    systemProcPsu.append([pr[cmd],pr[pid]]) 
+                    """if pr[cmd] in appLaunchers: # then try to capture the real app name, eg MicrosoftWord
+                        try: zzz = shellCall('ps -p '+pr[pid]) # query by PID
+                        ...."""
+                    systemProcPsu.append([pr[cmd],pr[pid]]) # later just count these unless want details
                     for app in appFlagList:
-                        if p.lower().find(app.lower())>-1:
-                            if verbose:
-                                systemProcPsuFlagged.append([app, pr[pid], pr[cmd]])
-                            else:
-                                systemProcPsuFlagged.append([app, pr[pid], ''])
+                        if p.lower().find(app.lower())>-1: # match anywhere in the process line
+                            #if verbose:
+                            #    systemProcPsuFlagged.append([app, pr[pid], pr[cmd]])
+                            #else:
+                                systemProcPsuFlagged.append([app, pr[pid]])
             profileInfo += '    "systemUserProcesses": "'
             if verbose and userProcsDetailed:
                 profileInfo += repr(systemProcPsu)+'",\n'
@@ -344,7 +348,7 @@ class RuntimeInfo(dict):
             usingTempWin = True  
         else:  # we were passed a window instance, use it for timing and profile it here:
             usingTempWin = False  # later avoid closing user's window
-            profileInfo += '  # Window: ---------\n'
+            profileInfo += '  #[[ Window ]] #---------\n'
             if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
                 i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
                 del(winAttrList[i])
@@ -377,9 +381,8 @@ class RuntimeInfo(dict):
         profileInfo += '    "windowMsPerFrameMed6": "%.2f",\n' % (msPF6md)
         profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
         
-        profileInfo += '  #Python: ---------\n'
+        profileInfo += '  #[[ Python ]] #---------\n'
         profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
-        
         if verbose:
             # External python packages:
             profileInfo += '    "pythonNumpyVersion": "'+numpy.__version__.replace('"','')+'",\n'
@@ -395,8 +398,7 @@ class RuntimeInfo(dict):
             profileInfo += '    "pythonExecutable": "'+sys.executable.replace('"','')+'",\n'
             
             # OpenGL info:
-            profileInfo += '  #OpenGL: ---------\n'
-            #from pyglet.gl import gl_info
+            profileInfo += '  #[[ OpenGL ]] #---------\n'
             profileInfo += '    "openGLVendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
             profileInfo += '    "openGLRenderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
             profileInfo += '    "openGLVersion": "'+gl_info.get_version().replace('"','')+'",\n'

@@ -1580,8 +1580,8 @@ class CoderFrame(wx.Frame):
         except Exception, e:
             print "Problem compiling: %s" %e
 
-        #provide a running... message
-        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        #provide a running... message; long fullPath --> no # are displayed unless you add some manually
+        print "\n"+("##### Running: %s #####" %(fullPath)).center(80,"#")
         
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)
