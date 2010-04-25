@@ -150,7 +150,7 @@ def msPerFrame(myWin, frames=60, progressBar=True):
         progressBar = False
     if progressBar:
         vAdj = -0.35
-        pbar = visual.ShapeStim(myWin, lineWidth=1, lineColor=(.2,.2,1), lineColorSpace='rgb',
+        pbar = visual.ShapeStim(myWin, lineWidth=1, lineColor=(0,0,1), lineColorSpace='rgb',
                     fillColor=(0,0,1),fillColorSpace='rgb', vertices=[[-.5,vAdj-.05],[-.5,vAdj+.05],[-.5,vAdj+.05],[-.5,vAdj-.05]])
         
     t  = [] # clock times
@@ -192,8 +192,16 @@ class RuntimeInfo(dict):
     if verbose and getUserProcs='detailed', then return names and PID's of the user's other concurrent processes.
     """
     
-    # REFACTORING PLANS: 1. accumulate a dict in init, then format as strings in repr and str
-    
+    # JRG REFACTORING PLANS: 1. accumulate a dict in init, then format as strings in repr and str
+    #   profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
+    #   rewrite so that init has this part:
+    #       self['systemUser'] = os.environ['USER']
+    #   and repr has this:
+    #       for key in keyList:
+    #           rep += '    "'+key+'": "'+self[key].replace('"','').replace('\n',' ')+'", \n'
+    #   and str is similar to repr, but adds comments and units etc, if key in cmList: self[key] += ' cm'
+    # 2. __init__ is getting pretty long; pull out some methods?
+        
     def __init__(self, author=None, version=None, win=None, verbose=False, progressBar=False, userProcsDetailed=False):
         """This is where most of the work gets done: saving various settings and so on into a data structure.
         To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
@@ -254,17 +262,22 @@ class RuntimeInfo(dict):
         profileInfo += '",\n'
         
         # find context info: What other processes are currently active for this user?
-        appFlagList = [# if these apps are active, flag them as such:
+        appFlagList = [# if these apps are active, flag them:
             'Firefox','Safari','Explorer','Netscape', 'Opera', 
-            'iTunes', 'BitTorrent', 
-            'VirtualBox','Parallels','VMware']
-        appIgnoreList = [# always ignore these:
-            'ps','login','-tcsh','COMMAND', 'CMD']
+            'iTunes', 'BitTorrent', 'Office',
+            'VirtualBox','VBoxClient', # VM host or client is likely to cause timing trouble
+            'Parallels','VMware',
+            #'update-notifier'
+            ]
+        appIgnoreList = [# always ignore these, exact match:
+            'ps','login','-tcsh','bash','gnome-session','COMMAND','CMD',
+             '/Applications/iTunes.app/Contents/Resources/iTunesHelper.app/Contents/MacOS/iTunesHelper',
+            ]
         
         try:
             users = shellCall("who -q").splitlines()[0].split()
             uList = []
-            while len(users):
+            while len(users): # only retain unique user (people instead of logins)
                 u = users.pop()
                 if u not in uList:
                     uList += [u]
@@ -272,42 +285,45 @@ class RuntimeInfo(dict):
         except:
             profileInfo += '    "systemUsers": "[?]",\n'
             
-        try:
-            profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
-            #self['systemUser'] = os.environ['USER']
+        try: profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
         except:
-            profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
+            try: profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
+            except: profileInfo += '    "systemUser": "[?]",\n'
             
         try:
-            proc = shellCall("ps -U "+os.environ['USER'])
             if sys.platform in ['darwin']:
+                proc = shellCall("ps -U "+os.environ['USER'])
                 cmdStr = 'COMMAND'
             elif sys.platform in ['linux2']:
+                proc = shellCall("ps -U "+os.environ['USER'])
                 cmdStr = 'CMD'
+            elif sys.platform in ['win32']: # placeholder for windows; for now just bail
+                raise
+            else: # guess about freebsd based on darwin... 
+                proc,err = shellCall("ps -U "+os.environ['USER'],stderr=True)
+                if err: raise
+                cmdStr = 'COMMAND'
+            systemProcPsu = []
+            systemProcPsuFlagged = []
+            procLines = proc.splitlines()
+            cmd = procLines[0].split().index(cmdStr)
+            pid = procLines[0].split().index('PID')
+            for p in [i for i in procLines]: #one process (one line)
+                pr = p.split()
+                if pr[cmd] not in appIgnoreList:
+                    systemProcPsu.append([pr[cmd],pr[pid]]) 
+                    for app in appFlagList:
+                        if p.lower().find(app.lower())>-1:
+                            systemProcPsuFlagged.append([app,pr[cmd],pr[pid]])
+            profileInfo += '    "systemUserProcesses": "'
+            if verbose and userProcsDetailed:
+                profileInfo += repr(systemProcPsu)+'",\n'
             else:
-                cmdStr = 'CMD'
+                profileInfo += str(len(systemProcPsu))+'",\n'
+            profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
         except:
-            proc = ' PID CMD'
-        systemProcPsu = []
-        systemProcPsuFlagged = []
-        procLines = proc.splitlines()
-        cmd = procLines[0].split().index(cmdStr)
-        pid = procLines[0].split().index('PID')
-        for pr in [i.split() for i in procLines]: #one process (one line)
-            if pr[cmd] not in appIgnoreList:
-                systemProcPsu.append([pr[cmd],pr[pid]]) 
-            for app in appFlagList:
-                if pr[4].lower().find(app.lower())>-1: # case insensitive
-                    systemProcPsuFlagged.append([app,pr[cmd],pr[pid]])
-        profileInfo += '    "systemUserProcesses": "'
-        if verbose and userProcsDetailed:
-            profileInfo += repr(systemProcPsu)+'",\n'
-        else:
-            profileInfo += str(len(systemProcPsu))+'",\n'
-        profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
-        #except:
-        #    profileInfo += '    "systemUserProcesses": "[?]",\n'
-        #    profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
+            profileInfo += '    "systemUserProcesses": "[?]",\n'
+            profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None:

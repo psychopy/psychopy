@@ -1455,11 +1455,20 @@ class CoderFrame(wx.Frame):
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            self.fileSave(event=None, filename=newPath, doc=doc)
-            doc.filename = newPath
-            path, shortName = os.path.split(newPath)
-            self.notebook.SetPageText(docId, shortName)
-            self.setFileModified(False)
+            # if the file already exists, query whether it should be overwritten (default = yes)
+            dlg2 = dialogs.MessageDialog(self,
+                        message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                        type='Warning')
+            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
+                self.fileSave(event=None, filename=newPath, doc=doc)
+                doc.filename = newPath
+                path, shortName = os.path.split(newPath)
+                self.notebook.SetPageText(docId, shortName)
+                self.setFileModified(False)
+                try: dlg2.destroy()
+                except: pass
+            else:
+                print "'Save-as' canceled; existing file NOT overwritten.\n"
         try: #this seems correct on PC, but can raise errors on mac
             dlg.destroy()
         except:
