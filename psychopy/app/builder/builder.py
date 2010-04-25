@@ -1731,12 +1731,21 @@ class BuilderFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             #update exp name
-            shortName = os.path.splitext(os.path.split(newPath)[1])[0]
-            self.exp.setExpName(shortName)
-            #actually save
-            self.fileSave(event=None, filename=newPath)
-            self.filename = newPath
-            returnVal = 1
+            # if the file already exists, query whether it should be overwritten (default = yes)
+            dlg2 = dialogs.MessageDialog(self,
+                        message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                        type='Warning')
+            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
+                shortName = os.path.splitext(os.path.split(newPath)[1])[0]
+                self.exp.setExpName(shortName)
+                #actually save
+                self.fileSave(event=None, filename=newPath)
+                self.filename = newPath
+                returnVal = 1
+                try: dlg2.destroy()
+                except: pass
+            else:
+                print "'Save-as' canceled; existing file NOT overwritten.\n"
         try: #this seems correct on PC, but not on mac
             dlg.destroy()
         except:
