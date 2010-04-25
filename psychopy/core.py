@@ -298,7 +298,7 @@ class RuntimeInfo(dict):
                 proc = shellCall("ps -U "+os.environ['USER'])
                 cmdStr = 'CMD'
             elif sys.platform in ['win32']: # placeholder for windows; for now just bail
-                raise
+                #raise
                 proc, err = shellCall("tasklist", stderr=True) # "tasklist /m" gives modules as well
                 if err:
                     print 'tasklist error', err
