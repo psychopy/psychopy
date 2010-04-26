@@ -2,7 +2,7 @@
 
 ## these are used in the demo, in the way you might in your experiment:
 __author__ = 'Jeremy "R." Gray' # double-quotes will be silently removed
-__version__ = "v1.0 a' "               # single quotes are left, eg, O'Connor 
+__version__ = "v1.0.a' "               # single quotes are left, eg, O'Connor 
 
 from psychopy import core, visual
 
@@ -11,8 +11,8 @@ myWin = visual.Window((300,300), fullscr=False, monitor='testMonitor', allowGUI=
 
 # then gather run-time info. All parameters are optional:
 info = core.RuntimeInfo(
-        author=__author__+'; <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
-        version=__version__+"; <-- your experiment version info",
+        author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
+        version=__version__+" <-- your experiment version info",
         verbose=True, ## True means report on everything
         win=myWin,    ## a psychopy.visual.Window() instance
         progressBar=True, ## some eye-candy to avoid a blank screen
@@ -26,16 +26,20 @@ what to do with it--probably print some or all of it, likely into a data file or
 "print info" will give you the same as "print str(info)". This format is intended to be useful 
 for writing to a data file in a human readable form:"""
 print info
-print """If that's more detail than you want, try verbose = False."""
+
+#print info
+print """If that's more detail than you want, try: info = core.RuntimeInfo(...,verbose=False,...)."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 
 # a data file, and its fairly readable. And because its python syntax you could later simply 
 # import your data file into python to reconstruct the dict.
+# d = eval(repr(info))
+# type(d) == type({})
 
 print """
-Because info is a dict, you can extract single items using their keys, e.g.:
+You can extract single items from info, using keys, e.g.:
   psychopyVersion = %s""" % info['psychopyVersion']
-print """test of the screen refresh (60 samples):
+print """Test of the screen refresh (60 samples):
   %s = average refresh time""" % info["windowMsPerFrameAvg"]
 print "  %s = median (average of the 6 times nearest the median time)" % info["windowMsPerFrameMed6"]
 print "  %s = standard deviation" % info["windowMsPerFrameSD"]
@@ -46,11 +50,11 @@ if info["windowMsPerFrameSD"] > refreshSDwarningLevel:
     print "\nThe variability of the refresh rate is unusually high (SD > %.2f)" % (refreshSDwarningLevel)
     ## and here you could prompt the user with suggestions, possibly based on:
     if info["windowIsFullScr"]: 
-        print "(full-screen is good, maybe there are other programs running?)"
+        print "(your window is full-screen, which is good for timing. maybe there are other programs running?)"
     else: 
         print """-> Try defining the window as full-screen (its not currently), i.e. at the top of the demo change to:
            myWin = visual.Window((200,200), fullscr=True, ...
     and re-run the demo."""
 
 print """
-(Scroll up to see the text output of the demo -- the progress-bar is not the demo!!)"""
+(The progress-bar is not the demo! Scroll up to see the full text output.)"""
