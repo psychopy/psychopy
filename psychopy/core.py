@@ -8,7 +8,7 @@ import sys, platform, os, time, threading
 import subprocess, shlex, numpy
 
 # these are for RuntimeInfo():
-from psychopy import __version__
+from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
 import scipy, matplotlib, pyglet
 
@@ -186,8 +186,9 @@ class RuntimeInfo(dict):
     
     The value in sys.argv[0] is assumed to be your "experiment script". You have to explicitly provide
     any desired author and version info. Your information (such as author) cannot contain double-quote characters
-    (they are removed), but single-quotes are fine. Setting verbose=True reports more detail, including OpenGL info.
-    The screen refresh rate is estimated in ms-per-frame by msPerFrame(), which is passed progressBar sa an arg.
+    (they are removed), but single-quotes are fine. Setting verbose=True reports more detail, including python
+    package versions and OpenGL info.
+    The screen refresh rate is estimated in ms-per-frame by msPerFrame(), which is passed progressBar as an arg.
     If the directory containing your script is under version control using svn, the revision number is discovered.
     if verbose and getUserProcs='detailed', then return names and PID's of the user's other concurrent processes.
     """
@@ -200,7 +201,6 @@ class RuntimeInfo(dict):
     #       for key in keyList:
     #           rep += '    "'+key+'": "'+self[key].replace('"','').replace('\n',' ')+'", \n'
     #   and str is similar to repr, but adds comments and units etc, if key in cmList: self[key] += ' cm'
-    # 2. __init__ is getting pretty long; pull out some methods?
         
     def __init__(self, author=None, version=None, win=None, verbose=False, progressBar=False, userProcsDetailed=False):
         """This is where most of the work gets done: saving various settings and so on into a data structure.
@@ -219,35 +219,57 @@ class RuntimeInfo(dict):
         
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
-        # These 'configuration lists' control what attributes are reported.
-        # All desired attributes/properties need a legal internal name, e.g., win.winType.
-        # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
-        winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
-        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
-        if verbose: winAttrList += winAttrListVerbose
-        # if 'monitor' is in winAttrList, then these items are reported, as win.monitor.X:
-        monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
-        monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
-        if verbose: monAttrList += monAttrListVerbose
-        GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
-            'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
-        
         # start of string construction:
         profileInfo = '  #[[ PsychoPy ]] #--- http://www.psychopy.org ---\n'
-        profileInfo += '    "psychopyVersion": "'+__version__+'",\n'
+        profileInfo += '    "psychopyVersion": "'+psychopyVersion+'",\n'
+        self['psychopyVersion'] = psychopyVersion
         
         profileInfo += '  #[[ Experiment ]] #---------\n'
         profileInfo += '    "experimentName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
+        self['experimentName'] = os.path.basename(sys.argv[0])
+        
         if author:  profileInfo += '    "experimentAuthor": "'+author.replace('"','')+'",\n'
+        self['experimentAuthor'] = author
         if version: profileInfo += '    "experimentVersion": "'+version.replace('"','')+'",\n'
+        self['experimentVersion'] = version
         profileInfo += '    "experimentRunDateTime": "'+time.ctime()+'",\n'
+        self['experimentRunDateTime'] = time.ctime()
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         profileInfo += '    "experimentFullPath": "'+scriptDir+'",\n'
         svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
             profileInfo += '    "experimentDirSVNRevision": "'+svnrev+'",\n'
+            self['experimentDirSVNRevision'] = svnrev
+        profileInfo += self._getSystemUserInfo()
+        profileInfo += self._getCurrentProcesses(verbose, userProcsDetailed)
         
-        profileInfo += '  #[[ System ]] #---------\n'
+        # need a window for frames-per-second, and some drivers want a window open
+        if win == None: # make a temporary window, later close it
+            win = visual.Window(fullscr=True, monitor="testMonitor", allowGUI=False, units='norm')
+            usingTempWin = True
+        else: # we were passed a window instance, use it for timing and profile it:
+            usingTempWin = False
+            profileInfo += self._getWindowInfo(win, verbose, progressBar)
+       
+        profileInfo += '  #[[ Python ]] #---------\n'
+        profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
+        if verbose:
+            profileInfo += self._getPythonInfo()
+            profileInfo += self._getOpenGLInfo()
+        if usingTempWin:
+            win.close()
+        
+        # cache the string version for use in __repr__() and __str__()
+        self.stringRepr = profileInfo
+        
+        # convert string to dict
+        tmpDict = eval('{'+profileInfo+'}')
+        for k in tmpDict.keys():
+            self[k] = tmpDict[k]
+    
+    def _getSystemUserInfo(self):
+        # machine name and platform:
+        profileInfo = '  #[[ System ]] #---------\n'
         profileInfo += '    "systemHostName": "'+platform.node().replace('"','')+'",\n'
         profileInfo += '    "systemPlatform": "'+sys.platform
         if sys.platform in ['darwin']:
@@ -260,7 +282,7 @@ class RuntimeInfo(dict):
         else:
             profileInfo += ' [?]'
         profileInfo += '",\n'
-        
+
         # count all unique people (user IDs logged in), and find current user name
         try:
             users = shellCall("who -q").splitlines()[0].split()
@@ -272,8 +294,12 @@ class RuntimeInfo(dict):
         except:
             try: profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
             except: profileInfo += '    "systemUser": "[?]",\n'
-        
-        # find context info: What other processes are currently active for this user?
+         
+        return profileInfo
+    
+    def _getCurrentProcesses(self, verbose=False, userProcsDetailed=False):
+        # what other processes are currently active for this user?
+        profileInfo = ''
         appFlagList = [# flag these apps if active, case-insensitive match:
             'Firefox','Safari','Explorer','Netscape', 'Opera', # web browsers can burn CPU cycles
             'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
@@ -341,80 +367,85 @@ class RuntimeInfo(dict):
         except:
             profileInfo += '    "systemUserProcesses": "[?]",\n'
             profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
+        return profileInfo
+    
+    def _getWindowInfo(self,win=None,verbose=False, progressBar=False):
+        # These 'configuration lists' control what attributes are reported.
+        # All desired attributes/properties need a legal internal name, e.g., win.winType.
+        # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
+        winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
+        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
+        if verbose: winAttrList += winAttrListVerbose
+        # if 'monitor' is in winAttrList, then these items are reported, as win.monitor.X:
+        monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
+        monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
+        if verbose: monAttrList += monAttrListVerbose
         
-        # need a window for frames-per-second, and some drivers want a window open
-        if win == None:
-            win = visual.Window(fullscr=True,monitor="testMonitor",allowGUI=False,units='norm') # a temp window
-            usingTempWin = True  
-        else:  # we were passed a window instance, use it for timing and profile it here:
-            usingTempWin = False  # later avoid closing user's window
-            profileInfo += '  #[[ Window ]] #---------\n'
-            if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
-                i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
-                del(winAttrList[i])
-                for monAttr in monAttrList:
-                    winAttrList.insert(i, 'monitor.' + monAttr)
-                    i += 1
-            for winAttr in winAttrList: 
-                try:
-                    attrValue = eval('win.'+winAttr)
-                except AttributeError:
-                    print 'Warning (AttributeError): Window instance has no attribute', winAttr
+        profileInfo = ''
+        
+        usingTempWin = False  # later avoid closing user's window
+        profileInfo += '  #[[ Window ]] #---------\n'
+        if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
+            i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
+            del(winAttrList[i])
+            for monAttr in monAttrList:
+                winAttrList.insert(i, 'monitor.' + monAttr)
+                i += 1
+        for winAttr in winAttrList: 
+            try:
+                attrValue = eval('win.'+winAttr)
+            except AttributeError:
+                print 'Warning (AttributeError): Window instance has no attribute', winAttr
+                continue
+            if hasattr(attrValue, '__call__'):
+                try: attrValue = attrValue()
+                except:
+                    print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
                     continue
-                if hasattr(attrValue, '__call__'):
-                    try: attrValue = attrValue()
-                    except:
-                        print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
-                        continue
-                strthing = str(attrValue).replace('"','').replace('\n','')
-                while winAttr[0]=='_':
-                    winAttr = winAttr[1:]
-                if winAttr in ['monitor.getDistance','monitor.getWidth']:
-                    strthing += ' cm'
-                winAttr = winAttr[0].capitalize()+winAttr[1:]
-                winAttr = winAttr.replace('Monitor._','Monitor.')
-                profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
+            strthing = str(attrValue).replace('"','').replace('\n','')
+            while winAttr[0]=='_':
+                winAttr = winAttr[1:]
+            if winAttr in ['monitor.getDistance','monitor.getWidth']:
+                strthing += ' cm'
+            winAttr = winAttr[0].capitalize()+winAttr[1:]
+            winAttr = winAttr.replace('Monitor._','Monitor.')
+            profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
         
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
         profileInfo += '    "windowSecPerRefresh": "%.5f",\n' % (msPFavg/1000.)
         profileInfo += '    "windowMsPerFrameAvg": "%.2f",\n' % (msPFavg)
         profileInfo += '    "windowMsPerFrameMed6": "%.2f",\n' % (msPF6md)
         profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
+        return profileInfo
+    
+    def _getPythonInfo(self):
+        # External python packages:
+        profileInfo = ''
+        profileInfo += '    "pythonNumpyVersion": "'+numpy.__version__.replace('"','')+'",\n'
+        profileInfo += '    "pythonScipyVersion": "'+scipy.__version__.replace('"','')+'",\n'
+        profileInfo += '    "pythonMatplotlibVersion": "'+matplotlib.__version__.replace('"','')+'",\n'
+        profileInfo += '    "pythonPygletVersion": "'+pyglet.__version__.replace('"','')+'",\n'
+        try: from pygame import __version__ as pygameVersion
+        except: pygameVersion = '(no pygame)'
+        profileInfo += '    "pythonPygameVersion": "'+pygameVersion.replace('"','')+'",\n'
         
-        profileInfo += '  #[[ Python ]] #---------\n'
-        profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
-        if verbose:
-            # External python packages:
-            profileInfo += '    "pythonNumpyVersion": "'+numpy.__version__.replace('"','')+'",\n'
-            profileInfo += '    "pythonScipyVersion": "'+scipy.__version__.replace('"','')+'",\n'
-            profileInfo += '    "pythonMatplotlibVersion": "'+matplotlib.__version__.replace('"','')+'",\n'
-            profileInfo += '    "pythonPygletVersion": "'+pyglet.__version__.replace('"','')+'",\n'
-            try: from pygame import __version__ as pygameVersion
-            except: pygameVersion = '(no pygame)'
-            profileInfo += '    "pythonPygameVersion": "'+pygameVersion.replace('"','')+'",\n'
-            
-            # Python gory details:
-            profileInfo += '    "pythonFullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
-            profileInfo += '    "pythonExecutable": "'+sys.executable.replace('"','')+'",\n'
-            
-            # OpenGL info:
-            profileInfo += '  #[[ OpenGL ]] #---------\n'
-            profileInfo += '    "openGLVendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
-            profileInfo += '    "openGLRenderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
-            profileInfo += '    "openGLVersion": "'+gl_info.get_version().replace('"','')+'",\n'
-            for ext in GLextensionsOfInterest:
-                profileInfo += '    "openGLext'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
-        if usingTempWin:
-            win.close()
-        
-        # cache the string version for use in __repr__() and __str__()
-        self.stringRepr = profileInfo
-        
-        # convert string to dict
-        tmpDict = eval('{'+profileInfo+'}')
-        for k in tmpDict.keys():
-            self[k] = tmpDict[k]
-        
+        # Python gory details:
+        profileInfo += '    "pythonFullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
+        profileInfo += '    "pythonExecutable": "'+sys.executable.replace('"','')+'",\n'
+        return profileInfo
+    
+    def _getOpenGLInfo(self):
+        # OpenGL info:
+        GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
+            'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
+        profileInfo = '  #[[ OpenGL ]] #---------\n'
+        profileInfo += '    "openGLVendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
+        profileInfo += '    "openGLRenderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
+        profileInfo += '    "openGLVersion": "'+gl_info.get_version().replace('"','')+'",\n'
+        for ext in GLextensionsOfInterest:
+            profileInfo += '    "openGLext'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
+        return profileInfo
+    
     def __repr__(self):
         # returns string that is quite readable, and also legal python dict syntax
         return '{\n'+self.stringRepr+'}'
