@@ -26,8 +26,6 @@ what to do with it--probably print some or all of it, likely into a data file or
 "print info" will give you the same as "print str(info)". This format is intended to be useful 
 for writing to a data file in a human readable form:"""
 print info
-
-#print info
 print """If that's more detail than you want, try: info = core.RuntimeInfo(...,verbose=False,...)."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 
