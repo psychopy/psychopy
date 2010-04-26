@@ -7,7 +7,7 @@ __version__ = "v1.0 a' "               # single quotes are left, eg, O'Connor
 from psychopy import core, visual
 
 # when creating an experiment, first define your window (& monitor):
-myWin = visual.Window((200,200), fullscr=False, monitor='testMonitor', allowGUI=False, units='norm')
+myWin = visual.Window((300,300), fullscr=False, monitor='testMonitor', allowGUI=False, units='norm')
 
 # then gather run-time info. All parameters are optional:
 info = core.RuntimeInfo(
@@ -16,7 +16,7 @@ info = core.RuntimeInfo(
         verbose=True, ## True means report on everything
         win=myWin,    ## a psychopy.visual.Window() instance
         progressBar=True, ## some eye-candy to avoid a blank screen
-        userProcsDetailed=False, ## if verbose and userProcsDetailed, return details of the current user's other processes (mac, linux)
+        userProcsDetailed=False, ## if verbose and userProcsDetailed, return details of the current user's other processes
         )
 
 print """
@@ -42,14 +42,15 @@ print "  %s = standard deviation" % info["windowMsPerFrameSD"]
 
 # Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
 refreshSDwarningLevel = 0.10 ##ms
-if float(eval(info["windowMsPerFrameSD"])) > refreshSDwarningLevel:
+if info["windowMsPerFrameSD"] > refreshSDwarningLevel:
     print "\nThe variability of the refresh rate is unusually high (SD > %.2f)" % (refreshSDwarningLevel)
     ## and here you could prompt the user with suggestions, possibly based on:
-    if eval(info["windowIsFullScr"]): print "(full-screen is good, maybe there are other programs running?)"
+    if info["windowIsFullScr"]: 
+        print "(full-screen is good, maybe there are other programs running?)"
     else: 
         print """-> Try defining the window as full-screen (its not currently), i.e. at the top of the demo change to:
            myWin = visual.Window((200,200), fullscr=True, ...
     and re-run the demo."""
 
 print """
-(Scroll up to see the text output of the demo -- the progress-bar was not it!!)"""
+(Scroll up to see the text output of the demo -- the progress-bar is not the demo!!)"""
