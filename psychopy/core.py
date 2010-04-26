@@ -193,55 +193,27 @@ class RuntimeInfo(dict):
     if verbose and getUserProcs='detailed', then return names and PID's of the user's other concurrent processes.
     """
     
-    # JRG REFACTORING PLANS: 1. accumulate a dict in init, then format as strings in repr and str
-    #   profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
-    #   rewrite so that init has this part:
-    #       self['systemUser'] = os.environ['USER']
-    #   and repr has this:
-    #       for key in keyList:
-    #           rep += '    "'+key+'": "'+self[key].replace('"','').replace('\n',' ')+'", \n'
-    #   and str is similar to repr, but adds comments and units etc, if key in cmList: self[key] += ' cm'
-        
     def __init__(self, author=None, version=None, win=None, verbose=False, progressBar=False, userProcsDetailed=False):
-        """This is where most of the work gets done: saving various settings and so on into a data structure.
-        To control item order and appearance in __str__ and __repr__, init first creates a string with all the 
-        info and is formatted nicely (e.g., includes comments). At the end of __init__, the string gets converted
-        to a dict.
-        NB: Adding code to this section is like writing in php: you have to think in terms of creating strings
-        that will evaluate to legal syntax, requiring some care to sanitize values that might cause eval() to
-        break. So its good to do .replace('"','') for strings that could have double-quotes.
-        Aim to generate lines that contain legal dict key:val pairs, or comments:
-          '   "uniqueTag": "value_as_string",\n'
-          '   "uniqueTag": "value_as_string", # tag-specific comment here\n'
-          '  #comment or other note\n'
+        """This is where most of the work gets done: build up self[key]
         """
         from psychopy import visual # have to do this in __init__ (visual imports core)
         
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
-        # start of string construction:
-        profileInfo = '  #[[ PsychoPy ]] #--- http://www.psychopy.org ---\n'
-        profileInfo += '    "psychopyVersion": "'+psychopyVersion+'",\n'
         self['psychopyVersion'] = psychopyVersion
-        
-        profileInfo += '  #[[ Experiment ]] #---------\n'
-        profileInfo += '    "experimentName": "'+os.path.basename(sys.argv[0]).replace('"','')+'",\n'
         self['experimentName'] = os.path.basename(sys.argv[0])
-        
-        if author:  profileInfo += '    "experimentAuthor": "'+author.replace('"','')+'",\n'
-        self['experimentAuthor'] = author
-        if version: profileInfo += '    "experimentVersion": "'+version.replace('"','')+'",\n'
-        self['experimentVersion'] = version
-        profileInfo += '    "experimentRunDateTime": "'+time.ctime()+'",\n'
+        if author:  
+            self['experimentAuthor'] = author
+        if version: 
+            self['experimentVersion'] = version
         self['experimentRunDateTime'] = time.ctime()
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        profileInfo += '    "experimentFullPath": "'+scriptDir+'",\n'
+        self['experimentDirectory'] = scriptDir
         svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
-            profileInfo += '    "experimentDirSVNRevision": "'+svnrev+'",\n'
-            self['experimentDirSVNRevision'] = svnrev
-        profileInfo += self._getSystemUserInfo()
-        profileInfo += self._getCurrentProcesses(verbose, userProcsDetailed)
+            self['experimentDirctorySVNRevision'] = svnrev
+        self._setSystemUserInfo()
+        self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frames-per-second, and some drivers want a window open
         if win == None: # make a temporary window, later close it
@@ -249,55 +221,42 @@ class RuntimeInfo(dict):
             usingTempWin = True
         else: # we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
-            profileInfo += self._getWindowInfo(win, verbose, progressBar)
+            self._setWindowInfo(win, verbose, progressBar)
        
-        profileInfo += '  #[[ Python ]] #---------\n'
-        profileInfo += '    "pythonVersion": "'+sys.version.split()[0]+'",\n'
+        self['pythonVersion'] = sys.version.split()[0] # always do this
         if verbose:
-            profileInfo += self._getPythonInfo()
-            profileInfo += self._getOpenGLInfo()
+            self._setPythonInfo()
+            self._setOpenGLInfo()
         if usingTempWin:
-            win.close()
+            win.close() # close after doing openGL
         
-        # cache the string version for use in __repr__() and __str__()
-        self.stringRepr = profileInfo
-        
-        # convert string to dict
-        tmpDict = eval('{'+profileInfo+'}')
-        for k in tmpDict.keys():
-            self[k] = tmpDict[k]
-    
-    def _getSystemUserInfo(self):
+    def _setSystemUserInfo(self):
         # machine name and platform:
-        profileInfo = '  #[[ System ]] #---------\n'
-        profileInfo += '    "systemHostName": "'+platform.node().replace('"','')+'",\n'
-        profileInfo += '    "systemPlatform": "'+sys.platform
+        self['systemHostName'] = platform.node()
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
-            profileInfo += ' '+OSXver+' '+architecture
+            pInfo = ' '+OSXver+' '+architecture
         elif sys.platform in ['linux2']:
-            profileInfo += ' '+platform.release()
+            pInfo = ' '+platform.release()
         elif sys.platform in ['win32']:
-            profileInfo += ' windowsversion='+repr(sys.getwindowsversion())
+            pInfo = ' windowsversion='+repr(sys.getwindowsversion())
         else:
-            profileInfo += ' [?]'
-        profileInfo += '",\n'
-
+            pInfo = ' [?]'
+        self['systemPlatform'] = pInfo
+        
         # count all unique people (user IDs logged in), and find current user name
         try:
             users = shellCall("who -q").splitlines()[0].split()
-            profileInfo += '    "systemUsers": "'+str(len(set(users)))+'",\n'
+            self['systemUserCount'] = len(set(users))
         except:
-            profileInfo += '    "systemUsers": "[?]",\n'
-            
-        try: profileInfo += '    "systemUser": "'+os.environ['USER']+'",\n'
+            self['systemUserCount'] = "[?]"
+        try:
+            self['systemUser'] = os.environ['USER']
         except:
-            try: profileInfo += '    "systemUser": "'+os.environ['USERNAME']+'",\n'
-            except: profileInfo += '    "systemUser": "[?]",\n'
-         
-        return profileInfo
-    
-    def _getCurrentProcesses(self, verbose=False, userProcsDetailed=False):
+            try: self['systemUser'] = os.environ['USERNAME']
+            except: self['systemUser'] = "[?]"
+        
+    def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
         profileInfo = ''
         appFlagList = [# flag these apps if active, case-insensitive match:
@@ -314,12 +273,11 @@ class RuntimeInfo(dict):
             'ps','login','-tcsh','bash',
             'iTunesHelper',
             ]
-        #appLaunchers = ['LaunchCFMApp'] # if the app is just a launcher, look for app name in the launcher's arguments
         
         # assess concurrently active processes owner by the current user:
         try:
+            # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
             if sys.platform in ['darwin']:
-                # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
                 proc = shellCall("ps -c -U "+os.environ['USER'])
                 cmdStr = 'COMMAND'
             elif sys.platform in ['linux2']:
@@ -348,28 +306,20 @@ class RuntimeInfo(dict):
             for p in procLines:
                 pr = p.split() # info fields for this process
                 if pr[cmd] not in appIgnoreList:
-                    """if pr[cmd] in appLaunchers: # then try to capture the real app name, eg MicrosoftWord
-                        try: zzz = shellCall('ps -p '+pr[pid]) # query by PID
-                        ...."""
                     systemProcPsu.append([pr[cmd],pr[pid]]) # later just count these unless want details
                     for app in appFlagList:
                         if p.lower().find(app.lower())>-1: # match anywhere in the process line
-                            #if verbose:
-                            #    systemProcPsuFlagged.append([app, pr[pid], pr[cmd]])
-                            #else:
-                                systemProcPsuFlagged.append([app, pr[pid]])
-            profileInfo += '    "systemUserProcesses": "'
+                            systemProcPsuFlagged.append([app, pr[pid]])
             if verbose and userProcsDetailed:
-                profileInfo += repr(systemProcPsu)+'",\n'
+                self['systemUserProcesses'] = repr(systemProcPsu)
             else:
-                profileInfo += str(len(systemProcPsu))+'",\n'
-            profileInfo += '    "systemUserProcessesFlagged": "'+repr(systemProcPsuFlagged)+'",\n'
+                self['systemUserProcesses'] = repr(systemProcPsu)
+            self['systemUserProcessesFlagged'] = repr(systemProcPsuFlagged)
         except:
-            profileInfo += '    "systemUserProcesses": "[?]",\n'
-            profileInfo += '    "systemUserProcessesFlagged": "[?]",\n'
-        return profileInfo
+            self['systemUserProcesses'] = "[?]"
+            self['systemUserProcessesFlagged'] = "[?]"
     
-    def _getWindowInfo(self,win=None,verbose=False, progressBar=False):
+    def _setWindowInfo(self,win=None,verbose=False, progressBar=False):
         # These 'configuration lists' control what attributes are reported.
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
         # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
@@ -381,10 +331,6 @@ class RuntimeInfo(dict):
         monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
         if verbose: monAttrList += monAttrListVerbose
         
-        profileInfo = ''
-        
-        usingTempWin = False  # later avoid closing user's window
-        profileInfo += '  #[[ Window ]] #---------\n'
         if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
             i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
             del(winAttrList[i])
@@ -398,58 +344,73 @@ class RuntimeInfo(dict):
                 print 'Warning (AttributeError): Window instance has no attribute', winAttr
                 continue
             if hasattr(attrValue, '__call__'):
-                try: attrValue = attrValue()
+                try:
+                    a = attrValue()
+                    attrValue = a
                 except:
                     print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
                     continue
-            strthing = str(attrValue).replace('"','').replace('\n','')
             while winAttr[0]=='_':
                 winAttr = winAttr[1:]
-            if winAttr in ['monitor.getDistance','monitor.getWidth']:
-                strthing += ' cm'
             winAttr = winAttr[0].capitalize()+winAttr[1:]
             winAttr = winAttr.replace('Monitor._','Monitor.')
-            profileInfo += '    "window'+winAttr+'": "'+strthing+'",\n'
+            self['window'+winAttr] = attrValue
         
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
-        profileInfo += '    "windowSecPerRefresh": "%.5f",\n' % (msPFavg/1000.)
-        profileInfo += '    "windowMsPerFrameAvg": "%.2f",\n' % (msPFavg)
-        profileInfo += '    "windowMsPerFrameMed6": "%.2f",\n' % (msPF6md)
-        profileInfo += '    "windowMsPerFrameSD":  "%.2f",\n' % (msPFstd)
-        return profileInfo
-    
-    def _getPythonInfo(self):
+        self['windowSecPerRefresh'] = "%.5f" % (msPFavg/1000.)
+        self['windowMsPerFrameAvg'] = "%.2f" %(msPFavg)
+        self['windowMsPerFrameMed6'] = "%.2f" %(msPF6md)
+        self['windowMsPerFrameSD'] = "%.2f" %(msPFstd)
+        
+    def _setPythonInfo(self):
         # External python packages:
-        profileInfo = ''
-        profileInfo += '    "pythonNumpyVersion": "'+numpy.__version__.replace('"','')+'",\n'
-        profileInfo += '    "pythonScipyVersion": "'+scipy.__version__.replace('"','')+'",\n'
-        profileInfo += '    "pythonMatplotlibVersion": "'+matplotlib.__version__.replace('"','')+'",\n'
-        profileInfo += '    "pythonPygletVersion": "'+pyglet.__version__.replace('"','')+'",\n'
+        self['pythonNumpyVersion'] = numpy.__version__
+        self['pythonScipyVersion'] = scipy.__version__
+        self['pythonMatplotlibVersion'] = matplotlib.__version__
+        self['pythonPygletVersion'] = pyglet.__version__
         try: from pygame import __version__ as pygameVersion
         except: pygameVersion = '(no pygame)'
-        profileInfo += '    "pythonPygameVersion": "'+pygameVersion.replace('"','')+'",\n'
+        self['pythonPygameVersion'] = pygameVersion
         
         # Python gory details:
-        profileInfo += '    "pythonFullVersion": "'+sys.version.replace('\n',' ').replace('"','')+'",\n'
-        profileInfo += '    "pythonExecutable": "'+sys.executable.replace('"','')+'",\n'
-        return profileInfo
-    
-    def _getOpenGLInfo(self):
+        self['pythonFullVersion'] = sys.version.replace('\n',' ')
+        self['pythonExecutable'] = sys.executable
+        
+    def _setOpenGLInfo(self):
         # OpenGL info:
+        self['openGLVendor'] = gl_info.get_vendor()
+        self['openGLRenderingEngine'] = gl_info.get_renderer()
+        self['openGLVersion'] = gl_info.get_version()
+        
         GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
             'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
-        profileInfo = '  #[[ OpenGL ]] #---------\n'
-        profileInfo += '    "openGLVendor": "'+gl_info.get_vendor().replace('"','')+'",\n'
-        profileInfo += '    "openGLRenderingEngine": "'+gl_info.get_renderer().replace('"','')+'",\n'
-        profileInfo += '    "openGLVersion": "'+gl_info.get_version().replace('"','')+'",\n'
         for ext in GLextensionsOfInterest:
-            profileInfo += '    "openGLext'+ext+'": '+str(bool(gl_info.have_extension(ext)))+',\n'
-        return profileInfo
-    
+            self['openGLext'+ext] = bool(gl_info.have_extension(ext))
+        
     def __repr__(self):
-        # returns string that is quite readable, and also legal python dict syntax
-        return '{\n'+self.stringRepr+'}'
+        # returns string that is quite readable, and also legal python dict (and close to configObj syntax)
+        info = '{\n#[ PsychoPy2 RuntimeInfo ]\n'
+        sections = ['PsychoPy', 'Experiment', 'System', 'Window', 'Python', 'OpenGL']
+        for sect in sections:
+            info += '  #[[ %s ]] #---------\n' % (sect)
+            sectKeys = [k for k in self.keys() if k.lower().find(sect.lower()) == 0]
+            sectKeys.sort(key=str.lower)
+            for k in sectKeys:
+                info += '    "%s": %s,\n' % (k, self[k]) #.replace('"','').replace('\n',' '))
+        info += '}'
+        return info
     
     def __str__(self):
-        # cleaned-up for easiest human-reading (e.g., in a log file), no longer legal python syntax
-        return self.stringRepr.replace('"','').replace(',\n','\n')
+        # cleaned-up for human reading (e.g., in a log file), no longer legal python syntax
+        # add anything needed, like units
+        addUnitsCM = ['windowMonitor.getDistance','windowMonitor.getWidth']
+        for k in addUnitsCM:
+            self[k] = str(self[k])+' cm'
+        info = self.__repr__()
+        info.replace('"','').replace(',\n','\n')
+        
+        return info
+        
+    def config(self):
+        # return a ConfigObj?
+        return None
