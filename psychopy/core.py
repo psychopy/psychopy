@@ -211,7 +211,7 @@ class RuntimeInfo(dict):
         self['experimentDirectory'] = scriptDir
         svnrev = svnVersion(dir=scriptDir)
         if svnrev: 
-            self['experimentDirctorySVNRevision'] = svnrev
+            self['experimentDirectorySVNRevision'] = svnrev
         self._setSystemUserInfo()
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
@@ -223,7 +223,7 @@ class RuntimeInfo(dict):
             usingTempWin = False
             self._setWindowInfo(win, verbose, progressBar)
        
-        self['pythonVersion'] = sys.version.split()[0] # always do this
+        self['pythonVersion'] = sys.version.split()[0] # always do this, not just if verbose
         if verbose:
             self._setPythonInfo()
             self._setOpenGLInfo()
@@ -235,11 +235,11 @@ class RuntimeInfo(dict):
         self['systemHostName'] = platform.node()
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
-            pInfo = ' '+OSXver+' '+architecture
+            pInfo = 'darwin '+OSXver+' '+architecture
         elif sys.platform in ['linux2']:
-            pInfo = ' '+platform.release()
+            pInfo = 'linux2 '+platform.release()
         elif sys.platform in ['win32']:
-            pInfo = ' windowsversion='+repr(sys.getwindowsversion())
+            pInfo = 'win32 windowsversion='+repr(sys.getwindowsversion())
         else:
             pInfo = ' [?]'
         self['systemPlatform'] = pInfo
@@ -266,13 +266,9 @@ class RuntimeInfo(dict):
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Word etc is launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
             'Parallels', 'Coherence',
-            'VMware',
-            #'update-notifier'
-            ]
+            'VMware']
         appIgnoreList = [# always ignore these, exact match:
-            'ps','login','-tcsh','bash',
-            'iTunesHelper',
-            ]
+            'ps','login','-tcsh','bash', 'iTunesHelper',]
         
         # assess concurrently active processes owner by the current user:
         try:
@@ -311,13 +307,12 @@ class RuntimeInfo(dict):
                         if p.lower().find(app.lower())>-1: # match anywhere in the process line
                             systemProcPsuFlagged.append([app, pr[pid]])
             if verbose and userProcsDetailed:
-                self['systemUserProcesses'] = repr(systemProcPsu)
-            else:
-                self['systemUserProcesses'] = repr(systemProcPsu)
-            self['systemUserProcessesFlagged'] = repr(systemProcPsuFlagged)
+                self['systemUserProcCmdPid'] = repr(systemProcPsu)
+            self['systemUserProcCount'] = len(systemProcPsu)
+            self['systemUserProcFlagged'] = repr(systemProcPsuFlagged)
         except:
-            self['systemUserProcesses'] = "[?]"
-            self['systemUserProcessesFlagged'] = "[?]"
+            self['systemUserProcCmdPid'] = "[?]"
+            self['systemUserProcFlagged'] = "[?]"
     
     def _setWindowInfo(self,win=None,verbose=False, progressBar=False):
         # These 'configuration lists' control what attributes are reported.
@@ -357,7 +352,7 @@ class RuntimeInfo(dict):
             self['window'+winAttr] = attrValue
         
         msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
-        self['windowSecPerRefresh'] = "%.5f" % (msPFavg/1000.)
+        self['windowRefreshTimeSec'] = "%.5f" % (msPFavg/1000.)
         self['windowMsPerFrameAvg'] = "%.2f" %(msPFavg)
         self['windowMsPerFrameMed6'] = "%.2f" %(msPF6md)
         self['windowMsPerFrameSD'] = "%.2f" %(msPFstd)
@@ -388,26 +383,40 @@ class RuntimeInfo(dict):
             self['openGLext'+ext] = bool(gl_info.have_extension(ext))
         
     def __repr__(self):
-        # returns string that is quite readable, and also legal python dict (and close to configObj syntax)
+        # returns string that is readable and legal python (dict), and close to configObj syntax
         info = '{\n#[ PsychoPy2 RuntimeInfo ]\n'
         sections = ['PsychoPy', 'Experiment', 'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
             sectKeys = [k for k in self.keys() if k.lower().find(sect.lower()) == 0]
-            sectKeys.sort(key=str.lower)
+            sectKeys.sort(key=str.lower, reverse=bool(sect in ['Window', 'Python', 'OpenGL']))
             for k in sectKeys:
-                info += '    "%s": %s,\n' % (k, self[k]) #.replace('"','').replace('\n',' '))
+                if type(self[k]) == type('abc'):
+                    self[k] = self[k].replace('"','').replace('\n',' ')
+                info += '    "%s": "%s",\n' % (k, self[k])
         info += '}'
         return info
     
     def __str__(self):
-        # cleaned-up for human reading (e.g., in a log file), no longer legal python syntax
-        # add anything needed, like units
-        addUnitsCM = ['windowMonitor.getDistance','windowMonitor.getWidth']
-        for k in addUnitsCM:
+        # clean up for human reading (e.g., in a log file)
+        # add some unit labels:
+        for k in ['windowMonitor.getDistance','windowMonitor.getWidth']:
             self[k] = str(self[k])+' cm'
-        info = self.__repr__()
-        info.replace('"','').replace(',\n','\n')
+        for k in ['windowMsPerFrameSD','windowMsPerFrameMed6','windowMsPerFrameAvg']:
+            self[k] = str(self[k])+' ms'
+        for k in ['windowRefreshTimeSec','windowRefreshThreshold']:
+            self[k] = str(self[k])+' s'
+        for k in ['windowPos','windowSize']:
+            self[k] = str(self[k])+' pix'
+        
+        if len(self['systemUserProcFlagged']): # condense to just the names, as single str
+            prSet = []
+            for pr in eval(self['systemUserProcFlagged']):
+                prSet += [pr[0]]
+            self['systemUserProcFlagged'] = ' '.join(list(set(prSet)))
+        infoLines = self.__repr__()
+        info = infoLines.splitlines()[1:-1] # remove enclosing braces from repr
+        info = '\n'.join(info).replace('",','').replace('"','')+'\n'
         
         return info
         
