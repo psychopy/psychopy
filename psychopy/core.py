@@ -98,8 +98,8 @@ def shellCall(shellCmd, stderr=False):
     """
     
     shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args
-    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE, close_fds=True).communicate()
-    
+    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE).communicate()
+        
     if stderr:
         return stdoutData, stderrData
     else:
@@ -163,7 +163,7 @@ def msPerFrame(myWin, frames=60, progressBar=True):
         
     t  = [] # clock times
     ft = [] # frame-times
-    for i in range(5): # wake everybody up
+    for i in range(20): # wake everybody up
         myWin.flip()
     
     # accumulate secs per frame for a bunch of frames:
