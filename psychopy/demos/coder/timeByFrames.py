@@ -13,16 +13,19 @@ myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
 log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 myClock = core.Clock() #just to keep track of time
 
-#present a stimulus for EXACTLY 20 frames and exactly one cycle
+#present a stimulus for EXACTLY nFrames and exactly one cycle
 for frameN in range(nFrames):
-    myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1/nFrames to prev value)
+    myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1.0/nFrames to prev value)
     myStim.draw()
     myWin.flip()
-myWin.close()    
+
 #report the mean time afterwards
 print 'total time=', myClock.getTime()
 print 'avg frame time=', myClock.getTime()/nFrames
-frameTimes=pylab.array(myWin.frameIntervals[20:])*1000#convert to ms
-pylab.plot(frameTimes[20:], '-o')#ignore the first 20 (likely to be noisy)
+myWin.close() # this takes a while--do it after getting time from the clock
+frameTimes=pylab.array(myWin.frameIntervals[5:])*1000 #convert to ms, ignore the first 5 (likely to be noisy)
+pylab.plot(frameTimes, '-o')
+frameTimes.sort() # can be interesting
+pylab.plot(frameTimes, '-o')
 pylab.ylabel('frame times (ms)')
 pylab.show()
