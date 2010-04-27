@@ -11,6 +11,8 @@ myWin.setRecordFrameIntervals(True)
 
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
 log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
+for f in range(5):
+    myWin.flip()
 myClock = core.Clock() #just to keep track of time
 
 #present a stimulus for EXACTLY nFrames and exactly one cycle
@@ -24,8 +26,6 @@ print 'total time=', myClock.getTime()
 print 'avg frame time=', myClock.getTime()/nFrames
 myWin.close() # this takes a while--do it after getting time from the clock
 frameTimes=pylab.array(myWin.frameIntervals[5:])*1000 #convert to ms, ignore the first 5 (likely to be noisy)
-pylab.plot(frameTimes, '-o')
-frameTimes.sort() # can be interesting
 pylab.plot(frameTimes, '-o')
 pylab.ylabel('frame times (ms)')
 pylab.show()
