@@ -98,7 +98,8 @@ def shellCall(shellCmd, stderr=False):
     """
     
     shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args
-    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE).communicate()
+    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE, close_fds=True).communicate()
+    
     if stderr:
         return stdoutData, stderrData
     else:
@@ -132,14 +133,21 @@ def svnVersion(dir='.'):
     return svnrev
 
 def msPerFrame(myWin, frames=60, progressBar=True):
-    """assesses the monitor refresh rate, and SD of refresh rate under current conditions
+    """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
-    times at least 60 frames, returns the average of all, the avg of the six at the median (in ms),
-    and the standard deviation of all frames
+    Times each refresh for at least 60 frames (~1 sec), while displaying an optional progress bar.
+    The progress bar is useful for testing many frames, to show that something is happening,
+    and is currently only available if the window units are 'norm'.
+    
+    Returns timing stats (in ms) of:
+    - average time of a frame, over all 60+ frames
+    - standard deviation of all 60+ (variability, not captured in the average, < 0.06 ms is achievable)
+    - median, as the average of 6 frame times around the median (~ estimate of the monitor refresh rate)
     """
-    # extend: 1. allow display of a specific stim during refresh testing?
-    # 2. allow other than norm units for progress bars
-    # 3. allow clearBuff = False, so user can display something and then test refresh during that static display
+    # extend?
+    # - allow display of a specific stim during refresh testing?
+    # - allow other than norm units for progress bars
+    # - allow clearBuff = False, so user can display something and then test refresh during that static display
     #    e.g., perhaps have an "any-key to end" option
     
     from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
@@ -171,9 +179,9 @@ def msPerFrame(myWin, frames=60, progressBar=True):
     ft = [t[i] - t[i-1] for i in range(1,len(t))] 
     ft.sort() # sort in order to get a slice around the median, and average it:
     secPerFrame = numpy.average(ft[ (frames-num2avg)/2 : (frames+num2avg)/2 ])
-    msPFmd6 = 1000 * secPerFrame
-    msPFavg = 1000 * numpy.average(ft)
-    msPFstd = 1000 * numpy.std(ft)
+    msPFmd6 = float(1000 * secPerFrame)
+    msPFavg = float(1000 * numpy.average(ft))
+    msPFstd = float(1000 * numpy.std(ft))
     
     return msPFavg, msPFstd, msPFmd6
     
@@ -184,17 +192,39 @@ class RuntimeInfo(dict):
     Finds and returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
     your window and monitor settings (if any), python & packages, and openGL.
     
-    The value in sys.argv[0] is assumed to be your "experiment script". You have to explicitly provide
-    any desired author and version info. Your information (such as author) cannot contain double-quote characters
-    (they are removed), but single-quotes are fine. Setting verbose=True reports more detail, including python
-    package versions and OpenGL info.
-    The screen refresh rate is estimated in ms-per-frame by msPerFrame(), which is passed progressBar as an arg.
-    If the directory containing your script is under version control using svn, the revision number is discovered.
-    if verbose and getUserProcs='detailed', then return names and PID's of the user's other concurrent processes.
+    Example usage: see runtimeInfo.py in coder demos
     """
-    
-    def __init__(self, author=None, version=None, win=None, verbose=False, progressBar=False, userProcsDetailed=False):
-        """This is where most of the work gets done: build up self[key]
+    def __init__(self, win=None, author=None, version=None, verbose=False, refreshTest=None, userProcsDetailed=False):
+        """
+        :Parameters:
+            
+            win : *None*, psychopy.visual.Window() instance
+                what window to use for refresh rate testing (if any) and settings (if win != None)
+            author : *None*, string
+                string for user-supplied author info (of an experiment, sys.argv[0])
+            version : *None*, string
+                string for user-supplied version info (of an experiment, sys.argv[0])
+            verbose : *False*, True
+                True put
+            refreshTest : *None*, False, True, 'progressBar'
+                if refreshTest, then assess refresh average, median, and SD of 60 win.flip()s, using core.msPerFrame()
+            userProcsDetailed: *False*, True
+                get details about concurrent user's processses (command, process-ID)
+                
+        :Returns a dict:
+            
+            psychopy : version
+                psychopyVersion
+            experiment : author, version, directory, name, run-time, svn revision # of directory (if any)
+                experimentAuthor, experimentVersion, ...
+            system : hostname, platform, user login, count of users, user process info (count, cmd + pid), flagged processes
+                systemHostname, systemPlatform, ...
+            window : (see output; many details about the refresh rate, window, and monitor; units are noted)
+                windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
+            python : version of python, versions of key packages (numpy, scipy, matplotlib, pyglet, pygame)
+                pythonVersion, pythonScipyVersion, ...
+            openGL : version, vendor, rendering engine, plus info on whether key extensions are present
+                openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
         """
         from psychopy import visual # have to do this in __init__ (visual imports core)
         
@@ -218,10 +248,11 @@ class RuntimeInfo(dict):
         # need a window for frames-per-second, and some drivers want a window open
         if win == None: # make a temporary window, later close it
             win = visual.Window(fullscr=True, monitor="testMonitor", allowGUI=False, units='norm')
+            refreshTest = 'progressBar'
             usingTempWin = True
         else: # we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
-            self._setWindowInfo(win, verbose, progressBar)
+        self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
        
         self['pythonVersion'] = sys.version.split()[0] # always do this, not just if verbose
         if verbose:
@@ -268,7 +299,7 @@ class RuntimeInfo(dict):
             'Parallels', 'Coherence',
             'VMware']
         appIgnoreList = [# always ignore these, exact match:
-            'ps','login','-tcsh','bash', 'iTunesHelper',]
+            'ps','login','tcsh','bash', 'iTunesHelper']
         
         # assess concurrently active processes owner by the current user:
         try:
@@ -289,7 +320,8 @@ class RuntimeInfo(dict):
                 if err: raise
                 cmdStr = 'COMMAND' # or 'CMD'?
             systemProcPsu = []
-            systemProcPsuFlagged = []
+            systemProcPsuFlagged = [] 
+            systemUserProcFlaggedPID = []
             procLines = proc.splitlines() 
             headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
@@ -306,15 +338,43 @@ class RuntimeInfo(dict):
                     for app in appFlagList:
                         if p.lower().find(app.lower())>-1: # match anywhere in the process line
                             systemProcPsuFlagged.append([app, pr[pid]])
+                            systemUserProcFlaggedPID.append(pr[pid])
             if verbose and userProcsDetailed:
-                self['systemUserProcCmdPid'] = repr(systemProcPsu)
+                self['systemUserProcCmdPid'] = systemProcPsu
             self['systemUserProcCount'] = len(systemProcPsu)
-            self['systemUserProcFlagged'] = repr(systemProcPsuFlagged)
+            self['systemUserProcFlagged'] = systemProcPsuFlagged
+            
+            if verbose and userProcsDetailed:
+                self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
+            
+            # here's how you can suspend other applications while running your exp
+            suspendNonessentialApps = False
+            self.suspendedApps = []
+            if verbose and userProcsDetailed and suspendNonessentialApps and sys.platform in ['darwin']:
+                for PID in self['systemUserProcPsuFlaggedPID']:
+                    os.popen("kill -STOP "+PID) # temporarily suspend flagged applications
+                    self.suspendedApps.append(PID)
+            for PID in self.suspendedApps:
+                os.popen("kill -CONT "+PID) # just remember to wake up again -CONT after your experiment!
+            
         except:
             self['systemUserProcCmdPid'] = "[?]"
             self['systemUserProcFlagged'] = "[?]"
+            self.zombified = []
     
-    def _setWindowInfo(self,win=None,verbose=False, progressBar=False):
+    def _setWindowInfo(self,win=None,verbose=False, refreshTest=None, usingTempWin=True):
+        """find and store info about the window: refresh rate, configuration info
+        """
+        
+        if refreshTest in ['progressBar', True]:
+            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, frames=60, progressBar=bool(refreshTest=='progressBar'))
+            self['windowRefreshTimeAvg_sec'] = msPFavg / 1000
+            self['windowRefreshTimeAvg_ms'] = msPFavg
+            self['windowRefreshTimeMedian_ms'] = msPFmd6
+            self['windowRefreshTimeSD_ms'] = msPFstd
+        if usingTempWin:
+            return
+        
         # These 'configuration lists' control what attributes are reported.
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
         # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
@@ -349,13 +409,13 @@ class RuntimeInfo(dict):
                 winAttr = winAttr[1:]
             winAttr = winAttr[0].capitalize()+winAttr[1:]
             winAttr = winAttr.replace('Monitor._','Monitor.')
+            if winAttr in ['Pos','Size']:
+                winAttr += '_pix'
+            if winAttr in ['Monitor.getWidth','Monitor.getDistance']:
+                winAttr += '_cm'
+            if winAttr in ['RefreshThreshold']:
+                winAttr += '_sec'
             self['window'+winAttr] = attrValue
-        
-        msPFavg, msPFstd, msPF6md = msPerFrame(win, frames=60, progressBar=progressBar)
-        self['windowRefreshTimeSec'] = "%.5f" % (msPFavg/1000.)
-        self['windowMsPerFrameAvg'] = "%.2f" %(msPFavg)
-        self['windowMsPerFrameMed6'] = "%.2f" %(msPF6md)
-        self['windowMsPerFrameSD'] = "%.2f" %(msPFstd)
         
     def _setPythonInfo(self):
         # External python packages:
@@ -376,50 +436,53 @@ class RuntimeInfo(dict):
         self['openGLVendor'] = gl_info.get_vendor()
         self['openGLRenderingEngine'] = gl_info.get_renderer()
         self['openGLVersion'] = gl_info.get_version()
-        
         GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
             'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
+    
         for ext in GLextensionsOfInterest:
             self['openGLext'+ext] = bool(gl_info.have_extension(ext))
         
     def __repr__(self):
-        # returns string that is readable and legal python (dict), and close to configObj syntax
-        info = '{\n#[ PsychoPy2 RuntimeInfo ]\n'
+        """ Return a string that is a legal python (dict), and close to YAML and configObj syntax
+        """
+        info = '{\n#[ PsychoPy2 RuntimeInfoStart ]\n'
         sections = ['PsychoPy', 'Experiment', 'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
             sectKeys = [k for k in self.keys() if k.lower().find(sect.lower()) == 0]
+            # get keys for items matching this section label, in alpha or reverse-alpha order:
             sectKeys.sort(key=str.lower, reverse=bool(sect in ['Window', 'Python', 'OpenGL']))
             for k in sectKeys:
-                if type(self[k]) == type('abc'):
-                    self[k] = self[k].replace('"','').replace('\n',' ')
-                info += '    "%s": "%s",\n' % (k, self[k])
-        info += '}'
+                selfk = self[k] # alter a copy for display purposes
+                if type(selfk) == type('abc'):
+                    selfk = selfk.replace('"','').replace('\n',' ')
+                elif type(selfk) == type(0.123):
+                    selfk = "%.3f" % selfk
+                if k in ['systemUserProcFlagged','systemUserProcCmdPid'] and len(selfk): # then strcat unique proc names
+                    prSet = []
+                    for pr in self[k]: # str -> list of lists
+                        prSet += [pr[0]] # first item in sublist is proc name (CMD)
+                    selfk = ' '.join(list(set(prSet)))
+                info += '    "%s": "%s",\n' % (k, selfk)
+        info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
         return info
     
     def __str__(self):
-        # clean up for human reading (e.g., in a log file)
-        # add some unit labels:
-        for k in ['windowMonitor.getDistance','windowMonitor.getWidth']:
-            self[k] = str(self[k])+' cm'
-        for k in ['windowMsPerFrameSD','windowMsPerFrameMed6','windowMsPerFrameAvg']:
-            self[k] = str(self[k])+' ms'
-        for k in ['windowRefreshTimeSec','windowRefreshThreshold']:
-            self[k] = str(self[k])+' s'
-        for k in ['windowPos','windowSize']:
-            self[k] = str(self[k])+' pix'
-        
-        if len(self['systemUserProcFlagged']): # condense to just the names, as single str
-            prSet = []
-            for pr in eval(self['systemUserProcFlagged']):
-                prSet += [pr[0]]
-            self['systemUserProcFlagged'] = ' '.join(list(set(prSet)))
+        """ Return a string intended for printing to a log file
+        """
         infoLines = self.__repr__()
         info = infoLines.splitlines()[1:-1] # remove enclosing braces from repr
+        for i,line in enumerate(info):
+            if line.find('openGLext')>-1:
+                tmp = line.split(':')
+                info[i] = ': '.join(['   '+tmp[1].replace(',',''),tmp[0].replace('    ','')+','])
         info = '\n'.join(info).replace('",','').replace('"','')+'\n'
-        
         return info
-        
-    def config(self):
-        # return a ConfigObj?
-        return None
+    
+    def _type(self):
+        # for debugging
+        sk = self.keys()
+        sk.sort()
+        for k in sk:
+            print k,type(self[k]),self[k]
+            
