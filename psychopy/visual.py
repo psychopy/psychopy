@@ -3330,8 +3330,11 @@ class TextStim(_BaseVisualStim):
                 Position on the screen            
             depth: 
                 Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
-            rgb: 
-                The color of the text (ranging [-1,-1,-1] to [1,1,1])            
+            color: 
+                The color of the text (ranging [-1,-1,-1] to [1,1,1])
+                NB: parameter rgb=() is deprecated.  
+            colorSpace: 'rgb'
+                The color-space to use.
             opacity: 
                 How transparent the object will be (0 for transparent, 1 for opaque)
             units : **None**, 'norm', 'cm', 'deg' or 'pix'  

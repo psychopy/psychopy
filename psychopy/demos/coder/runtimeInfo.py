@@ -1,23 +1,26 @@
 # runtimeInfo.py: a demo showing some use-cases for class core.RuntimeInfo() and core.msPerFrame()
 
-## these are used in the demo, in the way you might in your experiment:
-__author__ = 'Jeremy "R." Gray' # double-quotes will be silently removed 
-__version__ = "v1.0.a' "               # single quotes are left, eg, O'Connor 
+# these are used in the demo, in the way you might in your experiment:
+__author__ = 'Jeremy "R." Gray' ## double-quotes will be silently removed 
+__version__ = "v1.0.a' "               ## single quotes will be left, eg, O'Connor 
 
-from psychopy import core, visual
+from psychopy import core, visual, log
 
-## when creating an experiment, first define your window (& monitor):
-myWin = visual.Window((300,300), fullscr=False, monitor='testMonitor', allowGUI=False, units='norm', waitBlanking=True)
+# when creating an experiment, first define your window (& monitor):
+myWin = visual.Window((800,600), fullscr=True, monitor='testMonitor', units='norm') ##waitBlanking=True
+##myWin.setRecordFrameIntervals(True)
+##log.console.setLevel(log.DEBUG) #report skipped frames
 
-## then gather run-time info. All parameters are optional:
+# then gather run-time info. All parameters are optional:
 info = core.RuntimeInfo(
         author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
         version=__version__+" <-- your experiment version info",
-        verbose=True, # True means report on everything
-        win=myWin,    # a psychopy.visual.Window() instance
-        refreshTest='progressBar', # None, True, or 'progressBar' (eye-candy to avoid a blank screen)
-        userProcsDetailed=False  # if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+        verbose=True, ## True means report on everything
+        win=myWin,    ## a psychopy.visual.Window() instance
+        refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
+        userProcsDetailed=False  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
         )
+myWin.close()
 
 print """
 System and other run-time details are now saved in "info", a dict-like object. You have to decide
@@ -37,9 +40,9 @@ print "\nYou can extract single items from info, using keys, e.g.:"
 print "  psychopyVersion = %s" % info['psychopyVersion']
 try:
     info["windowRefreshTimeAvg_ms"]  # just to raise exception here if no key
-    print "Test of the screen refresh rate (60 samples):"
+    print "Test of the screen refresh rate:"
     print "  %.2f ms = average refresh time" % info["windowRefreshTimeAvg_ms"]
-    print "  %.2f ms = median (average of the 6 times nearest the median time)" % info["windowRefreshTimeMedian_ms"]
+    print "  %.2f ms = median (average of 12 times around the median time)" % info["windowRefreshTimeMedian_ms"]
     print "  %.3f ms = standard deviation" % info["windowRefreshTimeSD_ms"]
     print "  %.2f ms = median + 3 SD" % (info["windowRefreshTimeMedian_ms"] +3*info["windowRefreshTimeSD_ms"])
     print "  %.2f ms = current refresh threshold" % (info["windowRefreshThreshold_sec"] * 1000)
@@ -56,11 +59,9 @@ try:
                 print 'other programs running? (command, process-ID):',info['systemUserProcFlagged']
         else: 
             print """Try defining the window as full-screen (its not currently), i.e. at the top of the demo change to:
-    myWin = visual.Window((200,200), fullscr=True, ...
+    myWin = visual.Window((800,600), fullscr=True, ...
 and re-run the demo."""
 except:
     pass
 print """
-(NB: The progress-bar is not the demo! Scroll up to see the text output.)"""
-
-
+(NB: The visual is not the demo! Scroll up to see the text output.)"""

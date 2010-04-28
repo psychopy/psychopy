@@ -5,8 +5,8 @@
 
 import sys, platform
 
-def rush():#dummy method. will be overridden by imports below
-    pass
+def rush():#dummy method. will be overridden by imports below (that return True)
+    return None
 def waitForVBL():
     pass
     

@@ -12,9 +12,9 @@ from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
 import scipy, matplotlib, pyglet
 
-#  
-try: from ext import rush
-except: pass
+# no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
+from psychopy.ext import rush
+haveRush = rush(False)  # NB: this looks weird, but avoids setting high-priority incidentally
 
 runningThreads=[]
 try:
@@ -132,64 +132,72 @@ def svnVersion(dir='.'):
     
     return svnrev
 
-def msPerFrame(myWin, frames=60, progressBar=True):
+def msPerFrame(myWin, nFrames=60, showVisual=True):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
-    Times each refresh for at least 60 frames (~1 sec), while displaying an optional progress bar.
-    The progress bar is useful for testing many frames, to show that something is happening,
-    and is currently only available if the window units are 'norm'.
+    Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
+    The visual is just eye-candy to show that something is happening when assessing many frames,
+    requires 'norm' units for your window. 
     
     Returns timing stats (in ms) of:
-    - average time of a frame, over all 60+ frames
-    - standard deviation of all 60+ (variability, not captured in the average, < 0.06 ms is achievable)
-    - median, as the average of 6 frame times around the median (~ estimate of the monitor refresh rate)
+    - average time per frame, for all frames
+    - standard deviation of all frames
+    - median, as the average of 12 frame times around the median (~monitor refresh rate)
     """
-    # extend?
-    # - allow display of a specific stim during refresh testing?
-    # - allow other than norm units for progress bars
-    # - allow clearBuff = False, so user can display something and then test refresh during that static display
-    #    e.g., perhaps have an "any-key to end" option
     
     from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
     
-    frames = max(60, frames)  # lower bound of 60 samples--need enough to estimate the SD
-    num2avg = 6  # how many to average from the middle
+    nFrames = max(60, nFrames)  # lower bound of 60 samples--need enough to estimate the SD
+    num2avg = 12  # how many to average from around the median
     if myWin.units != 'norm': # so far things are hard coded in norm units, bad
-        progressBar = False
-    if progressBar:
-        vAdj = -0.35
-        pbar = visual.ShapeStim(myWin, lineWidth=1, lineColor=(0,0,1), lineColorSpace='rgb',
-                    fillColor=(0,0,1),fillColorSpace='rgb', vertices=[[-.5,vAdj-.05],[-.5,vAdj+.05],[-.5,vAdj+.05],[-.5,vAdj-.05]])
-        
-    t  = [] # clock times
-    ft = [] # frame-times
-    for i in range(20): # wake everybody up
-        myWin.flip()
+        showVisual = False
+    myMsg = visual.TextStim(myWin, text='(refresh rate)', italic=True, 
+                            color=(.7,.6,.5),colorSpace='rgb', height=0.1)
+    if showVisual:
+        x,y = myWin.size
+        myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', size=(float(y)/x,1.0), sf=3.0, opacity=.2)
+    clockt = [] # clock times
+    drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
     
-    # accumulate secs per frame for a bunch of frames:
-    t.append(getTime()) # core.getTime()
-    for i in range(frames):
-        if progressBar:
-            f = -.5 + float(i)/frames # right end of progress bar
-            pbar.setVertices([[-.5,vAdj-.05], [-.5,vAdj+.05], [f,vAdj+.05], [f+.04,vAdj], [f,vAdj-.05]])
-            pbar.draw()
+    # accumulate secs per frame (and time-to-draw) for a bunch of frames:
+    rush(True)
+    for i in range(5): # wake everybody up
         myWin.flip()
-        t.append(getTime()) # this is core.getTime()
-    myWin.flip()
-    ft = [t[i] - t[i-1] for i in range(1,len(t))] 
-    ft.sort() # sort in order to get a slice around the median, and average it:
-    secPerFrame = numpy.average(ft[ (frames-num2avg)/2 : (frames+num2avg)/2 ])
-    msPFmd6 = float(1000 * secPerFrame)
-    msPFavg = float(1000 * numpy.average(ft))
-    msPFstd = float(1000 * numpy.std(ft))
+    for i in range(nFrames): # ... and go for real this time
+        clockt.append(getTime()) 
+        if showVisual:
+            myStim.setPhase(1.0/nFrames, '+')
+            myStim.setSF(3./nFrames, '+')
+            myStim.setOri(12./nFrames,'+')
+            myStim.setOpacity(.9/nFrames, '+')
+            myStim.draw()
+        else:
+            myMsg.draw()
+        drawt.append(getTime())
+        myWin.flip()
+    rush(False)
+    frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1,len(clockt))]
+    """drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == draw only
+    freeTimes = [frameTimes[i] - drawTimes[i] for i in range(len(frameTimes))] # == unused time
+    print "draw=%.1fms free=%.1fms pad=%.1fms" % (1000*numpy.average(drawTimes),1000*numpy.average(freeTimes),1000*padTime_sec)
+    """
     
-    return msPFavg, msPFstd, msPFmd6
+    # cast to float so that the resulting type == type(0.123)
+    frameTimes.sort() # for median
+    msPFmed = 1000. * float(numpy.average(frameTimes[ (nFrames-num2avg)/2 : (nFrames+num2avg)/2 ])) # median-most slice
+    msPFavg = 1000. * float(numpy.average(frameTimes)) 
+    msPFstd = 1000. * float(numpy.std(frameTimes))
+    #msdrawAvg = 1000. * float(numpy.average(drawTimes))
+    #msdrawSD = 1000. * float(numpy.std(drawTimes))
+    #msfree = 1000. * float(numpy.average(freeTimes))
+    
+    return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
     
 
 class RuntimeInfo(dict):
-    """Returns a snapshot of your configuration at run-time, intended to be useful for immediate or archival use.
+    """Returns a snapshot of your configuration at run-time, for immediate or archival use.
     
-    Finds and returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
+    Returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
     your window and monitor settings (if any), python & packages, and openGL.
     
     Example usage: see runtimeInfo.py in coder demos
@@ -262,19 +270,24 @@ class RuntimeInfo(dict):
             win.close() # close after doing openGL
         
     def _setSystemUserInfo(self):
-        # machine name and platform:
+        # machine name
         self['systemHostName'] = platform.node()
+        
+        # platform name, placeholder for power-source detection
+        powerSource = False
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
-            pInfo = 'darwin '+OSXver+' '+architecture
+            platInfo = 'darwin '+OSXver+' '+architecture
         elif sys.platform in ['linux2']:
-            pInfo = 'linux2 '+platform.release()
+            platInfo = 'linux2 '+platform.release()
         elif sys.platform in ['win32']:
-            pInfo = 'win32 windowsversion='+repr(sys.getwindowsversion())
+            platInfo = 'win32 windowsversion='+repr(sys.getwindowsversion())
         else:
             pInfo = ' [?]'
-        self['systemPlatform'] = pInfo
-        
+        self['systemPlatform'] = platInfo
+        if powerSource:
+            self['systemPowerSource'] = powerSource
+            
         # count all unique people (user IDs logged in), and find current user name
         try:
             users = shellCall("who -q").splitlines()[0].split()
@@ -366,8 +379,8 @@ class RuntimeInfo(dict):
         """find and store info about the window: refresh rate, configuration info
         """
         
-        if refreshTest in ['progressBar', True]:
-            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, frames=60, progressBar=bool(refreshTest=='progressBar'))
+        if refreshTest in ['grating', 'progressBar', True]:
+            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
             self['windowRefreshTimeAvg_sec'] = msPFavg / 1000
             self['windowRefreshTimeAvg_ms'] = msPFavg
             self['windowRefreshTimeMedian_ms'] = msPFmd6
@@ -381,11 +394,10 @@ class RuntimeInfo(dict):
         winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
         winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
         if verbose: winAttrList += winAttrListVerbose
-        # if 'monitor' is in winAttrList, then these items are reported, as win.monitor.X:
+        
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
         monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
         if verbose: monAttrList += monAttrListVerbose
-        
         if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
             i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
             del(winAttrList[i])
@@ -427,6 +439,12 @@ class RuntimeInfo(dict):
         except: pygameVersion = '(no pygame)'
         self['pythonPygameVersion'] = pygameVersion
         
+        try:
+            from psychopy.ext import rush
+            self['pythonHaveExtRush'] = bool(type(rush) == type(lambda x : x))
+        except:
+            self['pythonHaveExtRush'] = False
+            
         # Python gory details:
         self['pythonFullVersion'] = sys.version.replace('\n',' ')
         self['pythonExecutable'] = sys.executable
@@ -450,14 +468,18 @@ class RuntimeInfo(dict):
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
             sectKeys = [k for k in self.keys() if k.lower().find(sect.lower()) == 0]
-            # get keys for items matching this section label, in alpha or reverse-alpha order:
+            # get keys for items matching this section label; use reverse-alpha order if easier to read:
             sectKeys.sort(key=str.lower, reverse=bool(sect in ['Window', 'Python', 'OpenGL']))
             for k in sectKeys:
                 selfk = self[k] # alter a copy for display purposes
                 if type(selfk) == type('abc'):
                     selfk = selfk.replace('"','').replace('\n',' ')
-                elif type(selfk) == type(0.123):
+                elif k.find('_ms')> -1: #type(selfk) == type(0.123):
                     selfk = "%.3f" % selfk
+                elif k.find('_sec')> -1:
+                    selfk = "%.4f" % selfk
+                elif k.find('_cm')>-1:
+                    selfk = "%.1f" % selfk
                 if k in ['systemUserProcFlagged','systemUserProcCmdPid'] and len(selfk): # then strcat unique proc names
                     prSet = []
                     for pr in self[k]: # str -> list of lists
@@ -473,7 +495,7 @@ class RuntimeInfo(dict):
         infoLines = self.__repr__()
         info = infoLines.splitlines()[1:-1] # remove enclosing braces from repr
         for i,line in enumerate(info):
-            if line.find('openGLext')>-1:
+            if line.find('openGLext')>-1: # swap order for OpenGL extensions -- much easier to read
                 tmp = line.split(':')
                 info[i] = ': '.join(['   '+tmp[1].replace(',',''),tmp[0].replace('    ','')+','])
         info = '\n'.join(info).replace('",','').replace('"','')+'\n'

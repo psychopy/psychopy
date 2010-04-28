@@ -19,8 +19,13 @@ from the pywin32 extensions.
     #define THREAD_PRIORITY_HIGHEST         2
     #define THREAD_PRIORITY_TIME_CRITICAL   15
     
-from ctypes import windll
-windll=windll.kernel32
+try:
+    from ctypes import windll
+    windll=windll.kernel32
+    importWindllFailed = False
+except:
+    importWindllFailed = True
+    log.debug("rush() not available because import windll failed in ext/win32.py")
 
 NORMAL_PRIORITY_CLASS    =32
 IDLE_PRIORITY_CLASS      =64
@@ -45,6 +50,9 @@ def rush(value=True):
     keys within the display loop). Otherwise you could end up locked
     out and having to reboot!
     """
+    if importWindllFailed:
+        return False
+    
     thr=windll.GetCurrentThread()
     pr =windll.GetCurrentProcess()
     if value:
@@ -53,6 +61,7 @@ def rush(value=True):
     else:
             windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS)
             windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL)
+    return True
 
 def waitForVBL():
     """Not implemented on win32 yet
