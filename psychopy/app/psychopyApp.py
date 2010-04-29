@@ -56,25 +56,23 @@ class PsychoSplashScreen(wx.SplashScreen):
         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
                                  0, None)
         # get UID; eventually disallow root / sudo / Administrator
+        user = ''
+        uid = '-1'
         try:
-            user = None
-            uid = '-1'
             user = os.environ['USER']
             uid = os.popen('id -u').read()
         except:
-            try:
-                user = os.environ['USERNAME']
-            except:
-                pass
+            user = os.environ['USERNAME']
             try:
                 uid = os.popen('id -u').read()
             except:
-                if user == 'Administrator':
-                    uid = '0'
+                uid = '0'
         uidRootMsg = ''
-        if int(uid) == 0:
-            uidRootMsg = '!'
-            
+        try:
+            if int(uid) == 0:
+                uidRootMsg = '!'
+        except:
+            pass
         #setup statusbar
         self.SetBackgroundColour('WHITE')
         self.status = wx.StaticText(self, -1, "  Loading libraries... "+uidRootMsg,
