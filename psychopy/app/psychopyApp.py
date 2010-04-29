@@ -55,9 +55,29 @@ class PsychoSplashScreen(wx.SplashScreen):
         # following order.
         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
                                  0, None)
+        # get UID; eventually disallow root / sudo / Administrator
+        try:
+            user = None
+            uid = '-1'
+            user = os.environ['USER']
+            uid = os.popen('id -u').read()
+        except:
+            try:
+                user = os.environ['USERNAME']
+            except:
+                pass
+            try:
+                uid = os.popen('id -u').read()
+            except:
+                if user == 'Administrator':
+                    uid = '0'
+        uidRootMsg = ''
+        if int(uid) == 0:
+            uidRootMsg = '!'
+            
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries...",
+        self.status = wx.StaticText(self, -1, "  Loading libraries... "+uidRootMsg,
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))

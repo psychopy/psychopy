@@ -134,6 +134,26 @@ def svnVersion(file):
         
     return svnRev, svnLastChangedRev, svnUrl
 
+def getUserNameUID():
+    """return user name, UID
+    """
+    user = ''
+    uid = '-1'    
+    try:
+        user = os.environ['USER']
+        uid = os.popen('id -u').read()
+    except:
+        try:
+            user = os.environ['USERNAME']
+        except:
+            pass
+        try:
+            uid = os.popen('id -u').read()
+        except:
+            if user == 'Administrator':
+                uid = '0'
+    return user, uid
+
 def msPerFrame(myWin, nFrames=60, showVisual=True):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
@@ -294,26 +314,12 @@ class RuntimeInfo(dict):
             self['systemPowerSource'] = powerSource
             
         # count all unique people (user IDs logged in), and find current user name & UID
+        self['systemUser'],self['systemUserID'] = getUserNameUID()
         try:
             users = shellCall("who -q").splitlines()[0].split()
             self['systemUsersCount'] = len(set(users))
         except:
-            self['systemUsersCount'] = "[?]"
-        try:
-            self['systemUser'] = os.environ['USER']
-            self['systemUserID'] = int(shellCall('id -u'))
-        except:
-            try:
-                self['systemUser'] = os.environ['USERNAME']
-            except:
-                self['systemUser'] = "[?]"
-            try:
-                self['systemUserID'] = int(shellCall('id -u'))
-            except:
-                if self['systemUser'] == 'Administrator':
-                    self['systemUserID'] = 0
-                else:
-                    self['systemUserID'] = "[?]"
+            self['systemUsersCount'] = False
         
         # when last rebooted
         try:
