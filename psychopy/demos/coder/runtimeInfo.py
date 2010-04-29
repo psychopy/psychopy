@@ -7,7 +7,7 @@ __version__ = "v1.0.a' "               ## single quotes will be left, eg, O'Conn
 from psychopy import core, visual, log
 
 # when creating an experiment, first define your window (& monitor):
-myWin = visual.Window((800,600), fullscr=True, monitor='testMonitor', units='norm') ##waitBlanking=True
+myWin = visual.Window(fullscr=True)
 ##myWin.setRecordFrameIntervals(True)
 ##log.console.setLevel(log.DEBUG) #report skipped frames
 
@@ -18,7 +18,7 @@ info = core.RuntimeInfo(
         verbose=True, ## True means report on everything
         win=myWin,    ## a psychopy.visual.Window() instance
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
-        userProcsDetailed=False  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+        userProcsDetailed=True  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
         )
 myWin.close()
 
@@ -39,13 +39,11 @@ print """If that's more detail than you want, try: info = core.RuntimeInfo(...,v
 print "\nYou can extract single items from info, using keys, e.g.:"
 print "  psychopyVersion = %s" % info['psychopyVersion']
 try:
-    info["windowRefreshTimeAvg_ms"]  # just to raise exception here if no key
-    print "Test of the screen refresh rate:"
+    info["windowRefreshTimeAvg_ms"]  # just to raise exception here if no keys
+    print "or from the test of the screen refresh rate:"
     print "  %.2f ms = average refresh time" % info["windowRefreshTimeAvg_ms"]
-    print "  %.2f ms = median (average of 12 times around the median time)" % info["windowRefreshTimeMedian_ms"]
+    print "  %.2f ms = median (average of 12 at the median, ~monitor refresh rate)" % info["windowRefreshTimeMedian_ms"]
     print "  %.3f ms = standard deviation" % info["windowRefreshTimeSD_ms"]
-    print "  %.2f ms = median + 3 SD" % (info["windowRefreshTimeMedian_ms"] +3*info["windowRefreshTimeSD_ms"])
-    print "  %.2f ms = current refresh threshold" % (info["windowRefreshThreshold_sec"] * 1000)
 
     ## Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
     refreshSDwarningLevel_ms = 0.20 ##ms

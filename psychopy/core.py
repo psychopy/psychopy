@@ -219,7 +219,7 @@ class RuntimeInfo(dict):
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
                 
-        :Returns a dict:
+        :Returns a flat dict:
             
             psychopy : version
                 psychopyVersion
@@ -300,6 +300,13 @@ class RuntimeInfo(dict):
             try: self['systemUser'] = os.environ['USERNAME']
             except: self['systemUser'] = "[?]"
         
+        # when last rebooted
+        try:
+            lastboot = shellCall("who -b").split()
+            self['systemStartUpTime'] = ' '.join(lastboot[2:])
+        except:
+            self['systemStartUpTime'] = "[?]"
+        
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
         profileInfo = ''
@@ -375,13 +382,14 @@ class RuntimeInfo(dict):
             self['systemUserProcFlagged'] = "[?]"
             self.zombified = []
     
-    def _setWindowInfo(self,win=None,verbose=False, refreshTest=None, usingTempWin=True):
+    def _setWindowInfo(self,win=None,verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
         
-        if refreshTest in ['grating', 'progressBar', True]:
+        if refreshTest in ['grating', True]:
             msPFavg, msPFstd, msPFmd6 = msPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
-            self['windowRefreshTimeAvg_sec'] = msPFavg / 1000
+            if verbose:
+                self['windowRefreshTimeAvg_sec'] = msPFavg / 1000
             self['windowRefreshTimeAvg_ms'] = msPFavg
             self['windowRefreshTimeMedian_ms'] = msPFmd6
             self['windowRefreshTimeSD_ms'] = msPFstd
@@ -472,14 +480,17 @@ class RuntimeInfo(dict):
             sectKeys.sort(key=str.lower, reverse=bool(sect in ['Window', 'Python', 'OpenGL']))
             for k in sectKeys:
                 selfk = self[k] # alter a copy for display purposes
-                if type(selfk) == type('abc'):
-                    selfk = selfk.replace('"','').replace('\n',' ')
-                elif k.find('_ms')> -1: #type(selfk) == type(0.123):
-                    selfk = "%.3f" % selfk
-                elif k.find('_sec')> -1:
-                    selfk = "%.4f" % selfk
-                elif k.find('_cm')>-1:
-                    selfk = "%.1f" % selfk
+                try:
+                    if type(selfk) == type('abc'):
+                        selfk = selfk.replace('"','').replace('\n',' ')
+                    elif k.find('_ms')> -1: #type(selfk) == type(0.123):
+                        selfk = "%.3f" % selfk
+                    elif k.find('_sec')> -1:
+                        selfk = "%.4f" % selfk
+                    elif k.find('_cm')>-1:
+                        selfk = "%.1f" % selfk
+                except:
+                    pass
                 if k in ['systemUserProcFlagged','systemUserProcCmdPid'] and len(selfk): # then strcat unique proc names
                     prSet = []
                     for pr in self[k]: # str -> list of lists
