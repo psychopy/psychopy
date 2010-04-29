@@ -141,17 +141,13 @@ def getUserNameUID():
     uid = '-1'    
     try:
         user = os.environ['USER']
-        uid = os.popen('id -u').read()
     except:
-        try:
-            user = os.environ['USERNAME']
-        except:
-            pass
-        try:
-            uid = os.popen('id -u').read()
-        except:
-            if user == 'Administrator':
-                uid = '0'
+        user = os.environ['USERNAME']
+    try:
+        uid,err = shellCall('id -u',stderr=True)
+        if err: raise
+    except:
+        uid = '0'
     return user, uid
 
 def msPerFrame(myWin, nFrames=60, showVisual=True):

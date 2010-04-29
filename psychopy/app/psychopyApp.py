@@ -57,22 +57,20 @@ class PsychoSplashScreen(wx.SplashScreen):
                                  0, None)
         # get UID; eventually disallow root / sudo / Administrator
         user = ''
-        uid = '-1'
+        uid = '-1'    
         try:
             user = os.environ['USER']
-            uid = os.popen('id -u').read()
         except:
             user = os.environ['USERNAME']
-            try:
-                uid = os.popen('id -u').read()
-            except:
-                uid = '0'
-        uidRootMsg = ''
         try:
-            if int(uid) == 0:
-                uidRootMsg = '!'
+            uid,err = shellCall('id -u',stderr=True)
+            if err or user=='Administrator': raise
         except:
-            pass
+            uid = '0'
+        uidRootMsg = '.'
+        if uid.strip()=='0':
+            uidRootMsg = '!'
+        self.uid = uidRootMsg
         #setup statusbar
         self.SetBackgroundColour('WHITE')
         self.status = wx.StaticText(self, -1, "  Loading libraries... "+uidRootMsg,
@@ -113,7 +111,7 @@ class PsychoPyApp(wx.App):
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2...")
+        splash.status.SetLabel("  Loading PsychoPy2..."+splash.uid)
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
