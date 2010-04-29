@@ -133,7 +133,7 @@ def svnVersion(dir='.'):
         #f.close()
         #tmph = os.path.join(dir,'tmp.h')
         #stdout,stderr = shellCall('subwcrev "'+dir+'" "'+tmpin+'" "'+tmph+'"',stderr=True)
-        stdout,stderr = shellCall('subwcrev "'+dir, stderr=True)
+        stdout,stderr = shellCall('subwcrev "'+dir+'"', stderr=True)
         #os.unlink(tmpin)
         # print stdout
         if stderr == None:
@@ -333,7 +333,7 @@ class RuntimeInfo(dict):
             'mdimport', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Word etc is launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
-            'Parallels', 'Coherence',
+            'Parallels', 'Coherence', 'prl_client_app',
             'VMware']
         appIgnoreList = [# always ignore these, exact match:
             'ps','login','tcsh','bash', 'iTunesHelper']
