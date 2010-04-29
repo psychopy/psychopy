@@ -92,6 +92,8 @@ class MouseComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
         else: currLoop=None
+        if store!='nothing' and currLoop and currLoop.type=='StairHandler':
+            buff.writeIndented("#NB PsychoPy doesn't handle a 'correct answer' for mouse events so doesn't know how to handle mouse with StairHandler")
         if store == 'final' and currLoop!=None:
             buff.writeIndented("#get info about the %(name)s\n" %(self.params))
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
