@@ -111,8 +111,6 @@ def svnVersion(file):
     """Tries to discover the svn version (revision #) for a directory.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
-    
-    svn info <file> gives info about the file itself, seems better
     """
     svnRev, svnLastChangedRev, svnUrl = None, None, None
     
@@ -122,9 +120,9 @@ def svnVersion(file):
         for line in svninfo.splitlines():
             if line.find('URL:') == 0:
                 svnUrl = line.split()[1]
-            elif line.find('Revision: ')> -1:
+            elif line.find('Revision: ') == 0:
                 svnRev = line.split()[1]
-            elif line.find('Last Changed Rev')>-1:
+            elif line.find('Last Changed Rev') == 0:
                 svnLastChangedRev = line.split()[3]
     else: # worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
         stdout,stderr = shellCall('subwcrev "'+file+'"', stderr=True)
@@ -295,24 +293,34 @@ class RuntimeInfo(dict):
         if powerSource:
             self['systemPowerSource'] = powerSource
             
-        # count all unique people (user IDs logged in), and find current user name
+        # count all unique people (user IDs logged in), and find current user name & UID
         try:
             users = shellCall("who -q").splitlines()[0].split()
-            self['systemUserCount'] = len(set(users))
+            self['systemUsersCount'] = len(set(users))
         except:
-            self['systemUserCount'] = "[?]"
+            self['systemUsersCount'] = "[?]"
         try:
             self['systemUser'] = os.environ['USER']
+            self['systemUserID'] = int(shellCall('id -u'))
         except:
-            try: self['systemUser'] = os.environ['USERNAME']
-            except: self['systemUser'] = "[?]"
+            try:
+                self['systemUser'] = os.environ['USERNAME']
+            except:
+                self['systemUser'] = "[?]"
+            try:
+                self['systemUserID'] = int(shellCall('id -u'))
+            except:
+                if self['systemUser'] == 'Administrator':
+                    self['systemUserID'] = 0
+                else:
+                    self['systemUserID'] = "[?]"
         
         # when last rebooted
         try:
             lastboot = shellCall("who -b").split()
-            self['systemStartUpTime'] = ' '.join(lastboot[2:])
+            self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
-            self['systemStartUpTime'] = "[?]"
+            self['systemRebooted'] = "[?]"
         
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
