@@ -27,7 +27,7 @@ if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False   
 
 if havePyglet:
-            
+    
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
