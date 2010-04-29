@@ -98,14 +98,16 @@ def shellCall(shellCmd, stderr=False):
     """
     
     shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args
-    stdoutData, stderrData = subprocess.Popen(shellCmdList,stdout=subprocess.PIPE).communicate()
+    stdoutData, stderrData = subprocess.Popen(
+        shellCmdList,stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE ).communicate()
         
     if stderr:
         return stdoutData, stderrData
     else:
         return stdoutData
 
-def svnVersion(dir='.'):
+def svnVersion(file):
     """Tries to discover the svn version (revision #) for a directory.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
@@ -115,29 +117,24 @@ def svnVersion(dir='.'):
     svnRev, svnLastChangedRev, svnUrl = None, None, None
     
     if sys.platform in ['darwin', 'linux2', 'freebsd']:
-        svnRev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True)
+        #svnRev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True) # expects a dir
+        svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
+        for line in svninfo.splitlines():
+            if line.find('URL:') == 0:
+                svnUrl = line.split()[1]
+            elif line.find('Revision: ')> -1:
+                svnRev = line.split()[1]
+            elif line.find('Last Changed Rev')>-1:
+                svnLastChangedRev = line.split()[3]
+    else: # worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
+        stdout,stderr = shellCall('subwcrev "'+file+'"', stderr=True)
+        for line in stdout.splitlines():
+            if line.find('Last committed at revision') == 0:
+                svnRev = line.split()[4]
+            elif line.find('Updated to revision') == 0:
+                svnLastChangedRev = line.split()[3]
         
-        #svninfo,stderr = shellCall('svn info "'+dir+'"',stderr=True) # expects a filename, not dir
-        if False and stderr == None:
-            for line in svninfo.splitlines():
-                if line.find('URL:') == 0:
-                    svnUrl = line.split[1]
-                elif line.find('Revision: ')> -1:
-                    svnRev = line.split[1]
-                elif line.find('Last Changed Rev')>-1:
-                    svnLastChangedRev = line.split[3]
-    else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
-        stdout,stderr = shellCall('subwcrev "'+dir+'"', stderr=True)
-        if stderr == None:
-            for line in stdout.splitlines():
-                if line.find('Last committed at revision') == 0:
-                    svnRev = line.split()[4]
-                elif line.find('Updated to revision') == 0:
-                    svnLastChangedRev = line.split()[3]
-        else:
-            svnRev = None
-    
-    return svnRev #, svnLastChangedRev, svnUrl
+    return svnRev, svnLastChangedRev, svnUrl
 
 def msPerFrame(myWin, nFrames=60, showVisual=True):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
@@ -254,9 +251,12 @@ class RuntimeInfo(dict):
         self['experimentRunDateTime'] = time.ctime()
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self['experimentDirectory'] = scriptDir
-        svnrev = svnVersion(dir=scriptDir)
-        if svnrev: 
-            self['experimentDirectorySVNRevision'] = svnrev
+        rev, last, url = svnVersion(os.path.abspath(sys.argv[0]))
+        self['experimentScriptSVNRevision'] = rev
+        if rev:
+            self['experimentScriptSVNRevLast'] = last
+            self['experimentScriptSVNRevURL'] = url
+              
         self._setSystemUserInfo()
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
