@@ -140,8 +140,10 @@ def svnVersion(dir='.'):
             #f = open(tmph,'r')
             #svnrev = f.readline() # contained in stdout as well, so can avoid tmp file
             for line in stdout.splitlines():
-                if line.find('')>-1:
-                    svnRev = line.split()[1]
+                if line.find('Last committed at revision') == 0:
+                    svnRev = line.split()[4]
+                elif line.find('Updated to revision') == 0:
+                    svnLastChangedRev = line.split[3]
             #f.close()
             #os.unlink(tmph)
         else:
