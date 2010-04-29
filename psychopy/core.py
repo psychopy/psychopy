@@ -109,28 +109,45 @@ def svnVersion(dir='.'):
     """Tries to discover the svn version (revision #) for a directory.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
-    """
-    if sys.platform in ['darwin', 'linux2', 'freebsd']:
-        svnrev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True) 
-        if stderr:
-            svnrev = None
-    else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
-        tmpin = os.path.join(dir,'tmp.in')
-        f = open(tmpin,'w')
-        f.write('$WCREV$')
-        f.close()
-        tmph = os.path.join(dir,'tmp.h')
-        stdout,stderr = shellCall('subwcrev "'+dir+'" "'+tmpin+'" "'+tmph+'"',stderr=True)
-        os.unlink(tmpin)
-        if stderr == None:
-            f = open(tmph,'r')
-            svnrev = f.readline() # likely contained in stdout as well
-            f.close()
-            os.unlink(tmph)
-        else:
-            svnrev = None
     
-    return svnrev
+    svn info <file> gives info about the file itself, seems better
+    """
+    svnRev, svnLastChangedRev, svnUrl = None, None, None
+    
+    if sys.platform in ['darwin', 'linux2', 'freebsd']:
+        svnRev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True)
+        
+        #svninfo,stderr = shellCall('svn info "'+dir+'"',stderr=True) # expects a filename, not dir
+        if False and stderr == None:
+            for line in svninfo.splitlines():
+                if line.find('URL:') == 0:
+                    svnUrl = line.split[1]
+                elif line.find('Revision: ')> -1:
+                    svnRev = line.split[1]
+                elif line.find('Last Changed Rev')>-1:
+                    svnLastChangedRev = line.split[3]
+    else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
+        #tmpin = os.path.join(dir,'tmp.in')
+        #f = open(tmpin,'w')
+        #f.write('$WCREV$')
+        #f.close()
+        #tmph = os.path.join(dir,'tmp.h')
+        #stdout,stderr = shellCall('subwcrev "'+dir+'" "'+tmpin+'" "'+tmph+'"',stderr=True)
+        stdout,stderr = shellCall('subwcrev "'+dir, stderr=True)
+        #os.unlink(tmpin)
+        # print stdout
+        if stderr == None:
+            #f = open(tmph,'r')
+            #svnrev = f.readline() # contained in stdout as well, so can avoid tmp file
+            for line in stdout.splitlines():
+                if line.find('')>-1:
+                    svnRev = line.split()[1]
+            #f.close()
+            #os.unlink(tmph)
+        else:
+            svnRev = None
+    
+    return svnRev #, svnLastChangedRev, svnUrl
 
 def msPerFrame(myWin, nFrames=60, showVisual=True):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
