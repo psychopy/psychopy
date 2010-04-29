@@ -127,25 +127,13 @@ def svnVersion(dir='.'):
                 elif line.find('Last Changed Rev')>-1:
                     svnLastChangedRev = line.split[3]
     else: # this hack worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
-        #tmpin = os.path.join(dir,'tmp.in')
-        #f = open(tmpin,'w')
-        #f.write('$WCREV$')
-        #f.close()
-        #tmph = os.path.join(dir,'tmp.h')
-        #stdout,stderr = shellCall('subwcrev "'+dir+'" "'+tmpin+'" "'+tmph+'"',stderr=True)
         stdout,stderr = shellCall('subwcrev "'+dir+'"', stderr=True)
-        #os.unlink(tmpin)
-        # print stdout
         if stderr == None:
-            #f = open(tmph,'r')
-            #svnrev = f.readline() # contained in stdout as well, so can avoid tmp file
             for line in stdout.splitlines():
                 if line.find('Last committed at revision') == 0:
                     svnRev = line.split()[4]
                 elif line.find('Updated to revision') == 0:
-                    svnLastChangedRev = line.split[3]
-            #f.close()
-            #os.unlink(tmph)
+                    svnLastChangedRev = line.split()[3]
         else:
             svnRev = None
     
