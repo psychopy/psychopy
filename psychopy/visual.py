@@ -4137,7 +4137,15 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
         sinusoid = numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
-        wasLum = True    elif tex == "saw":        intensity = numpy.linspace(-1.0,1.0,res,endpoint=True)*numpy.ones([res,1])        wasLum = True    elif tex == "tri":        intensity = numpy.linspace(-1.0,3.0,res,endpoint=True)#-1:3 means the middle is at +1        intensity[int(res/2.0+1):] = 2.0-intensity[int(res/2.0+1):]#remove from 3 to get back down to -1        intensity = intensity*numpy.ones([res,1])#make 2D        wasLum = True
+        wasLum = True
+    elif tex == "saw":
+        intensity = numpy.linspace(-1.0,1.0,res,endpoint=True)*numpy.ones([res,1])
+        wasLum = True
+    elif tex == "tri":
+        intensity = numpy.linspace(-1.0,3.0,res,endpoint=True)#-1:3 means the middle is at +1
+        intensity[int(res/2.0+1):] = 2.0-intensity[int(res/2.0+1):]#remove from 3 to get back down to -1
+        intensity = intensity*numpy.ones([res,1])#make 2D
+        wasLum = True
     elif tex == "sinXsin":
         onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
         intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
