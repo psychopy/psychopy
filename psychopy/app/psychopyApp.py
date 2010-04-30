@@ -69,20 +69,21 @@ class PsychoSplashScreen(wx.SplashScreen):
             else:
                 try:
                     import ctypes
-                    uid = 1
+                    uid = '500'
                     if ctypes.windll.shell32.IsUserAnAdmin():
-                        uid = 0
+                        uid = '0'
                 except:
                     raise
         except:
             uid = '0'
-        uidRootMsg = '.'
+        uidRootFlag = '.'
         if uid.strip()=='0':
-            uidRootMsg = '!'
-        self.uid = uidRootMsg
+            uidRootFlag = '!'
+        self.uidRootFlag = uidRootFlag
+        
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootMsg,
+        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootFlag,
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
@@ -120,7 +121,7 @@ class PsychoPyApp(wx.App):
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2..."+splash.uid)
+        splash.status.SetLabel("  Loading PsychoPy2..."+splash.uidRootFlag)
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
