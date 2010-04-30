@@ -238,7 +238,7 @@ class PsychoPyApp(wx.App):
         if fileName.endswith('.py'):
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
-            self.builder.setCurrentDoc(fileName)
+            self.builder.fileOpen(filename=fileName)
     def quit(self, event=None):
         self.quitting=True
         #see whether any files need saving

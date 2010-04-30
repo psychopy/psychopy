@@ -39,13 +39,13 @@ class MouseComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="The duration during which the mouse is checked")
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=event.Mouse()\n" %(self.params))
+        buff.writeIndented("%(name)s=event.Mouse(win=win)\n" %(self.params))
     def writeRoutineStartCode(self,buff):
         """Write the code that will be called at the start of the routine
         """
         #create some lists to store recorded values positions and events if we need more than one
         buff.writeIndented("#setup some python lists for storing info about the %(name)s\n" %(self.params))
-        if self.params['saveMouseState'] in ['every frame', 'on click']:
+        if self.params['saveMouseState'].val in ['every frame', 'on click']:
             buff.writeIndented("%(name)s.x = []\n" %(self.params))
             buff.writeIndented("%(name)s.y = []\n" %(self.params))
             buff.writeIndented("%(name)s.leftButton= []\n" %(self.params))
@@ -55,33 +55,43 @@ class MouseComponent(BaseComponent):
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
+        forceEnd = self.params['forceEndTrialOnPress'].val
+        continueName = self.exp.flow._currentRoutine._continueName
+        routineClockName = self.exp.flow._currentRoutine._clockName
+        
         #only write code for cases where we are storing data as we go (each frame or each click)
-        if self.params['saveMouseState'] not in ['every frame', 'on click']:
+        if self.params['saveMouseState'] not in ['every frame', 'on click'] and not forceEnd:
             return
         
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         self.writeParamUpdates(buff, 'frame')
-        buff.writeIndented("")
         
         #get a clock for timing
-        if self.params['timeRelativeTo']=='experiment':clockStr = 'globalClock'
-        elif self.params['timeRelativeTo']=='routine':clockStr = 'routineClock'
+        if self.params['timeRelativeTo'].val=='experiment':clockStr = 'globalClock'
+        elif self.params['timeRelativeTo'].val=='routine':clockStr = routineClockName
         
         #write param checking code
-        if self.params['saveMouseState'].val == 'on click':
+        if self.params['saveMouseState'].val == 'on click' or forceEnd:
             buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
             buff.writeIndented("if sum(buttons)>0:#ie if any button is pressed\n")
             buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
-        buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
-        buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
-        buff.writeIndented("%(name)s.leftButton.append(buttons[0])\n" %(self.params))
-        buff.writeIndented("%(name)s.midButton.append(buttons[1])\n" %(self.params))
-        buff.writeIndented("%(name)s.rightButton.append(buttons[2])\n" %(self.params))
-        buff.writeIndented("%s.time.append(%s.getTime())\n" %(self.params['name'], clockStr))
+        if self.params['saveMouseState'].val == 'on click':
+            buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
+            buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
+            buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
+            buff.writeIndented("%(name)s.leftButton.append(buttons[0])\n" %(self.params))
+            buff.writeIndented("%(name)s.midButton.append(buttons[1])\n" %(self.params))
+            buff.writeIndented("%(name)s.rightButton.append(buttons[2])\n" %(self.params))
+            buff.writeIndented("%s.time.append(%s.getTime())\n" %(self.params['name'], clockStr))
+            
+        #does the response end the trial?
+        if forceEnd==True:
+            buff.writeIndented("#abort routine on response\n" %self.params)
+            buff.writeIndented("%s=False\n" %continueName)
+            
         #dedent
-        if self.params['saveMouseState'] == 'on click':
+        if self.params['saveMouseState'] == 'on click' or forceEnd:
             buff.setIndentLevel(-2, relative=True)#'if' statement of the time test and button check
         else: buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
     def writeRoutineEndCode(self,buff):
