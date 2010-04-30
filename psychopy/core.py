@@ -144,8 +144,8 @@ def getUserNameUID():
     except:
         user = os.environ['USERNAME']
     try:
-        uid,err = shellCall('id -u',stderr=True)
-        if err: raise
+        if user=='Administrator': raise
+        uid = os.popen('id -u').read()
     except:
         uid = '0'
     return user, uid

@@ -63,8 +63,17 @@ class PsychoSplashScreen(wx.SplashScreen):
         except:
             user = os.environ['USERNAME']
         try:
-            uid,err = shellCall('id -u',stderr=True)
-            if err or user=='Administrator': raise
+            if user=='Administrator': raise
+            if sys.platform not in ['win32']:
+                uid = os.popen('id -u').read()
+            else:
+                try:
+                    import ctypes
+                    uid = 1
+                    if ctypes.windll.shell32.IsUserAnAdmin():
+                        uid = 0
+                except:
+                    raise
         except:
             uid = '0'
         uidRootMsg = '.'
@@ -73,7 +82,7 @@ class PsychoSplashScreen(wx.SplashScreen):
         self.uid = uidRootMsg
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries... "+uidRootMsg,
+        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootMsg,
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
