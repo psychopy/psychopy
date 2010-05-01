@@ -11,6 +11,10 @@ import subprocess, shlex, numpy
 from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
 import scipy, matplotlib, pyglet
+try:
+    import ctypes
+except:
+    pass
 
 # no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
 from psychopy.ext import rush
@@ -98,9 +102,8 @@ def shellCall(shellCmd, stderr=False):
     """
     
     shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args
-    stdoutData, stderrData = subprocess.Popen(
-        shellCmdList,stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE ).communicate()
+    stdoutData, stderrData = subprocess.Popen(shellCmdList,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
         
     if stderr:
         return stdoutData, stderrData
@@ -135,27 +138,36 @@ def svnVersion(file):
     return svnRev, svnLastChangedRev, svnUrl
 
 def getUserNameUID():
-    """return user name, UID
+    """return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root
     """
-    user = ''
-    uid = '-1'    
     try:
         user = os.environ['USER']
     except:
         user = os.environ['USERNAME']
+    uid = '-1' 
     try:
-        if user=='Administrator': raise
-        uid = os.popen('id -u').read()
+        if sys.platform not in ['win32']:
+            uid = os.popen('id -u').read()
+        else:
+            try:
+                uid = '1000'
+                if ctypes.windll.shell32.IsUserAnAdmin():
+                    uid = '0'
+            except:
+                raise
     except:
-        uid = '0'
-    return user, uid
+        pass
+    return str(user), int(uid)
 
-def msPerFrame(myWin, nFrames=60, showVisual=True):
+def msPerFrame(myWin, nFrames=60, showVisual=True, msg='', msDelay=5.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
     Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
     The visual is just eye-candy to show that something is happening when assessing many frames,
-    requires 'norm' units for your window. 
+    requires 'norm' units for your window. You can also give it text to display instead of a visual,
+    e.g., msg='(testing refresh rate)'; setting msg implies showVisual == False.
+    To simulate refresh rate under load, you can specify a time to wait within the loop prior to
+    doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
     
     Returns timing stats (in ms) of:
     - average time per frame, for all frames
@@ -169,7 +181,9 @@ def msPerFrame(myWin, nFrames=60, showVisual=True):
     num2avg = 12  # how many to average from around the median
     if myWin.units != 'norm': # so far things are hard coded in norm units, bad
         showVisual = False
-    myMsg = visual.TextStim(myWin, text='(refresh rate)', italic=True, 
+    if len(msg):
+        showVisual = False
+        myMsg = visual.TextStim(myWin, text=msg, italic=True, 
                             color=(.7,.6,.5),colorSpace='rgb', height=0.1)
     if showVisual:
         x,y = myWin.size
@@ -189,25 +203,26 @@ def msPerFrame(myWin, nFrames=60, showVisual=True):
             myStim.setOri(12./nFrames,'+')
             myStim.setOpacity(.9/nFrames, '+')
             myStim.draw()
-        else:
+        elif len(msg):
             myMsg.draw()
+        if msDelay > 0 and msDelay < 100:
+            wait(msDelay/1000.)
         drawt.append(getTime())
         myWin.flip()
     rush(False)
     frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1,len(clockt))]
-    """drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == draw only
+    drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == draw only
     freeTimes = [frameTimes[i] - drawTimes[i] for i in range(len(frameTimes))] # == unused time
-    print "draw=%.1fms free=%.1fms pad=%.1fms" % (1000*numpy.average(drawTimes),1000*numpy.average(freeTimes),1000*padTime_sec)
-    """
     
     # cast to float so that the resulting type == type(0.123)
     frameTimes.sort() # for median
     msPFmed = 1000. * float(numpy.average(frameTimes[ (nFrames-num2avg)/2 : (nFrames+num2avg)/2 ])) # median-most slice
     msPFavg = 1000. * float(numpy.average(frameTimes)) 
     msPFstd = 1000. * float(numpy.std(frameTimes))
-    #msdrawAvg = 1000. * float(numpy.average(drawTimes))
-    #msdrawSD = 1000. * float(numpy.std(drawTimes))
-    #msfree = 1000. * float(numpy.average(freeTimes))
+    msdrawAvg = 1000. * float(numpy.average(drawTimes))
+    msdrawSD = 1000. * float(numpy.std(drawTimes))
+    msfree = 1000. * float(numpy.average(freeTimes))
+    #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
     
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
     
@@ -257,24 +272,11 @@ class RuntimeInfo(dict):
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
         self['psychopyVersion'] = psychopyVersion
-        self['experimentName'] = os.path.basename(sys.argv[0])
-        if author:  
-            self['experimentAuthor'] = author
-        if version: 
-            self['experimentVersion'] = version
-        self['experimentRunDateTime'] = time.ctime()
-        scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        self['experimentDirectory'] = scriptDir
-        rev, last, url = svnVersion(os.path.abspath(sys.argv[0]))
-        self['experimentScriptSVNRevision'] = rev
-        if rev:
-            self['experimentScriptSVNRevLast'] = last
-            self['experimentScriptSVNRevURL'] = url
-              
+        self._setExperimentInfo(author,version,verbose)
         self._setSystemUserInfo()
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
-        # need a window for frames-per-second, and some drivers want a window open
+        # need a window for frames-per-second, and some openGL drivers want a window open
         if win == None: # make a temporary window, later close it
             win = visual.Window(fullscr=True, monitor="testMonitor", allowGUI=False, units='norm')
             refreshTest = 'progressBar'
@@ -289,6 +291,42 @@ class RuntimeInfo(dict):
             self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
+            
+    def _setExperimentInfo(self,author,version,verbose):
+        self['experimentScript'] = os.path.basename(sys.argv[0])
+        if author:  
+            self['experimentAuthor'] = author
+        if version: 
+            self['experimentVersion'] = version
+        self['experimentRunDateTime'] = time.ctime()
+        scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        self['experimentDirectory'] = scriptDir
+        rev, last, url = svnVersion(os.path.abspath(sys.argv[0]))
+        
+        self['experimentRandomSeed'] = '(a seed is not provided by default; you can implement your own though)'
+        
+        # script identity information:
+        self['experimentScriptSVNRevision'] = rev
+        if rev:
+            self['experimentScriptSVNRevLast'] = last
+            self['experimentScriptSVNRevURL'] = url
+        
+        # script digest:
+        try:
+            md5,err = shellCall('openssl dgst -md5 '+os.path.abspath(sys.argv[0]),stderr=True)
+            if err:
+                raise
+            self['experimentScriptDigestMD5'] = md5.split()[1]
+            if verbose:
+                sha1,err = shellCall('openssl dgst -sha1 '+os.path.abspath(sys.argv[0]),stderr=True)
+                if err:
+                    self['experimentScriptDigestSHA1'] = None
+                else:
+                    self['experimentScriptDigestSHA1'] = sha1.split()[1]
+        except:
+            self['experimentScriptDigestMD5'] = None
+            if verbose:
+                self['experimentScriptDigestSHA1'] = None
         
     def _setSystemUserInfo(self):
         # machine name
@@ -324,6 +362,14 @@ class RuntimeInfo(dict):
         except:
             self['systemRebooted'] = "[?]"
         
+        # crypto tools available?
+        try:
+            self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
+            if err:
+                raise
+        except:
+            self['systemOpenSSLVersion'] = None
+        
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
         profileInfo = ''
@@ -333,7 +379,7 @@ class RuntimeInfo(dict):
             'mdimport', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Word etc is launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
-            'Parallels', 'Coherence', 'prl_client_app',
+            'Parallels', 'Coherence', 'prl_client_app','prl_tools_service',
             'VMware']
         appIgnoreList = [# always ignore these, exact match:
             'ps','login','tcsh','bash', 'iTunesHelper']
@@ -362,9 +408,10 @@ class RuntimeInfo(dict):
             procLines = proc.splitlines() 
             headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
-                cmd = headerLine.split().index(cmdStr) # columns and column labels vary across platforms
+                cmd = headerLine.split().index(cmdStr) # columns and column labels can vary across platforms
                 pid = headerLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
             else: # this works for win XP, for output from 'tasklist'
+                procLines.pop(0)
                 procLines.pop(0)
                 cmd = 0
                 pid = 1
@@ -384,27 +431,29 @@ class RuntimeInfo(dict):
             if verbose and userProcsDetailed:
                 self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
             
-            # here's how you can suspend other applications while running your exp
-            suspendNonessentialApps = False
+            # its possible to suspend flagged applications while running your exp, which is a little dangerous
+            # you can lose data if you forget to unsuspend, or if you suspend something critical (like explorer on win probably)
+            suspendNonessentialApps = False # edit this to enable
             self.suspendedApps = []
             if verbose and userProcsDetailed and suspendNonessentialApps and sys.platform in ['darwin']:
                 for PID in self['systemUserProcPsuFlaggedPID']:
                     os.popen("kill -STOP "+PID) # temporarily suspend flagged applications
                     self.suspendedApps.append(PID)
-            for PID in self.suspendedApps:
-                os.popen("kill -CONT "+PID) # just remember to wake up again -CONT after your experiment!
+            # and you have to to do this (-CONT) after the key part of your experiment:
+            # i.e., you have to loop over suspendApps and unsuspend each one
+            for PID in self.suspendedApps: # comment out this code here, otherwise you'll immediately unsuspend things
+                os.popen("kill -CONT "+PID) 
             
         except:
             self['systemUserProcCmdPid'] = "[?]"
             self['systemUserProcFlagged'] = "[?]"
-            self.zombified = []
     
     def _setWindowInfo(self,win=None,verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
         
         if refreshTest in ['grating', True]:
-            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
+            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, nFrames=120, msDelay=5,showVisual=bool(refreshTest=='grating'))
             if verbose:
                 self['windowRefreshTimeAvg_sec'] = msPFavg / 1000
             self['windowRefreshTimeAvg_ms'] = msPFavg

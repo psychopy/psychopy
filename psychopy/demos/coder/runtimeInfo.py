@@ -1,8 +1,8 @@
 # runtimeInfo.py: a demo showing some use-cases for class core.RuntimeInfo() and core.msPerFrame()
 
 # these are used in the demo, in the way you might in your experiment:
-__author__ = 'Jeremy "R." Gray' ## double-quotes will be silently removed 
-__version__ = "v1.0.a' "               ## single quotes will be left, eg, O'Connor 
+__author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed 
+__version__ = "v1.0.a''' "               ## single quotes will be left, eg, O'Connor 
 
 from psychopy import core, visual, log
 

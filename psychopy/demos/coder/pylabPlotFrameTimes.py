@@ -2,11 +2,10 @@
 from psychopy import visual, core, log, ext
 import pylab
 
-
-# demo to illustrate some plotting with pylab, with variable screen refresh times as data
+# demo to illustrate some plotting with pylab, with screen refresh times as data
 #   http://matplotlib.sourceforge.net/
-nFrames = 500
-useFullScreen = True # False gives more interesting data for plotting; but try True as well
+nFrames = 200
+useFullScreen = False # False gives more interesting data for plotting; but try True as well
 
 # get some data to plot; same as timeByFrames.py
 myWin = visual.Window([600,600], screen=0, fullscr=useFullScreen, monitor='testMonitor', waitBlanking=True) #make a window

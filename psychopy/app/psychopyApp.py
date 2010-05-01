@@ -42,6 +42,26 @@ import wx
 from psychopy import preferences#needed by splash screen for the path to resources/psychopySplash.png
 import sys, os, threading, time, platform
 
+# get UID early; psychopy should never need anything except plain-vanilla user
+uid = '-1' # -1=undefined, 0=assumed to be root, 500+ = non-root (1000+ for debian-based?)
+try:
+    if sys.platform not in ['win32']:
+        uid = os.popen('id -u').read()
+    else:
+        try:
+            import ctypes # only if necessary
+            uid = '1000'
+            if ctypes.windll.shell32.IsUserAnAdmin():
+                uid = '0'
+        except:
+            raise
+except:
+    pass
+uidRootFlag = '.'
+if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu 
+    uidRootFlag = '!'
+    
+
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
@@ -54,33 +74,7 @@ class PsychoSplashScreen(wx.SplashScreen):
         # Call the constructor with the above arguments in exactly the
         # following order.
         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
-                                 0, None)
-        # get UID; eventually disallow root / sudo / Administrator
-        user = ''
-        uid = '-1'    
-        try:
-            user = os.environ['USER']
-        except:
-            user = os.environ['USERNAME']
-        try:
-            if user=='Administrator': raise
-            if sys.platform not in ['win32']:
-                uid = os.popen('id -u').read()
-            else:
-                try:
-                    import ctypes
-                    uid = '500'
-                    if ctypes.windll.shell32.IsUserAnAdmin():
-                        uid = '0'
-                except:
-                    raise
-        except:
-            uid = '0'
-        uidRootFlag = '.'
-        if uid.strip()=='0':
-            uidRootFlag = '!'
-        self.uidRootFlag = uidRootFlag
-        
+                                 0, None)        
         #setup statusbar
         self.SetBackgroundColour('WHITE')
         self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootFlag,
@@ -121,7 +115,7 @@ class PsychoPyApp(wx.App):
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2..."+splash.uidRootFlag)
+        splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
