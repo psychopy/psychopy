@@ -313,16 +313,11 @@ class RuntimeInfo(dict):
         
         # script digest:
         try:
-            md5,err = shellCall('openssl dgst -md5 '+os.path.abspath(sys.argv[0]),stderr=True)
-            if err:
-                raise
-            self['experimentScriptDigestMD5'] = md5.split()[1]
+            md5 = shellCall('openssl dgst -md5 "'+os.path.abspath(sys.argv[0])+'"')
+            self['experimentScriptDigestMD5'] = md5.strip().split()[1]
             if verbose:
-                sha1,err = shellCall('openssl dgst -sha1 '+os.path.abspath(sys.argv[0]),stderr=True)
-                if err:
-                    self['experimentScriptDigestSHA1'] = None
-                else:
-                    self['experimentScriptDigestSHA1'] = sha1.split()[1]
+                sha1 = shellCall('openssl dgst -sha1 "'+os.path.abspath(sys.argv[0])+'"')
+                self['experimentScriptDigestSHA1'] = sha1.strip().split()[1]
         except:
             self['experimentScriptDigestMD5'] = None
             if verbose:
