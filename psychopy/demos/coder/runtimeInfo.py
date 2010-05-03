@@ -37,7 +37,6 @@ print """If that's more detail than you want, try: info = core.RuntimeInfo(...,v
 # a data file, and its fairly readable. And because its python syntax you could later simply 
 # import your data file into python to reconstruct the dict.
 
-
 print "\nYou can extract single items from info, using keys, e.g.:"
 print "  psychopyVersion = %s" % info['psychopyVersion']
 try:

@@ -143,17 +143,17 @@ def hgVersion(file):
     if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.hg'))):
         return None
     hgRev = None
-    if sys.platform in ['darwin', 'linux2', 'freebsd']:
-        hginfo,stderr = shellCall('hg log "'+file+'"', stderr=True)
-        try:
-            hglines = hginfo.splitlines()
-            hgRev = hglines[0].split()[-1]
-            if hglines[1].find('tag:')==0:
-                hgRev += ' [%s]' % ''.join(hglines[1].split())
-        except:
-            pass
-    else:
-        pass # placeholder for win32
+    #if sys.platform in ['darwin', 'linux2', 'freebsd']:
+    hginfo,stderr = shellCall('hg log "'+file+'"', stderr=True)
+    try:
+        hglines = hginfo.splitlines()
+        hgRev = hglines[0].split()[-1]
+        if hglines[1].find('tag:')==0:
+            hgRev += ' [%s]' % ''.join(hglines[1].split())
+    except:
+        pass
+    #else:
+    #    pass # placeholder for win32
     return hgRev
 
 def getUserNameUID():
@@ -618,7 +618,8 @@ class RuntimeInfo(dict):
                     for pr in self[k]: # str -> list of lists
                         prSet += [pr[0]] # first item in sublist is proc name (CMD)
                     selfk = ' '.join(list(set(prSet)))
-                info += '    "%s": "%s",\n' % (k, selfk)
+                if k not in ['systemUserProcFlaggedPID']: # suppress display PID info -- useful at run-time, never useful in an archive
+                    info += '    "%s": "%s",\n' % (k, selfk)
         info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
         return info
     
