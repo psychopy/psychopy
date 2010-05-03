@@ -19,7 +19,7 @@ info = core.RuntimeInfo(
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
         verbose=True, ## True means report on everything
         userProcsDetailed=True,  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
-        randomSeed='time', ## a way to record a random seed for this run;'time' will use experimentTimeStampEpoch; None -> not set
+        randomSeed='time', ## a way to record a random seed for this run;'time' will use experimentRuntimeEpoch; None -> not set
             ## core.RuntimeInfo() does NOT call random.seed(info['randomSeed']), you need to do that separately (and check for None first)
         )
 myWin.close()

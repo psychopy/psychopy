@@ -355,20 +355,20 @@ class RuntimeInfo(dict):
             self['experimentAuthVersion'] = version
         
         # script identity & integrity information:
-        # sha1 digest
-        self['experimentScriptDigestSHA1'] = sha1Digest(os.path.abspath(sys.argv[0]))
-        # subversion revision?
         self['experimentScript'] = os.path.basename(sys.argv[0])  # file name
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self['experimentScriptDirectory'] = scriptDir
+        # sha1 digest
+        self['experimentScriptDigestSHA1'] = sha1Digest(os.path.abspath(sys.argv[0]))
+        # subversion revision?
         svnrev, last, url = svnVersion(os.path.abspath(sys.argv[0])) # svn revision
-        if svnrev or verbose:
+        if svnrev: # or verbose:
             self['experimentScriptSvnRevision'] = svnrev
-            if verbose: self['experimentScriptSvnRevLast'] = last
+            self['experimentScriptSvnRevLast'] = last
             self['experimentScriptSvnRevURL'] = url
         # mercurical revision?
         hgcs = hgVersion(os.path.abspath(sys.argv[0])) 
-        if hgcs or verbose:
+        if hgcs: # or verbose:
             self['experimentScriptHgChangeSet'] = hgcs
         
         # random.seed -- here, just record the value to be set later; later do: random.seed(info['randomSeed'])
@@ -411,7 +411,11 @@ class RuntimeInfo(dict):
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
-            self['systemRebooted'] = "[?]"
+            lastboot == ''
+            lastboot = os.popen('systeminfo | find "System Up Time"').read()
+            if lastboot == '': # try Vista version
+                lastboot = os.popen('systeminfo | find "System Boot Time"').read()
+            self['systemRebooted'] = lastboot.replace(' ','').strip()
         
         # crypto tools; redundant with python distribution info?
         try:
