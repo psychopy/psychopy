@@ -411,7 +411,7 @@ class RuntimeInfo(dict):
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
-            lastboot == ''
+            lastboot = ''
             lastboot = os.popen('systeminfo | find "System Up Time"').read()
             if lastboot == '': # try Vista version
                 lastboot = os.popen('systeminfo | find "System Boot Time"').read()
