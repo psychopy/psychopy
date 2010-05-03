@@ -140,7 +140,7 @@ def hgVersion(file):
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
     """
-    if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.hg'))):
+    if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
     hgRev = None
     #if sys.platform in ['darwin', 'linux2', 'freebsd']:
