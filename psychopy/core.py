@@ -110,14 +110,14 @@ def shellCall(shellCmd, stderr=False):
         return stdoutData.strip()
 
 def svnVersion(file):
-    """Tries to discover the svn version (revision #) for a directory.
+    """Tries to discover the svn version (revision #) for a file.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
     """
+    if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.svn'))):
+        return None, None, None
     svnRev, svnLastChangedRev, svnUrl = None, None, None
-    
     if sys.platform in ['darwin', 'linux2', 'freebsd']:
-        #svnRev,stderr = shellCall('svnversion -n "'+dir+'"',stderr=True) # expects a dir
         svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
         for line in svninfo.splitlines():
             if line.find('URL:') == 0:
@@ -133,11 +133,31 @@ def svnVersion(file):
                 svnRev = line.split()[4]
             elif line.find('Updated to revision') == 0:
                 svnLastChangedRev = line.split()[3]
-        
     return svnRev, svnLastChangedRev, svnUrl
 
+def hgVersion(file):
+    """Tries to discover the mercurial (hg) changeset for a file's directory.
+    
+    Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
+    """
+    if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.hg'))):
+        return None
+    hgRev = None
+    if sys.platform in ['darwin', 'linux2', 'freebsd']:
+        hginfo,stderr = shellCall('hg log "'+file+'"', stderr=True)
+        try:
+            hglines = hginfo.splitlines()
+            hgRev = hglines[0].split()[-1]
+            if hglines[1].find('tag:')==0:
+                hgRev += ' [%s]' % ''.join(hglines[1].split())
+        except:
+            pass
+    else:
+        pass # placeholder for win32
+    return hgRev
+
 def getUserNameUID():
-    """return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root
+    """return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root; but its >999 on debian
     """
     try:
         user = os.environ['USER']
@@ -158,14 +178,19 @@ def getUserNameUID():
         pass
     return str(user), int(uid)
 
-def sha1DigestFile(filename):
+def sha1Digest(str):
+    """returns base64 / hex encoded sha1 digest of a file or string, using hashlib.sha1() if available
+    """
     try:
         sha1 = hashlib.sha1()
     except:
         sha1 = sha.new() # deprecated, here for python 2.4
-    f = open(filename,'r')
-    sha1.update(f.read())
-    f.close()
+    if os.path.isfile(str):
+        f = open(str,'r')
+        sha1.update(f.read())
+        f.close()
+    else:
+        sha1.update(str)
     return sha1.hexdigest()
     
 def msPerFrame(myWin, nFrames=60, showVisual=True, msg='', msDelay=0.):
@@ -282,7 +307,7 @@ class RuntimeInfo(dict):
             
             psychopy : version
                 psychopyVersion
-            experiment : author, version, directory, name, run-time, SHA1 digest of the script, svn revision info
+            experiment : author, version, directory, name, current time-stamp, SHA1 digest, svn or hg info (if any)
                 experimentAuthor, experimentVersion, ...
             system : hostname, platform, user login, count of users, user process info (count, cmd + pid), flagged processes
                 systemHostname, systemPlatform, ...
@@ -322,59 +347,57 @@ class RuntimeInfo(dict):
             win.close() # close after doing openGL
             
     def _setExperimentInfo(self,author,version,verbose,randomSeed):
-        rightNow = time.time()
-        self['experimentRunDateTime'] = time.ctime(rightNow) # a "right now" time-stamp
-        if author:  
+        self['experimentRuntimeEpoch'] = time.time() # plausible basis for random.seed()
+        self['experimentRuntime'] = time.ctime(self['experimentRuntimeEpoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+        if author or verbose:  
             self['experimentAuthor'] = author
-        elif verbose:
-            self['experimentAuthor'] = None
-        if version: 
-            self['experimentVersion'] = version
-        elif verbose:
-            self['experimentVersion'] = None
+        if version or verbose: 
+            self['experimentAuthVersion'] = version
         
         # script identity & integrity information:
+        # sha1 digest
+        self['experimentScriptDigestSHA1'] = sha1Digest(os.path.abspath(sys.argv[0]))
+        # subversion revision?
         self['experimentScript'] = os.path.basename(sys.argv[0])  # file name
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        self['experimentDirectory'] = scriptDir
-        rev, last, url = svnVersion(os.path.abspath(sys.argv[0])) # svn revision
-        if rev:
-            self['experimentScriptSVNRevision'] = rev
-            self['experimentScriptSVNRevLast'] = last
-            self['experimentScriptSVNRevURL'] = url
-        elif verbose:
-            self['experimentScriptSVNRevision'] = None
-            self['experimentScriptSVNRevLast'] = None
-            self['experimentScriptSVNRevURL'] = None
+        self['experimentScriptDirectory'] = scriptDir
+        svnrev, last, url = svnVersion(os.path.abspath(sys.argv[0])) # svn revision
+        if svnrev or verbose:
+            self['experimentScriptSvnRevision'] = svnrev
+            if verbose: self['experimentScriptSvnRevLast'] = last
+            self['experimentScriptSvnRevURL'] = url
+        # mercurical revision?
+        hgcs = hgVersion(os.path.abspath(sys.argv[0])) 
+        if hgcs or verbose:
+            self['experimentScriptHgChangeSet'] = hgcs
         
-        try:
-            self['experimentScriptDigestSHA1'] = sha1DigestFile(os.path.abspath(sys.argv[0]))
-        except:
-            if verbose: self['experimentScriptDigestSHA1'] = None
-        
+        # random.seed -- here, just record the value to be set later; later do: random.seed(info['randomSeed'])
         if randomSeed or verbose:
-            if not randomSeed: randomSeed = rightNow
+            if randomSeed == 'time':
+                randomSeed = self['experimentRuntimeEpoch']
             self['experimentRandomSeed'] = randomSeed
         
     def _setSystemUserInfo(self):
         # machine name
         self['systemHostName'] = platform.node()
         
-        # platform name, placeholder for power-source detection
-        powerSource = False
+        # platform name, etc
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
             platInfo = 'darwin '+OSXver+' '+architecture
+            # powerSource = ...
         elif sys.platform in ['linux2']:
             platInfo = 'linux2 '+platform.release()
+            # powerSource = ...
         elif sys.platform in ['win32']:
             platInfo = 'win32 windowsversion='+repr(sys.getwindowsversion())
+            # powerSource = ...
         else:
-            pInfo = ' [?]'
+            platInfo = ' [?]'
+            # powerSource = ...
         self['systemPlatform'] = platInfo
-        if powerSource:
-            self['systemPowerSource'] = powerSource
-            
+        #self['systemPowerSource'] = powerSource
+        
         # count all unique people (user IDs logged in), and find current user name & UID
         self['systemUser'],self['systemUserID'] = getUserNameUID()
         try:
@@ -383,14 +406,14 @@ class RuntimeInfo(dict):
         except:
             self['systemUsersCount'] = False
         
-        # when last rebooted
+        # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
             self['systemRebooted'] = "[?]"
         
-        # crypto tools available?
+        # crypto tools; redundant with python distribution info?
         try:
             self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
             if err:
@@ -454,12 +477,11 @@ class RuntimeInfo(dict):
                         if p.lower().find(app.lower())>-1: # match anywhere in the process line
                             systemProcPsuFlagged.append([app, pr[pid]])
                             systemUserProcFlaggedPID.append(pr[pid])
-            if verbose and userProcsDetailed:
-                self['systemUserProcCmdPid'] = systemProcPsu
             self['systemUserProcCount'] = len(systemProcPsu)
             self['systemUserProcFlagged'] = systemProcPsuFlagged
             
             if verbose and userProcsDetailed:
+                self['systemUserProcCmdPid'] = systemProcPsu
                 self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
             
             """
