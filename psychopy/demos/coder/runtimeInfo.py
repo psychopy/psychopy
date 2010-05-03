@@ -1,24 +1,26 @@
 # runtimeInfo.py: a demo showing some use-cases for class core.RuntimeInfo() and core.msPerFrame()
 
-# these are used in the demo, in the way you might in your experiment:
-__author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed 
-__version__ = "v1.0.a''' "               ## single quotes will be left, eg, O'Connor 
+# These are used in the demo, in the way you might in your experiment:
+__author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed
+__version__ = "v1.0.a''' "               ## single quotes will be left, eg, O'Connor
 
 from psychopy import core, visual, log
 
-# when creating an experiment, first define your window (& monitor):
-myWin = visual.Window(fullscr=True)
-##myWin.setRecordFrameIntervals(True)
-##log.console.setLevel(log.DEBUG) #report skipped frames
+# When creating an experiment, first define your window (& monitor):
+myWin = visual.Window(fullscr=True, monitor='testMonitor')
+myWin.setRecordFrameIntervals(True)
+log.console.setLevel(log.DEBUG)
 
-# then gather run-time info. All parameters are optional:
+# Then gather run-time info. All parameters are optional:
 info = core.RuntimeInfo(
         author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
         version=__version__+" <-- your experiment version info",
-        verbose=True, ## True means report on everything
         win=myWin,    ## a psychopy.visual.Window() instance
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
-        userProcsDetailed=True  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+        verbose=True, ## True means report on everything
+        userProcsDetailed=True,  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
+        randomSeed=None, ## a way to record a random seed for this run; None becomes time.time()
+            ## core.RuntimeInfo() does NOT call random.seed(info['randomSeed']), you need to do that separately
         )
 myWin.close()
 
@@ -42,7 +44,7 @@ try:
     info["windowRefreshTimeAvg_ms"]  # just to raise exception here if no keys
     print "or from the test of the screen refresh rate:"
     print "  %.2f ms = average refresh time" % info["windowRefreshTimeAvg_ms"]
-    print "  %.2f ms = median (average of 12 at the median, ~monitor refresh rate)" % info["windowRefreshTimeMedian_ms"]
+    print "  %.2f ms = median (average of 12 at the median, best estimate of monitor refresh rate)" % info["windowRefreshTimeMedian_ms"]
     print "  %.3f ms = standard deviation" % info["windowRefreshTimeSD_ms"]
 
     ## Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.

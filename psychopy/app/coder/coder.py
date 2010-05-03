@@ -1573,7 +1573,9 @@ class CoderFrame(wx.Frame):
             if resp  == wx.ID_CANCEL: return -1 #return, don't run
             elif resp == wx.ID_YES: self.fileSave(None)#save then run
             elif resp == wx.ID_NO:   pass #just run
-
+        
+        print "\033" #restore normal text color for coder output window (stdout)
+        
         #check syntax by compiling - errors printed (not raised as error)
         try:
             py_compile.compile(fullPath, doraise=False)
@@ -1581,7 +1583,7 @@ class CoderFrame(wx.Frame):
             print "Problem compiling: %s" %e
 
         #provide a running... message; long fullPath --> no # are displayed unless you add some manually
-        print "\n"+("##### Running: %s #####" %(fullPath)).center(80,"#")
+        print ("##### Running: %s #####" %(fullPath)).center(80,"#")
         
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)

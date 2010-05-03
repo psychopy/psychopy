@@ -11,9 +11,7 @@ useFullScreen = False # False gives more interesting data for plotting; but try 
 myWin = visual.Window([600,600], screen=0, fullscr=useFullScreen, monitor='testMonitor', waitBlanking=True) #make a window
 myWin.setRecordFrameIntervals(True) # myWin.frameIntervals will hold the data to plot
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
-#rush(True)
 for skipSomeInitialFrames in range(10): 
-    #core.wait(0.015)
     myWin.flip()
 myClock = core.Clock()
 for frameN in range(nFrames):
@@ -21,11 +19,10 @@ for frameN in range(nFrames):
     myStim.draw()
     myWin.flip()
 avg = myClock.getTime()/nFrames
-#rush(False)
-myWin.close() # this takes a while--do it after getting time from the clock
+myWin.close()
 
 # plot in ms
-frameTimes=pylab.array(myWin.frameIntervals[10:])*1000 #convert to ms
+frameTimes=pylab.array(myWin.frameIntervals)*1000 #convert to ms
 
 # horiz line at the mean
 pylab.axhspan(avg*1000, avg*1000, linewidth=1, linestyle='dotted') 
@@ -38,8 +35,8 @@ pylab.plot(frameTimes, '-o')
 
 # a faint box based on the refreshThreshold, relative to the measured average: 
 pylab.axhspan(myWin._refreshThreshold*1000, (2*avg - myWin._refreshThreshold)*1000, 
-                linewidth=1, linestyle='dotted', alpha=.05) # transparent box above/below the mean
-# invisible points help to set scale more nicely than autoscale:
+                linewidth=1, linestyle='dotted', alpha=.08) # transparent box above/below the mean
+# invisible points (alpha=0 --> fully transparent) help to set scale more nicely than autoscale:
 pylab.plot([5+max(frameTimes)],'-o',alpha=0) 
 pylab.plot([0],'-o',alpha=0) 
 
