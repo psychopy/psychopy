@@ -11,10 +11,10 @@ import subprocess, shlex, numpy
 from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
 import scipy, matplotlib, pyglet
-try:
-    import ctypes
-except:
-    pass
+try: import ctypes
+except: pass
+try: import hashlib # python 2.5
+except: import sha
 
 # no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
 from psychopy.ext import rush
@@ -105,9 +105,9 @@ def shellCall(shellCmd, stderr=False):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
         
     if stderr:
-        return stdoutData, stderrData
+        return stdoutData.strip(), stderrData.strip()
     else:
-        return stdoutData
+        return stdoutData.strip()
 
 def svnVersion(file):
     """Tries to discover the svn version (revision #) for a directory.
@@ -159,17 +159,21 @@ def getUserNameUID():
     return str(user), int(uid)
 
 def sha1DigestFile(filename):
-    sha1,err = shellCall('openssl dgst -sha1 "'+filename+'"',stderr=True)
-    if err:
-        return None
-    return sha1.strip().split()[-1]
-
+    try:
+        sha1 = hashlib.sha1()
+    except:
+        sha1 = sha.new() # deprecated, here for python 2.4
+    f = open(filename,'r')
+    sha1.update(f.read())
+    f.close()
+    return sha1.hexdigest()
+    
 def msPerFrame(myWin, nFrames=60, showVisual=True, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
     Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
-    The visual is just eye-candy to show that something is happening when assessing many frames, and
-    requires 'norm' units for your window. You can also give it text to display instead of a visual,
+    The visual is just eye-candy to show that something is happening when assessing many frames. You can
+    also give it text to display instead of a visual,
     e.g., msg='(testing refresh rate...)'; setting msg implies showVisual == False.
     To simulate refresh rate under cpu load, you can specify a time to wait within the loop prior to
     doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.

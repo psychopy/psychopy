@@ -1574,7 +1574,10 @@ class CoderFrame(wx.Frame):
             elif resp == wx.ID_YES: self.fileSave(None)#save then run
             elif resp == wx.ID_NO:   pass #just run
         
-        print "\033" #restore normal text color for coder output window (stdout)
+        if sys.platform in ['darwin']:
+            print "\033" #restore normal text color for coder output window (stdout)
+        else:
+            print
         
         #check syntax by compiling - errors printed (not raised as error)
         try:
