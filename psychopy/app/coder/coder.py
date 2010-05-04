@@ -9,6 +9,7 @@ import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
+from psychopy.core import getTime
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -848,6 +849,9 @@ class CoderFrame(wx.Frame):
         self.currentDoc=None
         self.ignoreErrors = False
         
+        self.fileStatusLastChecked = getTime()
+        self.fileStatusCheckInterval = 5 * 60 #sec
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -1198,12 +1202,40 @@ class CoderFrame(wx.Frame):
         if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
+        if getTime() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
+            self.fileStatusLastChecked = getTime()
+            if not self.expectedModTime(self.currentDoc):
+                dlg = dialogs.MessageDialog(self,
+                        message="%s was modified outside of PsychoPy:\n\nReload?" % (os.path.basename(self.currentDoc.filename)),
+                        type='Warning')
+                if dlg.ShowModal() == wx.ID_YES:
+                    self.SetStatusText('Loading file')
+                    self.setCurrentDoc(self.currentDoc.filename)
+                    self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
+                    self.setFileModified(False)
+                self.SetStatusText('')
+                try: dlg.destroy()
+                except: pass
+            
     def pageChanged(self,event):
         old = event.GetOldSelection()
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
+        if not self.expectedModTime(self.currentDoc):
+            dlg = dialogs.MessageDialog(self,
+                    message="%s was modified outside of PsychoPy:\n\nReload?" % (os.path.basename(self.currentDoc.filename)),
+                    type='Warning')
+            if dlg.ShowModal() == wx.ID_YES:
+                self.SetStatusText('Loading file')
+                self.setCurrentDoc(self.currentDoc.filename)
+                self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
+                self.setFileModified(False)
+            self.SetStatusText('')
+            try: dlg.destroy()
+            except: pass
+            
         #event.Skip()
     def filesDropped(self, event):
         fileList = event.GetFiles()
@@ -1399,13 +1431,12 @@ class CoderFrame(wx.Frame):
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on mtime-stamps
-        
-        if not os.path.exists(doc.filename): # files that don't exist have the expected mod-time
+        if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
             return True
         actualModTime = os.path.getmtime(doc.filename)
         expectedModTime = doc.fileModTime
         if actualModTime != expectedModTime:
-            print '\n?? File %s modified outside of the Coder (IDE).' % doc.filename
+            print 'File %s modified outside of the Coder (IDE).' % doc.filename
             return False
         return True
     
@@ -1434,12 +1465,16 @@ class CoderFrame(wx.Frame):
                 if dlg.ShowModal() != wx.ID_YES:
                     print "'Save' was canceled.",
                     failToSave = True
+                try: dlg.destroy()
+                except: pass
             if os.path.exists(doc.filename) and not os.access(doc.filename,os.W_OK):
                 dlg = dialogs.MessageDialog(self,
                         message="File '%s' lacks write-permission:\nWill try save-as instead." % (os.path.basename(doc.filename)),
                         type='Info')
                 dlg.ShowModal()
                 failToSave = True
+                try: dlg.destroy()
+                except: pass
             try:
                 if failToSave: raise
                 self.SetStatusText('Saving file')
