@@ -377,7 +377,7 @@ class RuntimeInfo(dict):
             randomSeed = randomSeedFlag.replace('set:','',1); 
             if randomSeedFlag in ['time', 'set:time']:
                 randomSeed = self['experimentRuntime.epoch']
-            if randomSeedFlag: self['experimentRandomSeed'] = str(randomSeed) # allow None->None, else give it type str()
+            if randomSeedFlag: self['experimentRandomSeed'] = str(randomSeed)  # allow None->None, else give it type str()
             if randomSeedFlag.find('set:')==0:
                 random.seed(self['experimentRandomSeed'])
                 self['experimentRandomSeed.isSet'] = True
@@ -487,7 +487,8 @@ class RuntimeInfo(dict):
                     systemProcPsu.append(['_'.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
                 else:
                     systemProcPsu.append(['_'.join(pr[cmd:]),pr[pid]]) #
-                for app in [a for a in appFlagList if p.lower().find(a.lower())>-1]:
+                matchingApp = [a for a in appFlagList if p.lower().find(a.lower())>-1]
+                for app in matchingApp:
                     systemProcPsuFlagged.append([app, pr[pid]])
                     systemUserProcFlaggedPID.append(pr[pid])
             self['systemUserProcCount'] = len(systemProcPsu)
