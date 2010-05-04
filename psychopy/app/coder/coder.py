@@ -162,6 +162,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.coder = frame
         self.UNSAVED=False
         self.filename=""
+        self.fileModTime=None # for checking if the file was modified outside of CodeEditor
         self.AUTOCOMPLETE = True
         self.autoCompleteDict={}
         #self.analyseScript()  #no - analyse after loading so that window doesn't pause strangely
@@ -1342,6 +1343,7 @@ class CoderFrame(wx.Frame):
             #load text from document
             if os.path.isfile(filename):
                 self.currentDoc.SetText(open(filename).read())
+                self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 self.currentDoc.SetText("")
@@ -1377,7 +1379,6 @@ class CoderFrame(wx.Frame):
         if not keepHidden:
             self.Show()#if the user had closed the frame it might be hidden
     def fileOpen(self, event):
-
         #get path of current file (empty if current file is '')
         if hasattr(self.currentDoc, 'filename'):
             initPath = os.path.split(self.currentDoc.filename)[0]
@@ -1396,6 +1397,18 @@ class CoderFrame(wx.Frame):
 
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
+    def expectedModTime(self, doc):
+        # check for possible external changes to the file, based on mtime-stamps
+        
+        if not os.path.exists(doc.filename): # files that don't exist have the expected mod-time
+            return True
+        actualModTime = os.path.getmtime(doc.filename)
+        expectedModTime = doc.fileModTime
+        if actualModTime != expectedModTime:
+            print '\n?? File %s modified outside of the Coder (IDE).' % doc.filename
+            return False
+        return True
+    
     def fileSave(self,event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used. If the ``filename`` is
@@ -1410,13 +1423,35 @@ class CoderFrame(wx.Frame):
             filename = doc.filename
         if filename.startswith('untitled'):
             self.fileSaveAs(filename)
+            #self.setFileModified(False) # done in save-as if saved; don't want here if not saved there
         else:
-            self.SetStatusText('Saving file')
-            f = open(filename,'w')
-            f.write( doc.GetText().encode('utf-8'))
-            f.close()
-        self.setFileModified(False)
-
+            # here detect odd conditions, and set failToSave = True to try 'Save-as' rather than 'Save' 
+            failToSave = False
+            if not self.expectedModTime(doc) and os.path.exists(doc.filename):
+                dlg = dialogs.MessageDialog(self,
+                        message="File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?" % (os.path.basename(doc.filename)),
+                        type='Warning')
+                if dlg.ShowModal() != wx.ID_YES:
+                    print "'Save' was canceled.",
+                    failToSave = True
+            if os.path.exists(doc.filename) and not os.access(doc.filename,os.W_OK):
+                dlg = dialogs.MessageDialog(self,
+                        message="File '%s' lacks write-permission:\nWill try save-as instead." % (os.path.basename(doc.filename)),
+                        type='Info')
+                dlg.ShowModal()
+                failToSave = True
+            try:
+                if failToSave: raise
+                self.SetStatusText('Saving file')
+                f = open(filename,'w')
+                f.write( doc.GetText().encode('utf-8'))
+                f.close()
+                self.setFileModified(False)
+                doc.fileModTime = os.path.getmtime(filename) # JRG
+            except:
+                print "Unable to save %s... trying save-as instead." % os.path.basename(doc.filename)
+                self.fileSaveAs(filename)
+                
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing current source code')
             self.currentDoc.analyseScript()
@@ -1460,11 +1495,12 @@ class CoderFrame(wx.Frame):
                         message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
                         type='Warning')
             if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
-                self.fileSave(event=None, filename=newPath, doc=doc)
                 doc.filename = newPath
+                self.fileSave(event=None, filename=newPath, doc=doc)
                 path, shortName = os.path.split(newPath)
                 self.notebook.SetPageText(docId, shortName)
                 self.setFileModified(False)
+                doc.fileModTime = os.path.getmtime(doc.filename) # JRG: 'doc.filename' should = newPath = dlg.getPath()
                 try: dlg2.destroy()
                 except: pass
             else:

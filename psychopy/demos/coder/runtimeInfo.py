@@ -17,10 +17,12 @@ info = core.RuntimeInfo(
         version=__version__+" <-- your experiment version info",
         win=myWin,    ## a psychopy.visual.Window() instance
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
-        verbose=True, ## True means report on everything
+        verbose=True, ## True means report on everything 
         userProcsDetailed=True,  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
-        randomSeed='time', ## a way to record a random seed for this run;'time' will use experimentRuntimeEpoch; None -> not set
-            ## core.RuntimeInfo() does NOT call random.seed(info['randomSeed']), you need to do that separately (and check for None first)
+        randomSeed='set:time', ## a way to record, and optionally set, a random seed of type str; None -> default
+            ## 'time' will use experimentRuntime.epoch as the value for the seed, varies each time the script is run
+            ##'set:time' --> seed value is set to experimentRuntime.epoch, and initialized: random.seed(info['randomSeed'])
+            ##'set:42' --> set & initialize to str('42'), and will give the same sequence of random.random() for all runs of the script
         )
 myWin.close()
 

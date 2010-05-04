@@ -15,6 +15,7 @@ try: import ctypes
 except: pass
 try: import hashlib # python 2.5
 except: import sha
+import random
 
 # no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
 from psychopy.ext import rush
@@ -143,7 +144,6 @@ def hgVersion(file):
     if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
     hgRev = None
-    #if sys.platform in ['darwin', 'linux2', 'freebsd']:
     hginfo,stderr = shellCall('hg log "'+file+'"', stderr=True)
     try:
         hglines = hginfo.splitlines()
@@ -152,8 +152,6 @@ def hgVersion(file):
             hgRev += ' [%s]' % ''.join(hglines[1].split())
     except:
         pass
-    #else:
-    #    pass # placeholder for win32
     return hgRev
 
 def getUserNameUID():
@@ -178,7 +176,7 @@ def getUserNameUID():
         pass
     return str(user), int(uid)
 
-def sha1Digest(str):
+def sha1hexDigest(str):
     """returns base64 / hex encoded sha1 digest of a file or string, using hashlib.sha1() if available
     """
     try:
@@ -193,7 +191,7 @@ def sha1Digest(str):
         sha1.update(str)
     return sha1.hexdigest()
     
-def msPerFrame(myWin, nFrames=60, showVisual=True, msg='', msDelay=0.):
+def msPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions.
     
     Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
@@ -233,7 +231,7 @@ def msPerFrame(myWin, nFrames=60, showVisual=True, msg='', msDelay=0.):
         doWait = False
         
     winUnitsSaved = myWin.units 
-    myWin.units = 'norm' # norm is required for the visual (or text) display
+    myWin.units = 'norm' # norm is required for the visual (or text) display, as coded below
     
     # accumulate secs per frame (and time-to-draw) for a bunch of frames:
     rush(True)
@@ -300,8 +298,9 @@ class RuntimeInfo(dict):
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
             randomSeed: *None*
-                a way for the user to record what their random seed was; it is not set, merely recorded
-                None defaults to time.ctime() as the seed (== self['experimentRunDateTime'])
+                a way for the user to record, and optionally set, a random seed; 'set:XYZ' will both store and set the seed;
+                None defaults to python default; 'time' --> use time.time() as the seed, as obtained during RuntimeInfo()
+                randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
                 
         :Returns a flat dict: in categories
             
@@ -325,30 +324,30 @@ class RuntimeInfo(dict):
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
         
-        self._setExperimentInfo(author,version,verbose,randomSeed)
+        self._setExperimentInfo(author, version, verbose, randomSeed)
         self._setSystemUserInfo()
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
         # rewrite so that its not always necessary to open a window if you just want system info (but not monitor / window)
         if win == None: # make a temporary window, later close it
-            win = visual.Window(fullscr=True, monitor="testMonitor", allowGUI=False, units='norm')
-            refreshTest = 'progressBar'
+            win = visual.Window(fullscr=True, monitor="testMonitor")
+            refreshTest = 'grating'
             usingTempWin = True
         else: # we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
         self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
        
-        self['pythonVersion'] = sys.version.split()[0] # always do this, not just if verbose
+        self['pythonVersion'] = sys.version.split()[0]
         if verbose:
             self._setPythonInfo()
             self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
             
-    def _setExperimentInfo(self,author,version,verbose,randomSeed):
-        self['experimentRuntimeEpoch'] = time.time() # plausible basis for random.seed()
-        self['experimentRuntime'] = time.ctime(self['experimentRuntimeEpoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+    def _setExperimentInfo(self, author, version, verbose, randomSeedFlag):
+        self['experimentRuntime.epoch'] = time.time() # plausible basis for random.seed()
+        self['experimentRuntime'] = time.ctime(self['experimentRuntime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
         if author or verbose:  
             self['experimentAuthor'] = author
         if version or verbose: 
@@ -357,26 +356,34 @@ class RuntimeInfo(dict):
         # script identity & integrity information:
         self['experimentScript'] = os.path.basename(sys.argv[0])  # file name
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        self['experimentScriptDirectory'] = scriptDir
-        # sha1 digest
-        self['experimentScriptDigestSHA1'] = sha1Digest(os.path.abspath(sys.argv[0]))
+        self['experimentScript.directory'] = scriptDir
+        # sha1 digest, text-format compatibility
+        self['experimentScript.digestSHA1'] = sha1hexDigest(os.path.abspath(sys.argv[0]))
         # subversion revision?
         svnrev, last, url = svnVersion(os.path.abspath(sys.argv[0])) # svn revision
         if svnrev: # or verbose:
-            self['experimentScriptSvnRevision'] = svnrev
-            self['experimentScriptSvnRevLast'] = last
-            self['experimentScriptSvnRevURL'] = url
+            self['experimentScript.svnRevision'] = svnrev
+            self['experimentScript.svnRevLast'] = last
+            self['experimentScript.svnRevURL'] = url
         # mercurical revision?
-        hgcs = hgVersion(os.path.abspath(sys.argv[0])) 
-        if hgcs: # or verbose:
-            self['experimentScriptHgChangeSet'] = hgcs
+        hgChangeSet = hgVersion(os.path.abspath(sys.argv[0])) 
+        if hgChangeSet: # or verbose:
+            self['experimentScript.hgChangeSet'] = hgChangeSet
         
-        # random.seed -- here, just record the value to be set later; later do: random.seed(info['randomSeed'])
-        if randomSeed or verbose:
-            if randomSeed == 'time':
-                randomSeed = self['experimentRuntimeEpoch']
-            self['experimentRandomSeed'] = randomSeed
-        
+        # random.seed -- record the value, and initialize random.seed() if 'set:'
+        if randomSeedFlag or verbose:
+            while randomSeedFlag.find('set: ') == 0:
+                randomSeedFlag = randomSeedFlag.replace('set: ','set:',1) # spaces between set: and value could be confusing after deleting 'set:'
+            randomSeed = randomSeedFlag.replace('set:','',1); 
+            if randomSeedFlag in ['time', 'set:time']:
+                randomSeed = self['experimentRuntime.epoch']
+            if randomSeedFlag: self['experimentRandomSeed'] = str(randomSeed) # allow None->None, else give it type str()
+            if randomSeedFlag.find('set:')==0:
+                random.seed(self['experimentRandomSeed'])
+                self['experimentRandomSeed.isSet'] = True
+            else:
+                self['experimentRandomSeed.isSet'] = False
+            
     def _setSystemUserInfo(self):
         # machine name
         self['systemHostName'] = platform.node()
@@ -412,18 +419,20 @@ class RuntimeInfo(dict):
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
             lastboot = ''
-            lastboot = os.popen('systeminfo | find "System Up Time"').read()
+            lastboot = os.popen('systeminfo | find "System Up Time"').read().strip()
             if lastboot == '': # try Vista version
-                lastboot = os.popen('systeminfo | find "System Boot Time"').read()
-            self['systemRebooted'] = lastboot.replace(' ','').strip()
+                lastboot = os.popen('systeminfo | find "System Boot Time"').read().strip()
+            self['systemRebooted'] = lastboot
         
-        # crypto tools; redundant with python distribution info?
+        """# openssl version--maybe redundant with python distribution info?
+        # python's hashlib is better than a shell call to openssl
         try:
             self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
             if err:
                 raise
         except:
             self['systemOpenSSLVersion'] = None
+        """
         
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
@@ -472,36 +481,21 @@ class RuntimeInfo(dict):
                 cmd = 0  # command is first, but can have white space, so end up taking line[0:pid]
             for p in procLines:
                 pr = p.split() # info fields for this process
-                if pr[cmd] not in appIgnoreList:
-                    if sys.platform in ['win32']:  #allow for spaces in app names, replace with '_'
-                        systemProcPsu.append(['_'.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
-                    else:
-                        systemProcPsu.append(['_'.join(pr[cmd:]),pr[pid]]) #
-                    for app in appFlagList:
-                        if p.lower().find(app.lower())>-1: # match anywhere in the process line
-                            systemProcPsuFlagged.append([app, pr[pid]])
-                            systemUserProcFlaggedPID.append(pr[pid])
+                if pr[cmd] in appIgnoreList:
+                    continue
+                if sys.platform in ['win32']:  #allow for spaces in app names, replace with '_'
+                    systemProcPsu.append(['_'.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
+                else:
+                    systemProcPsu.append(['_'.join(pr[cmd:]),pr[pid]]) #
+                for app in [a for a in appFlagList if p.lower().find(a.lower())>-1]:
+                    systemProcPsuFlagged.append([app, pr[pid]])
+                    systemUserProcFlaggedPID.append(pr[pid])
             self['systemUserProcCount'] = len(systemProcPsu)
             self['systemUserProcFlagged'] = systemProcPsuFlagged
             
             if verbose and userProcsDetailed:
                 self['systemUserProcCmdPid'] = systemProcPsu
                 self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
-            
-            """
-            # its possible to suspend flagged applications while running your exp, which is a little dangerous
-            # you can lose data if you forget to unsuspend, or if you suspend something critical
-            suspendNonessentialApps = False # edit this to enable
-            self.suspendedApps = []
-            if verbose and userProcsDetailed and suspendNonessentialApps and sys.platform in ['darwin']:
-                for PID in self['systemUserProcPsuFlaggedPID']:
-                    os.popen("kill -STOP "+PID) # temporarily suspend flagged applications
-                    self.suspendedApps.append(PID)
-            # and you have to to do this (-CONT) after the key part of your experiment:
-            # i.e., you have to loop over suspendApps and unsuspend each one
-            for PID in self.suspendedApps: # comment out this code here, otherwise you'll immediately unsuspend things
-                os.popen("kill -CONT "+PID) 
-            """
         except:
             if verbose:
                 self['systemUserProcCmdPid'] = None
@@ -588,10 +582,10 @@ class RuntimeInfo(dict):
             'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
     
         for ext in GLextensionsOfInterest:
-            self['openGLext'+ext] = bool(gl_info.have_extension(ext))
+            self['openGLext.'+ext] = bool(gl_info.have_extension(ext))
         
     def __repr__(self):
-        """ Return a string that is a legal python (dict), and close to YAML and configObj syntax
+        """ Return a string that is a legal python (dict), and close to YAML, .ini, and configObj syntax
         """
         info = '{\n#[ PsychoPy2 RuntimeInfoStart ]\n'
         sections = ['PsychoPy', 'Experiment', 'System', 'Window', 'Python', 'OpenGL']
