@@ -1206,11 +1206,14 @@ class CoderFrame(wx.Frame):
             self.fileStatusLastChecked = getTime()
             if not self.expectedModTime(self.currentDoc):
                 dlg = dialogs.MessageDialog(self,
-                        message="%s was modified outside of PsychoPy:\n\nReload?" % (os.path.basename(self.currentDoc.filename)),
+                        message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                         type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
+                    print "Reloading..."
                     self.SetStatusText('Loading file')
-                    self.setCurrentDoc(self.currentDoc.filename)
+                    tmpName = self.currentDoc.filename
+                    self.fileClose(tmpName,checkSave=False)
+                    self.setCurrentDoc(tmpName)
                     self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
                     self.setFileModified(False)
                 self.SetStatusText('')
@@ -1225,11 +1228,14 @@ class CoderFrame(wx.Frame):
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
         if not self.expectedModTime(self.currentDoc):
             dlg = dialogs.MessageDialog(self,
-                    message="%s was modified outside of PsychoPy:\n\nReload?" % (os.path.basename(self.currentDoc.filename)),
+                    message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                     type='Warning')
-            if dlg.ShowModal() == wx.ID_YES:
+            if  dlg.ShowModal() == wx.ID_YES:
+                print "Reloading..."
                 self.SetStatusText('Loading file')
-                self.setCurrentDoc(self.currentDoc.filename)
+                tmpName = self.currentDoc.filename
+                self.fileClose(tmpName,checkSave=False)
+                self.setCurrentDoc(tmpName)
                 self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
                 self.setFileModified(False)
             self.SetStatusText('')
@@ -1646,7 +1652,7 @@ class CoderFrame(wx.Frame):
             elif resp == wx.ID_NO:   pass #just run
         
         if sys.platform in ['darwin']:
-            print "\033" #restore normal text color for coder output window (stdout)
+            print "\033" #restore normal text color for coder output window (stdout); doesn't fix the issue
         else:
             print
         
