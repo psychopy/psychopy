@@ -20,7 +20,7 @@ dotsTheta=numpy.random.rand(nDots)*360
 dotsRadius=(numpy.random.rand(nDots)**0.5)*2
 speed=numpy.random.rand(nDots)*maxSpeed
 
-win = visual.Window([800,600],rgb=-1)
+win = visual.Window([800,600],rgb=[-1,-1,-1])
 dots = visual.ElementArrayStim(win, elementTex=None, elementMask='circle', 
     nElements=nDots, sizes=dotSize)
 

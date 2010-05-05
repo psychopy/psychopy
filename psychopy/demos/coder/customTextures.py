@@ -26,10 +26,10 @@ radialTexture_sub = radialTexture[256:,0:256]
 subMask = filters.makeMask(res, radius=0.5, center=[-0,0])
 
 bigStim = visual.PatchStim(win, tex=radialTexture, mask=mainMask,
-   rgb=[1,1,1], size=512, sf=1.0/512, interpolate=True)
+   color=[1,1,1], size=512, sf=1.0/512, interpolate=True)
 #draw the quadrant stimulus centred in the top left quadrant of the 'base' stimulus (so they're aligned)
 subStim = visual.PatchStim(win, tex=radialTexture_sub, pos=(-128,128), mask=subMask,
-   rgb=[1,1,1], size=256, sf=1.0/256, interpolate=True)
+   color=[1,1,1], size=256, sf=1.0/256, interpolate=True)
 
 bigStim.draw()
 subStim.draw()

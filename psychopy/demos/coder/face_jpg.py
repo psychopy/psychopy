@@ -14,11 +14,11 @@ faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     
 faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
-    rgb=[1.0,1.0,-1.0],
+    color='green',
     size=(0.5,0.5), sf=1.0, units="norm")
     
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),
-    text='[Esc] to quit', rgb=1, alignHoriz='left', alignVert='bottom')
+    text='[Esc] to quit', rgb='white', alignHoriz='left', alignVert='bottom')
 
 trialClock = core.Clock()
 t=lastFPSupdate=0

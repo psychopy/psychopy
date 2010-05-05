@@ -4151,7 +4151,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqrXsqr":
-        onePeriodX, onePeriodY = crustnumpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
         sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True

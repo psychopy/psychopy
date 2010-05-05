@@ -15,7 +15,7 @@
       <TextComponent name="word">
         <Param name="name" val="word" valType="code" updates="constant"/>
         <Param name="text" val="$thisTrial.text" valType="str" updates="set every repeat"/>
-        <Param name="colour" val="$thisTrial.rgb" valType="code" updates="set every repeat"/>
+        <Param name="colour" val="$thisTrial.letterColor" valType="code" updates="set every repeat"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="1.0" valType="code" updates="constant"/>
