@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from psychopy import visual, event, core, log
-log.console.setLevel(log.WARNING)
 
 #demo color spaces
 

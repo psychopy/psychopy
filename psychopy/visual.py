@@ -81,7 +81,7 @@ class Window:
     def __init__(self,
                  size = (800,600),
                  pos = None,
-                 color=(1.0,1.0,1.0),
+                 color=(0,0,0),
                  colorSpace='rgb',
                  rgb = None,
                  dkl=None,
@@ -4338,8 +4338,15 @@ def _setColor(self, color, colorSpace=None, operation='',
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
     if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
-    elif colorSpace=='dkl': setattr(self,rgbAttrib, colors.dkl2rgb(newColor, self.win.dkl_rgb) )
-    elif colorSpace=='lms': setattr(self,rgbAttrib, colors.lms2rgb(newColor, self.win.lms_rgb) )
+    elif colorSpace=='dkl':
+        if numpy.all(self.win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
+        else: dkl_rgb=self.win.dkl_rgb
+        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.array(newColor).transpose(), dkl_rgb) )
+    elif colorSpace=='lms': 
+        if numpy.all(self.win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
+        else: lms_rgb=self.win.lms_rgb
+        setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
+    else: log.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)        
