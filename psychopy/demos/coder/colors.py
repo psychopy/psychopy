@@ -4,7 +4,7 @@ log.console.setLevel(log.WARNING)
 
 #demo color spaces
 
-#note that for this demo to present colours properly in calibrated
+#note that for this demo to present colors properly in calibrated
 #DKL space (where isoluminant stimuli have elevation=0) you need
 #to calibrate your monitor with a suitable spectrophotometer. If you
 #have a PR60 then you can do this automatically using MonitorCenter.py

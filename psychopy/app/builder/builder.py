@@ -11,7 +11,7 @@ from matplotlib import mlab
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
 inf=1000000#a million can be infinite?!
-canvasColour=[200,200,200]#in prefs? ;-)
+canvasColor=[200,200,200]#in prefs? ;-)
 
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
@@ -21,7 +21,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.app=frame.app
         self.dpi=self.app.dpi
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = (8*self.dpi,2*self.dpi))
-        self.SetBackgroundColour(canvasColour)
+        self.SetBackgroundColour(canvasColor)
         self.needUpdate=True
         self.maxWidth  = 14*self.dpi
         self.maxHeight = 3*self.dpi
@@ -242,7 +242,7 @@ class FlowPanel(wx.ScrolledWindow):
             elif entry.getType()=='Routine':
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,linePos[1]-30])
             self.gapMidPoints.append(currX+gap/2)
-            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=linePos[1],x2=currX+gap,y2=linePos[1])
             currX+=gap
 
@@ -264,8 +264,8 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(600/self.dpi)
             self.SetFont(font); pdc.SetFont(font)
             w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
-            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
-            pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
+            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
             pdc.DrawCircle(xPos,linePos[1], w+2)
             pdc.SetTextForeground([255,255,255])
             pdc.DrawText(str(n), xPos-w/2, linePos[1]-h/2)
@@ -284,14 +284,14 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=[]
     def drawLoopEnd(self, dc, pos):
         #draws a spot that a loop will later attach to
-        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
+        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)#points up
 #        dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)#points down
     def drawLoopStart(self, dc, pos):
         #draws a spot that a loop will later attach to
-        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
+        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
 #        dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)
         dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)
     def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0]):
@@ -313,9 +313,9 @@ class FlowPanel(wx.ScrolledWindow):
         rect = wx.Rect(pos[0], pos[1], w+pad,h+pad)
         endX = pos[0]+w+20
         #the edge should match the text
-        dc.SetPen(wx.Pen(wx.Colour(r, g, b, wx.ALPHA_OPAQUE)))
-        #for the fill, draw once in white near-opaque, then in transp colour
-        dc.SetBrush(wx.Brush(wx.Colour(r,g*3,b*3,255)))
+        dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
+        #for the fill, draw once in white near-opaque, then in transp color
+        dc.SetBrush(wx.Brush(wx.Color(r,g*3,b*3,255)))
         dc.DrawRoundedRectangleRect(rect, 8)
         #draw text
         dc.SetTextForeground(rgb)
@@ -335,7 +335,7 @@ class FlowPanel(wx.ScrolledWindow):
         pts=[]
         r,g,b=rgb
         pad=8
-        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 200)))
+        dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
         for n in range(len(xx)):
             pts.append([xx[n],yy[n]])
         dc.DrawSpline(pts)
@@ -355,9 +355,9 @@ class FlowPanel(wx.ScrolledWindow):
         #draw box
         rect = wx.Rect(x, y, w+pad,h+pad)
         #the edge should match the text
-        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 100)))
-        #for the fill, draw once in white near-opaque, then in transp colour
-        dc.SetBrush(wx.Brush(wx.Colour(canvasColour[0],canvasColour[1],canvasColour[2],250)))
+        dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
+        #for the fill, draw once in white near-opaque, then in transp color
+        dc.SetBrush(wx.Brush(wx.Color(canvasColor[0],canvasColor[1],canvasColor[2],250)))
         dc.DrawRoundedRectangleRect(rect, 8)
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -431,7 +431,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         wx.ScrolledWindow.__init__(self, notebook, id, (0, 0), style=wx.SUNKEN_BORDER)
 
-        self.SetBackgroundColour(canvasColour)
+        self.SetBackgroundColour(canvasColor)
         self.notebook=notebook
         self.frame=notebook.frame
         self.app=self.frame.app
@@ -587,7 +587,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
+        dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
                     x2=xEnd,y2=yPosTop)
@@ -629,9 +629,9 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         #draw entries on timeline
         xScale = self.getSecsPerPixel()
-        dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0)))
-        #for the fill, draw once in white near-opaque, then in transp colour
-        dc.SetBrush(wx.Brush(wx.Colour(200,100,100, 200)))
+        dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
+        #for the fill, draw once in white near-opaque, then in transp color
+        dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
         h = self.componentStep/2
         exec("st = %s" %(component.params['startTime']))
         #get end time if not -1(infinite)

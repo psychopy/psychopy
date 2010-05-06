@@ -506,9 +506,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             #add current symbol
             sa.BeginBold()
             sa.WriteText('Symbol: ')
-            sa.BeginTextColour('BLUE')
+            sa.BeginTextColor('BLUE')
             sa.WriteText(currWord+'\n')
-            sa.EndTextColour()
+            sa.EndTextColor()
             sa.EndBold()
 
             #add expected type

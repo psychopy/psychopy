@@ -81,6 +81,8 @@ class Window:
     def __init__(self,
                  size = (800,600),
                  pos = None,
+                 color=(1.0,1.0,1.0),
+                 colorSpace='rgb',
                  rgb = (0.0,0.0,0.0),
                  dkl=None,
                  lms=None,
@@ -105,7 +107,7 @@ class Window:
             pos : *None* or (x,y)
                 Location of the window on the screen
             rgb : [0,0,0]
-                Colour of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
+                Color of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
             fullscr : *None*, True or False
                 Better timing can be achieved in full-screen mode            
             allowGUI :  *None*, True or False (if None prefs are used) 
@@ -136,11 +138,22 @@ class Window:
         
         """
         self.size = numpy.array(size, numpy.int)
-        self.pos = pos                 
-        if type(rgb)==float or type(rgb)==int: #user may give a luminance val
-            self.rgb=numpy.array((rgb,rgb,rgb), float)
+        self.pos = pos    
+        self.winHandle=None#this will get overridden once the window is created
+        
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(dkl, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(lms, colorSpace='lms')
         else:
-            self.rgb = numpy.asarray(rgb, float)
+            self.setColor(color, colorSpace=colorSpace)
+            
         self._defDepth=0.0
         
         #settings for the monitor: local settings (if available) override monitor
@@ -218,7 +231,7 @@ class Window:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
         
-        #colour conversions
+        #color conversions
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
             self.dkl_rgb=dkl_rgb
@@ -570,9 +583,70 @@ class Window:
         self.frames = 0
         return fps
     
+    def setColor(self, color, colorSpace=None, operation=''):
+        """Set the color of the window. 
+        
+        NB This command sets the color that the blank screen will have on the next
+        clear operation. As a result it effectively takes TWO `flip()` operations to become 
+        visible (the first uses the color to create the new screen the second presents
+        that screen to the viewer).  
+        
+        See `colorSpaces`_ for further information about the ways to specify colors and their various implications.
+        
+        :Parameters:
+        
+        color : 
+            Can be specified in one of many ways. If a string is given then it
+            is interpreted as the name of the color. Any of the standard html/X11
+            `color names <http://www.w3schools.com/html/html_colornames.asp>` 
+            can be used. e.g.::
+                
+                myStim.setColor('white')
+                myStim.setColor('RoyalBlue')#(the case is actually ignored)
+            
+            A hex value can be provided, also formatted as with web colors. This can be
+            provided as a string that begins with # (not using python's usual 0x000000 format)::
+                
+                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
+                
+            You can also provide a triplet of values, which refer to the coordinates
+            in one of the `colorSpaces`_. If no color space is specified then the color 
+            space most recently used for this stimulus is used again.
+            
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
+                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
+                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
+            
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x]. 
+            
+                myStim.setColor(255, 'rgb255') #all guns o max
+            
+        colorSpace : string or None
+        
+            defining which of the `colorSpaces`_ to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation). 
+            
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+            
+            for colors specified as a triplet of values (or single intensity value)
+            the new value will perform this operation on the previous color
+            
+                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
+                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+        """
+        _setColor(self, color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='rgb', #or 'fillRGB' etc
+                    colorAttrib='color')
+                    
+        if self.winHandle!=None:#if it is None then this will be done during window setup
+            if self.winType=='pyglet': self.winHandle.switch_to()
+            GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
+        
     def setRGB(self, newRGB):
-        """Set the background colour of the screen using :ref:`RGB`
-        This new colour will only be updated on the next call to `Window.flip()`
+        """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
         global GL
         if type(newRGB) in [int, float]:
@@ -894,71 +968,7 @@ class _BaseVisualStim:
         """
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
-    def _setColor(self, color, colorSpace=None, operation='',
-                    rgbAttrib='rgb', #or 'fillRGB' etc
-                    colorAttrib='color'):#or 'fillColor' etc
-        """Provides the workings needed by setColor, and can perform this for
-        any arbitrary color type (e.g. fillColor,lineColor etc)  
-        """
-        
-        #ho this works:
-        #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
-        #color represents the color in the native space
-        #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
-        #rgb is calculated from converting color
-        #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
-        #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
-        
-        if type(color) in [str, unicode]:
-            if color.lower() in colors.colors255.keys():
-                #set rgb, color and colorSpace
-                setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-                setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
-                setattr(self,colorAttrib,color) #e.g. self.color='red'
-                _setTexIfNoShaders(self)
-                return
-            elif color[0]=='#' or color[0:2]=='0x':
-                setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-                setattr(self,colorAttrib,color) #e.g. self.color='#000000'
-                setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
-                _setTexIfNoShaders(self)
-                return
-#                except:
-#                    pass#this will be handled with AttributeError below
-            #we got a string, but it isn't in the list of named colors and doesn't work as a hex
-            raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-        elif type(color) in [float, int]:
-            color = numpy.asarray([color,color,color],float)
-        elif type(color) in [tuple,list]:
-            color = numpy.asarray(color,float)
-        elif color==None:
-            setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-            setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-            setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
-            _setTexIfNoShaders(self)
-        else:
-            raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
-        
-        #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
-        #check if colorSpace is given and use self.colorSpace if not
-        if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
-        #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-        if getattr(self,colorAttrib+'Space') in ['named','hex']:
-                raise AttributeError("_setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
-                    %(operation))
-        if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
-                raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
-                    %(operation, self.colorSpace, colorSpace))
-        else:#OK to update current color
-            exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
-        #convert new self.color to rgb space
-        newColor=getattr(self, colorAttrib)
-        if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
-        elif colorSpace=='dkl': setattr(self,rgbAttrib, colors.dkl2rgb(newColor, self.win.dkl_rgb) )
-        elif colorSpace=='lms': setattr(self,rgbAttrib, colors.lms2rgb(newColor, self.win.lms_rgb) )
-        setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
-        #if needed, set the texture too
-        _setTexIfNoShaders(self)
+
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the stimulus. See `colorSpaces`_ for further information
         about the various ways to specify colors and their various implications.
@@ -983,7 +993,7 @@ class _BaseVisualStim:
             in one of the `colorSpaces`_. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
-                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red colour in rgb space
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
                 myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
                 myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
             
@@ -1007,7 +1017,7 @@ class _BaseVisualStim:
                 thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
                 thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
         """
-        self._setColor(color, colorSpace=colorSpace, operation=operation,
+        _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color')
     def setContr(self, newContr, operation=''):
@@ -1451,7 +1461,7 @@ class DotStim(_BaseVisualStim):
 
 class SimpleImageStim(_BaseVisualStim):
     """A simple stimulus for loading images from a file and presenting at exactly
-    the resolution and colour in the file (subject to gamma correction if set).
+    the resolution and color in the file (subject to gamma correction if set).
     
     Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or 
     masked (although flipping horizontally or vertically is possible). Drawing will
@@ -1729,28 +1739,15 @@ class PatchStim(_BaseVisualStim):
                 that setting phase=t*n drifts a stimulus at n Hz
             texRes:
                 resolution of the texture (if not loading from an image file)
-            rgb:
-                a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-                See :ref:`rgb`
-            dkl:
-                a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
-                specifying the coordinates of the stimuli in cone-opponent
-                space (Derrington, Krauskopf, Lennie 1984).  See :ref:`dkl` for further info.
-                Triplets represent [elevation, azimuth, magnitude].
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
-            lms:
-                a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
-                specifying the coordinates of the stimuli in cone space
-                Triplets represent relative modulation of each cone [L, M, S].
-                See :ref:`lms` for further info.
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
+            color:
+                Could be a the web name for a color (e.g. 'FireBrick');
+                a hex value (e.g. '#FF0047');
+                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             contrast:
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
@@ -2655,8 +2652,8 @@ class ElementArrayStim:
                 the xy positions of the elements, relative to the field centre (fieldPos)   
                  
             rgbs : 
-                specifying the colour(s) of the elements. 
-                Should be Nx1 (different greys), Nx3 (different colors) or 1x3 (for a single colour)
+                specifying the color(s) of the elements. 
+                Should be Nx1 (different greys), Nx3 (different colors) or 1x3 (for a single color)
             
             opacities : 
                 the opacity of each element (Nx1 or a single value)
@@ -3535,7 +3532,7 @@ class TextStim(_BaseVisualStim):
             in one of the `colorSpaces`_. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
-                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red colour in rgb space
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
                 myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
                 myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
             
@@ -3850,7 +3847,7 @@ class ShapeStim(_BaseVisualStim):
     
     NB for now the fill of objects is performed using glBegin(GL_POLYGON) 
     and that is limited to convex shapes. With concavities you get unpredictable
-    results (e.g. add a fill colour to the arrow stim below). To create concavities, 
+    results (e.g. add a fill color to the arrow stim below). To create concavities, 
     you can combine multiple shapes, or stick to just outlines. (If anyone wants
     to rewrite ShapeStim to use glu tesselators that would be great!)
     """
@@ -3969,12 +3966,12 @@ class ShapeStim(_BaseVisualStim):
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation=''):
         #run the original setColor, which creates color and 
-        self._setColor(color, colorSpace=colorSpace, operation=operation,
+        _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='lineRGB',#the name for this rgb value
                     colorAttrib='lineColor')#the name for this color
     def setFillColor(self, color, colorSpace=None, operation=''):
         #run the original setColor, which creates color and 
-        self._setColor(color, colorSpace=colorSpace, operation=operation,
+        _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value
                     colorAttrib='fillColor')#the name for this color
         
@@ -4126,7 +4123,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
                 core.quit()
             res=tex.shape[0]
     elif tex in [None,"none", "None"]:
-        res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colours!)
+        res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
         intensity = numpy.ones([res,res],numpy.float32)
         wasLum = True
     elif tex == "sin":
@@ -4278,5 +4275,71 @@ def createTexture(tex, id, pixFormat, stim, res=128):
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
     """
-    if not obj._useShaders and hasattr(obj, 'setTex') and hasattr(obj, '_texName'): 
+    if hasattr(obj, 'setTex') and hasattr(obj, '_texName') and not obj._useShaders: 
         obj.setTex(obj._texName)
+        
+def _setColor(self, color, colorSpace=None, operation='',
+                rgbAttrib='rgb', #or 'fillRGB' etc
+                colorAttrib='color'):#or 'fillColor' etc
+    """Provides the workings needed by setColor, and can perform this for
+    any arbitrary color type (e.g. fillColor,lineColor etc)  
+    """
+    
+    #ho this works:
+    #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
+    #color represents the color in the native space
+    #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
+    #rgb is calculated from converting color
+    #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
+    #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+    
+    if type(color) in [str, unicode]:
+        if color.lower() in colors.colors255.keys():
+            #set rgb, color and colorSpace
+            setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
+            setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
+            setattr(self,colorAttrib,color) #e.g. self.color='red'
+            _setTexIfNoShaders(self)
+            return
+        elif color[0]=='#' or color[0:2]=='0x':
+            setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
+            setattr(self,colorAttrib,color) #e.g. self.color='#000000'
+            setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
+            _setTexIfNoShaders(self)
+            return
+#                except:
+#                    pass#this will be handled with AttributeError below
+        #we got a string, but it isn't in the list of named colors and doesn't work as a hex
+        raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+    elif type(color) in [float, int]:
+        color = numpy.asarray([color,color,color],float)
+    elif type(color) in [tuple,list]:
+        color = numpy.asarray(color,float)
+    elif color==None:
+        setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
+        setattr(self,colorAttrib,None) #e.g. self.color='#000000'
+        setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
+        _setTexIfNoShaders(self)
+    else:
+        raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
+    
+    #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
+    #check if colorSpace is given and use self.colorSpace if not
+    if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
+    #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
+    if getattr(self,colorAttrib+'Space') in ['named','hex']:
+            raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
+                %(operation))
+    if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
+            raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
+                %(operation, self.colorSpace, colorSpace))
+    else:#OK to update current color
+        exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
+    #convert new self.color to rgb space
+    newColor=getattr(self, colorAttrib)
+    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+    elif colorSpace=='dkl': setattr(self,rgbAttrib, colors.dkl2rgb(newColor, self.win.dkl_rgb) )
+    elif colorSpace=='lms': setattr(self,rgbAttrib, colors.lms2rgb(newColor, self.win.lms_rgb) )
+    setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
+    #if needed, set the texture too
+    _setTexIfNoShaders(self)        

@@ -4,8 +4,8 @@ import numpy as np
 """Textures (e.g. for a PatchStim) can be created from custom numpy arrays. 
 
 For this they should be square arrays, with size in powers of two (e.g. 64,128,256,512)
-A 256x256 array can then be given colour efficiently using the normal stimulus methods.
-A 256x256x3 array has its colour defined by the array (obviously).
+A 256x256 array can then be given color efficiently using the normal stimulus methods.
+A 256x256x3 array has its color defined by the array (obviously).
 
 This demo creates a radial array as a patch stimulus, using helper functions from 
 psychopy.filters and then creates a second sub-stimulus created from a section of

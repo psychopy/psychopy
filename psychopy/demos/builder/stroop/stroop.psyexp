@@ -1,8 +1,10 @@
 <PsychoPy2experiment version="1.50.04" encoding="utf-8">
   <Settings>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="color" val="[0, 0, 0]" valType="code" updates="None"/>
     <Param name="Window size (pixels)" val="[1024, 768]" valType="code" updates="None"/>
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant':'s_001', 'session':001}" valType="code" updates="None"/>
     <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
@@ -14,14 +16,14 @@
     <Routine name="trial">
       <TextComponent name="word">
         <Param name="name" val="word" valType="code" updates="constant"/>
+        <Param name="color" val="$thisTrial.letterColor" valType="code" updates="set every repeat"/>
         <Param name="text" val="$thisTrial.text" valType="str" updates="set every repeat"/>
-        <Param name="colour" val="$thisTrial.letterColor" valType="code" updates="set every repeat"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="1.0" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
-        <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
       </TextComponent>
@@ -32,7 +34,7 @@
         <Param name="correctAns" val="$thisTrial.corrAns" valType="str" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="123" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="$['y','n']" valType="str" updates="constant"/>
         <Param name="duration" val="1.5" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
@@ -40,14 +42,14 @@
     <Routine name="instruct">
       <TextComponent name="instrText">
         <Param name="name" val="instrText" valType="code" updates="constant"/>
+        <Param name="color" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="text" val="Please press;&#10;1 for red ink,&#10;2 for green ink&#10;3 for blue ink&#10;(Esc will quit)&#10;&#10;Any key to continue" valType="str" updates="constant"/>
-        <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
         <Param name="startTime" val="0" valType="code" updates="constant"/>
-        <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
       </TextComponent>
@@ -66,14 +68,14 @@
     <Routine name="thanks">
       <TextComponent name="thanksText">
         <Param name="name" val="thanksText" valType="code" updates="constant"/>
+        <Param name="color" val="[1, 1, 1]" valType="code" updates="constant"/>
         <Param name="text" val="Thanks!" valType="str" updates="constant"/>
-        <Param name="colour" val="[1, 1, 1]" valType="code" updates="constant"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="1.0" valType="code" updates="constant"/>
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
         <Param name="startTime" val="1.0" valType="code" updates="constant"/>
-        <Param name="colourSpace" val="rgb" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="arial" valType="str" updates="constant"/>
       </TextComponent>
@@ -86,7 +88,7 @@
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="5" valType="num" updates="None"/>
-      <Param name="trialList" val="[{'text': 'red', 'rgb': [1, -1, -1], 'congruent': 1, 'corrAns': 1}, {'text': 'red', 'rgb': [-1, 1, -1], 'congruent': 0, 'corrAns': 2}, {'text': 'green', 'rgb': [-1, 1, -1], 'congruent': 1, 'corrAns': 2}, {'text': 'green', 'rgb': [-1, -1, 1], 'congruent': 0, 'corrAns': 3}, {'text': 'blue', 'rgb': [-1, -1, 1], 'congruent': 1, 'corrAns': 3}, {'text': 'blue', 'rgb': [1, -1, -1], 'congruent': 0, 'corrAns': 1}]" valType="str" updates="None"/>
+      <Param name="trialList" val="[{'text': 'red', 'congruent': 1, 'corrAns': 1, 'letterColor': 'red'}, {'text': 'red', 'congruent': 0, 'corrAns': 2, 'letterColor': 'green'}, {'text': 'green', 'congruent': 1, 'corrAns': 2, 'letterColor': 'green'}, {'text': 'green', 'congruent': 0, 'corrAns': 3, 'letterColor': 'blue'}, {'text': 'blue', 'congruent': 1, 'corrAns': 3, 'letterColor': 'blue'}, {'text': 'blue', 'congruent': 0, 'corrAns': 1, 'letterColor': 'red'}]" valType="str" updates="None"/>
       <Param name="trialListFile" val="/Users/jwp...troop/trialTypes.csv" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>

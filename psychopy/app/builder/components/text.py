@@ -12,11 +12,11 @@ class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', 
                  text='Any text\n\nincluding line breaks', 
-                 font='Arial',units='window units', colour=[1,1,1], colourSpace='rgb',
+                 font='Arial',units='window units', color=[1,1,1], colorSpace='rgb',
                  pos=[0,0], letterHeight=0.1, ori=0, startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units, 
-                    colour=colour, colourSpace=colourSpace,
+                    color=color, colorSpace=colorSpace,
                     pos=pos, ori=ori, startTime=startTime, duration=duration)
         self.type='Text'
         self.url="http://www.psychopy.org/builder/components/text.html"
@@ -39,10 +39,10 @@ class TextComponent(VisualComponent):
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='window units': units=""
-        else: units="units=%(units)s, " %self.params 
+        else: units="units=%(units)s, " %self.params
         #do writing of init
         text = str(self.params['text'])
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s,\n" %(self.params))
         buff.writeIndented("    text=%s,\n" %text)
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
-        buff.writeIndented("    %(colourSpace)s=%(colour)s)\n" %(self.params))  
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))  

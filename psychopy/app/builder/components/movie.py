@@ -22,8 +22,8 @@ class MovieComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         #params
         #these are normally added but we don't want them for a movie            
-        del self.params['colour']
-        del self.params['colourSpace']
+        del self.params['color']
+        del self.params['colorSpace']
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A filename for the movie (including path)")        

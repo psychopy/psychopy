@@ -531,7 +531,7 @@ PsychoPy 0.90.1
 PsychoPy 0.90
 ~~~~~~~~~~~~~~~~~~~~~~
 * sounds now in stereo and a new function to allow you to choose the settings for the sound system.
-* LMS colours (cone-isolating stimuli) are now tested and accurate (when calibrated)
+* LMS colors (cone-isolating stimuli) are now tested and accurate (when calibrated)
 * added logging module (erros, warnings, info). And removed other messages:
      * @Verbose@ flags have become log.info messages
      * @Warn@ commands have become log.warning messages

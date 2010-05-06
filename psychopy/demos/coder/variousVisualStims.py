@@ -23,7 +23,7 @@ while True:
     t+=1/60.0
     gabor.setPhase(t*2.0)
     gabor.draw()
-    text.setRGB([numpy.sin(t), 0, 1])
+    text.setColor([numpy.sin(t), 0, 1])
     text.draw()
     fixSpot.draw()
     faceRGB.draw()

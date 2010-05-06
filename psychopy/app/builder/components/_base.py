@@ -52,7 +52,7 @@ class BaseComponent:
             thisParam=self.params[thisParamName]
             if thisParam.updates==updateType:
                 if thisParamName=='color': 
-                    paramCaps=self.params['colourSpace'].upper() #setRGB, not setColour
+                    paramCaps=self.params['colorSpace'].upper() #setRGB, not setColor
                 else:paramCaps=thisParamName.capitalize()
                 buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'],paramCaps, thisParam) )
     def getType(self):

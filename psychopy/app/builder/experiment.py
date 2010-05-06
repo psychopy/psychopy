@@ -175,6 +175,9 @@ class Experiment:
             corrAns=corrIf.replace('resp.keys==str(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
+        if 'olour' in name:#colour parameter was Americanised in v1.61.00
+            name=name.replace('olour','olor')            
+            params[name].val = paramNode.get('val')
         elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
         #get the value type and update rate
         if 'valType' in paramNode.keys(): 
@@ -197,7 +200,7 @@ class Experiment:
         root=self._doc#.getroot()
         
         self.psychopyVersion = root.get('version')
-        #todo: some error checking on the version (or report that this isn't .psyexp)?
+        #todo: some error checking on the version (and report that this isn't valid .psyexp)?
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
