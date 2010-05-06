@@ -15,7 +15,7 @@ try:
     import pygame.key
     import pygame.event as evt
     havePygame = True
-except: 
+except:
     havePygame = False
     
 try:

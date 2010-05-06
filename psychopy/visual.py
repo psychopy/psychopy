@@ -83,7 +83,7 @@ class Window:
                  pos = None,
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
-                 rgb = (0.0,0.0,0.0),
+                 rgb = None,
                  dkl=None,
                  lms=None,
                  fullscr=None,

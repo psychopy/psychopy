@@ -34,7 +34,7 @@
         <Param name="correctAns" val="$thisTrial.corrAns" valType="str" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="$['y','n']" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="123" valType="str" updates="constant"/>
         <Param name="duration" val="1.5" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>

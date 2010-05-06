@@ -6,22 +6,30 @@ Changelog
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
 
-PsychoPy 1.60 
+PsychoPy 1.61
 ------------------------------
 
-PsychoPy 1.60.05
+PsychoPy 1.61.00
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGED color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
-* ADDED colors can be specified by name or hex color spec (e.g. '#E9967A' or 'DarkSalmon') instead of RGB values
-* REMOVED TextStimGLUT (assuming nobody uses GLUT backend anymore)
-* ADDED 'saw' and 'tri' options to specify grating textures, to give sawtooth and triangle waves
-* FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
-* FIXED bug in autoupdater for installs with setuptools-style directory structure
-* FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled
-* CHANGED console (stdout) default logging level to WARNING. More messages will appear here than before
-* ADDED additional log level called DATA for saving data info from experiments to logfiles
-* ADDED mouse component to Builder
+* CHANGED: color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
+* ADDED: Colors can now also be specified by name (one of the X11 or web colors, e.g. 'DarkSalmon') or hex color spec (e.g. '#E9967A')
+* REMOVED: TextStimGLUT (assuming nobody uses GLUT backend anymore)
+* ADDEDC 'saw' and 'tri' options to specify grating textures, to give sawtooth and triangle waves
+* FIXED: visual.DotStim does now update coherence based on setFieldCoherence calls
+* FIXED: bug in autoupdater for installs with setuptools-style directory structure
+* FIXED: bug in SimpleImageStim - when graphics card doesn't support shaders colors were incorrectly scaled
+* CHANGED: console (stdout) default logging level to WARNING. More messages will appear here than before
+* ADDED: additional log level called DATA for saving data info from experiments to logfiles
+* ADDED: mouse component to Builder
+* ADDED: checking of coder script for changes made by an external application (thanks to Jeremy Gray)
+* ADDED: core.RuntimeInfo() for providing various info about the system at launch of script (thanks to Jeremy Gray)
+* FIXED: problem with rush() causing trouble between XP/vista (thanks to Jeremy Gray)
+* AMERICANIZATION: now consistently using 'color' not 'colour' throughout the project! ;-)
+* FIXED: problem with non-numeric characters being inserted into data structures
+
+PsychoPy 1.60 
+------------------------------
 
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~

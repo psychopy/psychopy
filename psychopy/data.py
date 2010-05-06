@@ -741,7 +741,7 @@ class DataHandler(dict):
             for thisName in names: self.addDataType(thisName)
         else:
             #create the appropriate array in the dict
-            self[names]=numpy.zeros(shape,'f')
+            self[names]=numpy.zeros(shape,'O')#make sure it's an object datatype
             #add the name to the list
             self.dataTypes.append(names)
     
@@ -768,7 +768,7 @@ class DataHandler(dict):
         #insert the value
         self[thisType][position[0]][position[1]]=value
         
-      
+        
 
 class FitFunction:
     """Deprecated - use the specific functions; FitWeibull, FitLogistic...
