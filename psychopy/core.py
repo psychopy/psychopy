@@ -74,6 +74,9 @@ def wait(secs, hogCPUperiod=0.2):
     which is not especially precise, but allows the cpu to perform housekeeping. In
     the final hogCPUperiod the more precise method of constantly polling the clock 
     is used for greater precision.
+    
+    If you want to obtain key-presses during the wait, be sure to use pyglet and
+    to hogCPU for the entire time, and then call event.getKeys() after calling wait()
     """
     #initial relaxed period, using sleep (better for system resources etc)
     if secs>hogCPUperiod:
