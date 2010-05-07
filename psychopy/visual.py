@@ -2030,32 +2030,14 @@ class PatchStim(_BaseVisualStim):
         GL.glEndList()
 
 
-
+    def __del__(self):
+        self.clearTextures()#remove textures from graphics card to prevent crash
+        
     def clearTextures(self):
         """
-        Clear the textures associated with the given stimulus. You should call this before
-        de-referencing your stimulus or the textures associated with it will be kept in memory.
-        
-        For example, the following will eventually crash::
-        
-            from psychopy import visual
-            win = visual.Window([400,400])
-            for frameN in range(3000):
-                #creating a new stimulus every time
-                stim = visual.PatchStim(win, texRes=512)
-                stim.draw()
-                win.flip()
-                
-        Whereas this will not, because it removes uneeded textures from memory::
-        
-            from psychopy import visual
-            win = visual.Window([400,400])
-            for frameN in range(3000):
-                #creating a new stimulus every time
-                stim = visual.PatchStim(win, texRes=512)
-                stim.draw()
-                stim.clearTextures()
-                win.flip()         
+        Clear the textures associated with the given stimulus. 
+        As of v1.61.00 this is called automatically during garbage collection of
+        your stimulus, so doesn't need calling explicitly by the user.
         """
         #only needed for pyglet
         if self.win.winType=='pyglet':
@@ -2591,6 +2573,20 @@ class RadialStim(PatchStim):
 
         self.needUpdate=True
         
+    def __del__(self):
+        self.clearTextures()#remove textures from graphics card to prevent crash
+        
+    def clearTextures(self):
+        """
+        Clear the textures associated with the given stimulus. 
+        As of v1.61.00 this is called automatically during garbage collection of
+        your stimulus, so doesn't need calling explicitly by the user.
+        """
+        #only needed for pyglet
+        if self.win.winType=='pyglet':
+            GL.glDeleteTextures(1, self.texID)
+            GL.glDeleteTextures(1, self.maskID)
+            
 
 
 class ElementArrayStim:
@@ -3157,8 +3153,20 @@ class ElementArrayStim:
         during time-critical points in your script. Uploading new textures to the 
         graphics card can be time-consuming."""    
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
-        
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)        
+    def __del__(self):
+        self.clearTextures()#remove textures from graphics card to prevent crash        
+    def clearTextures(self):
+        """
+        Clear the textures associated with the given stimulus. 
+        As of v1.61.00 this is called automatically during garbage collection of
+        your stimulus, so doesn't need calling explicitly by the user.
+        """
+        #only needed for pyglet
+        if self.win.winType=='pyglet':
+            GL.glDeleteTextures(1, self.texID)
+            GL.glDeleteTextures(1, self.maskID)
+            
 class MovieStim(_BaseVisualStim):
     """A stimulus class for playing movies (mpeg, avi, etc...) in 
     PsychoPy. 
@@ -3836,7 +3844,7 @@ class TextStim(_BaseVisualStim):
         if val!=self._useShaders:
             self._useShaders=val
             self.setText(self.text)  
-            self.needUpdate=True
+            self.needUpdate=True            
             
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.

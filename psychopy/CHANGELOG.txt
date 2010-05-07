@@ -27,6 +27,7 @@ PsychoPy 1.61.00
 * FIXED: problem with rush() causing trouble between XP/vista (thanks to Jeremy Gray)
 * AMERICANIZATION: now consistently using 'color' not 'colour' throughout the project! ;-)
 * FIXED: problem with non-numeric characters being inserted into data structures
+* CHANGED: stimuli using textures now automatically clean these up, so no need for users to call .clearTextures()
 
 PsychoPy 1.60 
 ------------------------------
