@@ -4357,4 +4357,84 @@ def _setColor(self, color, colorSpace=None, operation='',
     else: log.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
-    _setTexIfNoShaders(self)        
+    _setTexIfNoShaders(self)
+    
+def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
+    """Assesses the monitor refresh rate (average, median, SD) under current conditions.
+    
+    Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
+    The visual is just eye-candy to show that something is happening when assessing many frames. You can
+    also give it text to display instead of a visual,
+    e.g., msg='(testing refresh rate...)'; setting msg implies showVisual == False.
+    To simulate refresh rate under cpu load, you can specify a time to wait within the loop prior to
+    doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
+    
+    Returns timing stats (in ms) of:
+    - average time per frame, for all frames
+    - standard deviation of all frames
+    - median, as the average of 12 frame times around the median (~monitor refresh rate)
+    """
+    
+    from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
+    
+    nFrames = max(60, nFrames)  # lower bound of 60 samples--need enough to estimate the SD
+    num2avg = 12  # how many to average from around the median
+    if len(msg):
+        showVisual = False
+        showText = True
+        myMsg = visual.TextStim(myWin, text=msg, italic=True, 
+                            color=(.7,.6,.5),colorSpace='rgb', height=0.1)
+    else:
+        showText = False
+    if showVisual:
+        x,y = myWin.size
+        myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', size=.45, sf=3.0, opacity=.2)
+    clockt = [] # clock times
+    drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
+    
+    if msDelay > 0 and msDelay < 100:
+        doWait = True
+        delayTime = msDelay/1000. #sec
+    else:
+        doWait = False
+        
+    winUnitsSaved = myWin.units 
+    myWin.units = 'norm' # norm is required for the visual (or text) display, as coded below
+    
+    # accumulate secs per frame (and time-to-draw) for a bunch of frames:
+    rush(True)
+    for i in range(5): # wake everybody up
+        myWin.flip()
+    for i in range(nFrames): # ... and go for real this time
+        clockt.append(getTime()) 
+        if showVisual:
+            myStim.setPhase(1.0/nFrames, '+')
+            myStim.setSF(3./nFrames, '+')
+            myStim.setOri(12./nFrames,'+')
+            myStim.setOpacity(.9/nFrames, '+')
+            myStim.draw()
+        elif showText:
+            myMsg.draw()
+        if doWait:
+            wait(delayTime)
+        drawt.append(getTime())
+        myWin.flip()
+    rush(False)
+    
+    myWin.units = winUnitsSaved # restore
+    
+    frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1,len(clockt))]
+    drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == drawing only
+    freeTimes = [frameTimes[i] - drawTimes[i] for i in range(len(frameTimes))] # == unused time
+    
+    # cast to float so that the resulting type == type(0.123)
+    frameTimes.sort() # for median
+    msPFmed = 1000. * float(numpy.average(frameTimes[ (nFrames-num2avg)/2 : (nFrames+num2avg)/2 ])) # median-most slice
+    msPFavg = 1000. * float(numpy.average(frameTimes)) 
+    msPFstd = 1000. * float(numpy.std(frameTimes))
+    msdrawAvg = 1000. * float(numpy.average(drawTimes))
+    msdrawSD = 1000. * float(numpy.std(drawTimes))
+    msfree = 1000. * float(numpy.average(freeTimes))
+    #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
+    
+    return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
