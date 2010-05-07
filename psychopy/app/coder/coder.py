@@ -1211,10 +1211,7 @@ class CoderFrame(wx.Frame):
                 if dlg.ShowModal() == wx.ID_YES:
                     print "Reloading..."
                     self.SetStatusText('Loading file')
-                    tmpName = self.currentDoc.filename
-                    self.fileClose(tmpName,checkSave=False)
-                    self.setCurrentDoc(tmpName)
-                    self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
+                    self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                     self.setFileModified(False)
                 self.SetStatusText('')
                 try: dlg.destroy()
@@ -1227,16 +1224,16 @@ class CoderFrame(wx.Frame):
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
         if not self.expectedModTime(self.currentDoc):
+            """dial = wx.MessageDialog(None, "'%s' was modified outside of PsychoPy\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
+                'Warning', wx.YES_NO | wx.ICON_EXCLAMATION)
+            resp = dial.ShowModal() # nicer look but fails to accept a response (!)"""
             dlg = dialogs.MessageDialog(self,
                     message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                     type='Warning')
             if  dlg.ShowModal() == wx.ID_YES:
                 print "Reloading..."
                 self.SetStatusText('Loading file')
-                tmpName = self.currentDoc.filename
-                self.fileClose(tmpName,checkSave=False)
-                self.setCurrentDoc(tmpName)
-                self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename)
+                self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                 self.setFileModified(False)
             self.SetStatusText('')
             try: dlg.destroy()
@@ -1358,6 +1355,15 @@ class CoderFrame(wx.Frame):
 
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
+    def fileReload(self, event, filename=None, checkSave=False):
+        # close and reopen the doc having filename == filename
+        print "...reload not implemented yet. please close and reopen the file manually."
+        return
+        # this did not work for me:
+        self.fileClose(event, filename=filename, checkSave=checkSave)
+        self.fileNew(filename) # which does: self.setCurrentDoc(filename)
+        #self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename) # happens in setCurrentDoc
+        
     def findDocID(self, filename):
         #find the ID of the current doc
         for ii in range(self.notebook.GetPageCount()):

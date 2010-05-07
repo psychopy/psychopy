@@ -21,11 +21,16 @@ import random
 from psychopy.ext import rush
 
 runningThreads=[]
-try:
+"""try:
     import pyglet.media
 except:
-    pass
-    
+    pass"""
+try:
+    import pyglet
+    havePyglet = True
+except:
+    havePyglet = False
+
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
@@ -82,12 +87,19 @@ def wait(secs, hogCPUperiod=0.2):
     if secs>hogCPUperiod:
         time.sleep(secs-hogCPUperiod)
         secs=hogCPUperiod#only this much is now left
-        
+        """if havePyglet:
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows"""
+         # I'm thinking that the if pyglet... part would be good to have here too, but might introduce timing slop?
+         
     #hog the cpu, checking time
     t0=getTime()
     while (getTime()-t0)<secs:
         pass
-    
+        """if havePyglet:       
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows"""
+            
     #we're done, let's see if pyglet collected any event in meantime
     try:
         pyglet.media.dispatch_events()
@@ -137,22 +149,22 @@ def svnVersion(file):
     return svnRev, svnLastChangedRev, svnUrl
 
 def hgVersion(file):
-    """Tries to discover the mercurial (hg) changeset for a file's directory.
+    """Tries to discover the mercurial (hg) parent and id of a file.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
     """
     if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
-    hgRev = None
-    hginfo,stderr = shellCall('hg log "'+file+'"', stderr=True)
-    try:
-        hglines = hginfo.splitlines()
-        hgRev = hglines[0].split()[-1]
-        if hglines[1].find('tag:')==0:
-            hgRev += ' [%s]' % ''.join(hglines[1].split())
-    except:
-        pass
-    return hgRev
+    hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)
+    if err: changeset = None
+    else: changeset = hgParentLines.splitlines()[0].split()[-1]
+    hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
+    if err: hgID = None
+    
+    if hgID and changeset:
+        return hgID+' | parent: '+changeset
+    else:
+        return None
 
 def getUserNameUID():
     """return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root; but its >999 on debian
@@ -220,7 +232,7 @@ def msPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         showText = False
     if showVisual:
         x,y = myWin.size
-        myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', size=(float(y)/x,1.0), sf=3.0, opacity=.2)
+        myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', size=.45, sf=3.0, opacity=.2)
     clockt = [] # clock times
     drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
     
@@ -280,7 +292,7 @@ class RuntimeInfo(dict):
     
     Example usage: see runtimeInfo.py in coder demos
     """
-    def __init__(self, author=None, version=None, win=None, refreshTest=None,
+    def __init__(self, author=None, version=None, win=None, refreshTest='grating',
                  userProcsDetailed=False, verbose=False, randomSeed=None ):
         """
         :Parameters:
@@ -424,6 +436,20 @@ class RuntimeInfo(dict):
                 lastboot = os.popen('systeminfo | find "System Boot Time"').read().strip()
             self['systemRebooted'] = lastboot
         
+        try:
+            Rver,err = shellCall("R --version",stderr=True)
+            Rversion = Rver.splitlines()[0]
+            if Rversion.find('R version') == 0: self['systemRavailable'] = Rversion.strip()
+            else: raise
+        except:
+            self['systemRavailable'] = False
+        
+        try:
+            import rpy2
+            self['systemRpy2'] = rpy2.__version__
+        except:
+            self['systemRpy2'] = False
+        
         """# openssl version--maybe redundant with python distribution info?
         # python's hashlib is better than a shell call to openssl
         try:
@@ -511,11 +537,6 @@ class RuntimeInfo(dict):
             self['windowRefreshTimeAvg_ms'] = msPFavg
             self['windowRefreshTimeMedian_ms'] = msPFmd6
             self['windowRefreshTimeSD_ms'] = msPFstd
-            # could be useful to do twice: under the best possible conditions msPerFrame(win, nFrames=120, msDelay=0, showVisual=False)
-            # and when there's only 0.5ms free time: msPerFrame(win, nFrames=120, msDelay=msPFmd6-0.5, showVisual=False)
-            #self['windowRefreshTimeDelayAvg_ms'] = msPFavg
-            #self['windowRefreshTimeDelayMedian_ms'] = msPFmd6
-            #self['windowRefreshTimeDelaySD_ms'] = msPFstd
         if usingTempWin:
             return
         
