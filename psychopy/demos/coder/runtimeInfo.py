@@ -4,7 +4,7 @@
 __author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed
 __version__ = "v1.0.a''' "               ## single quotes will be left, eg, O'Connor
 
-from psychopy import core, visual, log
+from psychopy import visual, log, data
 
 # When creating an experiment, first define your window (& monitor):
 myWin = visual.Window(fullscr=True, monitor='testMonitor')
@@ -12,7 +12,7 @@ myWin.setRecordFrameIntervals(True)
 log.console.setLevel(log.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
-info = core.RuntimeInfo(
+info = data.RuntimeInfo(
         author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
         version=__version__+" <-- your experiment version info",
         win=myWin,    ## a psychopy.visual.Window() instance

@@ -17,6 +17,8 @@ import makeMovies
 import numpy
 from numpy import sin, cos, pi
 
+from psychopy.ext import rush as rush
+
 prefs = preferences.Preferences()#load the site/user config files
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
@@ -4360,7 +4362,7 @@ def _setColor(self, color, colorSpace=None, operation='',
     _setTexIfNoShaders(self)
     
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
-    """Assesses the monitor refresh rate (average, median, SD) under current conditions.
+    """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
     
     Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
     The visual is just eye-candy to show that something is happening when assessing many frames. You can
@@ -4373,22 +4375,24 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     - average time per frame, for all frames
     - standard deviation of all frames
     - median, as the average of 12 frame times around the median (~monitor refresh rate)
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     
-    from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
+    #from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
     
     nFrames = max(60, nFrames)  # lower bound of 60 samples--need enough to estimate the SD
     num2avg = 12  # how many to average from around the median
     if len(msg):
         showVisual = False
         showText = True
-        myMsg = visual.TextStim(myWin, text=msg, italic=True, 
+        myMsg = TextStim(myWin, text=msg, italic=True, 
                             color=(.7,.6,.5),colorSpace='rgb', height=0.1)
     else:
         showText = False
     if showVisual:
-        x,y = myWin.size
-        myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', size=.45, sf=3.0, opacity=.2)
+        myStim = PatchStim(myWin, tex='sin', mask='gauss', size=.45, sf=3.0, opacity=.2)
     clockt = [] # clock times
     drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
     
@@ -4406,7 +4410,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     for i in range(5): # wake everybody up
         myWin.flip()
     for i in range(nFrames): # ... and go for real this time
-        clockt.append(getTime()) 
+        clockt.append(core.getTime()) 
         if showVisual:
             myStim.setPhase(1.0/nFrames, '+')
             myStim.setSF(3./nFrames, '+')
@@ -4417,7 +4421,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
             myMsg.draw()
         if doWait:
             wait(delayTime)
-        drawt.append(getTime())
+        drawt.append(core.getTime())
         myWin.flip()
     rush(False)
     

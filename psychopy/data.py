@@ -4,9 +4,24 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
-import cPickle, shelve, string, sys, os, time, copy
+import cPickle, shelve, string, sys, platform, os, time, copy
 import numpy
 from scipy import optimize, special
+
+# imports for RuntimeInfo()
+from psychopy.visual import getMsPerFrame as getMsPerFrame
+from psychopy import visual
+from core import shellCall as shellCall
+from psychopy.ext import rush
+from psychopy import __version__ as psychopyVersion
+from pyglet.gl import gl_info
+import scipy, matplotlib, pyglet
+try: import ctypes
+except: pass
+try: import hashlib # python 2.5
+except: import sha
+import random
+
     
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
@@ -1209,6 +1224,9 @@ class RuntimeInfo(dict):
     your window and monitor settings (if any), python & packages, and openGL.
     
     Example usage: see runtimeInfo.py in coder demos
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     def __init__(self, author=None, version=None, win=None, refreshTest='grating',
                  userProcsDetailed=False, verbose=False, randomSeed=None ):
@@ -1451,7 +1469,7 @@ class RuntimeInfo(dict):
         """
         
         if refreshTest in ['grating', True]:
-            msPFavg, msPFstd, msPFmd6 = msPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
+            msPFavg, msPFstd, msPFmd6 = getMsPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
             self['windowRefreshTimeAvg_ms'] = msPFavg
             self['windowRefreshTimeMedian_ms'] = msPFmd6
             self['windowRefreshTimeSD_ms'] = msPFstd
@@ -1580,6 +1598,9 @@ def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.svn'))):
         return None, None, None
@@ -1606,6 +1627,9 @@ def _getHgVersion(file):
     """Tries to discover the mercurial (hg) parent and id of a file.
     
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
@@ -1622,6 +1646,9 @@ def _getHgVersion(file):
 
 def _getUserNameUID():
     """Return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root; but its >999 on debian
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     try:
         user = os.environ['USER']
@@ -1644,6 +1671,9 @@ def _getUserNameUID():
 
 def _getSha1hexDigest(str):
     """Returns base64 / hex encoded sha1 digest of a file or string, using hashlib.sha1() if available
+    
+    :Author:
+        - 2010 written by Jeremy Gray
     """
     try:
         sha1 = hashlib.sha1()

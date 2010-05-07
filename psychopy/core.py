@@ -5,17 +5,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, platform, os, time, threading
-import subprocess, shlex, numpy
 
-# these are for RuntimeInfo():
-from psychopy import __version__ as psychopyVersion
-from pyglet.gl import gl_info
-import scipy, matplotlib, pyglet
-try: import ctypes
-except: pass
-try: import hashlib # python 2.5
-except: import sha
-import random
+# for shellCall:
+import subprocess, shlex
 
 # no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
 from psychopy.ext import rush
