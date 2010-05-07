@@ -1009,7 +1009,7 @@ class FitNakaRushton(_baseFunctionFit):
     
     Note that this differs from most of the other functions in
     not using a value for the expected minimum. Rather, it fits this
-    as oe of the parameters of the model."""
+    as one of the parameters of the model."""
     def __init__(self, xx, yy, sems=1.0, guess=None, display=1):
         self.xx = numpy.asarray(xx)
         self.yy = numpy.asarray(yy)
@@ -1223,10 +1223,12 @@ class RuntimeInfo(dict):
     Returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
     your window and monitor settings (if any), python & packages, and openGL.
     
-    Example usage: see runtimeInfo.py in coder demos
+    If you want to skip testing the refresh rate, use 'refreshTest=None'
+    
+    Example usage: see runtimeInfo.py in coder demos.
     
     :Author:
-        - 2010 written by Jeremy Gray
+        - 2010 written by Jeremy Gray, with input from Jon Pierce and Alex Holcombe
     """
     def __init__(self, author=None, version=None, win=None, refreshTest='grating',
                  userProcsDetailed=False, verbose=False, randomSeed=None ):
