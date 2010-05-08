@@ -33,6 +33,9 @@ what to do with it.
 "print info" will give you the same as "print str(info)". This format is intended to be useful 
 for writing to a data file in a human readable form:"""
 print info
+#print repr(info)
+infoCopy = eval(repr(info)) # this works, but the type() of all values is now string
+
 print """If that's more detail than you want, try: info = core.RuntimeInfo(...,verbose=False,...)."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 

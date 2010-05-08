@@ -18,7 +18,8 @@ runningThreads=[]
 except:
     pass"""
 try:
-    import pyglet
+    import pyglet.media
+    import pyglet.window.get_platform
     havePyglet = True
 except:
     havePyglet = False

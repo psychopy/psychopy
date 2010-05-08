@@ -1295,7 +1295,7 @@ class RuntimeInfo(dict):
         if usingTempWin:
             win.close() # close after doing openGL
             
-    def _setExperimentInfo(self, author, version, verbose, randomSeedFlag):
+    def _setExperimentInfo(self, author, version, verbose, randomSeedFlag=None):
         self['experimentRuntime.epoch'] = time.time() # plausible basis for random.seed()
         self['experimentRuntime'] = time.ctime(self['experimentRuntime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
         if author or verbose:  
@@ -1321,18 +1321,22 @@ class RuntimeInfo(dict):
             self['experimentScript.hgChangeSet'] = hgChangeSet
         
         # random.seed -- record the value, and initialize random.seed() if 'set:'
-        if randomSeedFlag or verbose:
+        if randomSeedFlag: 
+            randomSeedFlag = str(randomSeedFlag)
             while randomSeedFlag.find('set: ') == 0:
                 randomSeedFlag = randomSeedFlag.replace('set: ','set:',1) # spaces between set: and value could be confusing after deleting 'set:'
-            randomSeed = randomSeedFlag.replace('set:','',1); 
-            if randomSeedFlag in ['time', 'set:time']:
+            randomSeed = randomSeedFlag.replace('set:','',1).strip()
+            if randomSeed in ['time']:
                 randomSeed = self['experimentRuntime.epoch']
-            if randomSeedFlag: self['experimentRandomSeed'] = str(randomSeed)  # allow None->None, else give it type str()
-            if randomSeedFlag.find('set:')==0:
-                random.seed(self['experimentRandomSeed'])
+            self['experimentRandomSeed.string'] = randomSeed
+            if randomSeedFlag.find('set:') == 0:
+                random.seed(self['experimentRandomSeed.string']) # seed it
                 self['experimentRandomSeed.isSet'] = True
             else:
                 self['experimentRandomSeed.isSet'] = False
+        else:
+            self['experimentRandomSeed.string'] = None
+            self['experimentRandomSeed.isSet'] = False
             
     def _setSystemUserInfo(self):
         # machine name
@@ -1374,6 +1378,7 @@ class RuntimeInfo(dict):
                 lastboot = os.popen('systeminfo | find "System Boot Time"').read().strip()
             self['systemRebooted'] = lastboot
         
+        # is R available for stats?
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
@@ -1382,13 +1387,13 @@ class RuntimeInfo(dict):
         except:
             self['systemRavailable'] = False
         
-        try:
+        """try:
             import rpy2
             self['systemRpy2'] = rpy2.__version__
         except:
             self['systemRpy2'] = False
         
-        """# openssl version--maybe redundant with python distribution info?
+        # openssl version--maybe redundant with python distribution info?
         # python's hashlib is better than a shell call to openssl
         try:
             self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
@@ -1447,10 +1452,10 @@ class RuntimeInfo(dict):
                 pr = p.split() # info fields for this process
                 if pr[cmd] in appIgnoreList:
                     continue
-                if sys.platform in ['win32']:  #allow for spaces in app names, replace with '_'
-                    systemProcPsu.append(['_'.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
+                if sys.platform in ['win32']:  #allow for spaces in app names
+                    systemProcPsu.append([' '.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
                 else:
-                    systemProcPsu.append(['_'.join(pr[cmd:]),pr[pid]]) #
+                    systemProcPsu.append([' '.join(pr[cmd:]),pr[pid]]) #
                 matchingApp = [a for a in appFlagList if p.lower().find(a.lower())>-1]
                 for app in matchingApp:
                     systemProcPsuFlagged.append([app, pr[pid]])
@@ -1570,10 +1575,15 @@ class RuntimeInfo(dict):
                 if k in ['systemUserProcFlagged','systemUserProcCmdPid'] and len(selfk): # then strcat unique proc names
                     prSet = []
                     for pr in self[k]: # str -> list of lists
+                        if pr[0].find(' ')>-1: # add single quotes around file names that contain spaces
+                            pr[0] = "'"+pr[0]+"'"
                         prSet += [pr[0]] # first item in sublist is proc name (CMD)
                     selfk = ' '.join(list(set(prSet)))
                 if k not in ['systemUserProcFlaggedPID']: # suppress display PID info -- useful at run-time, never useful in an archive
-                    info += '    "%s": "%s",\n' % (k, selfk)
+                    #if type(selfk) == type('abc'): 
+                        info += '    "%s": "%s",\n' % (k, selfk) 
+                    #else:
+                    #    info += '    "%s": %s,\n' % (k, selfk)
         info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
         return info
     
@@ -1586,7 +1596,8 @@ class RuntimeInfo(dict):
             if line.find('openGLext')>-1: # swap order for OpenGL extensions -- much easier to read
                 tmp = line.split(':')
                 info[i] = ': '.join(['   '+tmp[1].replace(',',''),tmp[0].replace('    ','')+','])
-        info = '\n'.join(info).replace('",','').replace('"','')+'\n'
+            info[i] = info[i].rstrip(',')
+        info = '\n'.join(info).replace('"','')+'\n'
         return info
     
     def _type(self):
@@ -1676,6 +1687,9 @@ def _getSha1hexDigest(str):
     
     :Author:
         - 2010 written by Jeremy Gray
+
+    >>> _getSha1hexDigest('1')
+    '356a192b7913b04c54574d18c28d46e6395428ab'
     """
     try:
         sha1 = hashlib.sha1()
