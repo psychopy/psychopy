@@ -1372,13 +1372,12 @@ class RuntimeInfo(dict):
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except:
-            lastboot = ''
-            lastboot = os.popen('systeminfo | find "System Up Time"').read().strip()
-            if lastboot == '': # try Vista version
-                lastboot = os.popen('systeminfo | find "System Boot Time"').read().strip()
-            self['systemRebooted'] = lastboot
+            sysInfo = shellCall('systeminfo').splitlines()
+            lastboot = [line for line in sysInfo if line.find("System Up Time") == 0 or line.find("System Boot Time") == 0]
+            lastboot += ['[?]']
+            self['systemRebooted'] = lastboot[0].strip()
         
-        # is R available for stats?
+        # is R available (for stats)?
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
