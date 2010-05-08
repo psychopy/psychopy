@@ -1,4 +1,4 @@
-# runtimeInfo.py: a demo showing some use-cases for class data.RuntimeInfo(), which calls visual.getMsPerFrame()
+# runtimeInfo.py: a demo showing some use-cases for class data.RunTimeInfo(), which calls visual.getMsPerFrame()
 
 # These are used in the demo, in the way you might in your experiment:
 __author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed
@@ -12,7 +12,7 @@ myWin.setRecordFrameIntervals(True)
 log.console.setLevel(log.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
-info = data.RuntimeInfo(
+info = data.RunTimeInfo(
         author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
         version=__version__+" <-- your experiment version info",
         win=myWin,    ## a psychopy.visual.Window() instance

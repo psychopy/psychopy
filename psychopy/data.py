@@ -1217,7 +1217,7 @@ def functionFromStaircase(intensities, responses, bins = 10):
         
     return binnedInten, binnedResp, nPoints
 
-class RuntimeInfo(dict):
+class RunTimeInfo(dict):
     """Returns a snapshot of your configuration at run-time, for immediate or archival use.
     
     Returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
@@ -1351,7 +1351,7 @@ class RuntimeInfo(dict):
             platInfo = 'linux2 '+platform.release()
             # powerSource = ...
         elif sys.platform in ['win32']:
-            platInfo = 'win32 windowsversion='+repr(sys.getwindowsversion())
+            platInfo = 'windowsversion='+repr(sys.getwindowsversion())
             # powerSource = ...
         else:
             platInfo = ' [?]'
@@ -1374,14 +1374,15 @@ class RuntimeInfo(dict):
         except:
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.find("System Up Time") == 0 or line.find("System Boot Time") == 0]
-            lastboot += ['[?]']
+            lastboot += ['[?]'] # put something in the list just in case
             self['systemRebooted'] = lastboot[0].strip()
         
         # is R available (for stats)?
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
-            if Rversion.find('R version') == 0: self['systemRavailable'] = Rversion.strip()
+            if Rversion.find('R version') == 0:
+                self['systemRavailable'] = Rversion.strip()
             else: raise
         except:
             self['systemRavailable'] = False
@@ -1393,7 +1394,7 @@ class RuntimeInfo(dict):
             self['systemRpy2'] = False
         
         # openssl version--maybe redundant with python distribution info?
-        # python's hashlib is better than a shell call to openssl
+        # for a sha1 digest, python's hashlib is better than a shell call to openssl
         try:
             self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
             if err:
