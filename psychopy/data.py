@@ -1243,8 +1243,8 @@ class RunTimeInfo(dict):
             version : *None*, string
                 None -> try to autodetect first __version__ in sys.argv[0]; string -> user-supplied version info (of an experiment)
             verbose : *False*, True; how much detail to assess
-            refreshTest : *None*, False, True, 'progressBar'
-                if refreshTest, then assess refresh average, median, and SD of 60 win.flip()s, using core.msPerFrame()
+            refreshTest : *None*, False, True, 'grating'
+                if refreshTest, then assess refresh average, median, and SD of 60 win.flip()s, using visual.getMsPerFrame()
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
             randomSeed: *None*
@@ -1254,11 +1254,11 @@ class RunTimeInfo(dict):
                 'time' --> use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
                 
-        :Returns a flat dict: in categories
+        :Returns a flat dict: (flat but with keys in several groups)
             
-            psychopy : version
-                psychopyVersion
-            experiment : author, version, directory, name, current time-stamp, SHA1 digest, svn or hg info (if any)
+            psychopy : version, rush() availability
+                psychopyVersion, psychopyHaveExtRush
+            experiment : author, version, directory, name, current time-stamp, SHA1 digest, VCS info (if any, svn or hg only)
                 experimentAuthor, experimentVersion, ...
             system : hostname, platform, user login, count of users, user process info (count, cmd + pid), flagged processes
                 systemHostname, systemPlatform, ...
@@ -1266,7 +1266,7 @@ class RunTimeInfo(dict):
                 windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
             python : version of python, versions of key packages (numpy, scipy, matplotlib, pyglet, pygame)
                 pythonVersion, pythonScipyVersion, ...
-            openGL : version, vendor, rendering engine, plus info on whether key extensions are present
+            openGL : version, vendor, rendering engine, plus info on whether several extensions are present
                 openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
         """
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
@@ -1301,22 +1301,20 @@ class RunTimeInfo(dict):
             f = open(sys.argv[0],'r')
             lines = f.read()
             f.close()
-        if not author:
-            if lines.find('__author__')>-1:
-                linespl = lines.splitlines()
-                while linespl[0].find('__author__') == -1:
-                    linespl.pop(0)
-                auth = linespl[0]+' '  # because find('#') might return -1
-                if len(auth) and auth.find('=') > 0:
-                    author = eval(auth[auth.find('=')+1 :])
-        if not version:
-            if lines.find('__version__')>-1:
-                linespl = lines.splitlines()
-                while linespl[0].find('__version__') == -1:
-                    linespl.pop(0)
-                ver = linespl[0]+' '
-                if len(ver) and ver.find('=') > 0:
-                    version = eval(ver[ver.find('=')+1 :])
+        if not author and lines.find('__author__')>-1:
+            linespl = lines.splitlines()
+            while linespl[0].find('__author__') == -1:
+                linespl.pop(0)
+            auth = linespl[0]
+            if len(auth) and auth.find('=') > 0:
+                author = eval(auth[auth.find('=')+1 :])
+        if not version and lines.find('__version__')>-1:
+            linespl = lines.splitlines()
+            while linespl[0].find('__version__') == -1:
+                linespl.pop(0)
+            ver = linespl[0]
+            if len(ver) and ver.find('=') > 0:
+                version = eval(ver[ver.find('=')+1 :])
         if author or verbose:  
             self['experimentAuthor'] = author
         if version or verbose: 
