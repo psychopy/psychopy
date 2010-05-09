@@ -1235,21 +1235,23 @@ class RunTimeInfo(dict):
         """
         :Parameters:
             
-            win : *None*, psychopy.visual.Window() instance
-                what window to use for refresh rate testing (if any) and settings (if win != None)
+            win : *None*, False, psychopy.visual.Window() instance
+                what window to use for refresh rate testing (if any) and settings. None -> temporary window using
+                defaults; False -> no window created, used, nor profiled; a Window() instance you have already created
             author : *None*, string
-                string for user-supplied author info (of an experiment, sys.argv[0])
+                None -> try to autodetect first __author__ in sys.argv[0]; string -> user-supplied author info (of an experiment)
             version : *None*, string
-                string for user-supplied version info (of an experiment, sys.argv[0])
-            verbose : *False*, True
-                True put
+                None -> try to autodetect first __version__ in sys.argv[0]; string -> user-supplied version info (of an experiment)
+            verbose : *False*, True; how much detail to assess
             refreshTest : *None*, False, True, 'progressBar'
                 if refreshTest, then assess refresh average, median, and SD of 60 win.flip()s, using core.msPerFrame()
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
             randomSeed: *None*
-                a way for the user to record, and optionally set, a random seed; 'set:XYZ' will both store and set the seed;
-                None defaults to python default; 'time' --> use time.time() as the seed, as obtained during RuntimeInfo()
+                a way for the user to record, and optionally set, a random seed for making reproducible random sequences
+                'set:XYZ' will both record the seed, 'XYZ', and pass it into random: random.seed('XYZ');
+                None defaults to python default;
+                'time' --> use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
                 
         :Returns a flat dict: in categories
@@ -1267,8 +1269,6 @@ class RunTimeInfo(dict):
             openGL : version, vendor, rendering engine, plus info on whether key extensions are present
                 openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
         """
-        from psychopy import visual # have to do this in __init__ (visual imports core)
-        
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
         
         self['psychopyVersion'] = psychopyVersion
@@ -1279,25 +1279,44 @@ class RunTimeInfo(dict):
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
-        # rewrite so that its not always necessary to open a window if you just want system info (but not monitor / window)
         if win == None: # make a temporary window, later close it
             win = visual.Window(fullscr=True, monitor="testMonitor")
             refreshTest = 'grating'
             usingTempWin = True
-        else: # we were passed a window instance, use it for timing and profile it:
+        else: # either False, or we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
-        self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
+        if win: 
+            self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
        
         self['pythonVersion'] = sys.version.split()[0]
         if verbose:
             self._setPythonInfo()
-            self._setOpenGLInfo()
+            if win: self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
             
     def _setExperimentInfo(self, author, version, verbose, randomSeedFlag=None):
-        self['experimentRuntime.epoch'] = time.time() # plausible basis for random.seed()
-        self['experimentRuntime'] = time.ctime(self['experimentRuntime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+        # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
+        if not author or not version:
+            f = open(sys.argv[0],'r')
+            lines = f.read()
+            f.close()
+        if not author:
+            if lines.find('__author__')>-1:
+                linespl = lines.splitlines()
+                while linespl[0].find('__author__') == -1:
+                    linespl.pop(0)
+                auth = linespl[0]+' '  # because find('#') might return -1
+                if len(auth) and auth.find('=') > 0:
+                    author = eval(auth[auth.find('=')+1 :])
+        if not version:
+            if lines.find('__version__')>-1:
+                linespl = lines.splitlines()
+                while linespl[0].find('__version__') == -1:
+                    linespl.pop(0)
+                ver = linespl[0]+' '
+                if len(ver) and ver.find('=') > 0:
+                    version = eval(ver[ver.find('=')+1 :])
         if author or verbose:  
             self['experimentAuthor'] = author
         if version or verbose: 
@@ -1320,6 +1339,10 @@ class RunTimeInfo(dict):
         if hgChangeSet: # or verbose:
             self['experimentScript.hgChangeSet'] = hgChangeSet
         
+        # when was this run?
+        self['experimentRunTime.epoch'] = time.time() # basis for default random.seed()
+        self['experimentRunTime'] = time.ctime(self['experimentRunTime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+        
         # random.seed -- record the value, and initialize random.seed() if 'set:'
         if randomSeedFlag: 
             randomSeedFlag = str(randomSeedFlag)
@@ -1327,7 +1350,7 @@ class RunTimeInfo(dict):
                 randomSeedFlag = randomSeedFlag.replace('set: ','set:',1) # spaces between set: and value could be confusing after deleting 'set:'
             randomSeed = randomSeedFlag.replace('set:','',1).strip()
             if randomSeed in ['time']:
-                randomSeed = self['experimentRuntime.epoch']
+                randomSeed = self['experimentRunTime.epoch']
             self['experimentRandomSeed.string'] = randomSeed
             if randomSeedFlag.find('set:') == 0:
                 random.seed(self['experimentRandomSeed.string']) # seed it
@@ -1371,7 +1394,7 @@ class RunTimeInfo(dict):
         try:
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
-        except:
+        except: # windows
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.find("System Up Time") == 0 or line.find("System Boot Time") == 0]
             lastboot += ['[?]'] # put something in the list just in case
@@ -1471,7 +1494,7 @@ class RunTimeInfo(dict):
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
     
-    def _setWindowInfo(self, win=None, verbose=False, refreshTest='grating', usingTempWin=True):
+    def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
         

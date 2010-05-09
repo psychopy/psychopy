@@ -1,8 +1,8 @@
 # runtimeInfo.py: a demo showing some use-cases for class data.RunTimeInfo(), which calls visual.getMsPerFrame()
 
-# These are used in the demo, in the way you might in your experiment:
-__author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed
-__version__ = "v1.0.a''' "               ## single quotes will be left, eg, O'Connor
+# These are used in the demo, in the way you might in your experiment (expected to be at the top of the script that calls RunTimeInfo()):
+__author__ = 'Jeremy """R.""" Gray' ## double-quotes will be silently removed, single quotes will be left, eg, O'Connor
+__version__ = "v1.0.a#'''" ## in-line comments are ignored, but comment characters within strings are retained
 
 from psychopy import visual, log, data
 
@@ -13,13 +13,15 @@ log.console.setLevel(log.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
 info = data.RunTimeInfo(
-        author=__author__+' <-- your name goes here, plus whatever you like, e.g., your lab or contact info',
-        version=__version__+" <-- your experiment version info",
-        win=myWin,    ## a psychopy.visual.Window() instance
+        # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
+        #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
+        #version="<your experiment version info>",
+        win=myWin,    ## a psychopy.visual.Window() instance; None = default temp window used; False = no win, no win.flips()
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
         verbose=True, ## True means report on everything 
         userProcsDetailed=True,  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
-        randomSeed='set:time', ## a way to record, and optionally set, a random seed of type str; None -> default
+        randomSeed='set:time', ## a way to record, and optionally set, a random seed of type str for making reproducible random sequences
+            ## None -> default 
             ## 'time' will use experimentRuntime.epoch as the value for the seed, different value each time the script is run
             ##'set:time' --> seed value is set to experimentRuntime.epoch, and initialized: random.seed(info['randomSeed'])
             ##'set:42' --> set & initialize to str('42'), and will give the same sequence of random.random() for all runs of the script
