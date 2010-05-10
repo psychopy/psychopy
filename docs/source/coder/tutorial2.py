@@ -7,7 +7,7 @@ try:#try to get a previous parameters file
     expInfo = misc.fromFile('lastParams.pickle')
 except:#if not there then use a default set
     expInfo = {'observer':'jwp', 'refOrientation':0}
-expInfo['dateStr']= time.strftime("%b_%d_%H%M", time.localtime())#add the current time
+expInfo['dateStr']= data.getDateStr() #add the current time
 #present a dialogue to change params
 dlg = gui.DlgFromDict(expInfo, title='simple JND Exp', fixed=['dateStr'])
 if dlg.OK:
@@ -16,7 +16,7 @@ else:
     core.quit()#the user hit cancel so exit
 
 #make a text file to save data
-fileName = expInfo['observer'] + dateStr
+fileName = expInfo['observer'] + expInfo['dateStr']
 dataFile = open(fileName+'.csv', 'w')#a simple text file with 'comma-separated-values'
 dataFile.write('targetSide,oriIncrement,correct\n')
 
@@ -27,7 +27,7 @@ staircase = data.StairHandler(startVal = 20.0,
                           nTrials=50)
                           
 #create window and stimuli
-win = visual.Window([800,600],allowGUI=False, monitor='testMonitor', units='deg')
+win = visual.Window([800,600],allowGUI=True, monitor='testMonitor', units='deg')
 foil = visual.PatchStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
 target = visual.PatchStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
 fixation = visual.PatchStim(win, rgb=-1, tex=None, mask='circle',size=0.2)
@@ -42,8 +42,8 @@ message2 = visual.TextStim(win, pos=[0,-3],
 message1.draw()
 message2.draw()
 fixation.draw()
-win.update()#to show our newly drawn 'stimuli'
-#check for a keypress
+win.flip()#to show our newly drawn 'stimuli'
+#pause until there's a keypress
 event.waitKeys()
 
 for thisIncrement in staircase: #will step through the staircase
@@ -59,13 +59,13 @@ for thisIncrement in staircase: #will step through the staircase
     foil.draw()
     target.draw()
     fixation.draw()
-    win.update()
+    win.flip()
 
     core.wait(0.5)#wait 500ms (use a loop of x frames for more accurate timing)
 
     #blank screen
     fixation.draw()
-    win.update()
+    win.flip()
 
     #get response
     thisResp=None
@@ -85,6 +85,7 @@ for thisIncrement in staircase: #will step through the staircase
     #add the data to the staircase so it can calculate the next level
     staircase.addData(thisResp)
     dataFile.write('%i,%.3f,%i\n' %(targetSide, thisIncrement, thisResp))
+    core.wait(1)
 
 #staircase has ended
 dataFile.close()
