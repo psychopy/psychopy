@@ -1613,7 +1613,7 @@ class BuilderFrame(wx.Frame):
         self.demosMenu = wx.Menu()
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname=="__init__.py": continue
+            if shortname.startswith('_'): continue#remove any 'private' files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
         menuBar.Append(self.demosMenu, '&Demos')

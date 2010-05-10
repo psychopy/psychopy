@@ -1124,7 +1124,7 @@ class CoderFrame(wx.Frame):
             self.demos[self.ID_DEMOS[n]] = self.demoList[n]
         for thisID in self.ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname=="__init__.py": continue
+            if shortname.startswith('_'): continue#remove any 'private' files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
 
