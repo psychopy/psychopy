@@ -1209,8 +1209,7 @@ class CoderFrame(wx.Frame):
                         message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                         type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
-                    print "Reloading..."
-                    self.SetStatusText('Loading file')
+                    self.SetStatusText('Reloading file')
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                     self.setFileModified(False)
                 self.SetStatusText('')
@@ -1231,8 +1230,7 @@ class CoderFrame(wx.Frame):
                     message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                     type='Warning')
             if  dlg.ShowModal() == wx.ID_YES:
-                print "Reloading..."
-                self.SetStatusText('Loading file')
+                self.SetStatusText('Reloading file')
                 self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                 self.setFileModified(False)
             self.SetStatusText('')
@@ -1362,7 +1360,6 @@ class CoderFrame(wx.Frame):
         # this did not work for me:
         self.fileClose(event, filename=filename, checkSave=checkSave)
         self.fileNew(filename) # which does: self.setCurrentDoc(filename)
-        #self.currentDoc.fileModTime = os.path.getmtime(self.currentDoc.filename) # happens in setCurrentDoc
         
     def findDocID(self, filename):
         #find the ID of the current doc

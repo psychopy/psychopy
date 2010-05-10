@@ -716,6 +716,12 @@ class StairHandler:
             self._warnUseOfNext=False
         return self.next()
         
+class QuestHandler():
+    """(place-holder for future integration of _quest.py as a Trial/StairHandler)
+    """
+    def __init__(self):
+        self = None
+
 class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
@@ -1127,6 +1133,7 @@ class FitCumNormal(_baseFunctionFit):
 
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
+    
     SLOW IMPLEMENTATION (Python for-loop)
     
     Usage:
@@ -1307,14 +1314,21 @@ class RunTimeInfo(dict):
                 linespl.pop(0)
             auth = linespl[0]
             if len(auth) and auth.find('=') > 0:
-                author = eval(auth[auth.find('=')+1 :])
+                try:
+                    author = str(eval(auth[auth.find('=')+1 :]))
+                except:
+                    pass
         if not version and lines.find('__version__')>-1:
             linespl = lines.splitlines()
             while linespl[0].find('__version__') == -1:
                 linespl.pop(0)
             ver = linespl[0]
             if len(ver) and ver.find('=') > 0:
-                version = eval(ver[ver.find('=')+1 :])
+                try:
+                    version = str(eval(ver[ver.find('=')+1 :]))
+                except:
+                    pass
+        
         if author or verbose:  
             self['experimentAuthor'] = author
         if version or verbose: 

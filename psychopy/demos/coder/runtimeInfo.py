@@ -2,7 +2,8 @@
 data.RunTimeInfo calls visual.getMsPerFrame() to characterize the current monitor refresh rate and variability.
 """
 
-# These are used in the demo, in the way you might in your experiment (expected to be at the top of the script that calls RunTimeInfo()):
+# author and version are used in the demo, in the way you might in your experiment.
+# They expected to be at the top of the script that calls RunTimeInfo()), with a string literal assigned to them (no variables).
 __author__ = """Jeremy "R." Gray""" ## double-quotes will be silently removed, single quotes will be left, eg, O'Connor
 __version__ = "v1.0.a#'''" ## in-line comments are ignored, but comment characters within strings are retained
 
