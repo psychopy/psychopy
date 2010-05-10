@@ -9,7 +9,6 @@ import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
-from psychopy.core import getTime
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -849,7 +848,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc=None
         self.ignoreErrors = False
         
-        self.fileStatusLastChecked = getTime()
+        self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60 #sec
         
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
@@ -1202,8 +1201,8 @@ class CoderFrame(wx.Frame):
         if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
-        if getTime() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
-            self.fileStatusLastChecked = getTime()
+        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
+            self.fileStatusLastChecked = time.time()
             if not self.expectedModTime(self.currentDoc):
                 dlg = dialogs.MessageDialog(self,
                         message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
