@@ -40,6 +40,7 @@ class MouseComponent(BaseComponent):
             hint="The duration during which the mouse is checked")
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=event.Mouse(win=win)\n" %(self.params))
+        buff.writeIndented("x,y=[None,None]\n" %(self.params))
     def writeRoutineStartCode(self,buff):
         """Write the code that will be called at the start of the routine
         """
@@ -108,11 +109,12 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("#get info about the %(name)s\n" %(self.params))
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
-            buff.writeIndented("%s.addData('%s.x',x)\n" %(currLoop.params['name'], name))
-            buff.writeIndented("%s.addData('%s.y',y)\n" %(currLoop.params['name'], name))
-            buff.writeIndented("%s.addData('%s.leftButton',buttons[0])\n" %(currLoop.params['name'], name))
-            buff.writeIndented("%s.addData('%s.midButton',buttons[1])\n" %(currLoop.params['name'], name))
-            buff.writeIndented("%s.addData('%s.rightButton',buttons[2])\n" %(currLoop.params['name'], name))
+            if currLoop.type!='StairHandler':
+                buff.writeIndented("%s.addData('%s.x',x)\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.y',y)\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.leftButton',buttons[0])\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.midButton',buttons[1])\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.rightButton',buttons[2])\n" %(currLoop.params['name'], name))
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("#save %(name)s data\n" %(self.params))
             for property in ['x','y','leftButton','midButton','rightButton','time']:
