@@ -79,20 +79,18 @@ def wait(secs, hogCPUperiod=0.2):
     #initial relaxed period, using sleep (better for system resources etc)
     if secs>hogCPUperiod:
         time.sleep(secs-hogCPUperiod)
-        secs=hogCPUperiod #only this much is now left
-         
+        secs=hogCPUperiod#only this much is now left
+        
     #hog the cpu, checking time
     t0=getTime()
     while (getTime()-t0)<secs:
-        if havePyglet:       
+        #let's see if pyglet collected any event in meantime
+        try:
+            pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
             wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events() #pump events on pyglet windows
-            
-    #we're done, let's see if pyglet collected any event in meantime
-    try:
-        pyglet.media.dispatch_events()
-    except:
-        pass #maybe pyglet 
+            for win in wins: win.dispatch_events()#pump events on pyglet windows            
+        except:
+            pass #presumably not pyglet 
 
 
 def shellCall(shellCmd, stderr=False):
