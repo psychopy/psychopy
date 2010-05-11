@@ -1,22 +1,19 @@
-"""Basic functions, including timing and run-time configuration profile
+"""Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, platform, os, time, threading
+import sys, os, time, threading
+
+# always safe to call rush, even if its not going to do anything for a particular OS
+from psychopy.ext import rush
 
 # for shellCall:
 import subprocess, shlex
 
-# no longer try: except: here -- want exceptions to trip us up (because things are coded defensively in rush)
-from psychopy.ext import rush
-
 runningThreads=[]
-"""try:
-    import pyglet.media
-except:
-    pass"""
+
 try:
     import pyglet.media
     import pyglet.window.get_platform
@@ -77,24 +74,19 @@ def wait(secs, hogCPUperiod=0.2):
     is used for greater precision.
     
     If you want to obtain key-presses during the wait, be sure to use pyglet and
-    to hogCPU for the entire time, and then call event.getKeys() after calling wait()
+    to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
     """
     #initial relaxed period, using sleep (better for system resources etc)
     if secs>hogCPUperiod:
         time.sleep(secs-hogCPUperiod)
-        secs=hogCPUperiod#only this much is now left
-        """if havePyglet:
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows"""
-         # I'm thinking that the if pyglet... part would be good to have here too, but might introduce timing slop?
+        secs=hogCPUperiod #only this much is now left
          
     #hog the cpu, checking time
     t0=getTime()
     while (getTime()-t0)<secs:
-        pass
-        """if havePyglet:       
+        if havePyglet:       
             wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows"""
+            for win in wins: win.dispatch_events() #pump events on pyglet windows
             
     #we're done, let's see if pyglet collected any event in meantime
     try:

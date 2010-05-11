@@ -32,7 +32,7 @@ class BitsBox:
     e.g.::
         
         from psychopy import visual
-        win = visual.Window([800,600], bitsMode=‘fast’)
+        win = visual.Window([800,600], bitsMode='fast')
         win.bits.setContrast(0.5)#use bits++ to reduce the whole screen contrast by 50%
         
     """

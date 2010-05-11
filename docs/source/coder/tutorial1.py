@@ -12,7 +12,7 @@ while True: #this creates a never-ending loop
     grating.setPhase(0.05, '+')#advance phase by 0.05 of a cycle
     grating.draw()
     fixation.draw()
-    mywin.update()
+    mywin.flip()
 
     if len(event.getKeys())>0: break
     event.clearEvents()

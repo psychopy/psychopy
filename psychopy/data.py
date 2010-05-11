@@ -9,9 +9,9 @@ import numpy
 from scipy import optimize, special
 
 # imports for RuntimeInfo()
-from psychopy.visual import getMsPerFrame as getMsPerFrame
+from psychopy.visual import getMsPerFrame
 from psychopy import visual
-from core import shellCall as shellCall
+from core import shellCall
 from psychopy.ext import rush
 from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
@@ -1246,22 +1246,23 @@ class RunTimeInfo(dict):
                 what window to use for refresh rate testing (if any) and settings. None -> temporary window using
                 defaults; False -> no window created, used, nor profiled; a Window() instance you have already created
             author : *None*, string
-                None -> try to autodetect first __author__ in sys.argv[0]; string -> user-supplied author info (of an experiment)
+                None = try to autodetect first __author__ in sys.argv[0]; string = user-supplied author info (of an experiment)
             version : *None*, string
-                None -> try to autodetect first __version__ in sys.argv[0]; string -> user-supplied version info (of an experiment)
+                None = try to autodetect first __version__ in sys.argv[0]; string = user-supplied version info (of an experiment)
             verbose : *False*, True; how much detail to assess
-            refreshTest : *None*, False, True, 'grating'
-                if refreshTest, then assess refresh average, median, and SD of 60 win.flip()s, using visual.getMsPerFrame()
+            refreshTest : None, False, True, *'grating'*
+                True or 'grating' = assess refresh average, median, and SD of 60 win.flip()s, using visual.getMsPerFrame()
+                'grating' = show a visual during the assessment; True = assess without a visual
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
             randomSeed: *None*
                 a way for the user to record, and optionally set, a random seed for making reproducible random sequences
                 'set:XYZ' will both record the seed, 'XYZ', and pass it into random: random.seed('XYZ');
                 None defaults to python default;
-                'time' --> use time.time() as the seed, as obtained during RunTimeInfo()
+                'time' = use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
                 
-        :Returns a flat dict: (flat but with keys in several groups)
+        :Returns a flat dict: (flat but with several groups based on key names)
             
             psychopy : version, rush() availability
                 psychopyVersion, psychopyHaveExtRush
