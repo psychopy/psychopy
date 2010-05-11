@@ -3422,19 +3422,19 @@ class TextStim(_BaseVisualStim):
             pyglet.font.add_file(thisFont)
         self.setFont(font)
 
-        self.colorSpace=colorSpace
-        if rgb!=None:
-            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
-        else:
-            self.setColor(color)
-
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet":
             self._texID = GL.glGenTextures(1)
         #render the text surfaces and build drawing list
         
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        else:
+            self.setColor(color)
+            
         self._calcPosRendered()
         self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
         
