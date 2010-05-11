@@ -4,7 +4,7 @@
 
 """
 There are no c extensions for windows at the moment - everything is done
-from the pywin32 extensions.
+from ctypes.
 """
 #these are correct for win32, not sure about 64bit versions
    #DEFINE NORMAL_PRIORITY_CLASS 32

@@ -37,7 +37,7 @@ class MouseComponent(BaseComponent):
         self.params['timeRelativeTo']=Param(timeRelativeTo, valType='str',
             allowedVals=['experiment','routine'],
             updates='constant', allowedUpdates=[],
-            hint="The duration during which the mouse is checked")
+            hint="What should the values of mouse.time should be relative to?")
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=event.Mouse(win=win)\n" %(self.params))
         buff.writeIndented("x,y=[None,None]\n" %(self.params))
