@@ -1342,15 +1342,21 @@ class RunTimeInfo(dict):
         # sha1 digest, text-format compatibility
         self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]))
         # subversion revision?
-        svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0])) # svn revision
-        if svnrev: # or verbose:
-            self['experimentScript.svnRevision'] = svnrev
-            self['experimentScript.svnRevLast'] = last
-            self['experimentScript.svnRevURL'] = url
+        try:
+            svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0])) # svn revision
+            if svnrev: # or verbose:
+                self['experimentScript.svnRevision'] = svnrev
+                self['experimentScript.svnRevLast'] = last
+                self['experimentScript.svnRevURL'] = url
+        except:
+            pass
         # mercurical revision?
-        hgChangeSet = _getHgVersion(os.path.abspath(sys.argv[0])) 
-        if hgChangeSet: # or verbose:
-            self['experimentScript.hgChangeSet'] = hgChangeSet
+        try:
+            hgChangeSet = _getHgVersion(os.path.abspath(sys.argv[0])) 
+            if hgChangeSet: # or verbose:
+                self['experimentScript.hgChangeSet'] = hgChangeSet
+        except:
+            pass
         
         # when was this run?
         self['experimentRunTime.epoch'] = time.time() # basis for default random.seed()
@@ -1682,14 +1688,19 @@ def _getHgVersion(file):
     """
     if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
-    hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)
-    if err: changeset = None
-    else: changeset = hgParentLines.splitlines()[0].split()[-1]
-    hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
-    if err: hgID = None
+    try:
+        hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)
+        changeset = hgParentLines.splitlines()[0].split()[-1]
+    except:
+        changeset = ''
+    #else: changeset = hgParentLines.splitlines()[0].split()[-1]
+    try:
+        hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
+    except:
+        if err: hgID = ''
     
-    if hgID and changeset:
-        return hgID+' | parent: '+changeset
+    if len(hgID) or len(changeset):
+        return hgID.strip()+' | parent: '+changeset.strip()
     else:
         return None
 
