@@ -4,7 +4,8 @@
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, time, threading
+import sys, time, threading
+import os # only needed for temporary shellCall()
 
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.ext import rush
@@ -92,19 +93,26 @@ def wait(secs, hogCPUperiod=0.2):
         except:
             pass #presumably not pyglet 
 
-
 def shellCall(shellCmd, stderr=False):
-    """Calls a system command via subprocess, returns the stdout from the command.
+    """Call a single system command with arguments via subprocess, returns what the command sends to stdout.
     
-    returns (stdout,stderr) if kwarg stderr==True
+    Returns (stdout,stderr) if requested (by stderr==True). Does not handle multiple commands connected by pipes ("|").
     """
     
-    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args; pipes don't work here
-    stdoutData, stderrData = subprocess.Popen(shellCmdList,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
-        
+    stdoutData = os.popen(shellCmd).read()
+
     if stderr:
-        return stdoutData.strip(), stderrData.strip()
+        return stdoutData.strip(),''
     else:
         return stdoutData.strip()
+
+# subprocess had build problems on Mac:
+#    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args; pipes don't work here
+#    stdoutData, stderrData = subprocess.Popen(shellCmdList,
+#        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
+        
+#    if stderr:
+#        return stdoutData.strip(), stderrData.strip()
+#    else:
+#        return stdoutData.strip()
 
