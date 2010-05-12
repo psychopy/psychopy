@@ -1107,8 +1107,8 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
         self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
         wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
-        self.helpMenu.Append(self.IDs.api, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
-        wx.EVT_MENU(self, self.IDs.api, self.app.followLink)
+        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
+        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
 
         self.demosMenu = wx.Menu()
         menuBar.Append(self.demosMenu, '&Demos')

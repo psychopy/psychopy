@@ -50,7 +50,6 @@ coderTutorial=wx.NewId()
 builderHelp=wx.NewId()
 psychopyHome=wx.NewId()
 psychopyReference=wx.NewId()
-api = wx.NewId()
 #help pages (from help buttons)
 docsPrefsDlg=wx.NewId()
 
