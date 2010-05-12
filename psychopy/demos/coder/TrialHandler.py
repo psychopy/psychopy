@@ -18,23 +18,23 @@ trials.data.addDataType('RT')#add as many types as you like
 #run the experiment
 nDone=0
 for thisTrial in trials: #handler can act like a for loop
-	
-	#simulate some data
-	thisReactionTime = random()+float(thisTrial['sf'])/2.0
-	thisChoice = round(random())
-	trials.data.add('RT', thisReactionTime) #add the data to our set
-	trials.data.add('choice', thisChoice) 
-	nDone += 1  #just for a quick reference
-	
-	print 'trial %i had position %s in the list (sf=%.1f)' \
-		  %(nDone, trials.thisIndex, thisTrial['sf'])
-	
+    
+    #simulate some data
+    thisReactionTime = random()+float(thisTrial['sf'])/2.0
+    thisChoice = round(random())
+    trials.data.add('RT', thisReactionTime) #add the data to our set
+    trials.data.add('choice', thisChoice) 
+    nDone += 1  #just for a quick reference
+    
+    print 'trial %i had position %s in the list (sf=%.1f)' \
+          %(nDone, trials.thisIndex, thisTrial['sf'])
+    
 #after the experiment
 print '\n'
 trials.printAsText(stimOut=['sf','ori'], #write summary data to screen 
-				  dataOut=['RT_mean','RT_std', 'choice_raw'])
+                  dataOut=['RT_mean','RT_std', 'choice_raw'])
 trials.saveAsText(fileName='testData', # also write summary data to a text file
-				  stimOut=['sf','ori'], 
-				  dataOut=['RT_mean','RT_std', 'choice_raw'])
-
+                  stimOut=['sf','ori'], 
+                  dataOut=['RT_mean','RT_std', 'choice_raw'])
+    
 

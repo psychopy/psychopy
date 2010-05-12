@@ -14,9 +14,9 @@ arrowVertices=[ [-0.2,0.05], [-0.2,-0.05], [0.0,-0.05], [0.0,-0.1], [0.2,0], [0.
 sqrVertices = [ [0.2,-0.2], [-0.2,-0.2], [-0.2,0.2], [0.2,0.2] ]
 
 stim1 = visual.ShapeStim(win, 
-                 lineRGB=[1,-1,-1],
+                 lineColor='red',
                  lineWidth=2.0, #in pixels
-                 fillRGB=None, #beware, with convex shapes this won't work
+                 fillColor=None, #beware, with convex shapes fill colors don't work
                  vertices=arrowVertices,#choose something from the above or make your own
                  closeShape=True,#do you want the final vertex to complete a loop with 1st?
                  pos= [0,0], #the anchor (rotaion and vertices are position with respect to this)
@@ -24,9 +24,10 @@ stim1 = visual.ShapeStim(win,
                  opacity=0.9)
 
 stim2 = visual.ShapeStim(win, 
-                 lineRGB=[-1,1,-1],
+                 lineColor='green',
                  lineWidth=2.0, #in pixels
-                 fillRGB=[-0.5,0.5,-0.5], #beware, with convex shapes this won't work
+                 fillColor=[-0.5,0.5,-0.5], #beware, with convex shapes this won't work
+                 fillColorSpace='rgb',
                  vertices=sqrVertices,#choose something from the above or make your own
                  closeShape=True,#do you want the final vertex to complete a loop with 1st?
                  pos= [0.5,0.5], #the anchor (rotaion and vertices are position with respect to this)

@@ -9,6 +9,49 @@ Changelog
 PsychoPy 1.60 
 ------------------------------
 
+PsychoPy 1.60.05
+~~~~~~~~~~~~~~~~~~~~~~
+
+* CHANGED color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
+* ADDED colors can be specified by name or hex color spec (e.g. '#E9967A' or 'DarkSalmon') instead of RGB values
+* REMOVED TextStimGLUT (assuming nobody uses GLUT backend anymore)
+* ADDED 'saw' and 'tri' options to specify grating textures, to give sawtooth and triangle waves
+* FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
+* FIXED bug in autoupdater for installs with setuptools-style directory structure
+* FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled
+
+PsychoPy 1.60.04
+~~~~~~~~~~~~~~~~~~~~~~
+Released March 2010
+
+* FIXED build error (OS X 10.6 only)
+
+PsychoPy 1.60.03
+~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
+* FIXED buglet in gui.py converting 'false' to True in dialogs (thanks Michael MacAskill)
+* FIXED bug in winXP version introduced by fixes to the winVista version! Now both should be fine!!
+
+PsychoPy 1.60.02
+~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
+* CHANGED ext.rush() is no longer run by default on creation of a window. It seems to be causing more probs and providing little enhancement.
+* FIXED error messages from vista/7 trying to import pywintypes.dll
+
+PsychoPy 1.60.01
+~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2010
+
+* FIXED minor bug with the new psychophysicsStaircase demo (Builder)
+* FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
+* FIXED bug in the new win.clearBuffer() method
+* CHANGED builder component variables so that the user inputs are interpretted as literal text unless preceded by $, in which case they are treated as variables/python code
+* CHANGED builder handling of keyboard 'allowedKeys' parameter. Instead of `['1','2','q']` you can now simply use `12q` to indicate those three keys. If you want a key like `'right'` and `'left'` you now have to use `$['right','left']`
+* TWITTER follow on http://twitter.com/psychopy
+* FIXED? win32 version now compatible with Vista/7? Still compatible with XP?
+
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2010

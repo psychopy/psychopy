@@ -162,6 +162,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.coder = frame
         self.UNSAVED=False
         self.filename=""
+        self.fileModTime=None # for checking if the file was modified outside of CodeEditor
         self.AUTOCOMPLETE = True
         self.autoCompleteDict={}
         #self.analyseScript()  #no - analyse after loading so that window doesn't pause strangely
@@ -504,9 +505,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             #add current symbol
             sa.BeginBold()
             sa.WriteText('Symbol: ')
-            sa.BeginTextColour('BLUE')
+            sa.BeginTextColor('BLUE')
             sa.WriteText(currWord+'\n')
-            sa.EndTextColour()
+            sa.EndTextColor()
             sa.EndBold()
 
             #add expected type
@@ -846,7 +847,10 @@ class CoderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.currentDoc=None
         self.ignoreErrors = False
-
+        
+        self.fileStatusLastChecked = time.time()
+        self.fileStatusCheckInterval = 5 * 60 #sec
+        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -969,7 +973,7 @@ class CoderFrame(wx.Frame):
         menuBar.Append(self.fileMenu, '&File')
 
         #create a file history submenu
-        self.fileHistory = wx.FileHistory()
+        self.fileHistory = wx.FileHistory(maxFiles=10)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
@@ -1110,6 +1114,7 @@ class CoderFrame(wx.Frame):
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
         self.demoList = glob.glob(os.path.join(self.paths['demos'],'coder','*.py'))
+        self.demoList.sort(key=str.lower)
         #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
         self.ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
@@ -1118,7 +1123,7 @@ class CoderFrame(wx.Frame):
             self.demos[self.ID_DEMOS[n]] = self.demoList[n]
         for thisID in self.ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname=="__init__.py": continue
+            if shortname.startswith('_'): continue#remove any 'private' files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
 
@@ -1196,12 +1201,41 @@ class CoderFrame(wx.Frame):
         if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
+        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
+            self.fileStatusLastChecked = time.time()
+            if not self.expectedModTime(self.currentDoc):
+                dlg = dialogs.MessageDialog(self,
+                        message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
+                        type='Warning')
+                if dlg.ShowModal() == wx.ID_YES:
+                    self.SetStatusText('Reloading file')
+                    self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
+                    self.setFileModified(False)
+                self.SetStatusText('')
+                try: dlg.destroy()
+                except: pass
+            
     def pageChanged(self,event):
         old = event.GetOldSelection()
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
+        if not self.expectedModTime(self.currentDoc):
+            """dial = wx.MessageDialog(None, "'%s' was modified outside of PsychoPy\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
+                'Warning', wx.YES_NO | wx.ICON_EXCLAMATION)
+            resp = dial.ShowModal() # nicer look but fails to accept a response (!)"""
+            dlg = dialogs.MessageDialog(self,
+                    message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
+                    type='Warning')
+            if  dlg.ShowModal() == wx.ID_YES:
+                self.SetStatusText('Reloading file')
+                self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
+                self.setFileModified(False)
+            self.SetStatusText('')
+            try: dlg.destroy()
+            except: pass
+            
         #event.Skip()
     def filesDropped(self, event):
         fileList = event.GetFiles()
@@ -1278,7 +1312,7 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save) and either
         close the frame or hide it
         """
-        if self.app.builder==None and platform.system()!='Darwin':
+        if self.app.builder==None and sys.platform!='darwin':
             if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already
@@ -1318,6 +1352,14 @@ class CoderFrame(wx.Frame):
 
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
+    def fileReload(self, event, filename=None, checkSave=False):
+        # close and reopen the doc having filename == filename
+        print "...reload not implemented yet. please close and reopen the file manually."
+        return
+        # this did not work for me:
+        self.fileClose(event, filename=filename, checkSave=checkSave)
+        self.fileNew(filename) # which does: self.setCurrentDoc(filename)
+        
     def findDocID(self, filename):
         #find the ID of the current doc
         for ii in range(self.notebook.GetPageCount()):
@@ -1341,6 +1383,7 @@ class CoderFrame(wx.Frame):
             #load text from document
             if os.path.isfile(filename):
                 self.currentDoc.SetText(open(filename).read())
+                self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 self.currentDoc.SetText("")
@@ -1376,7 +1419,6 @@ class CoderFrame(wx.Frame):
         if not keepHidden:
             self.Show()#if the user had closed the frame it might be hidden
     def fileOpen(self, event):
-
         #get path of current file (empty if current file is '')
         if hasattr(self.currentDoc, 'filename'):
             initPath = os.path.split(self.currentDoc.filename)[0]
@@ -1395,6 +1437,17 @@ class CoderFrame(wx.Frame):
 
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
+    def expectedModTime(self, doc):
+        # check for possible external changes to the file, based on mtime-stamps
+        if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
+            return True
+        actualModTime = os.path.getmtime(doc.filename)
+        expectedModTime = doc.fileModTime
+        if actualModTime != expectedModTime:
+            print 'File %s modified outside of the Coder (IDE).' % doc.filename
+            return False
+        return True
+    
     def fileSave(self,event=None, filename=None, doc=None):
         """Save a ``doc`` with a particular ``filename``.
         If ``doc`` is ``None`` then the current active doc is used. If the ``filename`` is
@@ -1409,13 +1462,39 @@ class CoderFrame(wx.Frame):
             filename = doc.filename
         if filename.startswith('untitled'):
             self.fileSaveAs(filename)
+            #self.setFileModified(False) # done in save-as if saved; don't want here if not saved there
         else:
-            self.SetStatusText('Saving file')
-            f = open(filename,'w')
-            f.write( doc.GetText().encode('utf-8'))
-            f.close()
-        self.setFileModified(False)
-
+            # here detect odd conditions, and set failToSave = True to try 'Save-as' rather than 'Save' 
+            failToSave = False
+            if not self.expectedModTime(doc) and os.path.exists(doc.filename):
+                dlg = dialogs.MessageDialog(self,
+                        message="File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?" % (os.path.basename(doc.filename)),
+                        type='Warning')
+                if dlg.ShowModal() != wx.ID_YES:
+                    print "'Save' was canceled.",
+                    failToSave = True
+                try: dlg.destroy()
+                except: pass
+            if os.path.exists(doc.filename) and not os.access(doc.filename,os.W_OK):
+                dlg = dialogs.MessageDialog(self,
+                        message="File '%s' lacks write-permission:\nWill try save-as instead." % (os.path.basename(doc.filename)),
+                        type='Info')
+                dlg.ShowModal()
+                failToSave = True
+                try: dlg.destroy()
+                except: pass
+            try:
+                if failToSave: raise
+                self.SetStatusText('Saving file')
+                f = open(filename,'w')
+                f.write( doc.GetText().encode('utf-8'))
+                f.close()
+                self.setFileModified(False)
+                doc.fileModTime = os.path.getmtime(filename) # JRG
+            except:
+                print "Unable to save %s... trying save-as instead." % os.path.basename(doc.filename)
+                self.fileSaveAs(filename)
+                
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing current source code')
             self.currentDoc.analyseScript()
@@ -1454,11 +1533,21 @@ class CoderFrame(wx.Frame):
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            self.fileSave(event=None, filename=newPath, doc=doc)
-            doc.filename = newPath
-            path, shortName = os.path.split(newPath)
-            self.notebook.SetPageText(docId, shortName)
-            self.setFileModified(False)
+            # if the file already exists, query whether it should be overwritten (default = yes)
+            dlg2 = dialogs.MessageDialog(self,
+                        message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                        type='Warning')
+            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
+                doc.filename = newPath
+                self.fileSave(event=None, filename=newPath, doc=doc)
+                path, shortName = os.path.split(newPath)
+                self.notebook.SetPageText(docId, shortName)
+                self.setFileModified(False)
+                doc.fileModTime = os.path.getmtime(doc.filename) # JRG: 'doc.filename' should = newPath = dlg.getPath()
+                try: dlg2.destroy()
+                except: pass
+            else:
+                print "'Save-as' canceled; existing file NOT overwritten.\n"
         try: #this seems correct on PC, but can raise errors on mac
             dlg.destroy()
         except:
@@ -1563,15 +1652,20 @@ class CoderFrame(wx.Frame):
             if resp  == wx.ID_CANCEL: return -1 #return, don't run
             elif resp == wx.ID_YES: self.fileSave(None)#save then run
             elif resp == wx.ID_NO:   pass #just run
-
+        
+        if sys.platform in ['darwin']:
+            print "\033" #restore normal text color for coder output window (stdout); doesn't fix the issue
+        else:
+            print
+        
         #check syntax by compiling - errors printed (not raised as error)
         try:
             py_compile.compile(fullPath, doraise=False)
         except Exception, e:
             print "Problem compiling: %s" %e
 
-        #provide a running... message
-        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        #provide a running... message; long fullPath --> no # are displayed unless you add some manually
+        print ("##### Running: %s #####" %(fullPath)).center(80,"#")
         
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)

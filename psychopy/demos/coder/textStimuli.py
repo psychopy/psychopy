@@ -6,7 +6,7 @@ script shows you the new way to specify fonts.
 """
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,winType='pyglet',
-				monitor='testMonitor', units ='deg', screen=0)
+            monitor='testMonitor', units ='deg', screen=0)
 myWin.setRecordFrameIntervals()
 #choose some fonts. If a list is provided, the first font found will be used.
 fancy = ['Monotype Corsiva', 'Palace Script MT', 'Edwardian Script ITC']
@@ -20,23 +20,24 @@ fpsText = visual.TextStim(myWin,
                         pos=(-0.98, -0.98), text='starting...',
                         font=sans, 
                         alignHoriz = 'left',alignVert='bottom',
-                        rgb=[+1,-1,-1])
+                        color='BlanchedAlmond')
 rotating = visual.TextStim(myWin,text="Fonts \nrotate!",pos=(0, 0),#and can have line breaks
-                        rgb=[-1.0,-1,1],units='deg',
+                        color=[-1.0,-1,1],
+                        units='deg',
                         ori=0, height = 1.0,
                         font=comic)
 unicodeStuff = visual.TextStim(myWin,
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
-                        rgb=-1,  font=serif,pos=(0,3),
+                        color='black',  font=serif,pos=(0,3),
                         height = 1)
-psychopyTxt = visual.TextStim(myWin, rgb=+1,
+psychopyTxt = visual.TextStim(myWin, color='#FFFFFF',
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
                         font=fancy, italic=True) 
-longSentence = visual.TextStim(myWin, rgb=[0,1,0],
+longSentence = visual.TextStim(myWin, 
                         text = u"Very long sentences can wrap", wrapWidth=0.4,
-                        units='norm', height=0.05,
+                        units='norm', height=0.05,color='DarkSlateBlue',
                         pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom') 
 trialClock = core.Clock()
 t=lastFPSupdate=0;

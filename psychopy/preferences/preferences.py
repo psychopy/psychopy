@@ -1,10 +1,10 @@
 
-import os, urllib, platform, re
+import os, sys, urllib, platform, re
 import configobj, validate
 
 #GET PATHS------------------
 join = os.path.join
-if platform.system() in ['Windows','Microsoft']:
+if sys.platform=='win32':
     activeUser = os.environ['USERNAME']
 else:
     activeUser = os.environ['USER']
@@ -48,10 +48,11 @@ class Preferences:
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         
-        self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
-        if platform.system() in ['Windows','Microsoft']:
+        if sys.platform=='win32':
+            self.paths['prefsSpecFile']= join(prefSpecDir,'Windows.spec')
             self.paths['userPrefsDir']= join(os.environ['APPDATA'],'psychopy2')
-        else:
+        else:#platform.system gives nicer names, but no good on standalone vista/win7
+            self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
         
     def loadAll(self):
@@ -108,8 +109,8 @@ class Preferences:
             for line in menuFile:
                 if line.find("=") > -1:
                     menuList.append(line.split()[0] + "|")
-            if platform.system() in ['Windows','Microsoft']:  # update: seems no longer necessary
-                file.write("#" + str(menuList)+"\n")  # I added this to help debug a windows-only menuRegex issue, and this solved it (!)
+            if sys.platform=='win32':  # update: seems no longer necessary
+                file.write("#" + str(menuList)+"\n")  # jg added this to help debug a windows-only menuRegex issue, and this solved it (!)
             menuFile.close()
             menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
             for k in self.keyDict.keys():

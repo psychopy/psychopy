@@ -7,7 +7,7 @@ class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='use prefs',
-                 logging='warning'):
+                 logging='warning', color=[0,0,0], colorSpace='rgb'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -21,6 +21,12 @@ class SettingsComponent:
             hint="Size of window (if not fullscreen)") 
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
             hint="Which physical screen to run on (1 or 2)")  
+        self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
+            hint="Name of the monitor (must match one in Monitor Center)") 
+        self.params['color']=Param(color, valType='code', allowedTypes=[],
+            hint="Color of the screen (see PsychoPy documentation on color spaces)") 
+        self.params['colorSpace']=Param(colorSpace, valType='str', allowedTypes=[],
+            hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)") 
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (must match one in Monitor Center)") 
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
@@ -63,12 +69,13 @@ class SettingsComponent:
         #get parameters for the Window
         size=self.params['Window size (pixels)']#
         fullScr = self.params['Full-screen window']
-        monitor=self.params['Monitor']
-        if self.params['Units'].val=='use prefs': unitsCode=""
-        else: unitsCode=", units=%s" %self.params['Units']
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
-        buff.writeIndented("    monitor=%s%s)\n" %(self.params['Monitor'], unitsCode))
+        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+        
+        if self.params['Units'].val=='use prefs': unitsCode=""
+        else: unitsCode=", units=%s" %self.params['Units']
+        buff.write(unitsCode+")\n")
         
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)

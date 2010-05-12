@@ -2,8 +2,14 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, ctypes, ctypes.util, time
+import sys, time
 from psychopy import log
+try:
+    import ctypes, ctypes.util
+    importCtypesFailed = False
+except:
+    importCtypesFailed = True
+    log.debug("rush() not available because import ctypes failed in ext/darwin.py")
 
 #constants
 KERN_SUCCESS=0;
@@ -44,11 +50,14 @@ cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library("Cocoa"))#could use car
 #ogl = ctypes.cdll.LoadLibrary(ctypes.util.find_library("OpenGL"))#not needed - all the functions seem to be in cocoa
 
 def _create_cfstring(text):#some string parameters need to be converted to SFStrings
+    if importCtypesFailed: return False
+    
     return cocoa.CFStringCreateWithCString(ctypes.c_void_p(), 
                                             text.encode('utf8'),
                                             kCFStringEncodingUTF8)
-class _timeConstraintThreadPolicy(ctypes.Structure):
-    _fields_ = [('period', ctypes.c_uint),#HZ/160
+if importCtypesFailed == False:
+    class _timeConstraintThreadPolicy(ctypes.Structure):
+        _fields_ = [('period', ctypes.c_uint),#HZ/160
             ('computation', ctypes.c_uint),#HZ/3300
             ('constrain', ctypes.c_uint),#HZ/2200
             ('preemptible', ctypes.c_int)]
@@ -66,6 +75,8 @@ def syncSwapBuffers(n):
         
 def getBusFreq():
     """Get the frequency of the system bus (HZ)"""
+    if importCtypesFailed: return False
+    
     mib = (ctypes.c_int*2)(CTL_HW, HW_BUS_FREQ)
     val = ctypes.c_int()
     intSize = ctypes.c_int(ctypes.sizeof(val))
@@ -83,6 +94,8 @@ def rush(value=True):
     keys within the display loop). Otherwise you could end up locked
     out and having to reboot!
     """
+    if importCtypesFailed: return False
+    
     if value:
         bus = getBusFreq()
         extendedPolicy=_timeConstraintThreadPolicy()
@@ -104,6 +117,7 @@ def rush(value=True):
         err=cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_STANDARD_POLICY, 
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_STANDARD_POLICY_COUNT)
+    return True
         
 def getThreadPolicy(getDefault, flavour):
     """Retrieve the current (or default) thread policy.
@@ -118,6 +132,8 @@ def getThreadPolicy(getDefault, flavour):
            .preemptible
            
     See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html"""
+    if importCtypesFailed: return False
+    
     extendedPolicy=_timeConstraintThreadPolicy()#to store the infos
     getDefault=ctypes.c_int(getDefault)#we want to retrive actual policy or the default
     err=cocoa.thread_policy_get(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY, 
@@ -127,11 +143,14 @@ def getThreadPolicy(getDefault, flavour):
     return extendedPolicy
 def getRush():
     """Determine whether or not we are in rush mode. Returns True/False"""
+    if importCtypesFailed: return None
     policy = getThreadPolicy(getDefault=False,flavour=THREAD_TIME_CONSTRAINT_POLICY)
     default = getThreadPolicy(getDefault=True,flavour=THREAD_TIME_CONSTRAINT_POLICY)
     return policy.period != default.period #by default this is zero, so not zero means we've changed it
 def getScreens():
     """Get a list of display IDs from cocoa"""
+    if importCtypesFailed: return False
+    
     count = CGDisplayCount()
     cocoa.CGGetActiveDisplayList(0, None, ctypes.byref(count))
     displays = (CGDirectDisplayID * count.value)()
@@ -143,6 +162,8 @@ def getRefreshRate(screen=0):
     NB. If two screens are connected with different refresh rates then the rate at which we
     draw may not reflect the refresh rate of the monitor, because
     """
+    if importCtypesFailed: return False
+    
     screens=getScreens()
     if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
@@ -164,6 +185,8 @@ def getScreenSizePix(screen=0):
     
     h,w = getScreenSizePix()
     """
+    
+    if importCtypesFailed: return False
     screens=getScreens()
     if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))
@@ -179,6 +202,8 @@ def waitForVBL(screen=0,nFrames=1):
     
     This is based on detecting the display beam position and may give unpredictable results for an LCD.
     """    
+    if importCtypesFailed: return False
+    
     screens=getScreens()
     if screen>(len(screens)-1):
         raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" %(screen, len(screens))

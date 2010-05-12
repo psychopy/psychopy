@@ -15,17 +15,32 @@ The following components are available, as at version 1.50, but further componen
 
 Entering parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Most of the entry boxes for Component parameters take simple text input and this will later be converted into `Python`_ code. This means that, for Component parameters where a numerical value is appropriate,a number can be typed into this box, or any other python code that generates a number. For example, to randomise the orientation of a stimulus whenever the program is run you could set the orientation to `numpy.random.rand()`_ rather than a fixed number. If you wanted to give the stimulus a random location or size, you could set these parameters to `numpy.random.rand(2)` to get two random values.
 
-Using these features obviously requires some level of `Python`_ knowledge and users are encouraged to go through some of the basic Python the tutorials online (and probably `numpy`_ too).
+Most of the entry boxes for Component parameters simply receive text or numeric values or lists (sequences of values surrounded by square brackets) as input. In addition, the user can insert variables and code into most of these, which will be interpreted either at the beginning of the experiment or at regular intervals within it.
 
-.. note::
+To indicate to PsychoPy that the value represents a variable or python code, rather than literal text, it should be preceded by a `$`. For example, inserting `intensity` into the text field of the Text Component will cause that word literally to be presented, whereas `$intensity` will cause python to search for the variable called intensity in the script.
 
-    The fact that Python code can be entered directly into the dialog boxes does have a side-effect that could catch out new users trying to enter text into boxes (e.g. for the :doc:`components/text` component). On these occasions text needs to be given quotation marks (double or single - your choice) to tell PsychoPy that it should not treat this as code, but as actual raw text to be presented. If these quotes are ommitted then PsychoPy will treat the text as a variable or other Python code and, when the experiment is run, an error will occur (either a 'Syntax error' or a 'Name error' depending on whether or not their were spaces in your text).
-   
-Dynamic stimuli
-~~~~~~~~~~~~~~~~~
-One of the powers of PsychoPy is it's ability to alter the presentation of stimuli. By default, the parameters of Components are set to be `constant`; the parameter will be set at the beginning of the experiment and will remain that way for the duration. Alternatively, most parameters can be set to change either on `every repeat` in which case the parameter will be set at the beginning of the Routine on each repeat of it. Lastly many parameters can even be set `on every frame`, allowing them to change constantly on every refresh of the screen.
+Variables associated with :ref:`loops` can also be entered in this way (see :ref:`accessingParams` for further details). But it can also be used to evaluate arbitrary python code. 
+
+For example:
+
+    * $random(2)
+        will generate a pair of random numbers
+
+    * $"yn"[randint()]
+        will randomly choose the first or second character (y or n)
+
+    *  $globalClock.getTime()
+        will insert the current time in secs of the globalClock object
+
+    *  $[sin(angle), cos(angle)]
+        will insert the sin and cos of an angle (e.g. into the x,y coords of a stimulus)
+
+
+How often to evaluate the variable/code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do want the parameters of a stimulus to be evaluated by code in this way you need also to decide how often it should be updated. By default, the parameters of Components are set to be `constant`; the parameter will be set at the beginning of the experiment and will remain that way for the duration. Alternatively, they can be set to change either on `every repeat` in which case the parameter will be set at the beginning of the Routine on each repeat of it. Lastly many parameters can even be set `on every frame`, allowing them to change constantly on every refresh of the screen.
 
 .. _Python: http://www.python.org
 .. _numpy.random.rand(): http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html#numpy.random.rand

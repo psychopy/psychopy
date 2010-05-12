@@ -19,10 +19,10 @@ class SoundComponent(BaseComponent):
         #params
         self.order=['name','startTime','duration']#make sure name comes first
         self.params={}
-        self.params['name']=Param(name,  valType='code', hint="A filename for the movie (including path)")  
+        self.params['name']=Param(name,  valType='code', hint="Everything needs a name (no spaces or punctuation)")  
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a string (e.g. 'A' or 'Bf') or a number to specify Hz, or a filename")        
+            hint="A sound can be a note name (e.g. A or Bf) or dollar then a number (e.g. $440) to specify Hz, or a filename")        
         self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The time that the sound starts")

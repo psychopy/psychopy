@@ -12,7 +12,7 @@ pinNumber = 2#choose a pin to write to (2-9).
 #setup the stimuli and other objects we need
 myWin = visual.Window([1280, 1024],allowGUI=False)#make a window
 myWin.flip()#present it
-myStim = visual.PatchStim(myWin, tex=None, mask=None, rgb=1, size=2)   
+myStim = visual.PatchStim(myWin, tex=None, mask=None, color='white', size=2)   
 myClock = core.Clock() #just to keep track of time
 
 #present a stimulus for EXACTLY 20 frames and exactly 5 cycles

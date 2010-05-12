@@ -2,14 +2,14 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import urllib2, socket
+import urllib2, socket, re, glob
 import time, platform, sys, zipfile, os, cStringIO
 import wx
 import  wx.lib.filebrowsebutton
 try:
     from agw import hyperlink as wxhl
 except ImportError: # if it's not there locally, try the wxPython lib.
-    import wx.lib.agw.hyperlink as wxhl
+    import wx.lib.hyperlink as wxhl
 import psychopy
 from psychopy.app import dialogs
 from psychopy import log
@@ -280,9 +280,11 @@ class InstallUpdateDialog(wx.Dialog):
         self.filename = event.GetString()
     def onInstall(self, event):
         if self.currentSelection==self.useLatestBtn:
-            self.doAutoInstall()
+            info = self.doAutoInstall()
         else:
             info = self.installZipFile(self.filename)
+        self.statusMessage.SetLabel(info)
+        self.Fit()
     def fetchPsychoPy(self, v='latest'):
         msg = "Attempting to fetch PsychoPy %s..." %(self.latest['version'])
         self.statusMessage.SetLabel(msg)
@@ -312,21 +314,31 @@ class InstallUpdateDialog(wx.Dialog):
         #buffer.close()
         return zfile, info
         
-    def installZipFile(self, zfile):
+    def installZipFile(self, zfile, v=None):
+        """If v is provided this will be used as new version number, otherwise try and retrieve
+        a version number from zip file name 
+        """
         info=""#return this at the end
         
-        if type(zfile) in [str, unicode] and os.path.isfile(zfile):
+        if type(zfile) in [str, unicode] and os.path.isfile(zfile):#zfile is filename not an actual file
+            if v==None: #try and deduce it
+                zFilename = os.path.split(zfile)[-1]
+                searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
+                if searchName!=None:
+                    v=searchName.group(0)[:-1]
+                else:log.warning("Couldn't deduce version from zip file: %s" %zFilename)
             f=open(zfile)
             zfile=zipfile.ZipFile(f)
-        else:
-            pass#todo: error checking - zfile should be a ZipFile or a filename
+        else:#assume here that zfile is a ZipFile
+            pass#todo: error checking - is it a zipfile?
             
         currPath=self.app.prefs.paths['psychopy']
         #any commands that are successfully executed may need to be undone if a later one fails
         undoString = ""
         #depending on install method, needs diff handling
         #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
-        if currPath.endswith('psychopy'):#e.g. the mac standalone app
+        versionLabelsInPath = re.findall('PsychoPy-.*/',currPath)#does the path contain any version number?
+        if len(versionLabelsInPath)==0:#e.g. the mac standalone app, no need to refer to new versino number
             unzipTarget=currPath
             try: #to move existing PsychoPy
                 os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
@@ -334,40 +346,37 @@ class InstallUpdateDialog(wx.Dialog):
             except:
                 return "Could not move existing PsychoPy installation (permissions error?)"
         else:#setuptools-style installation
-            # find the .pth file that specifies the python dir
-            unzipTarget=currPath.replace(psychopy.__version__, v)
-            #create the new installation directory BEFORE changing pth file
-            try:
-                nUpdates, newInfo = self.updatePthFile(oldPath=currPath, newPath=unzipTarget)
-                info+=newInfo
-                if nUpdates==-1: #an update failed
+            #generate new target path
+            unzipTarget=currPath
+            for thisVersionLabel in versionLabelsInPath:
+                pathVersion=thisVersionLabel[:-1]#remove final slash from the re.findall
+                unzipTarget=unzipTarget.replace(pathVersion, "PsychoPy-%s" %v)
+                # find the .pth file that specifies the python dir
+                #create the new installation directory BEFORE changing pth file
+                nUpdates, newInfo = self.updatePthFile(pathVersion, "PsychoPy-%s" %v)
+                if nUpdates==-1:#there was an error (likely permissions)
+                    undoString += 'self.updatePthFile(unzipTarget, currPath)\n'
                     exec(undoString)#undo previous changes
-                    return info
-                undoString += 'self.updatePthFile(oldPath=unzipTarget, newPath=currPath)'                    
-            except:
-                exec(undoString)#undo previous changes
-                return "Could not update setuptools path (permissions error?)" %unzipTarget
+                    return newInfo
                 
         try:
             os.makedirs(unzipTarget)#create the new installation directory AFTER renaming existing dir
-            undoString += 'os.remove'
+            undoString += 'os.remove(%s)\n' %unzipTarget
         except: #revert path rename and inform user
             exec(undoString)#undo previous changes
-            return "Could not create new path (permissions error?):\n%s" %unzipTarget
+            return ("Could not create new path (permissions error?):\n%s" %unzipTarget)
 
         #do the actual extraction
         for name in zfile.namelist():#for each file within the zip
             #check that this file is part of the psychopy (not metadata or docs)
             if name.count('/psychopy/')<1: continue
-            #
-            print name
             try:
                 targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
                 targetContainer=os.path.split(targetFile)[0]
-                if targetFile.endswith('/'):
-                    os.makedirs(targetFile)#it's a folder
-                elif not os.path.isdir(targetContainer):
+                if not os.path.isdir(targetContainer):
                     os.makedirs(targetContainer)#make the containing folder
+                if targetFile.endswith('/'):
+                    os.makedirs(targetFile)#it's a folder                
                 else:
                     outfile = open(targetFile, 'wb')
                     outfile.write(zfile.read(name))
@@ -379,8 +388,6 @@ class InstallUpdateDialog(wx.Dialog):
         info += 'Success. \nChanges to PsychoPy will be completed when the application is next run'
         self.cancelBtn.SetDefault()
         self.installBtn.Disable()
-        self.statusMessage.SetLabel(info)
-        self.Fit()
         return info
     def doAutoInstall(self, v='latest'):
         if v=='latest':
@@ -391,10 +398,13 @@ class InstallUpdateDialog(wx.Dialog):
             self.statusMessage.SetLabel('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences')
             return -1            
         self.statusMessage.SetLabel(info)
-        self.installZipFile(zipFile)
-    def updatePthFile(oldPath, newPath):
+        self.Fit()
+        #got a download - try to install it
+        info=self.installZipFile(zipFile, v)
+        return info
+    def updatePthFile(self, oldName, newName):
         """Searches site-packages for .pth files and replaces any instance of 
-        `oldPath` with `newPath`
+        `oldName` with `newName`, where the names likely have the form PsychoPy-1.60.04
         """
         from distutils.sysconfig import get_python_lib
         siteDir=get_python_lib()
@@ -402,12 +412,13 @@ class InstallUpdateDialog(wx.Dialog):
         enclosingSiteDir = os.path.split(siteDir)[0]#sometimes the site-packages dir isn't where the pth files are kept?
         pthFiles.extend(glob.glob(os.path.join(enclosingSiteDir, '*.pth')))
         nUpdates = 0#no paths updated
+        info=""
         for filename in pthFiles:
             lines = open(filename, 'r').readlines()
             needSave=False
             for lineN, line in enumerate(lines):
-                if oldPath in line: 
-                    lines[lineN] = line.replace(oldPath, newPath)
+                if oldName in line: 
+                    lines[lineN] = line.replace(oldName, newName)
                     needSave=True
             if needSave:
                 try:
@@ -415,7 +426,7 @@ class InstallUpdateDialog(wx.Dialog):
                     f.writelines(lines)
                     f.close()
                     nUpdates+=1
-                    info+='Updated PsychoPy path in ', filename                    
+                    log.info('Updated PsychoPy path in %s' %filename)                    
                 except:
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
@@ -444,14 +455,20 @@ def sendUsageStats(proxy=None):
         urllib2.install_opener(opener)
 
     #get platform-specific info
-    if platform.system()=='Darwin':
+    if sys.platform=='darwin':
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" %(OSXver, architecture)
-    elif platform.system()=='Linux':
+    elif sys.platform=='linux':
         systemInfo = '%s_%s_%s' % (
-            platform.system(),
+            'Linux',
             ':'.join([x for x in platform.dist() if x != '']),
             platform.release())
+    elif sys.platform=='win32':
+        ver=sys.getwindowsversion()
+        if len(ver[4])>0:
+            systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
+        else:
+            systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
     else:
         systemInfo = platform.system()+platform.release()
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \

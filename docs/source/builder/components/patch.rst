@@ -1,4 +1,6 @@
-Patch
+.. _patch:
+
+Patch (image) Stimulus
 -------------------------------
 
 The Patch stimulus allows images to be presented in a variety of forms on the screen. It allows the combination of an image, which can be a bitmap image from a variety of standard file formats, or a synthetic repeating texture such as a sinusoidal grating. A transparency mask can also be control the shape of the image, and this can also be derived from either a second image, or mathematical form such as a Gaussian.

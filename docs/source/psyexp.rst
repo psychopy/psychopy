@@ -19,7 +19,7 @@ Many of the nodes described within this xml description of the experiment contai
 
 Settings
 ---------------------------
-The Settings node contains a number of parameters that, in PsychoPy, would normally be set in the :ref:`settings` dialog, such as the monitor to be used. This node contains a number of :ref:`paramsXML` that map onto the entries in that dialog.
+The Settings node contains a number of parameters that, in PsychoPy, would normally be set in the :ref:`expSettings` dialog, such as the monitor to be used. This node contains a number of :ref:`paramsXML` that map onto the entries in that dialog.
 
 .. _routinesXML:
 

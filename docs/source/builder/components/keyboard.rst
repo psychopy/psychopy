@@ -3,7 +3,7 @@
 Keyboard
 -------------------------------
 
-The Keyboard component can be used  to collect responses from a participant. 
+The Keyboard component can be used to collect responses from a participant. 
 
 By not storing the key press and setting `force end of trial` to be true it can be used simply to end a :ref:`Routine <Routines>`
 

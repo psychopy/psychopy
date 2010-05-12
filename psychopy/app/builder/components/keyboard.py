@@ -24,9 +24,9 @@ class KeyboardComponent(BaseComponent):
             'store','storeCorrect','correctAns',
             'forceEndTrial','startTime']
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
-        self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
+        self.params['allowedKeys']=Param(allowedKeys, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="The keys the user may press, e.g. a,b,q,left,right")
+            hint="ynq allows those 3 keys to be used. For keys with complex names use $['left','right']")
         self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The time that the keyboard starts being checked")
@@ -42,9 +42,9 @@ class KeyboardComponent(BaseComponent):
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
-        self.params['correctAns']=Param(correctAns, valType='code', allowedTypes=[],
+        self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' key? Might be helpful to add a correctAns column to your definition of trials in the loop")
+            hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns")
         #todo: add response time clock to keyboard!!
         self.params['storeResponseTime']=Param(storeResponseTime, 
             valType='bool', 
@@ -89,7 +89,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("    %(name)s.clock=core.Clock()#create one (now t=0)\n" %self.params)
             
         #do we need a list of keys?
-        if self.params['allowedKeys'].val in [None, "", "[]"]: keyListStr=""
+        if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
         else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))

@@ -41,10 +41,12 @@ A couple of papers have been written about PsychoPy already. Please cite them if
 Help PsychoPy
 ----------------------
 PsychoPy is an open-source, community-driven project. It is written and provided free out of goodwill by people that make no money from it and have other jobs to do. The way that open-source projects work is that users contribute back some of their time. If you can improve PsychoPy, either by;
-* fixing incorrect or unclear documentation - just email some improved text
-* fixing a minor bug in the code
-* writing a little feature that can be added
-* if nothing else, then at least tell the primary developers that a bug exists - they likely don't know!
+
+    * fixing incorrect or unclear documentation - just email some improved text
+    * fixing a minor bug in the code
+    * writing a little feature that can be added
+    * if nothing else, then at least tell the primary developers that a bug exists - they likely don't know!
+    
 For more information on how to view and edit the documentation and code see the section on :doc:`contributing`
 
-.. _Python: `http://www.python.org` 
+.. _Python: http://www.python.org

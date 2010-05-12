@@ -42,6 +42,26 @@ import wx
 from psychopy import preferences#needed by splash screen for the path to resources/psychopySplash.png
 import sys, os, threading, time, platform
 
+# get UID early; psychopy should never need anything except plain-vanilla user
+uid = '-1' # -1=undefined, 0=assumed to be root, 500+ = non-root (1000+ for debian-based?)
+try:
+    if sys.platform not in ['win32']:
+        uid = os.popen('id -u').read()
+    else:
+        try:
+            import ctypes # only if necessary
+            uid = '1000'
+            if ctypes.windll.shell32.IsUserAnAdmin():
+                uid = '0'
+        except:
+            raise
+except:
+    pass
+uidRootFlag = '.'
+if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu 
+    uidRootFlag = '!'
+    
+
 class PsychoSplashScreen(wx.SplashScreen):
     """
     Create a splash screen widget.
@@ -54,10 +74,10 @@ class PsychoSplashScreen(wx.SplashScreen):
         # Call the constructor with the above arguments in exactly the
         # following order.
         wx.SplashScreen.__init__(self, aBitmap, splashStyle,
-                                 0, None)
+                                 0, None)        
         #setup statusbar
         self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries...",
+        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootFlag,
                                     wx.Point(0,250),#splash image is 640x240
                                     wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
         self.status.SetMinSize(wx.Size(520,20))
@@ -95,7 +115,7 @@ class PsychoPyApp(wx.App):
             splash.Show()
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2...")
+        splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
@@ -108,7 +128,7 @@ class PsychoPyApp(wx.App):
         self.updater=None#create an updater when it's needed
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             self.menuFrame=MenuFrame(parent=None, app=self)
         #get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView']=='last':
@@ -212,7 +232,7 @@ class PsychoPyApp(wx.App):
         if fileName.endswith('.py'):
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
-            self.builder.setCurrentDoc(fileName)
+            self.builder.fileOpen(filename=fileName)
     def quit(self, event=None):
         self.quitting=True
         #see whether any files need saving
@@ -233,7 +253,7 @@ class PsychoPyApp(wx.App):
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
             frame.Destroy()#because closeFrame actually just Hides the frame
-        if platform.system()=='Darwin':
+        if sys.platform=='darwin':
             self.menuFrame.Destroy()
         sys.exit()#really force a quit
     def showPrefs(self, event):

@@ -8,19 +8,19 @@ if event.joystick.get_count()>0:
     myJoystick = event.Joystick(0)
     myJoystick.init()
     print 'found ', myJoystick.get_name(), ' with:'
-    print '	', myJoystick.get_numbuttons(), ' buttons'
-    print '	', myJoystick.get_numhats(), ' hats'
-    print '	', myJoystick.get_numaxes(), ' analogue axes'
+    print '...', myJoystick.get_numbuttons(), ' buttons'
+    print '...', myJoystick.get_numhats(), ' hats'
+    print '...', myJoystick.get_numaxes(), ' analogue axes'
 else:
     print "You don't have a joystick connected!?"
     myWin.close()
     core.quit()
 
 #INITIALISE SOME STIMULI
-fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),rgb=[-1.0,-1.0,-1.0])
+fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),color='black')
 grating = visual.PatchStim(myWin,pos=(0.5,0),
                     tex="sin",mask="gauss",
-                    rgb=[1.0,0.5,-1.0],
+                    color=[1.0,0.5,-1.0],colorSpace='rgb',
                     size=(0.2,.2), sf=(2,0))
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),text='Hit Q to quit')
 trialClock = core.Clock()

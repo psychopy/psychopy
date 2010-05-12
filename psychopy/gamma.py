@@ -117,8 +117,7 @@ def createLinearRamp(win, rampType=None):
         #try to determine rampType from heuristics
         #get sys info
         driver = gl_info.get_renderer()
-        opSys=platform.system()
-        if opSys=='Darwin':
+        if sys.platform=='darwin':
             isOSX=True
             osxVer=platform.mac_ver()[0]
         else: 

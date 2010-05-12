@@ -80,7 +80,8 @@ class Experiment:
         for lib in self.psychopyLibs:
             libString = libString+separator+lib
             separator=", "#for the second lib upwards we need a comma
-        s.writeIndented("from numpy import * #many different maths functions\n")
+        s.writeIndented("from numpy import * #many different maths functions\n") 
+        s.writeIndented("from numpy.random import * #maths randomisation functions\n")
         s.writeIndented("import os #handy system and path functions\n")
         s.writeIndented("from psychopy import %s\n" %libString)
         s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
@@ -174,10 +175,17 @@ class Experiment:
             corrAns=corrIf.replace('resp.keys==str(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
+        if 'olour' in name:#colour parameter was Americanised in v1.61.00
+            name=name.replace('olour','olor')            
+            params[name].val = paramNode.get('val')
         elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
         #get the value type and update rate
         if 'valType' in paramNode.keys(): 
             params[name].valType = paramNode.get('valType')
+            # compatibility checks: 
+            if name in ['correctAns','allowedKeys','text'] and paramNode.get('valType')=='code':
+                params[name].valType='str'# these components were changed in v1.60.01
+            #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys(): 
             params[name].updates = paramNode.get('updates')
@@ -192,7 +200,7 @@ class Experiment:
         root=self._doc#.getroot()
         
         self.psychopyVersion = root.get('version')
-        #todo: some error checking on the version (or report that this isn't .psyexp)?
+        #todo: some error checking on the version (and report that this isn't valid .psyexp)?
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
@@ -292,9 +300,19 @@ class Param:
             except:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
-            return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
+            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
+                return "%s" %(self.val[1:])#override the string type and return as code
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+                return repr(self.val[1:])#the user actually wanted a string repr with the $ as first char
+            else:#provide the string representation (the code to create a string)
+                return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
         elif self.valType == 'code':
-            return "%s" %(self.val)
+            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
+                return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+                return "%s" %(self.val[1:])#the user actually wanted just the $
+            else:#provide the code
+                return "%s" %(self.val)
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
@@ -590,7 +608,7 @@ class Routine(list):
         #update screen
         buff.writeIndented('\n')
         buff.writeIndented('#check for quit (the [Esc] key)\n')
-        buff.writeIndented('if event.getKeys("escape"): core.quit()\n')
+        buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
         buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
@@ -617,7 +635,7 @@ class Routine(list):
         for event in self:
             if event.params['duration'].val in ['-1', '']: maxTime=1000000
             else:
-                exec("maxTime=%s" %event.params['duration'])#convert params['duration'].val into numeric
+                exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime

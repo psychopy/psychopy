@@ -58,13 +58,12 @@ pr650code={'OK':'000\r\n',#this is returned after measure
     }
 
 def findPR650(ports=None):
-    """Try to find a COM port with a PR650 connected! Returns a Photometer object
-    e.g.::
-    
-        pr650 = findPR650([portNumber, anotherPortNumber])#tests specific ports only
-        pr650 = findPR650() #sweeps ports 0 to 10 searching for PR650
-        
+    """DEPRECATED (as of v.1.60.01). Use :func:`psychopy.hardware.findPhotometer()` instead, which
+    finds a wider range of devices   
     """
+    log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
+    +"finds a wider range of devices")
+    print 'here'
     if ports==None:
         if sys.platform=='darwin':
             ports=[]
@@ -100,6 +99,12 @@ class Photometer:
         
         from psychopy.hardware.pr import PR650
         from psychopy.hardware.minolta import LS100
+        
+    Or simply::
+        
+        from psychopy import hardware
+        photometer = hardware.findPhotometer()
+        
     """
     def __init__(self, port, meterType="PR650", verbose=True):
         log.error(self.__doc__)
@@ -317,7 +322,7 @@ class Monitor:
             return self.currentCalib['spectraNM'], self.currentCalib['spectraRGB']
         else:
             return None, None
-    def getDKL_RGB(self, RECOMPUTE=True):
+    def getDKL_RGB(self, RECOMPUTE=False):
         """Returns the DKL->RGB conversion matrix.
         If one has been saved this will be returned.
         Otherwise, if power spectra are available for the
@@ -333,7 +338,7 @@ class Monitor:
         else:
             return self.currentCalib['dkl_rgb']
 
-    def getLMS_RGB(self, RECOMPUTE=True):
+    def getLMS_RGB(self, RECOMPUTE=False):
         """Returns the LMS->RGB conversion matrix.
         If one has been saved this will be returned.
         Otherwise (if power spectra are available for the
@@ -709,7 +714,7 @@ def makeLMS2RGB(nm,powerRGB):
     return cones_to_rgb
 
 
-def getLumSeriesPR650(lumLevels=8,
+def getLumSeries(lumLevels=8,
     winSize=(800,600),
     monitor=None,
     gamma=1.0,
@@ -717,36 +722,45 @@ def getLumSeriesPR650(lumLevels=8,
     useBits=False,
     autoMode='auto',
     stimSize = 0.3,
-    photometer='COM1'):
+    photometer=None):
     """
     Automatically measures a series of gun values and measures
-    the luminance with a PR650.
+    the luminance with a photometer.
 
     :Parameters:
-        photometer : is the number of the serial port PR650 is connected to, or
-            or Photometer object, from findPR650()
-        lumLevels : (=8) can be scalar (number of tests evenly spaced in range 0-255)
-            or an array of actual values to test
-            testGamma : (=1.0) the gamma value at which to test
-        autoMode : (='auto'). If 'auto' the program will present the screen
+    
+        photometer : a photometer object 
+            e.g. a :class:`~psychopy.hardware.pr.PR65` or
+            :class:`~psychopy.hardware.minolta.LS100` from hardware.findPhotometer()
+        
+        lumLevels : (default=8) 
+            array of values to test or single value for n evenly spaced test values
+        
+        gamma : (default=1.0) the gamma value at which to test
+        
+        autoMode : 'auto' or 'semi'(='auto')
+            
+            If 'auto' the program will present the screen
             and automatically take a measurement before moving on.
+            
             If set to 'semi' the program will wait for a keypress before
             moving on but will not attempt to make a measurement (use this
-            to make a measurement with your own device). Any other text will
-            simply move on without pausing on each screen (use this to see
-            that the visual system is performing as expected).
-
+            to make a measurement with your own device). 
+            
+            Any other value will simply move on without pausing on each screen (use this to see
+            that the display is performing as expected).
+    
     """
     import psychopy.event, psychopy.visual
-    #setup pr650
-    if isinstance(photometer, Photometer):
-        pr650=photometer
-    else:
-        pr650 = Photometer(photometer)
+    from psychopy import core
 
-    if pr650!=None:
-        havePR650 = 1
-    else: havePR650 = 0
+    if photometer==None:
+        havePhotom = False
+    elif not hasattr(photometer, 'getLum'):
+        log.error("photometer argument to monitors.getLumSeries should be a type of photometer "+\
+            "object, not a %s" %type(photometer))
+        return None
+    else: havePhotom = True
 
     if useBits:
         #all gamma transforms will occur in calling the Bits++ LUT
@@ -756,33 +770,41 @@ def getLumSeriesPR650(lumLevels=8,
 
     if gamma==1:
         initRGB= 0.5**(1/2.0)*2-1
-    else: initRGB=0.0
+    else: initRGB=0.8
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 0, rgb=initRGB, size=winSize,
-        gamma=gamma,units='norm',monitor=monitor,allowGUI=False,
+    myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
+        gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
         bitsMode=bitsMode)
-
-    instructions="Point the PR650 at the central bar. Hit a key when ready (or wait 30s)"
+    instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,
-        pos=(0,-0.8), rgb=-1.0)
-    message.draw()
-
+        pos=(0,-0.95), rgb=[1,-1,-1])    
     noise = numpy.random.rand(512,512).round()*2-1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
         sf=[winSize[0]/512.0, winSize[1]/512.0])
     testPatch = psychopy.visual.PatchStim(myWin,
         tex='sqr',
         size=stimSize,
-        rgb=0.3,
+        rgb=initRGB,
         units='norm')
-    backPatch.draw()
-    testPatch.draw()
-
-    myWin.flip()
-
+   
     #stay like this until key press (or 30secs has passed)
-    psychopy.event.waitKeys(30)
-
+    waitClock=core.Clock()
+    tRemain=30
+    while tRemain>0:
+        tRemain = 30-waitClock.getTime()
+        instructions="Point the photometer at the central white bar. Hit a key when ready (or wait %iss)" %tRemain
+        backPatch.draw()
+        testPatch.draw()
+        message.setText(instructions)
+        message.draw()  
+        myWin.flip()
+        if len(psychopy.event.getKeys()):
+            break#we got a keypress so move on
+    
+    #
+    if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
+        junk=photometer.getLum()
+    
     #what are the test values of luminance
     if (type(lumLevels) is int) or (type(lumLevels) is float):
         toTest= DACrange(lumLevels)
@@ -803,36 +825,54 @@ def getLumSeriesPR650(lumLevels=8,
                 rgb[gun-1]=lum
             else:
                 rgb = [lum,lum,lum]
-
+            
             backPatch.draw()
-            testPatch.setRGB(rgb)
+            testPatch.setColor(rgb)
             testPatch.draw()
-
             myWin.flip()
-            time.sleep(0.5)#allowing the screen to settle (no good reason!)
+            
+            time.sleep(0.2)#allowing the screen to settle (no good reason!)
             #check for quit request
             for thisKey in psychopy.event.getKeys():
                 if thisKey in ['q', 'Q']:
                     myWin.close()
                     return numpy.array([])
             #take measurement
-            if havePR650 and autoMode=='auto':
-                pr650.measure()
-                print "At DAC value %i\t: %.2fcd/m^2" % (DACval, pr650.lastLum)
+            if havePhotom and autoMode=='auto':
+                actualLum = photometer.getLum()
+                print "At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum)
                 if lum==-1 or not allGuns:
                     #if the screen is black set all guns to this lum value!
-                    lumsList[:,valN] = pr650.lastLum
+                    lumsList[:,valN] = actualLum
                 else:
                     #otherwise just this gun
-                    lumsList[gun,valN] =  pr650.lastLum
+                    lumsList[gun,valN] =  actualLum
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
                 psychopy.event.waitKeys()
 
     myWin.close() #we're done with the visual stimuli
-    if havePR650:       return lumsList
+    if havePhotom: return lumsList
     else: return numpy.array([])
 
+
+def getLumSeriesPR650(lumLevels=8,
+    winSize=(800,600),
+    monitor=None,
+    gamma=1.0,
+    allGuns = True,
+    useBits=False,
+    autoMode='auto',
+    stimSize = 0.3,
+    photometer='COM1'):
+    """DEPRECATED (since v1.60.01): Use :class:`pscyhopy.monitors.getLumSeries()` instead"""
+    
+    log.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
+    val= getLumSeries(lumLevels,
+        winSize,monitor,
+        gamma,allGuns, useBits,
+        autoMode,stimSize,photometer)
+    return val
 
 def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     """
@@ -870,7 +910,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     spectra=[]
     for thisColor in [[1,-1,-1], [-1,1,-1], [-1,-1,1]]:
         #update stimulus
-        testPatch.setRGB(thisColor)
+        testPatch.setColor(thisColor)
         testPatch.draw()
         myWin.flip()
         #make measurement

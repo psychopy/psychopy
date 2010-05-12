@@ -14,7 +14,7 @@ The way in which these `Routines` are combined and/or repeated is controlled by 
 
 Example 1 - a reaction time experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For a simple reaction time experiment there might be 3 :doc:`Routines </builder/routines>`, one that presents instructions and waits for a keypress, one that controls the trial timing, and one that thanks the participant at the end. These could then be combined in the :doc:`Flow </builder/flow>` so that the instructions come first, followed by `trial`, followed by the `thanks` :doc:`Routine`, and a loop could be inserted so that the `trial` `Routine` repeated 4 times for each of 6 stimulus intensities.
+For a simple reaction time experiment there might be 3 :doc:`Routines </builder/routines>`, one that presents instructions and waits for a keypress, one that controls the trial timing, and one that thanks the participant at the end. These could then be combined in the :doc:`Flow </builder/flow>` so that the instructions come first, followed by `trial`, followed by the `thanks` :doc:`Routines </builder/routines>`, and a loop could be inserted so that the `Routine` repeated 4 times for each of 6 stimulus intensities.
 
 Example 2 - an fMRI block design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
