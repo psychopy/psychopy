@@ -5,12 +5,14 @@
 
 import sys, platform
 
-def rush():#dummy method. will be overridden by imports below (that return True)
-    return None
+def rush(value=False): 
+    #dummy method. Should be overridden by imports below if they exist and work
+    #if we return something it means rush doesn't work on this platform
+    return False
 def waitForVBL():
     pass
     
-if sys.platform=='win32' and sys.getwindowsversion()[0]<6:#NB vista is version 6
+if sys.platform=='win32':#NB includes vista and 7 (but not sure about vista64)
     from win32 import *
 elif sys.platform=='darwin':
     from darwin import *
