@@ -7,12 +7,12 @@ myWin = visual.Window((600,600.0), allowGUI=False,
 
 #INITIALISE SOME STIMULI
 grating1 = visual.PatchStim(myWin,tex="sin",mask="gauss",
-            rgb=[1.0,1.0,1.0],opacity=1.0,
+            color=[1.0,1.0,1.0],opacity=1.0,
             size=(5.0,5.0), sf=(2,0),
             ori = 45,
             units='deg')
 grating2 = visual.PatchStim(myWin,tex="sin",mask="gauss",
-            rgb=[1.0,1.0,1.0],opacity=0.5,
+            color=[1.0,1.0,1.0],opacity=0.5,
             size=(5.0,5.0), sf=(1,0),
             ori = 135,
             units='deg')

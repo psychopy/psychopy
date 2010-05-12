@@ -17,7 +17,6 @@ can silence both by setting them to receive only CRITICAL messages, which
 ::
 
     from psychopy import log
-    log.psychopyLog.setLevel(log.CRITICAL)
     log.console.setLevel(log.CRITICAL)
 
 """
@@ -31,26 +30,43 @@ _packagePath = path.split(__file__)[0]
 
 CRITICAL = logging.CRITICAL
 ERROR = logging.ERROR#40
+DATA = 35#will be a custom level to be included with every level above WARNING
 WARNING = logging.WARNING#30
 INFO = logging.INFO#20
 DEBUG = logging.DEBUG#10
 
+#create links to the logging functions
 error = logging.error
+"""log.error(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.ERROR` or higher
+"""
 warning = logging.warning
+"""log.warning(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.WARNING` or higher
+"""
 info = logging.info
+"""log.info(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.INFO` or higher
+"""
 debug = logging.debug
+"""log.debug(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.DEBUG` or higher
+"""
+#NB we add our own function for data() below
 
 console = logging.StreamHandler() #create a handler for the console
 console.setFormatter(logging.Formatter('%(asctime)-s %(levelname)-8s %(message)s', '%y-%m-%d %H:%M'))
-console.setLevel(ERROR)
+console.setLevel(WARNING)
 #the default 'origin' of the log messages
 _rootLogger = logging.getLogger('')
 _rootLogger.addHandler(console)# add the console logger to receive all root logs
 _rootLogger.setLevel(logging.DEBUG) #the minimum to be sent
 
+#add DATA as a custom level
+logging.addLevelName(DATA, 'DATA')
+def data(msg ,*args, **kwargs):
+    """log.data(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.DATA` or higher
+    """
+    logging.root.log(DATA, msg, *args, **kwargs)
+    
 class LogFile:
-    """Creates an object for logging events to a file (of which is 
-    psychopyLog."""
+    """Creates an object to help with logging events to a file"""
     def __init__(self, filename, 
                        filemode = 'a', level=INFO,
                        format = '%(asctime)-s %(levelname)-8s %(message)s', 
@@ -75,6 +91,7 @@ class LogFile:
         The values correspond to:
         
             - 40:Error
+            - 35 Data
             - 30:Warning
             - 20:Info
             - 10:Debug"""
@@ -84,10 +101,20 @@ class LogFile:
         The values correspond to:
         
             - 40:Error
+            - 35 Data
             - 30:Warning
             - 20:Info
             - 10:Debug
             """
         return self._log.level        
-        
+    def write(self, text):
+        """Write arbitrary text to the logfile (and no other file).
+        Consider using functions like `psychopy.log.info` instead, to write 
+        the message to all logfiles of a given level.
+        """
+        self._log.stream.write(text)
+    def writeline(self, text):
+        """As `LogFile.write` but adds a \n at the end of the text
+        """
+        self._log.stream.write(text+'\n')
 #psychopyLog = LogFile('psychopy.log', 'a', level=ERROR)

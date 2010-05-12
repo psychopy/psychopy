@@ -46,7 +46,7 @@
     showSourceAsst = boolean(default=False)
     analysisLevel = integer(0,10,default=1)
     analyseAuto = boolean(default=True)
-    showOutput = boolean(default=False)
+    showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
 
 [builder]

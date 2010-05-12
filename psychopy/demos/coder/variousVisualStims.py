@@ -2,11 +2,11 @@ from psychopy import visual, event, core
 import numpy
 
 win = visual.Window([600,600], rgb=-1)
-gabor = visual.PatchStim(win, mask='gauss', pos=[-0.5,-0.5], dkl=[0,0,1],sf=5, ori=30)
+gabor = visual.PatchStim(win, mask='gauss', pos=[-0.5,-0.5], color=[0,0,1],sf=5, ori=30)
 movie = visual.MovieStim(win, 'testmovie.mpg', units='pix',pos=[100,100],size=[160,120])
 text = visual.TextStim(win, pos=[0.5,-0.5],text=u"unicode (eg \u03A8 \u040A \u03A3)", font=['Times New Roman'])
 faceRGB = visual.PatchStim(win,tex='face.jpg',pos=[-0.5,0.5])
-fixSpot = visual.PatchStim(win,tex="none", mask="gauss", size=(0.05,0.05),rgb=1)
+fixSpot = visual.PatchStim(win,tex="none", mask="gauss", size=(0.05,0.05),color='white')
 myMouse=event.Mouse(win=win)
 
 t=0.0
@@ -23,7 +23,7 @@ while True:
     t+=1/60.0
     gabor.setPhase(t*2.0)
     gabor.draw()
-    text.setRGB([numpy.sin(t), 0, 1])
+    text.setColor([numpy.sin(t), 0, 1])
     text.draw()
     fixSpot.draw()
     faceRGB.draw()

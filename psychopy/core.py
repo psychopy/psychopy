@@ -1,20 +1,27 @@
-"""Basic timing functions
+"""Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2009 Jonathan Peirce
+# Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, time, threading
+import sys, time, threading
+import os # only needed for temporary shellCall()
 
-try:from ext import rush
-except: pass
+# always safe to call rush, even if its not going to do anything for a particular OS
+from psychopy.ext import rush
+
+# for shellCall: (May 2010: commented out due to v1.61 build issues for mac, even though shellCall() works fine on mac)
+#import subprocess, shlex
 
 runningThreads=[]
+
 try:
     import pyglet.media
+    import pyglet.window.get_platform
+    havePyglet = True
 except:
-    pass
-    
+    havePyglet = False
+
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
@@ -64,8 +71,11 @@ def wait(secs, hogCPUperiod=0.2):
     
     If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function will be used,
     which is not especially precise, but allows the cpu to perform housekeeping. In
-    the final hogCPUperiod the more precise, but method of constantly polling the clock 
+    the final hogCPUperiod the more precise method of constantly polling the clock 
     is used for greater precision.
+    
+    If you want to obtain key-presses during the wait, be sure to use pyglet and
+    to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
     """
     #initial relaxed period, using sleep (better for system resources etc)
     if secs>hogCPUperiod:
@@ -75,10 +85,35 @@ def wait(secs, hogCPUperiod=0.2):
     #hog the cpu, checking time
     t0=getTime()
     while (getTime()-t0)<secs:
-        pass
+        #let's see if pyglet collected any event in meantime
+        try:
+            pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()#pump events on pyglet windows            
+        except:
+            pass #presumably not pyglet 
+
+def shellCall(shellCmd, stderr=False):
+    """Call a single system command with arguments via os.popen(), which is deprecated; ideally use subprocess.
+    Returns what the command sends to stdout (stderr is currently always '' if you request it).
     
-    #we're done, let's see if pyglet collected any event in meantime
-    try:
-        pyglet.media.dispatch_events()
-    except:
-        pass #maybe pyglet 
+    Returns (stdout,stderr) if requested (by stderr==True). Does not handle multiple commands connected by pipes ("|").
+    """
+    
+    stdoutData = os.popen(shellCmd).read()
+
+    if stderr:
+        return stdoutData.strip(),''
+    else:
+        return stdoutData.strip()
+
+# subprocess had build problems on Mac:
+#    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args; pipes don't work here
+#    stdoutData, stderrData = subprocess.Popen(shellCmdList,
+#        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
+        
+#    if stderr:
+#        return stdoutData.strip(), stderrData.strip()
+#    else:
+#        return stdoutData.strip()
+

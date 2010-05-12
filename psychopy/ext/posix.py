@@ -11,6 +11,6 @@ def rush(value=True):
     > nice python ......
     
     """
-    pass
+    return False
   
   

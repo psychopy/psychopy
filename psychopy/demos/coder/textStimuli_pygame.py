@@ -4,7 +4,7 @@ import sys
 
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,
-				monitor='testMonitor', units ='cm', winType='pygame')
+            monitor='testMonitor', units ='cm', winType='pygame')
 myWin.setRecordFrameIntervals(True)
 
 if sys.platform=='win32':
@@ -26,14 +26,14 @@ fpsText = visual.TextStim(myWin,
                         pos=(-0.98, -0.98), text='starting...',
                         font=sans, 
                         alignHoriz = 'left',alignVert='bottom',
-                        rgb=[+1,-1,-1])
+                        color=[+1,-1,-1])
 rotating = visual.TextStim(myWin,text="Fonts rotate!",pos=(0, 0),#and can have line breaks
-                        rgb=[-1.0,-1,1],units='deg',
+                        color=[-1.0,-1,1],units='deg',
                         ori=0, height = 1.0,
                         font=comic)
 unicodeStuff = visual.TextStim(myWin,
                         text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
-                        rgb=-1,  font=serif,pos=(0,3),
+                        color=-1,  font=serif,pos=(0,3),
                         height = 1)
 psychopyTxt = visual.TextStim(myWin, rgb=+1,
                         text = u"PsychoPy \u00A9Jon Peirce",

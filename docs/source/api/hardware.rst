@@ -10,3 +10,5 @@ Contents:
    :glob:
 
    hardware/*
+
+.. autofunction:: psychopy.hardware.findPhotometer

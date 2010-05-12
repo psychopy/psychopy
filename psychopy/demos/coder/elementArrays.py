@@ -1,10 +1,13 @@
+#!/usr/bin/env python
 """This script demonstrates the use of the ElementArrayStim, a highly optimised stimulus for generating 
 arrays of similar (but not identical) elements, such as in global form arrays or random dot stimuli.
 
 Elements must have the same basic texture and mask, but can differ in any other way (ori, sf, rgb...).
 
 This is a more complex demo, using numpy arrays to manipulate stimulus characteristics. Don't use
-for loops for a large array of stimuli like this.
+for-loops for a large array of stimuli like this.
+
+see also the starField demo
 """
 
 from psychopy import visual, core, misc, event

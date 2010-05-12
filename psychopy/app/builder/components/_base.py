@@ -13,7 +13,7 @@ class BaseComponent:
         self.exp=exp#so we can access the experiment if necess
         self.params={}
         self.params['name']=Param(name, valType='code', 
-            hint="Name of this loop")
+            hint="Name of this component")
         self.order=['name','startTime','duration']#make name come first (others don't matter)
     def writeInitCode(self,buff):
         pass
@@ -52,7 +52,7 @@ class BaseComponent:
             thisParam=self.params[thisParamName]
             if thisParam.updates==updateType:
                 if thisParamName=='color': 
-                    paramCaps=self.params['colourSpace'].upper() #setRGB, not setColour
+                    paramCaps=self.params['colorSpace'].upper() #setRGB, not setColor
                 else:paramCaps=thisParamName.capitalize()
                 buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'],paramCaps, thisParam) )
     def getType(self):

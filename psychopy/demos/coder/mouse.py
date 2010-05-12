@@ -14,10 +14,10 @@ You can also check the motion of the wheel with myMouse.getWheelRel()
 myWin = visual.Window((600.0,600.0), allowGUI=True)
 
 #INITIALISE SOME STIMULI
-fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),rgb=[-1.0,-1.0,-1.0])
+fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),color='black')
 grating = visual.PatchStim(myWin,pos=(0.5,0),
                            tex="sin",mask="gauss",
-                           rgb=[1.0,0.5,-1.0],
+                           color=[1.0,0.5,-1.0],
                            size=(1.0,1.0), sf=(3,0))
 myMouse = event.Mouse(win=myWin)
 message = visual.TextStim(myWin,pos=(-0.95,-0.9),alignHoriz='left',height=0.08,

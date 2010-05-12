@@ -7,7 +7,7 @@ See http://www.curdes.com/WebHome.html
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import core, log
+from psychopy import log
 import struct, sys
 
 try: import serial
@@ -29,7 +29,7 @@ class ButtonBox:
         
         if not serial:
             raise ImportError('The module serial is needed to connect to fORP. ' +\
-                "On most systems this can be installed with\n\t easy_install serial")
+                "On most systems this can be installed with\n\t easy_install pyserial")
                 
         self.port = serial.Serial(serialPort-1, baudrate=19200, bytesize=8, parity='N', stopbits=1, timeout=0.001)
         self.port.open()

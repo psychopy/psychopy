@@ -6,8 +6,8 @@ import log
 #deprecated warning present since 1.60.00
 log.error("""
 DEPRECATED: In future versions of PsychoPy you will need to call:
-    from psychopy.hardware.CRS import bits
+    from psychopy.hardware.crs import bits
 rather than:
     from psychopy import bits""")
     
-from psychopy.hardware.CRS.bits import *
+from psychopy.hardware.crs.bits import *

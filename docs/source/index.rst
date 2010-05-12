@@ -4,10 +4,9 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**:
-Version 1.60.00 released on 1 Feb 2010, the graphical :doc:`Builder <builder/builder>` view has improved a great deal. It's pretty usable, although it is still under development. Please start using it to build your experiments with, and let the mailing list know if you get stuck or it does something unexpected (you could simply mail the experiment file to the list).
+**Latest version**: 1.60.04 was released Feb 2010. See complete :doc:`changelog`
 
-Documentation on this site now relates to PsychoPy2. The previous website for PsychoPy version 1.xx is still available `here <psychopy1/home.php>`_
+PsychoPy is now tweeting (see bottom right panel). 
 
 .. title:: Home
     
