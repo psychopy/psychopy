@@ -716,7 +716,7 @@ class StairHandler:
             self._warnUseOfNext=False
         return self.next()
         
-class QuestHandler():
+class QuestHandler:
     """(place-holder for future integration of _quest.py as a Trial/StairHandler)
     """
     def __init__(self):
