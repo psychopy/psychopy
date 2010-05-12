@@ -9,6 +9,8 @@ Known issues
 ------------------
 The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
+Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
+
 PsychoPy 1.61
 ------------------------------
 
