@@ -10,8 +10,8 @@ import os # only needed for temporary shellCall()
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.ext import rush
 
-# for shellCall:
-import subprocess, shlex
+# for shellCall: (May 2010: commented out due to v1.61 build issues for mac, even though shellCall() works fine on mac)
+#import subprocess, shlex
 
 runningThreads=[]
 
@@ -94,7 +94,8 @@ def wait(secs, hogCPUperiod=0.2):
             pass #presumably not pyglet 
 
 def shellCall(shellCmd, stderr=False):
-    """Call a single system command with arguments via subprocess, returns what the command sends to stdout.
+    """Call a single system command with arguments via os.popen(), which is deprecated; ideally use subprocess.
+    Returns what the command sends to stdout (stderr is currently always '' if you request it).
     
     Returns (stdout,stderr) if requested (by stderr==True). Does not handle multiple commands connected by pipes ("|").
     """
