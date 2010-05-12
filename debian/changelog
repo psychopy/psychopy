@@ -1,6 +1,8 @@
 psychopy (1.61.00.dfsg-1) unstable; urgency=low
 
   * New upstream release
+  * Cherry-picked 2 commits pushed upstream: permissions, and python 2.4
+    compatibility
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 12 May 2010 12:55:19 -0400
 
