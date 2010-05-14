@@ -1686,7 +1686,7 @@ def _getHgVersion(file):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
+    if not os.path.exists(file) or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
     try:
         hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)

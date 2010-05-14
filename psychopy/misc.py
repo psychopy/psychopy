@@ -5,7 +5,7 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy #this is imported by psychopy.core
+import numpy, random #this is imported by psychopy.core
 from psychopy import log
 import monitors
 
@@ -204,6 +204,34 @@ def sph2cart(*args):
         return numpy.asarray([x, y, z])
     else:
         return x, y, z
+
+def randomPos(win, border=0, radius=0, point=None):
+    """return a random coordinate (x, y) within a window, with an optional <border> (no points within the border),
+    and optionally within distance <radius> of a given <point> (x,y).
+    """
+    x, y = win.size
+    if border > x-border or border > y-border:
+        log.warning('randomPos(): requested exclusion border %d is too large for window' % int(border))
+        return None, None
+    rx, ry = random.choice(range(border,x-border+1)), random.choice(range(border,y-border+1))
+    if radius < 1:
+        return rx, ry
+    
+    try:
+        cx, cy = point[0],point[1]
+    except:
+        cx, cy = [x//2, y//2]
+    attempts = 0
+    while attempts < 1000:
+        rx, ry = random.choice(range(cx-radius,cx+radius+1)), random.choice(range(cy-radius,cy+radius+1))
+        if (cx-rx)**2 + (cy-ry)**2 < radius**2:
+            break
+        attempts += 1
+    rx = max(rx,0)
+    rx = min(rx,x)
+    ry = max(ry,0)
+    ry = min(ry,y)
+    return rx, ry
     
 #---unit conversions
 def pix2deg(pixels, monitor):
