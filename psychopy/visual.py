@@ -108,8 +108,16 @@ class Window:
                 Size of the window in pixels (X,Y)
             pos : *None* or (x,y)
                 Location of the window on the screen
-            rgb : [0,0,0]
-                Color of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
+            color:
+                Color of the Window background, according to the `colorSpace`.
+                Could be a the web name for a color (e.g. 'FireBrick');
+                a hex value (e.g. '#FF0047');
+                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
+                If a tuple, list or array then then the `colorSpace` should also be explicitly given
+                See :ref:`colorspaces`
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             fullscr : *None*, True or False
                 Better timing can be achieved in full-screen mode            
             allowGUI :  *None*, True or False (if None prefs are used) 
@@ -593,7 +601,7 @@ class Window:
         visible (the first uses the color to create the new screen the second presents
         that screen to the viewer).  
         
-        See `colorSpaces`_ for further information about the ways to specify colors and their various implications.
+        See :ref:`colorSpaces` for further information about the ways to specify colors and their various implications.
         
         :Parameters:
         
@@ -612,7 +620,7 @@ class Window:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -626,7 +634,7 @@ class Window:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorSpaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -972,7 +980,7 @@ class _BaseVisualStim:
         _setTexIfNoShaders(self)
 
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorSpaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -992,7 +1000,7 @@ class _BaseVisualStim:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -1006,7 +1014,7 @@ class _BaseVisualStim:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorSpaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -1143,6 +1151,8 @@ class DotStim(_BaseVisualStim):
                 See :ref:`units` for explanation of other options.
             nDots : int
                 number of dots to be generated
+            coherence : float
+                fraction of the dots that are 'signal'
             fieldPos : (x,y) or [x,y]
                 specifying the location of the centre of the stimulus.
             fieldSize : a single value, specifying the diameter of the field
@@ -1166,12 +1176,16 @@ class DotStim(_BaseVisualStim):
                 Scase et al's (1996) categories. For 'position', noise dots take a
                 random position every frame. For 'direction' noise dots follow a 
                 random, but constant direction. For 'walk' noise dots vary their
-                direction every frame, but keep a constant speed.                            
-            rgb : (r,g,b) or [r,g,b] or a single intensity value 
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
+                direction every frame, but keep a constant speed.
+            color:
+                Could be a the web name for a color (e.g. 'FireBrick');
+                a hex value (e.g. '#FF0047');
+                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth : 0,
@@ -3519,7 +3533,7 @@ class TextStim(_BaseVisualStim):
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorSpaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -3539,7 +3553,7 @@ class TextStim(_BaseVisualStim):
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -3553,7 +3567,7 @@ class TextStim(_BaseVisualStim):
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorSpaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             

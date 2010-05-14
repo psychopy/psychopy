@@ -17,6 +17,13 @@
     :undoc-members:
     :inherited-members:
     
+:class:`RunTimeInfo`
+---------------------------------------------------------------------------------
+.. autoclass:: psychopy.data.RunTimeInfo
+    :members:
+    :undoc-members:
+    :inherited-members:
+    
 :class:`FitWeibull`
 ---------------------------------------------------------------------------------
 .. autoclass:: psychopy.data.FitWeibull
