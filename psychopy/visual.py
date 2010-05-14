@@ -3692,18 +3692,25 @@ class TextStim(_BaseVisualStim):
         """
         self.text = value
         
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+            if numpy.any(desiredRGB**2.0>1.0):
+                desiredRGB=[0.6,0.6,0.4]
+            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+        else:
+            desiredRGB = (self.rgb*self.contrast)/255.0
+            
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
+                                                       color = (desiredRGB[0],desiredRGB[1], desiredRGB[2], self.opacity),
                                                        width=self._wrapWidthPix,#width of the frame  
                                                        )
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
-        else:   
-            self._surf = self._font.render(value, self.antialias,
-                                           [self.rgb[0]*127.5+127.5,
-                                            self.rgb[1]*127.5+127.5,
-                                            self.rgb[2]*127.5+127.5])
+        else:
+            print self.rgb
+            self._surf = self._font.render(value, self.antialias, 
+                [desiredRGB[0]*255,desiredRGB[1]*255, desiredRGB[2]*255,self.opacity])#NB pygame wants colors in 0:255
             self.width, self.height = self._surf.get_size()
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST

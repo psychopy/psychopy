@@ -22,7 +22,6 @@
 .. autoclass:: psychopy.data.RunTimeInfo
     :members:
     :undoc-members:
-    :inherited-members:
     
 :class:`FitWeibull`
 ---------------------------------------------------------------------------------
