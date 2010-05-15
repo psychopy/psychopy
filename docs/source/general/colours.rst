@@ -3,6 +3,32 @@
 Color spaces
 ====================================
 
+The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. There are three basic color spaces that PsychoPy can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
+
+examples::
+	
+    stim = visual.PatchStim(win, color=[1,-1,-1], colorSpace='rgb') #will be red
+    stim.setColor('Firebrick')#one of the web/X11 color names
+    stim.setColor('#FFFAF0')#an off-white
+    stim.setColor([0,90,1], colorSpace='dkl')#modulate along S-cone axis in isoluminant plane
+    stim.setColor([1,0,0], colorSpace='lms')#modulate only on the L cone
+    stim.setColor([1,1,1], colorSpace='rgb')#all guns to max
+    stim.setColor([1,0,0])#this is ambiguous - you need to specify a color space
+
+.. _colorNames:
+
+Colors by name
+----------------
+Any of the `web/X11 color names <http://www.w3schools.com/html/html_colornames.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy. 
+
+These are not case sensitive, but should not include any spaces.
+
+.. _hexColors:
+
+Colors by hex value
+--------------------
+This is really just another way of specifying the r,g,b values of a color, where each gun's value is given by two hexadecimal characters. For some examples see `this chart <http://html-color-codes.com/>`_. To use these in PsychoPy they should be formatted as a string, beginning with `#` and with no spaces. (NB on a British Mac keyboard the # key is hidden - you need to press Alt-3)
+
 .. _RGB:
 
 RGB color space
@@ -25,7 +51,7 @@ DKL color space
 -------------------
 To use DKL color space the monitor should be calibrated with an appropriate spectrophotometer, such as a PR650.
 
-In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Macleod and Boynton [#mb1979]_ chromaticity diagram) represents colors in a 3-dimensional space using circular coordinates that specify the `elevation` from the isoluminant plane, the `azimuth` (the hue) and the contrast (as a fraction of the maximal modulations along the cardinal axes of the space).
+In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Macleod and Boynton [#mb1979]_ chromaticity diagram) colors are represented in a 3-dimensional space using circular coordinates that specify the `elevation` from the isoluminant plane, the `azimuth` (the hue) and the contrast (as a fraction of the maximal modulations along the cardinal axes of the space).
 
 .. image:: ../images/dklSPace.png
 
