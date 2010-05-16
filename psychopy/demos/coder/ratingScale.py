@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" demo for psychopy.visual.ratingScale.py
+""" demo for psychopy.visual.getRatingScale()
 """
 
 __author__ = 'Jeremy Gray'
@@ -8,9 +8,9 @@ __author__ = 'Jeremy Gray'
 from psychopy import visual, event
 import random
 
-myWin = visual.Window(fullscr=False, units='pix', monitor='testMonitor') 
+myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor') 
 
-instr = visual.TextStim(myWin,text="""This is a demo of visual.ratingScale(). The first example shows how simple it can be, and the second example illustrates how you can customize the display.
+instr = visual.TextStim(myWin,text="""This is a demo of visual.getRatingScale(). The first example shows how easy it can be. The second example illustrates what you can do with some of the non-default settings. (JRG note: on linux, the demo looks horrible for me.)
 
 ---
 
@@ -18,7 +18,7 @@ Example 1. On the next screen, you will see the default configuration, which wil
 
 By relying on the defaults, the entire next screen requires nothing more than this code in your script:
 
-    visual.ratingScale(myWin, "How cool was that?")
+    visual.getRatingScale(myWin, "How cool was that?")
 
 To respond, use the mouse to indicate a rating by clicking somewhere on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys. Or type a number 1 to 7 to indicate your choice. In this example, responses are rounded to the nearest tick-mark.
 
@@ -31,7 +31,7 @@ while len(event.getKeys()) == 0:
     myWin.flip()
 
 # the next line of code is what makes Example 1 happen:
-rating, ratingRT, scaleInfo = visual.ratingScale(myWin, "How cool was that?")
+rating, ratingRT, scaleInfo = visual.getRatingScale(myWin, "How cool was that?")
 
 print rating, ratingRT, scaleInfo
 
@@ -41,7 +41,7 @@ instr = visual.TextStim(myWin,text="""Your rating was: %d on a scale of %d to %d
 
 Example 2. This example shows how you might present a scale akin to Lang's "Self-Assessment Manikin" for emotion ratings. First, we'll use markerStyle='glow'. The default color for 'glow' is white, but we'll use markerColor='DarkRed' instead, and we'll accept quasi-continuous ratings (precision=100) but not reveal them to the subject (showValue=False) to reduce people obsessing over exact values.
 
-visual.ratingScale(myWin, "How hot was that?", low=0, high=100, precision=100, markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
+visual.getRatingScale(myWin, "How hot was that?", low=0, high=100, precision=100, markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
 
 The marker will become larger when placed further to the right (markerExpansion=10). Note that low=0 & high=100 will be added to the instructions.
 
@@ -52,7 +52,7 @@ while len(event.getKeys()) == 0:
     myWin.flip()
 
 # this line of code make Example 2 happen:
-rating, ratingRT, scaleInfo = visual.ratingScale(myWin, "How hot was that?", low=0, high=100, precision=100,
+rating, ratingRT, scaleInfo = visual.getRatingScale(myWin, "How hot was that?", low=0, high=100, precision=100,
         markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
 
 print rating, ratingRT, scaleInfo

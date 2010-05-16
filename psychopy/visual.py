@@ -4444,7 +4444,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
 
-def ratingScale(myWin, prompt, scale=None, low=1, high=7, 
+def getRatingScale(myWin, prompt, scale=None, low=1, high=7, 
                 markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False, 
                 precision=1, showValue=True, displayScale=1, verbose=True):
     """This function is under development! It needs refactoring to be easier to read and maintain.
@@ -4486,7 +4486,6 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
         tickMarks /= autoRescaleFactor 
         precision = min(100, precision * autoRescaleFactor)
     tickSize = 0.03 # vertical height of each tick, norm units
-    lineSize = 3. # thickness of the line with tick marks
     leftEnd = -0.5 # and then scaled by displayScale
     
     if not scale: # set the default
@@ -4536,13 +4535,13 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
         tickMarks = 1 
     vertices.append([-1 * leftEnd * displayScale, offsetVert])
     vertices.append([leftEnd * displayScale, offsetVert])
-    line = ShapeStim(win=myWin, units='norm', vertices=vertices, lineWidth=lineSize, lineColor='LightGray', lineColorSpace='rgb')
+    line = ShapeStim(win=myWin, units='norm', vertices=vertices, lineWidth=4, lineColor='White', lineColorSpace='rgb')
     
     # define the color & shape but not position of the marker that will go on the line:
     if markerColor and type(markerColor) == type('abc'):
         markerColor = markerColor.replace(' ','')
     if markerStyle == 'triangle':
-        vertices = [[-tickSize * displayScale * 1.8, tickSize * displayScale * 3],
+        vertices = [[-1 * tickSize * displayScale * 1.8, tickSize * displayScale * 3],
                 [ tickSize * displayScale * 1.8, tickSize * displayScale * 3], [0, -0.005]]
         if markerColor == None:
             markerColor = 'DarkBlue'
@@ -4616,7 +4615,7 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
     while not acceptResponse:
         frame += 1
         if markerPlaced: # markerPlaced means subject has indicated (= placed) a provisional value, but not accepted it yet
-            #'accept' box pulsing * display text:
+            # set 'accept' box pulsing & display text:
             pulseColor = 0.6 + pulse * float(cos(frame / 18.)) # cast to float to avoid numpy_type
             acceptBox.setFillColor(pulseColor, 'rgb')
             acceptBox.setLineColor(pulseColor, 'rgb')
