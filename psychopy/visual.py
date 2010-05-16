@@ -4603,8 +4603,8 @@ def getRatingScale(myWin, prompt, scale=None, low=1, high=7,
     
     myMouse = event.Mouse(win=myWin, visible=True)
     
-    # [static] + [dynamic] elements, in their drawing order:
-    visualDisplayElements = [line, msg, msgSub, lowAnchor, highAnchor] + [acceptBox, accept] 
+    # visual elements, in their drawing order. line would disappear for winXP if it came first
+    visualDisplayElements = [msg, msgSub, lowAnchor, highAnchor, acceptBox, accept, line] 
     
     # --------- start the drawing + response detection loop: ---------
     event.clearEvents()
