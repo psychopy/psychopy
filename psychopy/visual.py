@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy #so we can get the __path__
-from psychopy import core, ext, log, preferences, monitors
+from psychopy import core, ext, log, preferences, monitors, event
 import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
@@ -108,16 +108,8 @@ class Window:
                 Size of the window in pixels (X,Y)
             pos : *None* or (x,y)
                 Location of the window on the screen
-            color:
-                Color of the Window background, according to the `colorSpace`.
-                Could be a the web name for a color (e.g. 'FireBrick');
-                a hex value (e.g. '#FF0047');
-                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
-                If a tuple, list or array then then the `colorSpace` should also be explicitly given
-                See :ref:`colorspaces`
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
+            rgb : [0,0,0]
+                Color of background as [r,g,b] list or single value. Each gun can take values betweeen -1 and 1
             fullscr : *None*, True or False
                 Better timing can be achieved in full-screen mode            
             allowGUI :  *None*, True or False (if None prefs are used) 
@@ -601,7 +593,7 @@ class Window:
         visible (the first uses the color to create the new screen the second presents
         that screen to the viewer).  
         
-        See :ref:`colorSpaces` for further information about the ways to specify colors and their various implications.
+        See `colorSpaces`_ for further information about the ways to specify colors and their various implications.
         
         :Parameters:
         
@@ -620,7 +612,7 @@ class Window:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
+            in one of the `colorSpaces`_. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -634,7 +626,7 @@ class Window:
             
         colorSpace : string or None
         
-            defining which of the :ref:`colorSpaces` to use. For strings and hex
+            defining which of the `colorSpaces`_ to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -980,7 +972,7 @@ class _BaseVisualStim:
         _setTexIfNoShaders(self)
 
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See :ref:`colorSpaces` for further information
+        """Set the color of the stimulus. See `colorSpaces`_ for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -1000,7 +992,7 @@ class _BaseVisualStim:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
+            in one of the `colorSpaces`_. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -1014,7 +1006,7 @@ class _BaseVisualStim:
             
         colorSpace : string or None
         
-            defining which of the :ref:`colorSpaces` to use. For strings and hex
+            defining which of the `colorSpaces`_ to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -1151,8 +1143,6 @@ class DotStim(_BaseVisualStim):
                 See :ref:`units` for explanation of other options.
             nDots : int
                 number of dots to be generated
-            coherence : float
-                fraction of the dots that are 'signal'
             fieldPos : (x,y) or [x,y]
                 specifying the location of the centre of the stimulus.
             fieldSize : a single value, specifying the diameter of the field
@@ -1176,16 +1166,12 @@ class DotStim(_BaseVisualStim):
                 Scase et al's (1996) categories. For 'position', noise dots take a
                 random position every frame. For 'direction' noise dots follow a 
                 random, but constant direction. For 'walk' noise dots vary their
-                direction every frame, but keep a constant speed.
-            color:
-                Could be a the web name for a color (e.g. 'FireBrick');
-                a hex value (e.g. '#FF0047');
-                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
+                direction every frame, but keep a constant speed.                            
+            rgb : (r,g,b) or [r,g,b] or a single intensity value 
+                or a single value (which will be applied to all guns).
+                RGB vals are applied to simple textures and to greyscale
+                image files but not to RGB images.
+                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth : 0,
@@ -3533,7 +3519,7 @@ class TextStim(_BaseVisualStim):
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See :ref:`colorSpaces` for further information
+        """Set the color of the stimulus. See `colorSpaces`_ for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -3553,7 +3539,7 @@ class TextStim(_BaseVisualStim):
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorSpaces`. If no color space is specified then the color 
+            in one of the `colorSpaces`_. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -3567,7 +3553,7 @@ class TextStim(_BaseVisualStim):
             
         colorSpace : string or None
         
-            defining which of the :ref:`colorSpaces` to use. For strings and hex
+            defining which of the `colorSpaces`_ to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -3692,25 +3678,18 @@ class TextStim(_BaseVisualStim):
         """
         self.text = value
         
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
-            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
-            
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (desiredRGB[0],desiredRGB[1], desiredRGB[2], self.opacity),
+                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
                                                        width=self._wrapWidthPix,#width of the frame  
                                                        )
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
-        else:
-            print self.rgb
-            self._surf = self._font.render(value, self.antialias, 
-                [desiredRGB[0]*255,desiredRGB[1]*255, desiredRGB[2]*255,self.opacity])#NB pygame wants colors in 0:255
+        else:   
+            self._surf = self._font.render(value, self.antialias,
+                                           [self.rgb[0]*127.5+127.5,
+                                            self.rgb[1]*127.5+127.5,
+                                            self.rgb[2]*127.5+127.5])
             self.width, self.height = self._surf.get_size()
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
@@ -4464,3 +4443,234 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
     
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
+
+def ratingScale(myWin, prompt, scale=None, low=1, high=7, 
+                markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False, 
+                precision=1, showValue=True, displayScale=1, verbose=True):
+    """This function is under development! It needs refactoring to be easier to read and maintain.
+    myWin :  a psychopy.visual.Window() instance (required)
+    prompt : string (required); the text to display to the subject, eg, 'how cool was that?'
+    scale :  string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
+    low :    low anchor; integer
+    high :   high anchor; integer, and at least low+1
+    markerStart : *False*, or the value [low..high] to pre-select and display
+    markerStyle : *'triangle'*, or 'glow'
+    markerColor : *None* -> 'DarkBlue' for triangle, 'White' for glow; or any legal colorname '#123456', 'DarkRed'
+    markerExpansion : how much the glow marker expands when moving to the right; 0=none, negative reverses; try 16, or -4
+    
+    precision :    1, portions of a tick to accept, 1 default [1,10,100]
+    showValue :    True, show the currently selected number
+    displayScale : 1., visual expansion factor of screen display
+    
+    :Author:
+        - 2010 written by Jeremy Gray
+    """
+    
+    # drawing is coded in norm units, so save the user's units here, restore before return
+    savedWinUnits = myWin.units
+    myWin.units = 'norm'
+    
+    # tick mark stuff; only draw a tick at integer spacing; other drawing is done in terms of tick units
+    high = int(high) # high anchor of scale
+    low = int(low) # low anchor
+    if high <= low:
+        high = low + 1
+        precision = 100
+    tickMarks = high - low
+    autoRescaleFactor = 1
+    if tickMarks > 20 and tickMarks % 10 == 0:
+        autoRescaleFactor = 10
+        tickMarks /= autoRescaleFactor 
+        precision = min(100, precision * autoRescaleFactor)
+    tickSize = 0.03 # vertical height of each tick, norm units
+    lineSize = 3. # thickness of the line with tick marks
+    leftEnd = -0.5 # and then scaled by displayScale
+    
+    if not scale:
+        scale = str(low)+' = not at all  . . .  '+str(high)+' = extremely'
+    
+    padSize = 0.05 # space above/below the line within which to accept mouse input
+    offsetVert = -0.4 # horiz offset not implemented
+    
+    minTime = 1 # seconds until a response can be accepted
+    pulse = 0.18 # larger is more salient; want float
+    
+    if precision not in [1, 10, 100]:
+        precision = 1
+    snapToTick = precision
+    textSize = 0.12 # for large text
+    smallTextFactor = 0.55 # ratio of small text to large text
+    textSizeSmall = min(textSize, textSize * smallTextFactor)
+    showValue = showValue in [True, 1]
+    
+    displayScale *= 0.6
+    markerSize = 5.0 * displayScale
+    markerExpansion = float(markerExpansion) * 0.6
+    if markerStart:
+        markerStart = min(markerStart, tickMarks)
+        markerStart = max(markerStart, 0)
+        markerPlacedAt = markerStart
+        markerPlaced = True
+    else:
+        markerPlaced = False
+    
+    respKeys = [] # what keyboard keys are accepted for selecting a response
+    if low > 0 and high < 10: # allow responding via numeric keys if the options are 1-9
+        respKeys = [str(i) for i in range(low, high + 1)]
+    acceptKeys = ['return'] # what keys are allow for accepting the currently selected response
+    escapeKeys = ['escape'] # return None, None
+    
+    # define vertices for making a ShapeStim line with tick marks:
+    vert = [[leftEnd * displayScale, offsetVert]] # first vertex
+    if tickMarks:
+        for t in range(tickMarks + 1):
+            vert.append([displayScale * (leftEnd + t / float(tickMarks)), tickSize * displayScale + offsetVert])
+            vert.append([displayScale * (leftEnd + t / float(tickMarks)), offsetVert])
+            if t < tickMarks: 
+                vert.append([displayScale * (leftEnd + (t + 1) / float(tickMarks)), offsetVert])
+    else:
+        tickMarks = 1 
+    vert.append([-1 * leftEnd * displayScale, offsetVert])
+    vert.append([leftEnd * displayScale, offsetVert])
+    line = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=lineSize, lineColor='LightGray', lineColorSpace='rgb')
+    
+    # define the color & shape but not position of the marker that will go on the line:
+    
+    if markerColor and type(markerColor) == type('abc'):
+        markerColor = markerColor.replace(' ','')
+        
+    if markerStyle == 'triangle':
+        vert = [[-tickSize * displayScale * 1.5, tickSize * displayScale * 3], [tickSize * displayScale * 1.5, tickSize * displayScale * 3], [0, -0.01]]
+        if markerColor == None:
+            markerColor = 'DarkBlue'
+        try:
+            marker = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=0.1, fillColor=markerColor, fillColorSpace='rgb')
+        except:
+            marker = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=0.1, fillColor='DarkBlue', fillColorSpace='rgb')
+        markerExpansion = 0
+    if markerStyle == 'glow':
+        if markerColor == None:
+            markerColor = 'White'
+        try:
+            marker = PatchStim(win=myWin, tex='sin', mask='gauss', color=markerColor, colorSpace='rgb', opacity = 0.85)
+        except:
+            marker = PatchStim(win=myWin, tex='sin', mask='gauss', color='White', colorSpace='rgb', opacity = 0.85) 
+        markerBaseSize = tickSize * markerSize
+        if markerExpansion == 0:
+            markerBaseSize *= markerSize * displayScale
+    
+    # define the 'accept' box:
+    aBtop = -0.2 + offsetVert
+    aBbot = -0.3 + offsetVert
+    aBleft = -0.12
+    aBright = -1 * aBleft
+    if low > 0 and high < 10:
+        keyClick = 'key, click' # text to display inside accept box
+    else:
+        keyClick = 'click line'
+    accept = TextStim(win=myWin, text=keyClick, font='Helvetica',pos=[0,(aBtop+aBbot)/2.],
+                      italic=True, height=textSizeSmall, color='#444444', colorSpace='rgb')
+    delta = 0.02
+    delta2 = delta / 7 # rounded corners; for square corners, set delta2 to 0
+    acceptBoxVertices = [
+        [aBleft,aBtop-delta], [aBleft+delta2,aBtop-3*delta2], [aBleft+3*delta2,aBtop-delta2], [aBleft+delta,aBtop],   
+        [aBright-delta,aBtop], [aBright-3*delta2,aBtop-delta2], [aBright-delta2,aBtop-3*delta2], [aBright,aBtop-delta],  
+        [aBright,aBbot+delta],[aBright-delta2,aBbot+3*delta2], [aBright-3*delta2,aBbot+delta2], [aBright-delta,aBbot],
+        [aBleft+delta,aBbot], [aBleft+3*delta2,aBbot+delta2], [aBleft+delta2,aBbot+3*delta2], [aBleft,aBbot+delta] ]
+    acceptBox = ShapeStim(win=myWin, vertices=acceptBoxVertices, fillColor=[.2,.2,.2], lineColor=[-.2,-.2,-.2])
+    if markerColor.lower() == 'white':
+        acceptTextColor = '#444444'
+    else:
+        acceptTextColor = markerColor
+    
+    # text elements:
+    msg = TextStim(win=myWin, text=prompt, height=textSize, pos=[0, 0.4 + offsetVert])
+    msgSub = TextStim(win=myWin, text=scale, height=textSizeSmall, color='LightGray', pos=[0, 0.15 + offsetVert])
+    lowAnchor = TextStim(win=myWin, text=str(low), pos=[leftEnd * displayScale,
+                    -2 * padSize * displayScale + offsetVert], height=textSizeSmall, color='LightGray', colorSpace='rgb')
+    highAnchor = TextStim(win=myWin, text=str(high), pos=[-1 * leftEnd * displayScale,
+                    -2 * padSize * displayScale + offsetVert], height=textSizeSmall, color='LightGray', colorSpace='rgb')
+    
+    myMouse = event.Mouse(win=myWin, visible=True)
+    
+    event.clearEvents()
+    myClock = core.Clock()
+    acceptResponse = None
+    frame = 0
+    while not acceptResponse:
+        frame += 1
+        if markerPlaced: # markerPlaced means subject has indicated (placed) a provisional value, but not accepted it yet
+            # pulse the 'accept' box
+            pulseColor = 0.6 + pulse * float(cos(frame / 18.)) # cast to float to avoid numpy_type
+            acceptBox.setFillColor(pulseColor, 'rgb')
+            acceptBox.setLineColor(pulseColor, 'rgb')
+            
+            accept.setColor(acceptTextColor,'rgb')
+            accept.setFont('Helvetica Bold')
+            marker.setPos([displayScale * (leftEnd + markerPlacedAt / float(tickMarks)), offsetVert])
+            if markerExpansion > 0: 
+                marker.setSize(markerBaseSize + 0.1 * markerExpansion * float(markerPlacedAt) / tickMarks)
+            elif markerExpansion < 0:
+                marker.setSize(markerBaseSize - 0.1 * markerExpansion * float(tickMarks - markerPlacedAt) / tickMarks)
+            if showValue:
+                decPts = int(numpy.log10(precision))
+                fmtStr = "%." + str(decPts) + "f"
+                accept.setText(fmtStr % ((markerPlacedAt + low) * autoRescaleFactor ))
+            else:
+                accept.setText("accept")
+        
+        # actually draw things, in this order:
+        for stim in [line, msg, msgSub, lowAnchor, highAnchor] + [acceptBox, accept]:
+            stim.draw()
+        if markerPlaced: 
+            marker.draw()
+        
+        # detect key responses:
+        for key in event.getKeys():
+            if key in escapeKeys:
+                myWin.units = savedWinUnits
+                if verbose: return None, None, None
+                else: return None, None
+            if key in respKeys: #place marker at that tick
+                markerPlaced=True
+                markerPlacedAt=(int(key) - low) * autoRescaleFactor
+                marker.setPos([displayScale * (leftEnd + markerPlacedAt / float(tickMarks)), 0])
+            if key in ['left']:
+                if markerPlaced and markerPlacedAt > 0:
+                    markerPlacedAt = max(0, markerPlacedAt - 1)
+            if key in ['right']:
+                if markerPlaced and markerPlacedAt<tickMarks:
+                    markerPlacedAt = min(tickMarks,markerPlacedAt + 1)
+            if markerPlaced and key in acceptKeys and myClock.getTime() > minTime:
+                acceptResponse = True
+                
+        #if mouse pressed and is near the line, plot a marker
+        mouseX, mouseY = myMouse.getPos()
+        mouse1, mouse2, mouse3 = myMouse.getPressed()
+        if mouse1 and mouseY > -2 * padSize + offsetVert and mouseY < padSize+offsetVert and mouseX > leftEnd * displayScale - padSize \
+                        and mouseX < -1 * leftEnd * displayScale+padSize:
+            mouseX = max(mouseX, leftEnd * displayScale)
+            mouseX = min(mouseX, -1 * leftEnd * displayScale)
+            markerPlaced=True
+            markerPos = mouseX*tickMarks/displayScale+tickMarks/2.
+            if markerPos < 0: markerPos = 0
+            if snapToTick == 1:
+                markerPlacedAt = int(markerPos+.5) # scale to 0..tickMarks, quantized
+            else:
+                markerPlacedAt = int(snapToTick * float(markerPos)) / float(snapToTick)  # scale to 0..tickMarks, ~continuous (1/100th quantized)
+        if markerPlaced and myClock.getTime() > minTime and \
+            mouse1 and mouseY > aBbot and mouseY < aBtop and mouseX > aBleft and mouseX < aBright:
+            acceptResponse = True
+        
+        event.clearEvents()
+        myWin.flip()
+        
+    myWin.units = savedWinUnits
+    decisionTime = myClock.getTime()
+    if snapToTick == 1:
+        response = int(markerPlacedAt) * autoRescaleFactor 
+    else:
+        response = float(markerPlacedAt) * autoRescaleFactor 
+    
+    return response + low, decisionTime, [low, high, precision, prompt]
+    
