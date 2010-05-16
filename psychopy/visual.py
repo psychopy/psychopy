@@ -4456,7 +4456,7 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
     markerStart : *False*, or the value [low..high] to pre-select and display
     markerStyle : *'triangle'*, or 'glow'
     markerColor : *None* -> 'DarkBlue' for triangle, 'White' for glow; or any legal colorname '#123456', 'DarkRed'
-    markerExpansion : how much the glow marker expands when moving to the right; 0=none, negative reverses; try 16, or -4
+    markerExpansion : how much the glow marker expands when moving to the right; 0=none, negative reverses; try 10 or -10
     
     precision :    1, portions of a tick to accept, 1 default [1,10,100]
     showValue :    True, show the currently selected number
@@ -4466,11 +4466,14 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
         - 2010 written by Jeremy Gray
     """
     
+    # --------- init the display parameters and stimuli to use ---------
+    
     # drawing is coded in norm units, so save the user's units here, restore before return
     savedWinUnits = myWin.units
     myWin.units = 'norm'
     
-    # tick mark stuff; only draw a tick at integer spacing; other drawing is done in terms of tick units
+    # tick mark stuff; only draw a tick at integer spacing;
+    # other things are generally represented internally in terms of tick units, and then converted to screen 'norm' units
     high = int(high) # high anchor of scale
     low = int(low) # low anchor
     if high <= low:
@@ -4486,14 +4489,15 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
     lineSize = 3. # thickness of the line with tick marks
     leftEnd = -0.5 # and then scaled by displayScale
     
-    if not scale:
+    if not scale: # set the default
         scale = str(low)+' = not at all  . . .  '+str(high)+' = extremely'
     
     padSize = 0.05 # space above/below the line within which to accept mouse input
-    offsetVert = -0.4 # horiz offset not implemented
+    offsetVert = -0.4
+    offsetHoriz = 0.0 # horiz offset not implemented
     
     minTime = 1 # seconds until a response can be accepted
-    pulse = 0.18 # larger is more salient; want float
+    pulse = 0.25 # larger is more salient
     
     if precision not in [1, 10, 100]:
         precision = 1
@@ -4515,70 +4519,73 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
         markerPlaced = False
     
     respKeys = [] # what keyboard keys are accepted for selecting a response
-    if low > 0 and high < 10: # allow responding via numeric keys if the options are 1-9
+    if low > 0 and high < 10: # allow responding via numeric keys if the options are in 1-9
         respKeys = [str(i) for i in range(low, high + 1)]
     acceptKeys = ['return'] # what keys are allow for accepting the currently selected response
-    escapeKeys = ['escape'] # return None, None
+    escapeKeys = ['escape'] # return None, None, None
     
     # define vertices for making a ShapeStim line with tick marks:
-    vert = [[leftEnd * displayScale, offsetVert]] # first vertex
+    vertices = [[leftEnd * displayScale, offsetVert]] # first vertex
     if tickMarks:
         for t in range(tickMarks + 1):
-            vert.append([displayScale * (leftEnd + t / float(tickMarks)), tickSize * displayScale + offsetVert])
-            vert.append([displayScale * (leftEnd + t / float(tickMarks)), offsetVert])
+            vertices.append([displayScale * (leftEnd + t / float(tickMarks)), tickSize * displayScale + offsetVert])
+            vertices.append([displayScale * (leftEnd + t / float(tickMarks)), offsetVert])
             if t < tickMarks: 
-                vert.append([displayScale * (leftEnd + (t + 1) / float(tickMarks)), offsetVert])
+                vertices.append([displayScale * (leftEnd + (t + 1) / float(tickMarks)), offsetVert])
     else:
         tickMarks = 1 
-    vert.append([-1 * leftEnd * displayScale, offsetVert])
-    vert.append([leftEnd * displayScale, offsetVert])
-    line = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=lineSize, lineColor='LightGray', lineColorSpace='rgb')
+    vertices.append([-1 * leftEnd * displayScale, offsetVert])
+    vertices.append([leftEnd * displayScale, offsetVert])
+    line = ShapeStim(win=myWin, units='norm', vertices=vertices, lineWidth=lineSize, lineColor='LightGray', lineColorSpace='rgb')
     
     # define the color & shape but not position of the marker that will go on the line:
-    
     if markerColor and type(markerColor) == type('abc'):
         markerColor = markerColor.replace(' ','')
-        
     if markerStyle == 'triangle':
-        vert = [[-tickSize * displayScale * 1.5, tickSize * displayScale * 3], [tickSize * displayScale * 1.5, tickSize * displayScale * 3], [0, -0.01]]
+        vertices = [[-tickSize * displayScale * 1.8, tickSize * displayScale * 3],
+                [ tickSize * displayScale * 1.8, tickSize * displayScale * 3], [0, -0.005]]
         if markerColor == None:
             markerColor = 'DarkBlue'
         try:
-            marker = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=0.1, fillColor=markerColor, fillColorSpace='rgb')
+            marker = ShapeStim(win=myWin, units='norm', vertices=vertices, lineWidth=0.1, lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
         except:
-            marker = ShapeStim(win=myWin, units='norm', vertices=vert, lineWidth=0.1, fillColor='DarkBlue', fillColorSpace='rgb')
+            marker = ShapeStim(win=myWin, units='norm', vertices=vertices, lineWidth=0.1, lineColor=markerColor, fillColor='DarkBlue', fillColorSpace='rgb')
         markerExpansion = 0
     if markerStyle == 'glow':
         if markerColor == None:
             markerColor = 'White'
         try:
             marker = PatchStim(win=myWin, tex='sin', mask='gauss', color=markerColor, colorSpace='rgb', opacity = 0.85)
-        except:
+        except: # user gave a bad markerColor, presumably:
             marker = PatchStim(win=myWin, tex='sin', mask='gauss', color='White', colorSpace='rgb', opacity = 0.85) 
         markerBaseSize = tickSize * markerSize
         if markerExpansion == 0:
             markerBaseSize *= markerSize * displayScale
     
     # define the 'accept' box:
-    aBtop = -0.2 + offsetVert
-    aBbot = -0.3 + offsetVert
-    aBleft = -0.12
-    aBright = -1 * aBleft
+    acceptBoxtop = offsetVert - 0.2
+    acceptBoxbot = offsetVert - 0.3
+    acceptBoxleft = offsetHoriz - 0.12  # offsetHoriz is not fully implemented; just set to 0
+    acceptBoxright = offsetHoriz + 0.12
     if low > 0 and high < 10:
-        keyClick = 'key, click' # text to display inside accept box
+        keyClick = 'key, click' # text to display inside accept box before a marker has been placed
     else:
         keyClick = 'click line'
-    accept = TextStim(win=myWin, text=keyClick, font='Helvetica',pos=[0,(aBtop+aBbot)/2.],
+    accept = TextStim(win=myWin, text=keyClick, font='Helvetica', pos=[0, (acceptBoxtop + acceptBoxbot) / 2.],
                       italic=True, height=textSizeSmall, color='#444444', colorSpace='rgb')
     delta = 0.02
-    delta2 = delta / 7 # rounded corners; for square corners, set delta2 to 0
-    acceptBoxVertices = [
-        [aBleft,aBtop-delta], [aBleft+delta2,aBtop-3*delta2], [aBleft+3*delta2,aBtop-delta2], [aBleft+delta,aBtop],   
-        [aBright-delta,aBtop], [aBright-3*delta2,aBtop-delta2], [aBright-delta2,aBtop-3*delta2], [aBright,aBtop-delta],  
-        [aBright,aBbot+delta],[aBright-delta2,aBbot+3*delta2], [aBright-3*delta2,aBbot+delta2], [aBright-delta,aBbot],
-        [aBleft+delta,aBbot], [aBleft+3*delta2,aBbot+delta2], [aBleft+delta2,aBbot+3*delta2], [aBleft,aBbot+delta] ]
+    delta2 = delta / 7 
+    acceptBoxVertices = [ # rectangle with rounded corners; for square corners, set delta2 to 0
+        [acceptBoxleft,acceptBoxtop-delta], [acceptBoxleft+delta2,acceptBoxtop-3*delta2],
+        [acceptBoxleft+3*delta2,acceptBoxtop-delta2], [acceptBoxleft+delta,acceptBoxtop],   
+        [acceptBoxright-delta,acceptBoxtop], [acceptBoxright-3*delta2,acceptBoxtop-delta2],
+        [acceptBoxright-delta2,acceptBoxtop-3*delta2], [acceptBoxright,acceptBoxtop-delta],  
+        [acceptBoxright,acceptBoxbot+delta],[acceptBoxright-delta2,acceptBoxbot+3*delta2],
+        [acceptBoxright-3*delta2,acceptBoxbot+delta2], [acceptBoxright-delta,acceptBoxbot],
+        [acceptBoxleft+delta,acceptBoxbot], [acceptBoxleft+3*delta2,acceptBoxbot+delta2],
+        [acceptBoxleft+delta2,acceptBoxbot+3*delta2], [acceptBoxleft,acceptBoxbot+delta] ]
     acceptBox = ShapeStim(win=myWin, vertices=acceptBoxVertices, fillColor=[.2,.2,.2], lineColor=[-.2,-.2,-.2])
-    if markerColor.lower() == 'white':
+    if markerColor.lower() == 'white': # ideally, catch any very light color
         acceptTextColor = '#444444'
     else:
         acceptTextColor = markerColor
@@ -4591,37 +4598,50 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
     highAnchor = TextStim(win=myWin, text=str(high), pos=[-1 * leftEnd * displayScale,
                     -2 * padSize * displayScale + offsetVert], height=textSizeSmall, color='LightGray', colorSpace='rgb')
     
+    decPts = int(numpy.log10(precision))
+    fmtStr = "%." + str(decPts) + "f"
+    accept.setFont('Helvetica Bold')
+    
     myMouse = event.Mouse(win=myWin, visible=True)
     
+    # [static] + [dynamic] elements, in their drawing order:
+    visualDisplayElements = [line, msg, msgSub, lowAnchor, highAnchor] + [acceptBox, accept] 
+    
+    # --------- start the drawing + response detection loop: ---------
     event.clearEvents()
     myClock = core.Clock()
-    acceptResponse = None
-    frame = 0
+    acceptResponse = False
+    frame = 0 # only used to pulse the 'accept' box
+    
     while not acceptResponse:
         frame += 1
-        if markerPlaced: # markerPlaced means subject has indicated (placed) a provisional value, but not accepted it yet
-            # pulse the 'accept' box
+        if markerPlaced: # markerPlaced means subject has indicated (= placed) a provisional value, but not accepted it yet
+            #'accept' box pulsing * display text:
             pulseColor = 0.6 + pulse * float(cos(frame / 18.)) # cast to float to avoid numpy_type
             acceptBox.setFillColor(pulseColor, 'rgb')
             acceptBox.setLineColor(pulseColor, 'rgb')
-            
             accept.setColor(acceptTextColor,'rgb')
-            accept.setFont('Helvetica Bold')
-            marker.setPos([displayScale * (leftEnd + markerPlacedAt / float(tickMarks)), offsetVert])
-            if markerExpansion > 0: 
-                marker.setSize(markerBaseSize + 0.1 * markerExpansion * float(markerPlacedAt) / tickMarks)
-            elif markerExpansion < 0:
-                marker.setSize(markerBaseSize - 0.1 * markerExpansion * float(tickMarks - markerPlacedAt) / tickMarks)
             if showValue:
-                decPts = int(numpy.log10(precision))
-                fmtStr = "%." + str(decPts) + "f"
-                accept.setText(fmtStr % ((markerPlacedAt + low) * autoRescaleFactor ))
+                accept.setText(fmtStr % ((markerPlacedAt + low) * autoRescaleFactor ))    
             else:
-                accept.setText("accept")
-        
-        # actually draw things, in this order:
-        for stim in [line, msg, msgSub, lowAnchor, highAnchor] + [acceptBox, accept]:
-            stim.draw()
+                accept.setText("accept?")
+            
+            # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
+            marker.setPos([displayScale * (leftEnd + markerPlacedAt / float(tickMarks)), offsetVert])
+            # expansion fun & games with 'glow':
+            if markerStyle == 'glow':
+                if markerExpansion > 0: 
+                    marker.setSize(markerBaseSize + 0.1 * markerExpansion * float(markerPlacedAt) / tickMarks)
+                    marker.setOpacity(0.2 + float(markerPlacedAt) / tickMarks)
+                elif markerExpansion < 0:
+                    marker.setSize(markerBaseSize - 0.1 * markerExpansion * float(tickMarks - markerPlacedAt) / tickMarks)
+                    marker.setOpacity(0.2 + 1 - float(markerPlacedAt) / tickMarks)
+                else: # and markerExpansion == 0:
+                    marker.setSize(markerBaseSize)
+            
+        # actually draw things, in order:
+        for stim in visualDisplayElements:
+            stim.draw() 
         if markerPlaced: 
             marker.draw()
         
@@ -4629,11 +4649,10 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
         for key in event.getKeys():
             if key in escapeKeys:
                 myWin.units = savedWinUnits
-                if verbose: return None, None, None
-                else: return None, None
-            if key in respKeys: #place marker at that tick
+                return None, None, None
+            if key in respKeys: # place the marker at that tick
                 markerPlaced=True
-                markerPlacedAt=(int(key) - low) * autoRescaleFactor
+                markerPlacedAt=(int(key) - low) * autoRescaleFactor # in tick units, with rescale fudge
                 marker.setPos([displayScale * (leftEnd + markerPlacedAt / float(tickMarks)), 0])
             if key in ['left']:
                 if markerPlaced and markerPlacedAt > 0:
@@ -4642,9 +4661,9 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
                 if markerPlaced and markerPlacedAt<tickMarks:
                     markerPlacedAt = min(tickMarks,markerPlacedAt + 1)
             if markerPlaced and key in acceptKeys and myClock.getTime() > minTime:
-                acceptResponse = True
+                acceptResponse = True # which ends the loop
                 
-        #if mouse pressed and is near the line, plot a marker
+        #if mouse is pressed and its near the line, set the marker to mouseX
         mouseX, mouseY = myMouse.getPos()
         mouse1, mouse2, mouse3 = myMouse.getPressed()
         if mouse1 and mouseY > -2 * padSize + offsetVert and mouseY < padSize+offsetVert and mouseX > leftEnd * displayScale - padSize \
@@ -4657,20 +4676,19 @@ def ratingScale(myWin, prompt, scale=None, low=1, high=7,
             if snapToTick == 1:
                 markerPlacedAt = int(markerPos+.5) # scale to 0..tickMarks, quantized
             else:
-                markerPlacedAt = int(snapToTick * float(markerPos)) / float(snapToTick)  # scale to 0..tickMarks, ~continuous (1/100th quantized)
+                markerPlacedAt = int(snapToTick * float(markerPos)) / float(snapToTick)  # scale to 0..tickMarks
         if markerPlaced and myClock.getTime() > minTime and \
-            mouse1 and mouseY > aBbot and mouseY < aBtop and mouseX > aBleft and mouseX < aBright:
-            acceptResponse = True
+            mouse1 and mouseY > acceptBoxbot and mouseY < acceptBoxtop and mouseX > acceptBoxleft and mouseX < acceptBoxright:
+            acceptResponse = True # which ends the loop
         
         event.clearEvents()
         myWin.flip()
         
     myWin.units = savedWinUnits
     decisionTime = myClock.getTime()
-    if snapToTick == 1:
+    if precision == 1: # set type for the response, based on what was wanted
         response = int(markerPlacedAt) * autoRescaleFactor 
     else:
         response = float(markerPlacedAt) * autoRescaleFactor 
     
     return response + low, decisionTime, [low, high, precision, prompt]
-    
