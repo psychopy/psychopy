@@ -54,7 +54,7 @@ while len(event.getKeys()) == 0:
     instr.draw()
     myWin.flip()
 
-myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, displaySizeFactor=1,
+myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, 
         markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
-myVRS.rate("How hot was that?", color='DarkGreen') # can give a text color argument; data are ignored here
+print myVRS.rate("How hot was that?", color='DarkGreen') # note the text color argument
 

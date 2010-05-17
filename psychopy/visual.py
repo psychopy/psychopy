@@ -4456,12 +4456,13 @@ class RatingScale():
     Status: coding is in-progress; needs more documentation, esp of the logic & internal representation
         and would benefit from being cleaned up and tightened up.
     
+    Auto-rescaling happens if low is 0 and high-low is a multiple of 10 (see ratingScale.py demo, example 2).
+    
     :Author:
         - 2010 Jeremy Gray
     """
     def __init__(self, myWin, scale=None, low=1, high=7, precision=1, showValue=True, 
-                markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False, 
-                displaySizeFactor=1):
+                markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False):
         """
         :Parameters:
             win :
@@ -4469,37 +4470,48 @@ class RatingScale():
             scale :
                 string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
             low :
-                low anchor, integer; default = 1
+                low anchor (integer, default = 1)
             high :
-                high anchor, integer, and at least low+1; default = 7
+                high anchor (integer, default = 7; reset to low+1 if <= low)
             markerStart :
-                *False*, or the value [low..high] to pre-select and display
+                *False*, or the value [low..high] to be pre-selected upon initial display
             markerStyle :
-                *'triangle'*, or 'glow'
+                *'triangle'* (DarkBlue default), 'circle' (Black default), or 'glow' (White default)
             markerColor :
-                *None* -> 'DarkBlue' for triangle, 'White' for glow; or any legal colorname '#123456', 'DarkRed'
+                *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
             markerExpansion :
                 how much the glow marker expands when moving to the right; 0=none, negative reverses; try 10 or -10
             precision :
                 portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional part)
             showValue :
                 True, show the currently selected number
-            displayScale :
-                visual expansion / contraction factor for the screen display; default = 1.
         """
         self.myWin = myWin
         self.savedWinUnits = self.myWin.units
         self.myWin.units = 'norm'
         
-        # tick mark stuff; only draw a tick at integer spacing; things are generally represented
-        # internally in terms of tick units, and then converted to screen 'norm' units
+        # tick mark stuff; only draw a tick at integer spacing
         self.high = int(high) # high anchor of scale
         self.low = int(low) # low anchor
         self.precision = precision
         if self.high <= self.low:
             self.high = self.low + 1
             self.precision = 100
-        if markerStart and markerStart >= self.low and markerStart <= self.high: # integrate with code below
+        self.tickMarks = self.high - self.low
+        # ticks are the units the scale uses internally: 0..(high-low)
+        # the screen position for a given tickMark == screenLeftEnd + tickMark * screenSpaceBetweenTicks
+        # and finally allow for global size changes: multiply the above by displaySizeFactor
+        
+        # remaps 10 ticks onto 1 tick in some conditions:
+        self.autoRescaleFactor = 1 
+        if self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0:
+            self.autoRescaleFactor = 10
+            self.tickMarks /= self.autoRescaleFactor 
+            self.precision = min(100, self.precision * self.autoRescaleFactor)
+        tickSize = 0.04 # vertical height of each tick, norm units
+        self.leftEnd = -0.5 # and possibly resized by displaySizeFactor
+        
+        if markerStart and markerStart >= self.low and markerStart <= self.high:
             self.markerStart = markerStart
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
@@ -4511,21 +4523,12 @@ class RatingScale():
         self.markerColor = markerColor
         self.markerStyle = markerStyle
         
-        self.tickMarks = self.high - self.low
-        self.autoRescaleFactor = 1
-        if self.tickMarks > 20 and self.tickMarks % 10 == 0:
-            self.autoRescaleFactor = 10
-            self.tickMarks /= self.autoRescaleFactor 
-            self.precision = min(100, self.precision * self.autoRescaleFactor)
-        tickSize = 0.03 # vertical height of each tick, norm units
-        self.leftEnd = -0.5 # and then scaled by displaySizeFactor
-        
-        self.scale = scale
+        self.scale = scale # the scale the subject sees and uses
         if not scale: # set the default
             self.scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
         
-        self.padSize = 0.05 # space above/below the line within which to accept mouse input
-        self.offsetVert = -0.4
+        self.padSize = 0.05 # space above/below the line within which to accept mouse input, 1x above, 2x below
+        self.offsetVert = -0.4 # shift everything up/down by this amount
         self.offsetHoriz = 0.0 # horiz offset not implemented; everything happens at horiz center of screen
         
         self.minimumTime = 1 # seconds until a response can be accepted
@@ -4539,6 +4542,7 @@ class RatingScale():
         self.textSizeSmall = min(self.textSize, self.textSize * self.smallTextFactor)
         self.showValue = showValue in [True, 1]
         
+        displaySizeFactor = 1
         self.displaySizeFactor = 0.6 * displaySizeFactor
         self.markerSize = 5.0 * displaySizeFactor
         self.markerExpansion = float(markerExpansion) * 0.6
@@ -4576,7 +4580,7 @@ class RatingScale():
             except:
                 self.marker = ShapeStim(win=self.myWin, units='norm', vertices=vertices, lineWidth=0.1, lineColor=markerColor, fillColor='DarkBlue', fillColorSpace='rgb')
             self.markerExpansion = 0
-        if self.markerStyle == 'glow':
+        elif self.markerStyle in ['glow']:
             if markerColor == None:
                 markerColor = 'White'
             try:
@@ -4586,8 +4590,20 @@ class RatingScale():
             self.markerBaseSize = tickSize * self.markerSize
             if self.markerExpansion == 0:
                 self.markerBaseSize *= self.markerSize * self.displaySizeFactor
-         
-        # define the 'accept' box: a rectangle with rounded corners
+        elif self.markerStyle == 'circle':
+            if markerColor == None:
+                markerColor = 'Black'
+            x,y = self.myWin.size
+            size = [3.2 * tickSize * self.displaySizeFactor * float(y)/x, 3.2 * tickSize * self.displaySizeFactor]
+            try:
+                self.marker = PatchStim(win=self.myWin, tex=None, units='norm', size=size, mask='circle', color=markerColor, colorSpace='rgb')
+            except: # user gave a bad markerColor, presumably:
+                self.marker = PatchStim(win=self.myWin, tex=None, units='norm', size=size, mask='circle', color='Black', colorSpace='rgb') 
+            self.markerBaseSize = tickSize
+        else:
+            raise # need to use markerStyle in ['triangle','glow','circle']
+        
+        # define the 'accept' box:
         acceptBoxtop = self.offsetVert - 0.2
         acceptBoxbot = self.offsetVert - 0.3
         acceptBoxleft = self.offsetHoriz - 0.12  # offsetHoriz is not fully implemented, merely set to 0
@@ -4600,7 +4616,7 @@ class RatingScale():
                           italic=True, height=self.textSizeSmall, color='#444444', colorSpace='rgb')
         delta = 0.02
         delta2 = delta / 7 
-        acceptBoxVertices = [ # for square corners, set delta2 to 0
+        acceptBoxVertices = [ # a rectangle with rounded corners; for square corners, set delta2 to 0
             [acceptBoxleft,acceptBoxtop-delta], [acceptBoxleft+delta2,acceptBoxtop-3*delta2],
             [acceptBoxleft+3*delta2,acceptBoxtop-delta2], [acceptBoxleft+delta,acceptBoxtop],   
             [acceptBoxright-delta,acceptBoxtop], [acceptBoxright-3*delta2,acceptBoxtop-delta2],
@@ -4622,9 +4638,9 @@ class RatingScale():
         # text elements:
         self.msgSub = TextStim(win=myWin, text=self.scale, height=self.textSizeSmall, color='LightGray', colorSpace='rgb', pos=[0, 0.15 + self.offsetVert])
         self.lowAnchor = TextStim(win=self.myWin, text=str(self.low), pos=[self.leftEnd * self.displaySizeFactor,
-                        -2 * self.padSize * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color='LightGray', colorSpace='rgb')
+                        -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color='LightGray', colorSpace='rgb')
         self.highAnchor = TextStim(win=self.myWin, text=str(self.high), pos=[-1 * self.leftEnd * self.displaySizeFactor,
-                        -2 * self.padSize * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color='LightGray', colorSpace='rgb')
+                        -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color='LightGray', colorSpace='rgb')
         
         decPts = int(numpy.log10(self.precision))
         self.fmtStr = "%." + str(decPts) + "f"
@@ -4639,20 +4655,23 @@ class RatingScale():
         self.myWin.units = self.savedWinUnits
         
     def rate(self, item, color=None):
-        """Obtain a self-report rating for an item, using a defined scale.
+        """Obtain a self-reported rating for an item, using this RatingScale.
         
         Shows the item, in color if specified, along with visual display elements that were set at object creation.
         Returns the rating, the seconds taken, and info about the scale in a list [low, high, precision, item, scale-description]
         """
-        # internal marker position is in tick mark units, as 0..(high-low-1), which is converted to screen norm units for display
+        # internal marker position is in tick mark units, as 0..(high-low), converted to screen norm units for display
         self.myWin.units = 'norm'
         msg = TextStim(win=self.myWin, text=item, height=self.textSize, pos=[0, 0.4 + self.offsetVert],
                        color='LightGray', colorSpace='rgb')
         if not color:
             color = 'White'
-        msg.setColor(color,'rbg')
+        try:
+            msg.setColor(color, 'rbg')
+        except:
+            msg.setColor('White', 'rbg')
         
-        self.markerPlaced = bool(self.markerStart not in [None, False])
+        self.markerPlaced = bool(self.markerStart not in [None, False]) # do allow 0 as a legal pre-placement
         if self.markerPlaced:
             markerPlacedAt = self.markerStart - self.low
         self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
@@ -4704,7 +4723,7 @@ class RatingScale():
                     return None, None, None
                 if key in self.respKeys: # place the marker at that tick
                     self.markerPlaced = True
-                    markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # in tick units, with rescale fudge
+                    markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
                     self.marker.setPos([self.displaySizeFactor * (self.leftEnd + markerPlacedAt / float(self.tickMarks)), 0])
                 if key in ['left']:
                     if self.markerPlaced and markerPlacedAt > 0:
