@@ -10,7 +10,7 @@ import random
 myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
 instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are two examples.
 
-To respond, use the mouse to indicate a rating by clicking somewhere on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys. Or type a number 1 to 7 to indicate your choice. In this example, responses are rounded to the nearest tick-mark. Then either press enter, or click the button to accept it. 
+To rate an item, use the mouse to indicate your rating by clicking somewhere on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys. Or type a number 1 to 7 to indicate your choice. In this example, responses are rounded to the nearest tick-mark. Then either press enter, or click the button to accept it. 
 
 Press any key to start Example 1, which has two displays, both using the default settings.""")
 event.clearEvents()
@@ -21,7 +21,7 @@ while len(event.getKeys()) == 0:
 """Example 1 uses the default configuration, which will probably suffice for most ratings (or be quite close). 
 The scale uses a 'triangle' marker style, color DarkBlue, range 1 to 7, for "not at all" to "extremely"."""
 # create an RatingScale object with display parameters--here using default settings for everything:
-myVRS = visual.RatingScale(myWin) 
+myVRS = visual.RatingScale(myWin)  # try: visual.RatingScale(myWin, markerStyle='circle')
 # you do not need to use a list with a RatingScale object; its handy if you have a lot of items to rate on the same scale:
 itemList = ["How cool was that?", "How WARM was that?"]
 random.shuffle(itemList)
@@ -54,7 +54,7 @@ while len(event.getKeys()) == 0:
     instr.draw()
     myWin.flip()
 
-myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, 
+myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, scale="0=don't like at all . . . 100=breath-taking",
         markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
-print myVRS.rate("How hot was that?", color='DarkGreen') # note the text color argument
+print myVRS.rate("beach.jpg") 
 
