@@ -4638,11 +4638,11 @@ class RatingScale():
         
         self.myWin.units = self.savedWinUnits
         
-    def rate(self, item, color=None, finalPause=0):
+    def rate(self, item, color=None):
         """Obtain a self-report rating for an item, using a defined scale.
         
         Shows the item, in color if specified, along with visual display elements that were set at object creation.
-        Returns the rating, the seconds taken, and info about the scale (low, high, precision, item, scale description)
+        Returns the rating, the seconds taken, and info about the scale in a list [low, high, precision, item, scale-description]
         """
         # internal marker position is in tick mark units, as 0..(high-low-1), which is converted to screen norm units for display
         self.myWin.units = 'norm'
@@ -4747,8 +4747,5 @@ class RatingScale():
         else:
             response = float(markerPlacedAt) * self.autoRescaleFactor 
 
-        if finalPause > 0:
-            self.myWin.flip()
-            core.wait(finalPause)
         return (response + self.low), decisionTime, [self.low, self.high, self.precision, item, self.msgSub.text]
         

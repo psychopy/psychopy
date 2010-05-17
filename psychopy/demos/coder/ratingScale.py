@@ -1,61 +1,60 @@
 #!/usr/bin/env python
 
-""" demo for the class psychopy.visual.RatingScale()
+""" demo for the class psychopy.visual.RatingScale(). in the code, look for "myVRS", lines 24 & 30, and 57 & 59
 """
-
 __author__ = 'Jeremy Gray'
 
 from psychopy import visual, event, core
+import random
 
 myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
-instr = visual.TextStim(myWin,text="""This is a demo of visual.getRatingScale(). The first example shows how easy it can be. The second example illustrates what you can do with some of the non-default settings. (JRG note: the demo looks horrible for me when I lack OpenGL extensions on linux.)
-
-Example 1. On the next two screens, you will see the default configuration, which will probably suffice for most ratings (or be quite close). The scale uses a 'triangle' marker style, color blue, range 1 to 7, for "not at all" to "extremely".
-
-By relying on the defaults, the next two screens only require this code in your script:
-
-myVRS = visual.RatingScale(myWin) # create a scale
-myVRS.rate("How cool was that?") # get a first rating
-myVRS.rate("...and how warm??", color='Orange')
+instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are two examples.
 
 To respond, use the mouse to indicate a rating by clicking somewhere on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys. Or type a number 1 to 7 to indicate your choice. In this example, responses are rounded to the nearest tick-mark. Then either press enter, or click the button to accept it. 
 
-Press any key to start Example 1.""")
+Press any key to start Example 1, which has two displays, both using the default settings.""")
 event.clearEvents()
 while len(event.getKeys()) == 0:
     instr.draw()
     myWin.flip()
 
-# the next 2 lines make Example 1 (cool) happen:
-myRS = visual.RatingScale(myWin) # set-up and object with display parameters
-rating, ratingRT, scaleInfo = myRS.rate("How cool was that?", finalPause=0.4)
-print rating, ratingRT, scaleInfo
-# if you want a pause between items, you can specify it as finalPause=sec to core.wait()
+"""Example 1 uses the default configuration, which will probably suffice for most ratings (or be quite close). 
+The scale uses a 'triangle' marker style, color DarkBlue, range 1 to 7, for "not at all" to "extremely"."""
+# create an RatingScale object with display parameters--here using default settings for everything:
+myVRS = visual.RatingScale(myWin) 
+# you do not need to use a list with a RatingScale object; its handy if you have a lot of items to rate on the same scale:
+itemList = ["How cool was that?", "How WARM was that?"]
+random.shuffle(itemList)
+data = []
+for item in itemList: 
+    rating, ratingRT, scaleInfo = myVRS.rate(item) # get the rating info for each item
+    data.append([rating, ratingRT, scaleInfo])
+    myWin.flip()
+    core.wait(0.5) # subjects can feel rushed if the next question pops up too quickly
 
-# to have a subsequent item rated using the same scale, just rate() it, possibly displayed in a different color:
-rating, ratingRT, scaleInfo = myRS.rate("...and how warm??", color='Orange')
-print rating, ratingRT, scaleInfo
+# pick one of the items, just to show that all the data are stored, including the item:
+sample = data[random.choice([0,1])] 
+instr = visual.TextStim(myWin,text="""Your rating for '%s' was: %d on a scale of %d to %d.""" % (
+                sample[2][3], sample[0], sample[2][0],sample[2][1]))
+instr.draw()
+myWin.flip()
+core.wait(4)
 
-instr = visual.TextStim(myWin,text="""Your rating for 'warm' was: %d on a scale of %d to %d. (These three numbers were all returned by the function. The question text is also returned.) If you want a 1 to 5 scale instead of 1 to 7, just add 'high=5' to the argument list when creating the scale.
+"""Example 2 uses markerStyle='glow'. The default color for 'glow' is white, but we'll use markerColor='DarkRed' instead, 
+and we'll accept quasi-continuous ratings (precision=100) but not reveal them to the subject (showValue=False) to 
+reduce people obsessing over exact values. The marker will become larger when placed further to the right (markerExpansion=10). 
+low=0 and  high=100 will be added to the instructions. Note: 'glow' looks horrible for me when I lack OpenGL extensions."""
 
-Example 2. This example shows how you might present a scale akin to Lang's "Self-Assessment Manikin" for emotion ratings. First, we'll use markerStyle='glow'. The default color for 'glow' is white, but we'll use markerColor='DarkRed' instead, and we'll accept quasi-continuous ratings (precision=100) but not reveal them to the subject (showValue=False) to reduce people obsessing over exact values.
+instr = visual.TextStim(myWin,text="""
+Example 2. This example uses non-default settings for the visual display. Try this: Place a marker, then drag it along the line using the mouse.
 
-myRS = visual.RatingScale(myWin, low=0, high=100, 
-    precision=100, displaySizeFactor=1, 
-    markerStyle='glow', markerColor='DarkRed', 
-    markerExpansion=10, showValue=False)
-myRS.rate("How hot was that?", color='DarkRed')
-
-The marker will become larger when placed further to the right (markerExpansion=10). low=0 and  high=100 will be added to the instructions.
-
-Press any key to start Example 2.""" % (rating, scaleInfo[0],scaleInfo[1]))
+Press any key to start Example 2.""")
 event.clearEvents()
 while len(event.getKeys()) == 0:
     instr.draw()
     myWin.flip()
 
-# the next 2 lines make Example 2 happen:
-myRS = visual.RatingScale(myWin, low=0, high=100, precision=100, displaySizeFactor=1,
+myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, displaySizeFactor=1,
         markerStyle='glow', markerColor='DarkRed', markerExpansion=10, showValue=False)
-rating, ratingRT, scaleInfo = myRS.rate("How hot was that?", color='DarkRed')
-print rating, ratingRT, scaleInfo
+myVRS.rate("How hot was that?", color='DarkGreen') # can give a text color argument; data are ignored here
+
