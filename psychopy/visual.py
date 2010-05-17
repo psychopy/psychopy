@@ -4451,12 +4451,10 @@ class RatingScale():
     To get a rating, call rate(item-string). This will display the scale + item, get the subject's
     response, and return the response info (rating, decision time, scale-info-list).
     
-    Example: see PsychoPy Coder demo ratingScale.py
+    Example: see PsychoPy Coder demo 'ratingScale.py'
     
-    Status: coding is in-progress, could use more internal documentation, esp of the logic & internal representation
-        and could benefit from being cleaned up and tightened up.
-    
-    Bugs: color of 'accept' button is not reset when displaying a second item
+    Status: coding is in-progress; needs more documentation, esp of the logic & internal representation
+        and would benefit from being cleaned up and tightened up.
     
     :Author:
         - 2010 Jeremy Gray
@@ -4466,19 +4464,28 @@ class RatingScale():
                 displaySizeFactor=1):
         """
         :Parameters:
-        myWin :  a psychopy.visual.Window() instance (required)
-        
-        scale :  string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
-        low :    low anchor; integer
-        high :   high anchor; integer, and at least low+1
-        markerStart : *False*, or the value [low..high] to pre-select and display
-        markerStyle : *'triangle'*, or 'glow'
-        markerColor : *None* -> 'DarkBlue' for triangle, 'White' for glow; or any legal colorname '#123456', 'DarkRed'
-        markerExpansion : how much the glow marker expands when moving to the right; 0=none, negative reverses; try 10 or -10
-        
-        precision :    1, portions of a tick to accept, 1 default [1,10,100]
-        showValue :    True, show the currently selected number
-        displayScale : 1., visual expansion factor of screen display
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+            scale :
+                string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
+            low :
+                low anchor, integer; default = 1
+            high :
+                high anchor, integer, and at least low+1; default = 7
+            markerStart :
+                *False*, or the value [low..high] to pre-select and display
+            markerStyle :
+                *'triangle'*, or 'glow'
+            markerColor :
+                *None* -> 'DarkBlue' for triangle, 'White' for glow; or any legal colorname '#123456', 'DarkRed'
+            markerExpansion :
+                how much the glow marker expands when moving to the right; 0=none, negative reverses; try 10 or -10
+            precision :
+                portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional part)
+            showValue :
+                True, show the currently selected number
+            displayScale :
+                visual expansion / contraction factor for the screen display; default = 1.
         """
         self.myWin = myWin
         self.savedWinUnits = self.myWin.units
@@ -4514,14 +4521,14 @@ class RatingScale():
         self.leftEnd = -0.5 # and then scaled by displaySizeFactor
         
         self.scale = scale
-        if not self.scale: # set the default
+        if not scale: # set the default
             self.scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
         
         self.padSize = 0.05 # space above/below the line within which to accept mouse input
         self.offsetVert = -0.4
         self.offsetHoriz = 0.0 # horiz offset not implemented; everything happens at horiz center of screen
         
-        self.minTime = 1 # seconds until a response can be accepted
+        self.minimumTime = 1 # seconds until a response can be accepted
         self.pulse = 0.25 # larger is more salient
         
         if self.precision not in [1, 10, 100]:
@@ -4631,12 +4638,13 @@ class RatingScale():
         
         self.myWin.units = self.savedWinUnits
         
-    def rate(self, item, color=None):
+    def rate(self, item, color=None, finalPause=0):
         """Obtain a self-report rating for an item, using a defined scale.
         
         Shows the item, in color if specified, along with visual display elements that were set at object creation.
         Returns the rating, the seconds taken, and info about the scale (low, high, precision, item, scale description)
         """
+        # internal marker position is in tick mark units, as 0..(high-low-1), which is converted to screen norm units for display
         self.myWin.units = 'norm'
         msg = TextStim(win=self.myWin, text=item, height=self.textSize, pos=[0, 0.4 + self.offsetVert],
                        color='LightGray', colorSpace='rgb')
@@ -4647,7 +4655,9 @@ class RatingScale():
         self.markerPlaced = bool(self.markerStart not in [None, False])
         if self.markerPlaced:
             markerPlacedAt = self.markerStart - self.low
-        
+        self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
+        self.acceptBox.setLineColor([-.2,-.2,-.2], 'rgb')
+        self.accept.setColor('#444444','rgb')
         self.accept.setText(self.keyClick)
         
         event.clearEvents()
@@ -4687,8 +4697,8 @@ class RatingScale():
             if self.markerPlaced: # only draw it when its been placed
                 self.marker.draw()
             
-            # detect key responses:
-            for key in event.getKeys():
+            # handle key responses:
+            for key in event.getKeys(): # almost certainly only 1 key
                 if key in self.escapeKeys:
                     self.myWin.units = self.savedWinUnits
                     return None, None, None
@@ -4702,10 +4712,11 @@ class RatingScale():
                 if key in ['right']:
                     if self.markerPlaced and markerPlacedAt < self.tickMarks:
                         markerPlacedAt = min(self.tickMarks, markerPlacedAt + 1)
-                if self.markerPlaced and key in self.acceptKeys and myClock.getTime() > self.minTime:
+                if self.markerPlaced and key in self.acceptKeys and myClock.getTime() > self.minimumTime:
                     acceptResponse = True # which ends the loop
                     
-            #if mouse is pressed and its near the line, set the marker to mouseX
+            # handle mouse:
+            # set marker? if mouse is pressed and its near the line, set the marker to mouseX:
             mouseX, mouseY = self.myMouse.getPos()
             mouse1, mouse2, mouse3 = self.myMouse.getPressed()
             if mouse1 and mouseY > -2 * self.padSize + self.offsetVert and mouseY < self.padSize + self.offsetVert and \
@@ -4720,7 +4731,9 @@ class RatingScale():
                     markerPlacedAt = int(markerPos+.5) # scale to 0..tickMarks, quantized
                 else:
                     markerPlacedAt = int(self.snapToTick * float(markerPos)) / float(self.snapToTick)  # scale to 0..tickMarks
-            if self.markerPlaced and myClock.getTime() > self.minTime and mouse1 and mouseY > self.acceptBoxbot and \
+            
+            # accept marker? if mouse clicked in accept box, we're done (if a value has been selected, and enough time has elapsed):
+            if self.markerPlaced and myClock.getTime() > self.minimumTime and mouse1 and mouseY > self.acceptBoxbot and \
                     mouseY < self.acceptBoxtop and mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright:
                 acceptResponse = True # which ends the loop
             
@@ -4733,6 +4746,9 @@ class RatingScale():
             response = int(markerPlacedAt) * self.autoRescaleFactor 
         else:
             response = float(markerPlacedAt) * self.autoRescaleFactor 
-        
+
+        if finalPause > 0:
+            self.myWin.flip()
+            core.wait(finalPause)
         return (response + self.low), decisionTime, [self.low, self.high, self.precision, item, self.msgSub.text]
         
