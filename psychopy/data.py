@@ -1257,7 +1257,7 @@ class RunTimeInfo(dict):
                 get details about concurrent user's processses (command, process-ID)
             randomSeed: *None*
                 a way for the user to record, and optionally set, a random seed for making reproducible random sequences
-                'set:XYZ' will both record the seed, 'XYZ', and pass it into random: random.seed('XYZ');
+                'set:XYZ' will both record the seed, 'XYZ', and set it: random.seed('XYZ'); numpy.random.seed() is NOT set
                 None defaults to python default;
                 'time' = use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
