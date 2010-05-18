@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" demo for the class psychopy.visual.RatingScale(). in the code, look for "myVRS", lines 25 & 26, and 42 & 49
+""" demo for the class psychopy.visual.RatingScale(). in the code, look for "myVRS", lines 25 & 26, and 44 & 60
 """
 __author__ = 'Jeremy Gray'
 
@@ -23,14 +23,16 @@ while len(event.getKeys()) == 0:
 
 # Example 1 --------
 myVRS = visual.RatingScale(myWin) # create a RatingScale object with default settings
-myVRS.rate("How cool was that?")     # get a rating (but here, ignore the returned data; see Example 2 for saving data)
+rating, ratingRT, scaleInfo = myVRS.rate("How cool was that?") # get a rating, decision time, scale info
 
 # Example 2 --------
 instr = visual.TextStim(myWin,text="""The code to produce Example 1 was just two lines:
   myVRS = visual.RatingScale(myWin) # create a scale
   myVRS.rate("How cool was that?") # get a rating
 
-Example 2. This example uses non-default settings for the visual display, automatically detects that images are requested, and uses a list of items to be rated. Try this: Place a marker, then drag it along the line using the mouse. In this example, you cannot use 1 to 7 keys to respond because the scale is 0 to 100.
+Example 2. This example uses non-default settings for the visual display, automatically detects that images are requested, and uses a list of images to be rated. In addition, you will be asked to rate each image on two dimensions: valence and arousal.
+
+Try this: Place a marker, then drag it along the line using the mouse. In this example, you cannot use 1 to 7 keys to respond because the scale is 0 to 10.
 
 Press any key to start Example 2.""")
 event.clearEvents()
@@ -39,19 +41,25 @@ while len(event.getKeys()) == 0:
     myWin.flip()
 
 # create a scale for Example 2, using quite a few non-default options:
-myVRS = visual.RatingScale(myWin, low=0, high=100, precision=100, scale="0=don't like at all . . . 100=breath-taking",
+myVRS = visual.RatingScale(myWin, low=0, high=10, precision=10, 
         markerStyle='glow', markerExpansion=10, showValue=False, lowLine=True)
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
 imageList = [f for f in os.listdir('.') if len(f) > 4 and f[-4:] in ['.jpg','.png']] # all .png or .jpg images in the current directory
+if len(imageList) > 2: 
+    imageList = imageList[:2]
+if len(imageList) == 0: # just in case; text will work because images are auto-detected from filenames
+    imageList = ['puppy in the daisies', 'war hatchet']
+
+# optional: it can be useful to obtain ratings on several dimensions for each item:
+dimensions = ['0=very negative . . . 10=very positive', '0=boring . . . 10=extremely energizing']
 data = []
-for image in imageList:
-    rating, ratingRT, scaleInfo = myVRS.rate(image) # get a rating for each image, all on the same scale; rate() auto-detects that its an image
-    data.append([rating, ratingRT, scaleInfo]) # save for later
+for image in imageList: # get a set of ratings for each image, different dimensions, all on the same scale
+    random.shuffle(dimensions) # optional: randomize which dimension will get rated first
+    ratings = myVRS.rateDimensions(image, dimensions) # typically use rate() for just a single dimension
+    data.append(ratings) # save for later
 
 # pick an image, just to show that all the data are stored, including the item text information (which might be an image file name):
-sample = data[random.choice([0,1])] 
-print """
-Your rating for '%s' was:
-    %d  (on a scale of %d to %d), made in %.3f sec
-""" % (sample[2][3], sample[0], sample[2][0],sample[2][1], sample[1]) # typically you'll want the rating = sample[0], and maybe the decision time sample[1]
+sample = data[random.choice(range(len(data)))] # 'sample' holds a list of tuples, one tuple per dimension
+print sample
+core.quit()
