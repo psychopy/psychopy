@@ -33,7 +33,7 @@ def rush(value=True):
     If <sys.executable> is the system python, its important to restore it back to normal to avoid possible 
     side-effects. Alternatively, use a different python executable, and change its cap_sys_nice.
     
-    For RedHat-ish systems, 'sudo chrt ...' at run-time might be needed instead, not sure.
+    For RedHat-based systems, 'sudo chrt ...' at run-time might be needed instead, not sure.
     see http://rt.et.redhat.com/wiki/images/8/8e/Rtprio.pdf
     """
     if importCtypesFailed: return False
@@ -46,7 +46,8 @@ def rush(value=True):
             log.warning("""Failed to raise thread priority with sched_setscheduler.
 To enable rush(), if you are using a debian-based linux, try this in a terminal window:
   'sudo setcap cap_sys_nice=eip %s'  [NB: You may need to install 'setcap' first.]
-If you are using the system's python (eg /usr/bin/python2.x), its highly recommended to cap_sys_nice it afterwards:
+If you are using the system's python (eg /usr/bin/python2.x), its highly recommended
+to change cap_sys_nice back to normal afterwards:
   'sudo setcap cap_sys_nice= %s'""" % (sys.executable,sys.executable))
     else:#set to RR with normal priority
         schedParams = _SchedParams()

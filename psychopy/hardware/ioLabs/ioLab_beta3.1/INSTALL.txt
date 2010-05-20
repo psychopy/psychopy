@@ -1,0 +1,61 @@
+# Installing and Using the ioLabs Python library #
+
+The library consists of:
+
+* `ioLabs.py`
+* `hid/__init__.py`
+* `hid/_comming.py`
+* `hid/osx.py`
+* `hid/win32.py`
+
+To start using the library (once you have met the requirements listed below),
+copy and `ioLabs.py` and the `hid` directory to somewhere on your `PYTHONPATH`.
+For simplicity this can be the directory that you will be using for your project.
+
+`ioLabs.py` is the USBBox specific code and this is what you will be using for the most part.
+
+`hid` contains the code for the the general purpose Python HID driver and you will most likely
+not need to deal with it directly - however it is used by the ioLabs module.  `hid` contains code
+for OS X and Windows and will dynamically load the correct module for the OS when `hid` is imported.
+
+## Requirements ##
+
+* Python 2.5+ (includes ctypes)
+
+or
+
+* Python 2.3.5+
+* C Compiler (to compile ctypes)
+* ctypes
+
+## OS X 10.4 Python 2.5 ##
+
+1. Go to http://python.org/download/
+2. Find latest version for OS X (2.5.1 at time of writing) and download .dmg
+3. Open .dmg file
+4. Run `MacPython.mpkg` package file
+5. Enter admin password when prompted
+
+## OS X 10.4 with Stock Python (2.3.5) ##
+
+Need to install ctypes (requires the developer tools for a C compiler):
+
+1. Download and install `easy_install`
+ 1. visit: http://peak.telecommunity.com/DevCenter/EasyInstall
+ 2. download: http://peak.telecommunity.com/dist/ez_setup.py
+ 3. run `sudo python ez_setup.py` to install
+ 4. if you do not have the `easy_install` command you may need to
+    alter your path to include
+    `/System/Library/Frameworks/Python.framework/Versions/2.3/bin`
+    (where the `easy_install` script resides) or use the full path name
+    when invoking e.g. 
+    `/System/Library/Frameworks/Python.framework/Versions/2.3/bin/easy_install`
+2. Use `easy_install` to install ctypes
+ 1. `sudo easy_install ctypes` (may take some time, as it has to compile everything)
+
+## Windows XP ##
+
+1. Go to http://python.org/download/
+2. Find latest version for Windows Install Python 2.5 (2.5.1 at time of writing) and download .msi
+3. Run .msi and follow installer
+

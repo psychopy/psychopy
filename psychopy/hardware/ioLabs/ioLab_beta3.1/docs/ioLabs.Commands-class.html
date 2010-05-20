@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>ioLabs.Commands</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="ioLabs-module.html">Module&nbsp;ioLabs</a> ::
+        Class&nbsp;Commands
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="ioLabs.Commands-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Commands</h1><span class="codelink"><a href="ioLabs-pysrc.html#Commands">source&nbsp;code</a></span><br /><br />
+class to handle sending reports to device and parsing incoming 
+  reports. dynamically looks up/creates method for sending reports when 
+  none is found on the class.  this will let us override the default 
+  behavior to make things friendlier when appropriate. all received 
+  messages are queued up and require a call to 'process_received_reports' 
+  to trigger the user's callbacks, so as to avoid thread issues.<br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__init__"></a><span class="summary-sig-name">__init__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">device</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ioLabs.Commands-class.html#process_received_reports" class="summary-sig-name">process_received_reports</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">block</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">10</span>)</span><br />
+      process all reports that have been received and call the relevant 
+      callbacks.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.process_received_reports">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_received_reports"></a><span class="summary-sig-name">get_received_reports</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      return a list of received reports (removes them from the 
+      queue)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.get_received_reports">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="clear_received_reports"></a><span class="summary-sig-name">clear_received_reports</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      remove all received reports from the queue</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.clear_received_reports">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="ioLabs.Commands-class.html#add_callback" class="summary-sig-name">add_callback</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_id</span>,
+        <span class="summary-sig-arg">report_callback</span>)</span><br />
+      add a callback function that will be called when a report with the
+      given id arrives.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.add_callback">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="remove_callback"></a><span class="summary-sig-name">remove_callback</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_id</span>,
+        <span class="summary-sig-arg">report_callback</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.remove_callback">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_default_callback"></a><span class="summary-sig-name">add_default_callback</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_callback</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.add_default_callback">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="remove_default_callback"></a><span class="summary-sig-name">remove_default_callback</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_callback</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.remove_default_callback">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="wait_for_report"></a><span class="summary-sig-name">wait_for_report</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_id</span>)</span><br />
+      blocks until we receive a report with the given id from the box 
+      and then returns it (may trigger other callbacks)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.wait_for_report">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="send_wait_reply"></a><span class="summary-sig-name">send_wait_reply</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command_id</span>,
+        <span class="summary-sig-arg">report_id</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      send a command with the given arguments and wait for the reply</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.send_wait_reply">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="send_wait_field"></a><span class="summary-sig-name">send_wait_field</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command_id</span>,
+        <span class="summary-sig-arg">report_id</span>,
+        <span class="summary-sig-arg">field_name</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      send a command (with the args), wait for the report and return the
+      field on the report</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.send_wait_field">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__getattr__"></a><span class="summary-sig-name">__getattr__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      return a function to send the named command to the device</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="ioLabs-pysrc.html#Commands.__getattr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="process_received_reports"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">process_received_reports</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">block</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">timeout</span>=<span class="sig-default">10</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ioLabs-pysrc.html#Commands.process_received_reports">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  process all reports that have been received and call the relevant 
+  callbacks. by default this method returns immediately if no reports are 
+  on the queue, but can be made to block and wait for a report if 
+  needeed
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="add_callback"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">add_callback</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">report_id</span>,
+        <span class="sig-arg">report_callback</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="ioLabs-pysrc.html#Commands.add_callback">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  add a callback function that will be called when a report with the 
+  given id arrives. callback should take a single value that is the report 
+  that was received
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Fri Jan 25 15:08:20 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

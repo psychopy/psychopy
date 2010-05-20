@@ -4569,7 +4569,7 @@ class RatingScale():
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
                               lineColor='White', lineColorSpace='rgb')
         
-        # define the color & shape but not position of the marker that will go on the line:
+        # define the marker:
         if markerColor and type(markerColor) == type('abc'):
             markerColor = markerColor.replace(' ','')
         if self.markerStyle == 'triangle':
@@ -4646,9 +4646,8 @@ class RatingScale():
         
         # text elements:
         if not scale: # set the default
-            scale = unicode(str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely')
-        else:
-            scale = unicode(scale)
+            scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
+        scale = unicode(scale)
         self.psyScaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall,
                                             color='LightGray', colorSpace='rgb', pos=[0, 0.15 + self.offsetVert])
         self.lowAnchor = TextStim(win=self.win, text=str(self.low), pos=[self.leftEnd * self.displaySizeFactor,
@@ -4713,7 +4712,8 @@ class RatingScale():
             # draw everything except the marker:
             for stim in [targetItem] + self.visualDisplayElements:
                 stim.draw() 
-            if self.markerPlaced: # markerPlaced means subject has indicated (= placed) a provisional value, but not accepted it yet
+            # if the marker has been placed on the line, update its position and draw it:
+            if self.markerPlaced: # markerPlaced means that a provisional value has been indicated
                 frame += 1
                 # set 'accept' box pulsing & display text:
                 pulseColor = 0.6 + pulse * float(cos(frame / float(framesPerCycle))) # cast to float to avoid numpy_type from cos

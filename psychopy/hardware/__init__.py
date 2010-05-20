@@ -1,6 +1,6 @@
 import sys, glob
 from psychopy import log
-__all__=['forp','cedrus','minolta','pr', 'crs']
+__all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
 
 def findPhotometer(ports=None):

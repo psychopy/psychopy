@@ -1,0 +1,250 @@
+
+# USBBox #
+
+The main object representing the response box.
+
+## USBBox methods ##
+
+* `send_command(command_id,bytes)` 
+    > send a command to the box (command id byte and 7 data bytes as a Python string)
+    
+* `purge_queue()`
+    > purge the system buffer queue
+    
+* `reset_clock()`
+    > reset the system clock
+    
+* `enable_loopback()`
+    > enable loopback (button presses turn LEDs on/off)
+    
+* `disable_loopback()`
+* `wait_for_keydown()` 
+    > wait for a key down event (return None if no event received within timeout)
+    
+* `wait_for_keyup()` 
+    > wait for key up event (return None if no event received within timeout)
+
+## USBBox properties ##
+
+* `serial_num` 
+    > serial number for main board (read)
+    
+* `PAC` 
+    > set product authorisation code (write)
+    
+* `version` 
+    > system firmware (read)
+    
+* `voice_version` 
+    > voice key firmware (read)
+    
+* `clock` 
+    > system clock value (read)
+    
+* `heartbeat` 
+    > set heartbeat rate (write)
+    
+* `port0`
+    > see [port0, port2, leds object][port0]
+    
+* `port1` / `buttons`
+    > see [port1, buttons object][port1]
+    
+* `port2` / `leds`
+    > see [port0, port2, leds object][port0]
+    
+* `int0` / `voice_key`
+    > see [int0, voice_key object][int0]
+    
+* `int1` / `optic_key`
+    > see [int1, optic_key object][int1]
+    
+* `serial` 
+    > see [serial object][serial]
+    
+* `device`
+    > the underlying USB HID device object
+    
+* `commands`
+    > see [commands object][commands]
+
+
+[port0]: #port0
+<a name='port0'></a>
+# port0, port2, leds object #
+
+`port0`, `port2` and `leds` are object properties of the main USBBox object.
+
+## port0, port2, leds methods ##
+
+* `and_state(and_bits)`
+    > AND `and_bits` with current port state
+    
+* `or_state(or_bits)`
+    > OR `or_bits` with current port state
+    
+* `xor_state(xor_bits)`
+    > XOR `xor_bits` with current port state
+    
+## port0, port2, leds properties ##
+
+`direction`, `logic` and `state` apply to all lines on the port.
+
+* `direction`
+    > byte representing direction of port (read/write)
+    
+* `logic`
+    > byte representing logic of port (read/write)
+    
+* `state`
+    > byte representing state of port (read/write)
+
+* `lines`
+    > collection of all 8 line objects on the port
+    
+* `line0`, `line1`, `line2`, `line3`, `line4`, `line5`, `line6`, `line7`
+    > individual line objects on the port
+
+
+# line objects (port0, port2, leds)
+
+Individual lines on port0, port2 and leds objects
+
+## line objects (port0, port2, leds) properties ##
+
+* `state`
+    > bit representing state of line (read/write)
+    
+* `direction`
+    > bit representing direction of line (read/write)
+    
+* `logic`
+    > bit representing logic of line (read/write)
+    
+
+[port1]: #port1
+<a name='port1'></a>
+# port1, buttons object #
+
+`port1` and `buttons` are synonyms on the USBBox object.
+
+## port1, buttons object properties ##
+
+* `enabled`
+    > byte representing enabled state of input lines (read/write)
+    
+* `debounce_down`
+    > byte representing key down debounce time (read/write)
+    
+* `debound_up`
+    > byte representing key up debounce time (read/write)
+    
+* `state`
+    > byte representing state of all input lines (read)
+    
+* `lines`
+    > all 8 input lines of the port
+    
+* `line0`, `line1`, `line2`, `line3`, `line4`, `line5`, `line6`, `line7`
+    > individual line objects on the port
+
+# line objects (port1, buttons) #
+
+Object representing a single line on port1/buttons.
+
+## line objects (port1, buttons) properties ##
+
+* `state`
+    > bit representing state of line (read)
+    
+* `enabled`
+    > bit representing whether line is enabled (read/write)
+
+
+[int0]: #int0
+<a name='int0'></a>
+# int0, voice_key object #
+Interrupt 0 / voice key object
+
+## int0, voice_key object properties ##
+
+* `enabled`
+    > bit representing whether port is enabled (read/write)
+    
+* `debounce_down`
+    > byte representing key down debounce time (read/write)
+    
+* `debound_up`
+    > byte representing key up debounce time (read/write)
+    
+* `primary_gain`
+    > byte representing primary gain (read/write)
+    
+* `secondary_gain`
+    > byte representing secondary gain (read/write)
+    
+* `min_duration`
+    > byte representing minimum duration (read/write)
+    
+* `min_silence`
+    > byte representing minimum silence (read/write)
+    
+* `trigger_level`
+    > byte representing trigger level (threshold) (read/write)
+    
+* `mic_pass_thru`
+    > bit representing microphone pass through state. 
+    > note value is not read from the box, so value will only
+    > be valid after it is first written (read/write)
+    
+
+[int1]: #int1
+<a name='int1'></a>
+# int1, optic_key object #
+Interrupt 1 / optic key object
+
+# int1, optic_key object properties #
+
+* `enabled`
+    > bit representing whether port is enabled (read/write)
+    
+* `debounce_down`
+    > byte representing key down debounce time (read/write)
+    
+* `debound_up`
+    > byte representing key up debounce time (read/write)
+
+
+[serial]: #serial
+<a name='serial'></a>
+# serial object #
+Object representing the serial port on the USBBox.  Operates at 9600 baud.
+
+## serial object methods ##
+
+* `read()`
+    > read bytes from the serial port.  returns bytes as a Python string 
+    > (as a file object would).  returns an empty string '' if no bytes were received
+    > after timing out.  bytes sent to the serial port will be stored on this object
+    > until `read()` is called.
+    
+* `write(bytes)`
+    > write bytes to the serial port.  blocks until all bytes written.  bytes should
+    > be a Python string.
+
+
+[commands]: #commands
+<a name='commands'></a>
+# commands object #
+The `commmands` object is intended to be a fairly low-level interface to the response box.
+It is mainly concerned with sending and receiving reports and therefore closely mimics the
+underlying protocol of the response box.
+
+## commands object methods ##
+There exists one method for each command report specified in the response box manual.  They 
+are names are lowercase (and - to _) versions of the IDs specified in the manual.  These methods
+are used to send commands to the HID device.
+e.g.
+
+    usbbox.commands.verget() # send a VERGET command to the box
+    usbbox.commands.dirset(1,0,0) # send a DIRGET command (enable loopback)

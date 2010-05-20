@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" demo for the class psychopy.visual.RatingScale(). in the code, look for "myVRS", lines 25 & 26, and 44 & 60
+""" demo for the class psychopy.visual.RatingScale(). in the code, look for "myVRS", lines 25 & 26, and 44 & 59
 """
 __author__ = 'Jeremy Gray'
 

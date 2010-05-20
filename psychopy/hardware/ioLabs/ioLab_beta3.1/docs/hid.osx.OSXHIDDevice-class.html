@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>hid.osx.OSXHIDDevice</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="hid-module.html">Package&nbsp;hid</a> ::
+        <a href="hid.osx-module.html">Module&nbsp;osx</a> ::
+        Class&nbsp;OSXHIDDevice
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="hid.osx.OSXHIDDevice-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class OSXHIDDevice</h1><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+<a href="hid.HIDDevice-class.html">HIDDevice</a> --+
+            |
+           <strong class="uidshort">OSXHIDDevice</strong>
+</pre>
+
+<hr />
+class representing a HID device on the host (OS X) computer<br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hidDevice</span>,
+        <span class="summary-sig-arg">vendor</span>,
+        <span class="summary-sig-arg">product</span>)</span><br />
+      create the hid device wrapper hidDevice is a handle from the 
+      OS</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#__del__" class="summary-sig-name">__del__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      closes the device</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.__del__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      close the device and stop the callback thread</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#is_open" class="summary-sig-name">is_open</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      see if the device is open</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.is_open">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#open" class="summary-sig-name">open</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      open the HID device - must be called prior to registering 
+      callbacks or setting reports</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.open">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="hid.osx.OSXHIDDevice-class.html#set_report" class="summary-sig-name">set_report</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">report_data</span>,
+        <span class="summary-sig-arg">report_id</span>=<span class="summary-sig-default">0</span>)</span><br />
+      &quot;set&quot; a report - send the data to the device (which must
+      have been opened previously)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.set_report">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="hid.HIDDevice-class.html">HIDDevice</a></code></b>:
+      <code><a href="hid.HIDDevice-class.html#__str__">__str__</a></code>,
+      <code><a href="hid.HIDDevice-class.html#set_interrupt_report_callback">set_interrupt_report_callback</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">hidDevice</span>,
+        <span class="sig-arg">vendor</span>,
+        <span class="sig-arg">product</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  create the hid device wrapper hidDevice is a handle from the OS
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#__init__">HIDDevice.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__del__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__del__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Destructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.__del__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  closes the device
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#__del__">HIDDevice.__del__</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="close"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  close the device and stop the callback thread
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#close">HIDDevice.close</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="is_open"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">is_open</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.is_open">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  see if the device is open
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#is_open">HIDDevice.is_open</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="open"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">open</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.open">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  open the HID device - must be called prior to registering callbacks or
+  setting reports
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#open">HIDDevice.open</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_report"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_report</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">report_data</span>,
+        <span class="sig-arg">report_id</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="hid.osx-pysrc.html#OSXHIDDevice.set_report">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  &quot;set&quot; a report - send the data to the device (which must 
+  have been opened previously)
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="hid.HIDDevice-class.html#set_report">HIDDevice.set_report</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Fri Jan 25 15:08:20 2008
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>
