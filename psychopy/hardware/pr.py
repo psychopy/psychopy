@@ -81,7 +81,7 @@ class PR650:
             }
             
         #try to open the port
-        if sys.platform in ['darwin', 'win32']: 
+        if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'): 
             try:self.com = serial.Serial(self.portString)
             except:
                 self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)

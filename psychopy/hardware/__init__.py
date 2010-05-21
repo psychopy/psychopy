@@ -15,7 +15,8 @@ def findPhotometer(ports=None):
         ports : a list of ports to search
             Each port can be a string (e.g. 'COM1', ''/dev/tty.Keyspan1.1') or a 
             number (for win32 comports only). If none are provided then PsychoPy 
-            will sweep COM0-10 on win32 and search known likely port names on OS X.
+            will sweep COM0-10 on win32 and search known likely port names on OS X
+            and linux.
             
     :returns:
     
@@ -46,6 +47,8 @@ def findPhotometer(ports=None):
                 log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* Check for " \
                     +"serial port name manually, check drivers installed etc...")
                 return -1
+        if sys.platform=='darwin':
+            ports=glob('/dev/ttyS?')#usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
             ports = range(11)
     elif type(ports) in [int,float]:
