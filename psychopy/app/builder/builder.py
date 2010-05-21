@@ -628,19 +628,20 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawText(name, x-20, y)
 
         #draw entries on timeline
-        xScale = self.getSecsPerPixel()
-        dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
-        #for the fill, draw once in white near-opaque, then in transp color
-        dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
-        h = self.componentStep/2
-        exec("st = %s" %(component.params['startTime']))
-        #get end time if not -1(infinite)
-        if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
-        else: exec("duration = %s" %(component.params['duration']))
-        xSt = self.timeXposStart + st/xScale
-        w = duration/xScale
-        if w<2: w=2#make sure at least one pixel shows
-        dc.DrawRectangle(xSt, y, w,h )
+        if 'startTime' in component.params.keys():
+            xScale = self.getSecsPerPixel()
+            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
+            #for the fill, draw once in white near-opaque, then in transp color
+            dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
+            h = self.componentStep/2
+            exec("st = %s" %(component.params['startTime']))
+            #get end time if not -1(infinite)
+            if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
+            else: exec("duration = %s" %(component.params['duration']))
+            xSt = self.timeXposStart + st/xScale
+            w = duration/xScale
+            if w<2: w=2#make sure at least one pixel shows
+            dc.DrawRectangle(xSt, y, w,h )
 
         ##set an id for the region where the component.icon falls (so it can act as a button)
         #see if we created this already
@@ -855,6 +856,11 @@ class ParamCtrls:
 
         if label=='text':
             #for text input we need a bigger (multiline) box
+            self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
+                style=wx.TE_MULTILINE,
+                size=wx.Size(self.valueWidth,-1))
+        if label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+            #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))

@@ -483,6 +483,8 @@ class LoopInitiator:
         self.exp.flow._loopList.append(self.loop)#we are now the inner-most loop
     def getType(self):
         return 'LoopInitiator'
+    def writeExperimentEndCode(self,buff):#not needed
+        pass
 class LoopTerminator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
@@ -496,6 +498,8 @@ class LoopTerminator:
         self.exp.flow._loopList.remove(self.loop)# _loopList[-1] will now be the inner-most loop
     def getType(self):
         return 'LoopTerminator'
+    def writeExperimentEndCode(self,buff):#not needed
+        pass
 class Flow(list):
     """The flow of the experiment is a list of L{Routine}s, L{LoopInitiator}s and
     L{LoopTerminator}s, that will define the order in which events occur
@@ -543,12 +547,14 @@ class Flow(list):
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(s)
-
         #run-time code
         for entry in self:
             self._currentRoutine=entry
             entry.writeMainCode(s)
-
+        #tear-down code (very few components need this)
+        for entry in self:
+            self._currentRoutine=entry
+            entry.writeExperimentEndCode(s)
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -622,6 +628,12 @@ class Routine(list):
         for event in self:
             event.writeRoutineEndCode(buff)
 
+    def writeExperimentEndCode(self,buff):
+        """This defines the code for the frames of a single routine
+        """
+        #This is the beginning of the routine, before the loop starts
+        for component in self:
+            component.writeExperimentEndCode(buff)
     def getType(self):
         return 'Routine'
     def getComponentFromName(self, name):
@@ -633,6 +645,7 @@ class Routine(list):
         maxTime=0
         times=[]
         for event in self:
+            if 'startTime' not in event.params.keys(): continue
             if event.params['duration'].val in ['-1', '']: maxTime=1000000
             else:
                 exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric

@@ -9,11 +9,23 @@ Known issues
 ------------------
 The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
+Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
+
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.01
+~~~~~~~~~~~~~~~~~~~~~~
+Patch released May 2010
+
+* FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
+* FIXED: Buglet in rendering of pygame text withour shaders
+* FIXED: broken link for >Help>Api (reference) menuitem
+
+
 PsychoPy 1.61.00
 ~~~~~~~~~~~~~~~~~~~~~~
+Released May 2010
 
 * CHANGED: color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
 * ADDED: Colors can now also be specified by name (one of the X11 or web colors, e.g. 'DarkSalmon') or hex color spec (e.g. '#E9967A')

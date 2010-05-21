@@ -31,6 +31,11 @@ class BaseComponent:
         a routine (e.g. to save data)
         """
         pass
+    def writeExperimentEndCode(self,buff):
+        """Write the code that will be called at the end of 
+        an experiment (e.g. save log files or reset hardware)
+        """
+        pass
     def writeTimeTestCode(self,buff):
         """Write the code for each frame that tests whether the component is being
         drawn/used.
