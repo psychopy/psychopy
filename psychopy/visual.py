@@ -4325,6 +4325,8 @@ def _setColor(self, color, colorSpace=None, operation='',
         color = numpy.asarray([color,color,color],float)
     elif type(color) in [tuple,list]:
         color = numpy.asarray(color,float)
+    elif type(color) ==numpy.ndarray:
+        pass
     elif color==None:
         setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
         setattr(self,colorAttrib,None) #e.g. self.color='#000000'
@@ -4351,7 +4353,7 @@ def _setColor(self, color, colorSpace=None, operation='',
     elif colorSpace=='dkl':
         if numpy.all(self.win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
         else: dkl_rgb=self.win.dkl_rgb
-        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.array(newColor).transpose(), dkl_rgb) )
+        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms': 
         if numpy.all(self.win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
         else: lms_rgb=self.win.lms_rgb
