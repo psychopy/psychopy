@@ -8,9 +8,9 @@ from psychopy import log
 
 from psychopy import core, visual, event
 try:
-    from psychopy.hardware.ioLabs import ioLabs
+    from psychopy.hardware.ioLabs import USBBox
 except RuntimeError, errMsg:
-    log.error('Is a bbox connected? (import ioLabs bbox failed: '+str(errMsg)+')\n')
+    log.error('Is an ioLabs button-box connected and turned on? (import failed: "'+str(errMsg)+'")')
     core.quit()
 import random
 

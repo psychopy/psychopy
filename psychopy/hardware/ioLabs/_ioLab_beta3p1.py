@@ -1,20 +1,24 @@
 '''
 The module for interfacing with an ioLabs button box.
-(c) 2010, IOLAB SYSTEMS INC. Distributed under the terms of the GPLv3.
 
 USBBox is the main class that should be used from this module.
 
-version beta3.1; added to psychopy.hardware.ioLabs May 2010, Jeremy Gray
+(c) 2010, IOLAB SYSTEMS INC.  contact: development@iolab.co.uk
+Distributed under the GPLv3.
+- version beta3.1
+
+modifications May 2010, Jeremy Gray: added to psychopy.hardware._ioLab_beta3p1.py
+- remap logging -> psychopy's log
+- timeout=None instead of 2, ~line 265 per Jon Roberts suggestion
 '''
 
 # turn on logging so we can see what's going on
-import logging
+#import logging
+from psychopy import log
+logging = log # J.R.Gray: hopefully easier to redirect 'logging' to psychopy's log than to rewrite
+
 #format='%(asctime)s %(levelname)s %(message)s'
 #logging.basicConfig(level=logging.INFO,format=format)
-
-import os # JRG: might as well check and warn
-if os.path.isfile('/System/Library/Extensions/BBoxArchiver.kext'):
-    logging.error("PsychoPy's ioLabs USBBox will not work properly because /System/Library/Extensions/BBoxArchiver.kext exists (likely for PsyScope)")
 
 import time
 import struct
@@ -258,7 +262,7 @@ class Commands:
         try:
             try:
                 while len(reports) == 0:
-                    self.process_received_reports(block=True,timeout=2)
+                    self.process_received_reports(block=True,timeout=None) # JRGray: Jon Roberts said try timeout=None instead of timeout=2
             except Empty:
                 return None
         finally:
