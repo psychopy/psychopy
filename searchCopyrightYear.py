@@ -40,6 +40,7 @@ try: del files[files.index(sys.argv[0])]
 except: pass # not in the list
 
 someFiles = False # found any at all to be updated?
+badLines = 0 # '$' will mess with perl search-replace
 tmpFile = './replaceCopyrightYear.tmp'
 try: del files[files.index(tmpFile)]
 except: pass
@@ -50,14 +51,18 @@ for file in files:
     lines = os.popen('grep '+oldYear+' "'+file+'" | grep Peirce | egrep -i "\(c\)|copyright"').readlines()
     for line in [i.strip() for i in lines]: #allow multiple lines per file, ignore directories etc
         anchor = '^' # start-of-line anchor makes search-replace much more efficient
+        if line.find('$') > -1:
+            badLines += 1
+            print file+": cannot handle '$' in line: ", os.popen("grep -n '"+line+"' '"+file+"'").read()
+            continue
         if line.find("'") > -1: # capture stuff in between single-quotes
             line = line[line.find("'")+1:]
             line = line[:line.find("'")]
-            anchor = ''
+            anchor = '' # will not match at the start of the line anymore
         newLine = line.replace(oldYear, newYear)
         someFiles = True
         #print file+': '+line+' --> '+newLine
-        cmd = "perl -pi -e 's/"+anchor+"\Q"+line+"\E/\Q"+newLine+"\E/' '"+file+"'\n" # 'source' fails if there are single quotes in the line...
+        cmd = "perl -pi -e 's/"+anchor+"\Q"+line+"\E/"+newLine+"/' '"+file+"'\n" # 'source' fails if there are single quotes in the line...
         tmp.write(cmd) # save the command into a tmp file
 tmp.close()
 
@@ -65,6 +70,8 @@ print os.popen('cat '+tmpFile).read() # merely display, do not actually do, all 
 if someFiles:
     print '\nIf all of the above changes look correct, to make all changes type:\n  source '+tmpFile
     print 'If something looks amiss, you can edit '+tmpFile+', and then source it.'
+    if badLines:
+        print "Warning: %d lines were skipped because they had a '$' character, see output about" % badLines
 else:
     print 'No matching files found for', oldYear
     os.unlink(tmpFile)
