@@ -859,7 +859,7 @@ class ParamCtrls:
             self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
-        if label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+        elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
                 style=wx.TE_MULTILINE,
