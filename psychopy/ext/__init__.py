@@ -1,6 +1,6 @@
 """Platform specific extensions (using ctypes)"""
 # Part of the PsychoPy library
-# Copyright (C) 2009 Jonathan Peirce
+# Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, platform
