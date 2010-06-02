@@ -6,7 +6,9 @@ News
 
 **Latest version**: 1.61.01 was released May 2010. See complete :doc:`changelog`
 
-PsychoPy is now tweeting (see bottom right panel). 
+PsychoPy is now `tweeting`_ (but not often). 
+
+.. _tweeting: http://twitter.com/psychopy
 
 .. title:: Home
     

@@ -14,6 +14,12 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.02
+~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
+* FIXED: TrailHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
+
 PsychoPy 1.61.01
 ~~~~~~~~~~~~~~~~~~~~~~
 Patch released May 2010
