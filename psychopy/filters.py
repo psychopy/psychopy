@@ -100,7 +100,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0)):
     elif shape=='gauss':
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
     else:
-            raise 'err', 'unknown shape'
+            raise ValueError('Unknown value for shape argument %s' % shape)
     return outArray*2-1
 
 def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
