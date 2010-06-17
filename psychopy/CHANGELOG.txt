@@ -19,6 +19,8 @@ PsychoPy 1.61.02
 
 * ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
 * FIXED: TrailHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
+* FIXED: loading of scripts by coder on windows assumed ASCII so broke with , now assumes UNICODE (as was case with other platforms)
+* FIXED: harmless error messages caused by trying to get the file date/time when no file is open
 
 PsychoPy 1.61.01
 ~~~~~~~~~~~~~~~~~~~~~~
