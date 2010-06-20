@@ -302,9 +302,9 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     if conversionMatrix==None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)
-            [1.0000, 1.0000, -0.1462],	#R
-            [1.0000, -0.3900, 0.2094],	#G
-            [1.0000, 0.0180, -1.0000]])	#B
+            [1.0000, 1.0000, -0.1462],#R
+            [1.0000, -0.3900, 0.2094],#G
+            [1.0000, 0.0180, -1.0000]])#B
         log.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
         
     rgb = numpy.dot(conversionMatrix, dkl_cartesian)

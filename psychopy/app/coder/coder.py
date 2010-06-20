@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, types, re
@@ -1382,7 +1382,7 @@ class CoderFrame(wx.Frame):
 
             #load text from document
             if os.path.isfile(filename):
-                self.currentDoc.SetText(open(filename).read().decode('utf8'))
+                self.currentDoc.SetText(open(filename).read())
                 self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
                 self.fileHistory.AddFileToHistory(filename)
             else:
@@ -1439,6 +1439,7 @@ class CoderFrame(wx.Frame):
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on mtime-stamps
+        if doc==None: return True#we have no file loaded
         if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
             return True
         actualModTime = os.path.getmtime(doc.filename)
@@ -1847,3 +1848,4 @@ class CoderFrame(wx.Frame):
         filename = tmpFilename.split('File "',1)[1]
         lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)
+

@@ -258,7 +258,7 @@ class Window:
             log.warning("Requested pyglet backend but pyglet is not installed or not fully working")
             self.winType='pygame'
         if self.winType=='pygame' and not havePygame:
-            log.warning("Requested pygame backend but pygame is not installed or not fully working")
+            log.warning("Requested pygame backend but pygame (or PyOpenGL) is not installed or not fully working")
             self.winType='pyglet'
         #setup the context
         if self.winType == "glut": self._setupGlut()
