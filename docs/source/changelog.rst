@@ -1,7 +1,9 @@
 Changelog
 ====================
 
-.. note:: Version numbers
+.. note:: 
+  Version numbers
+  
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
@@ -14,11 +16,18 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.03 (svn)
+~~~~~~~~~~~~~~~~~~~~~~~~
+* FIXED: harmless error messages caused by trying to get the file date/time when no file is open
+
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
+Patch released June 2010
 
 * ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
-* FIXED: TrailHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
+* FIXED: TrialHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
+* FIXED: loading of scripts by coder on windows assumed ASCII so broke with , now assumes UNICODE (as was case with other platforms)
+* FIXED: minor bugs connecting to PR650
 
 PsychoPy 1.61.01
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +36,6 @@ Patch released May 2010
 * FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
 * FIXED: Buglet in rendering of pygame text withour shaders
 * FIXED: broken link for >Help>Api (reference) menuitem
-
 
 PsychoPy 1.61.00
 ~~~~~~~~~~~~~~~~~~~~~~

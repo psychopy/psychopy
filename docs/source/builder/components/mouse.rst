@@ -1,6 +1,6 @@
 .. _mouse:
 
-Mouse
+Mouse Component
 -------------------------------
 
 The Mouse component can be used to collect responses from a participant. The coordinates of the mouse location are 
