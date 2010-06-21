@@ -21,6 +21,6 @@ urls['prefs.connections']="http://www.psychopy.org/general/prefs.html#connection
 
 #links keyed by wxIDs (e.g. menu item IDs)
 urls[wxIDs.psychopyHome]="http://www.psychopy.org/"
-urls[wxIDs.psychopyReference]="http://www.psychopy.org/api/"
+urls[wxIDs.psychopyReference]="http://www.psychopy.org/api/api.html"
 urls[wxIDs.coderTutorial]="http://www.psychopy.org/coder/tutorial1.html"
 urls[wxIDs.builderHelp]=urls['builder']

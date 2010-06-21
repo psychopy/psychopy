@@ -94,20 +94,31 @@ def wait(secs, hogCPUperiod=0.2):
             pass #presumably not pyglet 
 
 def shellCall(shellCmd, stderr=False):
-    """Call a single system command with arguments via os.popen(), which is deprecated; ideally use subprocess.
-    Returns what the command sends to stdout (stderr is currently always '' if you request it).
-    
+    """Call a single system command with arguments, return its stdout. 
     Returns (stdout,stderr) if requested (by stderr==True). Does not handle multiple commands connected by pipes ("|").
     """
     
-    stdoutData = os.popen(shellCmd).read()
-
+    stdout = os.popen(shellCmd).read()
     if stderr:
-        return stdoutData.strip(),''
+        return stdout,''
     else:
-        return stdoutData.strip()
-
-# subprocess had build problems on Mac:
+        return stdout
+    
+    # this shows promise as a way to capture stderr as well, but then elsewhere shellCall().split() seems to fail
+    import popen2
+    stdO,stdI,stdE = popen2.popen3(shellCmd)
+    stdOData = stdO.read().strip()
+    stdEData = stdE.read().strip()
+    stdO.close()
+    stdI.close()
+    stdE.close()
+    if stderr:
+        return stdOData,stdEData
+    else:
+        return stdOData
+    
+# subprocess is the recommended way to do things, but had build problems on Mac:
+#    import subprocess, shlex
 #    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args; pipes don't work here
 #    stdoutData, stderrData = subprocess.Popen(shellCmdList,
 #        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()

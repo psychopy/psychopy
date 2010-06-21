@@ -2,10 +2,10 @@
 - just handy things like conversion functions etc...
 """ 
 # Part of the PsychoPy library
-# Copyright (C) 2009 Jonathan Peirce
+# Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy #this is imported by psychopy.core
+import numpy, random #this is imported by psychopy.core
 from psychopy import log
 import monitors
 
@@ -212,9 +212,9 @@ def pix2deg(pixels, monitor):
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix==None:
-        raise "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
     if scrWidthCm==None:
-        raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     cmSize=pixels*float(scrWidthCm)/scrSizePix[0]
     return cm2deg(cmSize, monitor)
 def deg2pix(degrees, monitor):
@@ -223,9 +223,9 @@ def deg2pix(degrees, monitor):
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix==None:
-        raise "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
     if scrWidthCm==None:
-        raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     
     cmSize = deg2cm(degrees, monitor)
     return cmSize*scrSizePix[0]/float(scrWidthCm)
@@ -233,49 +233,49 @@ def deg2cm(degrees, monitor):
     """Convert size in degrees to size in pixels for a given Monitor object"""
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise "deg2cm requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor))
+        raise ValueError("deg2cm requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
     #get monitor dimensions
     dist = monitor.getDistance()
     #check they all exist
     if dist==None:
-        raise "Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
     return degrees*dist*0.017455
 def cm2deg(cm, monitor):
     """Convert size in cm to size in degrees for a given Monitor object"""
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise "cm2deg requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor))
+        raise ValueError("cm2deg requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
     #get monitor dimensions
     dist = monitor.getDistance()    
     #check they all exist
     if dist==None:
-        raise "Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name    
+        raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
     return cm/(dist*0.017455)
 def pix2cm(pixels, monitor):
     """Convert size in pixels to size in cm for a given Monitor object"""
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise "cm2pix requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor))
+        raise ValueError("cm2pix requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix==None:
-        raise "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
     if scrWidthCm==None:
-        raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name    
+        raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     return pixels*float(scrWidthCm)/scrSizePix[0]
 def cm2pix(cm, monitor):
     """Convert size in degrees to size in pixels for a given Monitor object"""
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise "cm2pix requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor))
+        raise ValueError("cm2pix requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix==None:
-        raise "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
     if scrWidthCm==None:
-        raise "Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name
+        raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     
     return cm*scrSizePix[0]/float(scrWidthCm)
 
@@ -302,9 +302,9 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     if conversionMatrix==None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)
-            [1.0000, 1.0000, -0.1462],	#R
-            [1.0000, -0.3900, 0.2094],	#G
-            [1.0000, 0.0180, -1.0000]])	#B
+            [1.0000, 1.0000, -0.1462],#R
+            [1.0000, -0.3900, 0.2094],#G
+            [1.0000, 0.0180, -1.0000]])#B
         log.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
         
     rgb = numpy.dot(conversionMatrix, dkl_cartesian)

@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2009 Jonathan Peirce
+# Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx, copy
@@ -29,6 +29,11 @@ class BaseComponent:
     def writeRoutineEndCode(self,buff):
         """Write the code that will be called at the end of 
         a routine (e.g. to save data)
+        """
+        pass
+    def writeExperimentEndCode(self,buff):
+        """Write the code that will be called at the end of 
+        an experiment (e.g. save log files or reset hardware)
         """
         pass
     def writeTimeTestCode(self,buff):

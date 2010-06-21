@@ -5,20 +5,53 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
 
+Known issues
+------------------
+The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
+
+Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
+
+PsychoPy 1.61
+------------------------------
+
+PsychoPy 1.61.02
+~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
+* FIXED: TrailHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
+
+PsychoPy 1.61.01
+~~~~~~~~~~~~~~~~~~~~~~
+Patch released May 2010
+
+* FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
+* FIXED: Buglet in rendering of pygame text withour shaders
+* FIXED: broken link for >Help>Api (reference) menuitem
+
+
+PsychoPy 1.61.00
+~~~~~~~~~~~~~~~~~~~~~~
+Released May 2010
+
+* CHANGED: color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
+* ADDED: Colors can now also be specified by name (one of the X11 or web colors, e.g. 'DarkSalmon') or hex color spec (e.g. '#E9967A')
+* REMOVED: TextStimGLUT (assuming nobody uses GLUT backend anymore)
+* ADDED: 'saw' and 'tri' options to specify grating textures, to give sawtooth and triangle waves
+* FIXED: visual.DotStim does now update coherence based on setFieldCoherence calls
+* FIXED: bug in autoupdater for installs with setuptools-style directory structure
+* FIXED: bug in SimpleImageStim - when graphics card doesn't support shaders colors were incorrectly scaled
+* CHANGED: console (stdout) default logging level to WARNING. More messages will appear here than before
+* ADDED: additional log level called DATA for saving data info from experiments to logfiles
+* ADDED: mouse component to Builder
+* ADDED: checking of coder script for changes made by an external application (thanks to Jeremy Gray)
+* ADDED: data.RuntimeInfo() for providing various info about the system at launch of script (thanks to Jeremy Gray)
+* FIXED: problem with rush() causing trouble between XP/vista (thanks to Jeremy Gray)
+* AMERICANIZATION: now consistently using 'color' not 'colour' throughout the project! ;-)
+* FIXED: problem with non-numeric characters being inserted into data structures
+* CHANGED: stimuli using textures now automatically clean these up, so no need for users to call .clearTextures()
 
 PsychoPy 1.60 
 ------------------------------
-
-PsychoPy 1.60.05
-~~~~~~~~~~~~~~~~~~~~~~
-
-* CHANGED color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
-* ADDED colors can be specified by name or hex color spec (e.g. '#E9967A' or 'DarkSalmon') instead of RGB values
-* REMOVED TextStimGLUT (assuming nobody uses GLUT backend anymore)
-* ADDED 'saw' and 'tri' options to specify grating textures, to give sawtooth and triangle waves
-* FIXED visual.DotStim does now update coherence based on setFieldCoherence calls
-* FIXED bug in autoupdater for installs with setuptools-style directory structure
-* FIXED bug in SimpleImageStim - when graphics card doesn't support shaders colours were incorrectly scaled
 
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -528,7 +561,7 @@ PsychoPy 0.90.1
 PsychoPy 0.90
 ~~~~~~~~~~~~~~~~~~~~~~
 * sounds now in stereo and a new function to allow you to choose the settings for the sound system.
-* LMS colours (cone-isolating stimuli) are now tested and accurate (when calibrated)
+* LMS colors (cone-isolating stimuli) are now tested and accurate (when calibrated)
 * added logging module (erros, warnings, info). And removed other messages:
      * @Verbose@ flags have become log.info messages
      * @Warn@ commands have become log.warning messages

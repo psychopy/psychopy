@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+    <title>USBBox</title>
+</head>
+
+<body>
+    <h1 id="usbbox">USBBox</h1>
+
+    <p>The main object representing the response box.</p>
+
+    <h2 id="usbbox_methods">USBBox methods</h2>
+
+    <ul>
+    <li><p><code>send_command(command_id,bytes)</code> </p>
+
+    <blockquote>
+      <p>send a command to the box (command id byte and 7 data bytes as a Python string)</p>
+    </blockquote></li>
+    <li><p><code>purge_queue()</code></p>
+
+    <blockquote>
+      <p>purge the system buffer queue</p>
+    </blockquote></li>
+    <li><p><code>reset_clock()</code></p>
+
+    <blockquote>
+      <p>reset the system clock</p>
+    </blockquote></li>
+    <li><p><code>enable_loopback()</code></p>
+
+    <blockquote>
+      <p>enable loopback (button presses turn LEDs on/off)</p>
+    </blockquote></li>
+    <li><p><code>disable_loopback()</code></p></li>
+    <li><p><code>wait_for_keydown()</code> </p>
+
+    <blockquote>
+      <p>wait for a key down event (return None if no event received within timeout)</p>
+    </blockquote></li>
+    <li><p><code>wait_for_keyup()</code> </p>
+
+    <blockquote>
+      <p>wait for key up event (return None if no event received within timeout)</p>
+    </blockquote></li>
+    </ul>
+
+    <h2 id="usbbox_properties">USBBox properties</h2>
+
+    <ul>
+    <li><p><code>serial_num</code> </p>
+
+    <blockquote>
+      <p>serial number for main board (read)</p>
+    </blockquote></li>
+    <li><p><code>PAC</code> </p>
+
+    <blockquote>
+      <p>set product authorisation code (write)</p>
+    </blockquote></li>
+    <li><p><code>version</code> </p>
+
+    <blockquote>
+      <p>system firmware (read)</p>
+    </blockquote></li>
+    <li><p><code>voice_version</code> </p>
+
+    <blockquote>
+      <p>voice key firmware (read)</p>
+    </blockquote></li>
+    <li><p><code>clock</code> </p>
+
+    <blockquote>
+      <p>system clock value (read)</p>
+    </blockquote></li>
+    <li><p><code>heartbeat</code> </p>
+
+    <blockquote>
+      <p>set heartbeat rate (write)</p>
+    </blockquote></li>
+    <li><p><code>port0</code></p>
+
+    <blockquote>
+      <p>see <a href="#port0">port0, port2, leds object</a></p>
+    </blockquote></li>
+    <li><p><code>port1</code> / <code>buttons</code></p>
+
+    <blockquote>
+      <p>see <a href="#port1">port1, buttons object</a></p>
+    </blockquote></li>
+    <li><p><code>port2</code> / <code>leds</code></p>
+
+    <blockquote>
+      <p>see <a href="#port0">port0, port2, leds object</a></p>
+    </blockquote></li>
+    <li><p><code>int0</code> / <code>voice_key</code></p>
+
+    <blockquote>
+      <p>see <a href="#int0">int0, voice_key object</a></p>
+    </blockquote></li>
+    <li><p><code>int1</code> / <code>optic_key</code></p>
+
+    <blockquote>
+      <p>see <a href="#int1">int1, optic_key object</a></p>
+    </blockquote></li>
+    <li><p><code>serial</code> </p>
+
+    <blockquote>
+      <p>see <a href="#serial">serial object</a></p>
+    </blockquote></li>
+    <li><p><code>device</code></p>
+
+    <blockquote>
+      <p>the underlying USB HID device object</p>
+    </blockquote></li>
+    <li><p><code>commands</code></p>
+
+    <blockquote>
+      <p>see <a href="#commands">commands object</a></p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='port0'></a></p>
+
+    <h1 id="port0_port2_leds_object">port0, port2, leds object</h1>
+
+    <p><code>port0</code>, <code>port2</code> and <code>leds</code> are object properties of the main USBBox object.</p>
+
+    <h2 id="port0_port2_leds_methods">port0, port2, leds methods</h2>
+
+    <ul>
+    <li><p><code>and_state(and_bits)</code></p>
+
+    <blockquote>
+      <p>AND <code>and_bits</code> with current port state</p>
+    </blockquote></li>
+    <li><p><code>or_state(or_bits)</code></p>
+
+    <blockquote>
+      <p>OR <code>or_bits</code> with current port state</p>
+    </blockquote></li>
+    <li><p><code>xor_state(xor_bits)</code></p>
+
+    <blockquote>
+      <p>XOR <code>xor_bits</code> with current port state</p>
+    </blockquote></li>
+    </ul>
+
+    <h2 id="port0_port2_leds_properties">port0, port2, leds properties</h2>
+
+    <p><code>direction</code>, <code>logic</code> and <code>state</code> apply to all lines on the port.</p>
+
+    <ul>
+    <li><p><code>direction</code></p>
+
+    <blockquote>
+      <p>byte representing direction of port (read/write)</p>
+    </blockquote></li>
+    <li><p><code>logic</code></p>
+
+    <blockquote>
+      <p>byte representing logic of port (read/write)</p>
+    </blockquote></li>
+    <li><p><code>state</code></p>
+
+    <blockquote>
+      <p>byte representing state of port (read/write)</p>
+    </blockquote></li>
+    <li><p><code>lines</code></p>
+
+    <blockquote>
+      <p>collection of all 8 line objects on the port</p>
+    </blockquote></li>
+    <li><p><code>line0</code>, <code>line1</code>, <code>line2</code>, <code>line3</code>, <code>line4</code>, <code>line5</code>, <code>line6</code>, <code>line7</code></p>
+
+    <blockquote>
+      <p>individual line objects on the port</p>
+    </blockquote></li>
+    </ul>
+
+    <h1 id="line_objects_port0_port2_leds">line objects (port0, port2, leds)</h1>
+
+    <p>Individual lines on port0, port2 and leds objects</p>
+
+    <h2 id="line_objects_port0_port2_leds_properties">line objects (port0, port2, leds) properties</h2>
+
+    <ul>
+    <li><p><code>state</code></p>
+
+    <blockquote>
+      <p>bit representing state of line (read/write)</p>
+    </blockquote></li>
+    <li><p><code>direction</code></p>
+
+    <blockquote>
+      <p>bit representing direction of line (read/write)</p>
+    </blockquote></li>
+    <li><p><code>logic</code></p>
+
+    <blockquote>
+      <p>bit representing logic of line (read/write)</p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='port1'></a></p>
+
+    <h1 id="port1_buttons_object">port1, buttons object</h1>
+
+    <p><code>port1</code> and <code>buttons</code> are synonyms on the USBBox object.</p>
+
+    <h2 id="port1_buttons_object_properties">port1, buttons object properties</h2>
+
+    <ul>
+    <li><p><code>enabled</code></p>
+
+    <blockquote>
+      <p>byte representing enabled state of input lines (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debounce_down</code></p>
+
+    <blockquote>
+      <p>byte representing key down debounce time (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debound_up</code></p>
+
+    <blockquote>
+      <p>byte representing key up debounce time (read/write)</p>
+    </blockquote></li>
+    <li><p><code>state</code></p>
+
+    <blockquote>
+      <p>byte representing state of all input lines (read)</p>
+    </blockquote></li>
+    <li><p><code>lines</code></p>
+
+    <blockquote>
+      <p>all 8 input lines of the port</p>
+    </blockquote></li>
+    <li><p><code>line0</code>, <code>line1</code>, <code>line2</code>, <code>line3</code>, <code>line4</code>, <code>line5</code>, <code>line6</code>, <code>line7</code></p>
+
+    <blockquote>
+      <p>individual line objects on the port</p>
+    </blockquote></li>
+    </ul>
+
+    <h1 id="line_objects_port1_buttons">line objects (port1, buttons)</h1>
+
+    <p>Object representing a single line on port1/buttons.</p>
+
+    <h2 id="line_objects_port1_buttons_properties">line objects (port1, buttons) properties</h2>
+
+    <ul>
+    <li><p><code>state</code></p>
+
+    <blockquote>
+      <p>bit representing state of line (read)</p>
+    </blockquote></li>
+    <li><p><code>enabled</code></p>
+
+    <blockquote>
+      <p>bit representing whether line is enabled (read/write)</p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='int0'></a></p>
+
+    <h1 id="int0_voice_key_object">int0, voice_key object</h1>
+
+    <p>Interrupt 0 / voice key object</p>
+
+    <h2 id="int0_voice_key_object_properties">int0, voice_key object properties</h2>
+
+    <ul>
+    <li><p><code>enabled</code></p>
+
+    <blockquote>
+      <p>bit representing whether port is enabled (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debounce_down</code></p>
+
+    <blockquote>
+      <p>byte representing key down debounce time (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debound_up</code></p>
+
+    <blockquote>
+      <p>byte representing key up debounce time (read/write)</p>
+    </blockquote></li>
+    <li><p><code>primary_gain</code></p>
+
+    <blockquote>
+      <p>byte representing primary gain (read/write)</p>
+    </blockquote></li>
+    <li><p><code>secondary_gain</code></p>
+
+    <blockquote>
+      <p>byte representing secondary gain (read/write)</p>
+    </blockquote></li>
+    <li><p><code>min_duration</code></p>
+
+    <blockquote>
+      <p>byte representing minimum duration (read/write)</p>
+    </blockquote></li>
+    <li><p><code>min_silence</code></p>
+
+    <blockquote>
+      <p>byte representing minimum silence (read/write)</p>
+    </blockquote></li>
+    <li><p><code>trigger_level</code></p>
+
+    <blockquote>
+      <p>byte representing trigger level (threshold) (read/write)</p>
+    </blockquote></li>
+    <li><p><code>mic_pass_thru</code></p>
+
+    <blockquote>
+      <p>bit representing microphone pass through state. 
+      note value is not read from the box, so value will only
+      be valid after it is first written (read/write)</p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='int1'></a></p>
+
+    <h1 id="int1_optic_key_object">int1, optic_key object</h1>
+
+    <p>Interrupt 1 / optic key object</p>
+
+    <h1 id="int1_optic_key_object_properties">int1, optic_key object properties</h1>
+
+    <ul>
+    <li><p><code>enabled</code></p>
+
+    <blockquote>
+      <p>bit representing whether port is enabled (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debounce_down</code></p>
+
+    <blockquote>
+      <p>byte representing key down debounce time (read/write)</p>
+    </blockquote></li>
+    <li><p><code>debound_up</code></p>
+
+    <blockquote>
+      <p>byte representing key up debounce time (read/write)</p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='serial'></a></p>
+
+    <h1 id="serial_object">serial object</h1>
+
+    <p>Object representing the serial port on the USBBox.  Operates at 9600 baud.</p>
+
+    <h2 id="serial_object_methods">serial object methods</h2>
+
+    <ul>
+    <li><p><code>read()</code></p>
+
+    <blockquote>
+      <p>read bytes from the serial port.  returns bytes as a Python string 
+      (as a file object would).  returns an empty string &#8221; if no bytes were received
+      after timing out.  bytes sent to the serial port will be stored on this object
+      until <code>read()</code> is called.</p>
+    </blockquote></li>
+    <li><p><code>write(bytes)</code></p>
+
+    <blockquote>
+      <p>write bytes to the serial port.  blocks until all bytes written.  bytes should
+      be a Python string.</p>
+    </blockquote></li>
+    </ul>
+
+    <p><a name='commands'></a></p>
+
+    <h1 id="commands_object">commands object</h1>
+
+    <p>The <code>commmands</code> object is intended to be a fairly low-level interface to the response box.
+    It is mainly concerned with sending and receiving reports and therefore closely mimics the
+    underlying protocol of the response box.</p>
+
+    <h2 id="commands_object_methods">commands object methods</h2>
+
+    <p>There exists one method for each command report specified in the response box manual.  They 
+    are names are lowercase (and - to _) versions of the IDs specified in the manual.  These methods
+    are used to send commands to the HID device.
+    e.g.</p>
+
+    <pre><code>usbbox.commands.verget() # send a VERGET command to the box
+    usbbox.commands.dirset(1,0,0) # send a DIRGET command (enable loopback)
+    </code></pre>
+
+</body>
+</html>

@@ -505,9 +505,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             #add current symbol
             sa.BeginBold()
             sa.WriteText('Symbol: ')
-            sa.BeginTextColor('BLUE')
+            sa.BeginTextColour('BLUE')
             sa.WriteText(currWord+'\n')
-            sa.EndTextColor()
+            sa.EndTextColour()
             sa.EndBold()
 
             #add expected type
@@ -1107,8 +1107,8 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
         self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
         wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
-        self.helpMenu.Append(self.IDs.api, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
-        wx.EVT_MENU(self, self.IDs.api, self.app.followLink)
+        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
+        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
 
         self.demosMenu = wx.Menu()
         menuBar.Append(self.demosMenu, '&Demos')
@@ -1439,6 +1439,7 @@ class CoderFrame(wx.Frame):
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on mtime-stamps
+        if doc==None: return True#we have no file loaded
         if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
             return True
         actualModTime = os.path.getmtime(doc.filename)
@@ -1847,3 +1848,4 @@ class CoderFrame(wx.Frame):
         filename = tmpFilename.split('File "',1)[1]
         lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)
+
