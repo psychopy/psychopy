@@ -1,3 +1,5 @@
+.. _timing:
+
 Timing Issues and synchronisation
 ==================================
 

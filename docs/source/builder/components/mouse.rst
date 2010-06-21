@@ -15,7 +15,7 @@ Use the mouse to record the location of a button press
 
 Use the mouse to control stimulus parameters
     Imgine you want to use your mouse to make your 'patch'_ bigger or smaller and save the final size.
-    Call your `mouse'_ 'mouse', set it to save its state at the end of the trial and set the button press to
+    Call your `mouse`_ 'mouse', set it to save its state at the end of the trial and set the button press to
     end the Routine. Then for the size setting of your Patch stimulus insert `$mouse.getPos()[0]` to use the 
     x position of the mouse to control the size or `$mouse.getPos()[1]`.
     

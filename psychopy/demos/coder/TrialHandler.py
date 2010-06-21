@@ -5,11 +5,11 @@ from psychopy import *
 #create your list of stimuli
 stimList = []
 for ori in range(90,180,30):
-	for sf in [0.5, 1.0, 2.0]:
-		stimList.append( 
-			{'sf':sf, 'ori':ori} #this is a python 'dictionary'
-			)
-		
+    for sf in [0.5, 1.0, 2.0]:
+        stimList.append( 
+            {'sf':sf, 'ori':ori} #this is a python 'dictionary'
+            )
+
 #organise them with the trial handler
 trials = data.TrialHandler(stimList,10)
 trials.data.addDataType('choice')#this will help store things with the stimuli
@@ -18,7 +18,6 @@ trials.data.addDataType('RT')#add as many types as you like
 #run the experiment
 nDone=0
 for thisTrial in trials: #handler can act like a for loop
-    
     #simulate some data
     thisReactionTime = random()+float(thisTrial['sf'])/2.0
     thisChoice = round(random())

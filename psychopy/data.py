@@ -1,6 +1,6 @@
 """Routines for handling data structures and analysis"""
 # Part of the PsychoPy library
-# Copyright (C) 2009 Jonathan Peirce
+# Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
@@ -276,7 +276,7 @@ class TrialHandler:
                 dataOutNew.append('ran_sum')
                 continue#no need to do more with this one
             #then break into dataType and analysis 
-            dataType, analType =string.split(thisDataOut, '_', 1)
+            dataType, analType =string.rsplit(thisDataOut, '_', 1)
             if dataType=='all':
                 dataOutNew.extend([key+"_"+analType for key in allDataTypes])
             else:
@@ -291,7 +291,7 @@ class TrialHandler:
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
             
-            dataType, analType =string.split(thisDataOut, '_', 1)
+            dataType, analType =string.rsplit(thisDataOut, '_', 1)
             if not self.data.has_key(dataType): 
                 dataOut.remove(thisDataOut)#that analysis can't be done
                 continue
@@ -438,11 +438,56 @@ class StairHandler:
                  minVal=None,
                  maxVal=None):
         """
-        stepType 
-            specifies whether each step will be a jump of the given size in 
-            'db', 'log' or 'lin' units ('lin' means this intensity will be added/subtracted)     
-     
-            """
+        :Parameters:
+            
+            startVal:
+                The initial value for the staircase.
+            
+            nReversals:
+                The minimum number of reversals permitted. If stepSizes is a list then there must
+                also be enough reversals to satisfy this list.
+    
+            stepSizes:
+                The size of steps as a single value or a list (or array). For a single value the step
+                size is fixed. For an array or list the step size will progress to the next entry
+                at each reversal.
+            
+            nTrials:
+                The minimum number of trials to be conducted. If the staircase has not reached the
+                required number of reversals then it will continue.
+                
+            nUp:
+                The number of 'incorrect' (or 0) responses before the staircase level increases.
+                
+            nDown:
+                The number of 'correct' (or 1) responses before the staircase level decreases.
+                
+            extraInfo:
+                A dictionary (typically) that will be stored along with collected data using 
+                :func:`~psychopy.data.StairHandler.saveAsPickle` or 
+                :func:`~psychopy.data.StairHandler.saveAsText` methods. 
+                
+            stepType:
+                specifies whether each step will be a jump of the given size in 
+                'db', 'log' or 'lin' units ('lin' means this intensity will be added/subtracted)     
+            
+            method:
+                Not used and may be deprecated in future releases.
+            
+            stepType: *'db'*, 'lin', 'log'
+                The type of steps that should be taken each time. 'lin' will simply add or subtract that
+                amount each step, 'db' and 'log' will step by a certain number of decibels or log units
+                (note that this will prevent your value ever reaching zero or less)
+                
+            minVal: *None*, or a number
+                The smallest legal value for the staircase, which can be used to prevent it
+                reaching impossible contrast values, for instance.
+            
+            maxVal: *None*, or a number
+                The largest legal value for the staircase, which can be used to prevent it
+                reaching impossible contrast values, for instance.
+                
+        """
         
         self.startVal=startVal
         self.nReversals=nReversals
@@ -568,9 +613,9 @@ class StairHandler:
                 
     def next(self):
         """Advances to next trial and returns it.
-        Updates attributes: thisTrial, thisTrialN and thisIndex       
+        Updates attributes; `thisTrial`, `thisTrialN` and `thisIndex`.   
         
-        If the trials have ended this method will raise a StopIteration error.
+        If the trials have ended, calling this method will raise a StopIteration error.
         This can be handled with code such as::
             
             staircase = StairHandler(.......)
@@ -630,10 +675,17 @@ class StairHandler:
         """
         Write a text file with the data and various chosen stimulus attributes
         
-        Arguments:
-            fileName 
-                will have .dlm appended (so you can double-click it to
-                open in excel) and can include path info.
+        :Parameters:
+        
+            fileName: a string
+                The name of the file, including path if needed. The extension 
+                `.dlm` will be added if not included.
+            
+            delim: a string
+                the delimitter to be used (e.g. '\t' for tab-delimitted, ',' for csv files)
+                
+            matrixOnly: True/False
+                If True, prevents the output of the `extraInfo` provided at initialisation.
         """
         
         #create the file or print to stdout
@@ -1235,45 +1287,58 @@ class RunTimeInfo(dict):
     Example usage: see runtimeInfo.py in coder demos.
     
     :Author:
-        - 2010 written by Jeremy Gray, with input from Jon Pierce and Alex Holcombe
+        - 2010 written by Jeremy Gray, with input from Jon Peirce and Alex Holcombe
     """
     def __init__(self, author=None, version=None, win=None, refreshTest='grating',
                  userProcsDetailed=False, verbose=False, randomSeed=None ):
         """
         :Parameters:
             
-            win : *None*, False, psychopy.visual.Window() instance
+            win : *None*, False, :class:`~psychopy.visual.Window` instance
                 what window to use for refresh rate testing (if any) and settings. None -> temporary window using
                 defaults; False -> no window created, used, nor profiled; a Window() instance you have already created
+            
             author : *None*, string
                 None = try to autodetect first __author__ in sys.argv[0]; string = user-supplied author info (of an experiment)
+            
             version : *None*, string
                 None = try to autodetect first __version__ in sys.argv[0]; string = user-supplied version info (of an experiment)
+            
             verbose : *False*, True; how much detail to assess
+            
             refreshTest : None, False, True, *'grating'*
                 True or 'grating' = assess refresh average, median, and SD of 60 win.flip()s, using visual.getMsPerFrame()
                 'grating' = show a visual during the assessment; True = assess without a visual
+                
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
+                
             randomSeed: *None*
                 a way for the user to record, and optionally set, a random seed for making reproducible random sequences
-                'set:XYZ' will both record the seed, 'XYZ', and pass it into random: random.seed('XYZ');
+                'set:XYZ' will both record the seed, 'XYZ', and set it: random.seed('XYZ'); numpy.random.seed() is NOT set
                 None defaults to python default;
                 'time' = use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
                 
-        :Returns a flat dict: (flat but with several groups based on key names)
+        :Returns: 
+            a flat dict (but with several groups based on key names):
             
             psychopy : version, rush() availability
                 psychopyVersion, psychopyHaveExtRush
-            experiment : author, version, directory, name, current time-stamp, SHA1 digest, VCS info (if any, svn or hg only)
+                
+            experiment : author, version, directory, name, current time-stamp, 
+                SHA1 digest, VCS info (if any, svn or hg only),
                 experimentAuthor, experimentVersion, ...
+                
             system : hostname, platform, user login, count of users, user process info (count, cmd + pid), flagged processes
                 systemHostname, systemPlatform, ...
+                
             window : (see output; many details about the refresh rate, window, and monitor; units are noted)
                 windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
+                
             python : version of python, versions of key packages (numpy, scipy, matplotlib, pyglet, pygame)
                 pythonVersion, pythonScipyVersion, ...
+                
             openGL : version, vendor, rendering engine, plus info on whether several extensions are present
                 openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
         """
@@ -1686,7 +1751,7 @@ def _getHgVersion(file):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    if not os.path.exists(file): # or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
+    if not os.path.exists(file) or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
         return None
     try:
         hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)
