@@ -1,3 +1,11 @@
+psychopy (1.61.02+svn1004.dfsg-1~pre0) unstable; urgency=low
+
+  * New upstream release:
+    - no string exceptions (Closes: #585272)
+    - includes iolab's Python interface
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 21 Jun 2010 12:05:28 -0400
+
 psychopy (1.61.00.dfsg-1) unstable; urgency=low
 
   * New upstream release
