@@ -21,6 +21,10 @@ License: GPL-3+
     On Debian GNU/Linux systems, the complete text of the GPL-3 License
     can be found in `/usr/share/common-licenses/GPL-3'.
 
+Files: psychopy/hardware/ioLabs/*
+Copyright: Copyright, 2010, IOLAB SYSTEMS INC <development@iolab.co.uk>
+License: GPL-3+
+
 Files: debian/*
 Copyright: Copyright, 2007-2010,
   Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
