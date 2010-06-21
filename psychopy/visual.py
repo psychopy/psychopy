@@ -3175,7 +3175,7 @@ class MovieStim(_BaseVisualStim):
     
     **examples**::
     
-        mov = visual.MovieStim(myWin, 'testmovie.mpg', fliVert=False)
+        mov = visual.MovieStim(myWin, 'testMovie.mp4', fliVert=False)
         print mov.duration
         print mov.format.width, mov.format.height #give the original size of the movie in pixels
         
