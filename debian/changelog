@@ -1,6 +1,6 @@
-psychopy (1.61.02+svn1004.dfsg-1~pre0) unstable; urgency=low
+psychopy (1.61.02.dfsg-1) unstable; urgency=low
 
-  * New upstream release:
+  * New upstream release (+ few svn commits getting to rev1004)
     - no string exceptions (Closes: #585272)
     - includes iolab's Python interface
 
