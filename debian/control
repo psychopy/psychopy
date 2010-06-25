@@ -1,7 +1,7 @@
 Source: psychopy
 Section: science
 Priority: optional
-Maintainer: Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
+Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: cdbs, debhelper (>= 5.0.38), python-support (>= 0.6), python (>= 2.4), python-setuptools (>= 0.6), help2man, imagemagick
 XS-Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
