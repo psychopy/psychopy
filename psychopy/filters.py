@@ -49,9 +49,9 @@ def makeGrating(res,
     elif gratType is "ramp":
             intensity= contr*( xrange*numpy.cos(ori)+yrange*numpy.sin(ori) )/(2*numpy.pi)
     elif gratType is "sqr":#square wave (symmetric duty cycle)
-            intensity = numpy.where(onePeriodX>pi, 1, -1)
+            intensity = numpy.where(yrange>=numpy.pi, 1, -1)
     elif gratType is "sinXsin":
-            intensity = numpy.sin(onePeriodX)*numpy.sin(onePeriodY)
+            intensity = numpy.sin(xrange)*numpy.sin(yrange)
     else:#might be a filename of an image
             try:
                     im = Image.open(gratType)
