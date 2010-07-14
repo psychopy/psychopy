@@ -1,3 +1,22 @@
+psychopy (1.61.02.dfsg-2) unstable; urgency=low
+
+  * Debian packaging:
+    - Moving under NeuroDebian Team umbrella
+    - Boosting policy to 3.9.0 -- no changes seems to be due
+    - Adding both python-pyglet and python-pygames to Recommends (they are
+      also present in Depends but with the choice of one over the other).
+      That should make default installations more coherent and less
+      troublesome
+  * Absorbed some upstream commits from svn/trunk:
+    - lib: fixed bug in filters.makeGrating where gratType='sqr'
+    - lib: fixed bug in new color spaces for non-shader code
+    - BF: making RaingScale an explicit old-style class
+      (otherwise import fails on Python 2.4)
+    - removing testmovie.mpg (unknown license), using new and shiny
+      testMovie.mp4
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 14 Jul 2010 09:59:29 -0400
+
 psychopy (1.61.02.dfsg-1) unstable; urgency=low
 
   * New upstream release (+ few svn commits getting to rev1004)
