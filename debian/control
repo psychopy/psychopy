@@ -1,18 +1,18 @@
 Source: psychopy
 Section: science
 Priority: optional
-Maintainer: Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
+Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: cdbs, debhelper (>= 5.0.38), python-support (>= 0.6), python (>= 2.4), python-setuptools (>= 0.6), help2man, imagemagick
 XS-Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
 XS-Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
-Standards-Version: 3.8.4
+Standards-Version: 3.9.0
 Homepage: http://www.psychopy.org
 
 Package: psychopy
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pyglet | python-pygame, python-opengl, python-numpy, python-matplotlib, python-lxml, python-configobj
-Recommends: python-wxgtk2.8, python-imaging, python-serial, python-scipy, libavbin0
+Recommends: python-wxgtk2.8, python-pyglet, python-pygame, python-imaging, python-serial, python-scipy, libavbin0
 Suggests: python-pyepl
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
