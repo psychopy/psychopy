@@ -12,7 +12,7 @@ Homepage: http://www.psychopy.org
 Package: psychopy
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pyglet | python-pygame, python-opengl, python-numpy, python-matplotlib, python-lxml, python-configobj
-Recommends: python-wxgtk2.8, python-imaging, python-serial, python-scipy, libavbin0
+Recommends: python-wxgtk2.8, python-pyglet, python-pygame, python-imaging, python-serial, python-scipy, libavbin0
 Suggests: python-pyepl
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
