@@ -2218,9 +2218,6 @@ class RadialStim(PatchStim):
         self.setTex(tex)
         self.setMask(mask)
         
-        #generate a displaylist ID
-        self._listID = GL.glGenLists(1)
-
         #
         self._triangleWidth = pi*2/self.angularRes
         self._angles = numpy.arange(0,pi*2, self._triangleWidth, dtype='float64')
@@ -2228,7 +2225,6 @@ class RadialStim(PatchStim):
         self._visible = (self._angles>=(self.visibleWedge[0]*pi/180))#first edge of wedge
         self._visible[(self._angles+self._triangleWidth)*180/pi>(self.visibleWedge[1])] = False#second edge of wedge
         self._nVisible = numpy.sum(self._visible)*3
-
         
         #do the scaling to the window coordinate system (norm or pix coords)
         if self.units=='norm': self._winScale='norm'
@@ -2239,7 +2235,10 @@ class RadialStim(PatchStim):
         self._updateTextureCoords()
         self._updateMaskCoords()
         self._updateXY()
-        self._updateList()#ie refresh display list
+        if not self._useShaders:
+            #generate a displaylist ID
+            self._listID = GL.glGenLists(1)
+            self._updateList()#ie refresh display list
 
     def setSize(self, value, operation=''):
         self._set('size', value, operation)
@@ -2304,8 +2303,7 @@ class RadialStim(PatchStim):
             
             #assign vertex array
             if self.win.winType=='pyglet':
-                arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes) 
             else:
                 GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
 
@@ -2327,8 +2325,7 @@ class RadialStim(PatchStim):
             #set pointers to visible textures
             GL.glClientActiveTexture(GL.GL_TEXTURE0)
             if self.win.winType=='pyglet':
-                arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-                GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+                GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes) 
             else:
                 GL.glTexCoordPointerd(self._visibleTexture)
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
@@ -2336,8 +2333,7 @@ class RadialStim(PatchStim):
             #mask
             GL.glClientActiveTexture(GL.GL_TEXTURE1)
             if self.win.winType=='pyglet':
-                arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-                GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, arrPointer) 
+                GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, self._visibleMask.ctypes) 
             else:
                 GL.glTexCoordPointerd(self._visibleMask)
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)                    
@@ -2345,10 +2341,17 @@ class RadialStim(PatchStim):
             #do the drawing
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
+            
+            #unbind the textures
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            #main texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glDisable(GL.GL_TEXTURE_2D)
             #disable set states
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-            GL.glDisable(GL.GL_TEXTURE_2D)
             
             GL.glUseProgram(0)
         else:  
@@ -2466,8 +2469,7 @@ class RadialStim(PatchStim):
 
         #assign vertex array
         if self.win.winType=='pyglet':
-            arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes) 
         else:
             GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
@@ -2486,16 +2488,14 @@ class RadialStim(PatchStim):
         #set pointers to visible textures
         GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
         if self.win.winType=='pyglet':
-            arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,self._visibleTexture.ctypes) 
         else:
             GL.glTexCoordPointerd(self._visibleTexture)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #mask
         GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
         if self.win.winType=='pyglet':
-            arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, arrPointer) 
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes) 
         else:
             GL.glTexCoordPointerd(self._visibleMask)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
@@ -3012,7 +3012,9 @@ class ElementArrayStim:
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
-        """        
+        """
+        import time
+        t0=time.clock()
         if self.needVertexUpdate: 
             self.updateElementVertices()
         if self.needColorUpdate:
@@ -3024,39 +3026,50 @@ class ElementArrayStim:
         GL.glPushMatrix()#push before drawing, pop after        
         GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
         
-        GL.glLoadIdentity()
+        #GL.glLoadIdentity()
         self.win.setScale(self._winScale)
         if self.fieldDepth==0:
             thisDepth=self.win._defDepth
             self.win._defDepth += _depthIncrements[self.win.winType]
         GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
-               
-        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes)
-        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+        
+        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
 
         #setup the shaderprogram        
         GL.glUseProgram(self.win._progSignedTexMask)
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
         GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+          
+        #bind textures
+        GL.glActiveTexture (GL.GL_TEXTURE1)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self.maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture (GL.GL_TEXTURE0)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self.texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         
         #setup client texture coordinates first
-        GL.glClientActiveTexture (GL.GL_TEXTURE0)   
-        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)  
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)    
-        GL.glClientActiveTexture (GL.GL_TEXTURE1)   
-        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)  
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)    
-        #then bind textures
-        GL.glActiveTexture (GL.GL_TEXTURE1)     
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture (GL.GL_TEXTURE_2D, self.maskID)
-        GL.glActiveTexture (GL.GL_TEXTURE0)     
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture (GL.GL_TEXTURE_2D, self.texID)
-        
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glClientActiveTexture (GL.GL_TEXTURE0)
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        GL.glClientActiveTexture (GL.GL_TEXTURE1)
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+             
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDrawArrays(GL.GL_QUADS, 0, self._visXYZvertices.shape[0]*4)
+        
+        #unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        #main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        #disable states
         GL.glDisableClientState(GL.GL_COLOR_ARRAY)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
