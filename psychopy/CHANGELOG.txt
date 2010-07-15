@@ -5,7 +5,7 @@ Changelog
   Version numbers
   
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
-  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
+  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
 Known issues
 ------------------
@@ -25,8 +25,9 @@ PsychoPy 1.61.02
 Patch released June 2010
 
 * ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
+* ADDED: visual.RatingScale 'stimulus' (thanks to JG). See ratingScale demo in Coder view
 * FIXED: TrialHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
-* FIXED: loading of scripts by coder on windows assumed ASCII so broke with , now assumes UNICODE (as was case with other platforms)
+* FIXED: loading of scripts by coder on windows assumed ASCII so broke with unicode characters. Now assumes unicode (as was case with other platforms)
 * FIXED: minor bugs connecting to PR650
 
 PsychoPy 1.61.01

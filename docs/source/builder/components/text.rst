@@ -1,6 +1,6 @@
-.. _Text:
+.. _text:
 
-Text
+Text Component
 -------------------------------
 
 This component can be used to present text to the participant, either instructions or as stimuli.
