@@ -25,6 +25,7 @@ Patch released July 2010
 * FIXED: problem with nVidia cards under win32 being slow to render RadialStim
 * FIXED bug in filters.makeGrating where gratType='sqr'
 * FIXED bug in new color spaces for computers that don't support shaders
+* ADDED option to Builder components to have 'advanced' parameters not shown by default (and put this to use for Patch Component)
 
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
