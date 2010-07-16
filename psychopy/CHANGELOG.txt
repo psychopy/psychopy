@@ -16,9 +16,15 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
-PsychoPy 1.61.03 (svn)
+PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
+Patch released July 2010
+
 * FIXED: harmless error messages caused by trying to get the file date/time when no file is open
+* CHANGED: movie file used in movie demo (the chimp had unknown copyright)
+* FIXED: problem with nVidia cards under win32 being slow to render RadialStim
+* FIXED bug in filters.makeGrating where gratType='sqr'
+* FIXED bug in new color spaces for computers that don't support shaders
 
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
