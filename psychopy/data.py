@@ -856,11 +856,9 @@ class DataHandler(dict):
                 self._convertToObjectArray(thisType)
         #insert the value
         self[thisType][position[0],position[1]]=value
-        print 'inserting' , value
     def _convertToObjectArray(self, thisType):
         """Convert this datatype from masked numeric array to unmasked object array
         """
-        print 'converting', thisType
         dat = self[thisType]
         self[thisType] = numpy.asarray(dat, dtype='O')#create an array of Object type
         self[thisType] = numpy.where(dat.mask, '--',dat)#masked vals should be "--", others keep data
