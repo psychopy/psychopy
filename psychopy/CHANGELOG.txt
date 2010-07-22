@@ -16,6 +16,12 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.04 (svn)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: bug opening loop properties (bug introduced by new advanced params option)
+* CHANGED: data for TrialHandler are now stored as masked arrays where possible. This means that trials with no response can be more easily ignored by analysis.
+
 PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Patch released July 2010

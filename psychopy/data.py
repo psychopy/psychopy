@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
-import cPickle, shelve, string, sys, platform, os, time, copy
+import cPickle, string, sys, platform, os, time, copy
 import numpy
 from scipy import optimize, special
 
@@ -82,6 +82,7 @@ class TrialHandler:
         if dataTypes!=None: 
             self.data.addDataType(dataTypes)
         self.data.addDataType('ran')
+        self.data['ran'].mask=False#this is a bool - all entries are valid
         #generate stimulus sequence
         if self.method in ['random','sequential']:
             self.sequenceIndices = self._createSequence()
@@ -272,7 +273,7 @@ class TrialHandler:
         dataOutNew=[]
         for thisDataOut in dataOut:
             if thisDataOut=='n': 
-                #n is really just hte sum of the ran trials
+                #n is really just the sum of the ran trials
                 dataOutNew.append('ran_sum')
                 continue#no need to do more with this one
             #then break into dataType and analysis 
@@ -281,41 +282,43 @@ class TrialHandler:
                 dataOutNew.extend([key+"_"+analType for key in allDataTypes])
             else:
                 dataOutNew.append(thisDataOut)
-        dataOut=dataOutNew
-        
+        dataOut=dataOutNew        
         dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        dataOutInvalid=[]
         if 'ran_sum' in dataOut:#move n to the first column
             dataOut.remove('ran_sum')
             dataOut.insert(0,'ran_sum')
-        
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
-            
             dataType, analType =string.rsplit(thisDataOut, '_', 1)
             if not self.data.has_key(dataType): 
-                dataOut.remove(thisDataOut)#that analysis can't be done
+                dataOutInvalid.append(thisDataOut)#that analysis can't be done
                 continue
             thisData = self.data[dataType]
             
             #set the header
             dataHead.append(dataType+'_'+analType)
-            
             #analyse thisData using numpy module
             if analType in dir(numpy):
                 try:#this will fail if we try to take mean of a string for example
                     exec("thisAnal = numpy.%s(thisData,1)" %analType)
                 except:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
+                    dataOutInvalid.append(thisDataOut)
+                    continue#to next analysis
             elif analType=='raw':
                 thisAnal=thisData
             else:
                 raise AttributeError, 'You can only use analyses from numpy'
             #add extra cols to header if necess
-            if len(thisAnal.shape)>1:
+            if len(thisAnal.shape)>1:                
                 for n in range(thisAnal.shape[1]-1):
                     dataHead.append("")
             dataAnal[thisDataOut]=thisAnal
-            
+        
+        #remove invalid analyses (e.g. average of a string)
+        for invalidAnal in dataOutInvalid: dataOut.remove(invalidAnal)
+        
         #create the file or print to stdout
         if appendFile: writeFormat='a'
         else: writeFormat='w' #will overwrite a file        
@@ -347,6 +350,8 @@ class TrialHandler:
                 tmpData = dataAnal[thisDataOut][stimN]
                 if hasattr(tmpData,'tolist'): strVersion = str(tmpData.tolist())
                 else: strVersion = str(tmpData)
+                
+                if strVersion=='()': strVersion="--"#no data in masked array should show as "--"
                 
                 for brackets in ['[', ']','(',')']: #some objects may have these surrounding their string representation
                     strVersion=string.replace(strVersion, brackets,"")
@@ -778,6 +783,11 @@ class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
     
+    Numeric data are stored as numpy masked arrays where the mask is set True for missing entries.
+    When any non-numeric data (string, list or array) get inserted using DataHandler.add(val) the array
+    is converted to a standard (not masked) numpy array with dtype='O' and where missing entries have
+    value="--"
+    
     Attributes:
         - ['key']=data arrays containing values for that key
             (e.g. data['accuracy']=...)
@@ -788,11 +798,11 @@ class DataHandler(dict):
     def __init__(self, dataTypes=None, trials=None, dataShape=None):
         self.trials=trials
         self.dataTypes=[]#names will be added during addDataType
-        
+        self.isNumeric={}
         #if given dataShape use it - otherwise guess!
         if dataShape: self.dataShape=dataShape
         elif self.trials:
-            self.dataShape=list(numpy.asarray(trials.trialList, 'O').shape)
+            self.dataShape=list(numpy.asarray(trials.trialList,'O').shape)
             self.dataShape.append(trials.nReps)
             
         #initialise arrays now if poss
@@ -814,10 +824,14 @@ class DataHandler(dict):
             for thisName in names: self.addDataType(thisName)
         else:
             #create the appropriate array in the dict
-            self[names]=numpy.zeros(shape,'O')#make sure it's an object datatype
+            #initially use numpy masked array of floats with mask=True for missing vals
+            #convert to a numpy array with dtype='O' if non-numeric data given
+            #NB don't use masked array with dytpe='O' together -they don't unpickle
+            self[names]=numpy.ma.zeros(shape,'f')#masked array of floats
+            self[names].mask=True
             #add the name to the list
             self.dataTypes.append(names)
-    
+            self.isNumeric[names]=True#until we need otherwise
     def add(self, thisType, value, position=None):
         """Add data to an existing data type
         (and add a new one if necess)
@@ -836,12 +850,21 @@ class DataHandler(dict):
             #array isn't big enough
             log.warning('need a bigger array for:'+thisType)
             self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
-        if (type(value) in [str, unicode]) and len(value)>1:
-            self[thisType] = numpy.asarray(self[thisType],dtype=numpy.object)
+        #check for ndarrays with more than one value and for non-numeric data
+        if self.isNumeric[thisType] and \
+            ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):
+                self._convertToObjectArray(thisType)
         #insert the value
-        self[thisType][position[0]][position[1]]=value
-        
-        
+        self[thisType][position[0],position[1]]=value
+        print 'inserting' , value
+    def _convertToObjectArray(self, thisType):
+        """Convert this datatype from masked numeric array to unmasked object array
+        """
+        print 'converting', thisType
+        dat = self[thisType]
+        self[thisType] = numpy.asarray(dat, dtype='O')#create an array of Object type
+        self[thisType] = numpy.where(dat.mask, '--',dat)#masked vals should be "--", others keep data
+        self.isNumeric[thisType]=False
 
 class FitFunction:
     """Deprecated - use the specific functions; FitWeibull, FitLogistic...
