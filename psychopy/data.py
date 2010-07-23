@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
+print 'gothere'
 from psychopy import misc, gui, log
 import cPickle, string, sys, platform, os, time, copy
 import numpy
@@ -22,6 +22,11 @@ try: import hashlib # python 2.5
 except: import sha
 import random
 
+try:
+    import openpyxl
+    haveOpenpyxl=True
+except:
+    haveOpenpyxl=False
     
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
@@ -223,44 +228,7 @@ class TrialHandler:
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
         return self.thisTrial
-    def saveAsText(self,fileName, 
-                   stimOut=[], 
-                   dataOut=('n','all_mean','all_std', 'all_raw'),
-                   delim='\t',
-                   matrixOnly=False,
-                   appendFile=True,
-                  ):
-        """
-        Write a text file with the data and various chosen stimulus attributes
-        
-         **arguments:**
-            fileName
-                will have .dlm appended (so you can double-click it to
-                open in excel) and can include path info.       
-            
-            stimOut 
-                the stimulus attributes to be output. To use this you need to
-                use a list of dictionaries and give here the names of dictionary keys
-                that you want as strings         
-            
-            dataOut
-                a list of strings specifying the dataType and the analysis to
-                be performed,in the form /dataType_analysis/. The data can be any of the types that
-                you added using trialHandler.data.add() and the analysis can be either
-                'raw' or most things in the numpy library, including;
-                'mean','std','median','max','min'...
-                The default values will output the raw, mean and std of all datatypes found 
-            
-            delim
-                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
-            
-            matrixOnly
-                outputs the data with no header row or extraInfo attached
-            
-            appendFile
-                will add this output to the end of the specified file if it already exists
-            
-        """
+    def _parseDataOutput(self, dataOut):
         
         dataHead=[]#will store list of data headers
         dataAnal=dict([])	#will store data that has been analyzed
@@ -318,6 +286,48 @@ class TrialHandler:
         
         #remove invalid analyses (e.g. average of a string)
         for invalidAnal in dataOutInvalid: dataOut.remove(invalidAnal)
+        print 'performed _parseDataOutput'
+        return dataOut, dataAnal, dataHead
+    def saveAsText(self,fileName, 
+                   stimOut=[], 
+                   dataOut=('n','all_mean','all_std', 'all_raw'),
+                   delim='\t',
+                   matrixOnly=False,
+                   appendFile=True,
+                  ):
+        """
+        Write a text file with the data and various chosen stimulus attributes
+        
+         **arguments:**
+            fileName
+                will have .dlm appended (so you can double-click it to
+                open in excel) and can include path info.       
+            
+            stimOut 
+                the stimulus attributes to be output. To use this you need to
+                use a list of dictionaries and give here the names of dictionary keys
+                that you want as strings         
+            
+            dataOut
+                a list of strings specifying the dataType and the analysis to
+                be performed,in the form /dataType_analysis/. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
+                'raw' or most things in the numpy library, including;
+                'mean','std','median','max','min'...
+                The default values will output the raw, mean and std of all datatypes found 
+            
+            delim
+                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
+            
+            matrixOnly
+                outputs the data with no header row or extraInfo attached
+            
+            appendFile
+                will add this output to the end of the specified file if it already exists
+            
+        """
+        print 'performed save'
+        dataOut, dataAnal, dataHead = self._parseDataOutput(self, dataOut=dataOut)
         
         #create the file or print to stdout
         if appendFile: writeFormat='a'
