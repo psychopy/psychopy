@@ -286,7 +286,6 @@ class TrialHandler:
         
         #remove invalid analyses (e.g. average of a string)
         for invalidAnal in dataOutInvalid: dataOut.remove(invalidAnal)
-        print 'performed _parseDataOutput'
         return dataOut, dataAnal, dataHead
     def saveAsText(self,fileName, 
                    stimOut=[], 
@@ -326,8 +325,7 @@ class TrialHandler:
                 will add this output to the end of the specified file if it already exists
             
         """
-        print 'performed save'
-        dataOut, dataAnal, dataHead = self._parseDataOutput(self, dataOut=dataOut)
+        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
         
         #create the file or print to stdout
         if appendFile: writeFormat='a'
