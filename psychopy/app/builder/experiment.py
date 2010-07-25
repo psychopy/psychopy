@@ -396,6 +396,9 @@ class TrialHandler:
         buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx',\n" %self.params)
+        buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+        buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
 
     def getType(self):

@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-print 'gothere'
+
 from psychopy import misc, gui, log
 import cPickle, string, sys, platform, os, time, copy
 import numpy
@@ -25,6 +25,7 @@ import random
 try:
     import openpyxl
     haveOpenpyxl=True
+    from openpyxl.cell import get_column_letter
 except:
     haveOpenpyxl=False
     
@@ -425,6 +426,91 @@ class TrialHandler:
         """Add data for the current trial to the `~psychopy.data.DataHandler`
         """
         self.data.add(thisType, value, position=None)
+    
+    def saveAsExcel(self,fileName, sheetName='rawData',
+                    stimOut=[], 
+                    dataOut=('n','all_mean','all_std', 'all_raw'),
+                    matrixOnly=False,                    
+                    appendFile=True,
+                    ):
+        """
+        Write an Excel (.xlsx) file containing the data and various chosen stimulus attributes.
+        
+        If appendFile is True (and the .xlsx file already exists then a new worksheet will simply be created within
+        it
+        """
+        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
+        if not haveOpenpyxl: 
+            raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
+            return -1
+        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
+        
+        #import necessary subpackages - they are small so won't matter to do it here
+        from openpyxl.workbook import Workbook
+        from openpyxl.writer.excel import ExcelWriter
+        from openpyxl.reader.excel import load_workbook
+        
+        if not fileName.endswith('.xlsx'): fileName+='.xlsx'
+        #create or load the file
+        if appendFile and os.path.isfile(fileName): 
+            wb = load_workbook(fileName)
+            newWorkbook=False
+        else:
+            if not appendFile: #the file exists but we're not appending, so will be overwritten
+                log.warning('Data file, %s, will be overwritten' %fileName)
+            wb = Workbook()#create new workbook
+            wb.properties.creator='PsychoPy'+psychopyVersion
+            newWorkbook=True
+        
+        ew = ExcelWriter(workbook = wb)
+        
+        if newWorkbook:
+            ws = wb.worksheets[0]
+            ws.title=sheetName
+        else:
+            ws=wb.create_sheet()
+            ws.title=sheetName
+
+        #write the header line
+        if not matrixOnly:
+            #write a header line
+            for colN, heading in enumerate(stimOut+dataHead):
+                if heading=='ran_sum': heading ='n'
+                ws.cell(_getExcelCellName(col=colN,row=0)).value=unicode(heading)
+                
+        #loop through lines (trialTypes), writing data
+        for stimN in range(len(self.trialList)):
+            #first the params for this trialType (from self.trialList)
+            for colN, heading in enumerate(stimOut):
+                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(self.trialList[stimN][heading])
+            colN = len(stimOut)
+            #then the data for this stim (from self.data)
+            for thisDataOut in dataOut:
+                tmpData = dataAnal[thisDataOut][stimN]
+                datType = type(tmpData)
+                if tmpData is None:#just go to next column
+                    colN+=1
+                    continue
+                elif not hasattr(tmpData,'__iter__'): 
+                    ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)
+                    colN+=1
+                else:
+                    for entry in tmpData:
+                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
+                        colN+=1
+        
+        #add self.extraInfo
+        rowN = len(self.trialList)+2
+        if (self.extraInfo != None) and not matrixOnly:
+            ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
+            for key,val in self.extraInfo.items():
+                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
+                rowN+=1
+
+        ew.save(filename = fileName)
+
+
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
@@ -1850,3 +1936,14 @@ def getDateStr():
     This is often useful appended to data filenames to provide unique names
     """
     return time.strftime("%b_%d_%H%M", time.localtime())
+
+def _getExcelCellName(col, row):
+    """Returns the excel cell name for a row and column (zero-indexed)
+    
+    >>> _getExcelCellName(0,0)
+    'A1'
+    >>> _getExcelCellName(2,1)
+    'C2'
+    """
+    return "%s%i" %(get_column_letter(col+1), row+1)#BEWARE - openpyxl uses indexing at 1, to fit with Excel
+    
