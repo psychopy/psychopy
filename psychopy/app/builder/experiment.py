@@ -357,16 +357,16 @@ class TrialHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
-        #create nice line-separated list of trialTypes
+        #create nice line-separated list of trial types
         if self.params['trialListFile'].val==None:
             trialStr="[None]"
         else:
-            trialStr="data.importTrialTypes(%s)" %self.params['trialListFile']
+            trialStr="data.importTrialList(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \ntrialList=%s)\n" \
+        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \n    trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with first trial values\n" %(self.thisName, self.params['name']))
 
@@ -386,13 +386,10 @@ class TrialHandler:
         ##a string to show all the available variables (if the trialList isn't just None or [None])
         stimOutStr="["
         if self.params['trialList'].val not in [None, [None]]:
-            for variable in self.params['trialList'].val[0].keys():#get the keys for the first trialType
+            for variable in self.params['trialList'].val[0].keys():#get the keys for the first trial type
                 stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsText(filename+'.dlm',\n" %self.params)
-        buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
-        buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
         buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")

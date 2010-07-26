@@ -300,31 +300,32 @@ class TrialHandler:
         """
         Write a text file with the data and various chosen stimulus attributes
         
-         **arguments:**
-            fileName
+         :Parameters:
+         
+            fileName:
                 will have .dlm appended (so you can double-click it to
                 open in excel) and can include path info.       
             
-            stimOut 
+            stimOut:
                 the stimulus attributes to be output. To use this you need to
                 use a list of dictionaries and give here the names of dictionary keys
                 that you want as strings         
             
-            dataOut
+            dataOut:
                 a list of strings specifying the dataType and the analysis to
-                be performed,in the form /dataType_analysis/. The data can be any of the types that
+                be performed,in the form `dataType_analysis`. The data can be any of the types that
                 you added using trialHandler.data.add() and the analysis can be either
                 'raw' or most things in the numpy library, including;
                 'mean','std','median','max','min'...
                 The default values will output the raw, mean and std of all datatypes found 
             
-            delim
+            delim:
                 allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
             
-            matrixOnly
+            matrixOnly:
                 outputs the data with no header row or extraInfo attached
             
-            appendFile
+            appendFile:
                 will add this output to the end of the specified file if it already exists
             
         """
@@ -436,10 +437,44 @@ class TrialHandler:
                     appendFile=True,
                     ):
         """
-        Write an Excel (.xlsx) file containing the data and various chosen stimulus attributes.
+        Save a summary data file in Excel OpenXML format workbook (.xlsx) for processing 
+        in most spreadsheet packages. This format is compatible with 
+        versions of Excel after 2007 and and with OpenOffice greater than 3.0.
         
-        If appendFile is True (and the .xlsx file already exists then a new worksheet will simply be created within
-        it
+        It has the advantage over the simpler text files (see `~psychopy.data.TrialHandler.saveAsText`)
+        that data can be stored in multiple named sheets within the file. So you could have a single file
+        named after your experiment and then have one worksheet for each participant. Or you could have 
+        one file for each participant and then multiple sheets for repeated sessions etc. 
+        
+        The file extension `xlsx` will be added if not given already.
+        
+        :Parameters:
+        
+            fileName: string
+                will have .dlm appended (so you can double-click it to
+                open in excel) and can include path info
+        
+            sheetName: string
+                the name of the worksheet within the file 
+                
+            stimOut: list of strings
+                the attributes of the trial characteristics to be output. To use this you need to have provided  
+                a list of dictionaries specifying to trialList parameter of the TrialHandler 
+                and give here the names of strings specifying entries in that dictionary         
+            
+            dataOut: list of strings
+                specifying the dataType and the analysis to
+                be performed,in the form `dataType_analysis`. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
+                'raw' or most things in the numpy library, including;
+                'mean','std','median','max','min'...
+                The default values will output the raw, mean and std of all datatypes found 
+            
+            appendFile: True or False
+                If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
+                If a worksheet already exists with that name a number will be added to make it unique.
+            
+        
         """
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl: 
@@ -514,7 +549,7 @@ class TrialHandler:
 
 
 
-def importTrialTypes(fileName):
+def importTrialList(fileName):
         """Imports a list of TrialTypes from an Excel (.xlsx) or comma-separated-value file. 
         
         If `fileName` ends .csv then import as a comma-separated-value file will be used. 
@@ -577,7 +612,6 @@ def importTrialTypes(fileName):
                     raise ImportError, '%s: %s' %(fieldName, msg)
                 else: 
                     fieldNames.append(fieldName)
-                    print 'appending ' , fieldName
                 
             #loop trialTypes
             trialList = []
@@ -2034,7 +2068,7 @@ def isValidVariableName(name):
     >>> isValidVariableName('first second')
     (False, 'Variables cannot contain punctuation or spaces')
     """
-    punctuation = " -[]()+*£@!$%^&/\{}~.,?'|:;"
+    punctuation = " -[]()+*¬£@!$%^&/\{}~.,?'|:;"
     if type(name)!=str:
         raise AttributeError, "name must be a string"
     if name[0].isdigit():

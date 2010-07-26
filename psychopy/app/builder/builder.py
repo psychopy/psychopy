@@ -1286,10 +1286,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 %(len(trialList),len(trialList[0]), trialList[0].keys())
         else:
             return "No parameters set"
-    def importTrialTypes(self, fileName):
-        """Import the trial data from fileName to generate a list of dicts.
-        """
-        self.trialList=data.importTrialTypes(fileName)
     def setCtrls(self, ctrlType):
         #choose the ctrls to show/hide
         if ctrlType=='staircase':
@@ -1321,13 +1317,14 @@ class DlgLoopProperties(_BaseParamsDlg):
             return
         self.setCtrls(newType)
     def onBrowseTrialsFile(self, event):
+        expFolder,expName = os.path.split(self.frame.filename)
         dlg = wx.FileDialog(
-            self, message="Open file ...", style=wx.OPEN
+            self, message="Open file ...", style=wx.OPEN, defaultDir=expFolder,
             )
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
+            newPath = os.path.relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
-            self.importTrialTypes(newPath)
+            self.trialList=data.importTrialList(dlg.GetPath())
             self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
             self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
     def getParams(self):
@@ -1931,8 +1928,8 @@ class BuilderFrame(wx.Frame):
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
     def runFile(self, event=None):
-        script = self.exp.writeScript()
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
+        script = self.exp.writeScript()
         path, scriptName = os.path.split(fullPath)
         shortName, ext = os.path.splitext(scriptName)
         
