@@ -27,5 +27,7 @@ class TestTrialHandler:
         f = open(data_filename, 'rb')
         header = f.readline()
         f.close()
-        expected_header = "n,with_underscore_mean,with_underscore_raw,\n"
+        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std,\n"
+        print header
+        print expected_header
         assert expected_header == header
