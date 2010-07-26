@@ -358,18 +358,15 @@ class TrialHandler:
     def writeInitCode(self,buff):
         #todo: write code to fetch trialList from file?
         #create nice line-separated list of trialTypes
-        if self.params['trialList'].val==None:
+        if self.params['trialListFile'].val==None:
             trialStr="[None]"
         else:
-            trialStr="[ \\\n"
-            for line in self.params['trialList'].val:
-                trialStr += "        %s,\n" %line
-            trialStr += "        ]"
+            trialStr="data.importTrialTypes(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
         buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, trialList=%s)\n" \
+        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \ntrialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with first trial values\n" %(self.thisName, self.params['name']))
 

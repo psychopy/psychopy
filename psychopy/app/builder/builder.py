@@ -9,6 +9,8 @@ import sys, os, glob, copy, platform, py_compile
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
+from psychopy import data
+
 inf=1000000#a million can be infinite?!
 canvasColor=[200,200,200]#in prefs? ;-)
 
@@ -1334,10 +1336,13 @@ class DlgLoopProperties(_BaseParamsDlg):
         #get data from input fields
         for fieldName in self.currentHandler.params.keys():
             param=self.currentHandler.params[fieldName]
-            ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param
-            param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)
-            if ctrls.typeCtrl: param.valType = ctrls.getType()
-            if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
+            if fieldName=='trialListFile':
+                param.val=self.trialListFile#not the value from ctrl - that was abbrieviated
+            else:#most other fields
+                ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param
+                param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)
+                if ctrls.typeCtrl: param.valType = ctrls.getType()
+                if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.currentHandler.params
 class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,
