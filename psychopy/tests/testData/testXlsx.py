@@ -1,22 +1,21 @@
 """Tests for psychopy.data.DataHandler"""
-import os
-import shutil
-import tempfile
+import os, shutil, tempfile
+import numpy
 
 from openpyxl.reader.excel import load_workbook
 from psychopy import data, misc
 
 thisDir,filename = os.path.split(os.path.abspath(__file__))
-name = 'psychopy_testXlsxOutput'
+name = 'psychopy_testXlsx'
 fullName = name+'.xlsx'
-class TestTrialHandler:
+class TestXLSX:
     def setUp(self):
         pass
         
     def tearDown(self):
         os.remove(fullName)
 
-    def test(self):
+    def testReadWriteData(self):
         dat = misc.fromFile(os.path.join(thisDir, 'data.psydat'))
         dat.saveAsExcel(name,
             stimOut=['text', 'congruent', 'corrAns', 'letterColor', ],
@@ -34,3 +33,17 @@ class TestTrialHandler:
                 actVal = actWS._cells[key]
                 print actVal.value, expVal.value
                 assert actVal.value == expVal.value
+
+def testTrialTypeImport():
+    fromCSV = data.importTrialTypes(os.path.join(thisDir, 'trialTypes.csv'))
+    fromXLSX = data.importTrialTypes(os.path.join(thisDir, 'trialTypes.xlsx'))
+    
+    for trialN, trialCSV in enumerate(fromCSV):
+        trialXLSX = fromXLSX[trialN]
+        assert trialXLSX.keys()==trialCSV.keys()
+        for header in trialCSV.keys():
+            if trialXLSX[header]==None and numpy.isnan(trialCSV[header]):
+                trialCSV[header]=None#this is ok
+            if trialXLSX[header] != trialCSV[header]:
+                print header, trialCSV[header], trialXLSX[header]
+            assert trialXLSX[header] == trialCSV[header]

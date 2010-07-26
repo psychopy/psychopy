@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 """Routines for handling data structures and analysis"""
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
-import cPickle, string, sys, platform, os, time, copy
+import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
 from scipy import optimize, special
+from matplotlib import mlab#used for importing csv files
 
 # imports for RuntimeInfo()
 from psychopy.visual import getMsPerFrame
@@ -24,8 +26,9 @@ import random
 
 try:
     import openpyxl
-    haveOpenpyxl=True
     from openpyxl.cell import get_column_letter
+    from openpyxl.reader.excel import load_workbook
+    haveOpenpyxl=True
 except:
     haveOpenpyxl=False
     
@@ -41,7 +44,6 @@ class TrialType(dict):
             except KeyError:
 #                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
-
         
 class TrialHandler:
     """Class to handle smoothly the selection of the next trial
@@ -511,6 +513,87 @@ class TrialHandler:
         ew.save(filename = fileName)
 
 
+
+def importTrialTypes(fileName):
+        """Imports a list of TrialTypes from an Excel (.xlsx) or comma-separated-value file. 
+        
+        If `fileName` ends .csv then import as a comma-separated-value file will be used. 
+        All other filenames will be treated as Excel 2007 (xlsx) files. Sorry no 
+        support for older versions of Excel file are planned.
+        
+        The file should contain one row per type of trial needed and one column 
+        for each parameter that defines the trial type. The first row should give
+        parameter names, which should;
+            
+            - be unique
+            - begin with a letter (upper or lower case)
+            - contain no spaces or other punctuation (underscores are permitted)
+        
+        """
+        if not os.path.isfile(fileName):
+            raise ImportError, 'TrialTypes file not found: %s' %os.path.abspath(fileName)
+        
+        if fileName.endswith('.csv'):
+            #use csv import library to fetch the fieldNames
+            f = open(fileName,'rU')#the U converts lineendings to os.linesep
+            #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
+            reader = csv.reader(f)#.split(os.linesep))
+            fieldNames = reader.next()
+            #use matplotlib to import data and intelligently check for data types
+            #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
+            trialsArr = mlab.csv2rec(f)
+            f.close()
+            #convert the record array into a list of dicts
+            trialList = []
+            for trialN, trialType in enumerate(trialsArr):
+                thisTrial ={}
+                for fieldN, fieldName in enumerate(fieldNames):
+                    OK, msg = isValidVariableName(fieldName)
+                    if not OK:
+                        #provide error message about incorrect header
+                        msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                        raise ImportError, '%s: %s' %(fieldName, msg)
+                    val = trialsArr[trialN][fieldN]
+                    #if it looks like a list, convert it
+                    if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
+                        exec('val=%s' %val)
+                    thisTrial[fieldName] = val
+                trialList.append(thisTrial)
+        else:
+            wb = load_workbook(filename = fileName)
+            ws = wb.worksheets[0]
+            nCols = ws.get_highest_column()
+            nRows = ws.get_highest_row()
+                       
+            #get headers
+            fieldNames = [] 
+            for colN in range(nCols):
+                #get filedName and chack valid
+                fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+                OK, msg = isValidVariableName(fieldName)
+                if not OK:
+                    #provide error message about incorrect header
+                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, '%s: %s' %(fieldName, msg)
+                else: 
+                    fieldNames.append(fieldName)
+                    print 'appending ' , fieldName
+                
+            #loop trialTypes
+            trialList = []
+            for rowN in range(nRows)[1:]:#not first row
+                thisTrial={}
+                for colN in range(nCols):
+                    fieldName = fieldNames[colN]
+                    val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
+                    #if it looks like a list, convert it
+                    if type(val)==str and val.startswith('[') and val.endswith(']'):
+                        exec('val=%s' %val)
+                    thisTrial[fieldName] = val
+                trialList.append(thisTrial)
+            
+        return trialList
+
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
@@ -522,7 +605,7 @@ class StairHandler:
     The staircase will terminate when *nTrials* AND *nReversals* have been exceeded. If *stepSizes* was an array
     and has been exceeded before nTrials is exceeded then the staircase will continue
     to reverse
-     
+    
     """
     def __init__(self,
                  startVal, 
@@ -1937,6 +2020,29 @@ def getDateStr():
     """
     return time.strftime("%b_%d_%H%M", time.localtime())
 
+def isValidVariableName(name):
+    """Checks whether a certain string could be used as a valid variable.
+    
+    Usage:: 
+        
+        OK, msg = isValidVariableName(name)
+        
+    >>> isValidVariableName('name')
+    (True, '')
+    >>> isValidVariableName('0name')
+    (False, 'Variables cannot begin with numeric character')
+    >>> isValidVariableName('first second')
+    (False, 'Variables cannot contain punctuation or spaces')
+    """
+    punctuation = " -[]()+*£@!$%^&/\{}~.,?'|:;"
+    if type(name)!=str:
+        raise AttributeError, "name must be a string"
+    if name[0].isdigit():
+        return False, "Variables cannot begin with numeric character"
+    for chr in punctuation:
+        if chr in name: return False, "Variables cannot contain punctuation or spaces"
+    return True, ""
+    
 def _getExcelCellName(col, row):
     """Returns the excel cell name for a row and column (zero-indexed)
     

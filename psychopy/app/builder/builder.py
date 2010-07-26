@@ -7,7 +7,6 @@ import wx.lib.scrolledpanel as scrolled
 import wx.aui
 import sys, os, glob, copy, platform, py_compile
 import csv, numpy
-from matplotlib import mlab
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
 inf=1000000#a million can be infinite?!
@@ -1287,29 +1286,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             return "No parameters set"
     def importTrialTypes(self, fileName):
         """Import the trial data from fileName to generate a list of dicts.
-        Insert this immediately into self.trialList
         """
-        #use csv import library to fetch the fieldNames
-        f = open(fileName,'rU')#the U converts lineendings to os.linesep
-        #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
-        reader = csv.reader(f)#.split(os.linesep))
-        fieldNames = reader.next()
-        #use matplotlib to import data and intelligently check for data types
-        #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-        trialsArr = mlab.csv2rec(f)
-        f.close()
-        #convert the record array into a list of dicts
-        trialList = []
-        for trialN, trialType in enumerate(trialsArr):
-            thisTrial ={}
-            for fieldN, fieldName in enumerate(fieldNames):
-                val = trialsArr[trialN][fieldN]
-                #if it looks like a list, convert it
-                if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
-                    exec('val=%s' %val)
-                thisTrial[fieldName] = val
-            trialList.append(thisTrial)
-        self.trialList=trialList
+        self.trialList=data.importTrialTypes(fileName)
     def setCtrls(self, ctrlType):
         #choose the ctrls to show/hide
         if ctrlType=='staircase':
