@@ -1,2 +1,0 @@
-- scaling availability on RoutineCanvas (just in x)
-- scaling ability on FlowPanel (just in x direction)

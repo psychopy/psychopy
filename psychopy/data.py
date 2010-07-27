@@ -426,7 +426,7 @@ class TrialHandler:
             self._warnUseOfNext=False     
         return self.next()
     def addData(self, thisType, value, position=None):
-        """Add data for the current trial to the `~psychopy.data.DataHandler`
+        """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
     
@@ -437,22 +437,21 @@ class TrialHandler:
                     appendFile=True,
                     ):
         """
-        Save a summary data file in Excel OpenXML format workbook (.xlsx) for processing 
+        Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing 
         in most spreadsheet packages. This format is compatible with 
-        versions of Excel after 2007 and and with OpenOffice greater than 3.0.
+        versions of Excel (2007 or greater) and and with OpenOffice (>=3.0).
         
-        It has the advantage over the simpler text files (see `~psychopy.data.TrialHandler.saveAsText`)
+        It has the advantage over the simpler text files (see :func:`TrialHandler.saveAsText()` )
         that data can be stored in multiple named sheets within the file. So you could have a single file
         named after your experiment and then have one worksheet for each participant. Or you could have 
         one file for each participant and then multiple sheets for repeated sessions etc. 
         
-        The file extension `xlsx` will be added if not given already.
+        The file extension `.xlsx` will be added if not given already.
         
         :Parameters:
         
             fileName: string
-                will have .dlm appended (so you can double-click it to
-                open in excel) and can include path info
+                the name of the file to create or append. Can include relative or absolute path
         
             sheetName: string
                 the name of the worksheet within the file 
@@ -464,10 +463,11 @@ class TrialHandler:
             
             dataOut: list of strings
                 specifying the dataType and the analysis to
-                be performed,in the form `dataType_analysis`. The data can be any of the types that
+                be performed, in the form `dataType_analysis`. The data can be any of the types that
                 you added using trialHandler.data.add() and the analysis can be either
-                'raw' or most things in the numpy library, including;
-                'mean','std','median','max','min'...
+                'raw' or most things in the numpy library, including 
+                'mean','std','median','max','min'. e.g. `rt_max` will give a column of max reaction 
+                times across the trials assuming that `rt` values have been stored. 
                 The default values will output the raw, mean and std of all datatypes found 
             
             appendFile: True or False

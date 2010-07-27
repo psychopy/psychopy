@@ -16,6 +16,16 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.04 (svn)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: support for Excel 2007 files (.xlsx) for data output and trial types input:
+    - psychopy.data now has importTrialList(fileName) to generate a trial list (suitable for TrialHandler) from .xlsx or .csv files
+    - psychopy.data.TrialHandler now has a method saveToExcel(filename, sheetName='rawData', appendFile=True). This can be used to generate almost identical files to the previous delimited files, but also allows multiple (named) worksheets in a single file. So you could have one file for a participant and then one sheet for each session or run. 
+* CHANGED: for builder experiments the trial list for a loop is now imported from the file on every run, rather than just when the file is initially chosen
+* CHANGED: data for TrialHandler are now stored as masked arrays where possible. This means that trials with no response can be more easily ignored by analysis
+* FIXED: bug opening loop properties (bug introduced by new advanced params option)
+
 PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Patch released July 2010
@@ -25,6 +35,7 @@ Patch released July 2010
 * FIXED: problem with nVidia cards under win32 being slow to render RadialStim
 * FIXED bug in filters.makeGrating where gratType='sqr'
 * FIXED bug in new color spaces for computers that don't support shaders
+* ADDED option to Builder components to have 'advanced' parameters not shown by default (and put this to use for Patch Component)
 
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
