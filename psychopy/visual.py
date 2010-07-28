@@ -1678,8 +1678,8 @@ class PatchStim(_BaseVisualStim):
                  mask    ="none",
                  units   ="",
                  pos     =(0.0,0.0),
-                 size    =(0.5,0.5),
-                 sf      =(1.0,1.0),
+                 size    =None,
+                 sf      =None,
                  ori     =0.0,
                  phase   =(0.0,0.0),
                  texRes =128,
@@ -1730,6 +1730,7 @@ class PatchStim(_BaseVisualStim):
                 OR a single value (which will be applied to x and y).
                 Where `units` == 'deg' or 'cm' units are in cycles per deg/cm. 
                 If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
+                If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
             ori:
                 orientation of stimulus in degrees                
             phase:
@@ -1777,6 +1778,7 @@ class PatchStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.interpolate=interpolate
+        self.origSize=None#if an image texture is loaded this will be updated
         
         self.colorSpace=colorSpace
         if rgb!=None:
@@ -1803,24 +1805,6 @@ class PatchStim(_BaseVisualStim):
         else:
             self.phase = numpy.array((phase,0),float)
 
-        #size
-        if type(size) in [tuple,list]:
-            self.size = numpy.array(size,float)
-        else:
-            self.size = numpy.array((size,size),float)#make a square if only given one dimension
-
-        #sf
-        if units in ['pix', 'pixels'] and sf==(1,1): #if using pix and sf wasn't given
-            sf = 1.0/self.size#so that exactly
-        if type(sf) in [float, int] or len(sf)==1:
-            self.sf = numpy.array((sf,sf),float)
-        else:
-            self.sf = numpy.array(sf,float)
-
-        self.pos = numpy.array(pos, float)
-
-        self.depth=depth
-
         #initialise textures for stimulus
         if self.win.winType=="pyglet":
             self.texID=GL.GLuint()
@@ -1836,6 +1820,35 @@ class PatchStim(_BaseVisualStim):
         self.setTex(tex)
         self.setMask(mask)
         
+        #size
+        if size==None and self.origSize is None:
+            self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
+        elif size==None and self.origSize is not None:
+            if self.units=='pix': self.size=numpy.array(self.origSize)
+            elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
+        elif type(size) in [tuple,list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size),float)#make a square if only given one dimension
+
+        #sf
+        if sf is None:
+            if units=='norm':
+                self.sf=numpy.array([1.0,1.0])
+            elif self.origSize is not None or units in ['pix', 'pixels']:
+                self.sf=1.0/self.size#default to one cycle
+            else: self.sf=numpy.array([1.0,1.0])
+        elif type(sf) in [float, int] or len(sf)==1:
+            self.sf = numpy.array((sf,sf),float)
+        else:
+            self.sf = numpy.array(sf,float)
+        
+        self.pos = numpy.array(pos, float)
+
+        self.depth=depth
+
         #fix scaling to window coords
         if self.units=='norm': self._winScale='norm'
         else: self._winScale='pix' #set the window to have pixels coords
@@ -4197,7 +4210,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             log.error("couldn't find tex...%s" %(tex))
             core.quit()
             raise #so thatensure we quit
-
+        stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
             log.error("Only 2D textures are supported at the moment")

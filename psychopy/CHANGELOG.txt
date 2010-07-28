@@ -16,7 +16,7 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
-PsychoPy 1.61.04 (svn)
+PsychoPy 1.62.00 (svn)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ADDED: support for Excel 2007 files (.xlsx) for data output and trial types input:
@@ -25,8 +25,11 @@ PsychoPy 1.61.04 (svn)
 * CHANGED: for builder experiments the trial list for a loop is now imported from the file on every run, rather than just when the file is initially chosen
 * CHANGED: data for TrialHandler are now stored as masked arrays where possible. This means that trials with no response can be more easily ignored by analysis
 * FIXED: bug opening loop properties (bug introduced by new advanced params option)
+* FIXED: bug in Builder code generation for keyboard (only when using forceEnd=True but store='nothing')
+* CHANGED: RunTimeInfo is now in psychopy.info not psychopy.data
+* CHANGED: PatchStim for image files now defaults to showing the image at native size in pixels (making SimpleImageStim is less useful?)
 
-PsychoPy 1.61.03
+sychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Patch released July 2010
 
