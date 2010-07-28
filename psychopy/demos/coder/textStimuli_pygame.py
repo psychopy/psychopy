@@ -15,10 +15,10 @@ if sys.platform=='win32':
 else:
     #Note that you must have a *.ttf font matching these names/paths
     #You can download ttf fonts free at http://www.webpagepublicity.com/free-fonts.html
-    fancy = '/Library/Fonts/Impact.ttf'
+    fancy = '/Library/Fonts/Zapfino'
     sans = '/Library/Fonts/Microsoft/Gill Sans MT.ttf'
     serif = '/Library/Fonts/Times New Roman.ttf'
-    comic = '/Library/Fonts/Courier New.ttf'
+    comic = '/Library/Fonts/Comic Sans MS.ttf'
     
 #INITIALISE SOME STIMULI
 fpsText = visual.TextStim(myWin, 
@@ -46,7 +46,7 @@ t=lastFPSupdate=0;
 while t<20:#quits after 20 secs
     t=trialClock.getTime()
     
-    rotating.setOri(0.1,"+")
+    rotating.setOri(1,"+")
     rotating.draw()
     
     unicodeStuff.draw()
@@ -57,5 +57,9 @@ while t<20:#quits after 20 secs
     fpsText.draw()
     psychopyTxt.draw()
     
+    for key in event.getKeys():
+        if key in ['q', 'Esc']:
+            core.quit()
+    event.clearEvents()
     myWin.flip()
 
