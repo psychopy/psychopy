@@ -4,6 +4,8 @@
 
 import wx
 import wx.lib.scrolledpanel as scrolled
+#import wx.lib.platebtn as platebtn
+#import wx.lib.agw.aquabutton as AB
 import wx.aui
 import sys, os, glob, copy, platform, py_compile
 import csv, numpy
@@ -326,8 +328,19 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
-
+        
         return endX
+#        tbtn = AB.AquaButton(self, id, pos=pos, label=name)
+#        tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
+#        print tbtn.GetBackgroundColour()
+        
+#        print dir(tbtn)
+#        print tbtn.GetRect()
+#        rect = tbtn.GetRect()
+#        return rect[0]+rect[2]+20
+#    def onBtn(self, event):
+#        print 'evt:', self.componentFromID[event.GetId()].name
+#        print '\nobj:', dir(event.GetEventObject())
     def drawLoop(self,dc,name,loop,id,
             startX,endX,
             base,height,rgb=[0,0,0]):
@@ -761,7 +774,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        scrolled.ScrolledPanel.__init__(self,frame,id,size=(1*self.dpi,10*self.dpi))
+        scrolled.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
 
         # add a button for each type of event that can be added
@@ -784,7 +797,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
             self.componentButtons[thisName]=btn#store it for elsewhere
-
+                    
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.SetupScrolling()
@@ -1123,10 +1136,13 @@ class _BaseParamsDlg(wx.Dialog):
         #get data from input fields
         for fieldName in self.params.keys():
             param=self.params[fieldName]
-            ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
-            param.val = ctrls.getValue()
-            if ctrls.typeCtrl: param.valType = ctrls.getType()
-            if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
+            if fieldName=='advancedParams':
+                pass
+            else:
+                ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
+                param.val = ctrls.getValue()
+                if ctrls.typeCtrl: param.valType = ctrls.getType()
+                if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.params
     def checkName(self, event=None):
         if event: newName= event.GetString()

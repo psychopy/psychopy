@@ -58,6 +58,8 @@ class VisualComponent(_base.BaseComponent):
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
             #capitalise params
+            if thisParamName=='advancedParams':
+                continue
             if thisParamName=='image':
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
