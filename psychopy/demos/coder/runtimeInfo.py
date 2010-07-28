@@ -1,5 +1,5 @@
-""" runtimeInfo.py: a demo of some ways to use class info.RunTimeInfo() to obtain current system and other data at run-time.
-info.RunTimeInfo calls visual.getMsPerFrame() to characterize the current monitor refresh rate and variability.
+""" runtimeInfo.py: a demo of some ways to use class psychopy.info.RunTimeInfo() to obtain current system and other data at run-time.
+psychopy.info.RunTimeInfo calls visual.getMsPerFrame() to characterize the current monitor refresh rate and variability.
 """
 
 # author and version are used in the demo, in the way you might in your experiment.
@@ -7,7 +7,8 @@ info.RunTimeInfo calls visual.getMsPerFrame() to characterize the current monito
 __author__ = """Jeremy "R." Gray""" ## double-quotes will be silently removed, single quotes will be left, eg, O'Connor
 __version__ = "v1.0.a#'''" ## in-line comments are ignored, but comment characters within strings are retained
 
-from psychopy import visual, log, info
+from psychopy import visual, log
+import psychopy.info
 
 # When creating an experiment, first define your window (& monitor):
 myWin = visual.Window(fullscr=False,size=[200,200], monitor='testMonitor')
@@ -15,7 +16,7 @@ myWin.setRecordFrameIntervals(True)
 log.console.setLevel(log.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
-runInfo = info.RunTimeInfo(
+runInfo = psychopy.info.RunTimeInfo(
         # if you specify author and version here, it overrides the automatic detection of __author__ and __version__ in your script
         #author='<your name goes here, plus whatever you like, e.g., your lab or contact info>',
         #version="<your experiment version info>",
