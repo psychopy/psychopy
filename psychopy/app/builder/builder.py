@@ -1024,7 +1024,6 @@ class _BaseParamsDlg(wx.Dialog):
             self.addParam(fieldName)
             remaining.remove(fieldName)
         #add any params that weren't specified in the order
-        print remaining, self.advParams
         for fieldName in remaining:
             if fieldName not in self.advParams:
                 self.addParam(fieldName)
