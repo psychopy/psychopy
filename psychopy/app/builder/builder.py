@@ -1297,8 +1297,14 @@ class DlgLoopProperties(_BaseParamsDlg):
         else: return longStr
     def getTrialsSummary(self, trialList):
         if type(trialList)==list and len(trialList)>0:
+            #get attr names (trialList[0].keys() inserts u'name' and u' is annoying for novice)
+            paramStr = "["
+            for param in trialList[0].keys():
+                paramStr += (str(param)+', ')
+            paramStr = paramStr[:-2]+"]"#remove final comma and add ]
+            #generate summary info
             return '%i trial types, with %i parameters\n%s' \
-                %(len(trialList),len(trialList[0]), trialList[0].keys())
+                %(len(trialList),len(trialList[0]), paramStr)
         else:
             return "No parameters set"
     def setCtrls(self, ctrlType):
@@ -1337,7 +1343,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self, message="Open file ...", style=wx.OPEN, defaultDir=expFolder,
             )
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = os.path.relpath(dlg.GetPath(), expFolder)
+            newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
             self.trialList=data.importTrialList(dlg.GetPath())
             self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
@@ -2027,3 +2033,21 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
+
+def _relpath(path, start='.'):
+    """This code is based on os.path.repath in the Python 2.6 distribution, 
+    included here for compatibility with Python 2.5"""
+
+    if not path:
+        raise ValueError("no path specified")
+
+    start_list = os.path.abspath(start).split(os.path.sep)
+    path_list = os.path.abspath(path).split(os.path.sep)
+
+    # Work out how much of the filepath is shared by start and path.
+    i = len(os.path.commonprefix([start_list, path_list]))
+
+    rel_list = ['..'] * (len(start_list)-i) + path_list[i:]
+    if not rel_list:
+        return curdir
+    return os.path.join(*rel_list)

@@ -88,8 +88,8 @@
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="5" valType="num" updates="None"/>
-      <Param name="trialList" val="[{'text': 'red', 'congruent': 1, 'corrAns': 1, 'letterColor': 'red'}, {'text': 'red', 'congruent': 0, 'corrAns': 2, 'letterColor': 'green'}, {'text': 'green', 'congruent': 1, 'corrAns': 2, 'letterColor': 'green'}, {'text': 'green', 'congruent': 0, 'corrAns': 3, 'letterColor': 'blue'}, {'text': 'blue', 'congruent': 1, 'corrAns': 3, 'letterColor': 'blue'}, {'text': 'blue', 'congruent': 0, 'corrAns': 1, 'letterColor': 'red'}]" valType="str" updates="None"/>
-      <Param name="trialListFile" val="/Users/jwp...troop/trialTypes.csv" valType="str" updates="None"/>
+      <Param name="trialList" val="[{u'text': u'red', u'congruent': 1, u'corrAns': 1, u'letterColor': u'red'}, {u'text': u'red', u'congruent': 0, u'corrAns': 2, u'letterColor': u'green'}, {u'text': u'green', u'congruent': 1, u'corrAns': 2, u'letterColor': u'green'}, {u'text': u'green', u'congruent': 0, u'corrAns': 3, u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 1, u'corrAns': 3, u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 0, u'corrAns': 1, u'letterColor': u'red'}]" valType="str" updates="None"/>
+      <Param name="trialListFile" val="trialTypes.xlsx" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <LoopTerminator name="trials"/>

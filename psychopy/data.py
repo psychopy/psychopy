@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
+import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
 from scipy import optimize, special
@@ -482,7 +483,7 @@ class TrialHandler:
             if not appendFile: #the file exists but we're not appending, so will be overwritten
                 log.warning('Data file, %s, will be overwritten' %fileName)
             wb = Workbook()#create new workbook
-            wb.properties.creator='PsychoPy'+psychopyVersion
+            wb.properties.creator='PsychoPy'+psychopy.__version__
             newWorkbook=True
         
         ew = ExcelWriter(workbook = wb)
@@ -1516,8 +1517,14 @@ def isValidVariableName(name):
     (False, 'Variables cannot contain punctuation or spaces')
     """
     punctuation = " -[]()+*¬£@!$%^&/\{}~.,?'|:;"
-    if type(name)!=str:
-        raise AttributeError, "name must be a string"
+    try:
+        name=str(name)#convert from unicode if possible
+    except:
+        if type(name)==unicode:
+            raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" %name
+        else:
+            raise AttributeError, "name %s (type %s) could not be converted to a string" %name
+            
     if name[0].isdigit():
         return False, "Variables cannot begin with numeric character"
     for chr in punctuation:
