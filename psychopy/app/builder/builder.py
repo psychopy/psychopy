@@ -1974,6 +1974,10 @@ class BuilderFrame(wx.Frame):
         f = open(fullPath, 'w')
         f.write(script.getvalue())
         f.close()
+        try:
+            self.stdoutFrame.getText()
+        except:
+            self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
@@ -2013,17 +2017,18 @@ class BuilderFrame(wx.Frame):
         if self.scriptProcess.IsErrorAvailable():
             stream = self.scriptProcess.GetErrorStream()
             text += stream.read()
-        if len(text): self.stdoutFrame.write(text) #if some text hadn't yet been written (possible?)
+        if len(text):self.stdoutFrame.write(text) #if some text hadn't yet been written (possible?)
         if len(self.stdoutFrame.getText())>self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
             
-        #provide a finihed... message
+        #provide a finished... message
         msg = "\n"+" Finished ".center(80,"#")#80 chars padded with #
         
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig
+        
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
