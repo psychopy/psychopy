@@ -1103,7 +1103,7 @@ class _BaseParamsDlg(wx.Dialog):
             helpBtn = wx.Button(self, wx.ID_HELP)
             helpBtn.SetHelpText("Get help about this component")
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, wx.ALIGN_LEFT, wx.ALL,border=3)
+            buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
         self.checkName()
@@ -1114,7 +1114,7 @@ class _BaseParamsDlg(wx.Dialog):
         #put it all together
         self.mainSizer.Add(self.ctrlSizer)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
-            self.mainSizer.Add(self.advPanel,0,wx.GROW|wx.ALL,5)
+            self.mainSizer.Add(self.advPanel,0,flag=wx.GROW|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
@@ -1124,7 +1124,7 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-
+    
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
         (populated during the __init__ function)
@@ -1403,11 +1403,11 @@ class DlgComponentProperties(_BaseParamsDlg):
 
 class DlgExperimentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,suppressTitles=False,
-            pos=wx.DefaultPosition, size=wx.DefaultSize,
+            pos=wx.DefaultPosition, size=wx.DefaultSize,helpUrl=None,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
-                                pos=pos,size=size,style=style)
+                                pos=pos,size=size,style=style,helpUrl=helpUrl)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
@@ -1421,9 +1421,19 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
-    def onFullScrChange(self,event=None):
+    def onFullScrChange(self,event=None):       
+
         """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
+            #get screen size for requested display            
+            num_displays = wx.Display.GetCount()
+            if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
+                log.error("User requested non-existent screen")
+            else:
+                screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
+            size=list(wx.Display(screenN).GetGeometry()[2:])
+            #set vals and disable changes 
+            self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(str(size))
             self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
         else:
@@ -1439,17 +1449,22 @@ class DlgExperimentProperties(_BaseParamsDlg):
         This method returns wx.ID_OK (as from ShowModal), but also
         sets self.OK to be True or False
         """
-        #add buttons for OK and Cancel
+        #add buttons for help, OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.BoxSizer(wx.HORIZONTAL)        
+        if self.helpUrl!=None:
+            helpBtn = wx.Button(self, wx.ID_HELP)
+            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+            buttons.Add(helpBtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
+        buttons.Add(self.OKbtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
-        buttons.Add(CANCEL, 0, wx.ALL,border=3)
-
+        buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
+        
         self.mainSizer.Add(self.ctrlSizer)
-        self.mainSizer.Add(buttons, wx.ALIGN_RIGHT)
+        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
         #do show and process return
         retVal = self.ShowModal()
@@ -2024,9 +2039,12 @@ class BuilderFrame(wx.Frame):
         self.app.coder.currentDoc.SetText(script.getvalue())
     def setExperimentSettings(self,event=None):
         component=self.exp.settings
+        #does this component have a help page?
+        if hasattr(component, 'url'):helpUrl=component.url
+        else:helpUrl=None
         dlg = DlgExperimentProperties(frame=self,
             title='%s Properties' %self.exp.name,
-            params = component.params,
+            params = component.params,helpUrl=helpUrl,
             order = component.order)
         if dlg.OK:
             self.addToUndoStack("edit experiment settings")

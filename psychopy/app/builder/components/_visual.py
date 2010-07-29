@@ -18,7 +18,7 @@ class VisualComponent(_base.BaseComponent):
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
-        self.params['color']=Param(color, valType='code', allowedTypes=[],
+        self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Color of this stimulus (e.g. [1,1,0], 'red' )")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
