@@ -1,7 +1,7 @@
 <PsychoPy2experiment version="1.50.04" encoding="utf-8">
   <Settings>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
-    <Param name="color" val="[0, 0, 0]" valType="code" updates="None"/>
+    <Param name="color" val="$[0, 0, 0]" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[1024, 768]" valType="code" updates="None"/>
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
@@ -16,7 +16,7 @@
     <Routine name="trial">
       <TextComponent name="word">
         <Param name="name" val="word" valType="code" updates="constant"/>
-        <Param name="color" val="$thisTrial.letterColor" valType="code" updates="set every repeat"/>
+        <Param name="color" val="$thisTrial.letterColor" valType="str" updates="set every repeat"/>
         <Param name="text" val="$thisTrial.text" valType="str" updates="set every repeat"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -42,7 +42,7 @@
     <Routine name="instruct">
       <TextComponent name="instrText">
         <Param name="name" val="instrText" valType="code" updates="constant"/>
-        <Param name="color" val="[1, 1, 1]" valType="code" updates="constant"/>
+        <Param name="color" val="$[1, 1, 1]" valType="str" updates="constant"/>
         <Param name="text" val="Please press;&#10;1 for red ink,&#10;2 for green ink&#10;3 for blue ink&#10;(Esc will quit)&#10;&#10;Any key to continue" valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -68,7 +68,7 @@
     <Routine name="thanks">
       <TextComponent name="thanksText">
         <Param name="name" val="thanksText" valType="code" updates="constant"/>
-        <Param name="color" val="[1, 1, 1]" valType="code" updates="constant"/>
+        <Param name="color" val="$[1, 1, 1]" valType="str" updates="constant"/>
         <Param name="text" val="Thanks!" valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>

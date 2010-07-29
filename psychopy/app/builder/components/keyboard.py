@@ -12,7 +12,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
-            startTime=0.0, duration=1.0):
+            startTime=0.0, duration=''):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess

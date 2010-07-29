@@ -139,6 +139,7 @@ class Window:
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
         
         """
+        
         self.size = numpy.array(size, numpy.int)
         self.pos = pos    
         self.winHandle=None#this will get overridden once the window is created

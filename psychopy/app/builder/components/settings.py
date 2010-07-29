@@ -6,8 +6,8 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='use prefs',
-                 logging='warning', color=[0,0,0], colorSpace='rgb'):
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'001', 'session':001}",units='use prefs',
+                 logging='warning', color='$[0,0,0]', colorSpace='rgb'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -69,10 +69,7 @@ class SettingsComponent:
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window']
-        if fullScr.value==True:
-            size='None'
-        else:
-            size=self.params['Window size (pixels)']#
+        size=self.params['Window size (pixels)']#
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
