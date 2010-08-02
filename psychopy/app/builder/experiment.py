@@ -20,6 +20,12 @@ class IndentingBuffer(StringIO.StringIO):
 
         """
         self.write(self.oneIndent*self.indentLevel + text)
+    def writeIndentedLines(self,text):
+        """As writeIndented(text) except that each line in text gets the indent level rather
+        than the first line only.
+        """
+        for line in text.splitlines():
+            self.write(self.oneIndent*self.indentLevel + line + '\n')
     def setIndentLevel(self, newLevel, relative=False):
         """Change the indent level for the buffer to a new value.
 
