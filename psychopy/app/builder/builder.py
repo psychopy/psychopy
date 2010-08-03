@@ -4,6 +4,7 @@
 
 import wx
 import wx.lib.scrolledpanel as scrolled
+#from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.platebtn as platebtn
 #import wx.lib.agw.aquabutton as AB
 import wx.aui
@@ -875,6 +876,12 @@ class ParamCtrls:
             self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
+            #expando seems like a nice idea - but probs with pasting in text and with resizing
+            #self.valueCtrl = ExpandoTextCtrl(parent,-1,str(param.val),
+            #    style=wx.TE_MULTILINE,
+            #    size=wx.Size(500,-1))
+            #self.valueCtrl.SetMaxHeight(500)
+
         elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
@@ -991,6 +998,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.order=order
         self.data = []
         self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
+        self.ctrlSizer.AddGrowableCol(1)#valueCtrl column
         self.currRow = 0
         self.advCtrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
         self.advCurrRow = 0
@@ -1051,14 +1059,19 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         sizer.Add(ctrls.nameCtrl, (currRow,0), (1,1),wx.ALIGN_RIGHT )
-        sizer.Add(ctrls.valueCtrl, (currRow,1) )
+        sizer.Add(ctrls.valueCtrl, (currRow,1) , flag=wx.EXPAND)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow,3) )
+        if fieldName=='text':               
+            self.ctrlSizer.AddGrowableRow(currRow)#doesn't seem to work though
+            #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+    def onNewTextSize(self, event):
+        self.Fit()#for ExpandoTextCtrl this is needed
         
     def addText(self, text, size=None):
         if size==None:
@@ -1112,13 +1125,12 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()    
         #put it all together
-        self.mainSizer.Add(self.ctrlSizer)#add main controls
+        self.mainSizer.Add(self.ctrlSizer,flag=wx.GROW)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
             self.mainSizer.Add(self.advPanel,0,flag=wx.GROW|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
-
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
