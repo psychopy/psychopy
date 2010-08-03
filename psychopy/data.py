@@ -938,7 +938,96 @@ class StairHandler:
             
         f.write("\n")
         f.close()
+        
+    def saveAsExcel(self,fileName, sheetName=None,
+                   matrixOnly=False,
+                  ):
+        """
+        Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing 
+        in most spreadsheet packages. This format is compatible with 
+        versions of Excel (2007 or greater) and and with OpenOffice (>=3.0).
+        
+        It has the advantage over the simpler text files (see :func:`TrialHandler.saveAsText()` )
+        that data can be stored in multiple named sheets within the file. So you could have a single file
+        named after your experiment and then have one worksheet for each participant. Or you could have 
+        one file for each participant and then multiple sheets for repeated sessions etc. 
+        
+        The file extension `.xlsx` will be added if not given already.
+        
+        The file will contain a set of values specifying the staircase level ('intensity') at each
+        reversal, a list of reversal indices (trial numbers), the raw staircase/intensity 
+        level on *every* trial and the corresponding responses of the participant on every trial.
+        
+        :Parameters:
+        
+            fileName: string
+                the name of the file to create or append. Can include relative or absolute path
+        
+            sheetName: string
+                the name of the worksheet within the file 
+                
+            appendFile: True or False
+                If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
+                If a worksheet already exists with that name a number will be added to make it unique.
+        """
+        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
+        if not haveOpenpyxl: 
+            raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
+            return -1
+        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
+        
+        #import necessary subpackages - they are small so won't matter to do it here
+        from openpyxl.workbook import Workbook
+        from openpyxl.writer.excel import ExcelWriter
+        from openpyxl.reader.excel import load_workbook
+        
+        if not fileName.endswith('.xlsx'): fileName+='.xlsx'
+        #create or load the file
+        if appendFile and os.path.isfile(fileName): 
+            wb = load_workbook(fileName)
+            newWorkbook=False
+        else:
+            if not appendFile: #the file exists but we're not appending, so will be overwritten
+                log.warning('Data file, %s, will be overwritten' %fileName)
+            wb = Workbook()#create new workbook
+            wb.properties.creator='PsychoPy'+psychopy.__version__
+            newWorkbook=True
+        
+        ew = ExcelWriter(workbook = wb)
+        
+        if newWorkbook:
+            ws = wb.worksheets[0]
+            ws.title=sheetName
+        else:
+            ws=wb.create_sheet()
+            ws.title=sheetName
 
+        #write the data
+        #reversals data
+        ws.cell('A1').value = 'Reversal Intensities'
+        ws.cell('B1').value = 'Reversal Indices'
+        for revN, revIntens in enumerate(self.reversalIntensities):
+            ws.cell(_getExcelCellName(0,revN+1).value = revIntens
+            ws.cell(_getExcelCellName(1,revN+1).value = self.reversalPoints[revN]
+        
+        #trials data
+        ws.cell('C1').value = 'All Intensities'
+        ws.cell('D1').value = 'All Responses'
+        for intenN, intensity in enumerate(self.intensities):
+            ws.cell(_getExcelCellName(2,intenN+1).value = intensity
+            ws.cell(_getExcelCellName(3,intenN+1).value = self.responses[intenN]
+        
+        #add self.extraInfo
+        rowN = 0
+        if (self.extraInfo != None) and not matrixOnly:
+            ws.cell(_getExcelCellName(6,rowN)).value = 'extraInfo'; rowN+=1
+            for key,val in self.extraInfo.items():
+                ws.cell(_getExcelCellName(6,rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(7,rowN)).value = unicode(val)
+                rowN+=1
+
+        ew.save(filename = fileName)
+        
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
         
