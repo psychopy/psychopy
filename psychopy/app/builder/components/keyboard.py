@@ -58,7 +58,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("class KeyResponse:\n")
             buff.writeIndented("    def __init__(self):\n")
             buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
-            buff.writeIndented("        self.corr=None#was the subj correct this trial?\n")
+            buff.writeIndented("        self.corr=0#was the resp correct this trial? (0=no, 1=yes)\n")
             buff.writeIndented("        self.rt=None#response time\n")
             buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
             self.exp.noKeyResponse=False#don't write this again
