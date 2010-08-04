@@ -43,15 +43,18 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
-    def __init__(self, app=None):
+    def __init__(self, prefs=None):
         self.name=None
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #get prefs (from app if poss or from cfg files)
-        if app==None:
-            self.prefs = preferences.Preferences()
-        else: self.prefs=app.prefs
-        
+        if prefs==None:
+            prefs = preferences.Preferences()
+        #deepCopy doesn't like the full prefs object to be stored, so store each subset
+        self.prefsAppDataCfg=prefs.appDataCfg
+        self.prefsGeneral=prefs.general
+        self.prefsCoder=prefs.coder
+        self.prefsBuilder=prefs.builder
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
@@ -380,7 +383,7 @@ class TrialHandler:
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
-        if not self.exp.prefs['unclutteredNamespace']:
+        if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
             buff.writeIndented("if thisTrial!=None:\n")
             buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
@@ -392,7 +395,7 @@ class TrialHandler:
         #fetch parameter info from trialList        
         buff.setIndentLevel(1, relative=True)
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
-        if not self.exp.prefs['unclutteredNamespace']:
+        if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
             buff.writeIndented("if thisTrial!=None:\n")
             buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
@@ -411,8 +414,8 @@ class TrialHandler:
             for variable in self.params['trialList'].val[0].keys():#get the keys for the first trial type
                 stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
-        buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx',\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
@@ -482,8 +485,8 @@ class StairHandler:
         buff.writeIndented("#staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        buff.writeIndented("%(name)s.saveAsText(filename+'.dlm')\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsPickle(filename)\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s')\n" %self.params)
+        buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
     def getType(self):
         return 'StairHandler'
