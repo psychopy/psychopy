@@ -52,6 +52,8 @@
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
     reloadPrevExp = boolean(default=False)
+    # if False will create scripts with an 'easier' but more cluttered namespace
+    unclutteredNamespace = boolean(default=False)
     # for the user to add custom components (comma-separated list)
     componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
     # a list of components to hide (eg, because you never use them)

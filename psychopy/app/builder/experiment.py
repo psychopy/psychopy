@@ -4,6 +4,7 @@
 
 import StringIO, sys
 from components import *#getComponents('') and getAllComponents([])
+from psychopy import data, preferences
 from lxml import etree
 
 class IndentingBuffer(StringIO.StringIO):
@@ -42,11 +43,15 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
-    def __init__(self):
+    def __init__(self, app=None):
         self.name=None
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
-
+        #get prefs (from app if poss or from cfg files)
+        if app==None:
+            self.prefs = preferences.Preferences()
+        else: self.prefs=app.prefs
+        
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
@@ -366,21 +371,32 @@ class TrialHandler:
         #create nice line-separated list of trial types
         if self.params['trialListFile'].val==None:
             trialStr="[None]"
-        else:
-            trialStr="data.importTrialList(%s)" %self.params['trialListFile']
+        else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
-        buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \n    trialList=%s)\n" \
             %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
-        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with first trial values\n" %(self.thisName, self.params['name']))
-
+        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
+        #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
+        if not self.exp.prefs['unclutteredNamespace']:
+            buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
+            buff.writeIndented("if thisTrial!=None:\n")
+            buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
+            buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
+        #fetch parameter info from trialList        
         buff.setIndentLevel(1, relative=True)
+        #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
+        if not self.exp.prefs['unclutteredNamespace']:
+            buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
+            buff.writeIndented("if thisTrial!=None:\n")
+            buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
+            buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
@@ -400,9 +416,9 @@ class TrialHandler:
         buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
         buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
         buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
-
     def getType(self):
         return 'TrialHandler'
+    
 class StairHandler:
     """A staircase experimental control object.
     """
@@ -443,15 +459,13 @@ class StairHandler:
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
-
     def writeInitCode(self,buff):
-
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
         #write the code
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0' 
-        buff.writeIndented("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
@@ -461,6 +475,7 @@ class StairHandler:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("level=%s\n" %(self.thisName))
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
@@ -593,13 +608,14 @@ class Routine(list):
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
+        
+        buff.writeIndentedLines("\n#update component parameters for each repeat\n")
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
 
         #create the frame loop for this routine
-        buff.writeIndented('\n')
-        buff.writeIndented('#run the trial\n')
+        buff.writeIndentedLines('\n#run the trial\n')
         buff.writeIndented('%s=True\n' %self._continueName)
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('while %s and (t<%.4f):\n' %(self._continueName, self.getMaxTime()))
@@ -607,16 +623,15 @@ class Routine(list):
 
         #on each frame
         buff.writeIndented('#get current time\n')
-        buff.writeIndented('t=%s.getTime()\n\n' %self._clockName)
+        buff.writeIndented('t=%s.getTime()\n' %self._clockName)
 
         #write the code for each component during frame
-        buff.writeIndented('#update each component (where necess)\n')
+        buff.writeIndentedLines('\n#update/draw components on each frame\n')
         for event in self:
             event.writeFrameCode(buff)
 
         #update screen
-        buff.writeIndented('\n')
-        buff.writeIndented('#check for quit (the [Esc] key)\n')
+        buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
         buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
         buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')

@@ -16,8 +16,8 @@
     <Routine name="trial">
       <TextComponent name="word">
         <Param name="name" val="word" valType="code" updates="constant"/>
-        <Param name="color" val="$thisTrial.letterColor" valType="str" updates="set every repeat"/>
-        <Param name="text" val="$thisTrial.text" valType="str" updates="set every repeat"/>
+        <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
+        <Param name="text" val="$text" valType="str" updates="set every repeat"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="1.0" valType="code" updates="constant"/>
@@ -31,7 +31,7 @@
         <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="correctAns" val="$thisTrial.corrAns" valType="str" updates="constant"/>
+        <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="123" valType="str" updates="constant"/>

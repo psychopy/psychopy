@@ -1759,7 +1759,7 @@ class BuilderFrame(wx.Frame):
         if closeCurrent: #if no exp exists then don't try to close it
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
-        self.exp = experiment.Experiment()
+        self.exp = experiment.Experiment(app=self.app)
         self.exp.addRoutine('trial') #create the trial routine as an example
         self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow
         self.resetUndoStack()
@@ -1779,7 +1779,7 @@ class BuilderFrame(wx.Frame):
             filename = dlg.GetPath()
         if closeCurrent:
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
-        self.exp = experiment.Experiment()
+        self.exp = experiment.Experiment(app=self.app)
         self.exp.loadFromXML(filename)
         self.resetUndoStack()
         self.setIsModified(False)
