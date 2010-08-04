@@ -31,7 +31,7 @@ PsychoPy 1.62.00 (svn)
 * CHANGED: PatchStim for image files now defaults to showing the image at native size in pixels (making SimpleImageStim is less useful?)
 * CHANGED: access to the parameters of TrialList in the Builder now (by default) uses a more cluttered namespace for variables. e.g. if your TrialList file has heading rgb, then your components can access that with '$rgb' rather than '$thisTrial.rgb'. This behaviour can be turned off with the new Builder preference 'allowClutteredNamespace'.
 * FIXED: if Builder needs to output info but user had closed the output window, it is now reopened
-
+* FIXED: Builder remembers its window location
 
 sychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~

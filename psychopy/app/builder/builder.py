@@ -3,9 +3,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
-import wx.lib.scrolledpanel as scrolled
+from wx.lib import platebtn, scrolledpanel
 #from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-#import wx.lib.platebtn as platebtn
 #import wx.lib.agw.aquabutton as AB
 import wx.aui
 import sys, os, glob, copy, platform, py_compile
@@ -24,17 +23,21 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = (8*self.dpi,2*self.dpi))
+        wx.ScrolledWindow.__init__(self, frame, id, (0, 0),size = wx.Size(8*self.dpi,3*self.dpi), style=wx.HSCROLL|wx.VSCROLL)
         self.SetBackgroundColour(canvasColor)
         self.needUpdate=True
-        self.maxWidth  = 14*self.dpi
-        self.maxHeight = 3*self.dpi
+        self.maxWidth  = 50*self.dpi
+        self.maxHeight = 2*self.dpi
         self.mousePos = None
         #if we're adding a loop or routine then add spots to timeline
         self.drawNearestRoutinePoint = True
         self.drawNearestLoopPoint = False
         self.pointsToDraw=[] #lists the x-vals of points to draw, eg loop locations
 
+        #self.SetAutoLayout(True)
+        self.SetVirtualSize((self.maxWidth, self.maxHeight))
+        self.SetScrollRate(self.dpi/4,self.dpi/4)
+        
         # create a PseudoDC to record our drawing
         self.pdc = wx.PseudoDC()
         self.pen_cache = {}
@@ -52,10 +55,11 @@ class FlowPanel(wx.ScrolledWindow):
             id = wx.NewId()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-
-        self.btnSizer = wx.BoxSizer(wx.VERTICAL)
-        self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine')
-        self.btnInsertLoop = wx.Button(self,-1,'Insert Loop')
+            
+#        self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
+#        self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
+        self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
+        self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
 
         self.redrawFlow()
 
@@ -64,14 +68,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.onInsertLoop,self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-        #self.SetAutoLayout(True)
-        self.SetVirtualSize((self.maxWidth, self.maxHeight))
-        self.SetScrollRate(self.dpi/4,self.dpi/4)
-
-        self.btnSizer.Add(self.btnInsertRoutine)
-        self.btnSizer.Add(self.btnInsertLoop)
-        self.SetSizer(self.btnSizer)
 
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
@@ -768,14 +764,14 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.addRoutinePage(routineName, self.frame.exp.routines[routineName])
         if currPage>-1:
             self.SetSelection(currPage)
-class ComponentsPanel(scrolled.ScrolledPanel):
+class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        scrolled.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
+        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
 
         # add a button for each type of event that can be added
@@ -1500,6 +1496,9 @@ class BuilderFrame(wx.Frame):
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+            usingDefaultSize=True
+        else:
+            usingDefaultSize=False
         wx.Frame.__init__(self, parent, id, title, (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']),
                          style=style)
@@ -1557,7 +1556,10 @@ class BuilderFrame(wx.Frame):
         if self.appData['auiPerspective']:
             self._mgr.LoadPerspective(self.appData['auiPerspective'])
         self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
-        self.Fit()
+        if usingDefaultSize:
+            self.Fit()
+        else:
+            self.SetSize((self.appData['winW'],self.appData['winH']))        
         self.SendSizeEvent()
         self._mgr.Update()
 
@@ -1630,8 +1632,19 @@ class BuilderFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
+        
+        #create a file history submenu
+        self.fileHistory = wx.FileHistory(maxFiles=10)
+        self.recentFilesMenu = wx.Menu()
+        self.fileHistory.UseMenu(self.recentFilesMenu)
+        for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
+        self.Bind(
+            wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
+            )
+            
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys['new'])
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys['open'])
+        self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
@@ -1746,6 +1759,8 @@ class BuilderFrame(wx.Frame):
         self.appData['winX'], self.appData['winY']=self.GetPosition()
         if sys.platform=='darwin':
             self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+        for ii in range(self.fileHistory.GetCount()):
+            self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
         self.Destroy()
         self.app.builder=None
@@ -1841,6 +1856,13 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+    def OnFileHistory(self, evt=None):
+        # get the file based on the menu ID
+        fileNum = evt.GetId() - wx.ID_FILE1
+        path = self.fileHistory.GetHistoryFile(fileNum)
+        self.setCurrentDoc(path)#load the file
+        # add it back to the history so it will be moved up the list
+        self.fileHistory.AddFileToHistory(path)
     def checkSave(self):
         """Check whether we need to save before quitting
         """

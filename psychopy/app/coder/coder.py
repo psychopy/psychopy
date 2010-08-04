@@ -980,7 +980,7 @@ class CoderFrame(wx.Frame):
         self.Bind(
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
-
+        
         #add items to file menu
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys['new'])
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys['open'])
