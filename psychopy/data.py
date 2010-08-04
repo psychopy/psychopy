@@ -1007,23 +1007,23 @@ class StairHandler:
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            ws.cell(_getExcelCellName(0,revN+1).value = revIntens
-            ws.cell(_getExcelCellName(1,revN+1).value = self.reversalPoints[revN]
+            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = revIntens
+            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = self.reversalPoints[revN]
         
         #trials data
         ws.cell('C1').value = 'All Intensities'
         ws.cell('D1').value = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(2,intenN+1).value = intensity
-            ws.cell(_getExcelCellName(3,intenN+1).value = self.responses[intenN]
+            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = intensity
+            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = self.responses[intenN]
         
         #add self.extraInfo
         rowN = 0
         if (self.extraInfo != None) and not matrixOnly:
-            ws.cell(_getExcelCellName(6,rowN)).value = 'extraInfo'; rowN+=1
+            ws.cell(_getExcelCellName(col=6,row=rowN)).value = 'extraInfo'; rowN+=1
             for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(6,rowN)).value = unicode(key)+u':'
-                ws.cell(_getExcelCellName(7,rowN)).value = unicode(val)
+                ws.cell(_getExcelCellName(col=6,row=rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(col=7,row=rowN)).value = unicode(val)
                 rowN+=1
 
         ew.save(filename = fileName)
