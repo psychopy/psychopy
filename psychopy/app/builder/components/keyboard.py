@@ -101,7 +101,7 @@ class KeyboardComponent(BaseComponent):
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
             
         if store=='first key':#then see if a key has already been pressed
-            buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
+            buff.writeIndented("if %(name)s.keys==[]:#then this was the first keypress\n" %(self.params))
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
             buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
         elif store=='last key':
