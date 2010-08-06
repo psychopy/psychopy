@@ -1482,17 +1482,17 @@ class DlgExperimentProperties(_BaseParamsDlg):
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
-                 pos=wx.DefaultPosition, files=None,
+                 pos=wx.DefaultPosition, fileName=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
 
         self.app=app
+        self.frameType='builder'
         self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.builder#things about the coder that get set
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
@@ -1526,10 +1526,8 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         #setup a default exp
-        if files!=None and len(files) and os.path.isfile(files[0]):
+        if fileName!=None and os.path.isfile(files[0]):
             self.fileOpen(filename=files[0], closeCurrent=False)
-        elif self.prefs['reloadPrevExp'] and os.path.isfile(self.appData['prevFile']):
-            self.fileOpen(filename=self.appData['prevFile'], closeCurrent=False)
         else:
             self.lastSavedCopy=None
             self.fileNew(closeCurrent=False)#don't try to close before opening
@@ -1595,7 +1593,7 @@ class BuilderFrame(wx.Frame):
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
-        self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
         self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
         self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current file")
@@ -1648,7 +1646,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
-        wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
+        wx.EVT_MENU(self, wx.ID_NEW,  self.app.newBuilderFrame)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
@@ -1763,7 +1761,9 @@ class BuilderFrame(wx.Frame):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
         self.Destroy()
-        self.app.builder=None
+        if self in self.app.builderFrames:
+            self.app.builderFrames.remove(self)
+            self.app.allFrames.append(self)
         return 1#indicates that check was successful
     def quit(self, event=None):
         """quit the app"""

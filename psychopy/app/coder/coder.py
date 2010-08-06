@@ -212,7 +212,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,     wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
-
+        
+        self.DragAcceptFiles(True)
+        self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
@@ -840,6 +842,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 class CoderFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[], app=None):
         self.app = app
+        self.frameType='coder'
         self.appData = self.app.prefs.appData['coder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.coder#things about the coder that get set
         self.appPrefs = self.app.prefs.app
@@ -847,7 +850,6 @@ class CoderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.currentDoc=None
         self.ignoreErrors = False
-        
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60 #sec
         
@@ -869,7 +871,7 @@ class CoderFrame(wx.Frame):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         wx.EVT_CLOSE(self, self.closeFrame)#NB not the same as quit - just close the window
         wx.EVT_IDLE(self, self.onIdle)
-
+        
         if self.appData.has_key('state') and self.appData['state']=='maxim':
             self.Maximize()
         #initialise some attributes
@@ -899,7 +901,7 @@ class CoderFrame(wx.Frame):
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
             style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-
+        self.notebook.DragAcceptFiles(True)
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
@@ -911,7 +913,7 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
-        self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
+        self.Bind(wx.EVT_DROP_FILES, self.app.MacOpenFile)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -920,7 +922,6 @@ class CoderFrame(wx.Frame):
         self.makeMenus()
         #take files from arguments and append the previously opened files
         if files:
-            print 'files:', files
             self.appData['prevFiles'].extend(files)
         if len(self.appData['prevFiles'])==0:
             #then no files previously opened
@@ -964,7 +965,6 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
         self.SendSizeEvent()
-
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
@@ -1238,6 +1238,7 @@ class CoderFrame(wx.Frame):
             
         #event.Skip()
     def filesDropped(self, event):
+        print 'got files'
         fileList = event.GetFiles()
         for filename in fileList:
             if os.path.isfile(filename):
@@ -1312,7 +1313,7 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save) and either
         close the frame or hide it
         """
-        if self.app.builder==None and sys.platform!='darwin':
+        if len(self.app.builderFrames)==0 and sys.platform!='darwin':
             if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already

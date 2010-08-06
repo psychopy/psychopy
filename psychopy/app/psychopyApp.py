@@ -140,8 +140,14 @@ class PsychoPyApp(wx.App):
             else:
                 self.prefs.app['defaultView'] = 'both'
                 mainFrame = 'both'
-        #then override the main frame by command options and passed files
-        scripts=[]; exps=[]
+        #fetch prev files if that's the preference
+        if self.prefs.coder['reloadPrevFiles']:
+            scripts=self.prefs.appData['coder']['prevFiles']
+        else: scripts=[]
+        if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder'].keys()):
+            exps=self.prefs.appData['builder']['prevFiles']
+        else: exps=[]
+        #then override the prev files by command options and passed files
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
                 args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
@@ -168,7 +174,9 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        self.coder = self.builder = None
+        self.coder = None
+        self.builderFrames = []
+        self.allFrames=[]#these are ordered and the order is updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
 
@@ -211,15 +219,31 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(self.coder)
         self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
-    def showBuilder(self, event=None, fileList=None):
+    def newBuilderFrame(self, event=None, fileName=None):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
-        if self.builder==None:
-            self.builder=builder.BuilderFrame(None, -1,
+        thisFrame = builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder",
-                                  files = fileList, app=self)
-        self.builder.Show(True)
-        self.builder.Raise()
-        self.SetTopWindow(self.builder)
+                                  fileName=fileName, app=self)
+        thisFrame.Show(True)
+        thisFrame.Raise()
+        self.SetTopWindow(thisFrame)
+        self.builderFrames.append(thisFrame)
+        self.allFrames.append(thisFrame)
+    def showBuilder(self, event=None, fileList=[]):
+        from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
+        for fileName in fileList:
+            if os.path.isfile(fileName):
+                self.newBuilderFrame(fileName=fileName)
+        #create an empty Builder view if needed
+        if len(self.builderFrames)==0:
+            self.newBuilderFrame()
+        #loop through all frames, from the back bringing each forward
+        for thisFrame in self.allFrames:
+            if thisFrame.frameType!='builder':continue
+            thisFrame.Show(True)
+            thisFrame.Raise()
+            self.SetTopWindow(thisFrame)
+
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
@@ -236,19 +260,19 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         self.quitting=True
         #see whether any files need saving
-        for frame in [self.coder, self.builder]:
+        for frame in self.allFrames:
             if frame==None: continue
             ok=frame.checkSave()
             if not ok: return#user cancelled quit
         #save info about current frames for next run
-        if self.coder and not self.builder:
+        if self.coder and len(self.builderFrames)==0:
             self.prefs.appData['lastFrame']='coder'
-        elif self.builder and not self.coder:
+        elif len(self.builderFrames)==0 and not self.coder:
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
         #hide the frames then close
-        for frame in [self.coder, self.builder]:
+        for frame in self.allFrames:
             if frame==None: continue
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
