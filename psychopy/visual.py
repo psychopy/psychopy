@@ -4478,25 +4478,36 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
 
 
 class RatingScale:
-    """Returns a rating-scale object, with display parameters defined during init(). 
+    """A class for getting numeric subjective ratings, e.g., on a 1 to 7 scale
+    
+    Returns a rating-scale object, with display parameters defined at init(). 
     
     The .draw() method displays the scale only (not the item to be rated), gets the subject's response, and
-    updates the display. When .noResponse is False, the subject has responded; you can then call .getRating()
-    to obtain the rating, or getRatingDetails() to get (rating, decision time, scale-info-list).
+    updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then 
+    call .getRating() to obtain the rating, or getRating(detailed=True) to get (rating, decision time, scale-info-list).
     The experimenter has to handle the item to be rated, and ensure its in the same visual window as the RatingScale.
     A RatingScale instance has no idea what else is on the screen.
     
     The default settings should be good much of the time, but considerable customization is possible using the options.
     Auto-rescaling happens if the low-anchor is 0 and high-low is a multiple of 10.
     
-    Example: see PsychoPy Coder demo 'ratingScale.py'
+    **Example**::
+        
+        myRatingScale = visual.RatingScale(myWin)
+        while myRatingScale.noResponse:
+            myItem.draw()  # RatingScale knows nothing about the item(s) to be rated
+            myRatingScale.draw()
+            myWin.flip()
+        rating = myRatingScale.getRating()
+    
+    See 'ratingScale.py' for a full demo, including a more complex example.
     
     :Author:
         - 2010 Jeremy Gray
     """
     def __init__(self, win, scale=None, low=1, high=7, precision=1, showValue=True, 
                 markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False,
-                allowSkip=True, offsetVert=-0.35, offsetHoriz=0.0):
+                allowSkip=True, offsetVert=-0.4, offsetHoriz=0.0):
         """
         :Parameters:
             win :
@@ -4504,15 +4515,15 @@ class RatingScale:
             scale :
                 string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
             low :
-                low anchor (integer, default = 1)
+                lowest rating / low anchor (integer, default = 1)
             high :
-                high anchor (integer, default = 7; reset to low+1 if <= low)
+                highest rating / high anchor (integer, default = 7; at least low+1)
             precision :
                 portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional part)
             showValue :
                 True, show the currently selected number
             markerStyle :
-                *'triangle'* (DarkBlue default), 'circle' (Black default), or 'glow' (White default)
+                *'triangle'* (DarkBlue), 'circle' (Black), or 'glow' (White)
             markerColor :
                 *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
             markerExpansion :
@@ -4522,9 +4533,9 @@ class RatingScale:
             allowSkip :
                 if True, <esc> will allow the subject to skip rating this item (default = True)
             offsetVert :
-                how much to shift the rating line up or down on the screen, norm units; default -0.35, try -0.7 for images
+                how much to shift the rating line up or down on the screen, norm units; default -0.4, try -0.7 for images
             offsetHoriz:
-                how much to shift right - left, norm units; default = 0.0; not currently implemented for mouse
+                how much to shift right - left, norm units; default = 0.0 (centered)
         """
         self.win = win
         self.savedWinUnits = self.win.units
@@ -4539,7 +4550,7 @@ class RatingScale:
             self.precision = 100
         self.tickMarks = self.high - self.low
         # ticks are the units the scale uses internally: 0..(high-low)
-        # the screen position for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
+        # the screen position (norm units) for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
         # and finally allow for global size changes: multiply the above by displaySizeFactor
         
         # remap 10 ticks onto 1 tick in some conditions:
@@ -4563,9 +4574,9 @@ class RatingScale:
         self.markerColor = markerColor
         self.markerStyle = markerStyle
         
-        self.padSize = 0.05 # space above/below the line within which to accept mouse input, 1x above, 2x below
+        self.padSize = 0.06 # space around the line within which to accept mouse input
         self.offsetVert = offsetVert
-        self.offsetHoriz = offsetHoriz # horiz offset not implemented; everything happens at horiz center of screen
+        self.offsetHoriz = offsetHoriz
         
         self.minimumTime = 1 # seconds until a response can be accepted
         
@@ -4731,8 +4742,8 @@ class RatingScale:
         
     def draw(self):
         """
-        update visual display, check for subject response, set self.acceptResponse, self.rating
-        only draws the rating scale, not the stimulus
+        update visual display, check for subject response (key, mouse, skip), set self.acceptResponse, self.rating
+        only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
         
@@ -4791,7 +4802,7 @@ class RatingScale:
         mouse1, m2, m3 = self.myMouse.getPressed()
         if mouse1:
             # if mouse1 is pressed and its near the line, set the marker to mouseX:
-            mouseX, mouseY = self.myMouse.getPos()
+            mouseX, mouseY = self.myMouse.getPos() # norm units
             if mouseY > -2 * self.padSize + self.offsetVert and \
                     mouseY < self.padSize + self.offsetVert and \
                     mouseX > self.offsetHoriz + self.leftEnd * self.displaySizeFactor - self.padSize and \
@@ -4799,7 +4810,7 @@ class RatingScale:
                 mouseX = max(mouseX, self.offsetHoriz + self.leftEnd * self.displaySizeFactor)
                 mouseX = min(mouseX, self.offsetHoriz - self.leftEnd * self.displaySizeFactor)
                 self.markerPlaced = True
-                markerPos = mouseX * self.tickMarks / self.displaySizeFactor + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
+                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / self.displaySizeFactor + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
                 if markerPos < 0: markerPos = 0
                 if self.snapToTick == 1:
                     self.markerPlacedAt = int(markerPos+.5) # round to nearest tick; scale to 0..tickMarks, quantized
