@@ -25,7 +25,7 @@ if 'escape' in event.waitKeys():
     core.quit()
 
 # Example 1 --------(as simple as possible)--------
-myRatingScale = visual.RatingScale(myWin, markerColor='DarkRed') # create a default RatingScale object
+myRatingScale = visual.RatingScale(myWin) # create a default RatingScale object
 question = "How cool was that?"
 myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
 # anything with a frame-by-frame method for display should work just fine, eg a movie:
