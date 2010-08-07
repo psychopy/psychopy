@@ -4622,7 +4622,7 @@ class RatingScale:
         # define the marker:
         if markerColor and type(markerColor) == type('abc'):
             markerColor = markerColor.replace(' ','')
-        if self.markerStyle not in ['circle', 'glow'] and sys.platfom in ['linux2', 'darwin']: #==> 'triangle':
+        if self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']: # ==> 'triangle'
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
             if markerColor == None:
@@ -4646,7 +4646,7 @@ class RatingScale:
             self.markerBaseSize = tickSize * self.markerSize
             if self.markerExpansion == 0:
                 self.markerBaseSize *= self.markerSize * self.displaySizeFactor
-        else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, do default to circle
+        else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
             if markerColor == None:
                 markerColor = 'Black'
             x,y = self.win.size
