@@ -42,7 +42,7 @@ print runInfo
 #print repr(runInfo)
 infoCopy = eval(repr(runInfo)) # this works, but the type() of all values is now string
 
-print """If that's more detail than you want, try: info = core.RuntimeInfo(...,verbose=False,...)."""
+print """If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,verbose=False,...)."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 
 # a data file, and its fairly readable. And because its python syntax you could later simply 
