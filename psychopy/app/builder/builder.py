@@ -1497,7 +1497,10 @@ class BuilderFrame(wx.Frame):
         
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
-        else: self.frameData = self.appData['defaultFrame']
+        else: 
+            self.frameData = dict(self.appData['defaultFrame'])#take a copy
+            self.appData['defaultFrame']['winX']+=10
+            self.appData['defaultFrame']['winY']+=10
         
         if self.frameData['winH']==0 or self.frameData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.frameData['winH'], self.frameData['winW'] =wx.DefaultSize
@@ -1600,7 +1603,7 @@ class BuilderFrame(wx.Frame):
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
-        self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
+        self.toolbar.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
         self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
         self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current file")
@@ -1653,7 +1656,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
-        wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
+        wx.EVT_MENU(self, wx.ID_NEW,  self.app.newBuilderFrame)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
@@ -1751,9 +1754,8 @@ class BuilderFrame(wx.Frame):
         if self.filename==None:
             frameData=self.appData['defaultFrame']
         else:
-            print 'adding', self.filename
-            frameData = self.appData['frames'][self.filename] = dict(self.appData['defaultFrame'])
-
+            frameData = dict(self.appData['defaultFrame'])
+            self.appData['prevFiles'].append(self.filename)
         #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
@@ -1770,15 +1772,19 @@ class BuilderFrame(wx.Frame):
             frameData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
-
+            
+        #assign the data to this filename
+        self.appData['frames'][self.filename] = frameData
+        self.app.allFrames.remove(self)
+        self.app.builderFrames.remove(self)
+        #close window
         self.Destroy()
-        self.app.builder=None
         return 1#indicates that check was successful
     def quit(self, event=None):
         """quit the app"""
         self.app.quit()
     def fileNew(self, event=None, closeCurrent=True):
-        """Create a default experiment (maybe an empty one instead)"""
+        """Create a default experiment (maybe an empty one instead)"""        
         # check whether existing file is modified
         if closeCurrent: #if no exp exists then don't try to close it
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)

@@ -921,14 +921,8 @@ class CoderFrame(wx.Frame):
 
         self.makeMenus()
         #take files from arguments and append the previously opened files
-        if files:
-            self.appData['prevFiles'].extend(files)
-        if len(self.appData['prevFiles'])==0:
-            #then no files previously opened
-            self.setCurrentDoc('', keepHidden=True) #a dummy page to start
-        else:
-            #re-open previous files
-            for filename in self.appData['prevFiles']:
+        if files not in [None, []]:
+            for filename in files:
                 if not os.path.isfile(filename): continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
@@ -1345,6 +1339,7 @@ class CoderFrame(wx.Frame):
         self.appData['winX'], self.appData['winY']=self.GetPosition()
         if sys.platform=='darwin':
             self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+        self.appData['fileHistory']=[]
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 

@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
-import StringIO
+import StringIO, copy
 if sys.argv[-1] in ['-v', '--version']:
     print 'PsychoPy2, version %s (c)Jonathan Peirce, 2010, GNU GPL license' %psychopy.__version__
     sys.exit()
@@ -219,6 +219,7 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(self.coder)
         self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
+        self.allFrames.append(self.coder)
     def newBuilderFrame(self, event=None, fileName=None):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
@@ -243,7 +244,6 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
@@ -275,11 +275,11 @@ class PsychoPyApp(wx.App):
             
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
-        for frame in self.allFrames:
+        self.prefs.appData['coder']['prevFiles']=[]
+        for frame in copy.copy(self.allFrames):
             if frame==None: continue
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
-            frame.Destroy()#because closeFrame actually just Hides the frame XXX NOT TRUE!?
         if sys.platform=='darwin':
             self.menuFrame.Destroy()
             

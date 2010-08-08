@@ -17,7 +17,7 @@ showEOLs= boolean(default=False)
     
 [builder]
 fileHistory = list(default=list())  #files in history
-prevFiles = string(default='')  #file open on last quit    
+prevFiles = list(default=list())  #file open on last quit    
     
     [[frames]]
     
