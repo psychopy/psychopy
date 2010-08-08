@@ -4482,9 +4482,9 @@ class RatingScale:
     
     Returns a rating-scale object, with display parameters defined at init(). 
     
-    The .draw() method displays the scale only (not the item to be rated), gets the subject's response, and
+    The .draw() method displays the scale only (not the item to be rated), handles the subject's response, and
     updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then 
-    call .getRating() to obtain the rating, or getRating(detailed=True) to get (rating, decision time, scale-info-list).
+    call .getRating() to obtain the rating, or getRT() to get the decision time.
     The experimenter has to handle the item to be rated, and ensure its in the same visual window as the RatingScale.
     A RatingScale instance has no idea what else is on the screen.
     
@@ -4495,12 +4495,13 @@ class RatingScale:
         
         myRatingScale = visual.RatingScale(myWin)
         while myRatingScale.noResponse:
-            myItem.draw()  # RatingScale knows nothing about the item(s) to be rated
+            myItem.draw()  # RatingScale knows nothing about the item(s) to be rated: text, image, movie, ...
             myRatingScale.draw()
             myWin.flip()
         rating = myRatingScale.getRating()
+        decisionTime = myRatingScale.getRT()
     
-    See 'ratingScale.py' for a full demo, including a more complex example.
+    See 'ratingScale.py' for a demo.
     
     :Author:
         - 2010 Jeremy Gray
@@ -4555,14 +4556,14 @@ class RatingScale:
         
         # remap 10 ticks onto 1 tick in some conditions:
         self.autoRescaleFactor = 1 
-        if self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0:
+        if (self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0):
             self.autoRescaleFactor = 10
             self.tickMarks /= self.autoRescaleFactor 
             self.precision = min(100, self.precision * self.autoRescaleFactor)
         tickSize = 0.04 # vertical height of each tick, norm units
         self.leftEnd = -0.5 # and possibly resized by displaySizeFactor
         
-        if markerStart and markerStart >= self.low and markerStart <= self.high:
+        if (markerStart and markerStart >= self.low and markerStart <= self.high):
             self.markerStart = markerStart
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
@@ -4575,7 +4576,7 @@ class RatingScale:
         self.markerStyle = markerStyle
         
         self.padSize = 0.06 # space around the line within which to accept mouse input
-        self.offsetVert = offsetVert
+        self.offsetVert = offsetVert # scaled by displaySizeFactor, below
         self.offsetHoriz = offsetHoriz
         
         self.minimumTime = 1 # seconds until a response can be accepted
@@ -4623,7 +4624,7 @@ class RatingScale:
         # define the marker:
         if markerColor and type(markerColor) == type('abc'):
             markerColor = markerColor.replace(' ','')
-        if self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']: # ==> 'triangle'
+        if (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
             if markerColor == None:
@@ -4725,25 +4726,16 @@ class RatingScale:
         self.visualDisplayElements = [self.scaleDescription, self.lowAnchor, self.highAnchor,
                                       self.acceptBox, self.accept, self.line]
         
-        self.noResponse = True
-        self.firstDraw = True
-        self.myClock = core.Clock()
-        self.myMouse = event.Mouse(win=self.win, visible=True)
-        self.decisionTime = 0
-        if self.markerStart not in [None, False]: # do allow 0 as a legal pre-placement
-            self.markerPlaced = True
-            self.markerPlacedAt = self.markerStart - self.low
-        
-        self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
-        self.acceptBox.setLineColor([-.2,-.2,-.2], 'rgb')
-        self.accept.setColor('#444444','rgb')
-        self.accept.setText(self.keyClick)
-        
         self.frame = 0 # used to pulse the 'accept' box
         self.pulse = 0.25 # larger is more salient
         self.framesPerCycle = 16. 
         
+        self.myClock = core.Clock()
+        self.myMouse = event.Mouse(win=self.win, visible=True)
+        
         self.win.units = self.savedWinUnits
+        
+        self.reset()
         
     def draw(self):
         """
@@ -4836,10 +4828,14 @@ class RatingScale:
         self.win.units = self.savedWinUnits
         
     def reset(self):
-        """restores to post-init state; needed between items when rating multiple items
+        """restores to post-init state; does not restore scaleDescription text
+        needed between items when rating multiple items
         """
         self.noResponse = True
         self.markerPlaced = False
+        if self.markerStart not in [None, False]: # do allow 0 as a legal pre-placement
+            self.markerPlaced = True
+            self.markerPlacedAt = self.markerStart - self.low
         self.firstDraw = True
         self.decisionTime = 0
         
@@ -4848,24 +4844,27 @@ class RatingScale:
         self.accept.setColor('#444444','rgb')
         self.accept.setText(self.keyClick)
     
-    def getRating(self, detailed=False):
-        """Returns the rating (False if not available, None if skipped)
-        If detailed == True: return a 3-tuple: (rating, RT in sec, info about the scale [low, high, precision, scale-description])
+    def getRating(self):
+        """Returns the numerical rating; None if the subject skipped this item; False if not available
         """
         if self.noResponse:
-            if detailed: return False, None, None
-            else: return False
+            return False
         try:
             int(self.markerPlacedAt)
         except TypeError:
-            if detailed: return None, None, None # eg, if subject skipped rating this rating
-            else: return None
+            return None # eg, if skipped a response
             
         if self.precision == 1: # set type for the response, based on what was wanted
             response = int(self.markerPlacedAt) * self.autoRescaleFactor + self.low
         else:
             response = float(self.markerPlacedAt) * self.autoRescaleFactor + self.low
-        if detailed:
-            return response, self.decisionTime, [self.low, self.high, self.precision, self.scaleDescription.text]
-        else:
-            return response
+        return response
+    
+    def getRT(self):
+        """Returns the seconds taken to make the rating (or indicate skip). Returns None if no rating available.
+        """
+        if self.noResponse:
+            return None
+        
+        return self.decisionTime
+            
