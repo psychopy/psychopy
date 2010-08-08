@@ -222,7 +222,7 @@ class PsychoPyApp(wx.App):
     def newBuilderFrame(self, event=None, fileName=None):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
-                                  title="PsychoPy2 Experiment Builder",
+                                  title="PsychoPy2 Experiment Builder (v%s)",
                                   fileName=fileName, app=self)
         thisFrame.Show(True)
         thisFrame.Raise()
@@ -264,6 +264,7 @@ class PsychoPyApp(wx.App):
             if frame==None: continue
             ok=frame.checkSave()
             if not ok: return#user cancelled quit
+            
         #save info about current frames for next run
         if self.coder and len(self.builderFrames)==0:
             self.prefs.appData['lastFrame']='coder'
@@ -271,15 +272,19 @@ class PsychoPyApp(wx.App):
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
-        #hide the frames then close
+            
+        #update app data while closing each frame
+        self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         for frame in self.allFrames:
             if frame==None: continue
             frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
             self.prefs.saveAppData()#must do this before destroying the frame?
-            frame.Destroy()#because closeFrame actually just Hides the frame
+            frame.Destroy()#because closeFrame actually just Hides the frame XXX NOT TRUE!?
         if sys.platform=='darwin':
             self.menuFrame.Destroy()
+            
         sys.exit()#really force a quit
+        
     def showPrefs(self, event):
         prefsDlg = preferences.PreferencesDlg(app=self)
         prefsDlg.Show()

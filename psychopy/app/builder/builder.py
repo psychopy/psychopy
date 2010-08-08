@@ -1482,26 +1482,33 @@ class DlgExperimentProperties(_BaseParamsDlg):
 class BuilderFrame(wx.Frame):
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
-                 pos=wx.DefaultPosition, fileName=None,
+                 pos=wx.DefaultPosition, fileName=None,frameData=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
 
         self.app=app
-        self.frameType='builder'
         self.dpi=self.app.dpi
         self.appData = self.app.prefs.appData['builder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.builder#things about the coder that get set
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
-            self.appData['winH'], self.appData['winW'] =wx.DefaultSize
-            self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+        self.frameType='builder'
+        self.filename = fileName
+        
+        if fileName in self.appData['frames'].keys():
+            self.frameData = self.appData['frames'][fileName]
+        else: self.frameData = self.appData['defaultFrame']
+        
+        if self.frameData['winH']==0 or self.frameData['winW']==0:#we didn't have the key or the win was minimized/invalid
+            self.frameData['winH'], self.frameData['winW'] =wx.DefaultSize
+            self.frameData['winX'],self.frameData['winY'] =wx.DefaultPosition
             usingDefaultSize=True
         else:
             usingDefaultSize=False
-        wx.Frame.__init__(self, parent, id, title, (self.appData['winX'], self.appData['winY']),
-                         size=(self.appData['winW'],self.appData['winH']),
-                         style=style)
+        wx.Frame.__init__(self, parent=parent, id=id, title=title, 
+                            pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
+                            size=(int(self.frameData['winW']),int(self.frameData['winH'])),
+                            style=style)
 
         self.panel = wx.Panel(self)
         #create icon
@@ -1526,8 +1533,8 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
         
         #setup a default exp
-        if fileName!=None and os.path.isfile(files[0]):
-            self.fileOpen(filename=files[0], closeCurrent=False)
+        if fileName!=None and os.path.isfile(fileName):
+            self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy=None
             self.fileNew(closeCurrent=False)#don't try to close before opening
@@ -1551,13 +1558,13 @@ class BuilderFrame(wx.Frame):
         self._mgr.Update()
 
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
-        if self.appData['auiPerspective']:
-            self._mgr.LoadPerspective(self.appData['auiPerspective'])
+        if self.frameData['auiPerspective']:
+            self._mgr.LoadPerspective(self.frameData['auiPerspective'])
         self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
         if usingDefaultSize:
             self.Fit()
         else:
-            self.SetSize((self.appData['winW'],self.appData['winH']))        
+            self.SetSize((int(self.frameData['winW']),int(self.frameData['winH'])))        
         self.SendSizeEvent()
         self._mgr.Update()
 
@@ -1593,7 +1600,7 @@ class BuilderFrame(wx.Frame):
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
-        self.toolbar.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
+        self.toolbar.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
         self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
         self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current file")
@@ -1646,7 +1653,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
-        wx.EVT_MENU(self, wx.ID_NEW,  self.app.newBuilderFrame)
+        wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
@@ -1741,29 +1748,31 @@ class BuilderFrame(wx.Frame):
         if checkSave:
             ok=self.checkSave()
             if not ok: return False
-        self.appData['prevFile']=self.filename
+        if self.filename==None:
+            frameData=self.appData['defaultFrame']
+        else:
+            print 'adding', self.filename
+            frameData = self.appData['frames'][self.filename] = dict(self.appData['defaultFrame'])
 
         #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
-            self.appData['state']='normal'
+            frameData['state']='normal'
         elif self.IsMaximized():
             self.Maximize(False)#will briefly return to normal mode to get size info
-            self.appData['state']='maxim'
+            frameData['state']='maxim'
         else:
-            self.appData['state']='normal'
-        self.appData['auiPerspective'] = self._mgr.SavePerspective()
-        self.appData['winW'], self.appData['winH']=self.GetSize()
-        self.appData['winX'], self.appData['winY']=self.GetPosition()
+            frameData['state']='normal'
+        frameData['auiPerspective'] = self._mgr.SavePerspective()
+        frameData['winW'], frameData['winH']=self.GetSize()
+        frameData['winX'], frameData['winY']=self.GetPosition()
         if sys.platform=='darwin':
-            self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+            frameData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
         self.Destroy()
-        if self in self.app.builderFrames:
-            self.app.builderFrames.remove(self)
-            self.app.allFrames.append(self)
+        self.app.builder=None
         return 1#indicates that check was successful
     def quit(self, event=None):
         """quit the app"""
@@ -2090,6 +2099,14 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
+
+def appDataToFrames(prefs):
+    """Takes the standard PsychoPy prefs and returns a list of appData dictionaries, for the Builder frames.
+    (Needed because prefs stores a dict of lists, but we need a list of dicts)
+    """
+    dat = prefs.appData['builder']
+def framesToAppData(prefs):
+    pass
 
 def _relpath(path, start='.'):
     """This code is based on os.path.repath in the Python 2.6 distribution, 

@@ -1348,7 +1348,7 @@ class CoderFrame(wx.Frame):
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
-        self.Destroy()#ultimately Hide
+        self.Destroy()
         self.app.coder=None
 
     def fileNew(self, event=None, filepath=""):
