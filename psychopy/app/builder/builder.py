@@ -69,7 +69,7 @@ class FlowPanel(wx.ScrolledWindow):
         #bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
-        self.Bind(wx.EVT_BUTTON, self.onInsertLoopPoint1,self.btnInsertLoop)
+        self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         #create a clear hotkey to abort insertion of Routines etc
         idClear = wx.NewId()
@@ -144,7 +144,7 @@ class FlowPanel(wx.ScrolledWindow):
         #reset flow drawing (remove entry point)
         self.clearMode()
 
-    def onInsertLoopPoint1(self, evt=None):
+    def setLoopPoint1(self, evt=None):
         """Someone pushed the insert loop button.
         Fetch the dialog
         """
@@ -152,28 +152,28 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame.SetStatusText('Click where you want the loop to start/end')
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
-    def onInsertLoopPoint2(self, evt=None):
+    def setLoopPoint2(self, evt=None):
         """Someone pushed the insert loop button.
         Fetch the dialog
         """
         self.mode='loopPoint2'
         self.frame.SetStatusText('Click the other start/end for the loop')
-        self.gapMidPoints.remove(self.entryPointPosList[0])#so the loop can't point back to itself
-        x = self.getNearestGapPoint(wx.GetMousePosition()[0]-self.GetScreenPosition()[0])
+        x = self.getNearestGapPoint(wx.GetMousePosition()[0]-self.GetScreenPosition()[0],
+            exclude=[self.entryPointPosList[0]])#exclude point 1
         self.drawEntryPoints([self.entryPointPosList[0], x])
 
-    def onInsertLoop(self, evt=None):
+    def insertLoop(self, evt=None):
         #bring up listbox to choose the routine to add and/or create a new one
         loopDlg = DlgLoopProperties(frame=self.frame, 
             helpUrl = self.app.urls['builder.loops'])
-
+        startII = self.gapMidPoints.index(self.entryPointPosList[0])
+        endII = self.gapMidPoints.index(self.entryPointPosList[1])
         if loopDlg.OK:
             handler=loopDlg.currentHandler
-            exec("ends=numpy.%s" %handler.params['endPoints'])#creates a copy of endPoints as an array
-            self.frame.exp.flow.addLoop(handler, startPos=ends[0], endPos=ends[1])
+            self.frame.exp.flow.addLoop(handler, 
+                startPos=startII, endPos=endII)
             self.frame.addToUndoStack("AddLoopToFlow")
-        #remove the points from the timeline
-        self.setDrawPoints(None)
+        self.clearMode()
         self.redrawFlow()
 
     def editLoopProperties(self, event=None, loop=None):
@@ -222,20 +222,21 @@ class FlowPanel(wx.ScrolledWindow):
                 self.drawEntryPoints([point])
         elif self.mode=='loopPoint1':
             if event.LeftDown():
-                self.onInsertLoopPoint2()
+                self.setLoopPoint2()
             else:#move spot if needed
                 point = self.getNearestGapPoint(mouseX=event.GetX())
                 self.drawEntryPoints([point])
         elif self.mode=='loopPoint2':
             if event.LeftDown():
-                pass
+                self.insertLoop()
             else:#move spot if needed
                 point = self.getNearestGapPoint(mouseX=event.GetX())
                 self.drawEntryPoints([self.entryPointPosList[0], point])
-    def getNearestGapPoint(self, mouseX):
-        d= (self.gapMidPoints[0]-mouseX)**2
-        nearest=self.gapMidPoints[0]
-        for point in self.gapMidPoints[1:]:
+    def getNearestGapPoint(self, mouseX, exclude=[]):
+        d=1000000000
+        nearest=None
+        for point in self.gapMidPoints:
+            if point in exclude: continue
             if (point-mouseX)**2 < d:
                 d=(point-mouseX)**2
                 nearest=point
@@ -1277,7 +1278,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler.params['trialList'].val=self.trialList
 
     def makeGlobalCtrls(self):
-        for fieldName in ['name','loopType','endPoints']:
+        for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName, self.currentHandler.params[fieldName])
             container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
@@ -1301,6 +1302,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             keys.insert(-1,'trialListFile')
         #then step through them
         for fieldName in keys:
+            if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls.keys():
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
@@ -1331,6 +1333,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.stairHandler
         #loop through the params
         for fieldName in handler.params.keys():
+            if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls.keys():
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
@@ -1406,6 +1409,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         """
         #get data from input fields
         for fieldName in self.currentHandler.params.keys():
+            if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
             if fieldName=='trialListFile':
                 param.val=self.trialListFile#not the value from ctrl - that was abbrieviated
@@ -1756,7 +1760,7 @@ class BuilderFrame(wx.Frame):
         self.expMenu.Append(self.IDs.addRoutineToFlow, "Insert Routine in Flow", "Select one of your routines to be inserted into the experiment flow")
         wx.EVT_MENU(self, self.IDs.addRoutineToFlow,  self.flowPanel.onInsertRoutine)
         self.expMenu.Append(self.IDs.addLoopToFlow, "Insert Loop in Flow", "Create a new loop in your flow window")
-        wx.EVT_MENU(self, self.IDs.addLoopToFlow,  self.flowPanel.onInsertLoop)
+        wx.EVT_MENU(self, self.IDs.addLoopToFlow,  self.flowPanel.insertLoop)
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
