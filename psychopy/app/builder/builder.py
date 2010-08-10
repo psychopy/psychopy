@@ -45,9 +45,9 @@ class FlowPanel(wx.ScrolledWindow):
         # vars for handling mouse clicks
         self.hitradius=5
         self.dragid = -1
-        self.entryPointPos = None
-        self.entryPointID=None
-        self.mode = 'normal'#can also be 'firstLoopPoint','secondLoopPoint','routinePoint'
+        self.entryPointPosList = []
+        self.entryPointIDlist = []
+        self.mode = 'normal'#can also be 'loopPoint1','loopPoint2','routinePoint'
         self.insertingRoutine=""
         
         #for the context menu
@@ -69,9 +69,27 @@ class FlowPanel(wx.ScrolledWindow):
         #bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
-        self.Bind(wx.EVT_BUTTON, self.onInsertLoop,self.btnInsertLoop)
+        self.Bind(wx.EVT_BUTTON, self.onInsertLoopPoint1,self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
+        #create a clear hotkey to abort insertion of Routines etc
+        idClear = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.clearMode, id=idClear )
+        aTable = wx.AcceleratorTable([
+                              (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, idClear)
+                              ])
+        self.SetAcceleratorTable(aTable)
+    def clearMode(self, event=None):
+        """If we were in middle of doing something (like inserting routine) then
+        end it, allowing user to cancel
+        """
+        self.mode='normal'
+        self.insertingRoutine=None
+        for id in self.entryPointIDlist:
+            self.pdc.RemoveId(id)
+        self.entryPointPosList = []
+        self.entryPointIDlist = []
+        self.redrawFlow()
+        self.frame.SetStatusText("")
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
@@ -90,6 +108,7 @@ class FlowPanel(wx.ScrolledWindow):
         present insertion point on flow line.        
         see self.insertRoutine() for further info
         """
+        self.frame.SetStatusText("Select a Routine to insert (Esc to exit)")
         menu = wx.Menu()
         self.routinesFromID={}
         for routine in self.frame.exp.routines:
@@ -97,6 +116,7 @@ class FlowPanel(wx.ScrolledWindow):
             menu.Append( id, routine )
             self.routinesFromID[id]=routine
             wx.EVT_MENU( menu, id, self.onInsertRoutineSelect )
+        menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         btnPos = self.btnInsertRoutine.GetRect()
         menuPos = (btnPos[0], btnPos[1]+btnPos[3])
         self.PopupMenu( menu, menuPos )
@@ -107,9 +127,10 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.mode='routine'
+        self.frame.SetStatusText('Click where you want to insert the Routine')
         self.insertingRoutine = self.routinesFromID[event.GetId()]
         x = self.getNearestGapPoint(0)
-        self.drawEntryPoint(x)
+        self.drawEntryPoints([x])
     def insertRoutine(self, ii):
         """Insert a routine into the Flow having determined its name and location
 
@@ -121,25 +142,27 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame.exp.flow.addRoutine(self.frame.exp.routines[self.insertingRoutine], ii)
         self.frame.addToUndoStack("AddRoutine")
         #reset flow drawing (remove entry point)
-        self.mode='normal'
-        self.insertingRoutine=None
-        self.pdc.RemoveId(self.entryPointID)
-        self.entryPointPos = None
-        self.entryPointID = None
-        self.redrawFlow()
-#          if addRoutineDlg.ShowModal()==wx.ID_OK:
-#            newRoutine = self.frame.exp.routines[addRoutineDlg.routine]#fetch the routine with the returned name
-#            self.frame.exp.flow.addRoutine(newRoutine, addRoutineDlg.loc)
-#            self.frame.addToUndoStack("AddRoutine")
-    def onInsertLoop(self, evt):
+        self.clearMode()
+
+    def onInsertLoopPoint1(self, evt=None):
         """Someone pushed the insert loop button.
         Fetch the dialog
         """
+        self.mode='loopPoint1'
+        self.frame.SetStatusText('Click where you want the loop to start/end')
+        x = self.getNearestGapPoint(0)
+        self.drawEntryPoints([x])
+    def onInsertLoopPoint2(self, evt=None):
+        """Someone pushed the insert loop button.
+        Fetch the dialog
+        """
+        self.mode='loopPoint2'
+        self.frame.SetStatusText('Click the other start/end for the loop')
+        self.gapMidPoints.remove(self.entryPointPosList[0])#so the loop can't point back to itself
+        x = self.getNearestGapPoint(wx.GetMousePosition()[0]-self.GetScreenPosition()[0])
+        self.drawEntryPoints([self.entryPointPosList[0], x])
 
-        #add routine points to the timeline
-        self.setDrawPoints('loops')
-        self.redrawFlow()
-
+    def onInsertLoop(self, evt=None):
         #bring up listbox to choose the routine to add and/or create a new one
         loopDlg = DlgLoopProperties(frame=self.frame, 
             helpUrl = self.app.urls['builder.loops'])
@@ -193,10 +216,22 @@ class FlowPanel(wx.ScrolledWindow):
                         xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif self.mode=='routine':
             if event.LeftDown():
-                self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPos))
+                self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
             else:#move spot if needed
                 point = self.getNearestGapPoint(mouseX=event.GetX())
-                self.drawEntryPoint(point)
+                self.drawEntryPoints([point])
+        elif self.mode=='loopPoint1':
+            if event.LeftDown():
+                self.onInsertLoopPoint2()
+            else:#move spot if needed
+                point = self.getNearestGapPoint(mouseX=event.GetX())
+                self.drawEntryPoints([point])
+        elif self.mode=='loopPoint2':
+            if event.LeftDown():
+                pass
+            else:#move spot if needed
+                point = self.getNearestGapPoint(mouseX=event.GetX())
+                self.drawEntryPoints([self.entryPointPosList[0], point])
     def getNearestGapPoint(self, mouseX):
         d= (self.gapMidPoints[0]-mouseX)**2
         nearest=self.gapMidPoints[0]
@@ -310,28 +345,33 @@ class FlowPanel(wx.ScrolledWindow):
 
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
-    def drawEntryPoint(self, pos):      
-        if self.entryPointPos == None:
-            #draw for first time
-            self.entryPointID = wx.NewId()
-            self.pdc.SetId(self.entryPointID)
-            self.pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
-            self.pdc.DrawCircle(pos,self.linePos[1], 5)
-        elif pos == self.entryPointPos:
-            pass
-        else:
-            #move to new position
-            dx = pos-self.entryPointPos
-            dy = 0
-            r = self.pdc.GetIdBounds(self.entryPointID)
-            self.pdc.TranslateId(self.entryPointID, dx, dy)
-            r2 = self.pdc.GetIdBounds(self.entryPointID)
-            rectToRedraw = r.Union(r2)#combine old and new locations to get redraw area
-            rectToRedraw.Inflate(4,4)
-            self.OffsetRect(rectToRedraw)
-            self.RefreshRect(rectToRedraw, False)
+    def drawEntryPoints(self, posList):
+        for n, pos in enumerate(posList):
+            if n>=len(self.entryPointPosList):
+                #draw for first time
+                id = wx.NewId()
+                self.entryPointIDlist.append(id)
+                self.pdc.SetId(id)
+                self.pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+                self.pdc.DrawCircle(pos,self.linePos[1], 5)
+                r = self.pdc.GetIdBounds(id)
+                self.OffsetRect(r)
+                self.RefreshRect(r, False)
+            elif pos == self.entryPointPosList[n]:
+                pass#nothing to see here, move along please :-)
+            else:
+                #move to new position
+                dx = pos-self.entryPointPosList[n]
+                dy = 0
+                r = self.pdc.GetIdBounds(self.entryPointIDlist[n])
+                self.pdc.TranslateId(self.entryPointIDlist[n], dx, dy)
+                r2 = self.pdc.GetIdBounds(self.entryPointIDlist[n])
+                rectToRedraw = r.Union(r2)#combine old and new locations to get redraw area
+                rectToRedraw.Inflate(4,4)
+                self.OffsetRect(rectToRedraw)
+                self.RefreshRect(rectToRedraw, False)
             
-        self.entryPointPos=pos
+        self.entryPointPosList=posList
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
 
     def setDrawPoints(self, ptType, startPoint=None):
@@ -1499,7 +1539,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
-        
+                
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
         else: 
@@ -1519,6 +1559,8 @@ class BuilderFrame(wx.Frame):
                             style=style)
 
         self.panel = wx.Panel(self)
+        self.CreateStatusBar()
+        self.SetStatusText("")
         #create icon
         if sys.platform=='darwin':
             pass#doesn't work and not necessary - handled by application bundle
