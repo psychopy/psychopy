@@ -1,7 +1,7 @@
 from psychopy import visual, core, event
 
 win = visual.Window([800,600])
-mov = visual.MovieStim(win, 'testMovie.mp4', size=[320,240],flipVert=False, flipHoriz=False)
+mov = visual.MovieStim(win, 'testmovie.mpg', size=[320,240],flipVert=False, flipHoriz=False)
 print 'orig movie size=[%i,%i]' %(mov.format.width, mov.format.height)
 print 'duration=%.2fs' %(mov.duration)
 globalClock = core.Clock()
