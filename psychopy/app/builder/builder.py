@@ -1589,8 +1589,6 @@ class BuilderFrame(wx.Frame):
                             style=style)
 
         self.panel = wx.Panel(self)
-        self.CreateStatusBar()
-        self.SetStatusText("")
         #create icon
         if sys.platform=='darwin':
             pass#doesn't work and not necessary - handled by application bundle
@@ -1606,6 +1604,8 @@ class BuilderFrame(wx.Frame):
         #menus and toolbars
         self.makeToolbar()
         self.makeMenus()
+        self.CreateStatusBar()
+        self.SetStatusText("")
 
         #
         self.stdoutOrig = sys.stdout
@@ -1636,7 +1636,6 @@ class BuilderFrame(wx.Frame):
                           Bottom())
         #tell the manager to 'commit' all the changes just made
         self._mgr.Update()
-
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.frameData['auiPerspective']:
             self._mgr.LoadPerspective(self.frameData['auiPerspective'])
