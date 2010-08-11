@@ -1,3 +1,15 @@
+psychopy (1.61.03.dfsg-1) unstable; urgency=low
+
+  * Upstream bugfix release for 1.61 series + 2 additional commits
+    (advised by upstream):
+    - rev 1015 - builder: minor bug in trying dlgs trying to access advParams
+      that don't exist
+    - rev 1018 - coder: fix to reading of unicode scripts
+  * This should be the last release in 1.61.xx series, 1.62.0 is in alpha
+    testing
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 11 Aug 2010 15:33:36 -0400
+
 psychopy (1.61.02.dfsg-2) unstable; urgency=low
 
   * Debian packaging:
