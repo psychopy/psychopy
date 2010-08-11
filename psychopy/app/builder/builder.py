@@ -166,8 +166,8 @@ class FlowPanel(wx.ScrolledWindow):
         #bring up listbox to choose the routine to add and/or create a new one
         loopDlg = DlgLoopProperties(frame=self.frame, 
             helpUrl = self.app.urls['builder.loops'])
-        startII = self.gapMidPoints.index(self.entryPointPosList[0])
-        endII = self.gapMidPoints.index(self.entryPointPosList[1])
+        startII = self.gapMidPoints.index(min(self.entryPointPosList))
+        endII = self.gapMidPoints.index(max(self.entryPointPosList))
         if loopDlg.OK:
             handler=loopDlg.currentHandler
             self.frame.exp.flow.addLoop(handler, 
@@ -329,7 +329,7 @@ class FlowPanel(wx.ScrolledWindow):
             name = thisLoop.params['name'].val#name of the trialHandler/StairHandler
             self.drawLoop(pdc,name,thisLoop,id=thisId,
                         startX=thisInit, endX=thisTerm,
-                        base=self.linePos[1],height=self.linePos[1]-60+thisNest*20)
+                        base=self.linePos[1],height=self.linePos[1]-30*len(self.loops)+thisNest*20)
             self.drawLoopStart(pdc,pos=[thisInit,self.linePos[1]])
             self.drawLoopEnd(pdc,pos=[thisTerm,self.linePos[1]])
 
