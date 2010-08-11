@@ -26,6 +26,6 @@ Copyright: Copyright, 2010, IOLAB SYSTEMS INC <development@iolab.co.uk>
 License: GPL-3+
 
 Files: debian/*
-Copyright: Copyright, 2007-2010,
-  Experimental Psychology Maintainers <pkg-exppsy-maintainers@lists.alioth.debian.org>
-License: GPL-2
+Copyright: 2007-2010, Yaroslav Halchenko <debian@onerussian.com>
+           2007-2009, Michael Hanke <michael.hanke@gmail.com>
+License: GPL-3+
