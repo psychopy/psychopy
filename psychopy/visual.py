@@ -3279,8 +3279,10 @@ class MovieStim(_BaseVisualStim):
             core.quit()
                     
     def loadMovie(self, filename):
-        
-        self._movie = pyglet.media.load( filename, streaming=True)
+        try: 
+            self._movie = pyglet.media.load( filename, streaming=True)
+        except pyglet.media.riff.WAVEFormatException:
+            raise '\navbin has not been installed and is needed to play movies. \nPlease fetch/install it from http://code.google.com/p/avbin/'
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         #self._player.on_eos=self.onEOS #doesn't seem to work
