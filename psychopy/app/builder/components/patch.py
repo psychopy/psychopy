@@ -23,6 +23,7 @@ class PatchComponent(VisualComponent):
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params
+        self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")        

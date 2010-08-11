@@ -1,4 +1,6 @@
-Sound
+.. _sound:
+
+Sound Component
 -------------------------------
 
 Parameters

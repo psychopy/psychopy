@@ -1,4 +1,6 @@
-Movie
+.._movie:
+
+Movie Component
 -------------------------------
 
 The Movie component allows movie files to be played from a variety of formats (e.g. mpeg). 

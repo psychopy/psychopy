@@ -1,6 +1,6 @@
 .. _keyboard:
 
-Keyboard
+Keyboard Component
 -------------------------------
 
 The Keyboard component can be used to collect responses from a participant. 
