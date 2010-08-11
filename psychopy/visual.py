@@ -4450,7 +4450,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
 
 
-class RatingScale:
+class RatingScale():
     """Returns a rating-scale object, with display parameters defined during init(). To get a rating,
     call rate(item-string). This will display the scale + item, get the subject's response, and
     return the response info (rating, decision time, scale-info-list). If item is an image file name,
