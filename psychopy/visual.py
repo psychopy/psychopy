@@ -4226,23 +4226,20 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         data[:,:,1] = intensity*stim.rgb[1]  + stim.rgbPedestal[1]#G
         data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        if stim.colorSpace=='rgb':#scale up to 255 for non-shaders ubyte data
-            data = psychopy.misc.float_uint8(stim.contrast*data)
-        else:#just convert data type
-            data = (stim.contrast*data).astype(numpy.ubyte)
-    elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
+        data = psychopy.misc.float_uint8(stim.contrast*data)
+    elif pixFormat==GL.GL_RGB and useShaders:#and not wasLum
         internalFormat = GL.GL_RGB32F_ARB
         dataType = GL.GL_FLOAT
         data = intensity
-    elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
+    elif pixFormat==GL.GL_RGB:
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
         data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA and useShaders:# a mask with no shader options
+    elif pixFormat==GL.GL_ALPHA and useShaders:
         internalFormat = GL.GL_ALPHA
         dataType = GL.GL_UNSIGNED_BYTE
         data = psychopy.misc.float_uint8(intensity)    
-    elif pixFormat==GL.GL_ALPHA:# not wasLum, not useShaders  - a mask with no shader options
+    elif pixFormat==GL.GL_ALPHA:
         internalFormat = GL.GL_ALPHA
         dataType = GL.GL_UNSIGNED_BYTE
         #can't use float_uint8 - do it manually
