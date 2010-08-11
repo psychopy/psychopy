@@ -819,7 +819,7 @@ class ComponentsPanel(scrolled.ScrolledPanel):
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
 class ParamCtrls:
-    def __init__(self, dlg, label, param, browse=False, noCtrls=False):
+    def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
         by the calling dlg.
@@ -841,6 +841,8 @@ class ParamCtrls:
         self.dlg = dlg
         self.dpi=self.dlg.dpi
         self.valueWidth = self.dpi*3.5
+        if advanced: parent=self.dlg.advPanel.GetPane()
+        else: parent=self.dlg
         #param has the fields:
         #val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
         # we need the following
@@ -851,30 +853,30 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi/3)#was 8*until v0.91.4
-        self.nameCtrl = wx.StaticText(self.dlg,-1,label,size=labelLength,
+        self.nameCtrl = wx.StaticText(parent,-1,label,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
 
         if label=='text':
             #for text input we need a bigger (multiline) box
-            self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
         elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
             #code input fields one day change these to wx.stc fields?
-            self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
         elif param.valType=='bool':
             #only True or False - use a checkbox
-             self.valueCtrl = wx.CheckBox(self.dlg, size = wx.Size(self.valueWidth,-1))
+             self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
              self.valueCtrl.SetValue(param.val)
         elif len(param.allowedVals)>1:
             #there are limitted options - use a Choice control
-            self.valueCtrl = wx.Choice(self.dlg, choices=param.allowedVals, size=wx.Size(self.valueWidth,-1))
+            self.valueCtrl = wx.Choice(parent, choices=param.allowedVals, size=wx.Size(self.valueWidth,-1))
             self.valueCtrl.SetStringSelection(unicode(param.val))
         else:
             #create the full set of ctrls
-            self.valueCtrl = wx.TextCtrl(self.dlg,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
                         size=wx.Size(self.valueWidth,-1))
 
         self.valueCtrl.SetToolTipString(param.hint)
@@ -883,7 +885,7 @@ class ParamCtrls:
         if len(param.allowedTypes)==0:
             pass
         else:
-            self.typeCtrl = wx.Choice(self.dlg, choices=param.allowedTypes)
+            self.typeCtrl = wx.Choice(parent, choices=param.allowedTypes)
             self.typeCtrl.SetStringSelection(param.valType)
         if len(param.allowedTypes)==1:
             self.typeCtrl.Disable()#visible but can't be changed
@@ -892,13 +894,13 @@ class ParamCtrls:
         if param.allowedUpdates==None or len(param.allowedUpdates)==0:
             pass
         else:
-            self.updateCtrl = wx.Choice(self.dlg, choices=param.allowedUpdates)
+            self.updateCtrl = wx.Choice(parent, choices=param.allowedUpdates)
             self.updateCtrl.SetStringSelection(param.updates)
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
             self.updateCtrl.Disable()#visible but can't be changed
         #create browse control
         if browse:
-            self.browseCtrl = wx.Button(self.dlg, -1, "Browse...") #we don't need a label for this
+            self.browseCtrl = wx.Button(parent, -1, "Browse...") #we don't need a label for this
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
@@ -950,9 +952,16 @@ class ParamCtrls:
         """
         if self.updateCtrl:
             return self._getCtrlValue(self.updateCtrl)
+    def setVisible(self, newVal=True):
+        self.valueCtrl.Show(newVal)
+        self.nameCtrl.Show(newVal)
+        if self.updateCtrl: self.updateCtrl.Show(newVal)
+        if self.typeCtrl: self.typeCtrl.Show(newVal)
+
 class _BaseParamsDlg(wx.Dialog):
     def __init__(self,frame,title,params,order,
-            helpUrl=None, suppressTitles=True,
+            helpUrl=None, suppressTitles=True, 
+            showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
@@ -964,15 +973,18 @@ class _BaseParamsDlg(wx.Dialog):
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
         self.paramCtrls={}
+        self.showAdvanced=showAdvanced
         self.order=order
         self.data = []
         self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
         self.currRow = 0
+        self.advCtrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
+        self.advCurrRow = 0
         self.nameOKlabel=None
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
-
+        
         #create a header row of titles
         if not suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
@@ -983,29 +995,58 @@ class _BaseParamsDlg(wx.Dialog):
             self.currRow+=1
         self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
         self.currRow+=1
-
+        
+        #get all params and sort
         remaining = sorted(self.params.keys())
-        #loop through the params with a prescribed order
+        #check for advanced params
+        if 'advancedParams' in self.params.keys():
+            self.advParams=self.params['advancedParams']
+            remaining.remove('advancedParams')
+        else:self.advParams=[]
+        
+        #loop through the normal params with a prescribed order (the most important?)
         for fieldName in self.order:
+            if fieldName in self.advParams:continue#skip advanced params
             self.addParam(fieldName)
             remaining.remove(fieldName)
         #add any params that weren't specified in the order
+        print remaining, self.advParams
         for fieldName in remaining:
-            self.addParam(fieldName)
-    def addParam(self,fieldName):
+            if fieldName not in self.advParams:
+                self.addParam(fieldName)
+        #add advanced params if needed
+        if len(self.advParams)>0:
+            self.addAdvancedTab()
+            for fieldName in self.advParams:
+                self.addParam(fieldName, advanced=True)
+                
+    def addParam(self,fieldName, advanced=False):
+        """Add a parameter to the basic sizer
+        """
+        if advanced:
+            sizer=self.advCtrlSizer
+            parent=self.advPanel.GetPane()
+            currRow = self.advCurrRow
+        else:
+            sizer=self.ctrlSizer
+            parent=self
+            currRow = self.currRow
         param=self.params[fieldName]
-        ctrls=ParamCtrls(dlg=self, label=fieldName,param=param)
+        ctrls=ParamCtrls(dlg=self, label=fieldName,param=param, advanced=advanced)
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
-        self.ctrlSizer.Add(ctrls.nameCtrl, (self.currRow,0), (1,1),wx.ALIGN_RIGHT )
-        self.ctrlSizer.Add(ctrls.valueCtrl, (self.currRow,1) )
+        sizer.Add(ctrls.nameCtrl, (currRow,0), (1,1),wx.ALIGN_RIGHT )
+        sizer.Add(ctrls.valueCtrl, (currRow,1) )
         if ctrls.updateCtrl:
-            self.ctrlSizer.Add(ctrls.updateCtrl, (self.currRow,2))
+            sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
-            self.ctrlSizer.Add(ctrls.typeCtrl, (self.currRow,3) )
-        self.currRow+=1
+            sizer.Add(ctrls.typeCtrl, (currRow,3) )
+        #increment row number
+        if advanced: self.advCurrRow+=1
+        else:self.currRow+=1
+        
     def addText(self, text, size=None):
         if size==None:
             size = wx.Size(8*len(text)+16, 25)
@@ -1015,7 +1056,19 @@ class _BaseParamsDlg(wx.Dialog):
                                 size=size)
         self.ctrlSizer.Add(myTxt,wx.EXPAND)#add to current row spanning entire
         return myTxt
-
+    def addAdvancedTab(self):
+        self.advPanel = wx.CollapsiblePane(self, label='Show Advanced')
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.onToggleAdvanced, self.advPanel)
+        pane = self.advPanel.GetPane()
+        pane.SetSizer(self.advCtrlSizer)
+        self.advPanel.Collapse(not self.showAdvanced)
+    def onToggleAdvanced(self, event=None):
+        if self.advPanel.IsExpanded():
+            self.advPanel.SetLabel('Hide Advanced')
+            self.showAdvanced=True
+        else:
+            self.advPanel.SetLabel('Show Advanced')
+            self.showAdvanced=False
     def show(self):
         """Adds an OK and cancel button, shows dialogue.
 
@@ -1046,7 +1099,9 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()    
         #put it all together
-        self.mainSizer.Add(self.ctrlSizer)
+        self.mainSizer.Add(self.ctrlSizer)#add main controls
+        if len(self.advParams)>0:#add advanced controls
+            self.mainSizer.Add(self.advPanel,0,wx.GROW|wx.ALL,5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)

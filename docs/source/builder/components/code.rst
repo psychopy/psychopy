@@ -1,6 +1,6 @@
 .. _code:
 
-Code
+Code Component
 -------------------------------
 
 The `Code Component` can be used to insert short pieces of python code into your experiments. This might be create a variable that you want for another :ref:`Component <components>`, to manipulate images before displaying them, to interact with hardware for which there isn't yet a pre-packaged component in `PsychoPy` (e.g. writing code to interact with the serial/parallel ports). See `codeUses`_ below.
@@ -39,7 +39,7 @@ Example code uses
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Set a random location for your target stimulus
--------------------------------------------------
+====================================================
 There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your `Routine`. Then set your stimulus position to be `$targetPos` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
 	
 	if random()>0.5:
@@ -50,11 +50,11 @@ There are many ways to do this, but you could add the following to the `Begin Ro
 	    corrAns='right'
 
 Create a patch of noise 
--------------------------------------------------
+====================================================
 To do. (but see the related `Coder` demo)
 
 Send a feedback message at the end of the experiment
--------------------------------------------------
+====================================================
 Create a `Code Component` with this in the `Begin Experiment` field::
 	
 	expClock = core.Clock()

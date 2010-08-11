@@ -5,7 +5,7 @@ Changelog
   Version numbers
   
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
-  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes form the user.
+  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
 Known issues
 ------------------
@@ -16,14 +16,25 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.61
 ------------------------------
 
+PsychoPy 1.61.03
+~~~~~~~~~~~~~~~~~~~~~~~~
+Patch released July 2010
+
+* FIXED: harmless error messages caused by trying to get the file date/time when no file is open
+* CHANGED: movie file used in movie demo (the chimp had unknown copyright)
+* FIXED: problem with nVidia cards under win32 being slow to render RadialStim
+* FIXED bug in filters.makeGrating where gratType='sqr'
+* FIXED bug in new color spaces for computers that don't support shaders
+* ADDED option to Builder components to have 'advanced' parameters not shown by default (and put this to use for Patch Component)
+
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
 Patch released June 2010
 
 * ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
+* ADDED: visual.RatingScale 'stimulus' (thanks to JG). See ratingScale demo in Coder view
 * FIXED: TrialHandler can now have dataTypes that contain underscores (thanks fuchs for the fix)
-* FIXED: loading of scripts by coder on windows assumed ASCII so broke with , now assumes UNICODE (as was case with other platforms)
-* FIXED: harmless error messages caused by trying to get the file date/time when no file is open
+* FIXED: loading of scripts by coder on windows assumed ASCII so broke with unicode characters. Now assumes unicode (as was case with other platforms)
 * FIXED: minor bugs connecting to PR650
 
 PsychoPy 1.61.01
