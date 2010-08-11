@@ -1081,7 +1081,7 @@ class CoderFrame(wx.Frame):
         
         self.viewMenu.AppendSeparator()
         #output window
-        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output",
+        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output\t%s" %self.app.keys['toggleOutputPanel'],
                                                   "shows the output (and error messages) from your script")
         self.outputChk.Check(self.prefs['showOutput'])
         wx.EVT_MENU(self, self.IDs.toggleOutput,  self.setOutputWindow)
