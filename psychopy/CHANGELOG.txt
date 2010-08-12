@@ -32,6 +32,7 @@ PsychoPy 1.62.00 (svn)
 * CHANGED: access to the parameters of TrialList in the Builder now (by default) uses a more cluttered namespace for variables. e.g. if your TrialList file has heading rgb, then your components can access that with '$rgb' rather than '$thisTrial.rgb'. This behaviour can be turned off with the new Builder preference 'allowClutteredNamespace'.
 * FIXED: if Builder needs to output info but user had closed the output window, it is now reopened
 * FIXED: Builder remembers its window location
+* CHANGED: Builder demos now need to be fetched by the user - menu item opens a browser (this is slightly more effort, but means the demos aren't stored within the app which is good)
 
 sychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~

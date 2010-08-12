@@ -1789,19 +1789,21 @@ class BuilderFrame(wx.Frame):
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
-        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
-        demoList.sort(key=str.lower)
-        ID_DEMOS = \
-            map(lambda _makeID: wx.NewId(), range(len(demoList)))
-        self.demos={}
-        for n in range(len(demoList)):
-            self.demos[ID_DEMOS[n]] = demoList[n]
+#        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
+#        demoList.sort(key=str.lower)
+#        ID_DEMOS = \
+#            map(lambda _makeID: wx.NewId(), range(len(demoList)))
+#        self.demos={}
+#        for n in range(len(demoList)):
+#            self.demos[ID_DEMOS[n]] = demoList[n]
+#        for thisID in ID_DEMOS:
+#            junk, shortname = os.path.split(self.demos[thisID])
+#            if shortname.startswith('_'): continue#remove any 'private' files
+#            self.demosMenu.Append(thisID, shortname)
+#            wx.EVT_MENU(self, thisID, self.loadDemo)
         self.demosMenu = wx.Menu()
-        for thisID in ID_DEMOS:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
-            self.demosMenu.Append(thisID, shortname)
-            wx.EVT_MENU(self, thisID, self.loadDemo)
+        self.demosMenu.Append(self.IDs.builderDemos, "&Fetch Demos", "Go to the demos download page")
+        wx.EVT_MENU(self, self.IDs.builderDemos, self.app.followLink)
         menuBar.Append(self.demosMenu, '&Demos')
 
         #---_help---#000000#FFFFFF--------------------------------------------------
