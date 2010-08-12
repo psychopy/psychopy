@@ -1572,14 +1572,22 @@ class BuilderFrame(wx.Frame):
                 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
-        else: 
+        else:#work out a new frame size/location
+            dispW,dispH = self.app.getPrimaryDisplaySize()
+            default=self.appData['defaultFrame']
+            default['winW'], default['winH'],  = int(dispW*0.75), int(dispH*0.75)
+            if default['winX']+default['winW']>dispW:
+                default['winX']=5           
+            if default['winY']+default['winH']>dispH:
+                default['winY']=5
             self.frameData = dict(self.appData['defaultFrame'])#take a copy
-            self.appData['defaultFrame']['winX']+=10
-            self.appData['defaultFrame']['winY']+=10
+            #increment default for next frame            
+            default['winX']+=10
+            default['winY']+=10            
         
         if self.frameData['winH']==0 or self.frameData['winW']==0:#we didn't have the key or the win was minimized/invalid
-            self.frameData['winH'], self.frameData['winW'] =wx.DefaultSize
-            self.frameData['winX'],self.frameData['winY'] =wx.DefaultPosition
+
+            self.frameData['winX'], self.frameData['winY'] = (0,0)
             usingDefaultSize=True
         else:
             usingDefaultSize=False
@@ -1639,11 +1647,8 @@ class BuilderFrame(wx.Frame):
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.frameData['auiPerspective']:
             self._mgr.LoadPerspective(self.frameData['auiPerspective'])
-        self.SetMinSize(wx.Size(800, 600)) #min size for the whole window
-        if usingDefaultSize:
-            self.Fit()
-        else:
-            self.SetSize((int(self.frameData['winW']),int(self.frameData['winH'])))        
+        self.SetMinSize(wx.Size(600, 400)) #min size for the whole window
+        self.SetSize((int(self.frameData['winW']),int(self.frameData['winH'])))
         self.SendSizeEvent()
         self._mgr.Update()
 
@@ -1846,8 +1851,6 @@ class BuilderFrame(wx.Frame):
         frameData['auiPerspective'] = self._mgr.SavePerspective()
         frameData['winW'], frameData['winH']=self.GetSize()
         frameData['winX'], frameData['winY']=self.GetPosition()
-        if sys.platform=='darwin':
-            frameData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
             

@@ -208,7 +208,10 @@ class PsychoPyApp(wx.App):
                 config.Flush()"""
 
         return True
-
+    def getPrimaryDisplaySize(self):
+        """Get the size of the primary display (whose coords start (0,0))
+        """
+        return list(wx.Display(0).GetGeometry())[2:]
     def showCoder(self, event=None, fileList=None):
         from psychopy.app import coder#have to reimport because it is ony local to __init__ so far
         if self.coder==None:
@@ -272,7 +275,7 @@ class PsychoPyApp(wx.App):
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
-            
+        
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]

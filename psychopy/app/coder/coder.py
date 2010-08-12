@@ -886,11 +886,12 @@ class CoderFrame(wx.Frame):
         self._lastCaretPos=None
 
         #setup statusbar
+        self.makeToolbar()#must be before the paneManager for some reason
+        self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
         self.fileMenu = self.editMenu = self.viewMenu = self.helpMenu = self.toolsMenu = None
 
-        self.makeToolbar()#must be before the paneManager for some reason
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
 
@@ -919,7 +920,6 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
-        self.makeMenus()
         #take files from arguments and append the previously opened files
         if files not in [None, []]:
             for filename in files:
@@ -955,7 +955,7 @@ class CoderFrame(wx.Frame):
         if self.appData['auiPerspective']:
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
-            self.SetMinSize(wx.Size(600, 800)) #min size for the whole window
+            self.SetMinSize(wx.Size(400, 600)) #min size for the whole window
             self.Fit()
             self.paneManager.Update()
         self.SendSizeEvent()
@@ -1766,6 +1766,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('Output').Hide()
             sys.stdout = self._origStdOut#discovered during __init__
             sys.stderr = self._origStdErr
+        self.app.prefs.saveUserPrefs()#includes a validation
 
         self.paneManager.Update()
     def setShowIndentGuides(self, event):
