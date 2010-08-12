@@ -643,7 +643,7 @@ class Window:
         _setColor(self, color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color')
-                    
+              
         if self.winHandle!=None:#if it is None then this will be done during window setup
             if self.winType=='pyglet': self.winHandle.switch_to()
             GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
@@ -829,8 +829,12 @@ class Window:
         if self.winType=='pyglet': _shaders=_shadersPyglet
 #        else: _shaders=_shadersPygame
         
-        #do settings for openGL
-        GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)       # This Will Clear The Background Color To Black
+        #setup screen color
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            desiredRGB = (self.rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
+        else:
+            desiredRGB = self.rgb/255.0
+        GL.glClearColor(desiredRGB[0],desiredRGB[1],desiredRGB[2], 1.0)
         GL.glClearDepth(1.0)
 
         GL.glViewport(0, 0, int(self.size[0]), int(self.size[1]));
@@ -1909,7 +1913,6 @@ class PatchStim(_BaseVisualStim):
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB**2.0>1.0):
                 desiredRGB=[0.6,0.6,0.4]
-            GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)

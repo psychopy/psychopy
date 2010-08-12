@@ -298,7 +298,7 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     else:
         RG, BY, LUM = sph2cart(dkl_3xN[0,:],dkl_3xN[1,:],dkl_3xN[2,:])
     dkl_cartesian = numpy.asarray([LUM, RG, BY])
-    print 'rg,by,lum:', RG, BY, LUM
+    
     if conversionMatrix==None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)

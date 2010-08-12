@@ -33,6 +33,9 @@ PsychoPy 1.62.00 (svn)
 * FIXED: if Builder needs to output info but user had closed the output window, it is now reopened
 * FIXED: Builder remembers its window location
 * CHANGED: Builder demos now need to be fetched by the user - menu item opens a browser (this is slightly more effort, but means the demos aren't stored within the app which is good)
+* CHANGED: loops/routines now get inserted to Flow by clicking the mouse where you want them :-)
+* CHANGED: you can now have multiple Builder windwos open with different experiments
+* FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
 
 sychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
