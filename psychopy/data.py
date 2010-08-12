@@ -516,11 +516,17 @@ class TrialHandler:
                     colN+=1
                     continue
                 elif not hasattr(tmpData,'__iter__'): 
-                    ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)
+                    try: 
+                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
+                    except:#some thi
+                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
                     colN+=1
                 else:
                     for entry in tmpData:
-                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
+                        try: 
+                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
+                        except:#some thi
+                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
                         colN+=1
         
         #add self.extraInfo
@@ -528,8 +534,8 @@ class TrialHandler:
         if (self.extraInfo != None) and not matrixOnly:
             ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
             for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
-                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
+                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+':'
+                ws.cell(_getExcelCellName(1,rowN)).value = (val)
                 rowN+=1
 
         ew.save(filename = fileName)
