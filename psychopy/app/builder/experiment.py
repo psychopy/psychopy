@@ -385,8 +385,8 @@ class TrialHandler:
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
-            buff.writeIndented("if thisTrial!=None:\n")
-            buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
+            buff.writeIndented("if %s!=None:\n" %self.thisName)
+            buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
@@ -397,8 +397,8 @@ class TrialHandler:
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
-            buff.writeIndented("if thisTrial!=None:\n")
-            buff.writeIndented(buff.oneIndent+"for paramName in thisTrial.keys():\n")
+            buff.writeIndented("if %s!=None:\n" %self.thisName)
+            buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
