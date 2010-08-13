@@ -535,7 +535,8 @@ class Window:
                     ' Try using mpeg compression instead (.mpg).')
             mov = makeMovies.QuicktimeMovie(fileName, fps=fps)
             for frame in self.movieFrames:
-                mov.addFrame(frame, frameDuration)
+                mov.addFrame(frame)
+            mov.save()
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
