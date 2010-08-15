@@ -176,6 +176,7 @@ class PsychoPyApp(wx.App):
         #create both frame for coder/builder as necess
         self.coder = None
         self.builderFrames = []
+        self.copiedRoutine=None
         self.allFrames=[]#these are ordered and the order is updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)

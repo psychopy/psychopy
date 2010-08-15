@@ -102,6 +102,11 @@
     toggleWhitespace = string(default='Ctrl+Shift+W')
     toggleEOLs = string(default='Ctrl+Shift+L')
     toggleIndentGuides = string(default='Ctrl+Shift+I')
+    
+    # Experiment (Builder only)
+    newRoutine = string(default='Ctrl+Shift+N')
+    copyRoutine = string(default='Ctrl+Shift+C')
+    pasteRoutine = string(default='Ctrl+Shift+V')
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     switchToBuilder = string(default='Ctrl+L')
     switchToCoder = string(default='Ctrl+L')

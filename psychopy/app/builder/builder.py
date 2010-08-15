@@ -1795,8 +1795,12 @@ class BuilderFrame(wx.Frame):
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()
         menuBar.Append(self.expMenu, '&Experiment')
-        self.expMenu.Append(self.IDs.newRoutine, "New Routine", "Create a new routine (e.g. the trial definition)")
+        self.expMenu.Append(self.IDs.newRoutine, "&New Routine\t%s" %self.app.keys['newRoutine'], "Create a new routine (e.g. the trial definition)")
         wx.EVT_MENU(self, self.IDs.newRoutine,  self.addRoutine)
+        self.expMenu.Append(self.IDs.copyRoutine, "&Copy Routine\t%s" %self.app.keys['copyRoutine'], "Copy the current routine so it can be used in another exp", wx.ITEM_NORMAL)
+        wx.EVT_MENU(self, self.IDs.copyRoutine,  self.onCopyRoutine)
+        self.expMenu.Append(self.IDs.pasteRoutine, "&Paste Routine\t%s" %self.app.keys['pasteRoutine'], "Paste the Routine into the current experiment", wx.ITEM_NORMAL)
+        wx.EVT_MENU(self, self.IDs.pasteRoutine,  self.onPasteRoutine)
         self.expMenu.AppendSeparator()
 
         self.expMenu.Append(self.IDs.addRoutineToFlow, "Insert Routine in Flow", "Select one of your routines to be inserted into the experiment flow")
@@ -2170,7 +2174,26 @@ class BuilderFrame(wx.Frame):
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig
-        
+    def onCopyRoutine(self, event=None):
+        """copy the current routine from self.routinePanel to self.app.copiedRoutine
+        """
+        r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
+        if r is not None:
+            self.app.copiedRoutine = r
+    def onPasteRoutine(self, event=None):
+        """Paste the current routine from self.app.copiedRoutine to a new page
+        in self.routinePanel after promting for a new name
+        """
+        if self.app.copiedRoutine == None: return -1
+        dlg = wx.TextEntryDialog(self, message="Paste Routine with what name?",
+            caption='Paste Routine')
+        if dlg.ShowModal() == wx.ID_OK:
+            routineName=dlg.GetValue()
+            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            self.exp.addRoutine(routineName, newRoutine)#add to the experiment
+            self.routinePanel.addRoutinePage(routineName, newRoutine)#could do redrawRoutines but would be slower?
+            self.addToUndoStack("paste Routine %s" %routineName)
+        dlg.Destroy()        
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,

@@ -21,6 +21,8 @@ addRoutineToFlow=wx.NewId()
 addLoopToFlow=wx.NewId()
 remRoutineFromFlow=wx.NewId()
 remLoopFromFlow=wx.NewId()
+copyRoutine=wx.NewId()
+pasteRoutine=wx.NewId()
 
 #view menu
 openCoderView = wx.NewId()
