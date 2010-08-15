@@ -6,7 +6,7 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'001', 'session':001}",units='use prefs',
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'ID01', 'session':001}",units='use prefs',
                  logging='warning', color='$[0,0,0]', colorSpace='rgb'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess

@@ -12,7 +12,7 @@ class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', 
                  text='Any text\n\nincluding line breaks', 
-                 font='Arial',units='window units', color='$[1,1,1]', colorSpace='rgb',
+                 font='Arial',units='window units', color='white', colorSpace='rgb',
                  pos=[0,0], letterHeight=0.1, ori=0, startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units, 
