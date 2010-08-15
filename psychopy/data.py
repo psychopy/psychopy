@@ -588,6 +588,9 @@ def importTrialList(fileName):
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
         else:
+            if not haveOpenpyxl: 
+                raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
+                return -1
             wb = load_workbook(filename = fileName)
             ws = wb.worksheets[0]
             nCols = ws.get_highest_column()
