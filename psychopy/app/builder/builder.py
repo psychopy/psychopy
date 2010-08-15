@@ -650,6 +650,18 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.RemoveAll()#clear all objects (icon buttons)
 
         self.pdc.BeginDrawing()
+        
+        #work out where the component names and icons should be from name lengths
+        self.setFontSize(1000/self.dpi, self.pdc)
+        longest=0; w=50
+        for comp in self.routine:
+            name = comp.params['name'].val
+            if len(name)>longest: 
+                longest=len(name)
+                w = self.GetFullTextExtent(name)[0]
+        self.iconXpos = w+50
+        self.timeXpos = w+90
+        
         #draw timeline at bottom of page
         yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
         self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
@@ -687,20 +699,20 @@ class RoutineCanvas(wx.ScrolledWindow):
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
                 dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosBottom+10)#label below
         #add a label
-        font = self.GetFont()
-        font.SetPointSize(1000/self.dpi)
-        dc.SetFont(font)
+        self.setFontSize(1000/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
         if yPosBottom>300:#if bottom of grid is far away then draw labels here too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+    def setFontSize(self, size, dc):        
+        font = self.GetFont()
+        font.SetPointSize(size)
+        dc.SetFont(font)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
         thisIcon = components.icons[component.getType()][0]#index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
-
-        font = self.GetFont()
-        font.SetPointSize(1000/self.dpi)
-        dc.SetFont(font)
+        
+        self.setFontSize(1000/self.dpi, dc)
 
         name = component.params['name'].val
         #get size based on text
