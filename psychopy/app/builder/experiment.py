@@ -530,6 +530,8 @@ class Flow(list):
         self.exp=exp
         self._currentRoutine=None
         self._loopList=[]#will be used while we write the code
+    def __repr__(self):
+        return "psychopy.experiment.Flow(%s)" %(str(list(self)))
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
         into the Flow list"""
@@ -561,9 +563,7 @@ class Flow(list):
                 for id, compToDel in enumerate(self):
                     if component.name==compToDel.name: del self[id]
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
-
     def writeCode(self, s):
-
         #initialise
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
@@ -576,6 +576,7 @@ class Flow(list):
         for entry in self:
             self._currentRoutine=entry
             entry.writeExperimentEndCode(s)
+    
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -586,13 +587,15 @@ class Routine(list):
     In practice a Routine is simply a python list of Components,
     each of which knows when it starts and stops.
     """
-    def __init__(self, name, exp):
+    def __init__(self, name, exp, components=[]):
         self.params={'name':name}
         self.name=name
         self.exp=exp
         self._continueName=''#this is used for script-writing e.g. "while continueTrial:"
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
-        list.__init__(self)
+        list.__init__(self, components)
+    def __repr__(self):
+        return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" %(self.name,self.exp,str(list(self)))
     def addComponent(self,component):
         """Add a component to the end of the routine"""
         self.append(component)
