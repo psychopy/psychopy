@@ -914,7 +914,7 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
-        self.Bind(wx.EVT_DROP_FILES, self.app.MacOpenFile)
+        self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -1232,7 +1232,6 @@ class CoderFrame(wx.Frame):
             
         #event.Skip()
     def filesDropped(self, event):
-        print 'got files'
         fileList = event.GetFiles()
         for filename in fileList:
             if os.path.isfile(filename):
