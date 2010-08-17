@@ -16,6 +16,18 @@ from psychopy import data, log
 inf=1000000#a million can be infinite?!
 canvasColor=[200,200,200]#in prefs? ;-)
 
+class FileDropTarget(wx.FileDropTarget):
+    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
+    Need this too.
+    """
+    def __init__(self, builder):
+        wx.FileDropTarget.__init__(self)
+        self.builder = builder
+    def OnDropFiles(self, x, y, filenames):
+        log.debug('PsychoPyBuilder: received dropped files: filenames')
+        for filename in filenames:
+            self.builder.fileOpen(filename=filename)
+            
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -70,6 +82,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.SetDropTarget(FileDropTarget(builder = self.frame))
         #create a clear hotkey to abort insertion of Routines etc
         idClear = wx.NewId()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear )
@@ -558,6 +571,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_SIZE, self.onResize)
+        self.SetDropTarget(FileDropTarget(builder = self.frame))
         
     def onResize(self, event):
         self.sizePix=event.GetSize()
@@ -882,6 +896,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.SetupScrolling()
+        self.SetDropTarget(FileDropTarget(builder = self.frame))
 
     def onComponentAdd(self,evt):
         #get name of current routine
@@ -1631,7 +1646,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutOrig = sys.stdout
         self.stderrOrig = sys.stderr
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
-        
+                
         #setup a default exp
         if fileName!=None and os.path.isfile(fileName):
             self.fileOpen(filename=fileName, closeCurrent=False)

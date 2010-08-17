@@ -152,6 +152,18 @@ class ModuleLoader(threading.Thread):
         self.parent.modulesLoaded=True
         self.parent.analyseCodeNow(event=None)
 
+class FileDropTarget(wx.FileDropTarget):
+    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
+    Need this too.
+    """
+    def __init__(self, coder):
+        wx.FileDropTarget.__init__(self)
+        self.coder = coder
+    def OnDropFiles(self, x, y, filenames):
+        for filename in filenames:
+            self.coder.setCurrentDoc(filename)
+
+
 class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, frame,
@@ -267,7 +279,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(helv)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
-
+        self.SetDropTarget(FileDropTarget(coder = self.coder))
+        
     def OnKeyPressed(self, event):
         #various stuff to handle code completion and tooltips
         #enable in the _-init__
@@ -418,7 +431,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             newIndent = self.GetLineIndentation(lineN) + howFar
             if newIndent<0:newIndent=0
             self.SetLineIndentation(lineN, newIndent)
-
+    def MacOpenFile(self, evt):
+        log.debug('PsychoPyCoder: got MacOpenFile event')
 
     def OnUpdateUI(self, evt):
         # check for matching braces
@@ -960,6 +974,7 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
         self.SendSizeEvent()
+        
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
