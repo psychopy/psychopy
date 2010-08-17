@@ -27,7 +27,8 @@ class TestTrialHandler:
         f = open(data_filename, 'rb')
         header = f.readline()
         f.close()
-        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std,\n"
-        print header
-        print expected_header
-        assert expected_header == header
+        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std," +os.linesep
+        if expected_header != header:
+            print expected_header,type(expected_header),len(expected_header)
+            print header, type(header), len(header)
+        assert expected_header == unicode(header)
