@@ -9,6 +9,7 @@ import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
+from psychopy import log
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',

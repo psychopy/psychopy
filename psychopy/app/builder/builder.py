@@ -11,7 +11,7 @@ import sys, os, glob, copy, platform, py_compile
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data
+from psychopy import data, log
 
 inf=1000000#a million can be infinite?!
 canvasColor=[200,200,200]#in prefs? ;-)

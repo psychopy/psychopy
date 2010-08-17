@@ -35,6 +35,7 @@
     resetSitePrefs = boolean(default='False')
     # automatically save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
+    debugMode = boolean(default='False')
   
 ###  Settings for the coder and builder windows, and connections -----
 [coder]

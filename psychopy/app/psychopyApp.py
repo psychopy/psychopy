@@ -39,7 +39,7 @@ if not hasattr(sys, 'frozen'):
 import wx
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
-from psychopy import preferences#needed by splash screen for the path to resources/psychopySplash.png
+from psychopy import preferences, log#needed by splash screen for the path to resources/psychopySplash.png
 import sys, os, threading, time, platform
 
 # get UID early; psychopy should never need anything except plain-vanilla user
@@ -120,6 +120,8 @@ class PsychoPyApp(wx.App):
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
+        if self.prefs.app['debugMode']:
+            log.console.setLevel(log.DEBUG)
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
@@ -257,17 +259,21 @@ class PsychoPyApp(wx.App):
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
         frame.Show(True)
     def MacOpenFile(self,fileName):
+        log.debug('PsychoPyApp: Received Mac file dropped event')
         if fileName.endswith('.py'):
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
             self.builder.fileOpen(filename=fileName)
     def quit(self, event=None):
+        log.debug('PsychoPyApp: Quitting...')
         self.quitting=True
         #see whether any files need saving
         for frame in self.allFrames:
             if frame==None: continue
             ok=frame.checkSave()
-            if not ok: return#user cancelled quit
+            if not ok: 
+                log.debug('PsychoPyApp: User cancelled shutdown')
+                return#user cancelled quit
             
         #save info about current frames for next run
         if self.coder and len(self.builderFrames)==0:
@@ -290,10 +296,12 @@ class PsychoPyApp(wx.App):
         sys.exit()#really force a quit
         
     def showPrefs(self, event):
+        log.debug('PsychoPyApp: Showing prefs dlg')
         prefsDlg = preferences.PreferencesDlg(app=self)
         prefsDlg.Show()
 
     def showAbout(self, event):
+        log.debug('PsychoPyApp: Showing about dlg')
 
         licFile = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'))
         license = licFile.read()
