@@ -36,7 +36,7 @@ class TestXLSX:
                     pass
                 
                 if actVal.value != expVal.value:
-                    print 'expected %s (%s) but got %s (%s)' %(expVal.value, type(expVal.value), actVal.value, type(actVal.value)),
+                    print 'expected %s (%s) but got %s (%s)' %(expVal.value, type(expVal.value), actVal.value, type(actVal.value))
                 assert actVal.value == expVal.value
 
 def testTrialTypeImport():
