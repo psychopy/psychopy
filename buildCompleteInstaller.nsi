@@ -6,13 +6,15 @@
   !include "MUI2.nsh"
   !include "EnvVarUpdate.nsh"
   !include "fileassoc.nsh"
+  !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+  !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 ;--------------------------------
 ;General
 
   ;Name and file
   Name "PsychoPy2"
-  !Define Version "1.61.00"
+  !Define Version "1.62.00"
   OutFile "StandalonePsychoPy-${Version}-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy2"
   
@@ -32,9 +34,8 @@
 
 ;--------------------------------
 ;Pages
-
   !insertmacro MUI_PAGE_LICENSE "psychopy\LICENSE.txt"
-  ;!insertmacro MUI_PAGE_COMPONENTS;we only have component so don't need this
+  !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   
   ;Start Menu Folder Page Configuration
@@ -46,6 +47,7 @@
   !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
   
   !insertmacro MUI_PAGE_INSTFILES
+  !insertmacro MUI_PAGE_FINISH
   
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
@@ -53,7 +55,7 @@
 ;--------------------------
 ;if previous version installed then remove
 Function .onInit
- 
+  
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy2" \
   "UninstallString"
@@ -82,6 +84,8 @@ FunctionEnd
 
 Section "PsychoPy2" PsychoPy2
 
+  SetShellVarContext all
+  
   SetOutPath "$INSTDIR"
   Var /GLOBAL AppDir
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${Version}-py2.5.egg\psychopy\app"
@@ -91,16 +95,7 @@ Section "PsychoPy2" PsychoPy2
   ;ADD YOUR OWN FILES HERE...
   file /r "C:\python25\*.*"
   file /r "windlls\*.dll"
-  
-  ;Store installation folder
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "${Version}"   
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$AppDir\Resources\psychopy.ico"
-  WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
-  
-  ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
-  
+    
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
     ;Create shortcuts
@@ -108,7 +103,7 @@ Section "PsychoPy2" PsychoPy2
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy2.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy homepage.lnk" "http://www.psychopy.org"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Website.lnk" "http://www.psychopy.org"
     Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy reference.lnk" 
     Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy tutorials.lnk" 
   
@@ -124,11 +119,36 @@ Section "PsychoPy2" PsychoPy2
   
 SectionEnd
 
+Section "avbin" avbin
+  SetOverwrite off
+  File "c:\WINDOWS\system32\avbin.dll"
+SectionEnd
+
+; Section descriptions
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${PsychoPy2} "PsychoPy files, including python"
+  !insertmacro MUI_DESCRIPTION_TEXT ${avbin} "avbin is required for playing movies, but need only be installed once"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
 ;--------------------------------
 ;Uninstaller Section
 
+Section -Post
+  WriteUninstaller "$INSTDIR\uninst.exe"
+  ;Store installation folder
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "${Version}"   
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$AppDir\Resources\psychopy.ico"
+  WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+  
+  WriteRegStr HKLM "${REG_UNINSTALL}" "URLInfoAbout" "http://www.psychppy.org"
+  WriteRegStr HKLM "${REG_UNINSTALL}" "Publisher" "Jon Peirce"
+SectionEnd
+
 Section "Uninstall"
 
+  SetShellVarContext all
+  
   ;ADD YOUR OWN FILES HERE...
   RMDir /r "$INSTDIR"
   
@@ -146,3 +166,13 @@ Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR" 
 
 SectionEnd
+
+Function un.onUninstSuccess
+  HideWindow
+  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) was successfully removed from your computer."
+FunctionEnd
+
+Function un.onInit
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
+  Abort
+FunctionEnd
