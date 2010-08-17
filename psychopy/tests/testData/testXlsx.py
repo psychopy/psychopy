@@ -23,7 +23,6 @@ class TestXLSX:
         
         # Make sure the file is there
         assert os.path.isfile(fullName)
-        
         expBook = load_workbook(os.path.join(thisDir,'data.xlsx'))
         actBook = load_workbook(fullName)
         
@@ -31,12 +30,18 @@ class TestXLSX:
             actWS = actBook.worksheets[wsN]
             for key, expVal in expWS._cells.items():
                 actVal = actWS._cells[key]
-                print actVal.value, expVal.value
+                try:#convert to float if possible (to get around 2.15E-2 probs)
+                    expVal.value = float(expVal.value)
+                except:
+                    pass
+                
+                if actVal.value != expVal.value:
+                    print 'expected %s (%s) but got %s (%s)' %(expVal.value, type(expVal.value), actVal.value, type(actVal.value)),
                 assert actVal.value == expVal.value
 
 def testTrialTypeImport():
-    fromCSV = data.importTrialTypes(os.path.join(thisDir, 'trialTypes.csv'))
-    fromXLSX = data.importTrialTypes(os.path.join(thisDir, 'trialTypes.xlsx'))
+    fromCSV = data.importTrialList(os.path.join(thisDir, 'trialTypes.csv'))
+    fromXLSX = data.importTrialList(os.path.join(thisDir, 'trialTypes.xlsx'))
     
     for trialN, trialCSV in enumerate(fromCSV):
         trialXLSX = fromXLSX[trialN]
