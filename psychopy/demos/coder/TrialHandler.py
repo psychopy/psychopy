@@ -3,6 +3,8 @@ from random import random
 from psychopy import *
 
 #create your list of stimuli
+#NB as of version 1.62 you could simpmly import an excel spreadsheet with this
+#using data.importTrialTypes('someFile.xlsx')
 stimList = []
 for ori in range(90,180,30):
     for sf in [0.5, 1.0, 2.0]:
@@ -35,5 +37,10 @@ trials.printAsText(stimOut=['sf','ori'], #write summary data to screen
 trials.saveAsText(fileName='testData', # also write summary data to a text file
                   stimOut=['sf','ori'], 
                   dataOut=['RT_mean','RT_std', 'choice_raw'])
+trials.saveAsExcel(fileName='testData', # ...or an xlsx file (which supports sheets)
+                  sheetName = 'rawData',
+                  stimOut=['sf','ori'], 
+                  dataOut=['RT_mean','RT_std', 'choice_raw'])
+trials.saveAsPickle(fileName = 'testData')#this saves a copy of the whole object 
     
 

@@ -13,7 +13,7 @@ The windows version is spitting an error message on opening the app about flush 
 
 Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
 
-PsychoPy 1.61
+PsychoPy 1.62
 ------------------------------
 
 PsychoPy 1.62.00 (svn)
@@ -37,8 +37,12 @@ PsychoPy 1.62.00 (svn)
 * ADDED: you can now have multiple Builder windwos open with different experiments
 * ADDED: you can now copy and paste Routines form one Builder window to another (or itself) - useful for reusing 'template' routines
 * FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
+* ADDED: quicktime movie output for OSX 10.6 (10.5 support was already working)
 
-sychoPy 1.61.03
+PsychoPy 1.61
+------------------------------
+
+PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Patch released July 2010
 
