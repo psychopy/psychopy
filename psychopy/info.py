@@ -521,7 +521,7 @@ def _getUserNameUID():
     """
     try:
         user = os.environ['USER']
-    except:
+    except KeyError:
         user = os.environ['USERNAME']
     uid = '-1' 
     try:
@@ -549,7 +549,7 @@ def _getSha1hexDigest(str):
     """
     try:
         sha1 = hashlib.sha1()
-    except:
+    except ImportError:
         sha1 = sha.new() # deprecated, here for python 2.4
     if os.path.isfile(str):
         f = open(str,'r')

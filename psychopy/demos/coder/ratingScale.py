@@ -67,14 +67,14 @@ for image in imageList:
     
     # rate each image on two dimensions
     for dimension in ['0=very negative . . . 50=very positive', '0=very boring . . . 50=very energizing']:
-        myRatingScale.scaleDescription.setText(dimension)
+        myRatingScale.scaleDescription.setText(dimension) # scaleDescription is a TextStim; the subject sees the text
         myRatingScale.reset() # needed between repeated uses of the same rating scale
         event.clearEvents()
         while myRatingScale.noResponse:
             myItem.draw()
             myRatingScale.draw()
             myWin.flip()
-        data.append([image, dimension, myRatingScale.getRating(), myRatingScale.getRT()]) # save for later
+        data.append([image, myRatingScale.scaleDescription.text, myRatingScale.getRating(), myRatingScale.getRT()]) # save for later
         
         # clear the screen & pause between ratings
         myWin.flip()

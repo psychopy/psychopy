@@ -4874,3 +4874,77 @@ class RatingScale:
         
         return self.decisionTime
             
+class TextInputBox():
+    """
+    modeled on RatingScale()
+    
+    THIS IS JUST a sketch of how it might work. things that would need real work:
+    - the text expands both left and right, "center justified" rather than left justified, which is weird
+    - setting font, font size, and color would be good
+    - having a visual box would be good, with the text appearing inside
+    
+    Aug 2010, Jeremy Gray
+    """
+    def __init__(self, win, text='', x=0.0, y=-0.3, width=0.4, height=0.15):
+        self.win = win
+        self.savedWinUnits = self.win.units
+        self.win.units = 'norm'
+        self.text = text
+        
+        self.textStim = TextStim(win=self.win, text=self.text, pos=[x,y])
+        
+        self.myClock = core.Clock()
+        self.myMouse = event.Mouse(win=self.win, visible=True)
+        self.win.units = self.savedWinUnits
+        
+        self.escapeKeys = ['escape']
+        self.respKeys = ['return']
+        self.backspaceKeys = ['backspace', 'delete']
+        self.reset()
+        
+    def draw(self):
+        """
+        """
+        self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
+        
+        self.textStim.setText(self.text)
+        self.textStim.draw()
+        
+        # handle key responses:
+        for key in event.getKeys(): # almost certainly only 1 key
+            if key in self.escapeKeys:
+                self.text = None
+                self.noResponse = False
+            elif key in self.respKeys: # place the marker at that tick
+                self.noResponse = False
+            elif key in self.backspaceKeys:
+                self.text = self.text[:-1]
+            else:
+                self.text += key
+
+        # decision time = time from the first .draw() to when 'accept' was pressed:
+        if self.firstDraw:
+            self.firstDraw = False
+            self.myClock.reset()
+        if not self.noResponse and self.decisionTime == 0:
+            self.decisionTime = self.myClock.getTime() # only set this once: at the time 'accept' is indicated by subject
+            # minimum time is enforced during key and mouse handling
+        
+        self.win.units = self.savedWinUnits
+        
+    def reset(self):
+        self.noResponse = True
+        self.firstDraw = True
+        self.decisionTime = 0
+    
+    def getResponse(self):
+        if self.noResponse:
+            return False
+        return response
+    
+    def getRT(self):
+        if self.noResponse:
+            return None
+        
+        return self.decisionTime
+        
