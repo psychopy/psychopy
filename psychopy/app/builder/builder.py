@@ -1100,7 +1100,7 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Realize()    
         #put it all together
         self.mainSizer.Add(self.ctrlSizer)#add main controls
-        if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
+        if len(self.advParams)>0:#add advanced controls
             self.mainSizer.Add(self.advPanel,0,wx.GROW|wx.ALL,5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
