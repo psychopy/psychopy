@@ -6,12 +6,13 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'s_001', 'session':001}",units='use prefs',
-                 logging='warning', color=[0,0,0], colorSpace='rgb'):
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'ID01', 'session':001}",units='use prefs',
+                 logging='warning', color='$[0,0,0]', colorSpace='rgb'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName=parentName
+        self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
         self.order=['Screen', 'Full-screen window','Window size (pixels)']
@@ -23,9 +24,9 @@ class SettingsComponent:
             hint="Which physical screen to run on (1 or 2)")  
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (must match one in Monitor Center)") 
-        self.params['color']=Param(color, valType='code', allowedTypes=[],
-            hint="Color of the screen (see PsychoPy documentation on color spaces)") 
-        self.params['colorSpace']=Param(colorSpace, valType='str', allowedTypes=[],
+        self.params['color']=Param(color, valType='str', allowedTypes=[],
+            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable)") 
+        self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)") 
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (must match one in Monitor Center)") 
@@ -67,8 +68,8 @@ class SettingsComponent:
         
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
-        size=self.params['Window size (pixels)']#
         fullScr = self.params['Full-screen window']
+        size=self.params['Window size (pixels)']#
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))

@@ -24,3 +24,4 @@ urls[wxIDs.psychopyHome]="http://www.psychopy.org/"
 urls[wxIDs.psychopyReference]="http://www.psychopy.org/api/api.html"
 urls[wxIDs.coderTutorial]="http://www.psychopy.org/coder/tutorial1.html"
 urls[wxIDs.builderHelp]=urls['builder']
+urls[wxIDs.builderDemos]="http://code.google.com/p/psychopy/downloads/list?can=2&q=demos"

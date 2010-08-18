@@ -9,6 +9,7 @@ import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
+from psychopy import log
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -151,6 +152,18 @@ class ModuleLoader(threading.Thread):
         self.parent.modulesLoaded=True
         self.parent.analyseCodeNow(event=None)
 
+class FileDropTarget(wx.FileDropTarget):
+    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
+    Need this too.
+    """
+    def __init__(self, coder):
+        wx.FileDropTarget.__init__(self)
+        self.coder = coder
+    def OnDropFiles(self, x, y, filenames):
+        for filename in filenames:
+            self.coder.setCurrentDoc(filename)
+
+
 class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, frame,
@@ -212,7 +225,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,     wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
-
+        
+        self.DragAcceptFiles(True)
+        self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
@@ -264,7 +279,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(helv)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
-
+        self.SetDropTarget(FileDropTarget(coder = self.coder))
+        
     def OnKeyPressed(self, event):
         #various stuff to handle code completion and tooltips
         #enable in the _-init__
@@ -415,7 +431,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             newIndent = self.GetLineIndentation(lineN) + howFar
             if newIndent<0:newIndent=0
             self.SetLineIndentation(lineN, newIndent)
-
+    def MacOpenFile(self, evt):
+        log.debug('PsychoPyCoder: got MacOpenFile event')
 
     def OnUpdateUI(self, evt):
         # check for matching braces
@@ -840,6 +857,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 class CoderFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[], app=None):
         self.app = app
+        self.frameType='coder'
         self.appData = self.app.prefs.appData['coder']#things the user doesn't set like winsize etc
         self.prefs = self.app.prefs.coder#things about the coder that get set
         self.appPrefs = self.app.prefs.app
@@ -847,7 +865,6 @@ class CoderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.currentDoc=None
         self.ignoreErrors = False
-        
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60 #sec
         
@@ -869,7 +886,7 @@ class CoderFrame(wx.Frame):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         wx.EVT_CLOSE(self, self.closeFrame)#NB not the same as quit - just close the window
         wx.EVT_IDLE(self, self.onIdle)
-
+        
         if self.appData.has_key('state') and self.appData['state']=='maxim':
             self.Maximize()
         #initialise some attributes
@@ -884,11 +901,12 @@ class CoderFrame(wx.Frame):
         self._lastCaretPos=None
 
         #setup statusbar
+        self.makeToolbar()#must be before the paneManager for some reason
+        self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
         self.fileMenu = self.editMenu = self.viewMenu = self.helpMenu = self.toolsMenu = None
 
-        self.makeToolbar()#must be before the paneManager for some reason
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
 
@@ -899,7 +917,7 @@ class CoderFrame(wx.Frame):
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
             style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-
+        self.notebook.DragAcceptFiles(True)
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption("Editor").
                           CenterPane(). #'center panes' expand to fill space
@@ -917,17 +935,9 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
-        self.makeMenus()
         #take files from arguments and append the previously opened files
-        if files:
-            print 'files:', files
-            self.appData['prevFiles'].extend(files)
-        if len(self.appData['prevFiles'])==0:
-            #then no files previously opened
-            self.setCurrentDoc('', keepHidden=True) #a dummy page to start
-        else:
-            #re-open previous files
-            for filename in self.appData['prevFiles']:
+        if files not in [None, []]:
+            for filename in files:
                 if not os.path.isfile(filename): continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
@@ -960,11 +970,11 @@ class CoderFrame(wx.Frame):
         if self.appData['auiPerspective']:
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
-            self.SetMinSize(wx.Size(600, 800)) #min size for the whole window
+            self.SetMinSize(wx.Size(400, 600)) #min size for the whole window
             self.Fit()
             self.paneManager.Update()
         self.SendSizeEvent()
-
+        
     def makeMenus(self):
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
@@ -980,7 +990,7 @@ class CoderFrame(wx.Frame):
         self.Bind(
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
-
+        
         #add items to file menu
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys['new'])
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys['open'])
@@ -1087,7 +1097,7 @@ class CoderFrame(wx.Frame):
         
         self.viewMenu.AppendSeparator()
         #output window
-        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output",
+        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output\t%s" %self.app.keys['toggleOutputPanel'],
                                                   "shows the output (and error messages) from your script")
         self.outputChk.Check(self.prefs['showOutput'])
         wx.EVT_MENU(self, self.IDs.toggleOutput,  self.setOutputWindow)
@@ -1312,7 +1322,7 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save) and either
         close the frame or hide it
         """
-        if self.app.builder==None and sys.platform!='darwin':
+        if len(self.app.builderFrames)==0 and sys.platform!='darwin':
             if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already
@@ -1344,10 +1354,11 @@ class CoderFrame(wx.Frame):
         self.appData['winX'], self.appData['winY']=self.GetPosition()
         if sys.platform=='darwin':
             self.appData['winH'] -= 39#for some reason mac wxpython <=2.8 gets this wrong (toolbar?)
+        self.appData['fileHistory']=[]
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
-        self.Destroy()#ultimately Hide
+        self.Destroy()
         self.app.coder=None
 
     def fileNew(self, event=None, filepath=""):
@@ -1382,7 +1393,7 @@ class CoderFrame(wx.Frame):
 
             #load text from document
             if os.path.isfile(filename):
-                self.currentDoc.SetText(open(filename).read())
+                self.currentDoc.SetText(open(filename).read().decode('utf8'))
                 self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
                 self.fileHistory.AddFileToHistory(filename)
             else:
@@ -1770,6 +1781,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('Output').Hide()
             sys.stdout = self._origStdOut#discovered during __init__
             sys.stderr = self._origStdErr
+        self.app.prefs.saveUserPrefs()#includes a validation
 
         self.paneManager.Update()
     def setShowIndentGuides(self, event):

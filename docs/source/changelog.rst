@@ -13,12 +13,45 @@ The windows version is spitting an error message on opening the app about flush 
 
 Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
 
+PsychoPy 1.62
+------------------------------
+
+PsychoPy 1.62.00 (svn)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: support for Excel 2007 files (.xlsx) for data output and trial types input:
+    - psychopy.data now has importTrialList(fileName) to generate a trial list (suitable for TrialHandler) from .xlsx or .csv files
+    - Builder loops now accept either an xlsx or csv file for the TrialList 
+    - TrialHandler and StairHandler now have saveToExcel(filename, sheetName='rawData', appendFile=True). This can be used to generate almost identical files to the previous delimited files, but also allows multiple (named) worksheets in a single file. So you could have one file for a participant and then one sheet for each session or run.
+* CHANGED: for builder experiments the trial list for a loop is now imported from the file on every run, rather than just when the file is initially chosen
+* CHANGED: data for TrialHandler are now stored as masked arrays where possible. This means that trials with no response can be more easily ignored by analysis
+* FIXED: bug opening loop properties (bug introduced by new advanced params option)
+* FIXED: bug in Builder code generation for keyboard (only when using forceEnd=True but store='nothing')
+* CHANGED: RunTimeInfo is now in psychopy.info not psychopy.data
+* CHANGED: PatchStim for image files now defaults to showing the image at native size in pixels (making SimpleImageStim is less useful?)
+* CHANGED: access to the parameters of TrialList in the Builder now (by default) uses a more cluttered namespace for variables. e.g. if your TrialList file has heading rgb, then your components can access that with '$rgb' rather than '$thisTrial.rgb'. This behaviour can be turned off with the new Builder preference 'allowClutteredNamespace'.
+* FIXED: if Builder needs to output info but user had closed the output window, it is now reopened
+* FIXED: Builder remembers its window location
+* CHANGED: Builder demos now need to be fetched by the user - menu item opens a browser (this is slightly more effort, but means the demos aren't stored within the app which is good)
+* CHANGED: loops/routines now get inserted to Flow by clicking the mouse where you want them :-)
+* ADDED: you can now have multiple Builder windwos open with different experiments
+* ADDED: you can now copy and paste Routines form one Builder window to another (or itself) - useful for reusing 'template' routines
+* FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
+* ADDED: quicktime movie output for OSX 10.6 (10.5 support was already working)
+
 PsychoPy 1.61
 ------------------------------
 
-PsychoPy 1.61.03 (svn)
+PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
+Patch released July 2010
+
 * FIXED: harmless error messages caused by trying to get the file date/time when no file is open
+* CHANGED: movie file used in movie demo (the chimp had unknown copyright)
+* FIXED: problem with nVidia cards under win32 being slow to render RadialStim
+* FIXED bug in filters.makeGrating where gratType='sqr'
+* FIXED bug in new color spaces for computers that don't support shaders
+* ADDED option to Builder components to have 'advanced' parameters not shown by default (and put this to use for Patch Component)
 
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~

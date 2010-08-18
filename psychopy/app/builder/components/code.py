@@ -36,12 +36,12 @@ class CodeComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="Code at the end of the entire experiment (e.g. saving files, resetting computer)")
     def writeInitCode(self,buff):
-        buff.writeIndented(unicode(self.params['Begin Experiment'])+'\n')
+        buff.writeIndentedLines(unicode(self.params['Begin Experiment'])+'\n')
     def writeRoutineStartCode(self,buff):
-        buff.writeIndented(unicode(self.params['Begin Routine'])+'\n')
+        buff.writeIndentedLines(unicode(self.params['Begin Routine'])+'\n')
     def writeFrameCode(self,buff):
-        buff.writeIndented(unicode(self.params['Each Frame'])+'\n')
+        buff.writeIndentedLines(unicode(self.params['Each Frame'])+'\n')
     def writeRoutineEndCode(self,buff):
-        buff.writeIndented(unicode(self.params['End Routine'])+'\n')
+        buff.writeIndentedLines(unicode(self.params['End Routine'])+'\n')
     def writeExperimentEndCode(self,buff):
-        buff.writeIndented(unicode(self.params['End Experiment'])+'\n')
+        buff.writeIndentedLines(unicode(self.params['End Experiment'])+'\n')

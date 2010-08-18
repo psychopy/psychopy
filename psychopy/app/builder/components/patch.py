@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'patch.png')
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', image='sin', mask='none', sf=1, interpolate='linear',
-        units='window units', color=[1,1,1], colorSpace='rgb',
+        units='window units', color='$[1,1,1]', colorSpace='rgb',
         pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
         startTime=0.0, duration=1.0):
         #initialise main parameters from base stimulus
@@ -46,6 +46,7 @@ class PatchComponent(VisualComponent):
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=visual.PatchStim(win=win, tex=%(image)s, mask=%(mask)s,\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(self.params) )
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(self.params))# no newline - start optional parameters
         if self.params['units'].val!='window units': buff.write(", units=%(units)s" %(self.params) )
         if self.params['interpolate']=='linear': buff.write(", interpolate=True")

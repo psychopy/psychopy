@@ -9,8 +9,8 @@ from psychopy.app.builder.experiment import Param
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
-    def __init__(self, parentName, name='', units='window units', color=[1,1,1],
-        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration=1.0, colorSpace='rgb'):
+    def __init__(self, parentName, name='', units='window units', color='$[1,1,1]',
+        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration='', colorSpace='rgb'):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
         self.order=['name','startTime','duration']#make name come first (others don't matter)
         self.params={}
@@ -18,9 +18,9 @@ class VisualComponent(_base.BaseComponent):
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
-        self.params['color']=Param(color, valType='code', allowedTypes=[],
+        self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Color of this stimulus (e.g. [1,1,0], 'red' )")
+            hint="Color of this stimulus (e.g. $[1,1,0], red )")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant', allowedUpdates=['constant'],
             hint="Choice of color space for the color (rgb, dkl, lms)")
@@ -58,6 +58,8 @@ class VisualComponent(_base.BaseComponent):
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
             #capitalise params
+            if thisParamName=='advancedParams':
+                continue
             if thisParamName=='image':
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':

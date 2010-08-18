@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'mouse.png')
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given timepoints"""
-    def __init__(self, exp, parentName, name='mouse', startTime=0.0, duration=1.0, save='final', 
+    def __init__(self, exp, parentName, name='mouse', startTime=0.0, duration='', save='final', 
             forceEndTrialOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
