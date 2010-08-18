@@ -34,7 +34,7 @@ psychopyTxt = visual.TextStim(myWin, color='#FFFFFF',
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.1,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
-                        font=fancy, italic=True) 
+                        font=fancy)
 longSentence = visual.TextStim(myWin, 
                         text = u"Very long sentences can wrap", wrapWidth=0.4,
                         units='norm', height=0.05,color='DarkSlateBlue',

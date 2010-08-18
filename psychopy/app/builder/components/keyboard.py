@@ -12,7 +12,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
-            startTime=0.0, duration=1.0):
+            startTime=0.0, duration=''):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
@@ -58,7 +58,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("class KeyResponse:\n")
             buff.writeIndented("    def __init__(self):\n")
             buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
-            buff.writeIndented("        self.corr=None#was the subj correct this trial?\n")
+            buff.writeIndented("        self.corr=0#was the resp correct this trial? (0=no, 1=yes)\n")
             buff.writeIndented("        self.rt=None#response time\n")
             buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
             self.exp.noKeyResponse=False#don't write this again
@@ -95,27 +95,28 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
         
         #how do we store it?
-        if store!='nothing' or storeRT or storeCorr:
+        if store!='nothing' or storeRT or storeCorr or forceEnd:
             #we are going to store something
             buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
-            if store=='first key':#then see if a key has already been pressed
-                buff.writeIndented("if %(name).keys==[]:#then this was the first keypress\n" %(self.params))
-                buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
-                buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
-            elif store=='last key':
-                buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
-            elif store=='all keys':
-                buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
-            #get RT
-            if storeRT:
-                buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
-            #check if correct (if necess)
-            if storeCorr:
-                buff.writeIndented("#was this 'correct'?\n" %self.params)
-                buff.writeIndented("if (%(name)s.keys==str(%(correctAns)s)): %(name)s.corr=1\n" %(self.params))
-                buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
-        #does the response end the trial?
+            
+        if store=='first key':#then see if a key has already been pressed
+            buff.writeIndented("if %(name)s.keys==[]:#then this was the first keypress\n" %(self.params))
+            buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
+            buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
+        elif store=='last key':
+            buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
+        elif store=='all keys':
+            buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
+        
+        if storeRT:
+            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+        
+        if storeCorr:
+            buff.writeIndented("#was this 'correct'?\n" %self.params)
+            buff.writeIndented("if (%(name)s.keys==str(%(correctAns)s)): %(name)s.corr=1\n" %(self.params))
+            buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
+        
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)
             buff.writeIndented("%s=False\n" %continueName)

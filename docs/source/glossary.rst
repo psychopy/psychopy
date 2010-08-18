@@ -2,6 +2,7 @@ Glossary
 ===========
 
 .. glossary::
+    :sorted:
     
     csv : comma-separated value files
         Type of basic text file with 'comma-separated values'. This type of file can be opened with most spreadsheet packages (e.g. MS Excel) for easy reading and manipulation.
@@ -24,4 +25,8 @@ Glossary
         An experimental method whereby the choice of stimulus parameters is not pre-determined but based on previous responses. For example, the difficulty of a task might be varied trial-to-trial based on the participant's responses. These are often used to find psychophysical thresholds. Contrast this with the :term:`method of constants`.
 
     CRT : Cathode Ray Tube
+        'Traditional' computer monitor (rather than an LCD or plasma flat screen).
 
+    xlsx : Excel OpenXML file format
+        A spreadsheet data format developed by Microsoft but with an open (published format). This is the native file format for Excel (2007 or later) and can be opened by most modern spreadsheet applications including OpenOffice (3.0+), google docs, Apple iWork 08.
+	

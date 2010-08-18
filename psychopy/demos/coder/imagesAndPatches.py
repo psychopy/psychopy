@@ -1,27 +1,33 @@
 #!/usr/bin/env python
 from psychopy import core, visual, event
 
-#create a window to draw in
-myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, rgb=(-1,-1,-1))
-
 """There are two options for drawing image-based stimuli in PsychoPy:
     
     SimpleImageStim is ideal if you don't need to draw a large number of 
-    stimuli and want them to have exactly the pixels.
+    stimuli and want them to have exactly the pixels you created (with no scaling).
+    Unfortunately it is slower to draw than PatchStim and can lead to dropped frames.
+    (to test this on your system try commenting out the beach.draw() command)
     
     PatchStim is more versatile - it uses opengl textures which allow for alpha 
     masks, arbitrary transforms of the image data in space (multiple cycles, 
     scale, rotation...) but for this you must specify the size in each dimension 
     (or it may well appear stretched).
 """
+
+#create a window to draw in
+myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, color=(-1,-1,-1))
+
 #INITIALISE SOME STIMULI
 beach = visual.SimpleImageStim(myWin, 'beach.jpg', flipHoriz=True, pos=(0,1.50), units='deg')
 faceRGB = visual.PatchStim(myWin,tex='face.jpg', mask=None,
-    pos=(0.5,-0.4), size=(1.0,1.0), sf=(1.0, 1.0))
+    pos=(50,-20), 
+    size=None,#will be the size of the original image in pixels
+    units='pix', interpolate=True)
+print "original image size:", faceRGB.origSize
 faceALPHA = visual.PatchStim(myWin,pos=(-0.7,-0.2),
     tex="sin",mask="face.jpg",
     color=[1.0,1.0,-1.0],
-    size=(0.5,0.5), sf=1.0, units="norm")
+    size=(0.5,0.5), units="norm")
     
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),
     text='[Esc] to quit', color='white', alignHoriz='left', alignVert='bottom')

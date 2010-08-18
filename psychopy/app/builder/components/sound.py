@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'sound.png')
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='', sound='A', 
-            size=1, ori=0, startTime=0.0, duration=1.0):
+            size=1, ori=0, startTime=0.0, duration=''):
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
         self.exp=exp#so we can access the experiment if necess

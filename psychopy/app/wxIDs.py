@@ -21,6 +21,8 @@ addRoutineToFlow=wx.NewId()
 addLoopToFlow=wx.NewId()
 remRoutineFromFlow=wx.NewId()
 remLoopFromFlow=wx.NewId()
+copyRoutine=wx.NewId()
+pasteRoutine=wx.NewId()
 
 #view menu
 openCoderView = wx.NewId()
@@ -50,6 +52,7 @@ coderTutorial=wx.NewId()
 builderHelp=wx.NewId()
 psychopyHome=wx.NewId()
 psychopyReference=wx.NewId()
+builderDemos=wx.NewId()
 #help pages (from help buttons)
 docsPrefsDlg=wx.NewId()
 

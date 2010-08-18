@@ -35,6 +35,7 @@
     resetSitePrefs = boolean(default='False')
     # automatically save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
+    debugMode = boolean(default='False')
   
 ###  Settings for the coder and builder windows, and connections -----
 [coder]
@@ -52,6 +53,8 @@
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
     reloadPrevExp = boolean(default=False)
+    # if False will create scripts with an 'easier' but more cluttered namespace
+    unclutteredNamespace = boolean(default=False)
     # for the user to add custom components (comma-separated list)
     componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
     # a list of components to hide (eg, because you never use them)
@@ -100,5 +103,11 @@
     toggleWhitespace = string(default='Ctrl+Shift+W')
     toggleEOLs = string(default='Ctrl+Shift+L')
     toggleIndentGuides = string(default='Ctrl+Shift+I')
+    toggleOutputPanel = string(default='Ctrl+Shift+O')
     switchToBuilder = string(default='Ctrl+L')
     switchToCoder = string(default='Ctrl+L')
+    
+    # Experiment (Builder only)
+    newRoutine = string(default='Ctrl+Shift+N')
+    copyRoutine = string(default='Ctrl+Shift+C')
+    pasteRoutine = string(default='Ctrl+Shift+V')

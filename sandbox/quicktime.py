@@ -36,7 +36,7 @@ class Movie(object):
         if self.movie is None:
             self._movTmpFileName=os.path.join(tempfile.gettempdir(), 'psychopyTmp.mov')#could this line fail if no permissions?
             #self._movTmpFileName='tmpMov'#this is handy if we want to inspect the temp file
-            self.movie, err=QTKit.QTMovie.alloc().initToWritableFile_error_(self._movTmpFileName)#
+            self.movie, err=QTKit.QTMovie.alloc().initToWritableFile_error_(self._movTmpFileName,None)#
             if err is not None:
                 print str(err)
             self.movie.setEditable_(True)
