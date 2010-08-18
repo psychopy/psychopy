@@ -1382,7 +1382,7 @@ class CoderFrame(wx.Frame):
 
             #load text from document
             if os.path.isfile(filename):
-                self.currentDoc.SetText(open(filename).read().decode('utf8'))
+                self.currentDoc.SetText(open(filename).read())
                 self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
                 self.fileHistory.AddFileToHistory(filename)
             else:
