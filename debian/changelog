@@ -1,3 +1,12 @@
+psychopy (1.62.00.dfsg-1) experimental; urgency=low
+
+  * New upstream release. Introduces soft dependency (Recommends)
+    on openpyxl
+  * Upgraded policy to 3.9.1 -- no changed
+  * Upload to experimental due to squeeze freeze
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 18 Aug 2010 12:05:41 -0400
+
 psychopy (1.61.03.dfsg-1) unstable; urgency=low
 
   * Upstream bugfix release for 1.61 series + 2 additional commits
