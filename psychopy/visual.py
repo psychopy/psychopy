@@ -4874,7 +4874,7 @@ class RatingScale:
         
         return self.decisionTime
             
-class TextInputBox():
+class _TextInputBox():
     """
     modeled on RatingScale()
     
@@ -4882,6 +4882,7 @@ class TextInputBox():
     - the text expands both left and right, "center justified" rather than left justified, which is weird
     - setting font, font size, and color would be good
     - having a visual box would be good, with the text appearing inside
+    - ' ' --> 'space', and so on
     
     Aug 2010, Jeremy Gray
     """
