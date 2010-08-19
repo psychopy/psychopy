@@ -219,6 +219,8 @@ class FlowPanel(wx.ScrolledWindow):
                     comp=self.componentFromID[icons[0]]
                     if comp.getType() in ['StairHandler', 'TrialHandler']:
                         self.editLoopProperties(loop=comp)
+                    if comp.getType() == 'Routine':
+                        self.frame.routinePanel.setCurrentRoutine(routine=comp)
             elif event.RightDown():
                 x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
@@ -811,13 +813,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return#we haven't yet added an exp
-        
     def getCurrentRoutine(self):
         routinePage=self.getCurrentPage()
         if routinePage:
             return routinePage.routine
         else: #no routine page
             return None
+    def setCurrentRoutine(self, routine):        
+        for ii in range(self.GetPageCount()):
+            if routine==self.GetPage(ii).routine:
+                self.SetSelection(ii)
     def getCurrentPage(self):
         if self.GetSelection()>=0:
             return self.GetPage(self.GetSelection())
