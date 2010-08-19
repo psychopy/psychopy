@@ -38,6 +38,8 @@ PsychoPy 1.62.00 (svn)
 * ADDED: you can now copy and paste Routines form one Builder window to another (or itself) - useful for reusing 'template' routines
 * FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
 * ADDED: quicktime movie output for OSX 10.6 (10.5 support was already working)
+* ADDED: Mac app can now receive dropped files on the coder and builder panels (but won't check if these are sensible!!)
+* ADDED: debugMode preference for the app (for development purposes)
 
 PsychoPy 1.61
 ------------------------------

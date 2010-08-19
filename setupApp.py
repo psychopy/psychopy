@@ -50,16 +50,17 @@ if platform == 'win32':
           data_files=packageData)
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
-        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp', 'subprocess', 'shlex'],
-                                  excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
-                                  frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
-                                  resources=resources,
-                                  argv_emulation=True,
-                                  site_packages=True,
-                                  packages=['wx','pyglet','pygame','OpenGL','psychopy',
-                                    'scipy','matplotlib','lxml'],
-                                  iconfile='psychopy/app/Resources/psychopy.icns',
-                                  plist=dict(
+        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp', 'subprocess', 'shlex',
+                                      '_elementtree', 'pyexpat'],#these 2 are needed by xml, which is needed by openpyxl
+                                      excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
+                                      frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
+                                      resources=resources,
+                                      argv_emulation=True,
+                                      site_packages=True,
+                                      packages=['wx','pyglet','pygame','OpenGL','psychopy',
+                                        'scipy','matplotlib','lxml','xml'],
+                                      iconfile='psychopy/app/Resources/psychopy.icns',
+                                      plist=dict(
                                       CFBundleIconFile='psychopy.icns',
                                       CFBundleName               = "PsychoPy2",
                                       CFBundleShortVersionString = psychopy.__version__,     # must be in X.X.X format
