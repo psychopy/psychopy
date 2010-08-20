@@ -269,8 +269,10 @@ class PsychoPyApp(wx.App):
         self.quitting=True
         #see whether any files need saving
         for frame in self.allFrames:
-            if frame==None: continue
-            ok=frame.checkSave()
+            try:#will fail if the frame has been shut somehow elsewhere
+                ok=frame.checkSave()
+            except: 
+                pass
             if not ok: 
                 log.debug('PsychoPyApp: User cancelled shutdown')
                 return#user cancelled quit
