@@ -4492,7 +4492,7 @@ class RatingScale:
     updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then 
     call .getRating() to obtain the rating, or getRT() to get the decision time.
     The experimenter has to handle the item to be rated, and ensure its in the same visual window as the RatingScale.
-    A RatingScale instance has no idea what else is on the screen.
+    A RatingScale instance has no idea what else is on the screen. 
     
     The default settings should be good much of the time, but considerable customization is possible using the options.
     Auto-rescaling happens if the low-anchor is 0 and high-low is a multiple of 10.
@@ -4518,7 +4518,7 @@ class RatingScale:
                 showValue=True, showScale=True, showAnchors=True, showAccept=True, 
                 acceptKeys=['return'], acceptPreText='key click', acceptText='accept?', 
                 markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False,
-                allowSkip=True, escapeKeys=['escape'],
+                allowSkip=True, escapeKeys=['escape'], mouseOnly=False,
                 displaySizeFactor=1.0, offsetVert=-0.4, offsetHoriz=0.0,
                 minTime=1.0):
         """
@@ -4558,10 +4558,13 @@ class RatingScale:
                 *False*, or the value in [low..high] to be pre-selected upon initial display
             allowSkip :
                 if True, the subject can skip an item by pressing a key in escapeKeys, or <esc> if escapeKeys == []
-                False escapeKeys is empty
-            escapeKeys:
-                list of keys to allow the subject to skip a response, default = ['escape']
-                (NB: don't use an empty list to make the subject respond to every item; use allowSkip=False)
+            escapeKeys :
+                list of keys the subject can use to skip a response, default = ['escape']
+                NB: don't use an empty list to make the subject respond to every item; use allowSkip=False
+            mouseOnly :
+                whether to require the subject to use only the mouse (no keys), default = False.
+                NB: mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly ignored);
+                    mouseOnly and allowSkip conflict, because skipping an item is done via key press: mouseOnly wins
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
@@ -4578,6 +4581,10 @@ class RatingScale:
         self.win = win
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
+        
+        # sanity checking
+        if mouseOnly==True and showAccept==False:
+            mouseOnly = False
         
         # tick mark stuff; only draw a tick at integer spacing
         self.high = int(high) # high anchor of scale
@@ -4627,22 +4634,22 @@ class RatingScale:
         self.showValue = showValue in [True, 1]
         
         self.displaySizeFactor = 0.6 * displaySizeFactor
-        self.markerSize = 5.0 * displaySizeFactor
-        self.markerExpansion = float(markerExpansion) * 0.6
         self.offsetVert = self.offsetVert / displaySizeFactor
         
-        self.respKeys = [] # what keyboard keys are accepted for selecting a response
-        if self.low > -1 and self.high < 10: # allow responding via numeric keys if the only options are in 0-9
-            self.respKeys = [str(i) for i in range(low, high + 1)]
-        self.acceptKeys = list(acceptKeys) # what keys are allow for accepting the currently selected response
-        
-        if allowSkip:
+        # what keyboard keys are valid
+        self.respKeys = [ ] 
+        if (not mouseOnly and self.low > -1 and self.high < 10): # allow responding via numeric keys if the only options are in 0-9
+            self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
+        if mouseOnly:
+            self.acceptKeys = [ ]
+        else:
+            self.acceptKeys = list(acceptKeys) # what keys are allow for accepting the currently selected response
+        self.escapeKeys = [ ]
+        if allowSkip and not mouseOnly:
             if len(list(escapeKeys)) == 0:
                 self.escapeKeys = ['escape']
             else:
                 self.escapeKeys = list(escapeKeys)
-        else:
-            self.escapeKeys = []
         
         # define vertices for making a ShapeStim line with tick marks:
         vertices = [[self.offsetHoriz + self.leftEnd * self.displaySizeFactor, self.offsetVert]] # first vertex
@@ -4664,6 +4671,9 @@ class RatingScale:
                               lineColor='White', lineColorSpace='rgb')
         
         # define the marker:
+        self.markerSize = 5.0 * displaySizeFactor
+        self.markerOffsetVert = 0
+        self.markerExpansion = float(markerExpansion) * 0.6
         if markerColor and type(markerColor) == type('abc'):
             markerColor = markerColor.replace(' ','')
         if (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
@@ -4690,13 +4700,16 @@ class RatingScale:
                                         colorSpace='rgb', opacity = 0.85)
                 markerColor = 'White'
             self.markerBaseSize = tickSize * self.markerSize
+            self.markerOffsetVert = .02
             if self.markerExpansion == 0:
                 self.markerBaseSize *= self.markerSize * self.displaySizeFactor
         else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
             if markerColor == None:
                 markerColor = 'DarkRed'
             x,y = self.win.size
-            size = [3.2 * tickSize * self.displaySizeFactor * float(y)/x, 3.2 * tickSize * self.displaySizeFactor]
+            self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
+            size = [3.2 * tickSize * self.displaySizeFactor * float(y)/x, self.markerSizeVert]
+            self.markerOffsetVert = self.markerSizeVert / 2.
             try:
                 self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
                                         mask='circle', color=markerColor, colorSpace='rgb')
@@ -4709,7 +4722,7 @@ class RatingScale:
         # define the 'accept' box stim: text and button:
         relocateTheBox = 0
         if not showAccept:
-            relocateTheBox = 10 # way off screen
+            relocateTheBox = 10 # way off screen, so you can't see or click it
             
         acceptBoxtop = self.offsetVert - 0.12 * displaySizeFactor + relocateTheBox
         acceptBoxbot = self.offsetVert - 0.22 * displaySizeFactor + relocateTheBox
@@ -4805,6 +4818,17 @@ class RatingScale:
         # draw everything except the marker:
         for visualElement in self.visualDisplayElements:
             visualElement.draw() 
+        
+        # maybe the subject is done but the scale is still being drawn, e.g., two ratingScales are on-screen at once
+        if self.noResponse == False: 
+            # so nudge the marker down slightly, draw an immovable marker
+            if not self.markerPosFixed:
+                self.marker.pos[1] -= .012
+            self.markerPosFixed = True
+            self.marker.draw()
+            self.win.units = self.savedWinUnits
+            return # makes the marker unresponsive
+        
         # draw the marker, if indicated by subject:
         if self.markerPlaced: 
             self.frame += 1
@@ -4820,7 +4844,8 @@ class RatingScale:
             
             # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
             self.marker.setPos([self.offsetHoriz + self.displaySizeFactor *
-                                (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)), self.offsetVert])
+                                (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)),
+                                self.offsetVert + self.markerOffsetVert])
             
             # expansion fun & games with 'glow':
             if self.markerStyle == 'glow':
@@ -4896,6 +4921,7 @@ class RatingScale:
             self.markerPlacedAt = self.markerStart - self.low
         self.firstDraw = True
         self.decisionTime = 0
+        self.markerPosFixed = False
         
         self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
         self.acceptBox.setLineColor([-.2,-.2,-.2], 'rgb')
@@ -4903,7 +4929,7 @@ class RatingScale:
         self.accept.setText(self.keyClick)
     
     def getRating(self):
-        """Returns the numerical rating; None if the subject skipped this item; False if not available
+        """Returns the numerical rating; None if the subject skipped this item; False if not available.
         """
         if self.noResponse:
             return False
@@ -4919,7 +4945,7 @@ class RatingScale:
         return response
     
     def getRT(self):
-        """Returns the seconds taken to make the rating (or indicate skip). Returns None if no rating available.
+        """Returns the seconds taken to make the rating (or to indicate skip). Returns None if no rating available.
         """
         if self.noResponse:
             return None
