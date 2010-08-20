@@ -25,7 +25,7 @@ if 'escape' in event.waitKeys():
     core.quit()
 
 # Example 1 --------(as simple as possible)--------
-myRatingScale = visual.RatingScale(myWin) # create a RatingScale object
+myRatingScale = visual.RatingScale(myWin,stretchHoriz=3,precision=100,low=0,high=100) # create a RatingScale object
 question = "How cool was that?"
 myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
 

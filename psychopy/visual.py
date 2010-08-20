@@ -4580,7 +4580,7 @@ class RatingScale:
             minTime :
                 number of seconds that must elapse before a reponse can be accepted, default = 1.0s
                 
-                .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long. 
+                .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long
         """
         
         ### TO DO:
@@ -4898,12 +4898,12 @@ class RatingScale:
             # if mouse1 is pressed and its near the line, set the marker to mouseX:
             mouseX, mouseY = self.myMouse.getPos() # norm units
             if (mouseY > -2 * self.padSize + self.offsetVert and mouseY < self.padSize + self.offsetVert and 
-                    mouseX > self.offsetHoriz + self.leftEnd * self.displaySizeFactor - self.padSize and 
-                    mouseX < self.offsetHoriz - self.leftEnd * self.displaySizeFactor + self.padSize):
-                mouseX = max(mouseX, self.offsetHoriz + self.leftEnd * self.displaySizeFactor)
-                mouseX = min(mouseX, self.offsetHoriz - self.leftEnd * self.displaySizeFactor)
+                    mouseX > self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor - self.padSize and 
+                    mouseX < self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor + self.padSize):
+                mouseX = max(mouseX, self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor)
+                mouseX = min(mouseX, self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor)
                 self.markerPlaced = True
-                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / self.displaySizeFactor + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
+                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz * self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
                 if markerPos < 0: markerPos = 0
                 if self.snapToTick == 1:
                     self.markerPlacedAt = int(markerPos+.5) # round to nearest tick; scale to 0..tickMarks, quantized
