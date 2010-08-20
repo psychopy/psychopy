@@ -4519,14 +4519,15 @@ class RatingScale:
                 acceptKeys=['return'], acceptPreText='key click', acceptText='accept?', 
                 markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False,
                 allowSkip=True, escapeKeys=['escape'], mouseOnly=False,
-                displaySizeFactor=1.0, offsetVert=-0.4, offsetHoriz=0.0,
+                displaySizeFactor=1.0, offsetVert=-0.4, offsetHoriz=0.0, stretchHoriz=1,
                 minTime=1.0):
         """
         :Parameters:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             scale :
-                string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
+                string, explanation of the numbers to display to the subject;
+                default = None will result in a default scale: <low>=not at all, <high>=extremely
             low :
                 lowest rating / low anchor (integer, default = 1)
             high :
@@ -4540,12 +4541,12 @@ class RatingScale:
             showAnchors :
                 show the two end points of the scale, default = True
             showAccept :
-                show the button to accept the current value by using the mouse, default = True; 
+                show the button to accept the current value by using the mouse, default = True
                                
                 .. note:: 
                     If False, then you must have acceptKeys be non-empty (so that the subject can respond at all)
             acceptKeys :
-                list of keys to accept as indicating "accept the current response", default = ['return']
+                list of keys that mean "accept the current response", default = ['return']
             acceptPreText :
                 text to display before any value has been selected
             acceptText :
@@ -4563,30 +4564,35 @@ class RatingScale:
             escapeKeys :
                 list of keys the subject can use to skip a response, default = ['escape']
                 
-                .. note:: 
-                    Don't use an empty list to make the subject respond to every item; use allowSkip=False
+                .. note:: Don't use an empty list to make the subject respond to every item; use allowSkip=False
             mouseOnly :
-                whether to require the subject to use only the mouse (no keys), default = False.
+                whether to require the subject to use only the mouse (no keys), default = False
                 
-                .. note:: MouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly ignored); mouseOnly and allowSkip conflict, because skipping an item is done via key press: mouseOnly wins
+                .. note:: mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False); similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
                 how much to shift the rating line up or down on the screen, norm units; default -0.4, try -0.7 for images
             offsetHoriz:
                 how much to shift right - left, norm units; default = 0.0 (centered)
+            stretchHoriz:
+                multiplicative factor for stretching (or compressing) the scale horizontally
             minTime :
                 number of seconds that must elapse before a reponse can be accepted, default = 1.0s
-                NB: to enforce a max response time (upper limit), just present the ratingScale for that long. 
+                
+                .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long. 
         """
         
-        ### TO DO: refactor displaySizeFactor (works but its messy); do some input validation of parameters
+        ### TO DO:
+        # refactor displaySizeFactor (works but its messy)
+        # do some input validation of parameters
+        # auto-rescale has some display bugs (arrow key moves 10 ticks not 1, displayed precision is weird) 
         
         self.win = win
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
         
-        # sanity checking
+        # sanity checking, ideally more detailed
         if mouseOnly==True and showAccept==False:
             mouseOnly = False
         
@@ -4598,7 +4604,7 @@ class RatingScale:
             self.high = self.low + 1
             self.precision = 100
         self.tickMarks = self.high - self.low
-        # ticks are the units the scale uses internally: 0..(high-low)
+        # ticks are the units the scale uses internally: always 0..(high-low)
         # the screen position (norm units) for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
         # and finally allow for global size changes: multiply the above by displaySizeFactor
         
@@ -4607,7 +4613,7 @@ class RatingScale:
         if (self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0):
             self.autoRescaleFactor = 10
             self.tickMarks /= self.autoRescaleFactor 
-            self.precision = min(100, self.precision * self.autoRescaleFactor)
+            self.precision = min(100, self.precision * self.autoRescaleFactor) # later reduced to [1, 10, 100]
         tickSize = 0.04 # vertical height of each tick, norm units
         self.leftEnd = -0.5 # and possibly resized by displaySizeFactor
         
@@ -4624,8 +4630,9 @@ class RatingScale:
         self.markerStyle = markerStyle
         
         self.padSize = 0.06 # space around the line within which to accept mouse input
-        self.offsetVert = offsetVert # scaled by displaySizeFactor, below
-        self.offsetHoriz = offsetHoriz
+        self.offsetVert = float(offsetVert) # scaled by displaySizeFactor, below
+        self.offsetHoriz = float(offsetHoriz)
+        self.stretchHoriz = float(stretchHoriz)
         
         self.minimumTime = minTime # seconds until a response can be accepted
         
@@ -4656,21 +4663,21 @@ class RatingScale:
                 self.escapeKeys = list(escapeKeys)
         
         # define vertices for making a ShapeStim line with tick marks:
-        vertices = [[self.offsetHoriz + self.leftEnd * self.displaySizeFactor, self.offsetVert]] # first vertex
+        vertices = [[self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor, self.offsetVert]] # first vertex
         if self.tickMarks:
             for t in range(self.tickMarks + 1):
-                vertices.append([self.offsetHoriz + self.displaySizeFactor *
+                vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
                                  (self.leftEnd + t / float(self.tickMarks)),
                                  tickSize * self.displaySizeFactor + self.offsetVert])
-                vertices.append([self.offsetHoriz + self.displaySizeFactor *
+                vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
                                  (self.leftEnd + t / float(self.tickMarks)), self.offsetVert])
                 if t < self.tickMarks: 
-                    vertices.append([self.offsetHoriz + self.displaySizeFactor *
+                    vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
                                      (self.leftEnd + (t + 1) / float(self.tickMarks)), self.offsetVert])
         else:
             self.tickMarks = 1 
-        vertices.append([self.offsetHoriz - self.leftEnd * self.displaySizeFactor, self.offsetVert])
-        vertices.append([self.offsetHoriz + self.leftEnd * self.displaySizeFactor, self.offsetVert])
+        vertices.append([self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor, self.offsetVert])
+        vertices.append([self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor, self.offsetVert])
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
                               lineColor='White', lineColorSpace='rgb')
         
@@ -4711,8 +4718,9 @@ class RatingScale:
             if markerColor == None:
                 markerColor = 'DarkRed'
             x,y = self.win.size
+            windowRatio = float(y)/x
             self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
-            size = [3.2 * tickSize * self.displaySizeFactor * float(y)/x, self.markerSizeVert]
+            size = [3.2 * tickSize * self.displaySizeFactor * windowRatio, self.markerSizeVert]
             self.markerOffsetVert = self.markerSizeVert / 2.
             try:
                 self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
@@ -4732,9 +4740,11 @@ class RatingScale:
         acceptBoxbot = self.offsetVert - 0.22 * displaySizeFactor + relocateTheBox
         acceptBoxleft = self.offsetHoriz - 0.12 * displaySizeFactor + relocateTheBox
         acceptBoxright = self.offsetHoriz + 0.12 * displaySizeFactor + relocateTheBox
+        
+        # define a rectangle with rounded corners; for square corners, set delta2 to 0 
         delta = 0.02 * self.displaySizeFactor
         delta2 = delta / 7 
-        acceptBoxVertices = [ # a rectangle with rounded corners; for square corners, set delta2 to 0
+        acceptBoxVertices = [ 
             [acceptBoxleft,acceptBoxtop-delta], [acceptBoxleft+delta2,acceptBoxtop-3*delta2],
             [acceptBoxleft+3*delta2,acceptBoxtop-delta2], [acceptBoxleft+delta,acceptBoxtop],   
             [acceptBoxright-delta,acceptBoxtop], [acceptBoxright-3*delta2,acceptBoxtop-delta2],
@@ -4779,11 +4789,11 @@ class RatingScale:
         self.scaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall, color='LightGray', 
                                     colorSpace='rgb', pos=[self.offsetHoriz, 0.15 + self.offsetVert])
         self.lowAnchor = TextStim(win=self.win, text=str(self.low),
-                            pos=[self.offsetHoriz + self.leftEnd * self.displaySizeFactor,
+                            pos=[self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
                             -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert],
                             height=textSizeSmall, color='LightGray', colorSpace='rgb')
         self.highAnchor = TextStim(win=self.win, text=str(self.high),
-                            pos=[self.offsetHoriz - self.leftEnd * self.displaySizeFactor,
+                            pos=[self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
                             -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
                             height=textSizeSmall, color='LightGray', colorSpace='rgb')
         
@@ -4827,7 +4837,7 @@ class RatingScale:
         if self.noResponse == False: 
             # so nudge the marker down slightly, draw an immovable marker
             if not self.markerPosFixed:
-                self.marker.pos[1] -= .012
+                self.marker.pos[1] -= .012 # tweak the vertical position 
             self.markerPosFixed = True
             self.marker.draw()
             self.win.units = self.savedWinUnits
@@ -4847,7 +4857,7 @@ class RatingScale:
                 self.accept.setText(self.acceptText)
             
             # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
-            self.marker.setPos([self.offsetHoriz + self.displaySizeFactor *
+            self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz * 
                                 (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)),
                                 self.offsetVert + self.markerOffsetVert])
             
