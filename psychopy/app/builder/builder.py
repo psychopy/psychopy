@@ -1305,7 +1305,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
             self.trialList=loop.params['trialList'].val
-            self.trialLIstFile=loop.params['trialListFile'].val
+            self.trialListFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
             self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
@@ -1329,7 +1329,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-
+        
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):
