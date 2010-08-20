@@ -316,6 +316,10 @@ class TrialHandler:
                 will add this output to the end of the specified file if it already exists
             
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
+        
         dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
         
         #create the file or print to stdout
@@ -385,6 +389,9 @@ class TrialHandler:
         
         This can be reloaded if necess and further analyses carried out.
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
@@ -463,6 +470,10 @@ class TrialHandler:
             
         
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
+            
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
@@ -900,6 +911,10 @@ class StairHandler:
                 If True, prevents the output of the `extraInfo` provided at initialisation.
         """
         
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
+        
         #create the file or print to stdout
         if fileName=='stdout':
             f = sys.stdout
@@ -979,6 +994,10 @@ class StairHandler:
                 If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will be added to make it unique.
         """
+        
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
@@ -1042,6 +1061,9 @@ class StairHandler:
         
         This can be reloaded if necess and further analyses carried out.
         """
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
         #otherwise use default location
         f = open(fileName+'.psydat', "wb")
         cPickle.dump(self, f)
