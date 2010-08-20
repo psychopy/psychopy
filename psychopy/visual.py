@@ -595,7 +595,7 @@ class Window:
         visible (the first uses the color to create the new screen the second presents
         that screen to the viewer).  
         
-        See `colorSpaces`_ for further information about the ways to specify colors and their various implications.
+        See :ref:`colorspaces` for further information about the ways to specify colors and their various implications.
         
         :Parameters:
         
@@ -614,7 +614,7 @@ class Window:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -628,7 +628,7 @@ class Window:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -978,7 +978,7 @@ class _BaseVisualStim:
         _setTexIfNoShaders(self)
 
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -998,7 +998,7 @@ class _BaseVisualStim:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -1012,7 +1012,7 @@ class _BaseVisualStim:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -3552,7 +3552,7 @@ class TextStim(_BaseVisualStim):
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -3572,7 +3572,7 @@ class TextStim(_BaseVisualStim):
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -3586,7 +3586,7 @@ class TextStim(_BaseVisualStim):
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -4540,8 +4540,10 @@ class RatingScale:
             showAnchors :
                 show the two end points of the scale, default = True
             showAccept :
-                show the button to accept the current value by using the mouse, default = True;
-                NB: if False, then you must have acceptKeys be non-empty (so that the subject can respond at all)
+                show the button to accept the current value by using the mouse, default = True; 
+                               
+                .. note:: 
+                    If False, then you must have acceptKeys be non-empty (so that the subject can respond at all)
             acceptKeys :
                 list of keys to accept as indicating "accept the current response", default = ['return']
             acceptPreText :
@@ -4560,11 +4562,13 @@ class RatingScale:
                 if True, the subject can skip an item by pressing a key in escapeKeys, or <esc> if escapeKeys == []
             escapeKeys :
                 list of keys the subject can use to skip a response, default = ['escape']
-                NB: don't use an empty list to make the subject respond to every item; use allowSkip=False
+                
+                .. note:: 
+                    Don't use an empty list to make the subject respond to every item; use allowSkip=False
             mouseOnly :
                 whether to require the subject to use only the mouse (no keys), default = False.
-                NB: mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly ignored);
-                    mouseOnly and allowSkip conflict, because skipping an item is done via key press: mouseOnly wins
+                
+                .. note:: MouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly ignored); mouseOnly and allowSkip conflict, because skipping an item is done via key press: mouseOnly wins
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
