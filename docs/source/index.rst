@@ -6,7 +6,7 @@ News
 
 **Latest version**: 1.62.00 was released August 2010. See complete :doc:`changelog`
 
-**Welcome** to the new developers that have recently been getting onboard the PsychoPy train. The developers of PyEPL are going to be joining us, and  I'm sure there are loads of further improvements on their way real soon as a result!
+**Welcome** to the new developers (Per Sederberg, Yuvi Masory, Alex Masse and Phillip Cloud) that have recently been getting onboard the PsychoPy train. I'm sure there are loads of further improvements on their way as a result!
 
 **Thanks** to `CRS Ltd`_ and to the `HEA Psych Network`_ for their recent commitments of financial support for the project.
 
