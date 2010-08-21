@@ -4516,10 +4516,10 @@ class RatingScale:
                 scale=None,
                 low=1, high=7, precision=1,
                 showValue=True, showScale=True, showAnchors=True, showAccept=True, 
-                acceptKeys=['return'], acceptPreText='key click', acceptText='accept?', 
+                acceptKeys=['return'], acceptPreText='key, click', acceptText='accept?', 
                 markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False,
                 allowSkip=True, escapeKeys=['escape'], mouseOnly=False,
-                displaySizeFactor=1.0, offsetVert=-0.4, offsetHoriz=0.0, stretchHoriz=1,
+                displaySizeFactor=1.0, offsetVert=-0.4, offsetHoriz=0.0, stretchHoriz=1.0,
                 minTime=1.0):
         """
         :Parameters:
@@ -4544,7 +4544,7 @@ class RatingScale:
                 show the button to accept the current value by using the mouse, default = True
                                
                 .. note:: 
-                    If False, then you must have acceptKeys be non-empty (so that the subject can respond at all)
+                    If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return'] to give the subject a way to respond
             acceptKeys :
                 list of keys that mean "accept the current response", default = ['return']
             acceptPreText :
@@ -4564,88 +4564,153 @@ class RatingScale:
             escapeKeys :
                 list of keys the subject can use to skip a response, default = ['escape']
                 
-                .. note:: Don't use an empty list to make the subject respond to every item; use allowSkip=False
+                .. note:: to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
             mouseOnly :
-                whether to require the subject to use only the mouse (no keys), default = False
+                require the subject use the mouse only (no keyboard), default = False
                 
-                .. note:: mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False); similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
+                .. note::
+                mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
+                similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
+                mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
-                how much to shift the rating line up or down on the screen, norm units; default -0.4, try -0.7 for images
+                how much to shift the rating line up or down on the screen, norm units; default -0.4 (lower than center)
             offsetHoriz:
                 how much to shift right - left, norm units; default = 0.0 (centered)
             stretchHoriz:
-                multiplicative factor for stretching (or compressing) the scale horizontally
+                multiplicative factor for stretching (or compressing) the scale horizontally; 3 -> use the whole window
             minTime :
                 number of seconds that must elapse before a reponse can be accepted, default = 1.0s
                 
                 .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long
         """
         
-        ### TO DO:
-        # refactor displaySizeFactor (works but its messy)
-        # do some input validation of parameters
-        # auto-rescale has some display bugs (arrow key moves 10 ticks not 1, displayed precision is weird) 
+        ### TO DO (JRG, Aug 20, 2010)
+        # - refactor init() to have submethods _initMarker(), etc
+        # - refactor displaySizeFactor (works but its messy?)
+        # - do more validation of parameters
+        
+        ### Notes.
+        # Conceptually, the response line is always -0.5 to +0.5 in norm units, so it has length == 1.0,
+        # and is then scaled and translated for display. Tick marks are in integer units, internally 0 to high-low,
+        # with 0 being the left end and (high-low) being the right end. Ticks are shown as going from low to high. 
+        # Ticks get mapped to screen units based on their proportion of the total numer of tick marks (0 to 1).
+        # This internal response line is expanded / contracted by stretchHoriz and displaySizeFactor, and then
+        # is translated by offsetHoriz and offsetVert. Auto-rescaling reduces the number of tick marks shown on the
+        # screen by a factor of 10, just for nicer appearance, without affecting the internal representation.
+        
+        # Based on the above, -0.5 is called leftEnd. +0.5 is the right end, but its referred to as (-1 * leftEnd).
+        # There's no rightEnd variable because internally, conceptually, its *always* -leftEnd.
+        # The internal representation of the response line is leftEnd to leftEnd + 1. So leftEnd is the only
+        # reference point we need.
+        
+        # Thus the ends of the rating line as shown on the screen are (in screen norm units):
+        #   screenLineLowEndX  = offsetHoriz + leftEnd * stretchHoriz * displaySizeFactor
+        #   screenLineHighEndX = offsetHoriz - leftEnd * stretchHoriz * displaySizeFactor
+        # The left-most tick, or "low anchor, or internal-tick-0, is displayed at screenLineLowEndX.
+        # The right-most tick, or "high anchor", or internal-tick-(high-low), is displayed at screenLineHighEndX.
+        # Intermediate ticks are located proportionally between screenLineLowEndX and screenLineHighEndX,
+        # based on their proportion of the number of ticks (high-low). This works because the proportion 0-1
+        # is the same screen length as the norm units that are used to internally represent the scale (-0.5 to +0.5).
+        # And fractional ticks (when precision > 1 tick) map correctly onto the 0 to 1 line as well, based on their
+        # proportion.
+        
+        # Another note: -0.5 to +0.5 looked too big to be the default size of the rating line, so I set the
+        # default displaySizeFactor = 0.6 internally to compensate (i.e., making it smaller). The user can further
+        # adjust the scaling around these defaults by setting displaySizeFactor, stretchHoriz, or both.
+        # The internal compensation means the user can just think of > 1 being expansion (and < 1 == contraction)
+        # relative to the default size.
         
         self.win = win
-        self.savedWinUnits = self.win.units
+        self.savedWinUnits = self.win.units # work in norm units, but don't mess with the user's window if not norm
         self.win.units = 'norm'
         
-        # sanity checking, ideally more detailed
-        if mouseOnly==True and showAccept==False:
-            mouseOnly = False
+        # some sanity checking, magic numbers, and such:
+        if True:
+            if mouseOnly==True and showAccept==False: # then there's no way for the subject to respond. oops.
+                mouseOnly = False  # enable keys to accept
+            if showAccept==False and len(list(acceptKeys)) == 0:
+                acceptKeys = ['return']
+                
+            if type(precision) != type(123) or precision < 10:
+                self.precision = 1
+            elif precision < 100:
+                self.precision = 10
+            else:
+                self.precision = 100
+            
+            try:
+                self.low = int(low) # low anchor
+            except ValueError:
+                self.low = 0
+            try:
+                self.high = int(high) # high anchor
+            except ValueError:
+                self.high = self.low + 1
+            if self.high <= self.low:
+                self.high = self.low + 1
+                self.precision = 100
+            
+            if (type(markerStart)==type(123) and
+                    markerStart >= self.low and markerStart <= self.high):
+                self.markerStart = markerStart
+                self.markerPlacedAt = markerStart
+                self.markerPlaced = True
+            else:
+                self.markerStart = None
+                self.markerPlaced = False
+            
+            try:
+                self.displaySizeFactor = float(displaySizeFactor) * 0.6 
+            except ValueError:
+                self.displaySizeFactor = 0.6 # just looks better as a default
+            if self.displaySizeFactor < 0:
+                self.displaySizeFactor = 0.6
+            if self.displaySizeFactor > 3:
+                self.displaySizeFactor = 3
+                
+            self.showValue = bool(showValue)
+            self.markerColor = markerColor
+            self.markerStyle = markerStyle
+            
+            self.lineColor = 'White'
+            self.lineColorSpace = 'rgb'
+            
+            self.frame = 0 # frame is just a counter, used only to 'pulse' the 'accept' box
+            self.pulse = 0.25 # larger is more salient (contrast between dark and light for the button)
+            self.framesPerCycle = float(16) # seems ok for 60 Hz display
+            
+            try:
+                self.minimumTime = float(minTime) # seconds until a response can be accepted
+            except ValueError:
+                self.minimumTime = 1.0
+            
+        self._initRatingLine() # place holder for:
+        if True:
+            self.tickMarks = self.high - self.low
+            # ticks are the units the scale uses internally: always 0..(high-low)
+            # the screen position (norm units) for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
+            # and finally allow for global size changes: multiply the above by displaySizeFactor
+            
+            # remap 10 ticks onto 1 tick in some conditions:
+            self.autoRescaleFactor = 1 
+            if (self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0):
+                self.autoRescaleFactor = 10
+                self.tickMarks /= self.autoRescaleFactor 
+            tickSize = 0.04 # vertical height of each tick, norm units
+            self.leftEnd = -0.5 # possibly rescaled by displaySizeFactor * stretchHoriz, translated by offsetHoriz
         
-        # tick mark stuff; only draw a tick at integer spacing
-        self.high = int(high) # high anchor of scale
-        self.low = int(low) # low anchor
-        self.precision = precision
-        if self.high <= self.low:
-            self.high = self.low + 1
-            self.precision = 100
-        self.tickMarks = self.high - self.low
-        # ticks are the units the scale uses internally: always 0..(high-low)
-        # the screen position (norm units) for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
-        # and finally allow for global size changes: multiply the above by displaySizeFactor
-        
-        # remap 10 ticks onto 1 tick in some conditions:
-        self.autoRescaleFactor = 1 
-        if (self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0):
-            self.autoRescaleFactor = 10
-            self.tickMarks /= self.autoRescaleFactor 
-            self.precision = min(100, self.precision * self.autoRescaleFactor) # later reduced to [1, 10, 100]
-        tickSize = 0.04 # vertical height of each tick, norm units
-        self.leftEnd = -0.5 # and possibly resized by displaySizeFactor
-        
-        if (markerStart and markerStart >= self.low and markerStart <= self.high):
-            self.markerStart = markerStart
-            self.markerPlacedAt = markerStart
-            self.markerPlaced = True
-        else:
-            self.markerStart = None
-            self.markerPlaced = False
-        
-        self.showValue = showValue
-        self.markerColor = markerColor
-        self.markerStyle = markerStyle
-        
-        self.padSize = 0.06 # space around the line within which to accept mouse input
-        self.offsetVert = float(offsetVert) # scaled by displaySizeFactor, below
-        self.offsetHoriz = float(offsetHoriz)
+        self.padSize = 0.06 * self.displaySizeFactor # space around the line within which to accept mouse input
+        self.offsetVert = float(offsetVert) # NB: vert is rescaled by displaySizeFactor, below
+        self.offsetHoriz = float(offsetHoriz) # horiz is not rescaled this way
         self.stretchHoriz = float(stretchHoriz)
         
-        self.minimumTime = minTime # seconds until a response can be accepted
-        
-        displaySizeFactor = float(displaySizeFactor)
-        if self.precision not in [1, 10, 100]:
-            self.precision = 1
-        self.snapToTick = self.precision
-        self.textSize = 0.12 * displaySizeFactor # for large text, needed
+        self.textSize = 0.2 * self.displaySizeFactor # for large text, needed
         textSizeSmall = self.textSize * 0.6 # ratio of small text to large text
-        self.showValue = showValue in [True, 1]
+        self.showValue = bool(showValue)
         
-        self.displaySizeFactor = 0.6 * displaySizeFactor
-        self.offsetVert = self.offsetVert / displaySizeFactor
+        self.offsetVert = self.offsetVert / displaySizeFactor # also shifts everything lower on the screen if you make it smaller
         
         # what keyboard keys are valid
         self.respKeys = [ ] 
@@ -4679,70 +4744,126 @@ class RatingScale:
         vertices.append([self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor, self.offsetVert])
         vertices.append([self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor, self.offsetVert])
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
-                              lineColor='White', lineColorSpace='rgb')
+                              lineColor=self.lineColor, lineColorSpace=self.lineColorSpace)
         
         # define the marker:
-        self.markerSize = 5.0 * displaySizeFactor
-        self.markerOffsetVert = 0
-        self.markerExpansion = float(markerExpansion) * 0.6
-        if markerColor and type(markerColor) == type('abc'):
-            markerColor = markerColor.replace(' ','')
-        if (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
-            vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
-                    [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
-            if markerColor == None:
-                markerColor = 'DarkBlue'
-            try:
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
-            except AttributeError:
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb')
-                markerColor = 'DarkBlue'
-            self.markerExpansion = 0
-        elif self.markerStyle == 'glow':
-            if markerColor == None:
-                markerColor = 'White'
-            try:
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
-                                        colorSpace='rgb', opacity = 0.85)
-            except AttributeError: # bad markerColor, presumably:
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
-                                        colorSpace='rgb', opacity = 0.85)
-                markerColor = 'White'
-            self.markerBaseSize = tickSize * self.markerSize
-            self.markerOffsetVert = .02
-            if self.markerExpansion == 0:
-                self.markerBaseSize *= self.markerSize * self.displaySizeFactor
-        else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
-            if markerColor == None:
-                markerColor = 'DarkRed'
-            x,y = self.win.size
-            windowRatio = float(y)/x
-            self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
-            size = [3.2 * tickSize * self.displaySizeFactor * windowRatio, self.markerSizeVert]
-            self.markerOffsetVert = self.markerSizeVert / 2.
-            try:
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color=markerColor, colorSpace='rgb')
-            except AttributeError: # user gave a bad markerColor, presumably:
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color='DarkRed', colorSpace='rgb')
-                markerColor = 'DarkRed'
-            self.markerBaseSize = tickSize
+        self._initMarker(markerExpansion,markerColor,tickSize) # place holder for:
+        if True:
+            self.markerSize = 8 * self.displaySizeFactor
+            self.markerOffsetVert = 0
+            self.markerExpansion = float(markerExpansion) * 0.6
+            if markerColor and type(markerColor) == type('abc'):
+                markerColor = markerColor.replace(' ','')
+            if (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
+                vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
+                        [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
+                if markerColor == None:
+                    markerColor = 'DarkBlue'
+                try:
+                    self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
+                                            lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
+                except AttributeError:
+                    self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
+                                            lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb')
+                    markerColor = 'DarkBlue'
+                self.markerExpansion = 0
+            elif self.markerStyle == 'glow':
+                if markerColor == None:
+                    markerColor = 'White'
+                try:
+                    self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
+                                            colorSpace='rgb', opacity = 0.85)
+                except AttributeError: # bad markerColor, presumably:
+                    self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
+                                            colorSpace='rgb', opacity = 0.85)
+                    markerColor = 'White'
+                self.markerBaseSize = tickSize * self.markerSize
+                self.markerOffsetVert = .02
+                if self.markerExpansion == 0:
+                    self.markerBaseSize *= self.markerSize * self.displaySizeFactor
+            else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
+                if markerColor == None:
+                    markerColor = 'DarkRed'
+                x,y = self.win.size
+                windowRatio = float(y)/x
+                self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
+                size = [3.2 * tickSize * self.displaySizeFactor * windowRatio, self.markerSizeVert]
+                self.markerOffsetVert = self.markerSizeVert / 2.
+                try:
+                    self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
+                                            mask='circle', color=markerColor, colorSpace='rgb')
+                except AttributeError: # user gave a bad markerColor, presumably:
+                    self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
+                                            mask='circle', color='DarkRed', colorSpace='rgb')
+                    markerColor = 'DarkRed'
+                self.markerBaseSize = tickSize
         
-        # define the 'accept' box stim: text and button:
+        # define the 'accept' box text and button:
+        self._initAcceptBox(showAccept,acceptPreText,acceptText,markerColor,textSizeSmall)
+        
+        # text elements:
+        self._initVisualElements() # place holder for:
+        if True:
+            if not scale: # set the default
+                scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
+            scale = unicode(scale)
+            self.textColor = 'LightGray'
+            self.textColorSpace = 'rgb'
+            self.textFont = 'Helvetica Bold'
+            self.scaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall,  
+                                        color=self.textColor, colorSpace=self.textColorSpace,
+                                        pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert])
+            self.lowAnchor = TextStim(win=self.win, text=str(self.low),
+                                pos=[self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
+                                -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert],
+                                height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+            self.highAnchor = TextStim(win=self.win, text=str(self.high),
+                                pos=[self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
+                                -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
+                                height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+            
+            if precision == 1:
+                self.fmtStr = "%.0f" # decimal places to display
+            elif precision == 10:
+                self.fmtStr = "%.1f"
+            else:
+                self.fmtStr = "%.2f"
+            self.accept.setFont(self.textFont)
+            
+            # visual elements, in their drawing order.
+            # NB: win XP seems to have issues with multiple ShapeStim: self.line disappeared if it came first, 'triangle' = no show
+            self.visualDisplayElements = []
+            if showScale:
+                self.visualDisplayElements += [self.scaleDescription]
+            if showAnchors: 
+                self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
+            if showAccept: 
+                self.visualDisplayElements += [self.acceptBox, self.accept]
+            self.visualDisplayElements += [self.line]
+        
+
+        self.myClock = core.Clock()
+        self.myMouse = event.Mouse(win=self.win, visible=True)
+        
+        self.win.units = self.savedWinUnits
+        self.reset()
+        
+    def _initRatingLine(self):
+        pass
+    def _initMarker(self,markerExpansion,markerColor,tickSize):
+        pass    
+    def _initAcceptBox(self,showAccept,acceptPreText,acceptText,markerColor,textSizeSmall):
         relocateTheBox = 0
         if not showAccept:
-            relocateTheBox = 10 # way off screen, so you can't see or click it
+            relocateTheBox = 10 # way off screen, so it can't be seen or clicked; easier to code it this way than check during draw()
             
-        acceptBoxtop = self.offsetVert - 0.12 * displaySizeFactor + relocateTheBox
-        acceptBoxbot = self.offsetVert - 0.22 * displaySizeFactor + relocateTheBox
-        acceptBoxleft = self.offsetHoriz - 0.12 * displaySizeFactor + relocateTheBox
-        acceptBoxright = self.offsetHoriz + 0.12 * displaySizeFactor + relocateTheBox
+        acceptBoxtop = self.offsetVert - 0.2 * self.displaySizeFactor + relocateTheBox
+        acceptBoxbot = self.offsetVert - 0.37 * self.displaySizeFactor + relocateTheBox
+        acceptBoxleft = self.offsetHoriz - 0.2 * self.displaySizeFactor + relocateTheBox
+        acceptBoxright = self.offsetHoriz + 0.2 * self.displaySizeFactor + relocateTheBox
         
         # define a rectangle with rounded corners; for square corners, set delta2 to 0 
-        delta = 0.02 * self.displaySizeFactor
+        delta = 0.025 * self.displaySizeFactor
         delta2 = delta / 7 
         acceptBoxVertices = [ 
             [acceptBoxleft,acceptBoxtop-delta], [acceptBoxleft+delta2,acceptBoxtop-3*delta2],
@@ -4764,6 +4885,9 @@ class RatingScale:
             self.keyClick = 'key, click' # text to display inside accept box before a marker has been placed
         else:
             self.keyClick = 'click line'
+        
+        # handle accept (button)
+        self.showAccept = showAccept
         if acceptPreText != 'key, click': # non-default
             self.keyClick = unicode(acceptPreText)
         self.acceptText = unicode(acceptText)
@@ -4781,47 +4905,10 @@ class RatingScale:
             self.acceptTextColor = '#444444'
         else:
             self.acceptTextColor = markerColor
-        
-        # text elements:
-        if not scale: # set the default
-            scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
-        scale = unicode(scale)
-        self.scaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall, color='LightGray', 
-                                    colorSpace='rgb', pos=[self.offsetHoriz, 0.15 + self.offsetVert])
-        self.lowAnchor = TextStim(win=self.win, text=str(self.low),
-                            pos=[self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=textSizeSmall, color='LightGray', colorSpace='rgb')
-        self.highAnchor = TextStim(win=self.win, text=str(self.high),
-                            pos=[self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
-                            height=textSizeSmall, color='LightGray', colorSpace='rgb')
-        
-        decPts = int(numpy.log10(self.precision))
-        self.fmtStr = "%." + str(decPts) + "f"
-        self.accept.setFont('Helvetica Bold')
-        
-        # visual elements, in their drawing order. line would disappear for winXP if it came first
-        self.visualDisplayElements = []
-        if showScale:
-            self.visualDisplayElements += [self.scaleDescription]
-        if showAnchors: 
-            self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
-        if showAccept: 
-            self.visualDisplayElements += [self.acceptBox, self.accept]
-        self.visualDisplayElements += [self.line]
-        
-        self.frame = 0 # used to pulse the 'accept' box
-        self.pulse = 0.25 # larger is more salient
-        self.framesPerCycle = 16. 
-        
-        self.myClock = core.Clock()
-        self.myMouse = event.Mouse(win=self.win, visible=True)
-        
-        self.win.units = self.savedWinUnits
-        
-        self.reset()
-        
+            
+    def _initVisualElements(self):
+        pass
+    
     def draw(self):
         """
         update visual display, check for subject response (key, mouse, skip), set self.noResponse as appropriate.
@@ -4837,24 +4924,25 @@ class RatingScale:
         if self.noResponse == False: 
             # so nudge the marker down slightly, draw an immovable marker
             if not self.markerPosFixed:
-                self.marker.pos[1] -= .012 # tweak the vertical position 
-            self.markerPosFixed = True
+                self.marker.pos[1] -= .012 # tweak the vertical position, drop the marker onto the line
+                self.markerPosFixed = True
             self.marker.draw()
             self.win.units = self.savedWinUnits
             return # makes the marker unresponsive
         
         # draw the marker, if indicated by subject:
         if self.markerPlaced: 
-            self.frame += 1
-            # set 'accept' box pulsing & display text:
-            pulseColor = 0.6 + self.pulse * float(cos(self.frame / float(self.framesPerCycle))) # cast to float to avoid numpy_type from cos
-            self.acceptBox.setFillColor(pulseColor, 'rgb')
-            self.acceptBox.setLineColor(pulseColor, 'rgb')
-            self.accept.setColor(self.acceptTextColor, 'rgb')
-            if self.showValue:
-                self.accept.setText(self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor ))
-            else:
-                self.accept.setText(self.acceptText)
+            if self.showAccept:
+                self.frame += 1
+                # set 'accept' box pulsing & display text:
+                pulseColor = 0.6 + self.pulse * float(cos(self.frame / self.framesPerCycle)) # cast to float to avoid numpy_type from cos
+                self.acceptBox.setFillColor(pulseColor, 'rgb')
+                self.acceptBox.setLineColor(pulseColor, 'rgb')
+                self.accept.setColor(self.acceptTextColor, 'rgb')
+                if self.showValue:
+                    self.accept.setText(self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor ))
+                else:
+                    self.accept.setText(self.acceptText)
             
             # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
             self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz * 
@@ -4864,7 +4952,8 @@ class RatingScale:
             # expansion fun & games with 'glow':
             if self.markerStyle == 'glow':
                 if self.markerExpansion > 0: 
-                    self.marker.setSize(self.markerBaseSize + 0.1 * self.markerExpansion * float(self.markerPlacedAt) / self.tickMarks)
+                    self.marker.setSize(self.markerBaseSize + 0.1 * self.markerExpansion * 
+                                        float(self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(0.2 + float(self.markerPlacedAt) / self.tickMarks)
                 elif self.markerExpansion < 0:
                     self.marker.setSize(self.markerBaseSize - 0.1 * self.markerExpansion *
@@ -4882,21 +4971,22 @@ class RatingScale:
             if key in self.respKeys: # place the marker at that tick
                 self.markerPlaced = True
                 self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
-                self.marker.setPos([self.displaySizeFactor * (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)), 0])
+                self.marker.setPos([self.displaySizeFactor * (self.leftEnd +
+                                                              self.markerPlacedAt / float(self.tickMarks)), 0])
             if key in ['left']:
                 if self.markerPlaced and self.markerPlacedAt > 0:
-                    self.markerPlacedAt = max(0, self.markerPlacedAt - 1)
+                    self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
             if key in ['right']:
                 if self.markerPlaced and self.markerPlacedAt < self.tickMarks:
-                    self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt + 1)
+                    self.markerPlacedAt = min(self.tickMarks,
+                                              self.markerPlacedAt + 1. / self.autoRescaleFactor / self.precision)
             if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                 self.noResponse = False 
                 
         # handle mouse:
-        mouse1, m2, m3 = self.myMouse.getPressed()
-        if mouse1:
-            # if mouse1 is pressed and its near the line, set the marker to mouseX:
+        if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
             mouseX, mouseY = self.myMouse.getPos() # norm units
+            # if near the line, place the marker there:
             if (mouseY > -2 * self.padSize + self.offsetVert and mouseY < self.padSize + self.offsetVert and 
                     mouseX > self.offsetHoriz + self.leftEnd * self.stretchHoriz * self.displaySizeFactor - self.padSize and 
                     mouseX < self.offsetHoriz - self.leftEnd * self.stretchHoriz * self.displaySizeFactor + self.padSize):
@@ -4905,14 +4995,14 @@ class RatingScale:
                 self.markerPlaced = True
                 markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz * self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
                 if markerPos < 0: markerPos = 0
-                if self.snapToTick == 1:
+                if self.precision == 1:
                     self.markerPlacedAt = int(markerPos+.5) # round to nearest tick; scale to 0..tickMarks, quantized
                 else:
-                    self.markerPlacedAt = int(self.snapToTick * float(markerPos)) / float(self.snapToTick)  # scale to 0..tickMarks
-            # accept marker?
+                    self.markerPlacedAt = int(self.precision * float(markerPos) * self.autoRescaleFactor) / float(self.precision * self.autoRescaleFactor)  # scale to 0..tickMarks
+            # if in accept box, and a value has been selected, and enough time has elapsed: 
             if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and mouseY > self.acceptBoxbot and
                     mouseY < self.acceptBoxtop and mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
-                self.noResponse = False 
+                self.noResponse = False # accept the currently marked value
         
         # decision time = time from the first .draw() to when 'accept' was pressed:
         if self.firstDraw:
@@ -4925,7 +5015,7 @@ class RatingScale:
         self.win.units = self.savedWinUnits
         
     def reset(self):
-        """restores to post-init state; does not restore scaleDescription text
+        """restores to post-init state; does not restore scaleDescription text, which would be
         needed between items when rating multiple items
         """
         self.noResponse = True
