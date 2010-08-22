@@ -2025,7 +2025,7 @@ class BuilderFrame(wx.Frame):
     def updateWindowTitle(self, newTitle=None):
         if newTitle==None:
             shortName = os.path.split(self.filename)[-1]
-            newTitle='PsychoPy (Experiment Builder) - %s' %(shortName)
+            newTitle='%s - PsychoPy Builder' %(shortName)
         self.SetTitle(newTitle)
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.

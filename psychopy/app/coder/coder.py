@@ -1230,7 +1230,7 @@ class CoderFrame(wx.Frame):
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
-        self.SetLabel('PsychoPy IDE - %s' %self.currentDoc.filename)
+        self.SetLabel('%s - PsychoPy Coder' %self.currentDoc.filename)
         if not self.expectedModTime(self.currentDoc):
             """dial = wx.MessageDialog(None, "'%s' was modified outside of PsychoPy\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                 'Warning', wx.YES_NO | wx.ICON_EXCLAMATION)
@@ -1422,7 +1422,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc.filename=filename
             self.setFileModified(False)
             self.currentDoc.SetFocus()
-        self.SetLabel('PsychoPy Coder - %s' %self.currentDoc.filename)
+        self.SetLabel('%s - PsychoPy Coder' %self.currentDoc.filename)
         if self.prefs['analyseAuto'] and len(self.getOpenFilenames())>0:
             self.SetStatusText('Analysing code')
             self.currentDoc.analyseScript()
@@ -1593,7 +1593,7 @@ class CoderFrame(wx.Frame):
         newPageID = self.notebook.GetSelection()
         if newPageID == -1:
             self.currentDoc = None
-            self.SetLabel("PsychoPy (Coder) (v%s)" %self.app.version)
+            self.SetLabel("PsychoPy v%s (Coder)" %self.app.version)
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
             self.setFileModified(self.currentDoc.UNSAVED)#set to current file status
