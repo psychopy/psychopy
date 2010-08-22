@@ -466,6 +466,13 @@ class Window:
         is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
         """
+        im = self._getFrame(buffer=buffer)
+        self.movieFrames.append(im)
+
+    def _getFrame(self, buffer='front'):
+        """
+        Return the current Window as an image.
+        """
         #GL.glLoadIdentity()
         #do the reading of the pixels
         if buffer=='back':
@@ -473,7 +480,7 @@ class Window:
         else:
             GL.glReadBuffer(GL.GL_FRONT)
         
-            #fetch the data with glReadPixels
+        #fetch the data with glReadPixels
         if self.winType=='pyglet':
             #pyglet.gl stores the data in a ctypes buffer
             bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
@@ -487,8 +494,9 @@ class Window:
             
         im=im.transpose(Image.FLIP_TOP_BOTTOM)            
         im=im.convert('RGB')
-        self.movieFrames.append(im)
-
+        
+        return im
+        
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
         fps=30):
         """
@@ -544,7 +552,34 @@ class Window:
             for frameN, thisFrame in enumerate(self.movieFrames):
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
-
+    
+    def _getFrameRegion(self, buffer='front', nLTRB=[-1,1,1,-1], power2=False, imType='RGBA'):
+        """
+        Capture a rectangular region of the current Window as an image.
+        
+        calls getMovieFrame(), and then crops the whole frame into an image with requested size
+        """
+        im = self._getFrame(buffer=buffer)
+        
+        # convert norm unit region to pixel units
+        # nLTRB mean n=norm, L=left, T=top, R=right, B=bottom (in norm units); default = whole screen
+        x,y = im.size
+        nLTRB = [nLTRB[0]/2. + 0.5, nLTRB[1]/-2. + 0.5, nLTRB[2]/2. + 0.5, nLTRB[3]/-2. + 0.5]
+        box = (nLTRB[0]*x, nLTRB[1]*y, nLTRB[2]*x, nLTRB[3]*y) # (left, upper, right, lower)
+        region = im.crop(map(int, box))
+            
+        if power2: # make a power-of-two-sized image to avoid interpolation in PatchStim / GL
+            x,y = region.size
+            i = 1
+            while 2**i < max(x,y):
+                i += 1
+            d = 2 ** i
+            p2 = Image.new(imType, (d,d))
+            p2.paste(region, (d//2 - x//2, d//2 - y//2))
+            region = p2
+        
+        return region
+        
     def fullScr(self):
         """Toggles fullscreen mode (GLUT only).
 
@@ -4602,9 +4637,11 @@ class RatingScale:
         # - customMarker hook
         
         ### Notes (JRG Aug 2010)
-        # Conceptually, the response line is always -0.5 to +0.5 (in "internal" units). This line, of unit length, 
-        # is scaled and translated for display. Tick marks are in integer units, internally 0 to (high-low),
-        # with 0 being the left end and (high-low) being the right end. (Subjects see low to high on the screen). 
+        # Conceptually, the response line is always -0.5 to +0.5 ("internal" units). This line, of unit length, 
+        # is scaled and translated for display. The line is effectively "center justified", expanding both left
+        # and right with scaling, with offsetHoriz and offsetVert specifiying the screen coordinate (norm units)
+        # of the mid-way point of the response line. Tick marks are in integer units, internally 0 to (high-low),
+        # with 0 being the left end and (high-low) being the right end. (Subjects see low to high on the screen.) 
         # Tick units get mapped to "internal" units based on their proportion of the total ticks (--> 0. to 1.).
         # The unit-length internal line is expanded / contracted by stretchHoriz and displaySizeFactor, and then
         # is translated by offsetHoriz and offsetVert. Auto-rescaling reduces the number of tick marks shown on the
@@ -4621,7 +4658,7 @@ class RatingScale:
         # tick-n is the right-most tick, or "high anchor", or internal-tick-(high-low), and the subject sees <high>.
         # Intermediate ticks, i, are located proportionally between -0.5 to + 0.5, based on their proportion
         # of the total number of ticks, float(i)/n. The "proportion of total" is used because its a line of unit length,
-        # i.e., the same length as the units that are used to internally represent the scale (-0.5 to +0.5).
+        # i.e., the same length as used to internally represent the scale (-0.5 to +0.5).
         # If precision > 1, the user / experimenter is asking for fractional ticks. These map correctly
         # onto [0, 1] as well without requiring special handling (just do ensure float() ).
         
@@ -4648,10 +4685,13 @@ class RatingScale:
             # flatten precision to [1,10,100]:
             if type(precision) != type(123) or precision < 10:
                 self.precision = 1
+                self.fmtStr = "%.0f" # decimal places to display
             elif precision < 100:
                 self.precision = 10
+                self.fmtStr = "%.1f"
             else:
                 self.precision = 100
+                self.fmtStr = "%.2f"
             
             # make anchors well-behaved:
             try:
@@ -4687,7 +4727,7 @@ class RatingScale:
             self.textColorSpace = 'rgb'
             self.textFont = 'Helvetica Bold'
             
-            # 'accept' button pulses = brightness cycles over 1.0s (for 60Hz refresh)
+            # 'accept' button pulsates = brightness cycles once per 100 frames
             self.pulseColor = [0.6 + 0.22 * float(cos(i/15.65)) for i in range(100)]
             
             try:
@@ -4774,7 +4814,7 @@ class RatingScale:
                               lineColor=self.lineColor, lineColorSpace=self.lineColorSpace)
         
         # define the marker:
-        self._initMarker(markerExpansion,markerColor,tickSize) # place holder for:
+        self._initMarker(customMarker,markerExpansion,markerColor,tickSize) # place holder for:
         if True:
             self.markerSize = 8. * self.displaySizeFactor
             self.markerOffsetVert = 0.
@@ -4852,13 +4892,6 @@ class RatingScale:
                                 -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
                                 height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
             
-            if precision == 1:
-                self.fmtStr = "%.0f" # decimal places to display
-            elif precision == 10:
-                self.fmtStr = "%.1f"
-            else:
-                self.fmtStr = "%.2f"
-            
             # visual elements, in their drawing order.
             # NB: win XP seems to have issues with multiple ShapeStim: self.line disappeared if it came first, 'triangle' = no show
             self.visualDisplayElements = []
@@ -4878,7 +4911,7 @@ class RatingScale:
         
     def _initRatingLine(self):
         pass
-    def _initMarker(self,markerExpansion,markerColor,tickSize):
+    def _initMarker(self,customMarker,markerExpansion,markerColor,tickSize):
         pass    
     def _initAcceptBox(self,showAccept,acceptPreText,acceptText,markerColor,textSizeSmall):
         self.acceptBoxtop = acceptBoxtop = self.offsetVert - 0.2 * self.displaySizeFactor
@@ -5019,7 +5052,7 @@ class RatingScale:
                 if self.precision == 1:
                     self.markerPlacedAt = round(markerPos) # round to nearest tick; scale to 0..tickMarks, quantized
                 else:
-                    self.markerPlacedAt = int(self.precision * float(markerPos) * self.autoRescaleFactor) / float(self.precision * self.autoRescaleFactor)  # scale to 0..tickMarks
+                    self.markerPlacedAt = int(float(markerPos) * self.precision * self.autoRescaleFactor) / float(self.precision * self.autoRescaleFactor)  # scale to 0..tickMarks
             # if in accept box, and a value has been selected, and enough time has elapsed: 
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and mouseY > self.acceptBoxbot and
@@ -5031,7 +5064,8 @@ class RatingScale:
             self.firstDraw = False
             self.myClock.reset()
         if not self.noResponse and self.decisionTime == 0:
-            self.decisionTime = self.myClock.getTime() # only set this once: at the time 'accept' is indicated by subject
+            self.decisionTime = self.myClock.getTime()
+            # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
         
         self.win.units = self.savedWinUnits
@@ -5080,7 +5114,7 @@ class RatingScale:
             return None
         
         return self.decisionTime
-            
+    
 class _TextInputBox():
     """
     modeled on RatingScale()
