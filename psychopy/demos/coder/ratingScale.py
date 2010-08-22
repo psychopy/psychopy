@@ -4,11 +4,15 @@
 """
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core
+from psychopy import visual, event, core, log
 import os
 
 # create a window before creating your rating scale, whatever units you like:
 myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
+
+# if you want skipped frames to be reported uncomment these two lines:
+#myWin.setRecordFrameIntervals(True)
+#log.console.setLevel(log.DEBUG)
 
 # display instructions for using a rating scale, from the subject's point of view:
 instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are two examples.
@@ -29,7 +33,7 @@ myRatingScale = visual.RatingScale(myWin) # create a RatingScale object
 question = "How cool was that?"
 myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
 
-# anything with a frame-by-frame method for being drawn in a visual.Window() should work just fine, eg a movie:
+# anything with a frame-by-frame method for being drawn in a visual.Window() should work:
 #myItem = visual.MovieStim(myWin, 'jwpIntro.mov', pos=(0,120))
 
 event.clearEvents()
