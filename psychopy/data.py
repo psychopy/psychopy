@@ -1178,8 +1178,9 @@ class DataHandler(dict):
         """Convert this datatype from masked numeric array to unmasked object array
         """
         dat = self[thisType]
-        self[thisType] = numpy.asarray(dat, dtype='O')#create an array of Object type
-        self[thisType] = numpy.where(dat.mask, '--',dat)#masked vals should be "--", others keep data
+        self[thisType] = numpy.array(dat.data, dtype='O')#create an array of Object type
+        #masked vals should be "--", others keep data
+        self[thisType] = numpy.where(dat.mask, '--',dat).astype('O')#we have to repeat forcing to 'O' or text gets truncated to 4chars
         self.isNumeric[thisType]=False
 
 class FitFunction:
