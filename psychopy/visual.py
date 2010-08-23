@@ -553,30 +553,40 @@ class Window:
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
     
-    def _getFrameRegion(self, buffer='front', nLTRB=[-1,1,1,-1], power2=False, imType='RGBA'):
+    def _getRegionOfFrame(self, buffer='front', nLTRB=[-1,1,1,-1], power2=False, imType='RGBA'):
         """
         Capture a rectangular region of the current Window as an image.
         
         calls getMovieFrame(), and then crops the whole frame into an image with requested size
         """
-        im = self._getFrame(buffer=buffer)
-        
         # convert norm unit region to pixel units
         # nLTRB mean n=norm, L=left, T=top, R=right, B=bottom (in norm units); default = whole screen
-        x,y = im.size
+        x,y = self.size
         nLTRB = [nLTRB[0]/2. + 0.5, nLTRB[1]/-2. + 0.5, nLTRB[2]/2. + 0.5, nLTRB[3]/-2. + 0.5]
-        box = (nLTRB[0]*x, nLTRB[1]*y, nLTRB[2]*x, nLTRB[3]*y) # (left, upper, right, lower)
-        region = im.crop(map(int, box))
-            
-        if power2: # make a power-of-two-sized image to avoid interpolation in PatchStim / GL
-            x,y = region.size
-            i = 1
-            while 2**i < max(x,y):
-                i += 1
-            d = 2 ** i
-            p2 = Image.new(imType, (d,d))
-            p2.paste(region, (d//2 - x//2, d//2 - y//2))
-            region = p2
+        box = map(int, (nLTRB[0]*x, nLTRB[1]*y, nLTRB[2]*x, nLTRB[3]*y)) # (left, upper, right, lower)
+        
+        if buffer=='back':
+            GL.glReadBuffer(GL.GL_BACK)            
+        else:
+            GL.glReadBuffer(GL.GL_FRONT)
+        
+        #fetch the data with glReadPixels
+        if self.winType == 'pyglet':
+            #pyglet.gl stores the data in a ctypes buffer
+            bufferDat = (GL.GLubyte * (4 * (box[2]-box[0]) * (box[3]-box[1])))()
+            GL.glReadPixels(box[0], box[1], box[2]-box[0], box[3]-box[1], GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+            im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]), data=bufferDat)
+        else: # not tested:
+            #pyopengl returns the data
+            im = Image.fromstring(mode='RGBA',size=(box[2]-box[0], box[3]-box[1]), data=GL.glReadPixels(
+                        box[0],box[1],(box[2]-box[0]),(box[3]-box[1]), GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),)
+        region = im.transpose(Image.FLIP_TOP_BOTTOM)            
+        
+        if power2: # make a square power-of-two-sized image to avoid interpolation in PatchStim / GL
+            powerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
+            imSqrp2 = Image.new(imType, (powerOf2,powerOf2))
+            imSqrp2.paste(region, (powerOf2//2 - region.size[0]//2, powerOf2//2 - region.size[1]//2)) # paste centered
+            region = imSqrp2
         
         return region
         
@@ -1568,7 +1578,9 @@ class SimpleImageStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
-        self.setImage(image)
+        #self.setImage(image)
+        self._new_setImage(image) # JRG
+        
         #flip if necess
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
         self.setFlipHoriz(flipHoriz)
@@ -1677,6 +1689,40 @@ class SimpleImageStim(_BaseVisualStim):
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
         self._needStrUpdate=True
+    def _new_setImage(self, filename=None):
+        itsaFile = True # just a guess at this point
+        try:
+            os.path.isfile(filename)
+        except TypeError: # its not a file; maybe an image already?
+            try: 
+                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            self.filename = repr(filename) #'<Image.Image image ...>'
+            itsaFile = False
+        if itsaFile:
+            if filename!=None:
+                self.filename=filename
+            if os.path.isfile(self.filename):
+                im = Image.open(self.filename)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            else:
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #so thatensure we quit
+        self.size = im.size
+        #set correct formats for bytes/floats
+        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
+        self.internalFormat = GL.GL_RGB      
+        if self._useShaders:            
+            self.dataType = GL.GL_FLOAT
+        else:
+            self.dataType = GL.GL_UNSIGNED_BYTE
+            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
+        self._needStrUpdate = True
+
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -4677,7 +4723,7 @@ class RatingScale:
             if not showAccept: 
                 if mouseOnly: # then there's no way for the subject to respond. oops.
                     mouseOnly = False  # ...so enable using keys to accept
-                    # ideally log it
+                    #log.warning("mouseOnly but not showAccept (no way to respond!), so disabling mouseOnly")
                 if len(list(acceptKeys)) == 0: # ...and make sure there are in fact some keys to use:
                     acceptKeys = ['return']
             self.mouseOnly = bool(mouseOnly)
