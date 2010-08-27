@@ -259,7 +259,14 @@ class TrialHandler:
             #analyse thisData using numpy module
             if analType in dir(numpy):
                 try:#this will fail if we try to take mean of a string for example
-                    exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                    if analType=='std':
+                        thisAnal = numpy.std(thisData,axis=1,ddof=0)
+                        #normalise by N-1 instead. his should work by setting ddof=1
+                        #but doesn't as of 08/2010 (because of using a masked array?)
+                        N=thisData.shape[1]
+                        thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                    else:
+                        exec("thisAnal = numpy.%s(thisData,1)" %analType)
                 except:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
