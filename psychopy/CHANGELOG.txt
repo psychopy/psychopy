@@ -22,6 +22,7 @@ PsychoPy 1.62.01 (svn)
 * ADDED: clicking on a Routine in the Flow window brings that Routine to current focus above
 * ADDED: by setting a loop in the Flow to have 0 repeats, that part of your experiment can be skipped
 * CHANGED: builder hides mouse now during fullscreen experiments (should make this a pref or setting though?)
+* ADDED: MovieStim can now be paused and continued half way through (draw() during pause will draw current static frame)
 
 PsychoPy 1.62.00
 ~~~~~~~~~~~~~~~~~~~~~~~~

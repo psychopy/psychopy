@@ -68,6 +68,12 @@ global DEBUG; DEBUG=False
 
 _depthIncrements = {'pyglet':+0.001, 'pygame':-0.001, 'glut':-0.001}
 
+#symbols for MovieStim
+PLAYING=1
+PAUSED=2
+NOT_STARTED=0
+FINISHED=-1
+
 class Window:
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
@@ -3343,7 +3349,7 @@ class MovieStim(_BaseVisualStim):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
-        self.playing=0
+        self.playing=NOT_STARTED
         #size
         if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
@@ -3371,16 +3377,25 @@ class MovieStim(_BaseVisualStim):
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         #self._player.on_eos=self.onEOS #doesn't seem to work
-        
+    def pause(self):
+        """Pause the current point in the movie (sound will stop, current frame
+        will not advance
+        """
+        self._player.pause()
+        self.playing=PAUSED
+    def play(self):
+        """Continue a paused movie from current position
+        """
+        self._player.play()
+        self.playing=PLAYING
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in the
         movie will be determined automatically.
         
         This method should be called on every frame that the movie is meant to appear"""
-        if not self._player.playing:
-            self._player.play()
-            self.playing=1
+        if self.playing==NOT_STARTED:#haven't started yet, so start
+            self.play()
         #set the window to draw to
         if win==None: win=self.win
         win.winHandle.switch_to()
@@ -3415,7 +3430,7 @@ class MovieStim(_BaseVisualStim):
                 z=thisDepth)        
         GL.glPopMatrix()
         
-    def _onEOS(self):
+    def on_eos(self):
         #not called, for some reason?!
         self.playing=-1
 
