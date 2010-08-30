@@ -263,7 +263,7 @@ class PsychoPyApp(wx.App):
         if fileName.endswith('.py'):
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
-            self.builder.fileOpen(filename=fileName)
+            self.newBuilderFrame(fileName=fileName)
     def quit(self, event=None):
         log.debug('PsychoPyApp: Quitting...')
         self.quitting=True
