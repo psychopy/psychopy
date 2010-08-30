@@ -82,4 +82,6 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndented("logFile.close()")
+        buff.writeIndented("logFile.close()\n")
+        buff.writeIndented("win.close()\n")
+        buff.writeIndented("core.quit()\n")
