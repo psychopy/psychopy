@@ -264,7 +264,8 @@ class TrialHandler:
                         #normalise by N-1 instead. his should work by setting ddof=1
                         #but doesn't as of 08/2010 (because of using a masked array?)
                         N=thisData.shape[1]
-                        thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                        if N == 1: thisAnal*=0 #prevent a divide-by-zero error
+                        else: thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
                         exec("thisAnal = numpy.%s(thisData,1)" %analType)
                 except:
