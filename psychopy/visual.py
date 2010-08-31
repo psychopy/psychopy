@@ -3336,7 +3336,8 @@ class MovieStim(_BaseVisualStim):
                 the movie can be made transparent by reducing this
         """
         self.win = win 
-        
+        if win._haveShaders: self._useShaders=True
+
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
@@ -3351,7 +3352,9 @@ class MovieStim(_BaseVisualStim):
         self.opacity = opacity
         self.playing=NOT_STARTED
         #size
-        if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
+        if size == None: self.size= numpy.array([self.format.width,
+                                                 self.format.height] , float)
+        
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
         else: self.size = numpy.array((size,size),float)
         
@@ -3377,17 +3380,26 @@ class MovieStim(_BaseVisualStim):
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         #self._player.on_eos=self.onEOS #doesn't seem to work
+
     def pause(self):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance
         """
         self._player.pause()
         self.playing=PAUSED
+
     def play(self):
         """Continue a paused movie from current position
         """
         self._player.play()
         self.playing=PLAYING
+        
+    def seek(self,timestamp):
+        """ Seek to a particular timestamp in the movie.
+        NB this does not seem very robust as at version 1.62 and may cause crashes!
+        """
+        self._player.seek(float(timestamp))
+        
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in the
@@ -4396,7 +4408,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     if interpolate: 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
         if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                 data.shape[0],data.shape[1], 0,
@@ -5250,4 +5262,4 @@ class _TextInputBox():
             return None
         
         return self.decisionTime
-        
+    
