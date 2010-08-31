@@ -7,8 +7,8 @@ Glossary
     csv : comma-separated value files
         Type of basic text file with 'comma-separated values'. This type of file can be opened with most spreadsheet packages (e.g. MS Excel) for easy reading and manipulation.
     
-    VBI : Vertical Blank Interval. 
-        (aka the Vertical Retrace, or Vertical Blank, VBL). 
+    VBI : Vertical Blank Interval
+        (aka the Vertical Retrace, or Vertical Blank, VBL).
         The period in-between video frames and can be used for synchronising purposes. On a CRT display the screen is black during the VBI and the display beam is returned to the top of the display.
     
     VBI blocking
@@ -16,7 +16,7 @@ Glossary
     
     VBI syncing
         (aka vsync)
-        The setting whereby the video drawing commands are synced to the VBI. When psychopy.visual.Window.flip() is called, the current back buffer (where drawing commands are being executed) will be held and drawn on the next VBI. This does not necessarily entail :term:`VBI blocking` (because the system may return and continue executing commands) but does guarantee a fixed inteval between frames being drawn.
+        The setting whereby the video drawing commands are synced to the VBI. When psychopy.visual.Window.flip() is called, the current back buffer (where drawing commands are being executed) will be held and drawn on the next VBI. This does not necessarily entail :term:`VBI blocking` (because the system may return and continue executing commands) but does guarantee a fixed interval between frames being drawn.
 
     Method of constants
         An experimental method whereby the parameters controlling trials are predetermined at the beginning of the experiment, rather than determined on each trial. For example, a stimulus may be presented for 3 pre-determined time periods  (100, 200, 300ms) on different trials, and then repeated a number of times. The order of presentation of the different conditions can be randomised or sequential (in a fixed order). Contrast this method with the :term:`adaptive staircase`.
