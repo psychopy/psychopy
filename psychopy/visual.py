@@ -32,7 +32,7 @@ try:
     havePyglet=True
 except:
     havePyglet=False
-    
+
 #import _shadersPygame
 try:
     import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
@@ -559,28 +559,33 @@ class Window:
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
     
-    def _getRegionOfFrame(self, buffer='front', rect=[-1,1,1,-1], power2=False, imType='RGBA'):
+    def _getRegionOfFrame(self, rect=[-1,1,1,-1], buffer='front', power2=False, squarePower2=False):
         """
-        Capture a rectangular region of the current Window as an image.
+        Capture a rectangle (Left Top Right Bottom, norm units) of the window as an RBGA image.
         
-        calls getMovieFrame(), and then crops the whole frame into an image with requested size
+        power2 can be useful with older OpenGL versions to avoid interpolation in PatchStim.
+        If power2 or squarePower2, it will expand rect dimensions up to next power of two. 
+        squarePower2 uses the max dimenions. You need to check what your hardware &
+        opengl supports, and call _getRegionOfFrame as appropriate. 
         """
-        # rect means norm Left Top Right Bottom
-        x,y = self.size
-
-        rect = [rect[0]/2. + 0.5, rect[1]/-2. + 0.5, rect[2]/2. + 0.5, rect[3]/-2. + 0.5]
-        box = map(int, (rect[0]*x, rect[1]*y, rect[2]*x, rect[3]*y))
+        # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
+        
+        x, y = self.size # of window, not image
+        imType = 'RGBA' # not tested with anything else
+        
+        box = [(rect[0]/2. + 0.5)*x, (rect[1]/-2. + 0.5)*y, # Left Top in pix
+                (rect[2]/2. + 0.5)*x, (rect[3]/-2. + 0.5)*y] # Right Bottom in pix
+        box = map(int, box)
         if buffer=='back':
             GL.glReadBuffer(GL.GL_BACK)            
         else:
             GL.glReadBuffer(GL.GL_FRONT)
         
-        # glReadPixels == slow; ideally use frame buffer object to keep things on graphics card
         if self.winType == 'pyglet': #pyglet.gl stores the data in a ctypes buffer
             bufferDat = (GL.GLubyte * (4 * (box[2]-box[0]) * (box[3]-box[1])))()
             GL.glReadPixels(box[0], box[1], box[2]-box[0], box[3]-box[1], GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
             #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
-            #GL.glGetTexImage(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+            #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat) # not right
             im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]), data=bufferDat)
         else: # works but much slower #pyopengl returns the data
             im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]),
@@ -588,14 +593,13 @@ class Window:
                                         (box[3]-box[1]), GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
         
-        if power2: # == avoid interpolation in PatchStim
-            xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
-            yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
-            #xPowerOf2 = yPowerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
+        if power2 or squarePower2: # use to avoid interpolation in PatchStim
+            if squarePower2:
+                xPowerOf2 = yPowerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
+            else:
+                xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
+                yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
             imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
-            #print xPowerOf2, region.size[0],int(xPowerOf2/2. - region.size[0]/2.)
-            #print yPowerOf2, region.size[1],int(yPowerOf2/2. - region.size[1]/2.)
-            
             imP2.paste(region, (int(xPowerOf2/2. - region.size[0]/2.),
                                 int(yPowerOf2/2. - region.size[1]/2))) # paste centered
             region = imP2
@@ -4233,64 +4237,78 @@ class ShapeStim(_BaseVisualStim):
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
 
 
-class CompImageStim(PatchStim):
+class BufferImageStim(PatchStim):
     """
-    Obtain a screen-shot or paste-board "composite" image as a PatchStim()-like RBGA image.
-    
-    CompImageStim(): composite, compiled, compound, complex, composed, computed, complicated, ...
+    Obtain a "screen-shot" of a current buffer, save to a PatchStim()-like RBGA image.
     
     The idea is to be able to speed up the rendering of one or more slow visual elements.
-    You first make a "collage" image from one or more static elements, and then treat 
-    it as a single stim, optimized for speed of rendering in a loop. I get ~0.11ms 
-    per .draw() on my hardware, regardless of size. But its slow to init:
-    ~75ms for a 1024 x 512 capture, and 150ms for 1024 x 1024. There is no support for 
+    You first make a "collage" image from your static elements, ones that you could treat 
+    as a being single stim. BufferImageStim optimizes it for speed of rendering in a loop.  
+    I get ~0.11ms per .draw() on my hardware, regardless of size. But its slow to init:
+    ~75ms for a 1024 x 512 capture, in proportion to image size. There is no support for 
     dynamic depth, opacity, orientation, or color. The idea is to capture
-    static parts of a display at init() to speed up rendering of static / background
-    elements.
+    static parts of a display at init() to speed up rendering them.
     
-    Conceptually, this gives the ability to flatten a display of any items: SimpleImageStim, 
-    lots of text, several images, or a combination. By rendering to the back buffer
-    it becomes a way to implement a hidden "paste board", e.g., between trials.
+    You specify the part of the screen to capture (in norm units currently). You
+    get a screenshot of those pixels. If your OpenGL does not support arbitrary sizes,
+    the image will be larger, using power-of-2 sized dimensions, and square powers of two if needed,
+    with the excess image being invisible (via alpha). The aim is to preserve buffer
+    contents as rendered, and not "improve" upon them, e.g., through interpolation.
+    Conceptually, taking a screenshot records whatever has been drawn to the buffer:
     
-    Status:
-    - experimental! proof-of-concept. needs real work. ideally do using frame buffer objects
-    - GL commands need thinking about more; I commented out as many as I could, for speed
-    - Screen units are not properly sorted out
-    - Depth needs thinking about
+    Checks for OpenGL 2.1+, or uses square-power-of-2 images (slow to init, then fast).
+    
+    Status: proof-of-concept. needs real work:
+    - GL commands need thinking about. I commented out as many as did not affect the demo,
+      could easily have issues in the context of other kinds of display items
+      (e.g., rotated PatchStim). so orientation, scale, color, and depth need testing.
+    - Screen units are not properly sorted out, good to allow pix as well as norm
     - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
-    - Should check for OpenGL 2.1+, or enforce square images
     
-   **Example**::
-        # draw stuff (slow, do once):
+    Depends on:
+    - window._getRegionOfFrame
+    - setTex and draw are copied & hacked from CreateTexture and PatchStim
+    
+    **Example**::
+        # build up a composite or large image (slow, do once):
         mySimpleImageStim.draw()
         myTextStim.draw()
         ...
         # capture everything (one time):
-        screenshot = visual.CompImageStim(myWin)
+        screenshot = visual.BufferImageStim(myWin)
         ...
-        # draw everything (fast, do a lot):
+        # render to screen (fast, do a lot):
         while <conditions>:
             screenshot.draw()  # static, fast
             animation.draw()   # dynamic
             myWin.flip()
     
-    See 'compImageStimDemo.py' for a demo.
+    See 'bufferImageStim.py' for a demo.
     
     :Author:
         - 2010 Jeremy Gray
     """
-    def __init__(self, win, buffer='front', rect=[-.3,.5,.3,-.5]):
+    def __init__(self, win, buffer='back', rect=[-1, 1, 1, -1]):
         """
         :Parameters:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             buffer :
-                which screen buffer to capture from: 'front' (in view after win.flip() ) or 'back' (hidden)
+                screen buffer to capture from, default is 'back' (hidden), 'front' (in view after win.flip() )
             rect :
                 a list of [left, top, right, bottom] coordinates of a rectangle to capture from the screen.
-                currently, these should be given in norm units (fullscreen = [-1, 1, 1, -1])
+                currently, these should be given in norm units.
+                default is fullscreen: [-1, 1, 1, -1]
         """
-        region = win._getRegionOfFrame(buffer=buffer, rect=rect, power2=True)
+        
+        glversion = float(pyglet.gl.gl_info.get_version().split()[0])
+        if glversion >= 2.1:
+            region = win._getRegionOfFrame(buffer=buffer, rect=rect)
+        #elif glversion >= 2.0: # ???
+        #   region = win._getRegionOfFrame(buffer=buffer, rect=rect, power2=True)
+        else:
+           # log.warning( ... )
+           region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=False)
         
         # to improve drawing speed, move these out of draw, because this is a static image:
@@ -4303,7 +4321,7 @@ class CompImageStim(PatchStim):
         
         self.thisScale = 2.0/numpy.array(self.win.size)
         
-    def setTex(self,tex):
+    def setTex(self, tex):
         self._texName = tex
         
         #createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
@@ -4329,7 +4347,7 @@ class CompImageStim(PatchStim):
             dataType = GL.GL_UNSIGNED_BYTE
             data = psychopy.misc.float_uint8(intensity)
         
-        #check for RGBA textures
+        #check for RGBA textures--needed? probably not. getRegionOfFrame returns a RBGA tex
         if len(intensity.shape)>2 and intensity.shape[2] == 4:
             if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
             if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
@@ -4376,11 +4394,12 @@ class CompImageStim(PatchStim):
         (This note is a reminder to myself to fix it once I have time to properly
         check out what happens if I make the change--easy to change it, 2 chars.)
         """
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+        #GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
         
     def draw(self):
         """
-        draw, streamlined. not sure what we'll want to add back, seems easy to leave things commented out temporarily.
+        draw, streamlined. not sure what we'll want to add back based on more testing.
+        seems easy to leave things commented out temporarily.
         """
         #if self.win.winType=='pyglet': self.win.winHandle.switch_to()
         
@@ -4394,6 +4413,7 @@ class CompImageStim(PatchStim):
         #do scaling
         #GL.glPushMatrix()#push before the list, pop after
         #self.win.setScale(self._winScale) # longer drawing time, replace with:
+        
         GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
         
         #move to centre of stimulus and rotate
@@ -4410,6 +4430,7 @@ class CompImageStim(PatchStim):
         #GL.glColor4f(self.desiredRGB[0],self.desiredRGB[1],self.desiredRGB[2], self.opacity)
 
         #if self.needUpdate: self._updateList()
+        
         GL.glCallList(self._listID)
 
         #return the view to previous state
@@ -4549,15 +4570,15 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255            
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
             im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*2/255-1
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
             wasLum=False
             
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
