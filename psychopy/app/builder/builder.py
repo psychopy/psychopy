@@ -215,12 +215,13 @@ class FlowPanel(wx.ScrolledWindow):
             if event.LeftDown():
                 x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
-                if len(icons):
-                    comp=self.componentFromID[icons[0]]
-                    if comp.getType() in ['StairHandler', 'TrialHandler']:
-                        self.editLoopProperties(loop=comp)
-                    if comp.getType() == 'Routine':
-                        self.frame.routinePanel.setCurrentRoutine(routine=comp)
+                for thisIcon in icons:#might intersect several and only one has a callback
+                    if thisIcon in self.componentFromID:
+                        comp=self.componentFromID[thisIcon]
+                        if comp.getType() in ['StairHandler', 'TrialHandler']:
+                            self.editLoopProperties(loop=comp)
+                        if comp.getType() == 'Routine':
+                            self.frame.routinePanel.setCurrentRoutine(routine=comp)
             elif event.RightDown():
                 x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
@@ -331,7 +332,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetVirtualSize(size=(nRoutines*self.dpi*2, nLoops*dBetweenLoops+dLoopToBaseLine*3))
         
         #step through components in flow
-        currX=self.linePos[0]; 
+        currX=self.linePos[0]
+        lineId=wx.NewId()
         pdc.DrawLine(x1=self.linePos[0]-gap,y1=self.linePos[1],x2=self.linePos[0],y2=self.linePos[1])
         self.loops={}#NB the loop is itself the key!? and the value is further info about it
         nestLevel=0
@@ -346,9 +348,12 @@ class FlowPanel(wx.ScrolledWindow):
             elif entry.getType()=='Routine':
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
             self.gapMidPoints.append(currX+gap/2)
+            pdc.SetId(lineId)
             pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX+=gap
+        lineRect = wx.Rect(self.linePos[0]-2, self.linePos[1]-2, currX-self.linePos[0]+2, 4)
+        pdc.SetIdBounds(lineId,lineRect)
 
         #draw the loops second
         maxHeight = 0
@@ -421,24 +426,31 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=[]
     def drawLoopEnd(self, dc, pos, downwards=True):
         #draws a spot that a loop will later attach to
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))        
         if downwards:
             dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1])#points down
         else:
             dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)#points up
+        dc.SetIdBounds(tmpId,wx.Rect(pos[0]-5,pos[1]-5,10,10))
     def drawLoopStart(self, dc, pos, downwards=True):
         #draws a spot that a loop will later attach to
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         if downwards:
             dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1])#points up
         else:
             dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)#points down
+        dc.SetIdBounds(tmpId,wx.Rect(pos[0]-5,pos[1]-5,10,10))
     def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0]):
         """Draw a box to show a routine on the timeline
         """
         name=routine.name
+        dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
             font.SetPointSize(1400/self.dpi)
@@ -463,7 +475,6 @@ class FlowPanel(wx.ScrolledWindow):
         dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
 
         self.componentFromID[id]=routine
-        dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
         
@@ -484,8 +495,13 @@ class FlowPanel(wx.ScrolledWindow):
             base,height,rgb=[0,0,0], downwards=True):
         if downwards: up=-1
         else: up=+1
-        xx = [endX,  endX,   endX,   endX-5, endX-10, startX+10,startX+5, startX, startX, startX]
-        yy = [base,height+10*up,height+5*up,height, height, height,  height,  height+5*up, height+10*up, base]
+        
+        #draw loop itself
+        tmpId = wx.NewId()
+        dc.SetId(tmpId)
+        curve=10 #extra distance, in both h and w caused by curve
+        xx = [endX,  endX,   endX,   endX-curve/2, endX-curve, startX+curve,startX+curve/2, startX, startX, startX]
+        yy = [base,height+curve*up,height+curve*up/2,height, height, height,  height,  height+curve*up/2, height+curve*up, base]
         pts=[]
         r,g,b=rgb
         pad=8
@@ -493,8 +509,11 @@ class FlowPanel(wx.ScrolledWindow):
         for n in range(len(xx)):
             pts.append([xx[n],yy[n]])
         dc.DrawSpline(pts)
-
+        area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
+        dc.SetIdBounds(tmpId, area)
+        
         #add a name label that can be clicked on
+        dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
             font.SetPointSize(800/self.dpi)
@@ -518,7 +537,6 @@ class FlowPanel(wx.ScrolledWindow):
         dc.DrawText(name, x+pad/2, y+pad/2)
 
         self.componentFromID[id]=loop
-        dc.SetId(id)
         #set the area for this component
         dc.SetIdBounds(id,rect)
 
@@ -725,8 +743,21 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetFont(font)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
+        
+        #set an id for the region of this comonent (so it can act as a button)
+        ##see if we created this already
+        id=None
+        for key in self.componentFromID.keys():
+            if self.componentFromID[key]==component:
+                id=key
+        if not id: #then create one and add to the dict
+            id = wx.NewId()
+            self.componentFromID[id]=component
+        dc.SetId(id)
+        
         thisIcon = components.icons[component.getType()][0]#index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
+        fullRect = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
         
         self.setFontSize(1000/self.dpi, dc)
 
@@ -737,6 +768,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         x = self.iconXpos-self.dpi/10-w
         y = yPos+thisIcon.GetHeight()/2-h/2
         dc.DrawText(name, x-20, y)
+        fullRect.Union(wx.Rect(x-20,y,w,h))
 
         #draw entries on timeline
         if 'startTime' in component.params.keys():
@@ -753,20 +785,10 @@ class RoutineCanvas(wx.ScrolledWindow):
             w = duration/xScale
             if w<2: w=2#make sure at least one pixel shows
             dc.DrawRectangle(xSt, y, w,h )
+            fullRect.Union(wx.Rect(xSt, y, w,h ))
 
-        ##set an id for the region where the component.icon falls (so it can act as a button)
-        #see if we created this already
-        id=None
-        for key in self.componentFromID.keys():
-            if self.componentFromID[key]==component:
-                id=key
-        if not id: #then create one and add to the dict
-            id = wx.NewId()
-            self.componentFromID[id]=component
-        dc.SetId(id)
         #set the area for this component
-        r = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
-        dc.SetIdBounds(id,r)
+        dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
         if event:#we got here from a wx.button press (rather than our own drawn icons)

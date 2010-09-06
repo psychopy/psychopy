@@ -272,7 +272,7 @@ class PsychoPyApp(wx.App):
             try:#will fail if the frame has been shut somehow elsewhere
                 ok=frame.checkSave()
             except: 
-                pass
+                ok=False
             if not ok: 
                 log.debug('PsychoPyApp: User cancelled shutdown')
                 return#user cancelled quit
