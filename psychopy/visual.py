@@ -3346,7 +3346,8 @@ class MovieStim(_BaseVisualStim):
             opacity :
                 the movie can be made transparent by reducing this
         """
-        self.win = win 
+        self.win = win
+        self._useShaders=False #Should False be the default?
         if win._haveShaders: self._useShaders=True
 
         self._movie=None # the actual pyglet media object
