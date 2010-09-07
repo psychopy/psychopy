@@ -1592,7 +1592,7 @@ class CoderFrame(wx.Frame):
             self.notebook.DeletePage(currId)
         #set new current doc
         newPageID = self.notebook.GetSelection()
-        if newPageID == -1:
+        if newPageID <1:
             self.currentDoc = None
             self.SetLabel("PsychoPy v%s (Coder)" %self.app.version)
         else:
