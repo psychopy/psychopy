@@ -7,7 +7,7 @@ from wx.lib import platebtn, scrolledpanel
 #from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.agw.aquabutton as AB
 import wx.aui
-import sys, os, glob, copy, platform, py_compile
+import sys, os, glob, copy, platform, py_compile, codecs
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
@@ -995,7 +995,7 @@ class ParamCtrls:
 
         if label=='text':
             #for text input we need a bigger (multiline) box
-            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
             #expando seems like a nice idea - but probs with pasting in text and with resizing
@@ -1006,7 +1006,7 @@ class ParamCtrls:
 
         elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
             #code input fields one day change these to wx.stc fields?
-            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
         elif param.valType=='bool':
@@ -1019,7 +1019,7 @@ class ParamCtrls:
             self.valueCtrl.SetStringSelection(unicode(param.val))
         else:
             #create the full set of ctrls
-            self.valueCtrl = wx.TextCtrl(parent,-1,str(param.val),
+            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                         size=wx.Size(self.valueWidth,-1))
 
         self.valueCtrl.SetToolTipString(param.hint)
@@ -1436,7 +1436,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             #get attr names (trialList[0].keys() inserts u'name' and u' is annoying for novice)
             paramStr = "["
             for param in trialList[0].keys():
-                paramStr += (str(param)+', ')
+                paramStr += (unicode(param)+', ')
             paramStr = paramStr[:-2]+"]"#remove final comma and add ]
             #generate summary info
             return '%i trial types, with %i parameters\n%s' \
@@ -1570,7 +1570,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
                 screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
             #set vals and disable changes 
-            self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(str(size))
+            self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(unicode(size))
             self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
         else:
@@ -2159,7 +2159,7 @@ class BuilderFrame(wx.Frame):
         
         #set the directory and add to path
         if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
-        f = open(fullPath, 'w')
+        f = codecs.open(fullPath, 'w', 'utf-8')
         f.write(script.getvalue())
         f.close()
         try:
