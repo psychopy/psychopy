@@ -5,8 +5,9 @@ import glob, os
 from sys import platform
 from distutils.core import setup
 
-import psychopy
-thisVersion=psychopy.__version__
+import createInitFile
+vStr = createInitFile.createInitFile(generic=False)
+exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
@@ -63,8 +64,8 @@ else:
                                       plist=dict(
                                       CFBundleIconFile='psychopy.icns',
                                       CFBundleName               = "PsychoPy2",
-                                      CFBundleShortVersionString = psychopy.__version__,     # must be in X.X.X format
-                                      CFBundleGetInfoString      = "PsychoPy2 "+psychopy.__version__,
+                                      CFBundleShortVersionString = __version__,     # must be in X.X.X format
+                                      CFBundleGetInfoString      = "PsychoPy2 "+__version__,
                                       CFBundleExecutable         = "PsychoPy2",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPy2",
                                       CFBundleLicense            = "GNU GPLv3",
@@ -72,6 +73,11 @@ else:
                                                                  CFBundleTypeRole='Editor')],
                                       ),                              
                               )))
+                              
+#remove unwanted info about this system post-build
+createInitFile.createInitFile(generic=True)
+
+
 """
 I struggled getting this to work 
 
