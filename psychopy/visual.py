@@ -3347,9 +3347,6 @@ class MovieStim(_BaseVisualStim):
                 the movie can be made transparent by reducing this
         """
         self.win = win
-        self._useShaders=False #Should False be the default?
-        if win._haveShaders: self._useShaders=True
-
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
@@ -3383,7 +3380,15 @@ class MovieStim(_BaseVisualStim):
         if win.winType!='pyglet': 
             log.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
-                    
+    def setOpacity(self,newOpacity,operation=''):
+        """
+        Sets the opacity of the movie to newOpacity
+
+        Over-rides _BaseVisualStim.setOpacity
+
+        """
+        self._set('opacity', newOpacity, operation)
+        
     def loadMovie(self, filename):
         try: 
             self._movie = pyglet.media.load( filename, streaming=True)
