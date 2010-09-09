@@ -5,9 +5,15 @@ import glob, os
 from sys import platform
 from distutils.core import setup
 
-import createInitFile
-vStr = createInitFile.createInitFile(generic=False)
-exec(vStr)#create variables __version__, __author__ etc
+#regenerate __init__.py only if we're in the source repos (not in a source zip file)
+try:
+    import createInitFile#won't exist in a sdist.zip
+    writeNewInit=True
+except:
+    writeNewInit=False
+if writeNewInit:
+    vStr = createInitFile.createInitFile(dist='bdist')
+    exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
@@ -73,13 +79,14 @@ else:
                                                                  CFBundleTypeRole='Editor')],
                                       ),                              
                               )))
-                              
-#remove unwanted info about this system post-build
-createInitFile.createInitFile(generic=True)
+
+if writeNewInit:
+    #remove unwanted info about this system post-build
+    createInitFile.createInitFile(dist=None)
 
 
 """
-I struggled getting this to work 
+I struggled getting the app to build properly. These were some of the problems: 
 
 Mac OS X - you need to install 
 setuptools0.6c9

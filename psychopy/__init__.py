@@ -11,7 +11,7 @@ __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-dev@googlegroups.com'
 __url__='http://www.psychopy.org'
 __downloadUrl__='http://code.google.com/p/psychopy/'
-__git_sha__=''
-__build_platform__=''
+__git_sha__='n/a'
+__build_platform__='n/a'
 
 __all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]

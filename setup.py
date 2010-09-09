@@ -4,11 +4,28 @@
 from setuptools import setup, Extension, find_packages
 ################
 import glob, os
-from sys import platform
+from sys import platform, argv
 
-import createInitFile
-vStr = createInitFile.createInitFile(generic=False)
-exec(vStr)#create variables __version__, __author__ etc
+#regenerate __init__.py only if we're in the source repos (not in a source zip file)
+try:
+    import createInitFile#won't exist in a sdist.zip
+    writeNewInit=True
+except:
+    writeNewInit=False
+if writeNewInit:
+    #determine what type of dist is being created
+    #(install and bdist might do compiliing and then build platform is needed)
+    for arg in argv:
+        if arg.startswith('bdist') or arg.startswith('install'):
+            dist='bdist'
+        else: dist='sdist'
+    vStr = createInitFile.createInitFile(dist=dist)
+else:
+    #import the metadata from file we just created (or retrieve previous)
+    f = open('psychopy/__init__.py', 'r')
+    vStr = f.read()
+    f.close()
+exec(vStr)
 
 #define the extensions to compile if necess
 packages = find_packages()
@@ -52,5 +69,6 @@ setup(name="PsychoPy",
           'Operating System :: POSIX',
           'Programming Language :: Python'],
     )
+    
 #remove unwanted info about this system post-build
-createInitFile.createInitFile(generic=True)
+createInitFile.createInitFile(dist=None)

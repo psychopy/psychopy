@@ -31,24 +31,22 @@ template = template.replace('$version$', version)
 
 allList = '\n__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]'
 
-def _getGitShaString(generic=False):
+def _getGitShaString(dist=None):
     """If generic==True then returns empty __git_sha__ string
     """
     #add git sha info (unique identifier to tihs commit)
-    if haveGit and not generic:
+    if haveGit and dist in ['bdist','sdist']:
         repo=git.Repo(".")
         head=repo.heads[0]
         sha = head.commit.hexsha
     else:
-        sha=''
+        sha='n/a'
     return "__git_sha__='%s'\n" %sha
     
-def _getPlatformString(generic=False):
+def _getPlatformString(dist=None):
     """If generic==True then returns empty __build_platform__ string
     """
-    if generic:
-        systemInfo=""
-    else:
+    if dist=='bdist':
         #get platform-specific info
         if os.sys.platform=='darwin':
             OSXver, junk, architecture = platform.mac_ver()
@@ -66,17 +64,26 @@ def _getPlatformString(generic=False):
                 systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
         else:
             systemInfo = platform.system()+platform.release()
+    else:
+        systemInfo="n/a"
     return "__build_platform__='%s'\n" %systemInfo
     
-def createInitFile(generic=False):
+def createInitFile(dist=None):
     """Write the version file to psychopy/version.py
     
-    If generic==True then 
+    :param:`dist` can be:
+        None: 
+            writes __version__
+        'sdist': 
+            for python setup.py sdist - writes __version__ and git id (__git_sha__)
+        'bdist': 
+            for python setup.py bdist - writes __version__, git id (__git_sha__) 
+            and __build_platform__
     """
     f = open(os.path.join('psychopy','__init__.py'), 'w')
     outStr = copy.copy(template)
-    outStr += _getGitShaString(generic)
-    outStr += _getPlatformString(generic)
+    outStr += _getGitShaString(dist)
+    outStr += _getPlatformString(dist)
     outStr += allList
     f.write(outStr)
     return outStr
