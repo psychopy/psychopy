@@ -32,7 +32,7 @@ try:
     havePyglet=True
 except:
     havePyglet=False
-    
+
 #import _shadersPygame
 try:
     import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
@@ -559,40 +559,50 @@ class Window:
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
     
-    def _getRegionOfFrame(self, buffer='front', nLTRB=[-1,1,1,-1], power2=False, imType='RGBA'):
+    def _getRegionOfFrame(self, rect=[-1,1,1,-1], buffer='front', power2=False, squarePower2=False):
         """
-        Capture a rectangular region of the current Window as an image.
+        Capture a rectangle (Left Top Right Bottom, norm units) of the window as an RBGA image.
         
-        calls getMovieFrame(), and then crops the whole frame into an image with requested size
+        power2 can be useful with older OpenGL versions to avoid interpolation in PatchStim.
+        If power2 or squarePower2, it will expand rect dimensions up to next power of two. 
+        squarePower2 uses the max dimenions. You need to check what your hardware &
+        opengl supports, and call _getRegionOfFrame as appropriate. 
         """
-        # convert norm unit region to pixel units
-        # nLTRB mean n=norm, L=left, T=top, R=right, B=bottom (in norm units); default = whole screen
-        x,y = self.size
-        nLTRB = [nLTRB[0]/2. + 0.5, nLTRB[1]/-2. + 0.5, nLTRB[2]/2. + 0.5, nLTRB[3]/-2. + 0.5]
-        box = map(int, (nLTRB[0]*x, nLTRB[1]*y, nLTRB[2]*x, nLTRB[3]*y)) # (left, upper, right, lower)
+        # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
         
+        x, y = self.size # of window, not image
+        imType = 'RGBA' # not tested with anything else
+        
+        box = [(rect[0]/2. + 0.5)*x, (rect[1]/-2. + 0.5)*y, # Left Top in pix
+                (rect[2]/2. + 0.5)*x, (rect[3]/-2. + 0.5)*y] # Right Bottom in pix
+        box = map(int, box)
         if buffer=='back':
             GL.glReadBuffer(GL.GL_BACK)            
         else:
             GL.glReadBuffer(GL.GL_FRONT)
         
-        #fetch the data with glReadPixels
-        if self.winType == 'pyglet':
-            #pyglet.gl stores the data in a ctypes buffer
+        if self.winType == 'pyglet': #pyglet.gl stores the data in a ctypes buffer
             bufferDat = (GL.GLubyte * (4 * (box[2]-box[0]) * (box[3]-box[1])))()
             GL.glReadPixels(box[0], box[1], box[2]-box[0], box[3]-box[1], GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+            #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+            #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat) # not right
             im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]), data=bufferDat)
-        else: # not tested:
-            #pyopengl returns the data
-            im = Image.fromstring(mode='RGBA',size=(box[2]-box[0], box[3]-box[1]), data=GL.glReadPixels(
-                        box[0],box[1],(box[2]-box[0]),(box[3]-box[1]), GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),)
-        region = im.transpose(Image.FLIP_TOP_BOTTOM)            
+        else: # works but much slower #pyopengl returns the data
+            im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]),
+                                  data=GL.glReadPixels(box[0], box[1], (box[2]-box[0]),
+                                        (box[3]-box[1]), GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),)
+        region = im.transpose(Image.FLIP_TOP_BOTTOM)
         
-        if power2: # make a square power-of-two-sized image to avoid interpolation in PatchStim / GL
-            powerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
-            imSqrp2 = Image.new(imType, (powerOf2,powerOf2))
-            imSqrp2.paste(region, (powerOf2//2 - region.size[0]//2, powerOf2//2 - region.size[1]//2)) # paste centered
-            region = imSqrp2
+        if power2 or squarePower2: # use to avoid interpolation in PatchStim
+            if squarePower2:
+                xPowerOf2 = yPowerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
+            else:
+                xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
+                yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
+            imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
+            imP2.paste(region, (int(xPowerOf2/2. - region.size[0]/2.),
+                                int(yPowerOf2/2. - region.size[1]/2))) # paste centered
+            region = imP2
         
         return region
         
@@ -1702,6 +1712,7 @@ class SimpleImageStim(_BaseVisualStim):
         except TypeError: # its not a file; maybe an image already?
             try: 
                 im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
+                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
             except AttributeError: # ...but apparently not
                 log.error("couldn't find image...%s" %(filename))
                 core.quit()
@@ -3335,9 +3346,7 @@ class MovieStim(_BaseVisualStim):
             opacity :
                 the movie can be made transparent by reducing this
         """
-        self.win = win 
-        if win._haveShaders: self._useShaders=True
-
+        self.win = win
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
@@ -3371,7 +3380,15 @@ class MovieStim(_BaseVisualStim):
         if win.winType!='pyglet': 
             log.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
-                    
+    def setOpacity(self,newOpacity,operation=''):
+        """
+        Sets the opacity of the movie to newOpacity
+
+        Over-rides _BaseVisualStim.setOpacity
+
+        """
+        self._set('opacity', newOpacity, operation)
+        
     def loadMovie(self, filename):
         try: 
             self._movie = pyglet.media.load( filename, streaming=True)
@@ -4225,6 +4242,206 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
 
+
+class BufferImageStim(PatchStim):
+    """
+    Obtain a "screen-shot" of a current buffer, save to a PatchStim()-like RBGA image.
+    
+    The idea is to be able to speed up the rendering of one or more slow visual elements.
+    You first make a "collage" image from your static elements, ones that you could treat 
+    as a being single stim. BufferImageStim optimizes it for speed of rendering in a loop.  
+    I get ~0.11ms per .draw() on my hardware, regardless of size. But its slow to init:
+    ~75ms for a 1024 x 512 capture, in proportion to image size. There is no support for 
+    dynamic depth, opacity, orientation, or color. The idea is to capture
+    static parts of a display at init() to speed up rendering them.
+    
+    You specify the part of the screen to capture (in norm units currently). You
+    get a screenshot of those pixels. If your OpenGL does not support arbitrary sizes,
+    the image will be larger, using power-of-2 sized dimensions, and square powers of two if needed,
+    with the excess image being invisible (via alpha). The aim is to preserve buffer
+    contents as rendered, and not "improve" upon them, e.g., through interpolation.
+    Conceptually, taking a screenshot records whatever has been drawn to the buffer:
+    
+    Checks for OpenGL 2.1+, or uses square-power-of-2 images (slow to init, then fast).
+    
+    Status: proof-of-concept. needs real work:
+    - GL commands need thinking about. I commented out as many as did not affect the demo,
+      could easily have issues in the context of other kinds of display items
+      (e.g., rotated PatchStim). so orientation, scale, color, and depth need testing.
+    - Screen units are not properly sorted out, good to allow pix as well as norm
+    - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+    
+    Depends on:
+    - window._getRegionOfFrame
+    - setTex and draw are copied & hacked from CreateTexture and PatchStim
+    
+    **Example**::
+        # build up a composite or large image (slow, do once):
+        mySimpleImageStim.draw()
+        myTextStim.draw()
+        ...
+        # capture everything (one time):
+        screenshot = visual.BufferImageStim(myWin)
+        ...
+        # render to screen (fast, do a lot):
+        while <conditions>:
+            screenshot.draw()  # static, fast
+            animation.draw()   # dynamic
+            myWin.flip()
+    
+    See 'bufferImageStim.py' for a demo.
+    
+    :Author:
+        - 2010 Jeremy Gray
+    """
+    def __init__(self, win, buffer='back', rect=[-1, 1, 1, -1]):
+        """
+        :Parameters:
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+            buffer :
+                screen buffer to capture from, default is 'back' (hidden), 'front' (in view after win.flip() )
+            rect :
+                a list of [left, top, right, bottom] coordinates of a rectangle to capture from the screen.
+                currently, these should be given in norm units.
+                default is fullscreen: [-1, 1, 1, -1]
+        """
+        
+        glversion = float(pyglet.gl.gl_info.get_version().split()[0])
+        if glversion >= 2.1:
+            region = win._getRegionOfFrame(buffer=buffer, rect=rect)
+        #elif glversion >= 2.0: # ???
+        #   region = win._getRegionOfFrame(buffer=buffer, rect=rect, power2=True)
+        else:
+           # log.warning( ... )
+           region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
+        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=False)
+        
+        # to improve drawing speed, move these out of draw, because this is a static image:
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
+            if numpy.any(self.desiredRGB**2.0 > 1.0):
+                self.desiredRGB=[0.6, 0.6, 0.4]
+        else:
+            self.desiredRGB = (self.rgb * self.contrast)/255.0
+        
+        self.thisScale = 2.0/numpy.array(self.win.size)
+        
+    def setTex(self, tex):
+        self._texName = tex
+        
+        #createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        #  def createTexture(tex, id, pixFormat, stim, res=128)
+        id = self.texID
+        pixFormat = GL.GL_RGB
+        useShaders = self._useShaders
+        interpolate = self.interpolate
+        
+        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
+        self.origSize=im.size
+        
+        #im = im.convert("RGBA")#force to rgb (in case it was CMYK or L) ## lets just presume its RGBA
+        intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607 - 1  ##was: *2/255-1  ## saves 20% of set-up time!
+        #wasLum=False
+        
+        if useShaders:#pixFormat==GL.GL_RGB and not wasLum
+            internalFormat = GL.GL_RGB32F_ARB
+            dataType = GL.GL_FLOAT
+            data = intensity
+        else: #pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
+            internalFormat = GL.GL_RGB
+            dataType = GL.GL_UNSIGNED_BYTE
+            data = psychopy.misc.float_uint8(intensity)
+        
+        #check for RGBA textures--needed? probably not. getRegionOfFrame returns a RBGA tex
+        if len(intensity.shape)>2 and intensity.shape[2] == 4:
+            if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
+            if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
+            elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+        
+        if self.win.winType=='pygame':
+            texture = data.tostring()#serialise
+        else:#pyglet on linux needs ctypes instead of string object!?
+            texture = data.ctypes#serialise
+        # print data.shape, self.origSize # they are swapped, relative to each other
+        
+        #bind the texture in openGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        #important if using bits++ because GL_LINEAR
+        #sometimes extrapolates to pixel vals outside range
+        """if interpolate: 
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
+            if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                    data.shape[0],data.shape[1], 0,
+                    pixFormat, dataType, texture)
+            else:#use glu
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
+                GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+                    data.shape[0],data.shape[1], pixFormat, dataType, texture)          
+        else:"""
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST) 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST) 
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                       #data.shape[0], data.shape[1], 0, # fails for non-square
+                        data.shape[1], data.shape[0], 0,  # works
+                        pixFormat, dataType, texture)
+        
+        """JRG: The above was right from CreateTextures(),
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                            data.shape[0],data.shape[1],
+        but it almost certainly should be:
+                            data.shape[1],data.shape[0],
+        The x <-> y reversal impacts non-square images.
+        (This note is a reminder to myself to fix it once I have time to properly
+        check out what happens if I make the change--easy to change it, 2 chars.)
+        """
+        #GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+        
+    def draw(self):
+        """
+        draw, streamlined. not sure what we'll want to add back based on more testing.
+        seems easy to leave things commented out temporarily.
+        """
+        #if self.win.winType=='pyglet': self.win.winHandle.switch_to()
+        
+        #work out next default depth
+        #if self.depth==0:
+        #    thisDepth = self.win._defDepth
+        #    self.win._defDepth += _depthIncrements[self.win.winType]
+        #else:
+        #thisDepth=self.depth
+
+        #do scaling
+        #GL.glPushMatrix()#push before the list, pop after
+        #self.win.setScale(self._winScale) # longer drawing time, replace with:
+        
+        GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
+        
+        #move to centre of stimulus and rotate
+        #GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        #GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        #the list just does the texture mapping
+        
+        #if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        #    desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+        #    if numpy.any(desiredRGB**2.0>1.0):
+        #        desiredRGB=[0.6,0.6,0.4]
+        #else:
+        #    desiredRGB = (self.rgb*self.contrast)/255.0
+        #GL.glColor4f(self.desiredRGB[0],self.desiredRGB[1],self.desiredRGB[2], self.opacity)
+
+        #if self.needUpdate: self._updateList()
+        
+        GL.glCallList(self._listID)
+
+        #return the view to previous state
+        #GL.glPopMatrix()
+        
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
@@ -4317,14 +4534,34 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
-    else:#might be a filename of an image
-        if os.path.isfile(tex):
+    else:#might be an image, or a filename of an image
+        """if os.path.isfile(tex):
             im = Image.open(tex)
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
         else:
             log.error("couldn't find tex...%s" %(tex))
             core.quit()
-            raise #so thatensure we quit
+            raise #so thatensure we quit"""
+        itsaFile = True # just a guess at this point
+        try:
+            os.path.isfile(tex)
+        except TypeError: # its not a file; maybe an image already?
+            try: 
+                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
+                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            itsaFile = False
+        if itsaFile:
+            if os.path.isfile(tex):
+                im = Image.open(tex)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            else:
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #so thatensure we quit
         stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
@@ -4339,15 +4576,15 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255            
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
             im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*2/255-1
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
             wasLum=False
             
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
@@ -5183,81 +5420,6 @@ class RatingScale:
     def getRT(self):
         """Returns the seconds taken to make the rating (or to indicate skip). Returns None if no rating available.
         """
-        if self.noResponse:
-            return None
-        
-        return self.decisionTime
-    
-class _TextInputBox():
-    """
-    modeled on RatingScale()
-    
-    THIS IS JUST a sketch of how it might work. things that would need real work:
-    - the text expands both left and right, "center justified" rather than left justified, which is weird
-    - setting font, font size, and color would be good
-    - having a visual box would be good, with the text appearing inside
-    - ' ' --> 'space', and so on
-    
-    Aug 2010, Jeremy Gray
-    """
-    def __init__(self, win, text='', x=0.0, y=-0.3, width=0.4, height=0.15):
-        self.win = win
-        self.savedWinUnits = self.win.units
-        self.win.units = 'norm'
-        self.text = text
-        
-        self.textStim = TextStim(win=self.win, text=self.text, pos=[x,y])
-        
-        self.myClock = core.Clock()
-        self.myMouse = event.Mouse(win=self.win, visible=True)
-        self.win.units = self.savedWinUnits
-        
-        self.escapeKeys = ['escape']
-        self.respKeys = ['return']
-        self.backspaceKeys = ['backspace', 'delete']
-        self.reset()
-        
-    def draw(self):
-        """
-        """
-        self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
-        
-        self.textStim.setText(self.text)
-        self.textStim.draw()
-        
-        # handle key responses:
-        for key in event.getKeys(): # almost certainly only 1 key
-            if key in self.escapeKeys:
-                self.text = None
-                self.noResponse = False
-            elif key in self.respKeys: # place the marker at that tick
-                self.noResponse = False
-            elif key in self.backspaceKeys:
-                self.text = self.text[:-1]
-            else:
-                self.text += key
-
-        # decision time = time from the first .draw() to when 'accept' was pressed:
-        if self.firstDraw:
-            self.firstDraw = False
-            self.myClock.reset()
-        if not self.noResponse and self.decisionTime == 0:
-            self.decisionTime = self.myClock.getTime() # only set this once: at the time 'accept' is indicated by subject
-            # minimum time is enforced during key and mouse handling
-        
-        self.win.units = self.savedWinUnits
-        
-    def reset(self):
-        self.noResponse = True
-        self.firstDraw = True
-        self.decisionTime = 0
-    
-    def getResponse(self):
-        if self.noResponse:
-            return False
-        return response
-    
-    def getRT(self):
         if self.noResponse:
             return None
         

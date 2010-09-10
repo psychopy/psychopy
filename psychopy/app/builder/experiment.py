@@ -2,7 +2,7 @@
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import StringIO, sys
+import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences
 from lxml import etree
@@ -86,6 +86,7 @@ class Experiment:
         self.noKeyResponse=True#if keyboard is used (and data stored) this will be False
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('#!/usr/bin/env python\n')
+        s.writeIndented('# -*- coding: utf-8 -*-\n')
         s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder ')
         s.writeIndented('If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
 
@@ -155,7 +156,7 @@ class Experiment:
             elif element.getType() == 'Routine':
                 elementNode.set('name', '%s' %element.params['name'])
         #write to disk
-        f=open(filename, 'wb')
+        f=codecs.open(filename, 'wb', 'utf-8')
         f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
         f.close()
     def _getShortName(self, longName):
@@ -169,9 +170,9 @@ class Experiment:
         else: thisType='Param'
         thisChild = etree.SubElement(parent,thisType)#creates and appends to parent
         thisChild.set('name',name)
-        if hasattr(param,'val'): thisChild.set('val',str(param.val))
+        if hasattr(param,'val'): thisChild.set('val',unicode(param.val))
         if hasattr(param,'valType'): thisChild.set('valType',param.valType)
-        if hasattr(param,'updates'): thisChild.set('updates',str(param.updates))
+        if hasattr(param,'updates'): thisChild.set('updates',unicode(param.updates))
         return thisChild
     def _getXMLparam(self,params,paramNode):
         """params is the dict of params of the builder component (e.g. stimulus) into which
@@ -181,12 +182,12 @@ class Experiment:
         name=paramNode.get('name')
         if name=='times':#handle this parameter, deprecated in v1.60.00
             exec('times=%s' %paramNode.get('val'))
-            params['startTime'].val =str(times[0])
-            params['duration'].val = str(times[1]-times[0])
+            params['startTime'].val =unicode(times[0])
+            params['duration'].val = unicode(times[1]-times[0])
             return #times doesn't need to update its type or 'updates' rule
         elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
             corrIf=paramNode.get('val')
-            corrAns=corrIf.replace('resp.keys==str(','').replace(')','')
+            corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
         if 'olour' in name:#colour parameter was Americanised in v1.61.00
