@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 """Writes the current version, build platform etc to 
 """
-import os, copy, platform
-try:
-    import git
-    haveGit=True
-except:
-    haveGit=False
+import os, copy, platform, subprocess
 
 #read the current version from the file
 f = open('version')
@@ -31,17 +26,33 @@ template = template.replace('$version$', version)
 
 allList = '\n__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]'
 
+getGitShaRuntime="""
+if __git_sha__=='n/a':
+    import subprocess
+    #see if we're in a git repo and fetch from there
+    proc = subprocess.Popen('git rev-parse --short HEAD',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd='.', shell=True)
+    repo_commit, _ = proc.communicate()
+    if repo_commit:
+        __git_sha__=repo_commit.strip()#remove final \n
+"""
+
 def _getGitShaString(dist=None):
     """If generic==True then returns empty __git_sha__ string
     """
-    #add git sha info (unique identifier to tihs commit)
-    if haveGit and dist in ['bdist','sdist']:
-        repo=git.Repo(".")
-        head=repo.heads[0]
-        sha = head.commit.hexsha
-    else:
-        sha='n/a'
-    return "__git_sha__='%s'\n" %sha
+    import subprocess
+    #see if we're in a git repo and fetch from there
+    proc = subprocess.Popen('git rev-parse --short HEAD',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd='.', shell=True)
+    repo_commit, _ = proc.communicate()
+    if repo_commit:
+        return repo_commit.strip()#remove final \n
+    else: 
+        return'n/a'
     
 def _getPlatformString(dist=None):
     """If generic==True then returns empty __build_platform__ string
@@ -82,8 +93,9 @@ def createInitFile(dist=None):
     """
     f = open(os.path.join('psychopy','__init__.py'), 'w')
     outStr = copy.copy(template)
-    outStr += _getGitShaString(dist)
     outStr += _getPlatformString(dist)
+    outStr += _getGitShaString(dist)
+    outStr += getGitShaRuntime
     outStr += allList
     f.write(outStr)
     return outStr
