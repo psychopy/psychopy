@@ -31,6 +31,10 @@ PsychoPy 1.62.01 (svn)
 * CHANGED: mouse icon is now hidden for full-screen Builder experiments
 * FIXED: Builder was forgetting the TrialList file if you edited something else in the loop dialog
 * ADDED: visual.RatingScale and a demo to show how to use it (Jeremy Gray)
+* ADDED: The Standalone distributions now includes the following external libs:
+    - pynetstation (import psychopy.hardware.egi)
+    - ioLab library (import psychopy.harware.ioLab)
+    - psignifit3 for advanced bootstrapping tools (import psignifit)
 
 PsychoPy 1.62.00
 ~~~~~~~~~~~~~~~~~~~~~~~~
