@@ -1,4 +1,10 @@
-"""demo program to illustrate using ioLabs button box
+#!/usr/bin/env python
+
+"""Demo program to illustrate using ioLabs button box
+
+To run this demo the ioLab library needs to be installed (it is included with
+the Standalone distributions of PsychoPy).
+
 """
 
 __author__ = 'Jonathan Roberts'
@@ -8,7 +14,7 @@ from psychopy import log
 
 from psychopy import core, visual, event
 try:
-    from psychopy.hardware.ioLabs import USBBox
+    from psychopy.hardware.ioLab import USBBox
 except RuntimeError, errMsg:
     log.error('Is an ioLabs button-box connected and turned on? (import failed: "'+str(errMsg)+'")')
     core.quit()
