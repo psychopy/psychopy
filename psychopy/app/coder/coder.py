@@ -1590,9 +1590,11 @@ class CoderFrame(wx.Frame):
         #if this was called by AuiNotebookEvent, then page has closed already
         if not isinstance(event, wx.aui.AuiNotebookEvent):
             self.notebook.DeletePage(currId)
+            newPageID = self.notebook.GetSelection()
+        else:
+            newPageID = self.notebook.GetSelection()-1
         #set new current doc
-        newPageID = self.notebook.GetSelection()
-        if newPageID <1:
+        if newPageID <0:
             self.currentDoc = None
             self.SetLabel("PsychoPy v%s (Coder)" %self.app.version)
         else:
