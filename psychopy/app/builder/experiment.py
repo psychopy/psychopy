@@ -87,8 +87,9 @@ class Experiment:
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('#!/usr/bin/env python\n')
         s.writeIndented('# -*- coding: utf-8 -*-\n')
-        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder ')
-        s.writeIndented('If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
+        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder\n')
+        s.writeIndented('If you publish work using this script please cite the relevant PsychoPy publications\n')
+        s.writeIndented('  Peirce (2007) Journal of Neuroscience Methods 162:8-1\n  Peirce (2009) Frontiers in Neuroinformatics, 2: 10"""\n\n')
 
         #import psychopy libs
         libString=""; separator=""

@@ -534,12 +534,13 @@ class TrialHandler:
                 if tmpData is None:#just go to next column
                     colN+=1
                     continue
-                elif not hasattr(tmpData,'__iter__'): 
+                elif not hasattr(tmpData,'__iter__') or \
+                    (hasattr(tmpData,'shape') and tmpData.shape==()):
                     try: 
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
                     except:#some thi
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
-                    colN+=1
+                    colN+=1                    
                 else:
                     for entry in tmpData:
                         try: 
