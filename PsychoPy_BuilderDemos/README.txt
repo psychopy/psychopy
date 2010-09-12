@@ -5,48 +5,38 @@ To run these demos you need to unzip the file to a new folder (on windows you ma
 be viewing this file from within the zip file, but you should copy the enclosed  
 folders to a new directory).
 
-Demo experiments included so far are:
+Each demo has further notes about its use and analysis within its folder.
 
-Stroop - measuring reaction times to incongruent stimuli
-------------------------------------------------------------------
+Feel free to submit demos of your own studies to the PsychoPy list so they can be
+included here.
 
-The experiment: 
+Note that the demos presented are generally adaptations from classic studies, 
+in which timings and details are likely to differ from the originals.
+
+
+Cognitive psychology
+------------------------
+
+ - Stroop - measuring reaction times to incongruent stimuli
+    NB: simple first experiment
     
-    In this task subjects must report the colour of the letters spelling each
-    word, but letters themselves also spell a colour name and this may be the
-    same or different to the colour of the letters. Stroop (1935) reports that
-    reaction times are slower the letters spell a colour that is incongruent
-    with the colour of the letters, indicating a compulsory automated reading of
-    the word.
-
-Analysing your data:
-
-    After you run the study, look in the data/ folder next to where the 
-    experiment was saved. There will be an xlsx file there that can be opened
-    with Microsoft Excel or similar spreadsheet package. Each row represents
-    one condition (trial type) and each column is one variable of your experiment
-    or type of data collected. 
-    Take the average of the resp.mean_rt column for the 3 congruent conditions 
-    and compare them with the 3 incongruent conditions. In most cases the 
-    incongruent conditions will have larger reactions times. 
-
-Notes: 
+ - Stroop Extended
+    NB: similar to Stroop but shows how to provide feedback and practice trials
     
-    This version of the Stroop effect is a very simple experiment, good for 
-    explaining how the PsychoPy Builder interface works with minimal clutter. 
-    You could (as a challenge) add practice trials and feedback if you liked...! 
-    
-Psychophysics staircase - using a staircase to get thresholds
-------------------------------------------------------------------
+ - Sternberg (1966) - serial/parallel search in short term memory
 
-The experiment: 
-    
-    In this task subjects...
+ - Navon (1977) - global/local processing in perception
 
-Analysing your data:
 
-    After you run the study, look in the data/ folder...
+Psychophysics studies
+--------------------------
 
-Notes: 
-    
-    To do 
+ - Psychophysics staircase - using a staircase to get thresholds
+
+
+Social Psychology
+--------------------------
+
+ - BART - Balloon analogue risk task
+    NB: This is a *advanced* demo with lot's of Code Components. It shows how
+    flexible PsychoPy can be with some python scripting mixed in.
