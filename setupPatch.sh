@@ -7,3 +7,5 @@ sudo python setup.py bdist_egg
 
 echo register with;
 echo sudo python setup.py register
+
+mv dist/* ../dist

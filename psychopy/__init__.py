@@ -13,7 +13,6 @@ __url__='http://www.psychopy.org'
 __downloadUrl__='http://code.google.com/p/psychopy/'
 __build_platform__='n/a'
 __git_sha__='n/a'
-
 if __git_sha__=='n/a':
     import subprocess
     #see if we're in a git repo and fetch from there
@@ -23,6 +22,6 @@ if __git_sha__=='n/a':
                             cwd='.', shell=True)
     repo_commit, _ = proc.communicate()
     if repo_commit:
-        __git_sha__=repo_commit.strip()#remove final \n
+        __git_sha__=repo_commit.strip()#remove final linefeed
 
 __all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]

@@ -36,23 +36,27 @@ if __git_sha__=='n/a':
                             cwd='.', shell=True)
     repo_commit, _ = proc.communicate()
     if repo_commit:
-        __git_sha__=repo_commit.strip()#remove final \n
+        __git_sha__=repo_commit.strip()#remove final linefeed
 """
 
 def _getGitShaString(dist=None):
     """If generic==True then returns empty __git_sha__ string
     """
-    import subprocess
-    #see if we're in a git repo and fetch from there
-    proc = subprocess.Popen('git rev-parse --short HEAD',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd='.', shell=True)
-    repo_commit, _ = proc.communicate()
-    if repo_commit:
-        return repo_commit.strip()#remove final \n
-    else: 
-        return'n/a'
+    if dist==None:
+        shaStr='n/a'
+    else:
+        import subprocess
+        #see if we're in a git repo and fetch from there
+        proc = subprocess.Popen('git rev-parse --short HEAD',
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd='.', shell=True)
+        repo_commit, _ = proc.communicate()
+        if repo_commit:
+            shaStr=repo_commit.strip()#remove final linefeed
+        else: 
+            shaStr='n/a'
+    return "__git_sha__='%s'" %shaStr
     
 def _getPlatformString(dist=None):
     """If generic==True then returns empty __build_platform__ string
