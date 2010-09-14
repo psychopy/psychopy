@@ -25,7 +25,7 @@ prefs = preferences.Preferences()#load the site/user config files
 try:
     import ctypes
     import pyglet
-    #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
+    pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
     import _shadersPyglet
     import gamma
