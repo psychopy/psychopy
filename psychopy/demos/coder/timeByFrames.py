@@ -4,13 +4,13 @@ import pylab
 
 #often you should synchronise your stimulus to the frame
 
+log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 nFrames = 200
 #setup the stimuli and other objects we need
 myWin = visual.Window([1024,768],screen=0, fullscr=True, waitBlanking=True)#make a window
 myWin.setRecordFrameIntervals(True)
 
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
-log.console.setLevel(log.DEBUG)#this will cause skipped frames to be reported
 for f in range(5):
     myWin.flip()
 myClock = core.Clock() #just to keep track of time
