@@ -68,7 +68,7 @@ class TrialHandler:
         self.thisTrialN = -1	#records which trial number within this repetition
         self.thisIndex = 0		#the index of the current trial in the original matrix
         self.thisTrial = []
-        self.notFinished=True
+        self.finished=False
         self.extraInfo=extraInfo
         self._warnUseOfNext=True
         self.seed=seed
@@ -206,10 +206,12 @@ class TrialHandler:
             #start a new repetition
             self.thisTrialN=0
             self.thisRepN+=1
-        if self.thisRepN==self.nReps:
+        if self.thisRepN>=self.nReps:
             #all reps complete
             self.thisTrial=[]
-            self.notFinished=False
+            self.finished=True
+            
+        if self.finished==True:
             raise StopIteration
         
         #fetch the trial info
@@ -739,7 +741,7 @@ class StairHandler:
             self._variableStep=True          
             
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either 
-        self.notFinished=True
+        self.finished=False
         self.thisTrialN = -1
         self.data = []
         self.intensities=[]
@@ -833,9 +835,9 @@ class StairHandler:
             #and test if we're done
             if len(self.reversalIntensities)>=self.nReversals and \
                 len(self.intensities)>=self.nTrials:
-                    self.notFinished=False
+                    self.finished=True
             #new step size if necessary
-            if self._variableStep and self.notFinished:
+            if self._variableStep and self.finished==False:
                 if len(self.reversalIntensities) >= len(self.stepSizes):
                     #we've gone beyond the list of step sizes so just use the last one
                     self.stepSizeCurrent = self.stepSizes[-1]
@@ -865,7 +867,7 @@ class StairHandler:
                 #do stuff here for the trial
             
         """
-        if self.notFinished:
+        if self.finished==False:
             #update pointer for next trial
             self.thisTrialN+=1        
             self.intensities.append(self._nextIntensity)

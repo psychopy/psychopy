@@ -358,7 +358,7 @@ class TrialHandler:
         self.params={}
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
             hint="Name of this loop")
-        self.params['nReps']=Param(nReps, valType='num', updates=None, allowedUpdates=None,
+        self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
             hint="Number of repeats (for each type of trial)")
         self.params['trialList']=Param(trialList, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the differences between each trial type")
@@ -441,7 +441,7 @@ class StairHandler:
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
-        self.params['nReps']=Param(nReps, valType='num',
+        self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in the staircase")
         self.params['start value']=Param(startVal, valType='num',
             hint="The initial value of the parameter")
