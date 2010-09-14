@@ -52,6 +52,7 @@ def _getGitShaString(dist=None):
                                 stderr=subprocess.PIPE,
                                 cwd='.', shell=True)
         repo_commit, _ = proc.communicate()
+        del proc#to get rid of the background process
         if repo_commit:
             shaStr=repo_commit.strip()#remove final linefeed
         else: 
