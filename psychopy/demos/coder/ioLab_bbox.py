@@ -1,4 +1,10 @@
-"""demo program to illustrate using ioLabs button box
+#!/usr/bin/env python
+
+"""Demo program to illustrate using ioLabs button box
+
+To run this demo the ioLab library needs to be installed (it is included with
+the Standalone distributions of PsychoPy).
+
 """
 
 __author__ = 'Jonathan Roberts'
