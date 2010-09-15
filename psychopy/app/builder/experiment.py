@@ -87,8 +87,9 @@ class Experiment:
         s=IndentingBuffer(u'') #a string buffer object
         s.writeIndented('#!/usr/bin/env python\n')
         s.writeIndented('# -*- coding: utf-8 -*-\n')
-        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder ')
-        s.writeIndented('If you publish work using this script please cite the relevant papers (e.g. Peirce, 2007;2009)"""\n\n')
+        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder\n')
+        s.writeIndented('If you publish work using this script please cite the relevant PsychoPy publications\n')
+        s.writeIndented('  Peirce (2007) Journal of Neuroscience Methods 162:8-1\n  Peirce (2009) Frontiers in Neuroinformatics, 2: 10"""\n\n')
 
         #import psychopy libs
         libString=""; separator=""
@@ -357,7 +358,7 @@ class TrialHandler:
         self.params={}
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
             hint="Name of this loop")
-        self.params['nReps']=Param(nReps, valType='num', updates=None, allowedUpdates=None,
+        self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
             hint="Number of repeats (for each type of trial)")
         self.params['trialList']=Param(trialList, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the differences between each trial type")
@@ -440,7 +441,7 @@ class StairHandler:
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
-        self.params['nReps']=Param(nReps, valType='num',
+        self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in the staircase")
         self.params['start value']=Param(startVal, valType='num',
             hint="The initial value of the parameter")

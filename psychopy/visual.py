@@ -25,7 +25,7 @@ prefs = preferences.Preferences()#load the site/user config files
 try:
     import ctypes
     import pyglet
-    #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
+    pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
     import _shadersPyglet
     import gamma
@@ -289,7 +289,6 @@ class Window:
         self.recordFrameIntervals=False
         self.frameIntervals=[]
         
-        self._refreshThreshold=1/50.0
         
         if self.useNativeGamma:
             log.info('Using gamma table of operating system')
@@ -302,13 +301,14 @@ class Window:
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
-        #but override if not possible:
-        if sys.platform not in ['darwin','win32']:
-            self.waitBlanking=False
-        if sys.platform=='darwin' and platform.mac_ver()[0]>='10.6':
-            self.waitBlanking=False#Snow leopard doesn't support this?
-        self.flip()#do a screen refresh straight away
-
+        
+        self._refreshThreshold=1/1.0#initial val needed by flip()
+        self._monitorFrameRate = self._getActualFrameRate()#over several frames with no drawing
+        if self._monitorFrameRate != None:
+            self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
+        else:
+            self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
+            
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether frames
         are being dropped. Set this to False while the screen is not being updated
@@ -416,8 +416,7 @@ class Window:
             deltaT = now - self.lastFrameT; self.lastFrameT=now                
             self.frameIntervals.append(deltaT)
             
-            if deltaT>self._refreshThreshold \
-                and (numpy.average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
+            if deltaT>self._refreshThreshold:
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
                     
         #rescale/reposition view of the window
@@ -447,7 +446,11 @@ class Window:
         self._defDepth=0.0#gets gradually updated through frame
         
         if self.waitBlanking:
-            ext.waitForVBL()
+            GL.glBegin(GL.GL_POINTS)
+            GL.glColor4f(0,0,0,0)
+            GL.glVertex2i(10,10)
+            GL.glEnd()
+            GL.glFinish()
 
     def update(self):
         """Deprecated: use Window.flip() instead        
@@ -990,7 +993,53 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-
+    def _getActualFrameRate(self,nMaxFrames=100,nWarmUpFrames=10, threshold=1):
+        """Measures the actual fps for the screen.
+        
+        This is done by waiting (for a max of nMaxFrames) until 10 frames in a 
+        row have identical frame times (std dev below 1ms). 
+        
+        If there are no 10 consecutive identical frames a warning is logged and 
+        `None` will be returned.
+        
+        :parameters:
+        
+            nMaxFrames:
+                the maxmimum number of frames to wait for a matching set of 10
+                
+            nWarmUpFrames:
+                the number of frames to display before starting the test (this is
+                in place to allow the system to settle after opening the 
+                `Window` for the first time.
+                
+            threshold:
+                the threshold for the std deviation (in ms) before the set are considered
+                a match
+                
+        """
+        recordFrmIntsOrig = self.recordFrameIntervals
+        #run warm-ups
+        self.setRecordFrameIntervals(False)
+        for frameN in range(nWarmUpFrames):
+            self.flip()
+        #run test frames
+        self.setRecordFrameIntervals(True)
+        for frameN in range(nMaxFrames):
+            self.flip()
+            if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
+                rate = 1.0/numpy.mean(self.frameIntervals[-10:])
+                if self.screen==None:scrStr=""
+                else: scrStr = " (%i)" %self.screen
+                log.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
+                self.setRecordFrameIntervals(recordFrmIntsOrig)
+                self.frameIntervals=[]
+                return rate
+        #if we got here we reached end of maxFrames with no consistent value
+        log.warning("Couldn't measure a consistent frame rate.\n" + \
+            "  - Is your graphics card set to sync to vertical blank?\n" + \
+            "  - Are you running other processes on your computer?\n")
+        return None
+    
 class _BaseVisualStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
     Not finished...?
