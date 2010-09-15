@@ -11,3 +11,4 @@ rem build the installer
 makensis.exe /v3 buildCompleteInstaller.nsi
 move /Y "StandalonePsychoPy*.exe" dist\
 
+move /Y dist\* ..\dist\
