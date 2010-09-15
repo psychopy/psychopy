@@ -30,11 +30,13 @@ getGitShaRuntime="""
 if __git_sha__=='n/a':
     import subprocess
     #see if we're in a git repo and fetch from there
+    repo_commit=False
     proc = subprocess.Popen('git rev-parse --short HEAD',
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             cwd='.', shell=True)
     repo_commit, _ = proc.communicate()
+    del proc#to get rid of the background process
     if repo_commit:
         __git_sha__=repo_commit.strip()#remove final linefeed
 """
