@@ -14,6 +14,8 @@
 
   ;Name and file
   Name "PsychoPy2"
+  ;Get version number
+  
   !Define Version "1.62.00"
   OutFile "StandalonePsychoPy-${Version}-win32.exe"
   InstallDir "$PROGRAMFILES\PsychoPy2"
@@ -49,7 +51,6 @@
   !insertmacro MUI_PAGE_INSTFILES
   !insertmacro MUI_PAGE_FINISH
   
-  !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
   
 ;--------------------------
@@ -95,14 +96,14 @@ Section "PsychoPy2" PsychoPy2
   ;ADD YOUR OWN FILES HERE...
   file /r "C:\python25\*.*"
   file /r "windlls\*.dll"
-    
+  
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\PsychoPy2.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninst.exe"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Website.lnk" "http://www.psychopy.org"
     Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy reference.lnk" 
     Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy tutorials.lnk" 
@@ -112,7 +113,6 @@ Section "PsychoPy2" PsychoPy2
   ;associate .psydat files
   !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\psychopy.ico,0" \
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
-     
 
   ;add to path variable
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
@@ -139,9 +139,9 @@ Section -Post
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "${Version}"   
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$AppDir\Resources\psychopy.ico"
-  WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+  WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninst.exe$\""
   
-  WriteRegStr HKLM "${REG_UNINSTALL}" "URLInfoAbout" "http://www.psychppy.org"
+  WriteRegStr HKLM "${REG_UNINSTALL}" "URLInfoAbout" "http://www.psychopy.org"
   WriteRegStr HKLM "${REG_UNINSTALL}" "Publisher" "Jon Peirce"
 SectionEnd
 
@@ -153,12 +153,12 @@ Section "Uninstall"
   RMDir /r "$INSTDIR"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-    
+  
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy2.lnk"
-  Delete "$SMPROGRAMS\$StartMenuFolder\PsychoPy homepage.lnk" 
+  Delete "$SMPROGRAMS\$StartMenuFolder\Website.lnk" 
   RMDir "$SMPROGRAMS\$StartMenuFolder"
-    
+  
   ;remove from registry
   DeleteRegKey HKLM "${REG_UNINSTALL}"
   DeleteRegKey HKCU "Software\PsychoPy Standalone" ;may have been installed by prev version
@@ -166,13 +166,3 @@ Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR" 
 
 SectionEnd
-
-Function un.onUninstSuccess
-  HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) was successfully removed from your computer."
-FunctionEnd
-
-Function un.onInit
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
-  Abort
-FunctionEnd
