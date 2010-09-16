@@ -75,7 +75,7 @@ def _getPlatformString(dist=None):
                 ':'.join([x for x in platform.dist() if x != '']),
                 platform.release())
         elif os.sys.platform=='win32':
-            ver=sys.getwindowsversion()
+            ver=os.sys.getwindowsversion()
             if len(ver[4])>0:
                 systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
             else:
@@ -105,5 +105,6 @@ def createInitFile(dist=None):
     outStr += getGitShaRuntime
     outStr += allList
     f.write(outStr)
+    f.close()
     return outStr
     
