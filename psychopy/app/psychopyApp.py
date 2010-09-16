@@ -280,7 +280,7 @@ class PsychoPyApp(wx.App):
         #save info about current frames for next run
         if self.coder and len(self.builderFrames)==0:
             self.prefs.appData['lastFrame']='coder'
-        elif len(self.builderFrames)==0 and not self.coder:
+        elif self.coder==None:
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
