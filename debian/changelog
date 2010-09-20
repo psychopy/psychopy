@@ -3,7 +3,9 @@ psychopy (1.62.01.dfsg-1) experimental; urgency=low
   * New upstream bugfix release:
     - removed third-part ioLabs interface (Debian packaging pending)
     - upstreamed moved from SVN to GIT, alioth's repository
-      recrerated to follow freshly (properly) converted upstream GIT repo
+      recrerated to follow freshly (properly) converted upstream GIT repo:
+      + master-dfsg -> dfsg -- DFSG compliant sources
+      + debian-release -> debian -- branch for dfsg+debian/ packaging
   * Added perspective python-iolabs into Suggests
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 20 Sep 2010 11:47:41 -0400
