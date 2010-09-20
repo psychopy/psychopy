@@ -79,6 +79,11 @@ class Updater:
         #parse update file as a dictionary
         latest={}
         for line in page.readlines():
+            #in some odd circumstances (wifi hotspots) you might successfully fetch a 
+            #page that is not the correct URL but a redirect
+            if line.find(':')==-1:
+                return -1
+            #this will succeed if every line has a key
             key, keyInfo = line.split(':')
             latest[key]=keyInfo.replace('\n', '')
         return latest

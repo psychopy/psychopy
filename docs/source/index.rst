@@ -4,11 +4,18 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.61.02 was released June 2010. See complete :doc:`changelog`
+**Latest version**: 1.62.00 was released August 2010. See complete :doc:`changelog`
 
-PsychoPy is now `tweeting`_ (but not often). 
+**Welcome** to the new developers (Per Sederberg, Yuvi Masory, Alex Masse and Phillip Cloud) that have recently been getting onboard the PsychoPy train. I'm sure there are loads of further improvements on their way as a result!
+
+**Thanks** to `CRS Ltd`_ and to the `HEA Psych Network`_ for their recent commitments of financial support for the project.
+
+There will be a half-day PsychoPy workshop at the Scientific meeting of the BPS Maths Stats and Computing Section. For more (provisional) details see here:
+`BPSC-MSC meeting <http://bps-msc.blogspot.com/2010/08/provisional-dates-for-2010-annual.html>`_
 
 .. _tweeting: http://twitter.com/psychopy
+.. _CRS Ltd: http://www.crsltd.com/ 
+.. _HEA Psych Network: http://www.psychology.heacademy.ac.uk/
 
 .. title:: Home
     

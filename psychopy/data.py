@@ -68,7 +68,7 @@ class TrialHandler:
         self.thisTrialN = -1	#records which trial number within this repetition
         self.thisIndex = 0		#the index of the current trial in the original matrix
         self.thisTrial = []
-        self.notFinished=True
+        self.finished=False
         self.extraInfo=extraInfo
         self._warnUseOfNext=True
         self.seed=seed
@@ -206,10 +206,12 @@ class TrialHandler:
             #start a new repetition
             self.thisTrialN=0
             self.thisRepN+=1
-        if self.thisRepN==self.nReps:
+        if self.thisRepN>=self.nReps:
             #all reps complete
             self.thisTrial=[]
-            self.notFinished=False
+            self.finished=True
+            
+        if self.finished==True:
             raise StopIteration
         
         #fetch the trial info
@@ -259,7 +261,15 @@ class TrialHandler:
             #analyse thisData using numpy module
             if analType in dir(numpy):
                 try:#this will fail if we try to take mean of a string for example
-                    exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                    if analType=='std':
+                        thisAnal = numpy.std(thisData,axis=1,ddof=0)
+                        #normalise by N-1 instead. his should work by setting ddof=1
+                        #but doesn't as of 08/2010 (because of using a masked array?)
+                        N=thisData.shape[1]
+                        if N == 1: thisAnal*=0 #prevent a divide-by-zero error
+                        else: thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                    else:
+                        exec("thisAnal = numpy.%s(thisData,1)" %analType)
                 except:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
@@ -316,6 +326,10 @@ class TrialHandler:
                 will add this output to the end of the specified file if it already exists
             
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
+        
         dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
         
         #create the file or print to stdout
@@ -385,6 +399,9 @@ class TrialHandler:
         
         This can be reloaded if necess and further analyses carried out.
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
@@ -463,6 +480,10 @@ class TrialHandler:
             
         
         """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
+            
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
@@ -515,12 +536,13 @@ class TrialHandler:
                 if tmpData is None:#just go to next column
                     colN+=1
                     continue
-                elif not hasattr(tmpData,'__iter__'): 
+                elif not hasattr(tmpData,'__iter__') or \
+                    (hasattr(tmpData,'shape') and tmpData.shape==()):
                     try: 
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
                     except:#some thi
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
-                    colN+=1
+                    colN+=1                    
                 else:
                     for entry in tmpData:
                         try: 
@@ -719,7 +741,7 @@ class StairHandler:
             self._variableStep=True          
             
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either 
-        self.notFinished=True
+        self.finished=False
         self.thisTrialN = -1
         self.data = []
         self.intensities=[]
@@ -813,9 +835,9 @@ class StairHandler:
             #and test if we're done
             if len(self.reversalIntensities)>=self.nReversals and \
                 len(self.intensities)>=self.nTrials:
-                    self.notFinished=False
+                    self.finished=True
             #new step size if necessary
-            if self._variableStep and self.notFinished:
+            if self._variableStep and self.finished==False:
                 if len(self.reversalIntensities) >= len(self.stepSizes):
                     #we've gone beyond the list of step sizes so just use the last one
                     self.stepSizeCurrent = self.stepSizes[-1]
@@ -845,7 +867,7 @@ class StairHandler:
                 #do stuff here for the trial
             
         """
-        if self.notFinished:
+        if self.finished==False:
             #update pointer for next trial
             self.thisTrialN+=1        
             self.intensities.append(self._nextIntensity)
@@ -899,6 +921,10 @@ class StairHandler:
             matrixOnly: True/False
                 If True, prevents the output of the `extraInfo` provided at initialisation.
         """
+        
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
         
         #create the file or print to stdout
         if fileName=='stdout':
@@ -979,6 +1005,10 @@ class StairHandler:
                 If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will be added to make it unique.
         """
+        
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
@@ -1042,6 +1072,9 @@ class StairHandler:
         
         This can be reloaded if necess and further analyses carried out.
         """
+        if self.thisTrialN<1:
+            log.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
         #otherwise use default location
         f = open(fileName+'.psydat', "wb")
         cPickle.dump(self, f)
@@ -1156,8 +1189,9 @@ class DataHandler(dict):
         """Convert this datatype from masked numeric array to unmasked object array
         """
         dat = self[thisType]
-        self[thisType] = numpy.asarray(dat, dtype='O')#create an array of Object type
-        self[thisType] = numpy.where(dat.mask, '--',dat)#masked vals should be "--", others keep data
+        self[thisType] = numpy.array(dat.data, dtype='O')#create an array of Object type
+        #masked vals should be "--", others keep data
+        self[thisType] = numpy.where(dat.mask, '--',dat).astype('O')#we have to repeat forcing to 'O' or text gets truncated to 4chars
         self.isNumeric[thisType]=False
 
 class FitFunction:
