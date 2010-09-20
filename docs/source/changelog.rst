@@ -16,8 +16,17 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.62
 ------------------------------
 
-PsychoPy 1.62.00 (svn)
+PsychoPy 1.62.01 (svn)
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: clicking on a Routine in the Flow window brings that Routine to current focus above
+* ADDED: by setting a loop in the Flow to have 0 repeats, that part of your experiment can be skipped
+* CHANGED: builder hides mouse now during fullscreen experiments (should make this a pref or setting though?)
+* ADDED: MovieStim can now be paused and continued half way through (draw() during pause will draw current static frame)
+
+PsychoPy 1.62.00
+~~~~~~~~~~~~~~~~~~~~~~~~
+Released: August 2010
 
 * ADDED: support for Excel 2007 files (.xlsx) for data output and trial types input:
     - psychopy.data now has importTrialList(fileName) to generate a trial list (suitable for TrialHandler) from .xlsx or .csv files
@@ -38,6 +47,9 @@ PsychoPy 1.62.00 (svn)
 * ADDED: you can now copy and paste Routines form one Builder window to another (or itself) - useful for reusing 'template' routines
 * FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
 * ADDED: quicktime movie output for OSX 10.6 (10.5 support was already working)
+* ADDED: Mac app can now receive dropped files on the coder and builder panels (but won't check if these are sensible!!)
+* ADDED: debugMode preference for the app (for development purposes)
+* ADDED: working version of RatingStim
 
 PsychoPy 1.61
 ------------------------------

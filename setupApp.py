@@ -5,8 +5,15 @@ import glob, os
 from sys import platform
 from distutils.core import setup
 
-import psychopy
-thisVersion=psychopy.__version__
+#regenerate __init__.py only if we're in the source repos (not in a source zip file)
+try:
+    import createInitFile#won't exist in a sdist.zip
+    writeNewInit=True
+except:
+    writeNewInit=False
+if writeNewInit:
+    vStr = createInitFile.createInitFile(dist='bdist')
+    exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
@@ -50,20 +57,21 @@ if platform == 'win32':
           data_files=packageData)
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
-        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp', 'subprocess', 'shlex'],
-                                  excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
-                                  frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
-                                  resources=resources,
-                                  argv_emulation=True,
-                                  site_packages=True,
-                                  packages=['wx','pyglet','pygame','OpenGL','psychopy',
-                                    'scipy','matplotlib','lxml'],
-                                  iconfile='psychopy/app/Resources/psychopy.icns',
-                                  plist=dict(
+        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp', 'subprocess', 'shlex',
+                                      '_elementtree', 'pyexpat'],#these 2 are needed by xml, which is needed by openpyxl
+                                      excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
+                                      frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
+                                      resources=resources,
+                                      argv_emulation=True,
+                                      site_packages=True,
+                                      packages=['wx','pyglet','pygame','OpenGL','psychopy',
+                                        'scipy','matplotlib','lxml','xml'],
+                                      iconfile='psychopy/app/Resources/psychopy.icns',
+                                      plist=dict(
                                       CFBundleIconFile='psychopy.icns',
                                       CFBundleName               = "PsychoPy2",
-                                      CFBundleShortVersionString = psychopy.__version__,     # must be in X.X.X format
-                                      CFBundleGetInfoString      = "PsychoPy2 "+psychopy.__version__,
+                                      CFBundleShortVersionString = __version__,     # must be in X.X.X format
+                                      CFBundleGetInfoString      = "PsychoPy2 "+__version__,
                                       CFBundleExecutable         = "PsychoPy2",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPy2",
                                       CFBundleLicense            = "GNU GPLv3",
@@ -71,8 +79,14 @@ else:
                                                                  CFBundleTypeRole='Editor')],
                                       ),                              
                               )))
+
+if writeNewInit:
+    #remove unwanted info about this system post-build
+    createInitFile.createInitFile(dist=None)
+
+
 """
-I struggled getting this to work 
+I struggled getting the app to build properly. These were some of the problems: 
 
 Mac OS X - you need to install 
 setuptools0.6c9

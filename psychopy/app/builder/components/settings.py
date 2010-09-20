@@ -69,9 +69,10 @@ class SettingsComponent:
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window']
+        allowGUI = (not bool(fullScr))#if fullscreen then hide the mouse
         size=self.params['Window size (pixels)']#
         screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
-        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s,\n" %(size, fullScr, screenNumber))
+        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s,\n" %(size, fullScr, screenNumber,allowGUI))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
         
         if self.params['Units'].val=='use prefs': unitsCode=""
@@ -81,4 +82,6 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndented("logFile.close()")
+        buff.writeIndented("logFile.close()\n")
+        buff.writeIndented("win.close()\n")
+        buff.writeIndented("core.quit()\n")

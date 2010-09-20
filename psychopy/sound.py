@@ -46,6 +46,7 @@ audioAPI=None
 try:
     import pyglet
     pyglet.options['audio'] = ('silent')
+    pyglet.options['debug_gl'] = False
     import pyglet.media.procedural
     import pyglet.media#, pyglet.resource
     import ctypes, math

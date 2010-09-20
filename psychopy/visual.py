@@ -25,14 +25,14 @@ prefs = preferences.Preferences()#load the site/user config files
 try:
     import ctypes
     import pyglet
-    #pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
+    pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
     import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
     import _shadersPyglet
     import gamma
     havePyglet=True
 except:
     havePyglet=False
-    
+
 #import _shadersPygame
 try:
     import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
@@ -67,6 +67,12 @@ except:
 global DEBUG; DEBUG=False
 
 _depthIncrements = {'pyglet':+0.001, 'pygame':-0.001, 'glut':-0.001}
+
+#symbols for MovieStim
+PLAYING=1
+PAUSED=2
+NOT_STARTED=0
+FINISHED=-1
 
 class Window:
     """Used to set up a context in which to draw objects,
@@ -283,7 +289,6 @@ class Window:
         self.recordFrameIntervals=False
         self.frameIntervals=[]
         
-        self._refreshThreshold=1/50.0
         
         if self.useNativeGamma:
             log.info('Using gamma table of operating system')
@@ -296,13 +301,14 @@ class Window:
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
-        #but override if not possible:
-        if sys.platform not in ['darwin','win32']:
-            self.waitBlanking=False
-        if sys.platform=='darwin' and platform.mac_ver()[0]>='10.6':
-            self.waitBlanking=False#Snow leopard doesn't support this?
-        self.flip()#do a screen refresh straight away
-
+        
+        self._refreshThreshold=1/1.0#initial val needed by flip()
+        self._monitorFrameRate = self._getActualFrameRate()#over several frames with no drawing
+        if self._monitorFrameRate != None:
+            self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
+        else:
+            self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
+            
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether frames
         are being dropped. Set this to False while the screen is not being updated
@@ -410,8 +416,7 @@ class Window:
             deltaT = now - self.lastFrameT; self.lastFrameT=now                
             self.frameIntervals.append(deltaT)
             
-            if deltaT>self._refreshThreshold \
-                and (numpy.average(self.frameIntervals[-2:]))>self._refreshThreshold : #often a long frame is making up for a short frame
+            if deltaT>self._refreshThreshold:
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
                     
         #rescale/reposition view of the window
@@ -441,7 +446,11 @@ class Window:
         self._defDepth=0.0#gets gradually updated through frame
         
         if self.waitBlanking:
-            ext.waitForVBL()
+            GL.glBegin(GL.GL_POINTS)
+            GL.glColor4f(0,0,0,0)
+            GL.glVertex2i(10,10)
+            GL.glEnd()
+            GL.glFinish()
 
     def update(self):
         """Deprecated: use Window.flip() instead        
@@ -466,6 +475,13 @@ class Window:
         is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
         """
+        im = self._getFrame(buffer=buffer)
+        self.movieFrames.append(im)
+
+    def _getFrame(self, buffer='front'):
+        """
+        Return the current Window as an image.
+        """
         #GL.glLoadIdentity()
         #do the reading of the pixels
         if buffer=='back':
@@ -473,7 +489,7 @@ class Window:
         else:
             GL.glReadBuffer(GL.GL_FRONT)
         
-            #fetch the data with glReadPixels
+        #fetch the data with glReadPixels
         if self.winType=='pyglet':
             #pyglet.gl stores the data in a ctypes buffer
             bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
@@ -487,8 +503,9 @@ class Window:
             
         im=im.transpose(Image.FLIP_TOP_BOTTOM)            
         im=im.convert('RGB')
-        self.movieFrames.append(im)
-
+        
+        return im
+        
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
         fps=30):
         """
@@ -544,7 +561,54 @@ class Window:
             for frameN, thisFrame in enumerate(self.movieFrames):
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
-
+    
+    def _getRegionOfFrame(self, rect=[-1,1,1,-1], buffer='front', power2=False, squarePower2=False):
+        """
+        Capture a rectangle (Left Top Right Bottom, norm units) of the window as an RBGA image.
+        
+        power2 can be useful with older OpenGL versions to avoid interpolation in PatchStim.
+        If power2 or squarePower2, it will expand rect dimensions up to next power of two. 
+        squarePower2 uses the max dimenions. You need to check what your hardware &
+        opengl supports, and call _getRegionOfFrame as appropriate. 
+        """
+        # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
+        
+        x, y = self.size # of window, not image
+        imType = 'RGBA' # not tested with anything else
+        
+        box = [(rect[0]/2. + 0.5)*x, (rect[1]/-2. + 0.5)*y, # Left Top in pix
+                (rect[2]/2. + 0.5)*x, (rect[3]/-2. + 0.5)*y] # Right Bottom in pix
+        box = map(int, box)
+        if buffer=='back':
+            GL.glReadBuffer(GL.GL_BACK)            
+        else:
+            GL.glReadBuffer(GL.GL_FRONT)
+        
+        if self.winType == 'pyglet': #pyglet.gl stores the data in a ctypes buffer
+            bufferDat = (GL.GLubyte * (4 * (box[2]-box[0]) * (box[3]-box[1])))()
+            GL.glReadPixels(box[0], box[1], box[2]-box[0], box[3]-box[1], GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+            #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+            #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat) # not right
+            im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]), data=bufferDat)
+        else: # works but much slower #pyopengl returns the data
+            im = Image.fromstring(mode='RGBA', size=(box[2]-box[0], box[3]-box[1]),
+                                  data=GL.glReadPixels(box[0], box[1], (box[2]-box[0]),
+                                        (box[3]-box[1]), GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),)
+        region = im.transpose(Image.FLIP_TOP_BOTTOM)
+        
+        if power2 or squarePower2: # use to avoid interpolation in PatchStim
+            if squarePower2:
+                xPowerOf2 = yPowerOf2 = int(2**numpy.ceil(numpy.log2(max(region.size))))
+            else:
+                xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
+                yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
+            imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
+            imP2.paste(region, (int(xPowerOf2/2. - region.size[0]/2.),
+                                int(yPowerOf2/2. - region.size[1]/2))) # paste centered
+            region = imP2
+        
+        return region
+        
     def fullScr(self):
         """Toggles fullscreen mode (GLUT only).
 
@@ -595,7 +659,7 @@ class Window:
         visible (the first uses the color to create the new screen the second presents
         that screen to the viewer).  
         
-        See `colorSpaces`_ for further information about the ways to specify colors and their various implications.
+        See :ref:`colorspaces` for further information about the ways to specify colors and their various implications.
         
         :Parameters:
         
@@ -614,7 +678,7 @@ class Window:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -628,7 +692,7 @@ class Window:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -929,7 +993,53 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-
+    def _getActualFrameRate(self,nMaxFrames=100,nWarmUpFrames=10, threshold=1):
+        """Measures the actual fps for the screen.
+        
+        This is done by waiting (for a max of nMaxFrames) until 10 frames in a 
+        row have identical frame times (std dev below 1ms). 
+        
+        If there are no 10 consecutive identical frames a warning is logged and 
+        `None` will be returned.
+        
+        :parameters:
+        
+            nMaxFrames:
+                the maxmimum number of frames to wait for a matching set of 10
+                
+            nWarmUpFrames:
+                the number of frames to display before starting the test (this is
+                in place to allow the system to settle after opening the 
+                `Window` for the first time.
+                
+            threshold:
+                the threshold for the std deviation (in ms) before the set are considered
+                a match
+                
+        """
+        recordFrmIntsOrig = self.recordFrameIntervals
+        #run warm-ups
+        self.setRecordFrameIntervals(False)
+        for frameN in range(nWarmUpFrames):
+            self.flip()
+        #run test frames
+        self.setRecordFrameIntervals(True)
+        for frameN in range(nMaxFrames):
+            self.flip()
+            if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
+                rate = 1.0/numpy.mean(self.frameIntervals[-10:])
+                if self.screen==None:scrStr=""
+                else: scrStr = " (%i)" %self.screen
+                log.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
+                self.setRecordFrameIntervals(recordFrmIntsOrig)
+                self.frameIntervals=[]
+                return rate
+        #if we got here we reached end of maxFrames with no consistent value
+        log.warning("Couldn't measure a consistent frame rate.\n" + \
+            "  - Is your graphics card set to sync to vertical blank?\n" + \
+            "  - Are you running other processes on your computer?\n")
+        return None
+    
 class _BaseVisualStim:
     """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
     Not finished...?
@@ -978,7 +1088,7 @@ class _BaseVisualStim:
         _setTexIfNoShaders(self)
 
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -998,7 +1108,7 @@ class _BaseVisualStim:
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -1012,7 +1122,7 @@ class _BaseVisualStim:
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -1533,7 +1643,9 @@ class SimpleImageStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
-        self.setImage(image)
+        #self.setImage(image)
+        self._new_setImage(image) # JRG
+        
         #flip if necess
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
         self.setFlipHoriz(flipHoriz)
@@ -1642,6 +1754,41 @@ class SimpleImageStim(_BaseVisualStim):
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
         self._needStrUpdate=True
+    def _new_setImage(self, filename=None):
+        itsaFile = True # just a guess at this point
+        try:
+            os.path.isfile(filename)
+        except TypeError: # its not a file; maybe an image already?
+            try: 
+                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
+                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            self.filename = repr(filename) #'<Image.Image image ...>'
+            itsaFile = False
+        if itsaFile:
+            if filename!=None:
+                self.filename=filename
+            if os.path.isfile(self.filename):
+                im = Image.open(self.filename)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            else:
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #so thatensure we quit
+        self.size = im.size
+        #set correct formats for bytes/floats
+        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
+        self.internalFormat = GL.GL_RGB      
+        if self._useShaders:            
+            self.dataType = GL.GL_FLOAT
+        else:
+            self.dataType = GL.GL_UNSIGNED_BYTE
+            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
+        self._needStrUpdate = True
+
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -3248,8 +3395,7 @@ class MovieStim(_BaseVisualStim):
             opacity :
                 the movie can be made transparent by reducing this
         """
-        self.win = win 
-        
+        self.win = win
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self.filename=filename
@@ -3262,9 +3408,11 @@ class MovieStim(_BaseVisualStim):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
-        self.playing=0
+        self.playing=NOT_STARTED
         #size
-        if size == None: self.size= numpy.array([self.format.width, self.format.height] , float)
+        if size == None: self.size= numpy.array([self.format.width,
+                                                 self.format.height] , float)
+        
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
         else: self.size = numpy.array((size,size),float)
         
@@ -3281,7 +3429,15 @@ class MovieStim(_BaseVisualStim):
         if win.winType!='pyglet': 
             log.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
-                    
+    def setOpacity(self,newOpacity,operation=''):
+        """
+        Sets the opacity of the movie to newOpacity
+
+        Over-rides _BaseVisualStim.setOpacity
+
+        """
+        self._set('opacity', newOpacity, operation)
+        
     def loadMovie(self, filename):
         try: 
             self._movie = pyglet.media.load( filename, streaming=True)
@@ -3290,6 +3446,25 @@ class MovieStim(_BaseVisualStim):
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         #self._player.on_eos=self.onEOS #doesn't seem to work
+
+    def pause(self):
+        """Pause the current point in the movie (sound will stop, current frame
+        will not advance
+        """
+        self._player.pause()
+        self.playing=PAUSED
+
+    def play(self):
+        """Continue a paused movie from current position
+        """
+        self._player.play()
+        self.playing=PLAYING
+        
+    def seek(self,timestamp):
+        """ Seek to a particular timestamp in the movie.
+        NB this does not seem very robust as at version 1.62 and may cause crashes!
+        """
+        self._player.seek(float(timestamp))
         
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -3297,9 +3472,8 @@ class MovieStim(_BaseVisualStim):
         movie will be determined automatically.
         
         This method should be called on every frame that the movie is meant to appear"""
-        if not self._player.playing:
-            self._player.play()
-            self.playing=1
+        if self.playing==NOT_STARTED:#haven't started yet, so start
+            self.play()
         #set the window to draw to
         if win==None: win=self.win
         win.winHandle.switch_to()
@@ -3334,7 +3508,7 @@ class MovieStim(_BaseVisualStim):
                 z=thisDepth)        
         GL.glPopMatrix()
         
-    def _onEOS(self):
+    def on_eos(self):
         #not called, for some reason?!
         self.playing=-1
 
@@ -3552,7 +3726,7 @@ class TextStim(_BaseVisualStim):
         if not self._useShaders:
             self.setText(self.text)#need to render the text again to a texture
     def setColor(self, color, colorSpace=None, operation=''):
-        """Set the color of the stimulus. See `colorSpaces`_ for further information
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
         
         :Parameters:
@@ -3572,7 +3746,7 @@ class TextStim(_BaseVisualStim):
                 myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
                 
             You can also provide a triplet of values, which refer to the coordinates
-            in one of the `colorSpaces`_. If no color space is specified then the color 
+            in one of the :ref:`colorspaces`. If no color space is specified then the color 
             space most recently used for this stimulus is used again.
             
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
@@ -3586,7 +3760,7 @@ class TextStim(_BaseVisualStim):
             
         colorSpace : string or None
         
-            defining which of the `colorSpaces`_ to use. For strings and hex
+            defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation). 
             
@@ -4117,6 +4291,206 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
 
+
+class BufferImageStim(PatchStim):
+    """
+    Obtain a "screen-shot" of a current buffer, save to a PatchStim()-like RBGA image.
+    
+    The idea is to be able to speed up the rendering of one or more slow visual elements.
+    You first make a "collage" image from your static elements, ones that you could treat 
+    as a being single stim. BufferImageStim optimizes it for speed of rendering in a loop.  
+    I get ~0.11ms per .draw() on my hardware, regardless of size. But its slow to init:
+    ~75ms for a 1024 x 512 capture, in proportion to image size. There is no support for 
+    dynamic depth, opacity, orientation, or color. The idea is to capture
+    static parts of a display at init() to speed up rendering them.
+    
+    You specify the part of the screen to capture (in norm units currently). You
+    get a screenshot of those pixels. If your OpenGL does not support arbitrary sizes,
+    the image will be larger, using power-of-2 sized dimensions, and square powers of two if needed,
+    with the excess image being invisible (via alpha). The aim is to preserve buffer
+    contents as rendered, and not "improve" upon them, e.g., through interpolation.
+    Conceptually, taking a screenshot records whatever has been drawn to the buffer:
+    
+    Checks for OpenGL 2.1+, or uses square-power-of-2 images (slow to init, then fast).
+    
+    Status: proof-of-concept. needs real work:
+    - GL commands need thinking about. I commented out as many as did not affect the demo,
+      could easily have issues in the context of other kinds of display items
+      (e.g., rotated PatchStim). so orientation, scale, color, and depth need testing.
+    - Screen units are not properly sorted out, good to allow pix as well as norm
+    - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+    
+    Depends on:
+    - window._getRegionOfFrame
+    - setTex and draw are copied & hacked from CreateTexture and PatchStim
+    
+    **Example**::
+        # build up a composite or large image (slow, do once):
+        mySimpleImageStim.draw()
+        myTextStim.draw()
+        ...
+        # capture everything (one time):
+        screenshot = visual.BufferImageStim(myWin)
+        ...
+        # render to screen (fast, do a lot):
+        while <conditions>:
+            screenshot.draw()  # static, fast
+            animation.draw()   # dynamic
+            myWin.flip()
+    
+    See 'bufferImageStim.py' for a demo.
+    
+    :Author:
+        - 2010 Jeremy Gray
+    """
+    def __init__(self, win, buffer='back', rect=[-1, 1, 1, -1]):
+        """
+        :Parameters:
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+            buffer :
+                screen buffer to capture from, default is 'back' (hidden), 'front' (in view after win.flip() )
+            rect :
+                a list of [left, top, right, bottom] coordinates of a rectangle to capture from the screen.
+                currently, these should be given in norm units.
+                default is fullscreen: [-1, 1, 1, -1]
+        """
+        
+        glversion = float(pyglet.gl.gl_info.get_version().split()[0])
+        if glversion >= 2.1:
+            region = win._getRegionOfFrame(buffer=buffer, rect=rect)
+        #elif glversion >= 2.0: # ???
+        #   region = win._getRegionOfFrame(buffer=buffer, rect=rect, power2=True)
+        else:
+           # log.warning( ... )
+           region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
+        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=False)
+        
+        # to improve drawing speed, move these out of draw, because this is a static image:
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
+            if numpy.any(self.desiredRGB**2.0 > 1.0):
+                self.desiredRGB=[0.6, 0.6, 0.4]
+        else:
+            self.desiredRGB = (self.rgb * self.contrast)/255.0
+        
+        self.thisScale = 2.0/numpy.array(self.win.size)
+        
+    def setTex(self, tex):
+        self._texName = tex
+        
+        #createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        #  def createTexture(tex, id, pixFormat, stim, res=128)
+        id = self.texID
+        pixFormat = GL.GL_RGB
+        useShaders = self._useShaders
+        interpolate = self.interpolate
+        
+        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
+        self.origSize=im.size
+        
+        #im = im.convert("RGBA")#force to rgb (in case it was CMYK or L) ## lets just presume its RGBA
+        intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607 - 1  ##was: *2/255-1  ## saves 20% of set-up time!
+        #wasLum=False
+        
+        if useShaders:#pixFormat==GL.GL_RGB and not wasLum
+            internalFormat = GL.GL_RGB32F_ARB
+            dataType = GL.GL_FLOAT
+            data = intensity
+        else: #pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
+            internalFormat = GL.GL_RGB
+            dataType = GL.GL_UNSIGNED_BYTE
+            data = psychopy.misc.float_uint8(intensity)
+        
+        #check for RGBA textures--needed? probably not. getRegionOfFrame returns a RBGA tex
+        if len(intensity.shape)>2 and intensity.shape[2] == 4:
+            if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
+            if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
+            elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+        
+        if self.win.winType=='pygame':
+            texture = data.tostring()#serialise
+        else:#pyglet on linux needs ctypes instead of string object!?
+            texture = data.ctypes#serialise
+        # print data.shape, self.origSize # they are swapped, relative to each other
+        
+        #bind the texture in openGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        #important if using bits++ because GL_LINEAR
+        #sometimes extrapolates to pixel vals outside range
+        """if interpolate: 
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
+            if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                    data.shape[0],data.shape[1], 0,
+                    pixFormat, dataType, texture)
+            else:#use glu
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
+                GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+                    data.shape[0],data.shape[1], pixFormat, dataType, texture)          
+        else:"""
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST) 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST) 
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                       #data.shape[0], data.shape[1], 0, # fails for non-square
+                        data.shape[1], data.shape[0], 0,  # works
+                        pixFormat, dataType, texture)
+        
+        """JRG: The above was right from CreateTextures(),
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                            data.shape[0],data.shape[1],
+        but it almost certainly should be:
+                            data.shape[1],data.shape[0],
+        The x <-> y reversal impacts non-square images.
+        (This note is a reminder to myself to fix it once I have time to properly
+        check out what happens if I make the change--easy to change it, 2 chars.)
+        """
+        #GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+        
+    def draw(self):
+        """
+        draw, streamlined. not sure what we'll want to add back based on more testing.
+        seems easy to leave things commented out temporarily.
+        """
+        #if self.win.winType=='pyglet': self.win.winHandle.switch_to()
+        
+        #work out next default depth
+        #if self.depth==0:
+        #    thisDepth = self.win._defDepth
+        #    self.win._defDepth += _depthIncrements[self.win.winType]
+        #else:
+        #thisDepth=self.depth
+
+        #do scaling
+        #GL.glPushMatrix()#push before the list, pop after
+        #self.win.setScale(self._winScale) # longer drawing time, replace with:
+        
+        GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
+        
+        #move to centre of stimulus and rotate
+        #GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        #GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        #the list just does the texture mapping
+        
+        #if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        #    desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+        #    if numpy.any(desiredRGB**2.0>1.0):
+        #        desiredRGB=[0.6,0.6,0.4]
+        #else:
+        #    desiredRGB = (self.rgb*self.contrast)/255.0
+        #GL.glColor4f(self.desiredRGB[0],self.desiredRGB[1],self.desiredRGB[2], self.opacity)
+
+        #if self.needUpdate: self._updateList()
+        
+        GL.glCallList(self._listID)
+
+        #return the view to previous state
+        #GL.glPopMatrix()
+        
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
@@ -4209,14 +4583,34 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
-    else:#might be a filename of an image
-        if os.path.isfile(tex):
+    else:#might be an image, or a filename of an image
+        """if os.path.isfile(tex):
             im = Image.open(tex)
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
         else:
             log.error("couldn't find tex...%s" %(tex))
             core.quit()
-            raise #so thatensure we quit
+            raise #so thatensure we quit"""
+        itsaFile = True # just a guess at this point
+        try:
+            os.path.isfile(tex)
+        except TypeError: # its not a file; maybe an image already?
+            try: 
+                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
+                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            itsaFile = False
+        if itsaFile:
+            if os.path.isfile(tex):
+                im = Image.open(tex)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            else:
+                log.error("couldn't find image...%s" %(tex))
+                core.quit()
+                raise #so thatensure we quit
         stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
@@ -4231,15 +4625,15 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*2/255-1.0 #get to range -1:1            
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255            
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
             im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*2/255-1
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
             wasLum=False
             
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
@@ -4300,7 +4694,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
     if interpolate: 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
         if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                 data.shape[0],data.shape[1], 0,
@@ -4484,24 +4878,25 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
 
 
 class RatingScale:
-    """A class for getting numeric subjective ratings, e.g., on a 1 to 7 scale
+    """A class for getting numeric subjective ratings, e.g., on a 1-to-7 scale.
     
-    Returns a rating-scale object, with display parameters defined at init(). 
+    Returns a re-usable rating-scale object having a .draw() method, with a customizable visual appearance.
     
-    The .draw() method displays the scale only (not the item to be rated), handles the subject's response, and
+    The .draw() method displays the rating scale only (not the item to be rated), handles the subject's response, and
     updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then 
-    call .getRating() to obtain the rating, or getRT() to get the decision time.
-    The experimenter has to handle the item to be rated, and ensure its in the same visual window as the RatingScale.
-    A RatingScale instance has no idea what else is on the screen.
+    call .getRating() to obtain the rating, .getRT() to get the decision time, or .reset() to restore the scale (for 
+    re-use). The experimenter has to handle the item to be rated, i.e., draw() it in the same window each frame.
+    A RatingScale instance has no idea what else is on the screen. The subject can use the arrow keys (left, right)
+    to move the marker in small increments (e.g., 1/100th of a tick-mark if precision = 100).
     
     The default settings should be good much of the time, but considerable customization is possible using the options.
-    Auto-rescaling happens if the low-anchor is 0 and high-low is a multiple of 10.
+    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10.
     
     **Example**::
         
         myRatingScale = visual.RatingScale(myWin)
         while myRatingScale.noResponse:
-            myItem.draw()  # RatingScale knows nothing about the item(s) to be rated: text, image, movie, ...
+            myItem.draw()  # your text, image, movie, ...
             myRatingScale.draw()
             myWin.flip()
         rating = myRatingScale.getRating()
@@ -4512,179 +4907,381 @@ class RatingScale:
     :Author:
         - 2010 Jeremy Gray
     """
-    def __init__(self, win, scale=None, low=1, high=7, precision=1, showValue=True, 
-                markerStyle='triangle', markerColor=None, markerExpansion=1, markerStart=False,
-                allowSkip=True, offsetVert=-0.4, offsetHoriz=0.0):
+    def __init__(self, win,
+                scale=None, # text describing how to interpret the anchors
+                low=1, high=7, # the anchors
+                precision=1, # how many fractional tick to allow -- 100 = ~continuous
+                showValue=True, showScale=True, showAnchors=True, showAccept=True, # control display, True=show=on-screen
+                acceptKeys=['return'], acceptPreText='key, click', acceptText='accept?', 
+                markerStyle='triangle', markerColor=None, markerStart=False, markerExpansion=1,
+                customMarker=None, # allow the experimenter to define a marker, and pass it here; not implemented yet
+                allowSkip=True, escapeKeys=['escape'], mouseOnly=False,
+                displaySizeFactor=1.0, stretchHoriz=1.0, # for scaling
+                offsetVert=-0.4, offsetHoriz=0.0, # for translation 
+                minTime=1.0):
         """
         :Parameters:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             scale :
-                string, explanation of the numbers to display to the subject; *None* -> <low>=not at all, <high>=extremely
+                string, explanation of the numbers to display to the subject;
+                default = None will result in a default scale: <low>=not at all, <high>=extremely
             low :
                 lowest rating / low anchor (integer, default = 1)
             high :
                 highest rating / high anchor (integer, default = 7; at least low+1)
             precision :
-                portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional part)
+                portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
+                
+                .. note:: left/right arrow keys will move the marker by one portion of a tick.
             showValue :
-                True, show the currently selected number
+                show the subject their currently selected number, default = True
+            showScale :
+                show the scale text, default = True
+            showAnchors :
+                show the two end points of the scale (low, high), default = True
+            showAccept :
+                show the button to click to accept the current value by using the mouse, default = True
+                               
+                .. note:: 
+                    If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
+                    to give the subject a way to respond. Better to avoid this situation.
+            acceptKeys :
+                list of keys that mean "accept the current response", default = ['return']
+            acceptPreText :
+                text to display before any value has been selected
+            acceptText :
+                text to display in the 'accept' button after a value has been selected
             markerStyle :
                 *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
             markerColor :
                 *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
-            markerExpansion :
-                how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
             markerStart :
                 *False*, or the value in [low..high] to be pre-selected upon initial display
+            markerExpansion :
+                how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
             allowSkip :
-                if True, <esc> will allow the subject to skip rating this item (default = True)
+                if True, the subject can skip an item by pressing a key in escapeKeys, or <esc> if escapeKeys == []
+            escapeKeys :
+                list of keys the subject can use to skip a response, default = ['escape']
+                
+                .. note:: to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
+            mouseOnly :
+                require the subject use the mouse only (no keyboard), default = False. can be used to avoid competing 
+                with other objects for keyboard input.
+                
+                .. note::
+                mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
+                similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
+                mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
+            displaySizeFactor :
+                how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
-                how much to shift the rating line up or down on the screen, norm units; default -0.4, try -0.7 for images
+                how much to shift the rating line up or down on the screen, norm units; default -0.4 (lower than center)
             offsetHoriz:
                 how much to shift right - left, norm units; default = 0.0 (centered)
+            stretchHoriz:
+                multiplicative factor for stretching (or compressing) the scale horizontally; 3 -> use the whole window
+            minTime :
+                number of seconds that must elapse before a reponse can be accepted, default = 1.0s
+                
+                .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long
         """
+        
+        ### TO DO (JRG, Aug 20, 2010)
+        # - refactor init() to have submethods _initMarker(), etc
+        # - ? refactor displaySizeFactor (works but its messy?)
+        # - do more validation of parameters, and use psychopy.log to report if something needed adjustment
+        # - try to make draw() more efficient in terms of time taken to draw?
+        # - customMarker hook
+        
+        ### Notes (JRG Aug 2010)
+        # Conceptually, the response line is always -0.5 to +0.5 ("internal" units). This line, of unit length, 
+        # is scaled and translated for display. The line is effectively "center justified", expanding both left
+        # and right with scaling, with offsetHoriz and offsetVert specifiying the screen coordinate (norm units)
+        # of the mid-way point of the response line. Tick marks are in integer units, internally 0 to (high-low),
+        # with 0 being the left end and (high-low) being the right end. (Subjects see low to high on the screen.) 
+        # Tick units get mapped to "internal" units based on their proportion of the total ticks (--> 0. to 1.).
+        # The unit-length internal line is expanded / contracted by stretchHoriz and displaySizeFactor, and then
+        # is translated by offsetHoriz and offsetVert. Auto-rescaling reduces the number of tick marks shown on the
+        # screen by a factor of 10, just for nicer appearance, without affecting the internal representation.
+        
+        # Thus, the horizontal screen position of the i-th tick mark, where i in [0,n], for n total ticks (n = high-low),
+        # in screen units ('norm') will be:
+        #   tick-i             == offsetHoriz + (-0.5 + i/n ) * stretchHoriz * displaySizeFactor
+        # So two special cases are:
+        #   tick-0 (left end)  == offsetHoriz - 0.5 * stretchHoriz * displaySizeFactor
+        #   tick-n (right end) == offsetHoriz + 0.5 * stretchHoriz * displaySizeFactor
+        # The vertical screen position is just offsetVert (in screen norm units).
+        # To elaborate: tick-0 is the left-most tick, or "low anchor"; here 0 is internal, the subject sees <low>.
+        # tick-n is the right-most tick, or "high anchor", or internal-tick-(high-low), and the subject sees <high>.
+        # Intermediate ticks, i, are located proportionally between -0.5 to + 0.5, based on their proportion
+        # of the total number of ticks, float(i)/n. The "proportion of total" is used because its a line of unit length,
+        # i.e., the same length as used to internally represent the scale (-0.5 to +0.5).
+        # If precision > 1, the user / experimenter is asking for fractional ticks. These map correctly
+        # onto [0, 1] as well without requiring special handling (just do ensure float() ).
+        
+        # Another note: -0.5 to +0.5 looked too big to be the default size of the rating line in screen norm units,
+        # so I set the internal displaySizeFactor = 0.6 to compensate (i.e., making everything smaller). The user can
+        # adjust the scaling around the default by setting displaySizeFactor, stretchHoriz, or both.
+        # This means that the user / experimenter can just think of > 1 being expansion (and < 1 == contraction)
+        # relative to the default (internal) scaling, and not worry about the internal scaling.
+        
         self.win = win
-        self.savedWinUnits = self.win.units
+        self.savedWinUnits = self.win.units # work in norm units, but don't mess with the user's window if not norm
         self.win.units = 'norm'
         
-        # tick mark stuff; only draw a tick at integer spacing
-        self.high = int(high) # high anchor of scale
-        self.low = int(low) # low anchor
-        self.precision = precision
-        if self.high <= self.low:
-            self.high = self.low + 1
-            self.precision = 100
-        self.tickMarks = self.high - self.low
-        # ticks are the units the scale uses internally: 0..(high-low)
-        # the screen position (norm units) for a given tickMark == offsetHoriz + screenLeftEnd + tickMark * screenSpaceBetweenTicks
-        # and finally allow for global size changes: multiply the above by displaySizeFactor
+        # some sanity checking, magic numbers, and such:
+        if True: # just to make code-folding easy
+            if not showAccept: 
+                if mouseOnly: # then there's no way for the subject to respond. oops.
+                    mouseOnly = False  # ...so enable using keys to accept
+                    #log.warning("mouseOnly but not showAccept (no way to respond!), so disabling mouseOnly")
+                if len(list(acceptKeys)) == 0: # ...and make sure there are in fact some keys to use:
+                    acceptKeys = ['return']
+            self.mouseOnly = bool(mouseOnly)
+            
+            # flatten precision to [1,10,100]:
+            if type(precision) != type(123) or precision < 10:
+                self.precision = 1
+                self.fmtStr = "%.0f" # decimal places to display
+            elif precision < 100:
+                self.precision = 10
+                self.fmtStr = "%.1f"
+            else:
+                self.precision = 100
+                self.fmtStr = "%.2f"
+            
+            # make anchors well-behaved:
+            try:
+                self.low = int(low) # low anchor
+            except ValueError:
+                self.low = 0
+            try:
+                self.high = int(high) # high anchor
+            except ValueError:
+                self.high = self.low + 1
+            if self.high <= self.low:
+                self.high = self.low + 1
+                self.precision = 100
+            
+            # marker preselected?
+            if ( (type(markerStart)==type(0.123) and self.precision > 1 or
+                    type(markerStart)==type(123)) and
+                    markerStart >= self.low and markerStart <= self.high):
+                self.markerStart = markerStart
+                self.markerPlacedAt = markerStart
+                self.markerPlaced = True
+            else:
+                self.markerStart = None
+                self.markerPlaced = False
+            
+            # some display settings
+            self.showValue = bool(showValue)
+            self.markerColor = markerColor # checked later
+            self.markerStyle = markerStyle 
+            self.lineColor = 'White'
+            self.lineColorSpace = 'rgb'
+            self.textColor = 'LightGray'
+            self.textColorSpace = 'rgb'
+            self.textFont = 'Helvetica Bold'
+            
+            # 'accept' button pulsates = brightness cycles once per 100 frames
+            self.pulseColor = [0.6 + 0.22 * float(cos(i/15.65)) for i in range(100)]
+            
+            try:
+                self.minimumTime = float(minTime) # seconds until a response can be accepted
+            except ValueError:
+                self.minimumTime = 1.0
+            
+            try:
+                self.displaySizeFactor = float(displaySizeFactor) * 0.6 
+            except ValueError:
+                self.displaySizeFactor = 0.6 # just looks better as a default
+            if self.displaySizeFactor < 0.06: # keep it visible & sensible
+                self.displaySizeFactor = 0.05
+            if self.displaySizeFactor > 3: # keep completely on screen
+                self.displaySizeFactor = 3
+            
+            self.padSize = 0.06 * self.displaySizeFactor # space around the line within which to accept mouse input
+            
+            try:
+                self.offsetVert = float(offsetVert)
+                if not -1 <= offsetVert <= 1:
+                    raise ValueError
+            except ValueError:
+                self.offsetVert = -0.4
+            try:
+                self.offsetHoriz = float(offsetHoriz)
+                if not -1 <= offsetHoriz <= 1:
+                    raise ValueError
+            except ValueError:
+                self.offsetHoriz = 0.
+            try:
+                self.stretchHoriz = float(stretchHoriz)
+            except ValueError:
+                self.stretchHoriz = 1.
+            
+            # ends of the rating line, in screen units:
+            self.lineLeftEnd  = self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor
+            self.lineRightEnd = self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor
         
-        # remap 10 ticks onto 1 tick in some conditions:
-        self.autoRescaleFactor = 1 
-        if (self.low == 0 and self.tickMarks > 20 and self.tickMarks % 10 == 0):
-            self.autoRescaleFactor = 10
-            self.tickMarks /= self.autoRescaleFactor 
-            self.precision = min(100, self.precision * self.autoRescaleFactor)
-        tickSize = 0.04 # vertical height of each tick, norm units
-        self.leftEnd = -0.5 # and possibly resized by displaySizeFactor
+        self._initRatingLine() # place holder for:
+        if True:
+            self.tickMarks = float(self.high - self.low)
+            # remap 10 ticks onto 1 tick in some conditions:
+            self.autoRescaleFactor = 1 
+            if (self.low == 0 and self.tickMarks > 20 and int(self.tickMarks) % 10 == 0):
+                self.autoRescaleFactor = 10
+                self.tickMarks /= self.autoRescaleFactor 
+            tickSize = 0.04 # vertical height of each tick, norm units
         
-        if (markerStart and markerStart >= self.low and markerStart <= self.high):
-            self.markerStart = markerStart
-            self.markerPlacedAt = markerStart
-            self.markerPlaced = True
-        else:
-            self.markerStart = None
-            self.markerPlaced = False
-        
-        self.showValue = showValue
-        self.markerColor = markerColor
-        self.markerStyle = markerStyle
-        
-        self.padSize = 0.06 # space around the line within which to accept mouse input
-        self.offsetVert = offsetVert # scaled by displaySizeFactor, below
-        self.offsetHoriz = offsetHoriz
-        
-        self.minimumTime = 1 # seconds until a response can be accepted
-        
-        displaySizeFactor = 1 # placeholder to enable resizing the display 
-        if self.precision not in [1, 10, 100]:
-            self.precision = 1
-        self.snapToTick = self.precision
-        self.textSize = 0.12 * displaySizeFactor # for large text, needed
+        self.textSize = 0.2 * self.displaySizeFactor # for large text, needed
         textSizeSmall = self.textSize * 0.6 # ratio of small text to large text
-        self.showValue = showValue in [True, 1]
+        self.showValue = bool(showValue)
         
-        self.displaySizeFactor = 0.6 * displaySizeFactor
-        self.markerSize = 5.0 * displaySizeFactor
-        self.markerExpansion = float(markerExpansion) * 0.6
-        self.offsetVert = self.offsetVert/displaySizeFactor
-        
-        self.respKeys = [] # what keyboard keys are accepted for selecting a response
-        if self.low > -1 and self.high < 10: # allow responding via numeric keys if the only options are in 0-9
-            self.respKeys = [str(i) for i in range(low, high + 1)]
-        self.acceptKeys = ['return'] # what keys are allow for accepting the currently selected response
-        self.escapeKeys = []
-        if allowSkip:
-            self.escapeKeys = ['escape'] 
+        # what keyboard keys are valid
+        self.respKeys = [ ] 
+        if (not mouseOnly and self.low > -1 and self.high < 10): # allow responding via numeric keys if the only options are in 0-9
+            self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
+        if mouseOnly:
+            self.acceptKeys = [ ]
+        else:
+            self.acceptKeys = list(acceptKeys) # what keys are allow for accepting the currently selected response
+        self.escapeKeys = [ ]
+        if allowSkip and not mouseOnly:
+            if len(list(escapeKeys)) == 0:
+                self.escapeKeys = ['escape']
+            else:
+                self.escapeKeys = list(escapeKeys)
         
         # define vertices for making a ShapeStim line with tick marks:
-        vertices = [[self.offsetHoriz + self.leftEnd * self.displaySizeFactor, self.offsetVert]] # first vertex
-        if self.tickMarks:
-            for t in range(self.tickMarks + 1):
-                vertices.append([self.offsetHoriz + self.displaySizeFactor *
-                                 (self.leftEnd + t / float(self.tickMarks)),
-                                 tickSize * self.displaySizeFactor + self.offsetVert])
-                vertices.append([self.offsetHoriz + self.displaySizeFactor *
-                                 (self.leftEnd + t / float(self.tickMarks)), self.offsetVert])
-                if t < self.tickMarks: 
-                    vertices.append([self.offsetHoriz + self.displaySizeFactor *
-                                     (self.leftEnd + (t + 1) / float(self.tickMarks)), self.offsetVert])
-        else:
-            self.tickMarks = 1 
-        vertices.append([self.offsetHoriz - self.leftEnd * self.displaySizeFactor, self.offsetVert])
-        vertices.append([self.offsetHoriz + self.leftEnd * self.displaySizeFactor, self.offsetVert])
+        vertices = [[self.lineLeftEnd, self.offsetVert]] # first vertex
+        # self.tickMarks is at least 1: # self.high <= self.low is handled above
+        for t in range(int(self.tickMarks) + 1):
+            vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
+                             (-0.5 + t / self.tickMarks), tickSize * self.displaySizeFactor + self.offsetVert])
+            vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
+                             (-0.5 + t / self.tickMarks), self.offsetVert])
+            if t < self.tickMarks: # extent the line to the next tick mark, t + 1
+                vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
+                                 (-0.5 + (t + 1) / self.tickMarks), self.offsetVert])
+        
+        vertices.append([self.lineRightEnd, self.offsetVert])
+        vertices.append([self.lineLeftEnd, self.offsetVert])
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
-                              lineColor='White', lineColorSpace='rgb')
+                              lineColor=self.lineColor, lineColorSpace=self.lineColorSpace)
         
         # define the marker:
-        if markerColor and type(markerColor) == type('abc'):
-            markerColor = markerColor.replace(' ','')
-        if (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
-            vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
-                    [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
-            if markerColor == None:
-                markerColor = 'DarkBlue'
-            try:
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
-            except AttributeError:
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb')
-                markerColor = 'DarkBlue'
-            self.markerExpansion = 0
-        elif self.markerStyle == 'glow':
-            if markerColor == None:
-                markerColor = 'White'
-            try:
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
-                                        colorSpace='rgb', opacity = 0.85)
-            except AttributeError: # bad markerColor, presumably:
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
-                                        colorSpace='rgb', opacity = 0.85)
-                markerColor = 'White'
-            self.markerBaseSize = tickSize * self.markerSize
-            if self.markerExpansion == 0:
-                self.markerBaseSize *= self.markerSize * self.displaySizeFactor
-        else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
-            if markerColor == None:
-                markerColor = 'DarkRed'
-            x,y = self.win.size
-            size = [3.2 * tickSize * self.displaySizeFactor * float(y)/x, 3.2 * tickSize * self.displaySizeFactor]
-            try:
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color=markerColor, colorSpace='rgb')
-            except AttributeError: # user gave a bad markerColor, presumably:
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color='DarkRed', colorSpace='rgb')
-                markerColor = 'DarkRed'
-            self.markerBaseSize = tickSize
+        self._initMarker(customMarker,markerExpansion,markerColor,tickSize) # place holder for:
+        if True:
+            self.markerSize = 8. * self.displaySizeFactor
+            self.markerOffsetVert = 0.
+            self.markerExpansion = float(markerExpansion) * 0.6
+            if markerColor and type(markerColor) == type('abc'):
+                markerColor = markerColor.replace(' ','')
+            if customMarker:
+                self.marker = customMarker
+                # completely untested; likely needs other work, eg, thinking about color, vert offset, etc
+            elif (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
+                vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
+                        [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
+                if markerColor == None:
+                    markerColor = 'DarkBlue'
+                try:
+                    self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
+                                            lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
+                except AttributeError:
+                    self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
+                                            lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb')
+                    markerColor = 'DarkBlue'
+                self.markerExpansion = 0
+            elif self.markerStyle == 'glow':
+                if markerColor == None:
+                    markerColor = 'White'
+                try:
+                    self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
+                                            colorSpace='rgb', opacity = 0.85)
+                except AttributeError: # bad markerColor, presumably:
+                    self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
+                                            colorSpace='rgb', opacity = 0.85)
+                    markerColor = 'White'
+                self.markerBaseSize = tickSize * self.markerSize
+                self.markerOffsetVert = .02
+                if self.markerExpansion == 0:
+                    self.markerBaseSize *= self.markerSize * self.displaySizeFactor
+            else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
+                if markerColor == None:
+                    markerColor = 'DarkRed'
+                x,y = self.win.size
+                windowRatio = float(y)/x
+                self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
+                size = [3.2 * tickSize * self.displaySizeFactor * windowRatio, self.markerSizeVert]
+                self.markerOffsetVert = self.markerSizeVert / 2.
+                try:
+                    self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
+                                            mask='circle', color=markerColor, colorSpace='rgb')
+                except AttributeError: # user gave a bad markerColor, presumably:
+                    self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
+                                            mask='circle', color='DarkRed', colorSpace='rgb')
+                    markerColor = 'DarkRed'
+                self.markerBaseSize = tickSize
         
-        # define the 'accept' box:
-        acceptBoxtop = self.offsetVert - 0.12
-        acceptBoxbot = self.offsetVert - 0.22
-        acceptBoxleft = self.offsetHoriz - 0.12 
-        acceptBoxright = self.offsetHoriz + 0.12
-        if self.low > 0 and self.high < 10:
-            self.keyClick = 'key, click' # text to display inside accept box before a marker has been placed
-        else:
-            self.keyClick = 'click line'
-        self.accept = TextStim(win=self.win, text=self.keyClick, font='Helvetica',
-                            pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
-                            italic=True, height=textSizeSmall, color='#444444', colorSpace='rgb')
-        delta = 0.02
+        # define the 'accept' box text and button:
+        self.showAccept = showAccept
+        if self.showAccept:
+            self._initAcceptBox(showAccept,acceptPreText,acceptText,markerColor,textSizeSmall)
+            self.accept.setFont(self.textFont)
+            
+        # text elements:
+        self._initVisualElements() # place holder for:
+        if True:
+            if not scale: # set the default
+                scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
+            scale = unicode(scale)
+            self.scaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall,  
+                                        color=self.textColor, colorSpace=self.textColorSpace,
+                                        pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert])
+            self.lowAnchor = TextStim(win=self.win, text=str(self.low),
+                                pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                                -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert],
+                                height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+            self.highAnchor = TextStim(win=self.win, text=str(self.high),
+                                pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                                -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
+                                height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+            
+            # visual elements, in their drawing order.
+            # NB: win XP seems to have issues with multiple ShapeStim: self.line disappeared if it came first, 'triangle' = no show
+            self.visualDisplayElements = []
+            if showScale:
+                self.visualDisplayElements += [self.scaleDescription]
+            if showAnchors: 
+                self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
+            if showAccept: 
+                self.visualDisplayElements += [self.acceptBox, self.accept]
+            self.visualDisplayElements += [self.line]
+        
+        self.myClock = core.Clock()
+        self.myMouse = event.Mouse(win=self.win, visible=True)
+        
+        self.win.units = self.savedWinUnits
+        self.reset()
+        
+    def _initRatingLine(self):
+        pass
+    def _initMarker(self,customMarker,markerExpansion,markerColor,tickSize):
+        pass    
+    def _initAcceptBox(self,showAccept,acceptPreText,acceptText,markerColor,textSizeSmall):
+        self.acceptBoxtop = acceptBoxtop = self.offsetVert - 0.2 * self.displaySizeFactor
+        self.acceptBoxbot = acceptBoxbot = self.offsetVert - 0.37 * self.displaySizeFactor
+        self.acceptBoxleft = acceptBoxleft = self.offsetHoriz - 0.2 * self.displaySizeFactor
+        self.acceptBoxright = acceptBoxright = self.offsetHoriz + 0.2 * self.displaySizeFactor
+        
+        # define a rectangle with rounded corners; for square corners, set delta2 to 0 
+        delta = 0.025 * self.displaySizeFactor
         delta2 = delta / 7 
-        acceptBoxVertices = [ # a rectangle with rounded corners; for square corners, set delta2 to 0
+        acceptBoxVertices = [ 
             [acceptBoxleft,acceptBoxtop-delta], [acceptBoxleft+delta2,acceptBoxtop-3*delta2],
             [acceptBoxleft+3*delta2,acceptBoxtop-delta2], [acceptBoxleft+delta,acceptBoxtop],   
             [acceptBoxright-delta,acceptBoxtop], [acceptBoxright-3*delta2,acceptBoxtop-delta2],
@@ -4699,159 +5296,162 @@ class RatingScale:
         else: # interpolation looks bad on linux, as of Aug 2010
             self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
                                    fillColor=[.2,.2,.2], lineColor=[-.2,-.2,-.2], interpolate=False)
-            
-        self.acceptBoxtop = acceptBoxtop
-        self.acceptBoxbot = acceptBoxbot
-        self.acceptBoxleft = acceptBoxleft
-        self.acceptBoxright = acceptBoxright
+        
+        if self.low > 0 and self.high < 10:
+            self.keyClick = 'key, click' # text to display inside accept box before a marker has been placed
+        else:
+            self.keyClick = 'click line'
+        
+        # handle accept (button)
+        if acceptPreText != 'key, click': # non-default
+            self.keyClick = unicode(acceptPreText)
+        self.acceptText = unicode(acceptText)
+        
+        self.accept = TextStim(win=self.win, text=self.keyClick, font=self.textFont,
+                            pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
+                            italic=True, height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+        
         if markerColor.lower() in ['white', 'gold']: # ideally, catch any very light color
             self.acceptTextColor = '#444444'
         else:
             self.acceptTextColor = markerColor
-        
-        # text elements:
-        if not scale: # set the default
-            scale = str(self.low) + ' = not at all  . . .  ' + str(self.high) + ' = extremely'
-        scale = unicode(scale)
-        self.scaleDescription = TextStim(win=self.win, text=scale, height=textSizeSmall, color='LightGray', 
-                                    colorSpace='rgb', pos=[self.offsetHoriz, 0.15 + self.offsetVert])
-        self.lowAnchor = TextStim(win=self.win, text=str(self.low),
-                            pos=[self.offsetHoriz + self.leftEnd * self.displaySizeFactor,
-                            -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=textSizeSmall, color='LightGray', colorSpace='rgb')
-        self.highAnchor = TextStim(win=self.win, text=str(self.high),
-                            pos=[self.offsetHoriz - self.leftEnd * self.displaySizeFactor,
-                            -2 * textSizeSmall * self.displaySizeFactor + self.offsetVert], 
-                            height=textSizeSmall, color='LightGray', colorSpace='rgb')
-        
-        decPts = int(numpy.log10(self.precision))
-        self.fmtStr = "%." + str(decPts) + "f"
-        self.accept.setFont('Helvetica Bold')
-        
-        # visual elements, in their drawing order. line would disappear for winXP if it came first
-        self.visualDisplayElements = [self.scaleDescription, self.lowAnchor, self.highAnchor,
-                                      self.acceptBox, self.accept, self.line]
-        
-        self.frame = 0 # used to pulse the 'accept' box
-        self.pulse = 0.25 # larger is more salient
-        self.framesPerCycle = 16. 
-        
-        self.myClock = core.Clock()
-        self.myMouse = event.Mouse(win=self.win, visible=True)
-        
-        self.win.units = self.savedWinUnits
-        
-        self.reset()
-        
+            
+    def _initVisualElements(self):
+        pass
+    
     def draw(self):
         """
-        update visual display, check for subject response (key, mouse, skip), set self.acceptResponse, self.rating
-        only draws the rating scale, not the item to be rated
+        update visual display, check for subject response (key, mouse, skip), set self.noResponse as appropriate.
+        draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
         
         # draw everything except the marker:
-        for vde in self.visualDisplayElements:
-            vde.draw() 
+        for visualElement in self.visualDisplayElements:
+            visualElement.draw() 
+        
+        # maybe the subject is done but the scale is still being drawn
+        if self.noResponse == False: 
+            # so nudge the marker down slightly, draw an immovable marker
+            if not self.markerPosFixed:
+                self.marker.pos[1] -= .012 # drop the marker onto the line
+                self.markerPosFixed = True
+            self.marker.draw()
+            if self.showAccept:
+                self.acceptBox.setFillColor([.2,.2,.2])
+                self.acceptBox.setLineColor([-.2,-.2,-.2])
+                self.acceptBox.draw()
+            self.win.units = self.savedWinUnits
+            return # makes the marker unresponsive
+        
         # draw the marker, if indicated by subject:
         if self.markerPlaced: 
-            self.frame += 1
-            # set 'accept' box pulsing & display text:
-            pulseColor = 0.6 + self.pulse * float(cos(self.frame / float(self.framesPerCycle))) # cast to float to avoid numpy_type from cos
-            self.acceptBox.setFillColor(pulseColor, 'rgb')
-            self.acceptBox.setLineColor(pulseColor, 'rgb')
-            self.accept.setColor(self.acceptTextColor, 'rgb')
-            if self.showValue:
-                self.accept.setText(self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor ))
-            else:
-                self.accept.setText("accept?")
+            if self.showAccept:
+                self.frame = (self.frame + 1) % 100
+                self.acceptBox.setFillColor(self.pulseColor[self.frame])
+                self.acceptBox.setLineColor(self.pulseColor[self.frame])
+                self.accept.setColor(self.acceptTextColor)
+                if self.showValue:
+                    self.accept.setText(self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor ))
+                else:
+                    self.accept.setText(self.acceptText) # doesn't need to happen every frame
             
             # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
-            self.marker.setPos([self.offsetHoriz + self.displaySizeFactor *
-                                (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)), self.offsetVert])
+            self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz * 
+                                (-0.5 + self.markerPlacedAt / self.tickMarks),
+                                self.offsetVert + self.markerOffsetVert])
             
             # expansion fun & games with 'glow':
             if self.markerStyle == 'glow':
                 if self.markerExpansion > 0: 
-                    self.marker.setSize(self.markerBaseSize + 0.1 * self.markerExpansion * float(self.markerPlacedAt) / self.tickMarks)
-                    self.marker.setOpacity(0.2 + float(self.markerPlacedAt) / self.tickMarks)
+                    self.marker.setSize(self.markerBaseSize + 0.1 * self.markerExpansion * 
+                                        self.markerPlacedAt / self.tickMarks)
+                    self.marker.setOpacity(0.2 + self.markerPlacedAt / self.tickMarks)
                 elif self.markerExpansion < 0:
                     self.marker.setSize(self.markerBaseSize - 0.1 * self.markerExpansion *
-                                        float(self.tickMarks - self.markerPlacedAt) / self.tickMarks)
-                    self.marker.setOpacity(0.2 + 1 - float(self.markerPlacedAt) / self.tickMarks)
+                                        (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
+                    self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
                 else: # markerExpansion == 0:
                     self.marker.setSize(self.markerBaseSize)
             self.marker.draw()
         
         # handle key responses:
-        for key in event.getKeys(): # almost certainly only 1 key
-            if key in self.escapeKeys:
-                self.markerPlacedAt = None
-                self.noResponse = False
-            if key in self.respKeys: # place the marker at that tick
-                self.markerPlaced = True
-                self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
-                self.marker.setPos([self.displaySizeFactor * (self.leftEnd + self.markerPlacedAt / float(self.tickMarks)), 0])
-            if key in ['left']:
-                if self.markerPlaced and self.markerPlacedAt > 0:
-                    self.markerPlacedAt = max(0, self.markerPlacedAt - 1)
-            if key in ['right']:
-                if self.markerPlaced and self.markerPlacedAt < self.tickMarks:
-                    self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt + 1)
-            if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
-                self.noResponse = False 
+        if not self.mouseOnly:
+            for key in event.getKeys():
+                if key in self.escapeKeys:
+                    self.markerPlacedAt = None
+                    self.noResponse = False
+                if key in self.respKeys: # place the marker at the corresponding tick
+                    self.markerPlaced = True
+                    self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
+                    self.marker.setPos([self.displaySizeFactor * (-0.5 +
+                                                                  self.markerPlacedAt / self.tickMarks), 0])
+                if key in ['left']:
+                    if self.markerPlaced and self.markerPlacedAt > 0:
+                        self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
+                if key in ['right']:
+                    if self.markerPlaced and self.markerPlacedAt < self.tickMarks:
+                        self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt + 
+                                                  1. / self.autoRescaleFactor / self.precision)
+                if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
+                    self.noResponse = False 
                 
         # handle mouse:
-        mouse1, m2, m3 = self.myMouse.getPressed()
-        if mouse1:
-            # if mouse1 is pressed and its near the line, set the marker to mouseX:
+        if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
             mouseX, mouseY = self.myMouse.getPos() # norm units
+            # if near the line, place the marker there:
             if (mouseY > -2 * self.padSize + self.offsetVert and mouseY < self.padSize + self.offsetVert and 
-                    mouseX > self.offsetHoriz + self.leftEnd * self.displaySizeFactor - self.padSize and 
-                    mouseX < self.offsetHoriz - self.leftEnd * self.displaySizeFactor + self.padSize):
-                mouseX = max(mouseX, self.offsetHoriz + self.leftEnd * self.displaySizeFactor)
-                mouseX = min(mouseX, self.offsetHoriz - self.leftEnd * self.displaySizeFactor)
+                    mouseX > self.lineLeftEnd - self.padSize and 
+                    mouseX < self.lineRightEnd + self.padSize):
+                mouseX = max(mouseX, self.lineLeftEnd)
+                mouseX = min(mouseX, self.lineRightEnd)
                 self.markerPlaced = True
-                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / self.displaySizeFactor + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
+                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz * self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
                 if markerPos < 0: markerPos = 0
-                if self.snapToTick == 1:
-                    self.markerPlacedAt = int(markerPos+.5) # round to nearest tick; scale to 0..tickMarks, quantized
+                if self.precision == 1:
+                    self.markerPlacedAt = round(markerPos) # round to nearest tick; scale to 0..tickMarks, quantized
                 else:
-                    self.markerPlacedAt = int(self.snapToTick * float(markerPos)) / float(self.snapToTick)  # scale to 0..tickMarks
-            # accept marker?
-            if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and mouseY > self.acceptBoxbot and
-                    mouseY < self.acceptBoxtop and mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
-                self.noResponse = False 
+                    self.markerPlacedAt = int(float(markerPos) * self.precision * self.autoRescaleFactor) / float(self.precision * self.autoRescaleFactor)  # scale to 0..tickMarks
+            # if in accept box, and a value has been selected, and enough time has elapsed: 
+            if self.showAccept:
+                if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and mouseY > self.acceptBoxbot and
+                        mouseY < self.acceptBoxtop and mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
+                    self.noResponse = False # accept the currently marked value
         
         # decision time = time from the first .draw() to when 'accept' was pressed:
         if self.firstDraw:
             self.firstDraw = False
             self.myClock.reset()
         if not self.noResponse and self.decisionTime == 0:
-            self.decisionTime = self.myClock.getTime() # only set this once: at the time 'accept' is indicated by subject
+            self.decisionTime = self.myClock.getTime()
+            # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
         
         self.win.units = self.savedWinUnits
         
     def reset(self):
-        """restores to post-init state; does not restore scaleDescription text
-        needed between items when rating multiple items
+        """restores to post-init state; does not restore scaleDescription text, which would be
+        needed between items when rating multiple items.
         """
+        
+        # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
         if self.markerStart not in [None, False]: # do allow 0 as a legal pre-placement
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low
-        self.firstDraw = True
+        self.firstDraw = True # triggers self.myClock.reset() at start of draw()
         self.decisionTime = 0
-        
-        self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
-        self.acceptBox.setLineColor([-.2,-.2,-.2], 'rgb')
-        self.accept.setColor('#444444','rgb')
-        self.accept.setText(self.keyClick)
+        self.markerPosFixed = False
+        self.frame = 0 # a counter used only to 'pulse' the 'accept' box
+        if self.showAccept:
+            self.acceptBox.setFillColor([.2,.2,.2], 'rgb')
+            self.acceptBox.setLineColor([-.2,-.2,-.2], 'rgb')
+            self.accept.setColor('#444444','rgb')
+            self.accept.setText(self.keyClick)
     
     def getRating(self):
-        """Returns the numerical rating; None if the subject skipped this item; False if not available
+        """Returns the numerical rating; None if the subject skipped this item; False if not available.
         """
         if self.noResponse:
             return False
@@ -4867,85 +5467,10 @@ class RatingScale:
         return response
     
     def getRT(self):
-        """Returns the seconds taken to make the rating (or indicate skip). Returns None if no rating available.
+        """Returns the seconds taken to make the rating (or to indicate skip). Returns None if no rating available.
         """
         if self.noResponse:
             return None
         
         return self.decisionTime
-            
-class _TextInputBox():
-    """
-    modeled on RatingScale()
     
-    THIS IS JUST a sketch of how it might work. things that would need real work:
-    - the text expands both left and right, "center justified" rather than left justified, which is weird
-    - setting font, font size, and color would be good
-    - having a visual box would be good, with the text appearing inside
-    - ' ' --> 'space', and so on
-    
-    Aug 2010, Jeremy Gray
-    """
-    def __init__(self, win, text='', x=0.0, y=-0.3, width=0.4, height=0.15):
-        self.win = win
-        self.savedWinUnits = self.win.units
-        self.win.units = 'norm'
-        self.text = text
-        
-        self.textStim = TextStim(win=self.win, text=self.text, pos=[x,y])
-        
-        self.myClock = core.Clock()
-        self.myMouse = event.Mouse(win=self.win, visible=True)
-        self.win.units = self.savedWinUnits
-        
-        self.escapeKeys = ['escape']
-        self.respKeys = ['return']
-        self.backspaceKeys = ['backspace', 'delete']
-        self.reset()
-        
-    def draw(self):
-        """
-        """
-        self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
-        
-        self.textStim.setText(self.text)
-        self.textStim.draw()
-        
-        # handle key responses:
-        for key in event.getKeys(): # almost certainly only 1 key
-            if key in self.escapeKeys:
-                self.text = None
-                self.noResponse = False
-            elif key in self.respKeys: # place the marker at that tick
-                self.noResponse = False
-            elif key in self.backspaceKeys:
-                self.text = self.text[:-1]
-            else:
-                self.text += key
-
-        # decision time = time from the first .draw() to when 'accept' was pressed:
-        if self.firstDraw:
-            self.firstDraw = False
-            self.myClock.reset()
-        if not self.noResponse and self.decisionTime == 0:
-            self.decisionTime = self.myClock.getTime() # only set this once: at the time 'accept' is indicated by subject
-            # minimum time is enforced during key and mouse handling
-        
-        self.win.units = self.savedWinUnits
-        
-    def reset(self):
-        self.noResponse = True
-        self.firstDraw = True
-        self.decisionTime = 0
-    
-    def getResponse(self):
-        if self.noResponse:
-            return False
-        return response
-    
-    def getRT(self):
-        if self.noResponse:
-            return None
-        
-        return self.decisionTime
-        

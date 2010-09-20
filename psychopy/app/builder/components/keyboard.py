@@ -129,12 +129,7 @@ class KeyboardComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
         else: currLoop=None
-        
-        #work out which of multiple keys to store
-        if store=='first key': index="[0]"
-        elif store=='last key': index="[-1]"
-        elif store=='all keys': index=""
-        
+                
         #write the actual code
         if store!='nothing' and currLoop and currLoop.type=='StairHandler':
             #data belongs to a StairHandler
@@ -145,8 +140,8 @@ class KeyboardComponent(BaseComponent):
         elif store!='nothing' and currLoop:
             #data belongs to a TrialHandler
             buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            buff.writeIndented("    %s.addData('%s.keys',%s.keys%s)\n" \
-                               %(currLoop.params['name'],name,name,index))
+            buff.writeIndented("    %s.addData('%s.keys',%s.keys)\n" \
+                               %(currLoop.params['name'],name,name))
             if self.params['storeCorrect'].val==True:
                 buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \
                                    %(currLoop.params['name'], name, name))

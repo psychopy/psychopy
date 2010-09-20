@@ -4,11 +4,15 @@
 """
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core
+from psychopy import visual, event, core, log
 import os
 
 # create a window before creating your rating scale, whatever units you like:
 myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
+
+# if you want skipped frames to be reported uncomment these two lines:
+#myWin.setRecordFrameIntervals(True)
+#log.console.setLevel(log.DEBUG)
 
 # display instructions for using a rating scale, from the subject's point of view:
 instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are two examples.
@@ -29,7 +33,7 @@ myRatingScale = visual.RatingScale(myWin) # create a RatingScale object
 question = "How cool was that?"
 myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
 
-# anything with a frame-by-frame method for being drawn in a visual.Window() should work just fine, eg a movie:
+# anything with a frame-by-frame method for being drawn in a visual.Window() should work:
 #myItem = visual.MovieStim(myWin, 'jwpIntro.mov', pos=(0,120))
 
 event.clearEvents()
@@ -38,7 +42,7 @@ while myRatingScale.noResponse: # show & update until a response has been made
     myRatingScale.draw()
     myWin.flip()
 
-rating = myRatingScale.getRating() # get the value indicated by the subject, 'None' if skipped (esc)
+rating = myRatingScale.getRating() # get the value indicated by the subject, 'None' if skipped 
 print 'Example 1: rating =', rating
 
 # Example 2 --------(multiple items, multiple dimensions for each)--------
@@ -82,4 +86,48 @@ for image in imageList:
 
 print 'Example 2 (data from 2 images, each rated on 2 dimensions, reporting rating & RT):'
 for d in data:
-    print d
+    print '  ',d
+
+# Example 3 --------(two simultaneous ratings)--------
+instr = visual.TextStim(myWin, text="""Example 3. This example shows how one could obtain two ratings at the same time, e.g., to allow explicit comparison between images during ratings.
+
+In such a situation, the subject will have to use the mouse (and not keyboard) to respond. The subject has to respond on both scales in order to go on to the next screen. Both of these considerations mean that its best to disallow the subject to skip a rating.
+
+Press any key to start Example 3 (or escape to quit).""")
+instr.draw()
+myWin.flip()
+if 'escape' in event.waitKeys():
+    core.quit()
+
+leftward = -0.35
+rightward = -1 * leftward
+myRatingScaleLeft = visual.RatingScale(myWin, mouseOnly=True, offsetHoriz=leftward,
+    markerStyle='circle', displaySizeFactor=0.85)
+myRatingScaleRight = visual.RatingScale(myWin, mouseOnly=True, offsetHoriz=rightward,
+    markerColor='DarkGreen', displaySizeFactor=0.85) 
+x,y = myRatingScale.win.size # for converting norm units to pix
+myItemLeft = visual.SimpleImageStim(win=myWin, image=imageList[0], pos=[leftward*x/2., y/6.])
+myItemRight = visual.SimpleImageStim(win=myWin, image=imageList[1], pos=[rightward*x/2., y/6.])
+
+event.clearEvents()
+while myRatingScaleLeft.noResponse or myRatingScaleRight.noResponse:
+    # you could hide the item if its been rated:
+    #if myRatingScaleLeft.noResponse: myItemLeft.draw() 
+    #if myRatingScaleRight.noResponse: myItemRight.draw()
+    # but lets just draw it every frame:
+    myItemLeft.draw()
+    myItemRight.draw()
+    myRatingScaleLeft.draw()
+    myRatingScaleRight.draw()
+    myWin.flip()
+
+# just for fun: briefly show the two scales with the markers in the 'down' position
+myItemLeft.draw()
+myItemRight.draw()
+myRatingScaleLeft.draw()
+myRatingScaleRight.draw()
+myWin.flip()
+core.wait(1)
+
+print 'Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT()
+print '  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT()
