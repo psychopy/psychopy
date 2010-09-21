@@ -2508,10 +2508,10 @@ class RadialStim(PatchStim):
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
             
             #unbind the textures
-            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glClientActiveTexture(GL.GL_TEXTURE1)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             #main texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glClientActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glDisable(GL.GL_TEXTURE_2D)
             #disable set states
