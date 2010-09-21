@@ -60,7 +60,9 @@ class VisualComponent(_base.BaseComponent):
             #capitalise params
             if thisParamName=='advancedParams':
                 continue
-            if thisParamName=='image':
+            elif thisParamName=='letterHeight':
+                paramCaps='Height' #setHeight for TextStim
+            elif thisParamName=='image':
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
                 paramCaps='SF' #setSF, not SetSf

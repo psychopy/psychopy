@@ -4608,7 +4608,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
                 im = Image.open(tex)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
-                log.error("couldn't find image...%s" %(filename))
+                log.error("couldn't find image...%s" %(tex))
                 core.quit()
                 raise #so thatensure we quit
         stim.origSize=im.size

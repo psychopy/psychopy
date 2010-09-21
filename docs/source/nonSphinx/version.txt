@@ -1,4 +1,4 @@
-version:1.62.00
-info:many improvements to Builder and xlsx input/output
+version:1.62.01
+info:bug fixes and improved temporal precision
 lastUpdatable:1.62.00
 lastCompatible:1.62.00

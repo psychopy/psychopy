@@ -30,11 +30,13 @@ getGitShaRuntime="""
 if __git_sha__=='n/a':
     import subprocess
     #see if we're in a git repo and fetch from there
+    repo_commit=False
     proc = subprocess.Popen('git rev-parse --short HEAD',
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             cwd='.', shell=True)
     repo_commit, _ = proc.communicate()
+    del proc#to get rid of the background process
     if repo_commit:
         __git_sha__=repo_commit.strip()#remove final linefeed
 """
@@ -73,7 +75,7 @@ def _getPlatformString(dist=None):
                 ':'.join([x for x in platform.dist() if x != '']),
                 platform.release())
         elif os.sys.platform=='win32':
-            ver=sys.getwindowsversion()
+            ver=os.sys.getwindowsversion()
             if len(ver[4])>0:
                 systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
             else:
@@ -103,5 +105,6 @@ def createInitFile(dist=None):
     outStr += getGitShaRuntime
     outStr += allList
     f.write(outStr)
+    f.close()
     return outStr
     

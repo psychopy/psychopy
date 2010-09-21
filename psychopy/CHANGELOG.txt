@@ -16,13 +16,30 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.62
 ------------------------------
 
-PsychoPy 1.62.01 (svn)
+PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~
+Released Sept 2010
 
 * ADDED: clicking on a Routine in the Flow window brings that Routine to current focus above
 * ADDED: by setting a loop in the Flow to have 0 repeats, that part of your experiment can be skipped
 * CHANGED: builder hides mouse now during fullscreen experiments (should make this a pref or setting though?)
-* ADDED: MovieStim can now be paused and continued half way through (draw() during pause will draw current static frame)
+* FIXED: rendering problem with the Flow and Routine panels not updating on some platforms
+* ADDED: added .pause() .play() and .seek() to MovieStim (calling .draw() while paused will draw current static frame)
+* FIXED: bug in MovieStim.setOpacity() (Ariel Rokem)
+* FIXED: bug in win32 - shortcuts were created in user-specific start menu not all-users start menu
+* CHANGED: data output now uses std with N-1 normalisation rather than (scipy default) N
+* FIXED: bug when .psyexp files were dropped on Builder frame
+* FIXED: bug with Builder only storing last letter or multi-key button (e.g. 'left'->'t') under certain conditions
+* FIXED: when nReps=0 in Builder the loop should be skipped (was raising error)
+* CHANGED: mouse icon is now hidden for full-screen Builder experiments
+* FIXED: Builder was forgetting the TrialList file if you edited something else in the loop dialog
+* ADDED: visual.RatingScale and a demo to show how to use it (Jeremy Gray)
+* ADDED: The Standalone distributions now includes the following external libs:
+    - pynetstation (import psychopy.hardware.egi)
+    - ioLab library (import psychopy.harware.ioLab)
+* ADDED: trial loops in builder can now be aborted by setting someLoopName.finished=True
+* ADDED: improved timing. *Support for blocking on VBL for all platforms* (may still not work on intel integrated chips)
+* FIXED: minor bug with closing Coder windows generating spurious error messages
 
 PsychoPy 1.62.00
 ~~~~~~~~~~~~~~~~~~~~~~~~
