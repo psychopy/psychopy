@@ -475,6 +475,7 @@ class StairHandler:
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
         buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s)\n" %self.params)
+        buff.writeIndented("level=%s=%s#initialise some vals\n" %(self.thisName, self.params['start value']))
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
