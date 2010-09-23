@@ -975,7 +975,7 @@ class StairHandler:
         f.close()
         
     def saveAsExcel(self,fileName, sheetName=None,
-                   matrixOnly=False,
+                   matrixOnly=False, appendFile=True,
                   ):
         """
         Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing 
@@ -1001,9 +1001,13 @@ class StairHandler:
             sheetName: string
                 the name of the worksheet within the file 
                 
+            matrixOnly: True or False
+                If set to True then only the data itself will be output (no additional info)
+                
             appendFile: True or False
                 If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will be added to make it unique.
+                
         """
         
         if self.thisTrialN<1:
@@ -1013,7 +1017,6 @@ class StairHandler:
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
             return -1
-        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
         
         #import necessary subpackages - they are small so won't matter to do it here
         from openpyxl.workbook import Workbook
@@ -1053,8 +1056,8 @@ class StairHandler:
         ws.cell('C1').value = 'All Intensities'
         ws.cell('D1').value = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = intensity
-            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = self.responses[intenN]
+            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = unicode(intensity)
+            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = unicode(self.data[intenN])
         
         #add self.extraInfo
         rowN = 0

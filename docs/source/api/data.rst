@@ -45,6 +45,10 @@
     :undoc-members:
     :inherited-members:
     
+:func:`importTrialList`
+----------------------------------
+.. autofunction:: psychopy.data.importTrialList
+
 :func:`functionFromStaircase`
 ----------------------------------
 .. autofunction:: psychopy.data.functionFromStaircase

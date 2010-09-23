@@ -16,6 +16,12 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.62
 ------------------------------
 
+PsychoPy 1.62.02
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with RadialStim causing subsequent StextStims not to be visible
+* FIXED: bug with saving StairHandler data as .xlsx
+
 PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Released Sept 2010
