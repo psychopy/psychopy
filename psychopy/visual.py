@@ -4683,6 +4683,11 @@ def _setColor(self, color, colorSpace=None, operation='',
     #rgb is calculated from converting color
     #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
     #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+    try:
+        color=float(color)
+        isScalar=True
+    except:
+        isScalar=False
     
     if type(color) in [str, unicode]:
         if color.lower() in colors.colors255.keys():
@@ -4702,7 +4707,7 @@ def _setColor(self, color, colorSpace=None, operation='',
 #                    pass#this will be handled with AttributeError below
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
         raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-    elif type(color) in [float, int]:
+    elif isScalar:
         color = numpy.asarray([color,color,color],float)
     elif type(color) in [tuple,list]:
         color = numpy.asarray(color,float)
