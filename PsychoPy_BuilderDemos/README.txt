@@ -27,11 +27,12 @@ Cognitive psychology
 
  - Navon (1977) - global/local processing in perception
 
+ - branchedExp - OK, this one isn't really an experiment. It just shows how to do branching in the builder
 
 Psychophysics studies
 --------------------------
 
- - Psychophysics staircase - using a staircase to get thresholds
+ - Psychophysics staircase - using a staircase to get a detection threshold
 
 
 Social Psychology

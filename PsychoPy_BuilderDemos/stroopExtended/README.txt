@@ -4,9 +4,12 @@ Stroop Extended - a better implementation of the Stroop task
 The experiment: 
     
     The experiment is much like that in the Stroop demo (with some minor changes
-    to the trial list file and to timing.
+    to the trial list file and to timing).
     
-    What differs is that the 
+    What differs is that there are now practice trials, with feedback provided.
+    There is also a 'reverseStroop' version of the experiment, whereby subjects
+    must report the colour spelled out by the word, instead of the letter colour
+    used in the normal Stroop effect.
 
 Analysing your data:
 
