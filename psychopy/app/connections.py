@@ -471,7 +471,7 @@ def sendUsageStats(proxy=None):
     elif sys.platform=='win32':
         ver=sys.getwindowsversion()
         if len(ver[4])>0:
-            systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
+            systemInfo=("win32_v%i.%i.%i_%s" %(ver[0],ver[1],ver[2],ver[4])).replace(' ','')
         else:
             systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
     else:
