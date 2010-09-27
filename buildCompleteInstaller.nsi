@@ -12,6 +12,8 @@
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
+!include "fileassoc.nsh"
+!include "EnvVarUpdate.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -93,6 +95,15 @@ Section "PsychoPy" SEC01
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\PsychoPy2.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
+  
+; File Associations
+  !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\psychopy.ico,0" \
+     "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+     
+; Update Windows Path
+  ;add to path variable
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  
 SectionEnd
 
 Section -AdditionalIcons
@@ -133,5 +144,7 @@ Section Uninstall
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR" 
+  
   SetAutoClose true
 SectionEnd
