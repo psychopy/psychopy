@@ -1,3 +1,5 @@
+.. _parallel:
+
 :mod:`psychopy.parallel` - functions for interacting with the parallel port
 =================================================================================
 

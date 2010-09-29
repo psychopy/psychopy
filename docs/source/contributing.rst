@@ -11,16 +11,16 @@ It has taken thousands of hours of programming to get PsychoPy where it is today
 
 **Please, please, please** make the effort to give a little back to this project. If you found the documentation hard to understand then think about how you would have preferred it to be written and contribute it.
 
-.. _svn:
+.. _git:
 
-Accessing the svn repository
+Accessing the git repository
 -----------------------------
-The central location for the PsychoPy source code is the subversion (svn) repository at google code Generally you want to be looking at the files under 'trunk':
-    http://code.google.com/p/psychopy/source
+The central location for the PsychoPy source code is now the git repository at github.com:
+    http://github.com/psychopy/psychopy
     
-Googlecode actually has a very nice viewer that allows you to browse the source code directly and this is probably be sufficient for many people to look at the code. You can also see the diffs between 'commits' to the repository.
+You can browse the current files there, look at differences between commits and download the latest copy of a single file (click on the 'raw' link for a file). You can also see the diffs between 'commits' to the repository.
 
-If you know about such things, you can fetch a copy anonymously to see the latest version of PsychoPy, including the latest unreleased bug-fixes (but also the latest, unreleased bugs). Details for checking out a copy are given at the google website above.
+If you learn about how to use git, then you can create your own read-write copy within github (e.g. Jon's personal copy is http://github.com/peircej/psychopy) or take a read-only copy directly onto your own machine.
 
 Documentation
 --------------
@@ -28,7 +28,61 @@ The documentation is all written using `Sphinx`_ and the source for this is also
 
 How do I contribute changes?
 -----------------------------
-For simple changes, and for users that aren't so confident with things like version control systems then just email your suggested changes to the mailing list. If you want to make more substantial changes then contact Jon off-list to talk about them and if you want to make changes more frequently then he can grant you direct access to commit them back into the svn repository.
+For simple changes, and for users that aren't so confident with things like version control systems then just email your suggested changes to the mailing list. 
+
+If you want to make more substantial changes then discuss them on the `developers mailing list <http://groups.google.com/group/psychopy-dev>`_. 
+
+The ideal model, for developers that know about git and may make more frequent contributions, is to create your own clone of the project on github, make changes to that and then send a pull request to have them merged back into the main repository.
 
 .. _Jon Peirce: http://www.peirce.org.uk
 .. _Sphinx: http://sphinx.pocoo.org
+
+
+
+----------------
+
+.. _credits:
+
+Credits
+=====================================
+
+Developers
+---------------
+PsychoPy is predominantly written and maintained by `Jon Peirce`_ but has received code from a number of contributors:
+
+    - Jeremy Gray (various aspects of code and ideas)
+    - Yaroslav Halchenko (building the Debian package and a lot more)
+    - Dave Britton
+    - Ariel Rokem
+    - Gary Strangman
+    - C Luhmann
+
+Included packages
+-------------------
+
+PsychoPy always includes a copy of:
+
+    - `pyparallel <http://pyserial.sourceforge.net/pyparallel.html>`_ by Chris Liechti. Used by :ref:`psychopy.parallel <parallel>`
+    - `quest.py <http://www.visionegg.org/Quest>`_ by Andrew Straw. Used by :class:`~psychopy.data.QuestHandler`
+
+
+Additional packages
+-------------------------------
+PsychoPy could not exist without the hard work of the developers of the core :ref:`dependencies`. There are numerous other additional packages that are useful to PsychoPy users, e.g. for controlling hardware and performing specific tasks. These are packaged with the Standalone versions of `PsychoPy` but users with their own custom Python environment need to install these manually to use them. Most of these can be installed with easy_install
+
+    - `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
+    - ioLabs
+    - psignifit
+    
+Funding
+----------------
+
+PsychoPy project has attracted small grants from the `HEA Psychology Network`_ and `Cambridge Research Systems`_
+
+Jon is paid by `The University of Nottingham`_, and has been funded by the `BBSRC`_
+
+.. _The University of Nottingham: http://www.nottingham.ac.uk
+.. _BBSRC:  http://www.bbsrc.ac.uk
+.. _University of Nottingham: http://www.nottingham.ac.uk
+.. _HEA Psychology Network: http://www.psychology.heacademy.ac.uk/s.php?p=256&db=104
+.. _Cambridge Research Systems: http://www.crsltd.com/

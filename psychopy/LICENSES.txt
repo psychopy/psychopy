@@ -1,9 +1,7 @@
-From version 2 onwards PsychoPy is distributed under the GNU GPLv3
+From version 1.5 onwards PsychoPy is distributed under the GNU GPLv3
 
-PsychoPy includes the following files which have other compatible open-source licenses:
-
-ConfigObj (http://www.voidspace.org.uk/python/configobj.html) released under BSD license
-    configobj.py
-    validateConfigobj.py
-
-pySerial (http://pyserial.wiki.sourceforge.net/pySerial) released under Python License
+The PsychoPy *library* includes the following:
+    - pyparallel (http://pyserial.sourceforge.net/pyparallel.html). License: Python Software Foundation
+    - quest (http://www.visionegg.org/Quest). License: BSD
+    
+The Standalone binary installers include a large number of additional packages, all with compatible licenses included (BSD, MIT, or GPL). These can be found in their respective site-packages directories.
