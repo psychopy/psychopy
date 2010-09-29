@@ -177,24 +177,35 @@ class DlgFromDict(Dlg):
                 self.dictionary[thisKey]=self.data[n]
         
 def fileSaveDlg(initFilePath="", initFileName="", 
-                prompt="Select file to save"):
+                prompt="Select file to save",
+                allowed=None):
     """A simple dialogue allowing access to the file system.
     (Useful in case you collect an hour of data and then try to 
     save to a non-existent directory!!)
     
-    usage:
-        validPathName = fileSaveDlg(initFilePath,initFileName)
-    
+    :parameters:
+        initFilePath: string
+            default file path on which to open the dialog
+        initFilePath: string
+            default file name, as suggested file
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+        allowed: string
+            a string to specify file filters. 
+            e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+            See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
+            
     If initFilePath or initFileName are empty or invalid then
     current path and empty names are used to start search.
     
     If user cancels the None is returned.
     """
-    allowed = "All files (*.*)|*.*"  #\
+    if allowed==None:
+        allowed = "All files (*.*)|*.*"  #\
             #"txt (*.txt)|*.txt" \
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
-    tmpApp = wx.PySimpleApp()	
+    tmpApp = wx.PySimpleApp()
     dlg = wx.FileDialog(None,prompt, 
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
@@ -209,25 +220,36 @@ def fileSaveDlg(initFilePath="", initFileName="",
 
 def fileOpenDlg(tryFilePath="",
                 tryFileName="",
-                prompt="Select file to open"):
+                prompt="Select file to open",
+                allowed=None):
     """A simple dialogue allowing access to the file system.
     (Useful in case you collect an hour of data and then try to 
     save to a non-existent directory!!)
     
-    usage:
-        validPathName = fileSaveDlg(initFilePath,initFileName)
-    
-    If initFilePath or initFileName are empty or invalid then
+    :parameters:
+        tryFilePath: string
+            default file path on which to open the dialog
+        tryFilePath: string
+            default file name, as suggested file
+        prompt: string (default "Select file to open")
+            can be set to custom prompts
+        allowed: string
+            a string to specify file filters. 
+            e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+            See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
+            
+    If tryFilePath or tryFileName are empty or invalid then
     current path and empty names are used to start search.
     
-    If user cancels the None is returned.
+    If user cancels, then None is returned.
     """
-    allowed = "PsychoPy Data (*.psydat)|*.psydat|"\
+    if allowed==None:
+        allowed = "PsychoPy Data (*.psydat)|*.psydat|"\
             "txt (*.txt,*.dlm)|*.txt|" \
             "pickled files (*.pickle, *.pkl)|*.pickle|" \
             "shelved files (*.shelf)|*.shelf|" \
             "All files (*.*)|*.*"
-    tmpApp = wx.PySimpleApp()	
+    tmpApp = wx.PySimpleApp()
     dlg = wx.FileDialog(None, prompt,
                           tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     if dlg.ShowModal() == OK:
