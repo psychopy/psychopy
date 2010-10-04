@@ -16,6 +16,13 @@
     :members:
     :undoc-members:
     :inherited-members:
+
+:class:`QuestHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.QuestHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
         
 :class:`FitWeibull`
 ---------------------------------------------------------------------------------

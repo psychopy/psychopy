@@ -1,16 +1,22 @@
-"""Interface to EGI Netstation
+"""Interface to `EGI Netstation <http://www.egi.com/>`_
 
-This is currently a simple import of pynetstation (http://code.google.com/p/pynetstation/)
-pynetstation needs to be installed - it is included in the Standalone distributions
-of PsychoPy as of version 1.62.01.
+This is currently a simple import of `pynetstation 
+<http://code.google.com/p/pynetstation/>`_
+That needs to be installed (but is included in the *Standalone* distributions
+of PsychoPy as of version 1.62.01).
 
+installation:
+
+    Download the package from the link above and copy egi.py into your
+    site-packages directory.
+    
 usage::
+
     from psychopy.hardware import egi
     
 For an example see the demos menu of the PsychoPy Coder
 For further documentation see the pynetstation website
 
---------
 """
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce
