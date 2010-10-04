@@ -27,7 +27,8 @@ class Dlg(wx.Dialog):
         myDlg.addField('Age:', 21)
         myDlg.addText('Experiment Info')
         myDlg.addField('Grating Ori:',45)
-        if myDlg.show()==gui.OK:
+        myDlg.show()#show dialog and wait for OK or Cancel
+        if gui.OK:#then the user pressed OK
             thisInfo = myDlg.data
             print thisInfo
         else: print 'user cancelled'
@@ -91,6 +92,14 @@ class Dlg(wx.Dialog):
         return thisField
         
     def show(self):
+        """Presents the dialog and waits for the user to press either OK or CANCEL.
+        
+        This function returns nothing.
+        
+        When they do, dlg.OK will be set to True or False (according to which
+        button they pressed. If OK==True then dlg.data will be populated with a 
+        list of values coming from each of the input fields created. 
+        """
         #add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         OK = wx.Button(self, wx.ID_OK, " OK ")
