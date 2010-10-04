@@ -1125,6 +1125,7 @@ class QuestHandler(StairHandler):
     p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
     
     **Example**::
+    
         # setup display/window
         ...
         # create stimulus
@@ -1151,6 +1152,7 @@ class QuestHandler(StairHandler):
         staircase.mean()
         staircase.mode()
         staircase.quantile() #gets the median
+        
     """
     def __init__(self,
                  startVal, 
@@ -1170,13 +1172,13 @@ class QuestHandler(StairHandler):
                  maxVal=None,
                  staircase=None):
         """
-        Typical values for pThreshold are
-            (1) 0.82 which is equivalent to a 3 up 1 down standard staircase
-            (2) 0.63 which is equivalent to a 1 up 1 down standard staircase (and might want gamma=0.01)
+        Typical values for pThreshold are:
+            * 0.82 which is equivalent to a 3 up 1 down standard staircase
+            * 0.63 which is equivalent to a 1 up 1 down standard staircase (and might want gamma=0.01)
         
         The variable(s) nTrials and/or stopSd must be specified.
         
-        Beta, delta, and gamma are the parameters of the Weibull psychometric function. 
+        `beta`, `delta`, and `gamma` are the parameters of the Weibull psychometric function. 
         
         :Parameters:
 
