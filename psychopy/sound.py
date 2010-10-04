@@ -73,40 +73,54 @@ class _SoundBase:
     """
     def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
         """
-        value: can be a number, string or an array.
         
-            If it's a number between 37 and 32767 then a tone will be generated at
-            that frequency in Hz.
-            -----------------------------
-            It could be a string for a note ('A','Bfl','B','C','Csh'...) 
-            - you may want to specify which octave as well
-            -----------------------------
-            Or a string could represent a filename in the current
-            location, or mediaLocation, or a full path combo. 
-            At the moment only .wav and .ogg files are supported (but others might be added
-            if we can create numpy arrays out of pyglet's sound files)
-            -----------------------------
-            Or by giving an Nx2 numpy array of floats (-1:1) you 
-            can specify the sound yourself as a waveform
+        :parameters:
+            value: can be a number, string or an array:        
+                * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
+                * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
+                * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
+                * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+                
+            secs: is only relevant if the value is a note name or
+                a frequency value
+                
+            octave: is only relevant if the value is a note name.
+                Middle octave of a piano is 4. Most computers won't
+                output sounds in the bottom octave (1) and the top
+                octave (8) is generally painful
+                
+            sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
+                sample rate for all sounds (once initialised) 
             
-        secs: is only relevant if the value is a note name or
-            a frequency value
-            
-        octave: is only relevant if the value is a note name.
-            Middle octave of a piano is 4. Most computers won't
-            output sounds in the bottom octave (1) and the top
-            octave (8) is generally painful
-            
-        sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
-            sample rate for all sounds (once initialised) 
-        
-        bits(=16): Only 8- and 16-bits supported so far.
-            Only used for sounds using pyglet. Pygame uses the same
-            sample rate for all sounds (once initialised) 
-        """        
-        #try to determine what the sound is
+            bits(=16): Only 8- and 16-bits supported so far.
+                Only used for sounds using pyglet. Pygame uses the same
+                sample rate for all sounds (once initialised) 
+        """
         self._snd=None
-        if type(value) is str:
+        self.setSound(value=value, secs=secs, octave=octave)
+        
+    def setSound(self, value, secs=0.5, octave=4):
+        """Set the sound to be played. 
+        
+        Often this is not needed byt the user - it is called implicitly during
+        initialisation.
+        
+        :parameters:
+        
+            value: can be a number, string or an array:        
+                * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
+                * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
+                * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
+                * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+                
+            secs: duration (only relevant if the value is a note name or a frequency value)
+                
+            octave: is only relevant if the value is a note name.
+                Middle octave of a piano is 4. Most computers won't
+                output sounds in the bottom octave (1) and the top
+                octave (8) is generally painful
+        """
+        if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
@@ -121,7 +135,7 @@ class _SoundBase:
             self._fromArray(value)
         if self._snd is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
-            
+        
     def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
         If no sound channels are available, it will not play and return None. 
@@ -225,24 +239,10 @@ class SoundPygame(_SoundBase):
             inits = mixer.get_init()                
         self.sampleRate, self.format, self.isStereo = inits
         
-        #try to determine what the sound is
+        #try to create sound
         self._snd=None
-        if type(value) in [str, unicode]:
-            #try to open the file
-            OK = self._fromNoteName(value,secs,octave)
-            #or use as a note name
-            if not OK: self._fromFile(value)
-            
-        elif type(value) in [float,int]:
-            #we've been asked for a particular Hz
-            self._fromFreq(value, secs)
-            
-        elif type(value) in [list,numpy.ndarray]:
-            #create a sound from the input array/list
-            self._fromArray(value)
-        if self._snd is None:
-            raise RuntimeError, "I dont know how to make a "+value+" sound"
-            
+        self.setSound(value=value, secs=secs, octave=octave)
+
     def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
         If no sound channels are available, it will not play and return None. 
@@ -363,24 +363,10 @@ class SoundPyglet(_SoundBase):
         
         #self._player._eos_action='pause'
         self._player._on_eos=self._onEOS
-            
-        #try to determine what the sound is
+        
+        #try to create sound
         self._snd=None
-        if type(value) in [str, unicode]:
-            #try to open the file
-            OK = self._fromNoteName(value,secs,octave)
-            #or use as a note name
-            if not OK: self._fromFile(value)
-            
-        elif type(value) in [float,int]:
-            #we've been asked for a particular Hz
-            self._fromFreq(value, secs)
-            
-        elif type(value) in [list,numpy.ndarray]:
-            #create a sound from the input array/list
-            self._fromArray(value)
-        if self._snd is None:
-            raise RuntimeError, "I dont know how to make a "+value+" sound"
+        self.setSound(value=value, secs=secs, octave=octave)
             
     def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
@@ -510,24 +496,9 @@ class SoundPyaudio(_SoundBase):
         self._thread = PyAudioThread(self, pollingPeriod=0.01)
         self._thread.start()
         
-        #try to determine what the sound is
+        #try to create sound
         self._snd=None
-        if type(value) in [str, unicode]:
-            #try to open the file
-            OK = self._fromNoteName(value,secs,octave)
-            #or use as a note name
-            if not OK: #hopefully a file
-                self._fromFile(value)
-                
-        elif type(value) in [float,int]:
-            #we've been asked for a particular Hz
-            self._fromFreq(value, secs)
-            
-        elif type(value) in [list,numpy.ndarray]:
-            #create a sound from the input array/list
-            self._fromArray(value)
-        if self.rawData is None:
-            raise RuntimeError, "I dont know how to make a "+value+" sound"
+        self.setSound(value=value, secs=secs, octave=octave)
             
         if self.bits==16: paFormat = pyaudio.paInt16
         elif self.bits==8: paFormat = pyaudio.paInt8
