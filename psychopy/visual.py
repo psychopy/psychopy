@@ -3437,8 +3437,25 @@ class MovieStim(_BaseVisualStim):
 
         """
         self._set('opacity', newOpacity, operation)
+    
+    def setMovie(self, filename):
+        """See `~MovieStim.loadMovie` (the functions are identical).
+        This form is provided for syntactic consistency with other visual stimuli.
+        """
+        self.loadMovie(filename)
         
     def loadMovie(self, filename):
+        """Load a movie from file 
+        
+        :parameters:
+        
+            filename: string
+                The name of the file, including path if necessary
+                
+        Brings up a warning if avbin is not found on the computer.
+        After the file is loaded MovieStim.duration is updated with the movie
+        duration (in seconds).
+        """
         try: 
             self._movie = pyglet.media.load( filename, streaming=True)
         except pyglet.media.riff.WAVEFormatException:
@@ -4938,7 +4955,9 @@ class RatingScale:
             precision :
                 portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
                 
-                .. note:: left/right arrow keys will move the marker by one portion of a tick.
+                .. note::                
+                    left/right arrow keys will move the marker by one portion of a tick.
+                
             showValue :
                 show the subject their currently selected number, default = True
             showScale :
@@ -4951,6 +4970,7 @@ class RatingScale:
                 .. note:: 
                     If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
                     to give the subject a way to respond. Better to avoid this situation.
+                    
             acceptKeys :
                 list of keys that mean "accept the current response", default = ['return']
             acceptPreText :
@@ -4970,15 +4990,18 @@ class RatingScale:
             escapeKeys :
                 list of keys the subject can use to skip a response, default = ['escape']
                 
-                .. note:: to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
+                .. note:: 
+                    to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
+                    
             mouseOnly :
                 require the subject use the mouse only (no keyboard), default = False. can be used to avoid competing 
                 with other objects for keyboard input.
                 
                 .. note::
-                mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
-                similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
-                mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
+                    mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
+                    similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
+                    mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
+                    
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
