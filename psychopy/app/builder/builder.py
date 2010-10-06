@@ -843,7 +843,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             return None
     def setCurrentRoutine(self, routine):        
         for ii in range(self.GetPageCount()):
-            if routine==self.GetPage(ii).routine:
+            if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
     def getCurrentPage(self):
         if self.GetSelection()>=0:
