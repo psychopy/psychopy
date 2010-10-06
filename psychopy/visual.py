@@ -4670,7 +4670,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         data[:,:,1] = intensity*stim.rgb[1]  + stim.rgbPedestal[1]#G
         data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        if stim.colorSpace=='rgb':#scale up to 255 for non-shaders ubyte data
+        if stim.colorSpace in ['rgb', 'dkl', 'lms']:#scale up to 255 for non-shaders ubyte data
             data = psychopy.misc.float_uint8(stim.contrast*data)
         else:#just convert data type
             data = (stim.contrast*data).astype(numpy.ubyte)
