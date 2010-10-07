@@ -10,10 +10,11 @@ from psychopy import visual, event, core, log
 #in the monitors package
 
 myWin = visual.Window((600,600), monitor='testMonitor')
+
 stims = []
 #rgb colors
 stims.append( visual.PatchStim(myWin, mask='gauss',color='red', pos=[-0.5,0.5],sf=2) )#r
-stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,1,0), colorSpace='rgb', pos=[-0.5,0],sf=2))# g
+stims.append( visual.PatchStim(myWin, mask='gauss',color=(-1,1,-1), colorSpace='rgb', pos=[-0.5,0],sf=2))# g
 stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0,255), colorSpace='rgb255', pos=[-0.5,-0.5],sf=2))# b
 
 #DKL cardinal axes (see Derrington, Krauskopf and Lennie 1986)

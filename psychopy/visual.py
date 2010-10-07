@@ -4665,15 +4665,17 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
+        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
+            rgb=stim.rgb
+        else:
+            rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
+        #scale by rgb
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-        data[:,:,0] = intensity*stim.rgb[0]  + stim.rgbPedestal[0]#R
-        data[:,:,1] = intensity*stim.rgb[1]  + stim.rgbPedestal[1]#G
-        data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
+        data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
+        data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
+        data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        if stim.colorSpace in ['rgb', 'dkl', 'lms']:#scale up to 255 for non-shaders ubyte data
-            data = psychopy.misc.float_uint8(stim.contrast*data)
-        else:#just convert data type
-            data = (stim.contrast*data).astype(numpy.ubyte)
+        data = psychopy.misc.float_uint8(stim.contrast*data)
     elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
         internalFormat = GL.GL_RGB32F_ARB
         dataType = GL.GL_FLOAT
