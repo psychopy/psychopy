@@ -20,7 +20,7 @@ __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-dev@googlegroups.com'
 __url__='http://www.psychopy.org'
-__downloadUrl__='http://code.google.com/p/psychopy/'
+__downloadUrl__='http://code.google.com/p/psychopy/downloads'
 """
 template = template.replace('$version$', version)
 
