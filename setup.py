@@ -46,8 +46,7 @@ elif platform=='posix':
 
 setup(name="PsychoPy",
     packages=packages,
-	# No need for win32 postinst script in Debian
-    # scripts = ['psychopy_post_inst.py'],
+    scripts = ['psychopy_post_inst.py'],
     include_package_data =True,
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
