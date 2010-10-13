@@ -30,15 +30,30 @@ install/psychopy:: debian/psychopy.1
 	install debian/psychopy.sh $(DEB_DESTDIR)/usr/bin/psychopy
 
 # Make tree dfsg-compliant
-# Need to be run whenever master branch gets merged in
-dfsg:
-	@echo "I: Cleaning up the source tree to make it DFSG-compliant"
-	-rm -f PsychoPyBuilder/*bak \
+OREMOTE=
+dfsg: dfsg-master
+dfsgrelease-%: override OREMOTE=origin/release-
+dfsgrelease-%: dfsg-%
+	@echo "finished dfsgrelease-$*" # some command is necessary for poor make
+dfsg-%:
+	@git checkout dfsg
+	branch=$(OREMOTE)$*; \
+	descr=`git describe $$branch`; \
+	dfsgtag=$${descr}.dfsg; \
+	echo "Merging $${branch} into DFSG and cleaning"; \
+	git merge --no-commit $$branch || :; \
+	git rm -f --ignore-unmatch PsychoPyBuilder/*bak \
 	  psychopy/demos/*.ttf psychopy/demos/*.mpg \
 	  psychopy/ext/*bits*.* \
 	  buildExeInstaller.nsi buildWinDistributions.bat \
-	  googlecode_upload.py
-	-rm -rf psychopy/serial windlls
+	  googlecode_upload.py; \
+	git rm -rf --ignore-unmatch psychopy/serial windlls; \
+	diffstat="`git diff --cached $${branch} --stat`"; \
+	echo -e "Merge $$branch ($$descr) into DFSG\n\n$$diffstat" | \
+		git commit -F- -a && git tag -s -m "Autotagging DFSG version of $$descr" $$dfsgtag && \
+	echo -e "Differences between dfsg and $${branch}:\n$$diffstat"; \
+	git checkout debian && git merge $${dfsgtag} \
+	&& dch -i -v $${dfsgtag}-1 "New upstream release"
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
