@@ -30,6 +30,12 @@ if 'escape' in event.waitKeys():
 
 # Example 1 --------(as simple as possible)--------
 myRatingScale = visual.RatingScale(myWin) # create a RatingScale object
+
+# for fMRI, you might want to use custom left, right, and accept keys if your buttonbox supports keyboard codes:
+#myRatingScale = visual.RatingScale(myWin, markerStart=4, leftKeys='1', rightKeys = '2', acceptKeys='4')
+# you probably also want to time-out after a while--your script needs to handle that as part of your .draw loop
+# RatingsScale does not have a time-out
+
 question = "How cool was that?"
 myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
 
