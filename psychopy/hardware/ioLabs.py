@@ -1,15 +1,20 @@
-"""Interface to ioLab bbox
+"""Interface to `ioLab button box <http://www.iolab.co.uk>`_
 
-This is currently a simple import of the ioLab python library
-That needs to be installed - it is included in the Standalone distributions
-of PsychoPy as of version 1.62.01.
+This is currently a simple import of the `ioLab python library 
+<http://github.com/ioLab/python-ioLabs>`_. 
+That needs to be installed (but is included in the *Standalone* distributions
+of PsychoPy as of version 1.62.01).
+
+installation::
+
+    easy_install iolabs
 
 usage::
+
     from psychopy.hardware import ioLabs
     
 for examples see the demos menu of the PsychoPy Coder or go to the URL above.
 
---------
 """
 # Part of the PsychoPy library
 # Copyright (C) 2010 Jonathan Peirce

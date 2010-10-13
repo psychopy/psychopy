@@ -71,4 +71,5 @@ setup(name="PsychoPy",
     )
     
 #remove unwanted info about this system post-build
-createInitFile.createInitFile(dist=None)
+if writeNewInit:
+    createInitFile.createInitFile(dist=None)

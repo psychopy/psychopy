@@ -3,14 +3,15 @@
 Builder
 ================================================
 
+xx
+
 *Building experiments in a GUI*
 
 .. warning::
 
-    As at version v1.16.00, the builder view is very much alpha-testing software. It is provided as a preview of what PsychoPy will be providing in the future, and so that users can provide feedback now on how it can be improved. It probably isn't ready for serious research purposes yet, although you might us it to get a script started and then develop it further yourself.
+    As at version v1.61.00, the builder view is very much beta-testing software. Check carefully that the stimuli and response collection is as expected.
 
-NB. PsychoPy users may be interested in the the `NinStim <http://www.nmr.mgh.harvard.edu/Neural_Systems_Group/software.html>`_ package which is another way to build up experiments in PsychoPy without having to write the full script yourself. Gary Strangman, wrote that package to aid in generating event-related and block design experiments for imaging.
-
+NB. PsychoPy users may be interested in the the `NinStim <http://www.nmr.mgh.harvard.edu/Neural_Systems_Group/software.html>`_ package 
 
 
 Contents:

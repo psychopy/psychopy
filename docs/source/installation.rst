@@ -8,12 +8,11 @@ Like many python modules PsychoPy is built and dependent on a number of other li
 Recommended hardware
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The bare minimum requirements for PsychoPy are a graphics card that supports OpenGL (most graphics cards do, but on windows you often need to install new drivers).
+The bare minimum requirements for PsychoPy are a graphics card that supports OpenGL (most graphics cards do, but on windows you should install new drivers from the graphics card the windows-supplied drivers are buggy and sometimes don't support OpenGL at all).
 
-Ideally OpenGL 2.0 should be supported - certain functions run much faster with where it is available and one stimulus (e.g. ElementArrayStim) even requires it. At the time this was last updated dabs.co.uk were selling the `GeForce 9500GT <http://www.nvidia.com/object/product_geforce_9500gt_us.html|nVidia>`_ for £45, which would be an excellent card for most experiments. 
+Ideally OpenGL 2.0 should be supported - certain functions run much faster with where it is available and some stimuli (e.g. ElementArrayStim) even requires it. At the time this was last updated dabs.co.uk were selling the `GeForce 9500GT <http://www.nvidia.com/object/product_geforce_9500gt_us.html|nVidia>`_ for £45, which would be an excellent card for most experiments. 
 
 If you're thinking of buying a laptop for running experiments, *avoid the built-in intel graphics chips (e.g. GMA 950)*. The drivers are crumby and performance is poor. Get something with nVidia or ATI chips instead.
-
 
 Windows:
 ~~~~~~~~~~~~~~~~~~~~~~

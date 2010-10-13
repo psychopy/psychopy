@@ -16,6 +16,13 @@
     :members:
     :undoc-members:
     :inherited-members:
+
+:class:`QuestHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.QuestHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
         
 :class:`FitWeibull`
 ---------------------------------------------------------------------------------
@@ -45,6 +52,10 @@
     :undoc-members:
     :inherited-members:
     
+:func:`importTrialList`
+----------------------------------
+.. autofunction:: psychopy.data.importTrialList
+
 :func:`functionFromStaircase`
 ----------------------------------
 .. autofunction:: psychopy.data.functionFromStaircase

@@ -4,32 +4,40 @@ Overview
 
 PsychoPy is an open-source package for running experiments in `Python`_ (a real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give scientists a free and simple stimulus presentation and control package. It is used by many labs worldwide for psychophysics, cognitive neuroscience and experimental psychology.
 
-The code is fully platform independent (known to work on Windows, OS X and Linux), using Python and C libraries that are widely available. 
-
 Because it's open source, you can download it and modify the package if you don't like it. And if you make changes that others might use then please consider giving them back to the community via the mailing list. PsychoPy has been written and provided to you absolutely for free. For it to get better it needs as much input from everyone as possible.
 
 Features
 ----------------
 There are many advantages to using PsychoPy, but here are some of the key ones
 
-    * Platform independent (used in numerous labs on Win, OS X and linux)
-    * Simple, clean syntax (see the demo code)
-    * Freeware (and based on totally free libraries)
-    * Simple (or complex) GUIs via wxPython
-    * Easy interfaces to joysticks, mice, keyboards
-    * Easy interface to parallel and serial ports
-    * Unicode text rendering in any TrueType font
-    * Multi-monitor support (and multiple windows)
-    * Plays movies (mpg, DivX, avi, QuickTime...) as stimuli
-    * All stimuli rendered in realtime (so can be modified in realtime too)
-    * Simple routines for staircase and constant stimuli experimental methods as well as curve-fitting and bootstrapping
-    * Integration with CRS Bits++(for 14bit luminance resolution)
-    * Integration with Spectrascan PR650 for easy monitor calibration 
-    
-Platform Independence
-----------------------
+    - Simple install process
+    - Huge variety of stimuli (see screenshots) generated in real-time:
+        - linear gratings, bitmaps constantly updating
+        - radial gratings
+        - random dots
+        - movies (DivX, mov, mpg...)
+        - text (unicode in any truetype font)
+        - shapes
+        - sounds (tones, numpy arrays, wav, ogg...)
+    - Platform independent - run the same script on Win, OS X or Linux
+    - Flexible :ref:`stimulus units <units>` (degrees, cm, or pixels)
+    - :ref:`coder` interface for those that like to program
+    - :ref:`builder` interface for those that don't
+    - Input from keyboard, mouse or button boxes
+    - Multi-monitor support
+    - Automated monitor calibration (requires PR650 or Minolta LS110)
 
-The package is written almost entirely in `Python`_ using platform independent libraries (see list below). Since these are all available on all popular platforms PsychoPy will run anywhere and is limited only by your graphics card (make sure you have a decent 3D-accelerated card).
+Hardware Integration
+---------------------
+PsychoPy supports communication via serial ports, parallel ports and compiled drivers (dlls and dylibs), so it can talk to any hardware that your computer can! Interfaces are prebuilt for;
+    - Spectrascan PR650
+    - Minolta LS110
+    - Cambridge Research Systems Bits++
+    - Cedrus response boxes (RB7xx series)
+
+System requirements
+----------------------
+Although PsychoPy runs on a wide variety of hardware, and on Windows, OS X or Linux, it really does benefit from a decent graphics card. Get an ATI or nVidia card that supports OpenGL 2.0. *Avoid built-in Intel graphics chips (e.g. GMA 950)*
 
 How to cite PsychoPy
 ----------------------
