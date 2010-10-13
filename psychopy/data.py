@@ -10,6 +10,7 @@ import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
 from scipy import optimize, special
 from matplotlib import mlab#used for importing csv files
+from _quest import *    #used for QuestHandler
 
 try:
     import openpyxl
@@ -975,7 +976,7 @@ class StairHandler:
         f.close()
         
     def saveAsExcel(self,fileName, sheetName=None,
-                   matrixOnly=False,
+                   matrixOnly=False, appendFile=True,
                   ):
         """
         Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing 
@@ -1001,9 +1002,13 @@ class StairHandler:
             sheetName: string
                 the name of the worksheet within the file 
                 
+            matrixOnly: True or False
+                If set to True then only the data itself will be output (no additional info)
+                
             appendFile: True or False
                 If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will be added to make it unique.
+                
         """
         
         if self.thisTrialN<1:
@@ -1013,7 +1018,6 @@ class StairHandler:
         if not haveOpenpyxl: 
             raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
             return -1
-        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
         
         #import necessary subpackages - they are small so won't matter to do it here
         from openpyxl.workbook import Workbook
@@ -1053,8 +1057,8 @@ class StairHandler:
         ws.cell('C1').value = 'All Intensities'
         ws.cell('D1').value = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = intensity
-            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = self.responses[intenN]
+            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = unicode(intensity)
+            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = unicode(self.data[intenN])
         
         #add self.extraInfo
         rowN = 0
@@ -1102,11 +1106,316 @@ class StairHandler:
             self._warnUseOfNext=False
         return self.next()
         
-class QuestHandler:
-    """(place-holder for future integration of _quest.py as a Trial/StairHandler)
+class QuestHandler(StairHandler):
+    """Class that implements the Quest algorithm using python code from XXX.  f
+    Like StairHandler, it handles the selection of the next trial and report 
+    current values etc. Calls to nextTrial() will fetch the next object given 
+    to this handler, according to the method specified.
+
+    The staircase will terminate when *nTrials* or *XXX* has been exceeded.
+        
+    Measure threshold using a Weibull psychometric function. Currently, it is 
+    not possible to use a different psychometric function.
+    
+    Threshold 't' is measured on an abstract 'intensity' scale, which
+    usually corresponds to log10 contrast.
+
+    The Weibull psychometric function:
+    
+    p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
+    
+    **Example**::
+    
+        # setup display/window
+        ...
+        # create stimulus
+        stimulus = visual.RadialStim(win=win, tex='sinXsin', size=1, pos=[0,0], units='deg')
+        ...
+        # create staircase object
+        # trying to find out the point where subject's response is 50/50
+        # if wanted to do a 2AFC then the defaults for pThreshold and gamma are good
+        staircase = data.QuestHandler(staircase._nextIntensity, 0.2, pThreshold=0.63, gamma=0.01,
+                                  nTrials=20, minVal=0, maxVal=1)
+        ...
+        while thisContrast in staircase:
+            # setup stimulus
+            stimulus.setContrast(thisContrast)
+            stimulus.draw()
+            win.flip()
+            core.wait(0.5)
+            # get response
+            ...
+            # add response
+            staircase.addData(thisResp)
+        ...
+        # can now access 1 of 3 suggested threshold levels
+        staircase.mean()
+        staircase.mode()
+        staircase.quantile() #gets the median
+        
     """
-    def __init__(self):
-        self = None
+    def __init__(self,
+                 startVal, 
+                 startValSd,
+                 pThreshold=0.82,
+                 nTrials=None,
+                 stopInterval=None,
+                 method='quantile',
+                 stepType='log',
+                 beta=3.5,
+                 delta=0.01,
+                 gamma=0.5,
+                 grain=0.01,
+                 range=None,
+                 extraInfo=None,
+                 minVal=None,
+                 maxVal=None,
+                 staircase=None):
+        """
+        Typical values for pThreshold are:
+            * 0.82 which is equivalent to a 3 up 1 down standard staircase
+            * 0.63 which is equivalent to a 1 up 1 down standard staircase (and might want gamma=0.01)
+        
+        The variable(s) nTrials and/or stopSd must be specified.
+        
+        `beta`, `delta`, and `gamma` are the parameters of the Weibull psychometric function. 
+        
+        :Parameters:
+
+            startVal:
+                Prior threshold estimate or your initial guess threshold.
+                
+            startValSd:
+                Standard deviation of your starting guess threshold. Be generous with the sd
+                as QUEST will have trouble finding the true threshold if it's more than one sd
+                from your initial guess.
+            
+            pThreshold
+                Your threshold criterion expressed as probability of response==1. An intensity
+                offset is introduced into the psychometric function so that the threshold (i.e., 
+                the midpoint of the table) yields pThreshold..
+            
+            nTrials: *None* or a number
+                The maximum number of trials to be conducted.
+            
+            stopInterval: *None* or a number
+                The minimum 5-95% confidence interval required in the threshold estimate before stopping.
+                If both this and nTrials is specified, whichever happens first will determine when
+                Quest will stop.
+            
+            method: *'quantile'*, 'mean', 'mode'
+                The method used to determine the next threshold to test. If you want to get a specific threshold
+                level at the end of your staircasing, please use the quantile, mean, and mode methods directly.
+            
+            stepType: *'log'*, 'db', 'lin'
+                The type of steps that should be taken each time. 'db' and 'log' will transform your intensity levels 
+                into decibels or log units and will move along the psychometric function with these values.
+            
+            beta: *3.5* or a number
+                Controls the steepness of the psychometric function.
+
+            delta: *0.01* or a number
+                The fraction of trials on which the observer presses blindly.
+
+            gamma: *0.5* or a number
+                The fraction of trials that will generate response 1 when intensity=-Inf.
+
+            grain: *0.01* or a number
+                The quantization of the internal table.
+
+            range: *None*, or a number
+                The intensity difference between the largest and smallest intensity that the
+                internal table can store. This interval will be centered on the initial guess
+                tGuess. QUEST assumes that intensities outside of this range have zero prior
+                probability (i.e., they are impossible).
+            
+            extraInfo:
+                A dictionary (typically) that will be stored along with collected data using 
+                :func:`~psychopy.data.StairHandler.saveAsPickle` or 
+                :func:`~psychopy.data.StairHandler.saveAsText` methods.
+            
+            minVal: *None*, or a number
+                The smallest legal value for the staircase, which can be used to prevent it
+                reaching impossible contrast values, for instance.
+
+            maxVal: *None*, or a number
+                The largest legal value for the staircase, which can be used to prevent it
+                reaching impossible contrast values, for instance.
+            
+            staircase: *None* or StairHandler
+                Can supply a staircase object with intensities and results. Might be useful to
+                give the quest algorithm more information if you have it. You can also call the
+                importData function directly.
+            
+        """
+        
+        # Initialize using parent class first
+        StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method, 
+                                stepType=stepType, minVal=minVal, maxVal=maxVal)
+        
+        # Setup additional values
+        self.stopInterval = stopInterval
+                
+        # Transform startVal and startValSd based on stepType
+        startVal = self._intensity2scale(startVal)
+        startValSd = self._intensity2scale(startValSd)
+        self._questNextIntensity = startVal
+        
+        # Create Quest object
+        self._quest = QuestObject(startVal, startValSd, pThreshold, beta, delta, gamma, grain, range)
+        
+        # Import any old staircase data
+        if staircase is not None:
+            self.importData(staircase.intensities, staircase.data)
+    
+    def addData(self, result, intensity=None):
+        """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        Also update the intensity
+        """
+        # Process user supplied intensity
+        if intensity is None:
+            intensity = self._questNextIntensity
+        else:
+            intensity = self._intensity2scale(intensity)
+        # Update quest
+        self._quest.update(intensity, result)
+        # Update other things
+        self.data.append(result)
+        self.calculateNextIntensity()
+    
+    def importData(self, intensities, results):
+        """import some data which wasn't previously given to the quest algorithm"""
+        # NOT SURE ABOUT CLASS TO USE FOR RAISING ERROR
+        if len(intensities) != len(results):
+            raise AttributeError, "length of intensities and results input must be the same"
+        self.incTrials(len(intensities))
+        for intensity, result in zip(intensities,results):
+            try:
+                self.next()
+                self.addData(result, intensity)
+            except StopIteration:   # would get a stop iteration if stopInterval set
+                pass    # TODO: might want to check if nTrials is still good
+    
+    def calculateNextIntensity(self):
+        """based on current intensity and counter of correct responses"""
+        self._intensity()
+        # Check we haven't gone out of the legal range
+        if (self._nextIntensity > self.maxVal) and self.maxVal is not None: 
+            self._nextIntensity = self.maxVal
+        elif (self._nextIntensity < self.minVal) and self.minVal is not None:
+            self._nextIntensity = self.minVal
+    
+    def _intensity(self):
+        """assigns the next intensity level"""
+        if self.method == 'mean':
+            self._questNextIntensity = self._quest.mean()
+        elif self.method == 'mode':
+            self._questNextIntensity = self._quest.mode()
+        elif self.method == 'quantile':
+            self._questNextIntensity = self._quest.quantile()
+        # else: maybe raise an error
+        self._nextIntensity = self._scale2intensity(self._questNextIntensity)
+    
+    def _intensity2scale(self, intensity):
+        """returns the scaled intensity level based on value of self.stepType"""
+        if self.stepType=='db':
+            scaled_intensity = log10(intensity) * 20.0
+        elif self.stepType=='log':
+            scaled_intensity = log10(intensity)
+        return scaled_intensity
+    
+    def _scale2intensity(self, scaled_intensity):
+        """returns the unscaled intensity level based on value of self.stepType"""
+        if self.stepType=='db':
+            intensity = 10.0**(scaled_intensity/20.0)
+        elif self.stepType=='log':
+            intensity = 10.0**scaled_intensity
+        return intensity
+    
+    def mean(self):
+        """mean of Quest posterior pdf"""
+        return self._scale2intensity(self._quest.mean())
+
+    def sd(self):
+        """standard deviation of Quest posterior pdf"""
+        return self._scale2intensity(self._quest.sd())
+
+    def mode(self):
+        """mode of Quest posterior pdf"""
+        return self._scale2intensity(self._quest.mode())
+
+    def quantile(self, p=None):
+        """quantile of Quest posterior pdf"""
+        return self._scale2intensity(self._quest.quantile(p))
+    
+    def confInterval(self, getDifference=False):
+        """give the range of the 5-95% confidence interval"""
+        interval = [self.quantile(0.05), self.quantile(0.95)]
+        if getDifference:
+            return abs(interval[0] - interval[1])
+        else:
+            return interval
+    
+    def incTrials(self, nNewTrials):
+        """increase maximum number of trials
+        Updates attribute: `nTrials`
+        """
+        self.nTrials += nNewTrials
+    
+    def simulate(self, tActual):
+        """ returns a simulated user response to the next intensity level presented by Quest, 
+            need to supply the actual threshold level
+        """
+        # Current estimated intensity level
+        if self.method == 'mean':
+            tTest = self._quest.mean()
+        elif self.method == 'mode':
+            tTest = self._quest.mode()
+        elif self.method == 'quantile':
+            tTest = self._quest.quantile()
+        return self._quest.simulate(tTest, tActual)
+    
+    def next(self):
+        """Advances to next trial and returns it.
+        Updates attributes; `thisTrial`, `thisTrialN`, `thisIndex`, `finished`, `intensities`
+
+        If the trials have ended, calling this method will raise a StopIteration error.
+        This can be handled with code such as::
+
+            staircase = QuestHandler(.......)
+            for eachTrial in staircase:#automatically stops when done
+                #do stuff
+
+        or::
+
+            staircase = QuestHandler(.......)
+            while True: #ie forever
+                try:
+                    thisTrial = staircase.next()
+                except StopIteration:#we got a StopIteration error
+                    break #break out of the forever loop
+                #do stuff here for the trial
+        """
+        self._checkFinished()
+        
+        if self.finished==False:
+            #update pointer for next trial
+            self.thisTrialN+=1        
+            self.intensities.append(self._nextIntensity)
+            return self._nextIntensity
+        else:
+            raise StopIteration
+    
+    def _checkFinished(self):
+        """checks if we are finished
+        Updates attribute: `finished`
+        """
+        if self.nTrials is not None and len(self.intensities) >= self.nTrials:
+            self.finished = True
+        elif self.stopInterval is not None and self.confInterval(True) < self.stopInterval:
+            self.finished = True
+        else:
+            self.finished = False
 
 class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than

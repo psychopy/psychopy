@@ -1817,7 +1817,7 @@ class PatchStim(_BaseVisualStim):
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
     to the nearest such texture by PsychoPy. The size of the stimulus should be 
     specified in the normal way using the appropriate units (deg, pix, cm...). Be 
-    sure to get the aspect ration the same as the image (if you don't want it 
+    sure to get the aspect ratio the same as the image (if you don't want it 
     stretched!).
 
     **Why can't I have a normal image, drawn pixel-by-pixel?** PatchStims are 
@@ -2508,10 +2508,10 @@ class RadialStim(PatchStim):
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
             
             #unbind the textures
-            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glClientActiveTexture(GL.GL_TEXTURE1)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             #main texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glClientActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glDisable(GL.GL_TEXTURE_2D)
             #disable set states
@@ -3437,8 +3437,25 @@ class MovieStim(_BaseVisualStim):
 
         """
         self._set('opacity', newOpacity, operation)
+    
+    def setMovie(self, filename):
+        """See `~MovieStim.loadMovie` (the functions are identical).
+        This form is provided for syntactic consistency with other visual stimuli.
+        """
+        self.loadMovie(filename)
         
     def loadMovie(self, filename):
+        """Load a movie from file 
+        
+        :parameters:
+        
+            filename: string
+                The name of the file, including path if necessary
+                
+        Brings up a warning if avbin is not found on the computer.
+        After the file is loaded MovieStim.duration is updated with the movie
+        duration (in seconds).
+        """
         try: 
             self._movie = pyglet.media.load( filename, streaming=True)
         except pyglet.media.riff.WAVEFormatException:
@@ -4294,35 +4311,29 @@ class ShapeStim(_BaseVisualStim):
 
 class BufferImageStim(PatchStim):
     """
-    Obtain a "screen-shot" of a current buffer, save to a PatchStim()-like RBGA image.
+    Obtain a "screen-shot" (fullscreen, or region) from a buffer, save to a PatchStim()-like RBGA image.
     
     The idea is to be able to speed up the rendering of one or more slow visual elements.
     You first make a "collage" image from your static elements, ones that you could treat 
     as a being single stim. BufferImageStim optimizes it for speed of rendering in a loop.  
     I get ~0.11ms per .draw() on my hardware, regardless of size. But its slow to init:
     ~75ms for a 1024 x 512 capture, in proportion to image size. There is no support for 
-    dynamic depth, opacity, orientation, or color. The idea is to capture
+    depth, opacity, or color. The idea is to capture
     static parts of a display at init() to speed up rendering them.
     
-    You specify the part of the screen to capture (in norm units currently). You
+    You specify the part of the screen to capture (in norm units currently), and optionally
+    the stimuli themselves (as a list of items to be drawn). You
     get a screenshot of those pixels. If your OpenGL does not support arbitrary sizes,
-    the image will be larger, using power-of-2 sized dimensions, and square powers of two if needed,
-    with the excess image being invisible (via alpha). The aim is to preserve buffer
+    the image will be larger, using square powers of two if needed or requested,
+    with the excess image being invisible (using alpha). The aim is to preserve buffer
     contents as rendered, and not "improve" upon them, e.g., through interpolation.
     Conceptually, taking a screenshot records whatever has been drawn to the buffer:
     
-    Checks for OpenGL 2.1+, or uses square-power-of-2 images (slow to init, then fast).
+    Checks for OpenGL 2.1+, or uses square-power-of-2 images.
     
     Status: proof-of-concept. needs real work:
-    - GL commands need thinking about. I commented out as many as did not affect the demo,
-      could easily have issues in the context of other kinds of display items
-      (e.g., rotated PatchStim). so orientation, scale, color, and depth need testing.
     - Screen units are not properly sorted out, good to allow pix as well as norm
     - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
-    
-    Depends on:
-    - window._getRegionOfFrame
-    - setTex and draw are copied & hacked from CreateTexture and PatchStim
     
     **Example**::
         # build up a composite or large image (slow, do once):
@@ -4332,9 +4343,9 @@ class BufferImageStim(PatchStim):
         # capture everything (one time):
         screenshot = visual.BufferImageStim(myWin)
         ...
-        # render to screen (fast, do a lot):
+        # render to screen (fast, do many times):
         while <conditions>:
-            screenshot.draw()  # static, fast
+            screenshot.draw()  # fast; can change orientation (.ori) or x,y location (._position)
             animation.draw()   # dynamic
             myWin.flip()
     
@@ -4343,7 +4354,7 @@ class BufferImageStim(PatchStim):
     :Author:
         - 2010 Jeremy Gray
     """
-    def __init__(self, win, buffer='back', rect=[-1, 1, 1, -1]):
+    def __init__(self, win, buffer='back', rect=[-1, 1, 1, -1], sqPower2=False, stim=[], interpolate=True):
         """
         :Parameters:
             win :
@@ -4354,19 +4365,42 @@ class BufferImageStim(PatchStim):
                 a list of [left, top, right, bottom] coordinates of a rectangle to capture from the screen.
                 currently, these should be given in norm units.
                 default is fullscreen: [-1, 1, 1, -1]
+            stim :
+                if an item or list of items is given, they will be drawn on a cleared back buffer prior to the screenshot,
+                and the buffer to be captured will be the back buffer (buffer='front' is ignored).
+            interpolate :
+                whether to use interpolation (default = True, generally good, especially if you change the orientation)
+            sqPower2 :
+                False (default) = use rect for size if OpenGL = 2.1+
+                True = use square, power-of-two image sizes 
         """
         
+        # depends on: window._getRegionOfFrame
+    
+        if len(list(stim)) > 0: # draw all stim to the back buffer
+            win.clearBuffer()
+            log.debug('BufferImageStim.__init__: clearing back buffer')
+            buffer = 'back'
+            for stimulus in list(stim):
+                try:
+                    if stimulus.win == win:
+                        stimulus.draw()
+                    else:
+                        log.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
+                except AttributeError:
+                    log.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+            
         glversion = float(pyglet.gl.gl_info.get_version().split()[0])
-        if glversion >= 2.1:
+        if glversion >= 2.1 and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
-        #elif glversion >= 2.0: # ???
-        #   region = win._getRegionOfFrame(buffer=buffer, rect=rect, power2=True)
         else:
-           # log.warning( ... )
-           region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
-        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=False)
+            if not sqPower2:
+                log.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % pyglet.gl.gl_info.get_version() )
+            region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
         
-        # to improve drawing speed, move these out of draw, because this is a static image:
+        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate)
+        
+        # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
             if numpy.any(self.desiredRGB**2.0 > 1.0):
@@ -4376,22 +4410,18 @@ class BufferImageStim(PatchStim):
         
         self.thisScale = 2.0/numpy.array(self.win.size)
         
-    def setTex(self, tex):
+    def setTex(self, tex, interpolate=True):
         self._texName = tex
-        
-        #createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
-        #  def createTexture(tex, id, pixFormat, stim, res=128)
         id = self.texID
         pixFormat = GL.GL_RGB
         useShaders = self._useShaders
-        interpolate = self.interpolate
+        self.interpolate = interpolate
         
         im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self.origSize=im.size
         
-        #im = im.convert("RGBA")#force to rgb (in case it was CMYK or L) ## lets just presume its RGBA
-        intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607 - 1  ##was: *2/255-1  ## saves 20% of set-up time!
-        #wasLum=False
+        #im = im.convert("RGBA") # should be RGBA because win._getRegionOfFrame() returns RGBA
+        intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607 - 1  # same as *2/255-1, but much faster
         
         if useShaders:#pixFormat==GL.GL_RGB and not wasLum
             internalFormat = GL.GL_RGB32F_ARB
@@ -4402,11 +4432,8 @@ class BufferImageStim(PatchStim):
             dataType = GL.GL_UNSIGNED_BYTE
             data = psychopy.misc.float_uint8(intensity)
         
-        #check for RGBA textures--needed? probably not. getRegionOfFrame returns a RBGA tex
-        if len(intensity.shape)>2 and intensity.shape[2] == 4:
-            if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
-            if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
-            elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+        pixFormat=GL.GL_RGBA # because win._getRegionOfFrame() returns RGBA
+        internalFormat=GL.GL_RGBA32F_ARB
         
         if self.win.winType=='pygame':
             texture = data.tostring()#serialise
@@ -4416,80 +4443,61 @@ class BufferImageStim(PatchStim):
         
         #bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
+        GL.glBindTexture(GL.GL_TEXTURE_2D, id) #bind that name to the target
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
         #important if using bits++ because GL_LINEAR
         #sometimes extrapolates to pixel vals outside range
-        """if interpolate: 
+        if interpolate: 
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
             if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
                 GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
                 GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                    data.shape[0],data.shape[1], 0,
+                    data.shape[1], data.shape[0], 0,
                     pixFormat, dataType, texture)
             else:#use glu
                 GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
                 GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                    data.shape[0],data.shape[1], pixFormat, dataType, texture)          
-        else:"""
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST) 
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST) 
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                       #data.shape[0], data.shape[1], 0, # fails for non-square
-                        data.shape[1], data.shape[0], 0,  # works
-                        pixFormat, dataType, texture)
-        
-        """JRG: The above was right from CreateTextures(),
+                    data.shape[1], data.shape[0], pixFormat, dataType, texture)          
+        else:
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST) 
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST) 
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                            data.shape[0],data.shape[1],
-        but it almost certainly should be:
-                            data.shape[1],data.shape[0],
-        The x <-> y reversal impacts non-square images.
-        (This note is a reminder to myself to fix it once I have time to properly
-        check out what happens if I make the change--easy to change it, 2 chars.)
-        """
+                            data.shape[1], data.shape[0], 0,
+                            pixFormat, dataType, texture)
+        
         #GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
         
     def draw(self):
         """
-        draw, streamlined. not sure what we'll want to add back based on more testing.
-        seems easy to leave things commented out temporarily.
+        streamlined draw. not sure what happens with shaders & self._updateList()
+        can reduce draw time to ~.13ms if eliminate everything except glScalef and glCallList
         """
-        #if self.win.winType=='pyglet': self.win.winHandle.switch_to()
+        
+        if self.win.winType=='pyglet':
+            self.win.winHandle.switch_to()
         
         #work out next default depth
-        #if self.depth==0:
-        #    thisDepth = self.win._defDepth
-        #    self.win._defDepth += _depthIncrements[self.win.winType]
-        #else:
-        #thisDepth=self.depth
+        if self.depth == 0:
+            thisDepth = self.win._defDepth
+            self.win._defDepth += _depthIncrements[self.win.winType]
+        else:
+            thisDepth=self.depth
 
-        #do scaling
-        #GL.glPushMatrix()#push before the list, pop after
-        #self.win.setScale(self._winScale) # longer drawing time, replace with:
+        GL.glPushMatrix() # preserve state
+        #GL.glLoadIdentity()
         
+        #self.win.setScale(self._winScale) # replaced with:
         GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
         
-        #move to centre of stimulus and rotate
-        #GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
-        #GL.glRotatef(-self.ori,0.0,0.0,1.0)
-        #the list just does the texture mapping
-        
-        #if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
-        #    desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-        #    if numpy.any(desiredRGB**2.0>1.0):
-        #        desiredRGB=[0.6,0.6,0.4]
-        #else:
-        #    desiredRGB = (self.rgb*self.contrast)/255.0
-        #GL.glColor4f(self.desiredRGB[0],self.desiredRGB[1],self.desiredRGB[2], self.opacity)
-
+        # enable dynamic position, orientation, opacity; depth not working?
+        GL.glTranslatef(self._posRendered[0], self._posRendered[1], thisDepth)
+        GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
+        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
         #if self.needUpdate: self._updateList()
         
-        GL.glCallList(self._listID)
-
-        #return the view to previous state
-        #GL.glPopMatrix()
+        GL.glCallList(self._listID) # make it happen
+        GL.glPopMatrix() #return the view to previous state
         
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
@@ -4648,15 +4656,17 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
+        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
+            rgb=stim.rgb
+        else:
+            rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
+        #scale by rgb
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-        data[:,:,0] = intensity*stim.rgb[0]  + stim.rgbPedestal[0]#R
-        data[:,:,1] = intensity*stim.rgb[1]  + stim.rgbPedestal[1]#G
-        data[:,:,2] = intensity*stim.rgb[2]  + stim.rgbPedestal[2]#B
+        data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
+        data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
+        data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        if stim.colorSpace=='rgb':#scale up to 255 for non-shaders ubyte data
-            data = psychopy.misc.float_uint8(stim.contrast*data)
-        else:#just convert data type
-            data = (stim.contrast*data).astype(numpy.ubyte)
+        data = psychopy.misc.float_uint8(stim.contrast*data)
     elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
         internalFormat = GL.GL_RGB32F_ARB
         dataType = GL.GL_FLOAT
@@ -4697,17 +4707,17 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                data.shape[0],data.shape[1], 0,
+                data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                 pixFormat, dataType, texture)
         else:#use glu
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
             GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                data.shape[0],data.shape[1], pixFormat, dataType, texture)          
+                data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
     else:
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                        data.shape[0],data.shape[1], 0,
+                        data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                         pixFormat, dataType, texture)
         
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
@@ -4732,6 +4742,11 @@ def _setColor(self, color, colorSpace=None, operation='',
     #rgb is calculated from converting color
     #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
     #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+    try:
+        color=float(color)
+        isScalar=True
+    except:
+        isScalar=False
     
     if type(color) in [str, unicode]:
         if color.lower() in colors.colors255.keys():
@@ -4751,7 +4766,7 @@ def _setColor(self, color, colorSpace=None, operation='',
 #                    pass#this will be handled with AttributeError below
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
         raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-    elif type(color) in [float, int]:
+    elif isScalar:
         color = numpy.asarray([color,color,color],float)
     elif type(color) in [tuple,list]:
         color = numpy.asarray(color,float)
@@ -4889,19 +4904,24 @@ class RatingScale:
     A RatingScale instance has no idea what else is on the screen. The subject can use the arrow keys (left, right)
     to move the marker in small increments (e.g., 1/100th of a tick-mark if precision = 100).
     
-    The default settings should be good much of the time, but considerable customization is possible using the options.
-    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10.
+    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
     
-    **Example**::
-        
+    **Example 1.**::
+        myItem = <create your text, image, movie, ...>
         myRatingScale = visual.RatingScale(myWin)
         while myRatingScale.noResponse:
-            myItem.draw()  # your text, image, movie, ...
+            myItem.draw()  
             myRatingScale.draw()
             myWin.flip()
         rating = myRatingScale.getRating()
         decisionTime = myRatingScale.getRT()
     
+    **Example 2.**::
+        The default settings should be good much of the time, but considerable customization is possible using the options.
+        E.g., for fMRI, if your in-scanner response box sends keys 1-5, you could use custom left, right, and accept keys
+        to allow key-1 = move left, key-2 = move right, and key-4 = accept the current rating:
+            myRatingScale = visual.RatingScale(myWin, markerStart=4, leftKeys='1', rightKeys = '2', acceptKeys='4')
+        
     See 'ratingScale.py' for a demo.
     
     :Author:
@@ -4912,7 +4932,8 @@ class RatingScale:
                 low=1, high=7, # the anchors
                 precision=1, # how many fractional tick to allow -- 100 = ~continuous
                 showValue=True, showScale=True, showAnchors=True, showAccept=True, # control display, True=show=on-screen
-                acceptKeys=['return'], acceptPreText='key, click', acceptText='accept?', 
+                acceptKeys=['return'], acceptPreText='key, click', acceptText='accept?',
+                leftKeys=['left'], rightKeys=['right'],
                 markerStyle='triangle', markerColor=None, markerStart=False, markerExpansion=1,
                 customMarker=None, # allow the experimenter to define a marker, and pass it here; not implemented yet
                 allowSkip=True, escapeKeys=['escape'], mouseOnly=False,
@@ -4952,6 +4973,10 @@ class RatingScale:
                 text to display before any value has been selected
             acceptText :
                 text to display in the 'accept' button after a value has been selected
+            leftKeys :
+                list of keys that mean "move leftwards", default = ['left']
+            rightKeys :
+                list of keys that mean "move rightwards", default = ['right']
             markerStyle :
                 *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
             markerColor :
@@ -5141,19 +5166,31 @@ class RatingScale:
         self.showValue = bool(showValue)
         
         # what keyboard keys are valid
-        self.respKeys = [ ] 
-        if (not mouseOnly and self.low > -1 and self.high < 10): # allow responding via numeric keys if the only options are in 0-9
-            self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
+        # what keys are allow for accepting the currently selected response:
         if mouseOnly:
             self.acceptKeys = [ ]
         else:
-            self.acceptKeys = list(acceptKeys) # what keys are allow for accepting the currently selected response
+            self.acceptKeys = list(acceptKeys) 
         self.escapeKeys = [ ]
         if allowSkip and not mouseOnly:
             if len(list(escapeKeys)) == 0:
                 self.escapeKeys = ['escape']
             else:
                 self.escapeKeys = list(escapeKeys)
+        self.leftKeys = list(leftKeys)
+        self.rightKeys = list (rightKeys)
+        
+        # allow responding via numeric keys if the response range is in 0-9:
+        self.respKeys = [ ]
+        if (not mouseOnly and self.low > -1 and self.high < 10): 
+            self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
+        # but if 0-9 was defined as an action key, that should take precedence. so disable
+        # numeric keys if they are also used for responding, eg, 1=left, 2=right, 4=accept for fMRI
+        if (set(self.respKeys).intersection(self.leftKeys + self.rightKeys +
+                                            self.acceptKeys + self.escapeKeys) == set([]) ):
+            self.enableRespKeys = True
+        else:
+            self.enableRespKeys = False
         
         # define vertices for making a ShapeStim line with tick marks:
         vertices = [[self.lineLeftEnd, self.offsetVert]] # first vertex
@@ -5381,15 +5418,15 @@ class RatingScale:
                 if key in self.escapeKeys:
                     self.markerPlacedAt = None
                     self.noResponse = False
-                if key in self.respKeys: # place the marker at the corresponding tick
+                if self.enableRespKeys and key in self.respKeys: # place the marker at the corresponding tick
                     self.markerPlaced = True
                     self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
-                    self.marker.setPos([self.displaySizeFactor * (-0.5 +
-                                                                  self.markerPlacedAt / self.tickMarks), 0])
-                if key in ['left']:
+                    self.marker.setPos([self.displaySizeFactor * 
+                                        (-0.5 + self.markerPlacedAt / self.tickMarks), 0])
+                if key in self.leftKeys:
                     if self.markerPlaced and self.markerPlacedAt > 0:
                         self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
-                if key in ['right']:
+                if key in self.rightKeys:
                     if self.markerPlaced and self.markerPlacedAt < self.tickMarks:
                         self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt + 
                                                   1. / self.autoRescaleFactor / self.precision)
