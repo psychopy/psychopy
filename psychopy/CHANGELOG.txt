@@ -23,9 +23,11 @@ PsychoPy 1.62.02
 * FIXED: bug with saving StairHandler data as .xlsx
 * ADDED: option for gui.fileOpenDlg and fileSaveDlg to receive a custom file filter
 * FIXED: builder implementation of staircases (initialisation was buggy)
-* FIXED: bugs saving staircase data as xlsx
 * FIXED: added Sound.setSound() so that sounds in builder can take new values each trial
 * FIXED: when a Routine was copied and pasted it didn't update its name properly (e.g. when inserted into the Flow it kept the origin name)
+* ADDED: MovieStim now has a setMovie() method (a copy of loadMovie())
+* FIXED: color rendering for non-shader machines using dkl,lms, and named color spaces
+* ADDED: data.QuestHandler (Thanks to Zarrar Shehzad). This is much like StairHandler but uses the QUEST routine of Watson and Pelli
 
 PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~
