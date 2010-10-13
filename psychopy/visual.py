@@ -4716,17 +4716,17 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                data.shape[0],data.shape[1], 0,
+                data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                 pixFormat, dataType, texture)
         else:#use glu
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
             GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                data.shape[0],data.shape[1], pixFormat, dataType, texture)          
+                data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
     else:
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                        data.shape[0],data.shape[1], 0,
+                        data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                         pixFormat, dataType, texture)
         
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
