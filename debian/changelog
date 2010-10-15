@@ -3,6 +3,7 @@ psychopy (1.62.01-38-g0e705c4.dfsg-1) UNRELEASED; urgency=low
   * New upstream snapshot to validate upcoming release
   * Converted into quilt (3.0) sources format -- two patches
     to upstream DFSG-ed sources are created
+  * Elaborated dfsg rule of debian/rules
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 13 Oct 2010 14:08:24 -0400
 
