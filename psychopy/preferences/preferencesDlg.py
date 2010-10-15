@@ -31,7 +31,7 @@ class PreferencesDlg(wx.Dialog):
                     prefsSection=self.prefsCfg[sectionName],
                     specSection = self.prefsSpec[sectionName])
             self.nb.AddPage(prefsPage, sectionName)
-        sizer.Add(self.nb)
+        sizer.Add(self.nb,1, wx.EXPAND)
         
         #create buttons
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
@@ -60,9 +60,10 @@ class PreferencesDlg(wx.Dialog):
         btnsizer.AddButton(btn)
         btnsizer.Realize()
         #add buttons to dlg
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(btnsizer, 0, wx.BOTTOM|wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
+        self.SetAutoLayout(True)
         sizer.Fit(self)
     def onHelp(self, event=None):
         """Uses self.app.followLink() and app/urls.py to go to correct url
@@ -98,7 +99,7 @@ class PreferencesDlg(wx.Dialog):
             vertBox.Add(ctrlSizer)
         #size the panel and setup scrolling
         panel.SetSizer(vertBox)
-        panel.SetAutoLayout(1)
+        panel.SetAutoLayout(True)
         panel.SetupScrolling()
         return panel
     def setPrefsFromCtrls(self):
