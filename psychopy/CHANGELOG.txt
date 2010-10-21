@@ -28,6 +28,7 @@ PsychoPy 1.62.02
 * ADDED: MovieStim now has a setMovie() method (a copy of loadMovie())
 * FIXED: color rendering for non-shader machines using dkl,lms, and named color spaces
 * ADDED: data.QuestHandler (Thanks to Zarrar Shehzad). This is much like StairHandler but uses the QUEST routine of Watson and Pelli
+* CHANGED: TextStim orientation now goes the other way, for consistency with other stimuli (thanks Manuel Spitschan)
 
 PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~

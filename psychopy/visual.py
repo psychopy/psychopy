@@ -4011,7 +4011,7 @@ class TextStim(_BaseVisualStim):
         #scale and rotate
         prevScale = win.setScale(self._winScale)#to units for translations
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
-        GL.glRotatef(self.ori,0.0,0.0,1.0)
+        GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
         
         if self._useShaders: #then rgb needs to be set as glColor
