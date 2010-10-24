@@ -1578,7 +1578,7 @@ class DotStim(_BaseVisualStim):
             self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
 
-class SimpleImageStim(_BaseVisualStim):
+class SimpleImageStim:
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
     
@@ -1644,8 +1644,7 @@ class SimpleImageStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
-        #self.setImage(image)
-        self._new_setImage(image) # JRG
+        self.setImage(image)
         
         #flip if necess
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
@@ -1736,49 +1735,34 @@ class SimpleImageStim(_BaseVisualStim):
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
-        if filename!=None:
-            self.filename=filename
-        if os.path.isfile(self.filename):
-            im = Image.open(self.filename)
-            im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        else:
-            log.error("couldn't find image...%s" %(filename))
-            core.quit()
-            raise #so thatensure we quit
-        self.size=im.size
-        #set correct formats for bytes/floats
-        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
-        self.internalFormat = GL.GL_RGB      
-        if self._useShaders:            
-            self.dataType = GL.GL_FLOAT
-        else:
-            self.dataType = GL.GL_UNSIGNED_BYTE
-            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
-        self._needStrUpdate=True
-    def _new_setImage(self, filename=None):
-        itsaFile = True # just a guess at this point
-        try:
-            os.path.isfile(filename)
-        except TypeError: # its not a file; maybe an image already?
-            try: 
-                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
-                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
-            except AttributeError: # ...but apparently not
-                log.error("couldn't find image...%s" %(filename))
-                core.quit()
-                raise #ensure we quit
-            self.filename = repr(filename) #'<Image.Image image ...>'
-            itsaFile = False
-        if itsaFile:
-            if filename!=None:
+        """Set the image to be drawn.
+        
+        :Parameters:
+            - filename: 
+                The filename, including relative or absolute path if necessary.
+                Can actually also be an image loaded by PIL.
+                
+        """
+        if type(filename) in [str, unicode]: 
+        #is a string - see if it points to a file
+            if os.path.isfile(filename):
                 self.filename=filename
-            if os.path.isfile(self.filename):
                 im = Image.open(self.filename)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
                 log.error("couldn't find image...%s" %(filename))
                 core.quit()
                 raise #so thatensure we quit
+        else:
+        #not a string - have we been passed an image?
+            try: 
+                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            self.filename = repr(filename) #'<Image.Image image ...>'
+
         self.size = im.size
         #set correct formats for bytes/floats
         self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
