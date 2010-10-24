@@ -1333,7 +1333,7 @@ class DotStim(_BaseVisualStim):
         self._dotSizeRendered=None
         self._speedRendered=None
         self._fieldSizeRendered=None
-        self._fieldPosRendered=None        
+        self._fieldPosRendered=None
         
         self._useShaders=False#not needed for dots?
         self.colorSpace=colorSpace
@@ -1549,14 +1549,14 @@ class DotStim(_BaseVisualStim):
             dead = dead+(~self._signalDots)#just create new ones  
             
         #handle boundaries of the field
-        if self.fieldShape in  ['square', 'sqr']:
-            dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2.0) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2.0)
+        if self.fieldShape in  [None, 'square', 'sqr']:
+            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize/2.0))+(numpy.abs(self._dotsXY[:,1])>(self.fieldSize/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
-
-#        update any dead dots
+        
+        #update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
             
