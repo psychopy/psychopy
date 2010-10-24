@@ -149,20 +149,7 @@ class Window:
         self.size = numpy.array(size, numpy.int)
         self.pos = pos    
         self.winHandle=None#this will get overridden once the window is created
-        
-        self.colorSpace=colorSpace
-        if rgb!=None:
-            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
-        elif dkl!=None:
-            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
-        elif lms!=None:
-            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
-        else:
-            self.setColor(color, colorSpace=colorSpace)
-            
+                    
         self._defDepth=0.0
         
         #settings for the monitor: local settings (if available) override monitor
@@ -240,7 +227,7 @@ class Window:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
         
-        #color conversions
+        #load color conversion matrices
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
             self.dkl_rgb=dkl_rgb
@@ -249,7 +236,21 @@ class Window:
         if lms_rgb!=None:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
-        
+                
+        #set screen color
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(dkl, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(lms, colorSpace='lms')
+        else:
+            self.setColor(color, colorSpace=colorSpace)
+            
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
             log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
@@ -4792,16 +4793,24 @@ def _setColor(self, color, colorSpace=None, operation='',
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
         exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
+    #get window (for color conversions)
+    if colorSpace in ['dkl','lms']: #only needed for these spaces
+        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
+        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        else:
+            print hasattr(self,'dkl_rgb'), dir(self)
+            win=None
+            log.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
     if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
-        if numpy.all(self.win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
-        else: dkl_rgb=self.win.dkl_rgb
+        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
+        else: dkl_rgb=win.dkl_rgb
         setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms': 
-        if numpy.all(self.win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
-        else: lms_rgb=self.win.lms_rgb
+        if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
+        else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     else: log.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
