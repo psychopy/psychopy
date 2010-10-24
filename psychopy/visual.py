@@ -3383,6 +3383,7 @@ class MovieStim(_BaseVisualStim):
         self.win = win
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
+        self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
         self.loadMovie( self.filename )
@@ -3442,12 +3443,15 @@ class MovieStim(_BaseVisualStim):
         duration (in seconds).
         """
         try: 
-            self._movie = pyglet.media.load( filename, streaming=True)
+            self._movie = pyglet.media.load(filename, streaming=True)
         except pyglet.media.riff.WAVEFormatException:
             raise '\navbin has not been installed and is needed to play movies. \nPlease fetch/install it from http://code.google.com/p/avbin/'
         self._player.queue(self._movie)
         self.duration = self._movie.duration
-        #self._player.on_eos=self.onEOS #doesn't seem to work
+        while self._player.source!=self._movie:
+            self._player.next()
+        self.playing=NOT_STARTED
+        self.filename=filename
 
     def pause(self):
         """Pause the current point in the movie (sound will stop, current frame
@@ -3474,7 +3478,7 @@ class MovieStim(_BaseVisualStim):
         movie will be determined automatically.
         
         This method should be called on every frame that the movie is meant to appear"""
-        if self.playing==NOT_STARTED:#haven't started yet, so start
+        if self.playing in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
         #set the window to draw to
         if win==None: win=self.win
@@ -3509,11 +3513,10 @@ class MovieStim(_BaseVisualStim):
                 height=self._sizeRendered[1]*flipBitY,
                 z=thisDepth)        
         GL.glPopMatrix()
+    
+    def _onEos(self):        
+        self.playing=FINISHED
         
-    def on_eos(self):
-        #not called, for some reason?!
-        self.playing=-1
-
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
