@@ -149,20 +149,7 @@ class Window:
         self.size = numpy.array(size, numpy.int)
         self.pos = pos    
         self.winHandle=None#this will get overridden once the window is created
-        
-        self.colorSpace=colorSpace
-        if rgb!=None:
-            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
-        elif dkl!=None:
-            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
-        elif lms!=None:
-            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
-        else:
-            self.setColor(color, colorSpace=colorSpace)
-            
+                    
         self._defDepth=0.0
         
         #settings for the monitor: local settings (if available) override monitor
@@ -240,7 +227,7 @@ class Window:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
         
-        #color conversions
+        #load color conversion matrices
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
             self.dkl_rgb=dkl_rgb
@@ -249,7 +236,21 @@ class Window:
         if lms_rgb!=None:
             self.lms_rgb=lms_rgb
         else: self.lms_rgb = None
-        
+                
+        #set screen color
+        self.colorSpace=colorSpace
+        if rgb!=None:
+            log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(rgb, colorSpace='rgb')
+        elif dkl!=None:
+            log.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(dkl, colorSpace='dkl')
+        elif lms!=None:
+            log.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            self.setColor(lms, colorSpace='lms')
+        else:
+            self.setColor(color, colorSpace=colorSpace)
+            
         #check whether FBOs are supported
         if blendMode=='add' and not haveFB:
             log.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
@@ -1332,7 +1333,7 @@ class DotStim(_BaseVisualStim):
         self._dotSizeRendered=None
         self._speedRendered=None
         self._fieldSizeRendered=None
-        self._fieldPosRendered=None        
+        self._fieldPosRendered=None
         
         self._useShaders=False#not needed for dots?
         self.colorSpace=colorSpace
@@ -1548,14 +1549,14 @@ class DotStim(_BaseVisualStim):
             dead = dead+(~self._signalDots)#just create new ones  
             
         #handle boundaries of the field
-        if self.fieldShape in  ['square', 'sqr']:
-            dead = dead+ (numpy.abs(self._dotsXY[:,0])>self.fieldSize[0]/2.0) + (numpy.abs(self._dotsXY[:,1])>self.fieldSize[1]/2.0)
+        if self.fieldShape in  [None, 'square', 'sqr']:
+            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize/2.0))+(numpy.abs(self._dotsXY[:,1])>(self.fieldSize/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check 
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
-
-#        update any dead dots
+        
+        #update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
             
@@ -1577,7 +1578,7 @@ class DotStim(_BaseVisualStim):
             self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
             self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
 
-class SimpleImageStim(_BaseVisualStim):
+class SimpleImageStim:
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
     
@@ -1643,8 +1644,7 @@ class SimpleImageStim(_BaseVisualStim):
         self.contrast = float(contrast)
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
-        #self.setImage(image)
-        self._new_setImage(image) # JRG
+        self.setImage(image)
         
         #flip if necess
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
@@ -1735,49 +1735,34 @@ class SimpleImageStim(_BaseVisualStim):
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
-        if filename!=None:
-            self.filename=filename
-        if os.path.isfile(self.filename):
-            im = Image.open(self.filename)
-            im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        else:
-            log.error("couldn't find image...%s" %(filename))
-            core.quit()
-            raise #so thatensure we quit
-        self.size=im.size
-        #set correct formats for bytes/floats
-        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
-        self.internalFormat = GL.GL_RGB      
-        if self._useShaders:            
-            self.dataType = GL.GL_FLOAT
-        else:
-            self.dataType = GL.GL_UNSIGNED_BYTE
-            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
-        self._needStrUpdate=True
-    def _new_setImage(self, filename=None):
-        itsaFile = True # just a guess at this point
-        try:
-            os.path.isfile(filename)
-        except TypeError: # its not a file; maybe an image already?
-            try: 
-                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
-                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
-            except AttributeError: # ...but apparently not
-                log.error("couldn't find image...%s" %(filename))
-                core.quit()
-                raise #ensure we quit
-            self.filename = repr(filename) #'<Image.Image image ...>'
-            itsaFile = False
-        if itsaFile:
-            if filename!=None:
+        """Set the image to be drawn.
+        
+        :Parameters:
+            - filename: 
+                The filename, including relative or absolute path if necessary.
+                Can actually also be an image loaded by PIL.
+                
+        """
+        if type(filename) in [str, unicode]: 
+        #is a string - see if it points to a file
+            if os.path.isfile(filename):
                 self.filename=filename
-            if os.path.isfile(self.filename):
                 im = Image.open(self.filename)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
                 log.error("couldn't find image...%s" %(filename))
                 core.quit()
                 raise #so thatensure we quit
+        else:
+        #not a string - have we been passed an image?
+            try: 
+                im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            self.filename = repr(filename) #'<Image.Image image ...>'
+
         self.size = im.size
         #set correct formats for bytes/floats
         self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
@@ -3398,6 +3383,7 @@ class MovieStim(_BaseVisualStim):
         self.win = win
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
+        self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
         self.loadMovie( self.filename )
@@ -3457,12 +3443,15 @@ class MovieStim(_BaseVisualStim):
         duration (in seconds).
         """
         try: 
-            self._movie = pyglet.media.load( filename, streaming=True)
+            self._movie = pyglet.media.load(filename, streaming=True)
         except pyglet.media.riff.WAVEFormatException:
             raise '\navbin has not been installed and is needed to play movies. \nPlease fetch/install it from http://code.google.com/p/avbin/'
         self._player.queue(self._movie)
         self.duration = self._movie.duration
-        #self._player.on_eos=self.onEOS #doesn't seem to work
+        while self._player.source!=self._movie:
+            self._player.next()
+        self.playing=NOT_STARTED
+        self.filename=filename
 
     def pause(self):
         """Pause the current point in the movie (sound will stop, current frame
@@ -3489,7 +3478,7 @@ class MovieStim(_BaseVisualStim):
         movie will be determined automatically.
         
         This method should be called on every frame that the movie is meant to appear"""
-        if self.playing==NOT_STARTED:#haven't started yet, so start
+        if self.playing in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
         #set the window to draw to
         if win==None: win=self.win
@@ -3524,11 +3513,10 @@ class MovieStim(_BaseVisualStim):
                 height=self._sizeRendered[1]*flipBitY,
                 z=thisDepth)        
         GL.glPopMatrix()
+    
+    def _onEos(self):        
+        self.playing=FINISHED
         
-    def on_eos(self):
-        #not called, for some reason?!
-        self.playing=-1
-
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
@@ -3900,20 +3888,27 @@ class TextStim(_BaseVisualStim):
     def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        self.text = value
+        self.text = value        
+        
+        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+            if numpy.any(desiredRGB**2.0>1.0):
+                desiredRGB=[0.6,0.6,0.4]
+        else:
+            desiredRGB = (self.rgb*self.contrast)/255.0
         
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
-                                                       color = (self.rgb[0],self.rgb[1], self.rgb[2], self.opacity),
+                                                       color = (desiredRGB[0],desiredRGB[1], desiredRGB[2], self.opacity),
                                                        width=self._wrapWidthPix,#width of the frame  
                                                        )
             self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
         else:   
             self._surf = self._font.render(value, self.antialias,
-                                           [self.rgb[0]*127.5+127.5,
-                                            self.rgb[1]*127.5+127.5,
-                                            self.rgb[2]*127.5+127.5])
+                                           [desiredRGB[0]*255,
+                                            desiredRGB[1]*255,
+                                            desiredRGB[2]*255])
             self.width, self.height = self._surf.get_size()
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
@@ -4011,7 +4006,7 @@ class TextStim(_BaseVisualStim):
         #scale and rotate
         prevScale = win.setScale(self._winScale)#to units for translations
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
-        GL.glRotatef(self.ori,0.0,0.0,1.0)
+        GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
         
         if self._useShaders: #then rgb needs to be set as glColor
@@ -4792,16 +4787,24 @@ def _setColor(self, color, colorSpace=None, operation='',
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
         exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
+    #get window (for color conversions)
+    if colorSpace in ['dkl','lms']: #only needed for these spaces
+        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
+        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        else:
+            print hasattr(self,'dkl_rgb'), dir(self)
+            win=None
+            log.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
     if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
-        if numpy.all(self.win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
-        else: dkl_rgb=self.win.dkl_rgb
+        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
+        else: dkl_rgb=win.dkl_rgb
         setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms': 
-        if numpy.all(self.win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
-        else: lms_rgb=self.win.lms_rgb
+        if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
+        else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     else: log.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
