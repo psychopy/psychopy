@@ -1,8 +1,8 @@
-psychopy (1.62.01-38-g0e705c4.dfsg-1) UNRELEASED; urgency=low
+psychopy (1.62.02.dfsg-1) experimental; urgency=low
 
-  * New upstream snapshot to validate upcoming release
+  * New upstream release
   * Converted into quilt (3.0) sources format -- two patches
-    to upstream DFSG-ed sources are created
+    to upstream for DFSG-ed sources are created
   * Elaborated dfsg rule of debian/rules
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 13 Oct 2010 14:08:24 -0400
