@@ -19,15 +19,18 @@ PsychoPy 1.62
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: problem with RadialStim causing subsequent StextStims not to be visible
+* FIXED: problem with RadialStim causing subsequent TextStims not to be visible
 * FIXED: bug with saving StairHandler data as .xlsx
 * ADDED: option for gui.fileOpenDlg and fileSaveDlg to receive a custom file filter
 * FIXED: builder implementation of staircases (initialisation was buggy)
 * FIXED: added Sound.setSound() so that sounds in builder can take new values each trial
 * FIXED: when a Routine was copied and pasted it didn't update its name properly (e.g. when inserted into the Flow it kept the origin name)
-* ADDED: MovieStim now has a setMovie() method (a copy of loadMovie())
-* FIXED: color rendering for non-shader machines using dkl,lms, and named color spaces
+* FIXED: color rendering for stimuli on non-shader machines using dkl,lms, and named color spaces
 * ADDED: data.QuestHandler (Thanks to Zarrar Shehzad). This is much like StairHandler but uses the QUEST routine of Watson and Pelli
+* **CHANGED: TextStim orientation now goes the other way, for consistency with other stimuli (thanks Manuel Spitschan for noticing)**
+* FIXED: Problem with DotStim using 'sqr' fieldShape
+* ADDED: MovieStim now has a setMovie() method (a copy of loadMovie())
+* FIXED: problem with MovieStim.loadMovie() when a movie had already been loaded
 
 PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~
