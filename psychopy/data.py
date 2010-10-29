@@ -1050,8 +1050,8 @@ class StairHandler:
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = revIntens
-            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = self.reversalPoints[revN]
+            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = unicode(revIntens)
+            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = unicode(self.reversalPoints[revN])
         
         #trials data
         ws.cell('C1').value = 'All Intensities'
