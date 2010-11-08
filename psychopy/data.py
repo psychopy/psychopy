@@ -1319,9 +1319,9 @@ class QuestHandler(StairHandler):
     def _intensity2scale(self, intensity):
         """returns the scaled intensity level based on value of self.stepType"""
         if self.stepType=='db':
-            scaled_intensity = log10(intensity) * 20.0
+            scaled_intensity = numpy.log10(intensity) * 20.0
         elif self.stepType=='log':
-            scaled_intensity = log10(intensity)
+            scaled_intensity = numpy.log10(intensity)
         return scaled_intensity
     
     def _scale2intensity(self, scaled_intensity):
