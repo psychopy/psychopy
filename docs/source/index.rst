@@ -4,6 +4,10 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
+.. note::
+    
+    **Society for Neuroscience Meeting**: If you're going to SfN this year and want to chat with Jon Peirce either about sing or developing PsychoPy then go along to the *Debian/Neurodebian booth (#3815)*. Jon will aim to be there 11am-noon each day, and will leave contact details there if you want to meet up at other times.
+
 **Latest version**: 1.62.02 was released October 2010. See complete :doc:`changelog`
 
 **Thanks** to `CRS Ltd`_ and to the `HEA Psych Network`_ for their recent commitments of financial support for the project.

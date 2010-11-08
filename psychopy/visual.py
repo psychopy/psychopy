@@ -3042,6 +3042,7 @@ class ElementArrayStim:
         if operation=='':
             self.sizes=value    
         else: exec('self.sizes'+operation+'=value')
+        self._calcSizesRendered()
         self.needVertexUpdate=True    
         
     def setPhases(self,value,operation=''):

@@ -65,7 +65,7 @@ else:
                                       resources=resources,
                                       argv_emulation=True,
                                       site_packages=True,
-                                      packages=['wx','pyglet','pygame','OpenGL','psychopy',
+                                      packages=['wx','pyglet','pygame','OpenGL','psychopy','pytz',
                                         'scipy','matplotlib','lxml','xml','egi'],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(

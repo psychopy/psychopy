@@ -16,8 +16,16 @@ Serial ports may not work under the standalone windows installation, constantly 
 PsychoPy 1.62
 ------------------------------
 
+PsychoPy 1.62.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(github)
+
+* FIXED bug with excel output from StairHandler
+* FIXED bug in ElemetArray.setSizes()
+
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
+Released Oct 2010
 
 * FIXED: problem with RadialStim causing subsequent TextStims not to be visible
 * FIXED: bug with saving StairHandler data as .xlsx
