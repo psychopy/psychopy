@@ -4087,7 +4087,7 @@ class ShapeStim(_BaseVisualStim):
                  lineWidth=1.0,
                  lineColor=(1.0,1.0,1.0),
                  lineColorSpace='rgb',
-                 fillColor=(0.0,0.0,0.0),
+                 fillColor=None,
                  fillColorSpace='rgb',
                  vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  closeShape=True,
@@ -4109,14 +4109,14 @@ class ShapeStim(_BaseVisualStim):
                 
             lineRGB :
              
-                - (r,g,b) or [r,g,b] 
+                - (r,g,b) or [r,g,b]
                 - or a single intensity value (which will be applied to all guns).
                 
                 **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
                 
             fillRGB : 
             
-                - (r,g,b) or [r,g,b] 
+                - (r,g,b) or [r,g,b] or None
                 - or a single intensity value (which will be applied to all guns).
                 
                 **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
