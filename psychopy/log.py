@@ -25,48 +25,183 @@ can silence both by setting them to receive only CRITICAL messages, which
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-import logging
+import sys, logging, types, time
+
 _packagePath = path.split(__file__)[0]
 
 CRITICAL = logging.CRITICAL
 ERROR = logging.ERROR#40
-DATA = 35#will be a custom level to be included with every level above WARNING
+DATA = 35#will be a custom level
 WARNING = logging.WARNING#30
 INFO = logging.INFO#20
 DEBUG = logging.DEBUG#10
-
-#create links to the logging functions
-error = logging.error
-"""log.error(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.ERROR` or higher
-"""
-warning = logging.warning
-"""log.warning(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.WARNING` or higher
-"""
-info = logging.info
-"""log.info(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.INFO` or higher
-"""
-debug = logging.debug
-"""log.debug(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.DEBUG` or higher
-"""
-#NB we add our own function for data() below
-
-console = logging.StreamHandler() #create a handler for the console
-console.setFormatter(logging.Formatter('%(asctime)-s %(levelname)-8s %(message)s', '%y-%m-%d %H:%M'))
-console.setLevel(WARNING)
-#the default 'origin' of the log messages
-_rootLogger = logging.getLogger('')
-_rootLogger.addHandler(console)# add the console logger to receive all root logs
-_rootLogger.setLevel(logging.DEBUG) #the minimum to be sent
-
 #add DATA as a custom level
 logging.addLevelName(DATA, 'DATA')
+
+class _Clock:
+    #identical to core.Clock - but we can't import core into log for recurrent import issues
+    def __init__(self):
+        self.timeAtLastReset=getTime()#this is sub-millisec timer in python
+    def getTime(self):
+        return getTime()-self.timeAtLastReset
+    def reset(self, newT=0.0):
+        self.timeAtLastReset=getTime()+newT
+if sys.platform == 'win32':
+    getTime = time.clock
+else:
+    getTime = time.time
+global defaultClock
+defaultClock = _Clock()
+
+def setDefaultClock(clock):
+    """Set the default clock to be used to reference all logging times. Must be a 
+        :ref:`psychopy.core.Clock` object. Beware that if you reset the clock during
+        the experiment then the resets will be reflected here. That might be useful
+        if you want your logs to be reset on each trial, but probably not.
+    """
+    global defaultClock
+    defaultClock = clock
+    
 def data(msg ,*args, **kwargs):
     """log.data(message) Send the message to any receiver of logging info (e.g. a LogFile) of level `log.DATA` or higher
     """
-    logging.root.log(DATA, msg, *args, **kwargs)
-    
-class LogFile:
+    psychopyLogger.log(DATA, msg, *args, **kwargs)
+
+def critical(msg, *args, **kwargs):
+    """
+    Log a message with severity 'CRITICAL' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(psychopyLogger.critical, (msg,)+args, kwargs)
+
+fatal = critical
+
+def error(msg, *args, **kwargs):
+    """
+    Log a message with severity 'ERROR' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(psychopyLogger.error, (msg,)+args, kwargs)
+
+def exception(msg, *args):
+    """
+    Log a message with severity 'ERROR' on the root logger,
+    with exception information.
+    """
+    apply(psychopyLogger.error, (msg,)+args, {'exc_info': 1})
+
+def warning(msg, *args, **kwargs):
+    """
+    Log a message with severity 'WARNING' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(psychopyLogger.warning, (msg,)+args, kwargs)
+
+warn = warning
+
+def info(msg, *args, **kwargs):
+    """
+    Log a message with severity 'INFO' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(psychopyLogger.info, (msg,)+args, kwargs)
+
+def debug(msg, *args, **kwargs):
+    """
+    Log a message with severity 'DEBUG' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(psychopyLogger.debug, (msg,)+args, kwargs)
+
+def log(level, msg, *args, **kwargs):
+    """
+    Log 'msg % args' with the integer severity 'level' on the root logger.
+    """
+    if len(psychopyLogger.handlers) == 0:
+        basicConfig()
+    apply(root.log, (level, msg)+args, kwargs)
+
+class _LogRecord(logging.LogRecord):
+    #the LogRecord is basically a class of info that can be used by the format
+    #attribute of each Handler when it receives a message to log
+    #we need to subclass it here in order to add our own info: clockTime
+    def __init__(self, name, level, pathname, lineno,
+                 msg, args, clock, exc_info, func):
+        logging.LogRecord.__init__(self,name, level, pathname, lineno,
+                 msg, args, exc_info, func)#everything but the clock - that was ours
+        if clock!=None and hasattr(clock, 'getTime'):
+            self.clockTime = clock.getTime()
+        else:
+            self.clockTime = defaultClock.getTime()#the time the log was created according to time.time()
+        
+class _Logger(logging.Logger):
+    #the logger sends the message, rather than receive it
+    #we need a subclass so that we can use our own makeRecord function with a custom Clock
+    """this Logger class is adapted to allow a Clock to be passed to the _log function
+    so that time can be set relative to the start of the exp
+    """
+    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, clock=None, func=None, extra=None):
+        """
+        A factory method which can be overridden in subclasses to create
+        specialized LogRecords.
+        """
+        rv = _LogRecord(name, level, fn, lno, msg, args, clock, exc_info, func)
+        if extra:
+            for key in extra:
+                if (key in ["message", "asctime"]) or (key in rv.__dict__):
+                    raise KeyError("Attempt to overwrite %r in LogRecord" % key)
+                rv.__dict__[key] = extra[key]
+        return rv    
+    def _log(self, level, msg, args, clock=None, exc_info=None, extra=None):
+        """
+        Low-level logging routine which creates a LogRecord and then calls
+        all the handlers of this logger to handle the record.
+        """
+        if logging._srcfile:
+            fn, lno, func = self.findCaller()
+        else:
+            fn, lno, func = "(unknown file)", 0, "(unknown function)"
+        if exc_info:
+            if type(exc_info) != types.TupleType:
+                exc_info = sys.exc_info()
+        record = self.makeRecord(self.name, level, fn, lno, msg, args, exc_info, clock, func, extra)
+        self.handle(record)
+class _StreamHandler(logging.StreamHandler):
+    #subclass the StreamHandler in order to rewrite emit for non-flushing   
+    def emit(self, record):
+        """
+        Emit a record.
+
+        If a formatter is specified, it is used to format the record.
+        The record is then written to the stream with a trailing newline
+        [N.B. this may be removed depending on feedback]. If exception
+        information is present, it is formatted using
+        traceback.print_exception and appended to the stream.
+        """
+        try:
+            msg = self.format(record)
+            fs = "%s\n"
+            if not hasattr(types, "UnicodeType"): #if no unicode support...
+                self.stream.write(fs % msg)
+            else:
+                try:
+                    self.stream.write(fs % msg)
+                except UnicodeError:
+                    self.stream.write(fs % msg.encode("UTF-8"))
+            #self.flush()#this is the only change from logging.StreamHandler
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
+            
+class LogFile(_StreamHandler):
     """Creates an object to help with logging events to a file"""
+    #this is adapted from logging.FileHandler to allow non-flushing emit
     def __init__(self, filename, 
                        filemode = 'a', level=INFO,
                        format = '%(asctime)-s %(levelname)-8s %(message)s', 
@@ -78,24 +213,15 @@ class LogFile:
             - format = a string defining the format of messages
             - datefmt = a string specifying just the date part of the message
         """
-        self._log = logging.FileHandler(filename, filemode)
+        self._file = open(filename, filemode)        
+        _StreamHandler.__init__(self, self._file)
         #~ self._log = logging.basicConfig(level=level,
                     #~ format=format, datefmt=datefmt,
                     #~ filename=filename, filemode=filemode)
-        self._log.setLevel(level)
+        self.setLevel(level)
         formatter = logging.Formatter(format, dateFormat)
-        self._log.setFormatter(formatter)
-        _rootLogger.addHandler(self._log)
-    def setLevel(self, level):
-        """Sets the current level for this log (numerically)
-        The values correspond to:
-        
-            - 40:Error
-            - 35 Data
-            - 30:Warning
-            - 20:Info
-            - 10:Debug"""
-        self._log.setLevel(level)
+        self.setFormatter(formatter)
+        psychopyLogger.addHandler(self)
     def getLevel(self):
         """Returns the current level for this log (numerically)
         The values correspond to:
@@ -106,15 +232,36 @@ class LogFile:
             - 20:Info
             - 10:Debug
             """
-        return self._log.level        
+        return self.level
     def write(self, text):
         """Write arbitrary text to the logfile (and no other file).
         Consider using functions like `psychopy.log.info` instead, to write 
         the message to all logfiles of a given level.
+        
+        .. Note::
+            
+            write() will likely be flushed immediately, whereas loggin messages aren't.
+            That means that write() messages sent after the other logging methods
+            might appear before it in the file!
         """
-        self._log.stream.write(text)
+        self._file.write(text)
     def writeline(self, text):
         """As `LogFile.write` but adds a \n at the end of the text
         """
-        self._log.stream.write(text+'\n')
+        self._file.write(text+'\n')    
+    def close(self):
+        """
+        Closes the stream.
+        """
+        self.flush()
+        self.stream.close()
+        _StreamHandler.close(self)
 #psychopyLog = LogFile('psychopy.log', 'a', level=ERROR)
+
+console = _StreamHandler() #create a handler for the console
+console.setFormatter(logging.Formatter('%(clockTime)0.3f:\t%(levelname)-8s\t%(message)s', '%y-%m-%d %H:%M'))
+console.setLevel(WARNING)
+#the default 'origin' of the log messages
+psychopyLogger = _Logger(name='PsychoPy',level=DEBUG)
+psychopyLogger.addHandler(console)# add the console logger to receive all root logs
+psychopyLogger.setLevel(logging.DEBUG) #the minimum to be sent

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from psychopy import log
+from psychopy import log, core
 
 """PsychoPy's log module is mostly a simple wrapper of the python logging module. 
 It allows messages to be sent from any location (any library or your script) and 
@@ -17,6 +17,7 @@ The importance levels are;
 So setting to DEBUG level will include all possible messages, setting to ERROR will include only the absolutely essential messages.
 
 """
+globalClock = core.Clock()#if this isn't provided the log times will reflect secs since python started
 
 log.console.setLevel(log.DEBUG)#set the console to receive all messges
 logDat = log.LogFile('lastRun.log', 
@@ -24,7 +25,7 @@ logDat = log.LogFile('lastRun.log',
     level=log.WARNING)#errors, data and warnings will be sent to this logfile
 
 #the following will go to any files with the appropriate minimum level set
-log.info('Something fairly unimportant')
+log.info('Something fairly unimportant', clock=globalClock)
 log.data('something about our data. Data is likely very important!')
 log.warning('Should certainly be turned on while working on your experiment - highlights possible flaws in code/design')
 log.error("You might have done something that PsychoPy can't handle! But hopefully this gives you some idea what.")
