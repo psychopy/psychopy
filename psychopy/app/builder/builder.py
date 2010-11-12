@@ -225,10 +225,21 @@ class FlowPanel(wx.ScrolledWindow):
             elif event.RightDown():
                 x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
-                if len(icons):
-                    self._menuComponentID=icons[0]
-                    self.showContextMenu(self._menuComponentID,
-                        xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
+                comp=None
+                for thisIcon in icons:#might intersect several and only one has a callback
+                    if thisIcon in self.componentFromID:
+                        #loop through comps looking for Routine, or a Loop if no routine
+                        thisComp=self.componentFromID[thisIcon]
+                        if thisComp.getType() in ['StairHandler', 'TrialHandler']:
+                            comp=thisComp#use this if we don't find a routine
+                            icon=thisIcon
+                        if thisComp.getType() == 'Routine':
+                            comp=thisComp
+                            icon=thisIcon
+                            break#we've found a Routine so stop looking
+                self._menuComponentID=icon
+                self.showContextMenu(self._menuComponentID,
+                    xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif self.mode=='routine':
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
