@@ -128,10 +128,10 @@ class FlowPanel(wx.ScrolledWindow):
             menu.Append( id, routine )
             self.routinesFromID[id]=routine
             wx.EVT_MENU( menu, id, self.onInsertRoutineSelect )
-        menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         btnPos = self.btnInsertRoutine.GetRect()
         menuPos = (btnPos[0], btnPos[1]+btnPos[3])
         self.PopupMenu( menu, menuPos )
+        menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         menu.Destroy() # destroy to avoid mem leak
     def onInsertRoutineSelect(self,event):
         """User has selected a routine to be entered so bring up the entrypoint marker
