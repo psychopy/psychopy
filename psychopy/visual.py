@@ -289,7 +289,7 @@ class Window:
         
         self.recordFrameIntervals=False
         self.frameIntervals=[]
-        
+        self._logStack=[]
         
         if self.useNativeGamma:
             log.info('Using gamma table of operating system')
@@ -309,7 +309,8 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-            
+        
+    
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether frames
         are being dropped. Set this to False while the screen is not being updated
@@ -363,7 +364,18 @@ class Window:
         #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
-    
+    def logOnFlip(self,msg,level,obj=None):
+        """Send a log message that should be time-stamped at the next .flip()
+        command.
+        
+        :parameters:
+            - msg: the message to be logged
+            - level: the level of importance for the message
+            - obj (optional): the python object that might be associated with this message
+                if desired
+        """
+        
+        self._logStack.append({'msg':msg,'level':level,'obj':copy.copy(obj)})
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -410,16 +422,7 @@ class Window:
                 pygame.event.pump()#keeps us in synch with system event queue
             else:
                 core.quit()#we've unitialised pygame so quit
-                
-        if self.recordFrameIntervals:
-            self.frames +=1
-            now = core.getTime()
-            deltaT = now - self.lastFrameT; self.lastFrameT=now                
-            self.frameIntervals.append(deltaT)
-            
-            if deltaT>self._refreshThreshold:
-                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT))
-                    
+                                    
         #rescale/reposition view of the window
         if self.viewScale != None:
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -446,13 +449,30 @@ class Window:
         else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
         
+        #waitBlanking
         if self.waitBlanking:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0,0,0,0)
             GL.glVertex2i(10,10)
             GL.glEnd()
             GL.glFinish()
-
+            
+        #get timestamp
+        now = log.defaultClock.getTime()
+        if self.recordFrameIntervals:
+            self.frames +=1            
+            deltaT = now - self.lastFrameT; self.lastFrameT=now                
+            self.frameIntervals.append(deltaT)
+            
+            if deltaT>self._refreshThreshold:
+                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+        
+        #log events
+        for logEntry in self._logStack:
+            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
+            log.log(logEntry['level'], logEntry['msg'], t=now, obj=logEntry['obj'])
+        self._logStack = []
+            
     def update(self):
         """Deprecated: use Window.flip() instead        
         """
