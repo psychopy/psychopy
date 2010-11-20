@@ -13,22 +13,22 @@ dotPatch = visual.DotStim(myWin, color=[1,1,1],
                         noiseDots='direction', #do the noise dots follow random- 'walk', 'direction', or 'position'
                         fieldPos=[0.0,0.0], nDots=40, fieldSize=3,
                         speed=0.05, fieldShape='circle', coherence=0.5,
-                        element = myDotShape)
+                        element = myDotShape, name='dotPatch')
 message = visual.TextStim(myWin,text='Hit Q to quit',
-                                   pos=(0,-5))
-                                   
+                                   pos=(0,-5), name='Instructions')
+                                 
 trialClock = core.Clock()
 t = lastFPSupdate = 0
+dotPatch.setAutoDraw(True)#always draw
+message.setAutoDraw(True)#always draw
+
 while t<60:#quits after 20 secs
     t=trialClock.getTime()
-    dotPatch.draw()	
-    message.draw()
     myWin.flip()#redraw the buffer
     
     #handle key presses each frame
     for key in event.getKeys():
         if key in ['escape','q']:
-            print myWin.fps()
             myWin.close()
             core.quit()
             
