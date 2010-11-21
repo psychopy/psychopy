@@ -1249,28 +1249,34 @@ class _BaseVisualStim:
         if self.units in ['norm','pix']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-    def setAutoDraw(self, val, autoLog=True):
+    def setAutoDraw(self, val):
         """Add or remove a stimulus from the list of stimuli that will be 
         automatically drawn on each flip
         
         :parameters:
             - val: True/False
                 True to add the stimulus to the draw list, False to remove it
-            - autoLog: True/False
-                Log the fact that the stimulus has been started/stopped (log 
-                entry will reflect the time the relevant flip occurs)
         """
         beingDrawn = (self in self.win._toDraw)
         if val == beingDrawn:
             return #nothing to do
         elif val:
             self.win._toDraw.append(self)
-            if autoLog: self.win.logOnFlip(msg=u"Started presenting %s" %self.name, 
+            if self.autoLog: self.win.logOnFlip(msg=u"Started presenting %s" %self.name, 
                 level=log.EXP, obj=self)
         elif val==False:
             self.win._toDraw.remove(self)
-            if log: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name, 
+            if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name, 
                 level=log.EXP, obj=self)
+    def setAutoLog(self,val=True):
+        """Turn on (or off) autoLogging for this stimulus.
+        
+        :parameters:
+            - val: True (default) or False
+                
+        """
+        self.autoLog=val
+        
 class DotStim(_BaseVisualStim):
     """
     This stimulus class defines a field of dots with an update rule that determines how they change
