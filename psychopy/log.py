@@ -212,6 +212,10 @@ class _Logger:
 root = _Logger()
 console = LogFile()
 
+def flush(logger=root):
+    """Send current messages in the log to all targets
+    """
+    logger.flush()
 def data(msg, t=None, obj=None):
     """log.data(message) 
     Send the message to any receiver of logging target (e.g. a LogFile) of level `log.DATA` or higher
