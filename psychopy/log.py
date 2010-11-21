@@ -5,11 +5,11 @@ generate more using the functions in this module.
 
 There are various levels for logged messages with the following order of
 importance; 
-    ERROR, DATA, EXP, WARNING, INFO and DEBUG. 
+    ERROR, WARNING, DATA, EXP, INFO and DEBUG. 
 When setting the level for a particular log target (e.g. LogFile)
 the  user can set the minimum level that is required 
 for messages to enter the log. For example, setting a level of INFO will
-result in INFO, WARNING, EXP, DATA and ERROR messages to be recorded but not DEBUG 
+result in INFO, EXP, DATA, WARNING and ERROR messages to be recorded but not DEBUG 
 messages.
 
 By default, PsychoPy will record messages of WARNING level and above to
@@ -36,10 +36,10 @@ _packagePath = path.split(__file__)[0]
 CRITICAL = 50
 FATAL = CRITICAL
 ERROR = 40
-DATA = 35#will be a custom level
-EXP = 32#info about the experiment might be less important that data info?
 WARNING = 30
 WARN = WARNING
+DATA = 25#will be a custom level
+EXP = 22#info about the experiment might be less important than data info?
 INFO = 20
 DEBUG = 10
 NOTSET = 0
@@ -106,7 +106,7 @@ defaultClock = _Clock()
 
 def setDefaultClock(clock):
     """Set the default clock to be used to reference all logging times. Must be a 
-        :ref:`psychopy.core.Clock` object. Beware that if you reset the clock during
+        :class:`psychopy.core.Clock` object. Beware that if you reset the clock during
         the experiment then the resets will be reflected here. That might be useful
         if you want your logs to be reset on each trial, but probably not.
     """
