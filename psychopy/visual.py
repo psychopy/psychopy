@@ -4988,6 +4988,7 @@ class RatingScale:
     Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
     
     **Example 1.**::
+    
         myItem = <create your text, image, movie, ...>
         myRatingScale = visual.RatingScale(myWin)
         while myRatingScale.noResponse:
@@ -4997,10 +4998,12 @@ class RatingScale:
         rating = myRatingScale.getRating()
         decisionTime = myRatingScale.getRT()
     
-    **Example 2.**::
+    **Example 2.**:
+    
         The default settings should be good much of the time, but considerable customization is possible using the options.
         E.g., for fMRI, if your in-scanner response box sends keys 1-5, you could use custom left, right, and accept keys
-        to allow key-1 = move left, key-2 = move right, and key-4 = accept the current rating:
+        to allow key-1 = move left, key-2 = move right, and key-4 = accept the current rating::
+        
             myRatingScale = visual.RatingScale(myWin, markerStart=4, leftKeys='1', rightKeys = '2', acceptKeys='4')
         
     See 'ratingScale.py' for a demo.
@@ -5037,6 +5040,7 @@ class RatingScale:
                 portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
                 
                 .. note:: left/right arrow keys will move the marker by one portion of a tick.
+                    
             showValue :
                 show the subject their currently selected number, default = True
             showScale :
@@ -5044,11 +5048,12 @@ class RatingScale:
             showAnchors :
                 show the two end points of the scale (low, high), default = True
             showAccept :
-                show the button to click to accept the current value by using the mouse, default = True
-                               
+                show the button to click to accept the current value by using the mouse, default = True  
+                 
                 .. note:: 
                     If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
                     to give the subject a way to respond. Better to avoid this situation.
+                    
             acceptKeys :
                 list of keys that mean "accept the current response", default = ['return']
             acceptPreText :
@@ -5072,15 +5077,18 @@ class RatingScale:
             escapeKeys :
                 list of keys the subject can use to skip a response, default = ['escape']
                 
-                .. note:: to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
+                .. note:: 
+                    to require a response to every item, use allowSkip=False rather than an empty escapeKeys list
+                    
             mouseOnly :
                 require the subject use the mouse only (no keyboard), default = False. can be used to avoid competing 
                 with other objects for keyboard input.
                 
                 .. note::
-                mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
-                similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
-                mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
+                    mouseOnly=True and showAccept=False is a bad combination, so showAccept wins (mouseOnly reset to False);
+                    similarly, mouseOnly and allowSkip can conflict, because skipping an item is done via key press (mouseOnly wins)
+                    mouseOnly=True is helpful if there will be something else on the screen expecting keyboard input
+
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display (not just the line length)
             offsetVert :
@@ -5091,9 +5099,9 @@ class RatingScale:
                 multiplicative factor for stretching (or compressing) the scale horizontally; 3 -> use the whole window
             minTime :
                 number of seconds that must elapse before a reponse can be accepted, default = 1.0s
-                
+                                
                 .. note:: to enforce a max response time (upper limit), just present the ratingScale for that long
-            
+                
             name : string
                 The name of the object to be using during logged messages about 
                 this stim 

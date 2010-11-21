@@ -30,6 +30,7 @@ class LS100:
     :parameters:
         
         port: string
+        
             the serial port that should be checked
         
         maxAttempts: int 
@@ -42,6 +43,7 @@ class LS100:
         
         Various messages are printed to the log regarding the function of this device, 
         but to see them you need to set the printing of the log to the correct level::
+        
             from psychopy import log
             log.console.setLevel(log.ERROR)#error messages only
             log.console.setLevel(log.INFO)#will give a little more info

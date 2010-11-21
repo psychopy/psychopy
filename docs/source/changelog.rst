@@ -22,6 +22,9 @@ PsychoPy 1.62.03
 
 * FIXED bug with excel output from StairHandler
 * FIXED bug in ElemetArray.setSizes()
+* FIXED bug in running QuestHandler (Zarrar Shehzad)
+* CHANGED ShapeStim default fill color to be None
+* FIXED bug trying to remove a Routine from Flow when enclosed in a Loop
 
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
