@@ -14,14 +14,18 @@ You can also check the motion of the wheel with myMouse.getWheelRel()
 myWin = visual.Window((600.0,600.0), allowGUI=True)
 
 #INITIALISE SOME STIMULI
-fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,0.05),color='black')
+fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",
+        pos=(0,0), size=(0.05,0.05),color='black', autoLog=False)
 grating = visual.PatchStim(myWin,pos=(0.5,0),
                            tex="sin",mask="gauss",
                            color=[1.0,0.5,-1.0],
-                           size=(1.0,1.0), sf=(3,0))
+                           size=(1.0,1.0), sf=(3,0),
+                           autoLog=False,#because the grating will change every frame
+                           )
 myMouse = event.Mouse(win=myWin)
 message = visual.TextStim(myWin,pos=(-0.95,-0.9),alignHoriz='left',height=0.08,
-    text='left-drag=SF, right-drag=pos, scroll=ori')
+    text='left-drag=SF, right-drag=pos, scroll=ori',
+    autoLog=False)
 
 while True: #continue until keypress
     #handle key presses each frame

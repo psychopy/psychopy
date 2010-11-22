@@ -3,17 +3,40 @@
 Coder
 ================================================
 
-The easiest way to get started writing PsychoPy scripts is to look at the demos included (there's a demo menu in the Coder view). One thing to note though, is the need to tell PsychoPy about your monitor using the :ref:`monitorCenter` first. 
+You can learn to use the scripting interface to PsychoPy in several ways, and you should probably follow a combination of them. These do not teach you about Python concepts, and you are recommended also to learn about that. In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments:
 
-Below are a couple of demos that explain the code in greater detail than the demos.
+	- :ref:`concepts`: some of the logic of PsychoPy scripting
+	- :ref:`tutorials`:  walk you through the development of some semi-complete experiments
+	- demos: in the demos menu of Coder view. Many and varied
+	- use the :ref:`builder` to compile a script and see how it works
+	- check the :ref:`api` for further details
+	- ultimately go into PsychoPy and start examining the source code. It's just regular python!
 
-As you get more comfortable with the basics you will start to want the detailed info in the :doc:`../api/api` and, for the advanced, you should learn a lot from the actual source code.
+.. note::
+	
+	Before you start, tell PsychoPy about your monitor(s) using the :ref:`monitorCenter`. That way you get to use units (like degrees of visual angle) that will transfer easily to other computers.
 
-Contents:
+.. _concepts:
+
+Basic Concepts
+~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+   :glob: 
+   
+   codeStimuli
+   codeLogging
+   code*
+	
+.. _tutorials:
+
+Tutorials
+~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 2   
-   :glob:
+   :glob: 
    
-   *
+   tutor*
    
