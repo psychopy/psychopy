@@ -12,6 +12,8 @@ The importance levels are;
     40:ERROR
     35:DATA
     30:WARNING
+    25:DATA
+    22: EXP
     20:INFO
     10:DEBUG
 So setting to DEBUG level will include all possible messages, setting to ERROR will include only the absolutely essential messages.
