@@ -57,7 +57,7 @@ if platform == 'win32':
           data_files=packageData)
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
-        options=dict(py2app=dict( includes=['Tkinter','FileDialog', 'imp', 'subprocess', 'shlex',
+        options=dict(py2app=dict( includes=['Tkinter','FileDialog','tkFileDialog', 'imp', 'subprocess', 'shlex',
                                       '_elementtree', 'pyexpat',
                                       'ioLabs'],#these 2 are needed by xml, which is needed by openpyxl
                                       excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
