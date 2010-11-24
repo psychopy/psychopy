@@ -29,7 +29,7 @@ For performance purposes log files are not actually written when the log command
 
 This should only be necessary if you want to see the logged information as the experiment progresses.
 
-AUtoLogging
+AutoLogging
 ~~~~~~~~~~~~~~
 Certain events will log themselves automatically by default. For instance, visual stimuli send log messages every time one of their parameters is changed, and when autoDraw is toggled they send a message that the stimulus has started/stopped. All such log messages are timestamped with the frame flip on which they take effect. To avoid this logging, for stimuli such as fixation points that might not be critical to your analyses, or for stimuli that change constantly and will flood the logging system with messages, the autoLogging can be turned on/off at initialisation of the stimulus and can be altered afterwards with `.setAutoLog(True/False)`
 
@@ -43,7 +43,7 @@ In addition to a variety of automatic logging messages, you can create your own,
     log.log(level=log.DATA, msg='something about a response')
     log.log(level=log.INFO, msg='something less important')
 
-There are additional convenience synonyms for the above: log.warn('a warning') etc.
+There are additional convenience functions for the above: log.warn('a warning') etc.
 
 For stimulus changes you probably want the log message to be timestamped based on the frame flip (when the stimulus is next presented) rather than the time that the log message is sent::
 
