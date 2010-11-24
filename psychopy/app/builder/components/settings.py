@@ -6,7 +6,7 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'ID01', 'session':001}",units='use prefs',
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='warning', color='$[0,0,0]', colorSpace='rgb'):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
@@ -40,7 +40,7 @@ class SettingsComponent:
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 
         self.params['logging level']=Param(logging, valType='code', 
-            allowedVals=['error','warning','info','debug'],
+            allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want from the script? ('error' is fewest messages, 'debug' is most)")
     def getType(self):
         return self.__class__.__name__
