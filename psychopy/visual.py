@@ -1707,6 +1707,9 @@ class SimpleImageStim:
                 this stim 
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        #SimpleImageStim isn't actually a subclass of Base,
+        #but does need a _set method, so just use that
+        self._set=_BaseVisualStim._set
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
