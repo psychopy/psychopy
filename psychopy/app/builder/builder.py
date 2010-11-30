@@ -1887,22 +1887,6 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
-    def demosMenuUpdate(self):
-        #list available demos
-        if len(self.prefs['unpackedDemosDir'])==0:
-            return
-        demoList = glob.glob(os.path.join(self.prefs['unpackedDemosDir'],'*'))
-        demoList.sort(key=str.lower)
-        ID_DEMOS = \
-            map(lambda _makeID: wx.NewId(), range(len(demoList)))
-        self.demos={}
-        for n in range(len(demoList)):
-            self.demos[ID_DEMOS[n]] = demoList[n]
-        for thisID in ID_DEMOS:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
-            self.demosMenu.Append(thisID, shortname)
-            wx.EVT_MENU(self, thisID, self.demoLoad)
             
     def closeFrame(self, event=None, checkSave=True):
 
@@ -2174,12 +2158,11 @@ class BuilderFrame(wx.Frame):
         if dlg.ShowModal()==wx.ID_OK:
             unpackFolder = dlg.GetPath()
         else:
-            return -1#user cancelled
-        
-        # todo: check if the dir has contents!?
-        
+            return -1#user cancelled        
+        # todo: check if the dir has contents!?        
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
-        self.prefs['demosUnpacked']=unpackFolder
+        self.prefs['unpackedDemosDir']=unpackFolder
+        self.app.prefs.saveUserPrefs()
     def demoLoad(self, event=None):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir,'*.psyexp'))
@@ -2187,6 +2170,22 @@ class BuilderFrame(wx.Frame):
             print "Found no psyexp files in %s" %fileDir
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
+    def demosMenuUpdate(self):
+        #list available demos
+        if len(self.prefs['unpackedDemosDir'])==0:
+            return
+        demoList = glob.glob(os.path.join(self.prefs['unpackedDemosDir'],'*'))
+        demoList.sort(key=str.lower)
+        ID_DEMOS = \
+            map(lambda _makeID: wx.NewId(), range(len(demoList)))
+        self.demos={}
+        for n in range(len(demoList)):
+            self.demos[ID_DEMOS[n]] = demoList[n]
+        for thisID in ID_DEMOS:
+            junk, shortname = os.path.split(self.demos[thisID])
+            if shortname.startswith('_'): continue#remove any 'private' files
+            self.demosMenu.Append(thisID, shortname)
+            wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         script = self.exp.writeScript()
