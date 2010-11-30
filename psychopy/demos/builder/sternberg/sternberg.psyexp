@@ -2,7 +2,7 @@
   <Settings>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="color" val="$[0, 0, 0]" valType="str" updates="None"/>
-    <Param name="Window size (pixels)" val="[2560, 1440]" valType="code" updates="None"/>
+    <Param name="Window size (pixels)" val="[1680, 1050]" valType="code" updates="None"/>
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="False" valType="bool" updates="None"/>
@@ -65,6 +65,29 @@
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
+    <Routine name="feedback">
+      <CodeComponent name="message">
+        <Param name="Begin Experiment" val="#msg variable just needs some value at start&#10;msg=''" valType="code" updates="constant"/>
+        <Param name="name" val="message" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="if resp.corr:#stored on last run routine&#10;  msg=&quot;Correct! RT=%.3f&quot; %(resp.rt)&#10;else:&#10;  msg=&quot;Oops! That was wrong&quot;" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+      </CodeComponent>
+      <TextComponent name="feedback">
+        <Param name="name" val="feedback" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="text" val="$msg" valType="str" updates="set every repeat"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="duration" val="1.0" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+      </TextComponent>
+    </Routine>
     <Routine name="thanks">
       <TextComponent name="thanksMsg">
         <Param name="name" val="thanksMsg" valType="code" updates="constant"/>
@@ -79,32 +102,6 @@
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
       </TextComponent>
-    </Routine>
-    <Routine name="practInstruct">
-      <TextComponent name="instr1">
-        <Param name="name" val="instr1" valType="code" updates="constant"/>
-        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
-        <Param name="text" val="In this experiment you will be presented with a sequence of between 1 and 6 randomly ordered numbers.&#10;&#10;Following a short delay you will then be presented with a single number and you will have to decide whether this new number was a member of the sequence.&#10;&#10;Respond with the keys;&#10; - LEFT CURSOR if the number was NOT in the sequence&#10; - RIGHT CURSOR if the number WAS in the sequence&#10;&#10;There will be a number of practice trials in which you will be given feedback.  Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
-        <Param name="font" val="Arial" valType="str" updates="constant"/>
-      </TextComponent>
-      <KeyboardComponent name="OK1">
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="OK1" valType="code" updates="None"/>
-        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="store" val="last key" valType="str" updates="constant"/>
-      </KeyboardComponent>
     </Routine>
     <Routine name="mainInstruct">
       <TextComponent name="instr2">
@@ -132,28 +129,31 @@
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
-    <Routine name="feedback">
-      <CodeComponent name="message">
-        <Param name="Begin Experiment" val="#msg variable just needs some value at start&#10;msg=''" valType="code" updates="constant"/>
-        <Param name="name" val="message" valType="code" updates="None"/>
-        <Param name="Each Frame" val="" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="if resp.corr:#stored on last run routine&#10;  msg=&quot;Correct! RT=%.3f&quot; %(resp.rt)&#10;else:&#10;  msg=&quot;Oops! That was wrong&quot;" valType="code" updates="constant"/>
-        <Param name="End Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Experiment" val="" valType="code" updates="constant"/>
-      </CodeComponent>
-      <TextComponent name="feedback">
-        <Param name="name" val="feedback" valType="code" updates="constant"/>
+    <Routine name="practInstruct">
+      <TextComponent name="instr1">
+        <Param name="name" val="instr1" valType="code" updates="constant"/>
         <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
-        <Param name="text" val="$msg" valType="str" updates="set every repeat"/>
+        <Param name="text" val="In this experiment you will be presented with a sequence of between 1 and 6 randomly ordered numbers.&#10;&#10;Following a short delay you will then be presented with a single number and you will have to decide whether this new number was a member of the sequence.&#10;&#10;Respond with the keys;&#10; - LEFT CURSOR if the number was NOT in the sequence&#10; - RIGHT CURSOR if the number WAS in the sequence&#10;&#10;There will be a number of practice trials in which you will be given feedback.  Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="1.0" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
         <Param name="startTime" val="0.0" valType="code" updates="constant"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
       </TextComponent>
+      <KeyboardComponent name="OK1">
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="OK1" valType="code" updates="None"/>
+        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
     </Routine>
   </Routines>
   <Flow>
