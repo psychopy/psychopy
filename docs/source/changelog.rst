@@ -13,18 +13,28 @@ The windows version is spitting an error message on opening the app about flush 
 
 Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
 
-PsychoPy 1.62
+PsychoPy 1.63
 ------------------------------
 
-PsychoPy 1.62.03
+PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (github)
 
-* FIXED bug with excel output from StairHandler
+* **ADDED autoLog mechanism:**
+    * many more messages sent, but only written when log.flush() is called
+    * rewritten backend to logging functions to remove file-writing performance hit
+    * added autoLog, name attribute to visual stimuli
+    * added setAutoDraw() method to visual stimuli (draw every win.flip() until stopped)
+    * added logNextFlip() method to visual.Window to send a log message time-stamped to flip* FIXED bug with excel output from StairHandler
 * FIXED bug in ElemetArray.setSizes()
 * FIXED bug in running QuestHandler (Zarrar Shehzad)
 * CHANGED ShapeStim default fill color to be None
 * FIXED bug trying to remove a Routine from Flow when enclosed in a Loop
+* CHANGED default values for Builder experiment settings (minor)
+* CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
+
+PsychoPy 1.62
+------------------------------
 
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,6 +77,7 @@ Released Sept 2010
 * ADDED: trial loops in builder can now be aborted by setting someLoopName.finished=True
 * ADDED: improved timing. *Support for blocking on VBL for all platforms* (may still not work on intel integrated chips)
 * FIXED: minor bug with closing Coder windows generating spurious error messages
+* ADDED: 'allowed' parameter to gui.fileOpeNDlg and fileCloseDlg to provide custom file filters
 
 PsychoPy 1.62.00
 ~~~~~~~~~~~~~~~~~~~~~~~~

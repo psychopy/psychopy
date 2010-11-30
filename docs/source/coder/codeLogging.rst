@@ -31,6 +31,9 @@ This should only be necessary if you want to see the logged information as the e
 
 AutoLogging
 ~~~~~~~~~~~~~~
+
+**New in version 1.63.00**
+
 Certain events will log themselves automatically by default. For instance, visual stimuli send log messages every time one of their parameters is changed, and when autoDraw is toggled they send a message that the stimulus has started/stopped. All such log messages are timestamped with the frame flip on which they take effect. To avoid this logging, for stimuli such as fixation points that might not be critical to your analyses, or for stimuli that change constantly and will flood the logging system with messages, the autoLogging can be turned on/off at initialisation of the stimulus and can be altered afterwards with `.setAutoLog(True/False)`
 
 Manual methods
@@ -56,6 +59,9 @@ For stimulus changes you probably want the log message to be timestamped based o
     
 Using a custom clock for logs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**New in version 1.63.00**
+
 By default times for log files are reported as seconds after the very beginning of the script (often it takes a few seconds to initialise and import all modules too). You can set the logging system to use any given :class:`core.Clock` object (actually, anything with a `getTime()` method)::
 
     from psychopy import core, log
