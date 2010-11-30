@@ -1865,22 +1865,13 @@ class BuilderFrame(wx.Frame):
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
         
-#        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
-#        demoList.sort(key=str.lower)
-#        ID_DEMOS = \
-#            map(lambda _makeID: wx.NewId(), range(len(demoList)))
-#        self.demos={}
-#        for n in range(len(demoList)):
-#            self.demos[ID_DEMOS[n]] = demoList[n]
-#        for thisID in ID_DEMOS:
-#            junk, shortname = os.path.split(self.demos[thisID])
-#            if shortname.startswith('_'): continue#remove any 'private' files
-#            self.demosMenu.Append(thisID, shortname)
-#            wx.EVT_MENU(self, thisID, self.loadDemo)
         self.demosMenu = wx.Menu()
-        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos", 
+        #unpack demos option
+        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos...", 
             "Unpack demos to a writable location (so that they can be run)")
         wx.EVT_MENU(self, self.IDs.builderDemosUnpack, self.demosUnpack)
+        self.demosMenu.AppendSeparator()
+        self.demosMenuUpdate()#add any demos that are found in the prefs['demosUnpacked'] folder
         menuBar.Append(self.demosMenu, '&Demos')
 
         #---_help---#000000#FFFFFF--------------------------------------------------
@@ -1896,6 +1887,23 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
+    def demosMenuUpdate(self):
+        #list available demos
+        if len(self.prefs['unpackedDemosDir'])==0:
+            return
+        demoList = glob.glob(os.path.join(self.prefs['unpackedDemosDir'],'*'))
+        demoList.sort(key=str.lower)
+        ID_DEMOS = \
+            map(lambda _makeID: wx.NewId(), range(len(demoList)))
+        self.demos={}
+        for n in range(len(demoList)):
+            self.demos[ID_DEMOS[n]] = demoList[n]
+        for thisID in ID_DEMOS:
+            junk, shortname = os.path.split(self.demos[thisID])
+            if shortname.startswith('_'): continue#remove any 'private' files
+            self.demosMenu.Append(thisID, shortname)
+            wx.EVT_MENU(self, thisID, self.demoLoad)
+            
     def closeFrame(self, event=None, checkSave=True):
 
         if self.app.coder==None and sys.platform!='darwin':
@@ -2169,15 +2177,10 @@ class BuilderFrame(wx.Frame):
             return -1#user cancelled
         
         # todo: check if the dir has contents!?
-#        demoFolders = os.listdir(os.path.join(self.paths['demos'], 'builder'))
-#        for folder in demoFolders:
-#            src = os.path.join(self.paths['demos'], 'builder', folder)
-#            dst = os.path.join(unpackFolder, folder)
-#            print "copying %s \n  to %s" %(src,dst)
-#            shutil.copytree(src,dst)
-        misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         
-    def demosLoad(self, event=None):
+        misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
+        self.prefs['demosUnpacked']=unpackFolder
+    def demoLoad(self, event=None):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir,'*.psyexp'))
         if len(files)==0:
