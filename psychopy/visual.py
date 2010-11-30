@@ -1706,10 +1706,17 @@ class SimpleImageStim:
                 The name of the object to be using during logged messages about 
                 this stim 
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
-        #SimpleImageStim isn't actually a subclass of Base,
-        #but does need a _set method, so just use that
-        self._set=_BaseVisualStim._set
+        #NB most stimuli use _BaseVisualStim for the _set method and for 
+        # setting up win, name, units and autolog in __init__ but SimpleImage
+        # shares very little with _Base so we do it manually here
+        self.win=win
+        self.name=name
+        self.autoLog=autoLog        
+        #unit conversions
+        if units!=None and len(units): self.units = units
+        else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
@@ -1794,6 +1801,33 @@ class SimpleImageStim:
         GL.glMatrixMode( GL.GL_PROJECTION )					
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
+    def _set(self, attrib, val, op=''):
+        """
+        Deprecated. Use methods specific to the parameter you want to set
+        
+        e.g. ::
+        
+             stim.setPos([3,2.5])
+             stim.setOri(45)
+             stim.setPhase(0.5, "+")
+                
+        NB this method does not flag the need for updates any more - that is 
+        done by specific methods as described above.
+        """
+        if op==None: op=''
+        #format the input value as float vectors
+        if type(val) in [tuple,list]:
+            val=numpy.asarray(val,float)
+        
+        if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
+            exec('self.'+attrib+'*=0') #set all values in array to 0
+            exec('self.'+attrib+'+=val') #then add the value to array
+        else:
+            exec('self.'+attrib+op+'=val')
+        
+        if self.autoLog: 
+            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
+                level=log.EXP,obj=self)
     def setPos(self, newPos, operation='', units=None):
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
