@@ -32,6 +32,8 @@ PsychoPy 1.63.00
 * CHANGED default values for Builder experiment settings (minor)
 * CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
 * FIXED DotStim now supports a 2-element fieldSize (x,y) again
+* CHANGED phase of RadialStim to be 'sin' instead of 'cosine' at phase=0
+* FIXED rounding issue in RadialStim phase
 
 PsychoPy 1.62
 ------------------------------

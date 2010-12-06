@@ -4662,11 +4662,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = numpy.ones([res,res],numpy.float32)
         wasLum = True
     elif tex == "sin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         intensity = numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqr":#square wave (symmetric duty cycle)
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         sinusoid = numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True
@@ -4679,11 +4679,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = intensity*numpy.ones([res,1])#make 2D
         wasLum = True
     elif tex == "sinXsin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqrXsqr":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True

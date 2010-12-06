@@ -6,9 +6,9 @@ globalClock = core.Clock()
 win = visual.Window([800,800])
 #make two wedges (in opposite contrast) and alternate them for flashing
 wedge1 = visual.RadialStim(win, tex='sqrXsqr', color=1,size=1,
-    visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
+    visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=False)
 wedge2 = visual.RadialStim(win, tex='sqrXsqr', color=-1,size=1,
-    visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=True)
+    visibleWedge=[0, 45], radialCycles=4, angularCycles=8, interpolate=False)
 t=0
 rotationRate = 0.01 #revs per sec
 flashPeriod = 0.1 #seconds for one B-W cycle (ie 1/Hz)
