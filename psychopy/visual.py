@@ -2631,11 +2631,11 @@ class RadialStim(PatchStim):
         #calculate texture coordinates if angularCycles or Phase change
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
         self._textureCoords[:,0,0] = (self._angles+self._triangleWidth/2)*self.angularCycles/(2*pi)+self.angularPhase #x position of inner vertex
-        self._textureCoords[:,0,1] = -self.radialPhase #y position of inner vertex
+        self._textureCoords[:,0,1] = 0.25+-self.radialPhase #y position of inner vertex
         self._textureCoords[:,1,0] = (self._angles)*self.angularCycles/(2*pi)+self.angularPhase #x position of 1st outer vertex
-        self._textureCoords[:,1,1] = self.radialCycles-self.radialPhase#y position of 1st outer vertex
+        self._textureCoords[:,1,1] = 0.25+self.radialCycles-self.radialPhase#y position of 1st outer vertex
         self._textureCoords[:,2,0] = (self._angles+self._triangleWidth)*self.angularCycles/(2*pi)+self.angularPhase#x position of 2nd outer vertex
-        self._textureCoords[:,2,1] = self.radialCycles-self.radialPhase#y position of 2nd outer vertex
+        self._textureCoords[:,2,1] = 0.25+self.radialCycles-self.radialPhase#y position of 2nd outer vertex
         self._visibleTexture = self._textureCoords[self._visible,:,:].reshape(self._nVisible,2)
 
     def _updateMaskCoords(self):

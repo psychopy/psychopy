@@ -16,7 +16,7 @@ while t<5:#for 5 secs
     t=globalClock.getTime()
     if (t%flashPeriod) < (flashPeriod/2.0):# (NB more accurate to use number of frames)
         stim = wedge1
-    else:   
+    else:
         stim=wedge2
         
     stim.setOri(t*rotationRate*360.0)
