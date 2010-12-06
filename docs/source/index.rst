@@ -1,12 +1,8 @@
 
-PsychoPy is an open-source application to allow the presentation of stimuli and collection of data for a wide range of neuroscience, psychology and psychophysics experiments. It's a free, powerful alternative to Presentation |TM| or e-Prime |TM| . It's written in Python (a free alternative to Matlab |TM| ).
+PsychoPy is an open-source application to allow the presentation of stimuli and collection of data for a wide range of neuroscience, psychology and psychophysics experiments. It's a free, powerful alternative to Presentation |TM| or e-Prime |TM|, written in Python (a free alternative to Matlab |TM| ).
 
 News
 ====================
-
-.. note::
-    
-    **Society for Neuroscience Meeting**: If you're going to SfN this year and want to chat with Jon Peirce either about sing or developing PsychoPy then go along to the *Debian/Neurodebian booth (#3815)*. Jon will aim to be there 11am-noon each day, and will leave contact details there if you want to meet up at other times.
 
 **Latest version**: 1.62.02 was released October 2010. See complete :doc:`changelog`
 
