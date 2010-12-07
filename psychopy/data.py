@@ -341,7 +341,8 @@ class TrialHandler:
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
-            f= file(fileName+'.dlm',writeFormat)
+            if delim==',': f=file(fileName+'.csv','w')
+            else: f=file(fileName+'.dlm','w')
             
         if not matrixOnly:
             #write a header line
@@ -930,10 +931,11 @@ class StairHandler:
         #create the file or print to stdout
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.csv','.CSV']:
             f= file(fileName,'w')
         else:
-            f= file(fileName+'.dlm','w')
+            if delim==',': f=file(fileName+'.csv','w')
+            else: f=file(fileName+'.dlm','w')
             
         #write the data
         reversalStr = str(self.reversalIntensities)
