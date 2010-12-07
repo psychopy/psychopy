@@ -31,7 +31,8 @@ PsychoPy 1.63.00
 * CHANGED ShapeStim default fill color to be None
 * FIXED bug trying to remove a Routine from Flow when enclosed in a Loop
 * CHANGED default values for Builder experiment settings (minor)
-* CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
+* CHANGED ShapeStim default fillColor to None (from (0,0,0))
+* ADDED Builder experiment settings now has options to output psydat, csv, excel files
 
 PsychoPy 1.62
 ------------------------------
