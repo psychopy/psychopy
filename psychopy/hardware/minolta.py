@@ -108,6 +108,7 @@ class LS100:
             self._error("I don't know how to handle serial ports on %s" %sys.platform)
         #setup the params for PR650 comms
         if self.OK:
+            self.com.close()#not sure why this helps but on win32 it does!!
             self.com.setByteSize(7)#this is a slightly odd characteristic of the Minolta LS100
             self.com.setBaudrate(4800)
             self.com.setParity(serial.PARITY_EVEN)#none
