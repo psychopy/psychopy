@@ -944,9 +944,33 @@ class CoderFrame(wx.Frame):
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
-        self.outputWindow.write('Welcome to PsychoPy2!\n')
-        self.outputWindow.write("v%s\n" %self.app.version)
+        
+        import IPython.gui.wx.ipython_view
+        self.outputWindow = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, background_color='WHITE')
+        #turn off threading - interferes with pygame thread
+        self.outputWindow.options['threading']['value']='False'
+        self.outputWindow.IP.set_threading(False)
+        self.outputWindow.threading_option.SetValue(False)
+        #allow a write fmethod for the window
+        self.outputWindow.cout.write = self.outputWindow.text_ctrl.write
+        self.outputWindow.write = self.outputWindow.text_ctrl.write
+        #set background to white
+        self.outputWindow.options['background_color']['value']='WHITE'#this setting isn't used by __init__ apparently
+        self.outputWindow.text_ctrl.setBackgroundColor(self.outputWindow.options['background_color']['value'])
+        self.outputWindow.background_option.SetValue(True)
+        self.outputWindow.updateOptionTracker('background_color',
+                                 self.outputWindow.options['background_color']['value'])
+        #scintilla autocompletion method
+        self.outputWindow.completion_option.SetValue(True)
+        self.outputWindow.options['completion']['value']='STC'
+        self.outputWindow.text_ctrl.setCompletionMethod(self.outputWindow.options['completion']['value'])
+        self.outputWindow.updateOptionTracker('completion',
+                                 self.outputWindow.options['completion']['value'])
+        self.outputWindow.text_ctrl.SetFocus()
+        
+#        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+#        self.outputWindow.write('Welcome to PsychoPy2!\n')
+#        self.outputWindow.write("v%s\n" %self.app.version)
 
         self.paneManager.AddPane(self.outputWindow,
                                  wx.aui.AuiPaneInfo().
