@@ -1,0 +1,9 @@
+Depends: psychopy
+Tasks: debian-science/psychophysics,
+       debian-med/psychology
+Pkg-URL: http://neuro.debian.net/pkgs/%(Pkg-Name)s.html
+Published-Title: PsychoPy - Psychophysics software in Python
+Published-Authors: J. W. Peirce
+Published-In: Journal of Neuroscience Methods, 162:8-13
+Published-Year: 2007
+Published-DOI: 10.1016/j.jneumeth.2006.11.017
