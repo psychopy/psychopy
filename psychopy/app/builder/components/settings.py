@@ -7,7 +7,7 @@ class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
-                 logging='warning', color='$[0,0,0]', colorSpace='rgb', saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True):
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb', saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -16,7 +16,7 @@ class SettingsComponent:
         #params
         self.params={}
         self.order=['Show info dlg','Experiment info',
-            'Save excel file','Save csv file','Save log file','logging level',
+            'Save excel file','Save csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
@@ -74,7 +74,7 @@ class SettingsComponent:
         level=self.params['logging level'].val.upper()
         buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.%s)#this outputs to the screen, not a file\n" %(level))
         if self.params['Save log file']:
-            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
+            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.warning)\n")
         
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
