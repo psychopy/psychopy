@@ -66,7 +66,9 @@ else:
                                       argv_emulation=True,
                                       site_packages=True,
                                       packages=['wx','pyglet','pygame','OpenGL','psychopy','pytz',
-                                        'scipy','matplotlib','lxml','xml','egi'],
+                                        'scipy','matplotlib','lxml','xml',
+                                        'pp','serial','IPython',
+                                        'egi',],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(
                                       CFBundleIconFile='psychopy.icns',
