@@ -2631,11 +2631,11 @@ class RadialStim(PatchStim):
         #calculate texture coordinates if angularCycles or Phase change
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
         self._textureCoords[:,0,0] = (self._angles+self._triangleWidth/2)*self.angularCycles/(2*pi)+self.angularPhase #x position of inner vertex
-        self._textureCoords[:,0,1] = -self.radialPhase #y position of inner vertex
+        self._textureCoords[:,0,1] = 0.25+-self.radialPhase #y position of inner vertex
         self._textureCoords[:,1,0] = (self._angles)*self.angularCycles/(2*pi)+self.angularPhase #x position of 1st outer vertex
-        self._textureCoords[:,1,1] = self.radialCycles-self.radialPhase#y position of 1st outer vertex
+        self._textureCoords[:,1,1] = 0.25+self.radialCycles-self.radialPhase#y position of 1st outer vertex
         self._textureCoords[:,2,0] = (self._angles+self._triangleWidth)*self.angularCycles/(2*pi)+self.angularPhase#x position of 2nd outer vertex
-        self._textureCoords[:,2,1] = self.radialCycles-self.radialPhase#y position of 2nd outer vertex
+        self._textureCoords[:,2,1] = 0.25+self.radialCycles-self.radialPhase#y position of 2nd outer vertex
         self._visibleTexture = self._textureCoords[self._visible,:,:].reshape(self._nVisible,2)
 
     def _updateMaskCoords(self):
@@ -4662,11 +4662,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = numpy.ones([res,res],numpy.float32)
         wasLum = True
     elif tex == "sin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         intensity = numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqr":#square wave (symmetric duty cycle)
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         sinusoid = numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True
@@ -4679,11 +4679,11 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = intensity*numpy.ones([res,1])#make 2D
         wasLum = True
     elif tex == "sinXsin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         wasLum = True
     elif tex == "sqrXsqr":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:2*pi/res, 0:2*pi:2*pi/res]
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
         sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
         intensity = numpy.where(sinusoid>0, 1, -1)
         wasLum = True

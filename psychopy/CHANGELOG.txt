@@ -28,10 +28,12 @@ PsychoPy 1.63.00
     * added logNextFlip() method to visual.Window to send a log message time-stamped to flip* FIXED bug with excel output from StairHandler
 * FIXED bug in ElemetArray.setSizes()
 * FIXED bug in running QuestHandler (Zarrar Shehzad)
-* CHANGED ShapeStim default fill color to be None
 * FIXED bug trying to remove a Routine from Flow when enclosed in a Loop
 * CHANGED default values for Builder experiment settings (minor)
 * CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
+* FIXED DotStim now supports a 2-element fieldSize (x,y) again
+* CHANGED phase of RadialStim to be 'sin' instead of 'cosine' at phase=0
+* FIXED rounding issue in RadialStim phase
 
 PsychoPy 1.62
 ------------------------------

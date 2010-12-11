@@ -2163,6 +2163,7 @@ class BuilderFrame(wx.Frame):
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
+        self.demosMenuUpdate()
     def demoLoad(self, event=None):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir,'*.psyexp'))
@@ -2175,7 +2176,7 @@ class BuilderFrame(wx.Frame):
         if len(self.prefs['unpackedDemosDir'])==0:
             return
         demoList = glob.glob(os.path.join(self.prefs['unpackedDemosDir'],'*'))
-        demoList.sort(key=str.lower)
+        demoList.sort(key=lambda entry: entry.lower)
         ID_DEMOS = \
             map(lambda _makeID: wx.NewId(), range(len(demoList)))
         self.demos={}
