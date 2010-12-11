@@ -1,4 +1,6 @@
 *.txt	eol=crlf
+
+
 *.bat	eol=crlf
 *.nsi	eol=crlf
 *.py	eol=lf
