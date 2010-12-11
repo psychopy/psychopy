@@ -33,4 +33,4 @@ Units
     The default units of the window (see :doc:`../general/units`). These can be overridden by individual :doc:`components`.
 
 Logging level
-    How much detail do you want to be output to the log file, if it is being saved. The lowest level is `error`, which only outputs error messages; `warning` outputs warnings and errors; `info` outputs all info, warnings and errors; `debug` outputs all info that can be logged. This system enables the user to get a great deal of information whil generating their experiments, but then reducing this easily to just the critical information needed when actually running the study.
+    How much detail do you want to be output to the log file, if it is being saved. The lowest level is `error`, which only outputs error messages; `warning` outputs warnings and errors; `info` outputs all info, warnings and errors; `debug` outputs all info that can be logged. This system enables the user to get a great deal of information while generating their experiments, but then reducing this easily to just the critical information needed when actually running the study.
