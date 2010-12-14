@@ -69,12 +69,12 @@ class SettingsComponent:
             buff.writeIndented("if not os.path.isdir('data'):\n")
             buff.writeIndented("    os.makedirs('data')#if this fails (e.g. permissions) we will get error\n")
             if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename= 'data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+                buff.writeIndented("filename='data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
         #handle logging
         level=self.params['logging level'].val.upper()
-        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.%s)#this outputs to the screen, not a file\n" %(level))
+        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.warning)#this outputs to the screen, not a file\n")
         if self.params['Save log file']:
-            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.warning)\n")
+            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
         
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
