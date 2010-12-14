@@ -220,6 +220,7 @@ class TrialHandler:
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
+        log.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
     def _parseDataOutput(self, dataOut):
         
