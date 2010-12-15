@@ -299,7 +299,7 @@ class SoundPygame(_SoundBase):
         #get a mixer.Sound object from an array of floats (-1:1)
         
         #make stereo if mono
-        if self.isStereo and \
+        if self.isStereo==2 and \
             (len(thisArray.shape)==1 or thisArray.shape[1]<2):
             tmp = numpy.ones((len(thisArray),2))
             tmp[:,0] = thisArray
