@@ -171,7 +171,7 @@ class _Logger:
     self.targets is a list of dicts {'stream':stream, 'level':level}
     
     """
-    def __init__(self, format="%(t).3f\t%(levelname)s\t%(message)s"):
+    def __init__(self, format="%(t).4f\t%(levelname)s\t%(message)s"):
         """The string-formatted elements %(xxxx)f can be used, where
         each xxxx is an attribute of the LogEntry. 
         e.g. t, t_ms, level, levelname, message 
@@ -199,7 +199,7 @@ class _Logger:
         formatted={}#keep a dict of formatted messages - so only do the formatting once
         for target in self.targets:
             for thisEntry in self.toFlush:
-                if thisEntry.level>target.level:
+                if thisEntry.level>=target.level:
                     if not formatted.has_key(thisEntry):
                         #convert the entry into a formatted string
                         formatted[thisEntry]= self.format %thisEntry.__dict__
@@ -228,28 +228,59 @@ def critical(msg, t=None, obj=None):
     root.log(msg, level=CRITICAL, t=t, obj=obj)
 fatal = critical
 def error(msg, t=None, obj=None):
-    """log.error(message) 
+    """log.error(message)
+    
     Send the message to any receiver of logging info (e.g. a LogFile) of level `log.ERROR` or higher
     """
     root.log(msg, level=ERROR, t=t, obj=obj)
 def warning(msg, t=None, obj=None):
     """log.warning(message) 
-    Send the message to any receiver of logging info (e.g. a LogFile) of level `log.WARNING` or higher
+    
+    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.WARNING` or higher
     """
     root.log(msg, level=WARNING, t=t, obj=obj)
 warn = warning
+def data(msg, t=None, obj=None):
+    """Log a message about data collection (e.g. a key press)
+    
+    usage::
+        log.data(message)
+        
+    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.DATA` or higher
+    """
+    root.log(msg, level=DATA, t=t, obj=obj)
+def exp(msg, t=None, obj=None):
+    """Log a message about the experiment (e.g. a new trial, or end of a stimulus)
+    
+    usage::
+        log.exp(message)
+        
+    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.EXP` or higher
+    """
+    root.log(msg, level=EXP, t=t, obj=obj)
 def info(msg, t=None, obj=None):
-    """log.info(message) 
-    Send the message to any receiver of logging info (e.g. a LogFile) of level `log.INFO` or higher
+    """Log some information - maybe useful, maybe not
+    
+    usage::
+        log.info(message) 
+        
+    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.INFO` or higher
     """
     root.log(msg, level=INFO, t=t, obj=obj)
 def debug(msg, t=None, obj=None):
-    """log.debug(message) 
-    Send the message to any receiver of logging info (e.g. a LogFile) of level `log.DEBUG` or higher
+    """Log a debugging message (not likely to be wanted once experiment is finalised)
+    
+    usage::
+        log.debug(message) 
+        
+    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.DEBUG` or higher
     """
     root.log(msg, level=DEBUG, t=t, obj=obj)
-def log(level, msg, t=None, obj=None):
-    """log(level, msg, t=t, obj=obj)
+def log(msg, level, t=None, obj=None):
+    """Log a message
+    
+    usage::
+        log(level, msg, t=t, obj=obj)
     Log the msg, at a  given level on the root logger
     """
     root.log(msg, level=level, t=t, obj=obj)

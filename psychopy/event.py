@@ -43,16 +43,14 @@ def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet 
     Adds a key event to global _keyBuffer which can then be accessed as normal 
     using event.getKeys(), .waitKeys(), clearBuffer() etc... 
-    Appends a tuple with (keyname, timepressed) into the _keyBuffer""" 
-    
+    Appends a tuple with (keyname, timepressed) into the _keyBuffer"""
     keyTime=psychopy.core.getTime() #capture when the key was pressed
-
     thisKey = pyglet.window.key.symbol_string(symbol).lower()#convert symbol into key string
     #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
     thisKey = (thisKey.lstrip('_').lstrip('NUM_'),keyTime) # modified to capture time of keypress so key=(keyname,keytime)
-    
     _keyBuffer.append(thisKey)
-
+    log.data("Keypress: %s" %thisKey[0])
+    
 def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons
     if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1; label='Left'

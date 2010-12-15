@@ -474,9 +474,9 @@ class Window:
         #log events
         for logEntry in self._loLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
-            log.log(logEntry['level'], logEntry['msg'], t=now, obj=logEntry['obj'])
+            log.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
         self._loLog = []
-            
+        
     def update(self):
         """Deprecated: use Window.flip() instead        
         """
