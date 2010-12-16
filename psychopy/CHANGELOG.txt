@@ -11,8 +11,6 @@ Known issues
 ------------------
 The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
-Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
-
 PsychoPy 1.63
 ------------------------------
 
@@ -38,6 +36,7 @@ PsychoPy 1.63.00
 * FIXED DotStim now supports a 2-element fieldSize (x,y) again
 * CHANGED phase of RadialStim to be 'sin' instead of 'cosine' at phase=0
 * FIXED rounding issue in RadialStim phase
+* FIXED ElementArrayStim can now take a 2x1 input for setSizes(), setSFs(), setPhases()
 * ADDED packages to standalone distributions: pyserial, pyparallel (win32 only), parallel python (pp), IPython
 * CHANGED Builder demos are now back in the distributed package. Use >Demos>Unpack... to put them in a folder you have access to and you can then run them from the demos menu
 * FIXED bug with ShapeStim initialisation (since 1.62.02)

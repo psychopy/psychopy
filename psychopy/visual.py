@@ -2872,7 +2872,7 @@ class ElementArrayStim:
                  elementTex='sin',
                  elementMask='gauss',
                  texRes=48,
-                 name='', autolog=True):
+                 name='', autoLog=True):
         
         """
         :Parameters:
@@ -2951,9 +2951,16 @@ class ElementArrayStim:
                 The name of the objec to be using during logged messages about 
                 this stim 
                 
-        """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        """        
+        self.win=win
+        self.name=name
+        self.autoLog=autoLog
         
+        #unit conversions
+        if units!=None and len(units): self.units = units
+        else: self.units = win.units
+        if self.units=='norm': self._winScale='norm'
+        else: self._winScale='pix' #set the window to have pixels coords
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
         self.fieldShape = fieldShape
@@ -3093,7 +3100,7 @@ class ElementArrayStim:
             value = numpy.array(value, dtype=float)
         
         #check shape
-        if value.shape in [(),(1,)]:
+        if value.shape in [(),(1,),(2,)]:
             value = numpy.resize(value, [self.nElements,2])
         elif value.shape in [(self.nElements,), (self.nElements,1)]:
             value.shape=(self.nElements,1)#set to be 2D
@@ -3140,7 +3147,7 @@ class ElementArrayStim:
         if type(value) in [int, float, list, tuple]:
             value = numpy.array(value, dtype=float)
         #check shape
-        if value.shape in [(),(1,)]:
+        if value.shape in [(),(1,),(2,)]:
             value = numpy.resize(value, [self.nElements,2])
         elif value.shape in [(self.nElements,), (self.nElements,1)]:
             value.shape=(self.nElements,1)#set to be 2D
@@ -3169,7 +3176,7 @@ class ElementArrayStim:
             value = numpy.array(value, dtype=float)
         
         #check shape
-        if value.shape in [(),(1,)]:
+        if value.shape in [(),(1,),(2,)]:
             value = numpy.resize(value, [self.nElements,2])
         elif value.shape in [(self.nElements,), (self.nElements,1)]:
             value.shape=(self.nElements,1)#set to be 2D
