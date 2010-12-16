@@ -5189,8 +5189,9 @@ class RatingScale:
         # adjust the scaling around the default by setting displaySizeFactor, stretchHoriz, or both.
         # This means that the user / experimenter can just think of > 1 being expansion (and < 1 == contraction)
         # relative to the default (internal) scaling, and not worry about the internal scaling.
-        
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        self.win=win
+        self.name=name
+        self.autoLog=autoLog
         
         self.savedWinUnits = self.win.units # work in norm units, but don't mess with the user's window if not norm
         self.win.units = 'norm'
