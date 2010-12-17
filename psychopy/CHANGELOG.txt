@@ -16,7 +16,7 @@ PsychoPy 1.63
 
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(github)
+Released Dec 2010
 
 * **ADDED autoLog mechanism:**
     * many more messages sent, but only written when log.flush() is called
