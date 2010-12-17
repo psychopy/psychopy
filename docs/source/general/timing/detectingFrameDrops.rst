@@ -37,8 +37,6 @@ The simplest way to check if a frame has been dropped is to get PsychoPy to repo
     #set the log module to report warnings to the std output window (default is errors only)
     log.console.setLevel(log.WARNING)
 
-The above code will spit a warning message only if the the current frame AND the average of current and the previous frames exceed self._refreshThreshold value (often a long frame is making up for an 'apparently' brief previous frame - see below).
-
 Show me all the frame times that I recorded
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -55,11 +53,13 @@ Or you could save them to disk. A convenience function is provided for this::
 
 The above will save the currently stored frame intervals (using the default filename, 'lastFrameIntervals.log') and then clears the data. The saved file is a simple text file.
 
+At any time you can also retrieve the time of the /last/ frame flip using win.lastFrameT (the time is synchronised with log.defaultClock so it will match any logging commands that your script uses).
+
+_blockingOnVBI:
+
 'Blocking' on the VBI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You should see that most of your frame times are sitting roughly at the frame period for you monitor (with very little variability). At times you might see that frames are suddenly high, and these are most likely dropped frames. However, you might also be seeing bi-directional spikes where a very short frame is followed by a long one, with their average being the same as the nominal frame rate. This is caused by the fact that the graphics card will 'block' (wait for the frame to end before returning to the script) only if a frame is already waiting to pass through the pipeline [Straw 2008]_. 
+As of version 1.62 PsychoPy 'blocks' on the vertical blank interval meaning that, once Window.flip() has been called, no code will be executed until that flip actually takes place. The timestamp for the above frame interval measurements is taken immediately after the flip occurs. Run the timeByFrames demo in Coder to see the precision of these measurements on your system. They should be within 1ms of your mean frame interval.
 
-.. [Straw 2008] Vision egg: an open-source library for realtime visual stimulus generation. Front Neuroinformatics. 2008;2:4
-
-So, when your graphics card is easily keeping up with drawing you see no spikes at all (it always has a spare frame queued-up so always 'blocks'. When the graphics card is ''just'' keeping up it doesn't always have the back-up frame ready, so doesn't block and the result is that the frame ''looks'' very brief (it was actually displayed at the same time), but is then followed by one that ''looks'' very long. I don't think these are a problem for most experiments - when they occur during the presentation of moving dots you don't see the characteristic judder of a dropped frame. When the drawing is falling so far behind that it fails to draw within the frame you get the simple skip of a frame, which you see as a single long frame, without the short one. This is a dropped frame and IS likely to be a problem for many experiments.
+Note that Intel integrated graphics chips (e.g. GMA 945) under win32 do not sync to the screen at all and so blocking on those machines is not possible. 
