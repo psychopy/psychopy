@@ -3563,10 +3563,20 @@ class MovieStim(_BaseVisualStim):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
-        try: 
+        try:
             self._movie = pyglet.media.load(filename, streaming=True)
-        except pyglet.media.riff.WAVEFormatException:
-            raise '\navbin has not been installed and is needed to play movies. \nPlease fetch/install it from http://code.google.com/p/avbin/'
+        except Exception, e:
+            # pyglet.media.riff is N/A if avbin is available, and then
+            # actual exception would get masked with a new one for unknown
+            # (sub)module riff, thus catching any exception and tuning msg
+            # up if it has to do anything with avbin
+            estr = str(e)
+            msg = ''
+            if "avbin" in estr.lower():
+                msg = "\n         It seems that avbin was not installed correctly." \
+                      "\n         Please fetch/install it from http://code.google.com/p/avbin/."
+            raise IOError("Caught exception '%s' while loading file '%s'.%s"
+                          % (estr, filename, msg))
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         while self._player.source!=self._movie:
