@@ -83,7 +83,7 @@ Section "PsychoPy" SEC01
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir
-  StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.5.egg\psychopy\app"
+  StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.6.egg\psychopy\app"
   
   File /r "C:\python26\*.*"
   File /r "windlls\*.dll"
