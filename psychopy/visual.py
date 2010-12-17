@@ -4661,7 +4661,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         ##is it 1D?
         if tex.shape[0]==1:
             stim._tex1D=True
-            res=im.shape[1]
+            res=tex.shape[1]
         elif len(tex.shape)==1 or tex.shape[1]==1:
             stim._tex1D=True
             res=tex.shape[0]
