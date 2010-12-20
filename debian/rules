@@ -41,7 +41,7 @@ dfsg-%:
 	descr=`git describe $$branch`; \
 	dfsgtag=$${descr}.dfsg; \
 	echo "Merging $${branch} into DFSG and cleaning"; \
-	git merge --no-commit $$branch || :; \
+	git merge --no-commit -X theirs $$branch || :; \
 	git rm -f --ignore-unmatch PsychoPyBuilder/*bak \
 	  psychopy/demos/*.ttf psychopy/demos/*.mpg \
 	  psychopy/ext/*bits*.* \
