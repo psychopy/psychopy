@@ -3253,6 +3253,7 @@ class ElementArrayStim:
             self.fieldPos=value
         else:
             exec('self.fieldPos'+operation+'=value')
+        self._calcFieldCoordsRendered()
     def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
