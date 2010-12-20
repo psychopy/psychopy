@@ -38,7 +38,7 @@ dfsgrelease-%: dfsg-%
 dfsg-%:
 	@git checkout dfsg
 	branch=$(OREMOTE)$*; \
-	descr=`git describe $$branch`; \
+	descr=`git describe $$branch | sed -e 's,-,+git,'`; \
 	dfsgtag=$${descr}.dfsg; \
 	echo "Merging $${branch} into DFSG and cleaning"; \
 	git merge --no-commit -X theirs $$branch || :; \
