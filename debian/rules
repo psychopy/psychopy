@@ -53,7 +53,7 @@ dfsg-%:
 		git commit -F- -a && git tag -s -m "Autotagging DFSG version of $$descr" $$dfsgtag && \
 	echo -e "Differences between dfsg and $${branch}:\n$$diffstat"; \
 	git checkout debian && git merge $${dfsgtag} \
-	&& dch -i -v $${dfsgtag}-1 "New upstream release"
+	&& dch -v "$${dfsgtag}-1" "New upstream release"
 
 # immediately useable documentation
 #DEB_COMPRESS_EXCLUDE := .py .pdf .html .css .jpg .txt
