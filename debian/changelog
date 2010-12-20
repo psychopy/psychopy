@@ -1,3 +1,11 @@
+psychopy (1.63.00+git7-g4c22744.dfsg-1) experimental; urgency=low
+
+  * New upstream release:
+    - Few post-release commits were included since they fixed some bugs
+      and resolved EOLs and executable permissions issues in the repository
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 20 Dec 2010 12:54:22 -0500
+
 psychopy (1.62.02.dfsg-1) experimental; urgency=low
 
   * New upstream release
