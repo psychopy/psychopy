@@ -242,7 +242,7 @@ def fileOpenDlg(tryFilePath="",
             default file name, as suggested file
         prompt: string (default "Select file to open")
             can be set to custom prompts
-        allowed: string
+        allowed: string (available since v1.62.01)
             a string to specify file filters. 
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
             See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
@@ -254,7 +254,7 @@ def fileOpenDlg(tryFilePath="",
     """
     if allowed==None:
         allowed = "PsychoPy Data (*.psydat)|*.psydat|"\
-            "txt (*.txt,*.dlm)|*.txt|" \
+            "txt (*.txt,*.dlm,*.csv)|*.txt;*.dlm;*.csv|" \
             "pickled files (*.pickle, *.pkl)|*.pickle|" \
             "shelved files (*.shelf)|*.shelf|" \
             "All files (*.*)|*.*"

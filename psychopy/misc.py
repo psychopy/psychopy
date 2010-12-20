@@ -9,6 +9,7 @@ import numpy, random #this is imported by psychopy.core
 from psychopy import log
 import monitors
 
+import os, shutil
 import Image, cPickle
 #from random import shuffle #this is core python dist
 
@@ -30,6 +31,27 @@ def fromFile(filename):
     contents = cPickle.load(f)
     f.close()
     return contents
+
+def mergeFolder(src, dst, pattern=None):
+    """Merge a folder into another. 
+    
+    Existing files in dst with the same name will be overwritten. Non-existent
+    files/folders will be created.
+    
+    """
+    # dstdir must exist first
+    srcnames = os.listdir(src)
+    for name in srcnames:
+        srcfname = os.path.join(src, name)
+        dstfname = os.path.join(dst, name)
+        if os.path.isdir(srcfname):
+            if not os.path.isdir(dstfname): os.makedirs(dstfname)
+            mergeFolder(srcfname, dstfname)
+        else:
+            try:
+                shutil.copyfile(srcfname, dstfname)#copy without metadata
+            except IOError, why:
+                print why
 
 def radians(degrees):
     return degrees*numpy.pi/180.0

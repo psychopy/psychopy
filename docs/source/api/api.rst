@@ -1,4 +1,6 @@
-API (Reference)
+.. _api:
+
+Reference Manual (API)
 ==================================
 
 Contents:

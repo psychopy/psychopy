@@ -10,7 +10,7 @@ iconFile = path.join(thisFolder,'patch.png')
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='', image='sin', mask='none', sf=1, interpolate='linear',
+    def __init__(self, exp, parentName, name='', image='sin', mask='None', sf='None', interpolate='linear',
         units='window units', color='$[1,1,1]', colorSpace='rgb',
         pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
         startTime=0.0, duration=1.0):

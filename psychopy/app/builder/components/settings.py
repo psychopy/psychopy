@@ -6,8 +6,8 @@ from _base import *
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'ID01', 'session':001}",units='use prefs',
-                 logging='warning', color='$[0,0,0]', colorSpace='rgb'):
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb', saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -15,7 +15,10 @@ class SettingsComponent:
         self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
-        self.order=['Screen', 'Full-screen window','Window size (pixels)']
+        self.order=['Show info dlg','Experiment info',
+            'Save excel file','Save csv file','Save psydat file','Save log file','logging level',
+            'Monitor','Screen', 'Full-screen window','Window size (pixels)',
+            'color','colorSpace','Units',]
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint="Run the experiment full-screen (recommended)") 
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
@@ -28,20 +31,24 @@ class SettingsComponent:
             hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable)") 
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)") 
-        self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
-            hint="Name of the monitor (must match one in Monitor Center)") 
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm'],
-            hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg") 
+            hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
-            hint="Save a detailed log (more detailed than the normal data file) of the entire experiment") 
+            hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
+        self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
+            hint="Save data from loops in comma-separated-value (.csv) format for maximu portability")
+        self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
+            hint="Save data from loops in Excel (.xlsx) format")
+        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
+            hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 
         self.params['logging level']=Param(logging, valType='code', 
-            allowedVals=['error','warning','info','debug'],
-            hint="How much output do you want from the script? ('error' is fewest messages, 'debug' is most)")
+            allowedVals=['error','warning','data','exp','info','debug'],
+            hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
@@ -57,14 +64,17 @@ class SettingsComponent:
         buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")          
         buff.writeIndented("expInfo['expName']=expName\n")
         
-        if self.params['Save log file']:
+        if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
             buff.writeIndented("#setup files for saving\n")
             buff.writeIndented("if not os.path.isdir('data'):\n")
             buff.writeIndented("    os.makedirs('data')#if this fails (e.g. permissions) we will get error\n")
             if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename= 'data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
-            buff.writeIndented("logFile=open(filename+'.log', 'w')\n")
-            buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.%s)#this outputs to the screen, not a file\n" %(self.params['logging level'].val.upper()))
+                buff.writeIndented("filename='data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+        #handle logging
+        level=self.params['logging level'].val.upper()
+        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.warning)#this outputs to the screen, not a file\n")
+        if self.params['Save log file']:
+            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
         
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
@@ -82,6 +92,5 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndented("logFile.close()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

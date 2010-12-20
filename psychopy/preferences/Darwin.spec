@@ -59,6 +59,7 @@
     componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list())
+    unpackedDemosDir = string(default='')
   
 [connections]
     # the http proxy (for usage stats and auto-updating, format is 000.000.000.000:0000)

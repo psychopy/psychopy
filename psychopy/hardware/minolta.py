@@ -30,6 +30,7 @@ class LS100:
     :parameters:
         
         port: string
+        
             the serial port that should be checked
         
         maxAttempts: int 
@@ -42,6 +43,7 @@ class LS100:
         
         Various messages are printed to the log regarding the function of this device, 
         but to see them you need to set the printing of the log to the correct level::
+        
             from psychopy import log
             log.console.setLevel(log.ERROR)#error messages only
             log.console.setLevel(log.INFO)#will give a little more info
@@ -106,6 +108,7 @@ class LS100:
             self._error("I don't know how to handle serial ports on %s" %sys.platform)
         #setup the params for PR650 comms
         if self.OK:
+            self.com.close()#not sure why this helps but on win32 it does!!
             self.com.setByteSize(7)#this is a slightly odd characteristic of the Minolta LS100
             self.com.setBaudrate(4800)
             self.com.setParity(serial.PARITY_EVEN)#none

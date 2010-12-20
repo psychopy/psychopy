@@ -31,9 +31,11 @@ def makeGrating(res,
             gratType: 'sin', 'sqr', 'ramp' or 'sinXsin' (default="sin")
                 the type of grating to be 'drawn'
             contr: float (default=1.0)
-            
+                contrast of the grating
+                
         :Returns:
             a square numpy array of size resXres
+            
     """
     
     ori *= (numpy.pi/180)
