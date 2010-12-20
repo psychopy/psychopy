@@ -1,3 +1,5 @@
+.. _detectDroppedFrames:
+
 Detecting dropped frames
 --------------------------
 

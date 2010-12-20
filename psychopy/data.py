@@ -220,6 +220,7 @@ class TrialHandler:
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
+        log.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
     def _parseDataOutput(self, dataOut):
         
@@ -341,7 +342,8 @@ class TrialHandler:
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
-            f= file(fileName+'.dlm',writeFormat)
+            if delim==',': f=file(fileName+'.csv','w')
+            else: f=file(fileName+'.dlm','w')
             
         if not matrixOnly:
             #write a header line
@@ -393,7 +395,9 @@ class TrialHandler:
             f.write('\n%s\n' %strInfo)
             
         f.write("\n")
-        if f != sys.stdout: f.close()
+        if f != sys.stdout: 
+            f.close()
+            log.info('saved data to %s' %f.name)
 
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
@@ -930,10 +934,11 @@ class StairHandler:
         #create the file or print to stdout
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.csv','.CSV']:
             f= file(fileName,'w')
         else:
-            f= file(fileName+'.dlm','w')
+            if delim==',': f=file(fileName+'.csv','w')
+            else: f=file(fileName+'.dlm','w')
             
         #write the data
         reversalStr = str(self.reversalIntensities)
@@ -972,8 +977,10 @@ class StairHandler:
             
             f.write('\n%s\n' %strInfo)
             
-        f.write("\n")
-        f.close()
+        f.write("\n")        
+        if f != sys.stdout: 
+            f.close()
+            log.info('saved data to %s' %f.name)
         
     def saveAsExcel(self,fileName, sheetName=None,
                    matrixOnly=False, appendFile=True,
@@ -1050,8 +1057,8 @@ class StairHandler:
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = revIntens
-            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = self.reversalPoints[revN]
+            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = unicode(revIntens)
+            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = unicode(self.reversalPoints[revN])
         
         #trials data
         ws.cell('C1').value = 'All Intensities'
@@ -1070,6 +1077,7 @@ class StairHandler:
                 rowN+=1
 
         ew.save(filename = fileName)
+        log.info('saved data to %s' %fileName)
         
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
@@ -1083,6 +1091,7 @@ class StairHandler:
         f = open(fileName+'.psydat', "wb")
         cPickle.dump(self, f)
         f.close()
+        log.info('saved data to %s' %f.name)
         
     def printAsText(self, stimOut=[], 
                     dataOut=('rt_mean','rt_std', 'acc_raw'),
@@ -1319,9 +1328,9 @@ class QuestHandler(StairHandler):
     def _intensity2scale(self, intensity):
         """returns the scaled intensity level based on value of self.stepType"""
         if self.stepType=='db':
-            scaled_intensity = log10(intensity) * 20.0
+            scaled_intensity = numpy.log10(intensity) * 20.0
         elif self.stepType=='log':
-            scaled_intensity = log10(intensity)
+            scaled_intensity = numpy.log10(intensity)
         return scaled_intensity
     
     def _scale2intensity(self, scaled_intensity):

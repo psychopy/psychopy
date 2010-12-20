@@ -1,4 +1,4 @@
-from pyglet.gl import gl_info
+from pyglet.gl import *
 from psychopy import visual
 import sys, platform
 
@@ -30,3 +30,7 @@ extensionsOfInterest=['GL_ARB_multitexture',
     'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
 for ext in extensionsOfInterest:
     print "\t", bool(gl_info.have_extension(ext)), ext
+#also determine nVertices that can be used in vertex arrays
+maxVerts=GLint()
+glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,maxVerts)
+print '\tmax vertices in vertex array:', maxVerts.value

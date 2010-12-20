@@ -7,6 +7,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 import sys, time
 import psychopy.core, psychopy.misc
+from psychopy import log
 import string, numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
@@ -42,29 +43,30 @@ def _onPygletKey(symbol, modifiers):
     """handler for on_key_press events from pyglet 
     Adds a key event to global _keyBuffer which can then be accessed as normal 
     using event.getKeys(), .waitKeys(), clearBuffer() etc... 
-    Appends a tuple with (keyname, timepressed) into the _keyBuffer""" 
-    
+    Appends a tuple with (keyname, timepressed) into the _keyBuffer"""
     keyTime=psychopy.core.getTime() #capture when the key was pressed
-
     thisKey = pyglet.window.key.symbol_string(symbol).lower()#convert symbol into key string
     #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
     thisKey = (thisKey.lstrip('_').lstrip('NUM_'),keyTime) # modified to capture time of keypress so key=(keyname,keytime)
-    
     _keyBuffer.append(thisKey)
-
+    log.data("Keypress: %s" %thisKey[0])
+    
 def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons
-    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1
-    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=1
-    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=1
+    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1; label='Left'
+    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=1; label='Middle'
+    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=1; label='Right'
+    log.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 def _onPygletMouseRelease(x,y, button, modifiers):
     global mouseButtons
-    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=0
-    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=0
-    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=0
+    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1; label='Left'
+    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=1; label='Middle'
+    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=1; label='Right'
+    log.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
 def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
     global mouseWheelRel
     mouseWheelRel = mouseWheelRel+numpy.array([scroll_x, scroll_y])
+    log.data("Mouse: wheel shift=(%i,%i), pos=(%i,%i)" %(scroll_x, scroll_y,x,y))
 
 def getKeys(keyList=None, timeStamped=False):
     """Returns a list of keys that were pressed.
@@ -190,8 +192,9 @@ def waitKeys(maxWait = None, keyList=None):
         
     #after the wait period or received a valid keypress
     if key:
+        log.data("Key pressed: %s" %key)
         return [key]#need to convert back to a list
-    else: 
+    else:
         return None #no keypress in period
     
 class Mouse:

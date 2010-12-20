@@ -11,13 +11,50 @@ Known issues
 ------------------
 The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
-Serial ports may not work under the standalone windows installation, constantly reporting that the port cannot be opened. To use serial ports install python manually and install pyserial2.4 (not 2.5!)
+PsychoPy 1.63
+------------------------------
+
+PsychoPy 1.63.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Dec 2010
+
+* **ADDED autoLog mechanism:**
+    * many more messages sent, but only written when log.flush() is called
+    * rewritten backend to logging functions to remove file-writing performance hit
+    * added `autoLog` and `name` attributes to visual stimuli
+    * added setAutoDraw() method to visual stimuli (draws on every win.flip() until set to False)
+    * added logNextFlip() method to visual.Window to send a log message time-stamped to flip
+* **FIXED bug in color calibration for LMS color space (anyone using this space should recalibrate immediately)** Thanks Christian Garber for picking up on this one.
+* FIXED bug with excel output from StairHandler
+* FIXED bug in ElemetArray.setSizes()
+* FIXED bug in running QuestHandler (Zarrar Shehzad)
+* FIXED bug trying to remove a Routine from Flow when enclosed in a Loop
+* FIXED bug with inseting Routines into Flow under Linux
+* FIXED bug with playing a MovieStim when another is already playing
+* CHANGED default values for Builder experiment settings (minor)
+* CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
+* FIXED DotStim now supports a 2-element fieldSize (x,y) again
+* CHANGED phase of RadialStim to be 'sin' instead of 'cosine' at phase=0
+* FIXED rounding issue in RadialStim phase
+* FIXED ElementArrayStim can now take a 2x1 input for setSizes(), setSFs(), setPhases()
+* ADDED packages to standalone distributions: pyserial, pyparallel (win32 only), parallel python (pp), IPython
+* CHANGED Builder demos are now back in the distributed package. Use >Demos>Unpack... to put them in a folder you have access to and you can then run them from the demos menu
+* FIXED bug with ShapeStim initialisation (since 1.62.02)
+* UPDATED: Standalone distribution now uses Python2.6 and adds/upgrades;
+    * parallel python (pp)
+    * pyserial
+    * ioLabs toolbox
+    * ipython (for future ipython shell view in coder)
+    * numpy=1.5.1, scipy=0.8.0, matplotlib=1.0
+    * labjack toolbox
+* UPDATED: Builder demos
 
 PsychoPy 1.62
 ------------------------------
 
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
+Released Oct 2010
 
 * FIXED: problem with RadialStim causing subsequent TextStims not to be visible
 * FIXED: bug with saving StairHandler data as .xlsx
@@ -56,6 +93,7 @@ Released Sept 2010
 * ADDED: trial loops in builder can now be aborted by setting someLoopName.finished=True
 * ADDED: improved timing. *Support for blocking on VBL for all platforms* (may still not work on intel integrated chips)
 * FIXED: minor bug with closing Coder windows generating spurious error messages
+* ADDED: 'allowed' parameter to gui.fileOpeNDlg and fileCloseDlg to provide custom file filters
 
 PsychoPy 1.62.00
 ~~~~~~~~~~~~~~~~~~~~~~~~

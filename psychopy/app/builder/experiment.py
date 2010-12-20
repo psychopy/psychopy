@@ -405,7 +405,7 @@ class TrialHandler:
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
-        buff.writeIndented("#completed %s repeats of '%s' repeats\n" \
+        buff.writeIndented("#completed %s repeats of '%s'\n" \
             %(self.params['nReps'], self.params['name']))
         buff.writeIndented("\n")
 
@@ -416,11 +416,16 @@ class TrialHandler:
             for variable in self.params['trialList'].val[0].keys():#get the keys for the first trial type
                 stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
-        buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
-        buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
-        buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
+        if self.exp.settings.params['Save psydat file'].val:
+            buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
+        if self.exp.settings.params['Save excel file'].val:
+            buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
+            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+        if self.exp.settings.params['Save csv file'].val:
+            buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',',\n" %self.params)
+            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'
     
@@ -488,9 +493,12 @@ class StairHandler:
         buff.writeIndented("#staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s')\n" %self.params)
-        buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
-        buff.writeIndented("psychopy.log.info('saved data to '+filename+'.dlm')\n" %self.params)
+        if self.exp.settings.params['Save psydat file'].val:
+            buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
+        if self.exp.settings.params['Save excel file'].val:
+            buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s')\n" %self.params)
+        if self.exp.settings.params['Save csv file'].val:
+            buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'StairHandler'
 

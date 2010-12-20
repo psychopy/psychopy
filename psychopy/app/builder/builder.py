@@ -7,11 +7,12 @@ from wx.lib import platebtn, scrolledpanel
 #from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.agw.aquabutton as AB
 import wx.aui
-import sys, os, glob, copy, platform, py_compile, codecs
+import sys, os, glob, copy, platform, shutil
+import py_compile, codecs
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, log
+from psychopy import data, log, misc
 
 inf=1000000#a million can be infinite?!
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -128,10 +129,10 @@ class FlowPanel(wx.ScrolledWindow):
             menu.Append( id, routine )
             self.routinesFromID[id]=routine
             wx.EVT_MENU( menu, id, self.onInsertRoutineSelect )
-        menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         btnPos = self.btnInsertRoutine.GetRect()
         menuPos = (btnPos[0], btnPos[1]+btnPos[3])
         self.PopupMenu( menu, menuPos )
+        menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         menu.Destroy() # destroy to avoid mem leak
     def onInsertRoutineSelect(self,event):
         """User has selected a routine to be entered so bring up the entrypoint marker
@@ -225,10 +226,21 @@ class FlowPanel(wx.ScrolledWindow):
             elif event.RightDown():
                 x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
-                if len(icons):
-                    self._menuComponentID=icons[0]
-                    self.showContextMenu(self._menuComponentID,
-                        xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
+                comp=None
+                for thisIcon in icons:#might intersect several and only one has a callback
+                    if thisIcon in self.componentFromID:
+                        #loop through comps looking for Routine, or a Loop if no routine
+                        thisComp=self.componentFromID[thisIcon]
+                        if thisComp.getType() in ['StairHandler', 'TrialHandler']:
+                            comp=thisComp#use this if we don't find a routine
+                            icon=thisIcon
+                        if thisComp.getType() == 'Routine':
+                            comp=thisComp
+                            icon=thisIcon
+                            break#we've found a Routine so stop looking
+                self._menuComponentID=icon
+                self.showContextMenu(self._menuComponentID,
+                    xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
         elif self.mode=='routine':
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
@@ -1852,21 +1864,14 @@ class BuilderFrame(wx.Frame):
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
-#        demoList = glob.glob(os.path.join(self.app.prefs.paths['demos'],'builder','*'))
-#        demoList.sort(key=str.lower)
-#        ID_DEMOS = \
-#            map(lambda _makeID: wx.NewId(), range(len(demoList)))
-#        self.demos={}
-#        for n in range(len(demoList)):
-#            self.demos[ID_DEMOS[n]] = demoList[n]
-#        for thisID in ID_DEMOS:
-#            junk, shortname = os.path.split(self.demos[thisID])
-#            if shortname.startswith('_'): continue#remove any 'private' files
-#            self.demosMenu.Append(thisID, shortname)
-#            wx.EVT_MENU(self, thisID, self.loadDemo)
+        
         self.demosMenu = wx.Menu()
-        self.demosMenu.Append(self.IDs.builderDemos, "&Fetch Demos", "Go to the demos download page")
-        wx.EVT_MENU(self, self.IDs.builderDemos, self.app.followLink)
+        #unpack demos option
+        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos...", 
+            "Unpack demos to a writable location (so that they can be run)")
+        wx.EVT_MENU(self, self.IDs.builderDemosUnpack, self.demosUnpack)
+        self.demosMenu.AppendSeparator()
+        self.demosMenuUpdate()#add any demos that are found in the prefs['demosUnpacked'] folder
         menuBar.Append(self.demosMenu, '&Demos')
 
         #---_help---#000000#FFFFFF--------------------------------------------------
@@ -1882,6 +1887,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
+            
     def closeFrame(self, event=None, checkSave=True):
 
         if self.app.coder==None and sys.platform!='darwin':
@@ -2144,13 +2150,43 @@ class BuilderFrame(wx.Frame):
     def enableUndo(self,enable=True):
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
         self.editMenu.Enable(wx.ID_UNDO,enable)
-    def loadDemo(self, event=None):
+    def demosUnpack(self, event=None):
+        """Get a folder location from the user and unpack demos into it
+        """
+        #choose a dir to unpack in
+        dlg = wx.DirDialog(parent=self, message="Location to unpack demos")
+        if dlg.ShowModal()==wx.ID_OK:
+            unpackFolder = dlg.GetPath()
+        else:
+            return -1#user cancelled        
+        # todo: check if the dir has contents!?        
+        misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
+        self.prefs['unpackedDemosDir']=unpackFolder
+        self.app.prefs.saveUserPrefs()
+        self.demosMenuUpdate()
+    def demoLoad(self, event=None):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir,'*.psyexp'))
         if len(files)==0:
             print "Found no psyexp files in %s" %fileDir
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
+    def demosMenuUpdate(self):
+        #list available demos
+        if len(self.prefs['unpackedDemosDir'])==0:
+            return
+        demoList = glob.glob(os.path.join(self.prefs['unpackedDemosDir'],'*'))
+        demoList.sort(key=lambda entry: entry.lower)
+        ID_DEMOS = \
+            map(lambda _makeID: wx.NewId(), range(len(demoList)))
+        self.demos={}
+        for n in range(len(demoList)):
+            self.demos[ID_DEMOS[n]] = demoList[n]
+        for thisID in ID_DEMOS:
+            junk, shortname = os.path.split(self.demos[thisID])
+            if shortname.startswith('_'): continue#remove any 'private' files
+            self.demosMenu.Append(thisID, shortname)
+            wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         script = self.exp.writeScript()

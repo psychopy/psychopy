@@ -43,7 +43,7 @@
       <TextComponent name="instrText">
         <Param name="name" val="instrText" valType="code" updates="constant"/>
         <Param name="color" val="$[1, 1, 1]" valType="str" updates="constant"/>
-        <Param name="text" val="OK. Ready for the real thing?&#10;&#10;Remember, don't worry about the letter colour, read the WORD. Press:&#10;1 for the WORD 'red'&#10;2 for the WORD 'green'&#10;3 for the WORD 'blue'&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
+        <Param name="text" val="OK. Ready for the real thing?&#10;&#10;Remember, don't worry about the letter colour, read the WORD. Press:&#10;Left for the WORD 'red'&#10;Down for the WORD 'green'&#10;Right for the WORD 'blue'&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
@@ -60,6 +60,32 @@
         <Param name="correctAns" val="thisTrial.corrAns" valType="str" updates="constant"/>
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="startTime" val="0" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="store" val="nothing" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="instructPractice">
+      <TextComponent name="instr1">
+        <Param name="name" val="instr1" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="Don't worry about the colour of the letters now. Please press:&#10;Left for the WORD 'red'&#10;Down for the WORD 'green'&#10;Right for the WORD 'blue'&#10;&#10;Let's start with a few practice trials&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="ready1">
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="ready1" valType="code" updates="None"/>
+        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="" valType="str" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="store" val="nothing" valType="str" updates="constant"/>
@@ -102,32 +128,6 @@
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="arial" valType="str" updates="constant"/>
       </TextComponent>
-    </Routine>
-    <Routine name="instructPractice">
-      <TextComponent name="instr1">
-        <Param name="name" val="instr1" valType="code" updates="constant"/>
-        <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="Don't worry about the colour of the letters now. Please press:&#10;1 for the WORD 'red'&#10;2 for the WORD 'green'&#10;3 for the WORD 'blue'&#10;&#10;Let's start with a few practice trials&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
-        <Param name="font" val="Arial" valType="str" updates="constant"/>
-      </TextComponent>
-      <KeyboardComponent name="ready1">
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="ready1" valType="code" updates="None"/>
-        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="store" val="nothing" valType="str" updates="constant"/>
-      </KeyboardComponent>
     </Routine>
   </Routines>
   <Flow>

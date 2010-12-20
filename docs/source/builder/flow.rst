@@ -16,7 +16,7 @@ Loops
 ~~~~~~~~~~~~~~~
 Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
 
-As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. **For example, `trials`, `blocks` or `epochs` would be good names for your loops.**
+As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
 
 .. _trialTypes:
 
@@ -45,7 +45,7 @@ Accessing loop parameters from components
 The parameters from your loops are accessible to any component enclosed within that loop. The simplest (and default) way to address these variables is simply to call them by the name of the parameter, prepended with `$` to indicate that this is the name of a variable. For example, if your Flow contains a loop with the above table as its input trial types file then you could give one of your stimuli an orientation `$ori` which would depend on the current trial type being presented. Example scenarios:
 
 #. You want to loop randomly over some conditions in a loop called `trials`. Your conditions are stored in a csv file with headings 'ori', 'text', 'corrAns' which you provide to this loop. You can then access these values from any component using `$ori`, `$text`, and `$corrAns`
-#. You create a random loop called `blocks` and give it an excel file with a single column called `movieName` listing filenames to be played. On each repeat you can access this with `$movieName `
+#. You create a random loop called `blocks` and give it an excel file with a single column called `movieName` listing filenames to be played. On each repeat you can access this with `$movieName`
 #. You create a staircase loop called `stairs`. On each trial you can access the current value in the staircase with `$thisStair`
 
 .. note::
@@ -53,6 +53,6 @@ The parameters from your loops are accessible to any component enclosed within t
 
 Reducing namespace clutter (advanced)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The downside of the above approach is that the names of trial parameters must be different between every loop, as well as not matching any of the predefined names in python, numpy and PsychoPy. For example, the stimulus called `movie` cannot use a parameter also called `movie` (so you need to call it `movieName`. An alternative method can be used without these restrictions. If you set the Builder preference `unclutteredNamespace` to True you can then access the variables by referring to parameter as an attribute of the singular name of the loop prepended with `this`. For example, if you have a loop called `trials` which has the above file attached to it, then you can access the stimulus ori with `$thisTrial.ori`. If you have a loop called `blocks` you could use `$thisBlock.corrAns`.
+The downside of the above approach is that the names of trial parameters must be different between every loop, as well as not matching any of the predefined names in python, numpy and PsychoPy. For example, the stimulus called `movie` cannot use a parameter also called `movie` (so you need to call it `movieName`). An alternative method can be used without these restrictions. If you set the Builder preference `unclutteredNamespace` to True you can then access the variables by referring to parameter as an attribute of the singular name of the loop prepended with `this`. For example, if you have a loop called `trials` which has the above file attached to it, then you can access the stimulus ori with `$thisTrial.ori`. If you have a loop called `blocks` you could use `$thisBlock.corrAns`.
 
 Now, although the name of the loop must still be valid and unique, the names of the parameters of the file do not have the same requirements (they must still not contain spaces or punctuation characters).

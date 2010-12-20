@@ -1,5 +1,5 @@
 PhotoResearch
 =============================================
 
-.. automodule:: psychopy.hardware.PR
+.. automodule:: psychopy.hardware.pr
     :members:
