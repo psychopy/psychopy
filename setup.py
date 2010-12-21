@@ -30,7 +30,7 @@ exec(vStr)
 #define the extensions to compile if necess
 packages = find_packages()
 #for the source dist this doesn't work - use the manifest.in file
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx']
 
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise

@@ -8,7 +8,7 @@ recursive-include psychopy/app *.spec
 recursive-include psychopy/monitors *.ico
 
 recursive-include psychopy/demos/coder *.mov *.jpg *.ttf
-recursive-include psychopy/demos/builder *.psyexp *.csv
+recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx
 
 recursive-include psychopy/preferences *.spec
 
