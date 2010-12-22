@@ -1146,16 +1146,6 @@ class CoderFrame(wx.Frame):
         self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys['switchToBuilder'], "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
 
-        #---_help---#000000#FFFFFF--------------------------------------------------
-        self.helpMenu = wx.Menu()
-        menuBar.Append(self.helpMenu, '&Help')
-        self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
-        wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
-        self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
-        wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
-        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
-        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
-
         self.demosMenu = wx.Menu()
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
@@ -1173,6 +1163,15 @@ class CoderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
 
+        #---_help---#000000#FFFFFF--------------------------------------------------
+        self.helpMenu = wx.Menu()
+        menuBar.Append(self.helpMenu, '&Help')
+        self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
+        wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
+        self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
+        wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
+        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
+        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")#on mac this will move to appication menu
         wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
