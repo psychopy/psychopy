@@ -131,27 +131,58 @@ class PsychoDebugger(bdb.Bdb):
         self.set_quit()
         return 1
 
-class ModuleLoader(threading.Thread):
-    #a threading class to run the scripts
-    def __init__(self, parent):
-        self.parent=parent#parent should be the main frame
-        assert isinstance(self.parent, IDEMainFrame)
-        self.complete=False
-        self.run()
-    def run(self):
-        self.parent.SetStatusText('importing modules')
-        import psychopy
-        self.parent.SetStatusText('importing numpy')
-        import numpy
-        self.parent.SetStatusText('importing scipy')
-        import scipy
-        self.parent.SetStatusText('importing pylab')
-        import pylab
-        import monitors
-        self.complete=True
-        self.parent.modulesLoaded=True
-        self.parent.analyseCodeNow(event=None)
-
+class UnitTestFrame(wx.Frame):
+    def __init__(self, parent=None, ID=-1, title='PsychoPy unit testing', files=[], app=None):
+        self.app = app
+        self.frameType='unittest'
+        self.prefs = self.app.prefs
+        self.paths = self.app.prefs.paths
+        self.IDs = self.app.IDs
+        wx.Frame.__init__(self, parent, ID, title)
+        
+        #create controls
+        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
+            size=wx.Size(400,400))
+        self.btnRun = wx.Button(parent=self,label="Run tests")
+        self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
+        self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
+        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        
+        #arrange controls
+        self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
+        self.sizer.Add(self.chkCoverage)
+        self.sizer.Add(self.btnRun)
+        self.sizer.Add(self.outputWindow)
+        self.SetSizerAndFit(self.sizer)
+        self.Show()
+    def onRunTests(self, event=None):
+        """Run the unit tests
+        """
+        #redirect stdout/err
+        stdOutOrig = sys.stdout
+        stdErrOrig = sys.stderr
+        sys.stdout = self.outputWindow
+        sys.stderr = self.outputWindow
+        #run tests
+        from psychopy import tests
+        tests.run()
+        #revert stdout/err
+        sys.stdout = stdOutOrig
+        sys.stderr = stdErrOrig
+    
+    def onChgCoverage(self, event=None):
+        """Toggle coverage suite in testing
+        """
+        pass
+    
+    def onURL(self, evt):
+        """decompose the URL of a file and line number"""
+        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
+        tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ',1)
+        filename = tmpFilename.split('File "',1)[1]
+        lineNumber = int(tmpLineNumber.split(',')[0])
+        self.app.coder.gotoLine(filename,lineNumber)
+        
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
     Need this too.
@@ -965,6 +996,7 @@ class CoderFrame(wx.Frame):
         if self.prefs['showSourceAsst']:
             self.paneManager.GetPane('SourceAsst').Show()
         else:self.paneManager.GetPane('SourceAsst').Hide()
+        self.unitTestFrame=None
 
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.appData['auiPerspective']:
@@ -1071,7 +1103,11 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
-
+        if self.appPrefs['debugMode']:
+            self.toolsMenu.Append(self.IDs.unitTests, "&Unit testing...", 
+                "Show dialog to run unit tests")
+            wx.EVT_MENU(self, self.IDs.unitTests, self.onUnitTests)
+            
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
@@ -1861,4 +1897,9 @@ class CoderFrame(wx.Frame):
         filename = tmpFilename.split('File "',1)[1]
         lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)
-
+    def onUnitTests(self, evt=None):
+        """Show the unit tests frame
+        """
+        self.unitTestFrame=UnitTestFrame(app = self.app)
+#        UnitTestFrame.Show()
+        
