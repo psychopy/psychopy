@@ -18,6 +18,7 @@ PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (github)
 * FIXED buglet with ElementArrayStim.setFieldPos() not updating
+* FIXED mouse release problem with pyglet (since in 1.63.00)
 
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

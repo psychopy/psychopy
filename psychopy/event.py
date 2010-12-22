@@ -59,9 +59,9 @@ def _onPygletMousePress(x,y, button, modifiers):
     log.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 def _onPygletMouseRelease(x,y, button, modifiers):
     global mouseButtons
-    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=1; label='Left'
-    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=1; label='Middle'
-    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=1; label='Right'
+    if button == pyglet.window.mouse.LEFT: mouseButtons[0]=0; label='Left'
+    if button == pyglet.window.mouse.MIDDLE: mouseButtons[1]=0; label='Middle'
+    if button == pyglet.window.mouse.RIGHT: mouseButtons[2]=0; label='Right'
     log.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
 def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
     global mouseWheelRel
