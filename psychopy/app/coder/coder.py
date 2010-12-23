@@ -138,38 +138,70 @@ class UnitTestFrame(wx.Frame):
         self.prefs = self.app.prefs
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        wx.Frame.__init__(self, parent, ID, title)
+        wx.Frame.__init__(self, parent, ID, title, pos=wx.DefaultPosition)
+        self.scriptProcess=None
+        
+        #create menu items
+        menuBar = wx.MenuBar()
+        self.menuTests=wx.Menu()
+        menuBar.Append(self.menuTests, '&Tests')        
+        self.menuTests.Append(wx.ID_CLOSE,   "&Run tests\t%s" %self.app.keys['runScript'])
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onRunTests)
+        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\%s" %self.app.keys['close'])
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
+        #-------------quit
+        self.menuTests.AppendSeparator()
+        self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate PsychoPy")
+        wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
+        self.SetMenuBar(menuBar)
         
         #create controls
         self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(400,400))
+            size=wx.Size(600,400))
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
+        self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
         self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        wx.EVT_IDLE(self, self.onIdle)
+        self.SetDefaultItem(self.btnRun)
         
         #arrange controls
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
-        self.sizer.Add(self.chkCoverage)
-        self.sizer.Add(self.btnRun)
-        self.sizer.Add(self.outputWindow)
+        self.sizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        self.sizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND, border=10)
         self.SetSizerAndFit(self.sizer)
         self.Show()
     def onRunTests(self, event=None):
         """Run the unit tests
         """
-        #redirect stdout/err
-        stdOutOrig = sys.stdout
-        stdErrOrig = sys.stderr
-        sys.stdout = self.outputWindow
-        sys.stderr = self.outputWindow
+        testsPath = os.path.join(self.prefs.paths['psychopy'],'tests','run.py')        
+        #create process
+        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
+        self.scriptProcess.Redirect()#catch the stdout/stdin
         #run tests
-        from psychopy import tests
-        tests.run()
-        #revert stdout/err
-        sys.stdout = stdOutOrig
-        sys.stderr = stdErrOrig
-    
+        if sys.platform=='win32':
+            command = '"%s" -u "%s"' %(sys.executable, testsPath)# the quotes allow file paths with spaces
+            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
+        else:
+            testsPath= testsPath.replace(' ','\ ')
+            command = '%s -u %s' %(sys.executable, testsPath)# the quotes would break a unix system command
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+    def onIdle(self, event=None):
+        if self.scriptProcess!=None:
+            if self.scriptProcess.IsInputAvailable():
+                stream = self.scriptProcess.GetInputStream()
+                text = stream.read()
+                self.outputWindow.write(text)
+            if self.scriptProcess.IsErrorAvailable():
+                stream = self.scriptProcess.GetErrorStream()
+                text = stream.read()
+                self.outputWindow.write(text)
+    def onTestsEnded(self, event=None):
+        self.onIdle()#so that any final stdout/err gets written
+        self.outputWindow.flush()
     def onChgCoverage(self, event=None):
         """Toggle coverage suite in testing
         """
@@ -182,6 +214,8 @@ class UnitTestFrame(wx.Frame):
         filename = tmpFilename.split('File "',1)[1]
         lineNumber = int(tmpLineNumber.split(',')[0])
         self.app.coder.gotoLine(filename,lineNumber)
+    def onCloseTests(self, evt):
+        self.Destroy()
         
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
@@ -1104,7 +1138,7 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
         if self.appPrefs['debugMode']:
-            self.toolsMenu.Append(self.IDs.unitTests, "&Unit testing...", 
+            self.toolsMenu.Append(self.IDs.unitTests, "Unit &testing...\tCtrl-T", 
                 "Show dialog to run unit tests")
             wx.EVT_MENU(self, self.IDs.unitTests, self.onUnitTests)
             
