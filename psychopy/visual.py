@@ -1358,11 +1358,21 @@ class DotStim(_BaseVisualStim):
                 random position every frame. For 'direction' noise dots follow a 
                 random, but constant direction. For 'walk' noise dots vary their
                 direction every frame, but keep a constant speed.                            
-            rgb : (r,g,b) or [r,g,b] or a single intensity value 
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
+            
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth : 0,
@@ -2354,7 +2364,7 @@ class RadialStim(PatchStim):
                 
                 - 'sqrXsqr', 'sinXsin', 'sin','sqr',None
                 - or the name of an image file (most formats supported)
-                - or a numpy array (1xN or NxN) ranging -1:1
+                - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
                 
             mask :
                 Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
@@ -2380,28 +2390,21 @@ class RadialStim(PatchStim):
                 of the stimulus
             angularPhase : 
                 the phase of the texture around the stimulus
-            rgb :
-                a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
-
-            dkl : a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
-                specifying the coordinates of the stimuli in cone-opponent
-                space (Derrington, Krauskopf, Lennie 1984). See :ref:`dkl` for further info.
-                Triplets represent [elevation, azimuth, magnitude].
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
-            lms : a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
-                specifying the coordinates of the stimuli in cone space
-                Triplets represent relative modulation of each cone [L, M, S].
-                See :ref:`lms` for further info.
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
+                
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             contrast : (default= *1.0* )
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
@@ -3687,11 +3690,20 @@ class TextStim(_BaseVisualStim):
                 Position on the screen            
             depth: 
                 Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
-            color: 
-                The color of the text (ranging [-1,-1,-1] to [1,1,1])
-                NB: parameter rgb=() is deprecated.  
-            colorSpace: 'rgb'
-                The color-space to use.
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity: 
                 How transparent the object will be (0 for transparent, 1 for opaque)
             units : **None**, 'norm', 'cm', 'deg' or 'pix'  
