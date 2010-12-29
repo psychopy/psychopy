@@ -1987,11 +1987,16 @@ class PatchStim(_BaseVisualStim):
             texRes:
                 resolution of the texture (if not loading from an image file)
             color:
-                Could be a the web name for a color (e.g. 'FireBrick');
-                a hex value (e.g. '#FF0047');
-                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
                 If the last three are used then the color space should also be given
                 See :ref:`colorspaces`
+                
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
@@ -4239,19 +4244,31 @@ class ShapeStim(_BaseVisualStim):
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.
                 
-            lineRGB :
+            lineColor :
              
-                - (r,g,b) or [r,g,b]
-                - or a single intensity value (which will be applied to all guns).
+                Could be a:
                 
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
                 
-            fillRGB : 
+            lineColorSpace:
+                The color space controlling the interpretation of the `lineColor`.               
+                See :ref:`colorspaces`
+                                    
+            fillColor : 
             
-                - (r,g,b) or [r,g,b] or None
-                - or a single intensity value (which will be applied to all guns).
+                Could be a:
                 
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
                 
             lineWidth : int (or float?) 
                 specifying the line width in **pixels**
@@ -4313,21 +4330,33 @@ class ShapeStim(_BaseVisualStim):
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
-    
+    def setColor(self, color, colorSpace=None, operation=''):
+        """For ShapeStim use :meth:`~ShapeStim.setLineColor` or 
+        :meth:`~ShapeStim.setFillColor`
+        """
+        raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use setLineColor
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setLineColor`
         """
         self._set('lineRGB', value, operation)
     def setFillRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use setFillColor
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setFillColor`
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation=''):
-        #run the original setColor, which creates color and 
+        """Sets the color of the shape edge. See :meth:`PatchStim.setColor` 
+        for further details of how to use this function.
+        """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='lineRGB',#the name for this rgb value
                     colorAttrib='lineColor')#the name for this color
     def setFillColor(self, color, colorSpace=None, operation=''):
+        """Sets the color of the shape fill. See :meth:`PatchStim.setColor` 
+        for further details of how to use this function.
+        
+        Note that shapes where some vertices point inwards will usually not
+        'fill' correctly.
+        """
         #run the original setColor, which creates color and 
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value
