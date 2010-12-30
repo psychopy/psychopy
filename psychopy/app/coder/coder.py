@@ -156,20 +156,26 @@ class UnitTestFrame(wx.Frame):
         self.SetMenuBar(menuBar)
         
         #create controls
+        buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
             size=wx.Size(600,400))
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
+        self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
 #        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
+        self.chkAllStdOut.SetToolTip(wx.ToolTip("Report ALL printed output form the tests"))
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
         
         #arrange controls
+        buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
-        self.sizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
-        self.sizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        self.sizer.Add(buttonsSizer, 0, wx.ALIGN_RIGHT)
         self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND, border=10)
         self.SetSizerAndFit(self.sizer)
         self.Show()
@@ -183,15 +189,20 @@ class UnitTestFrame(wx.Frame):
         #include coverage report?
         if self.chkCoverage.GetValue(): coverage=' --with-coverage'
         else: coverage=''
+        #print ALL output?
+        if self.chkAllStdOut.GetValue(): allStdout=' -s'
+        else: allStdout=''
         #run tests
         self.btnRun.Disable()
         if sys.platform=='win32':
-            command = '"%s" -u "%s%s"' %(sys.executable, testsPath, coverage)# the quotes allow file paths with spaces
+            command = '"%s" -u "%s%s%s"' %(sys.executable, testsPath, 
+                coverage, allStdout)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             testsPath= testsPath.replace(' ','\ ')
-            command = '%s -u %s%s' %(sys.executable, testsPath, coverage)# the quotes would break a unix system command
+            command = '%s -u %s%s%s' %(sys.executable, testsPath, 
+                coverage, allStdout)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
     def onIdle(self, event=None):
         if self.scriptProcess!=None:

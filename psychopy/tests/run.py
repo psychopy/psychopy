@@ -9,7 +9,8 @@ argv.append('--verbosity=3')
 if 'cover' in argv: 
     argv.remove('cover')
     argv.append('--with-coverage')
-    argv.append('--with-doctest')
     argv.append('--cover-package=psychopy')
+
+argv.append('--with-doctest')
 
 nose.run(argv=argv)
