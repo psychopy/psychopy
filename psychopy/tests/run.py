@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import nose, sys
+import nose, sys, os
+
+thisDir,filename = os.path.split(os.path.abspath(__file__))
+os.chdir(thisDir)
 
 argv = sys.argv
 argv.append('--verbosity=3')

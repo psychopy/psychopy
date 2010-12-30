@@ -147,7 +147,7 @@ class UnitTestFrame(wx.Frame):
         menuBar.Append(self.menuTests, '&Tests')        
         self.menuTests.Append(wx.ID_CLOSE,   "&Run tests\t%s" %self.app.keys['runScript'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onRunTests)
-        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\%s" %self.app.keys['close'])
+        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
         #-------------quit
         self.menuTests.AppendSeparator()
@@ -162,7 +162,7 @@ class UnitTestFrame(wx.Frame):
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
-        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+#        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
         
@@ -180,14 +180,18 @@ class UnitTestFrame(wx.Frame):
         #create process
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
+        #include coverage report?
+        if self.chkCoverage.GetValue(): coverage=' --with-coverage'
+        else: coverage=''
         #run tests
+        self.btnRun.Disable()
         if sys.platform=='win32':
-            command = '"%s" -u "%s"' %(sys.executable, testsPath)# the quotes allow file paths with spaces
+            command = '"%s" -u "%s%s"' %(sys.executable, testsPath, coverage)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             testsPath= testsPath.replace(' ','\ ')
-            command = '%s -u %s' %(sys.executable, testsPath)# the quotes would break a unix system command
+            command = '%s -u %s%s' %(sys.executable, testsPath, coverage)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
     def onIdle(self, event=None):
         if self.scriptProcess!=None:
@@ -202,11 +206,11 @@ class UnitTestFrame(wx.Frame):
     def onTestsEnded(self, event=None):
         self.onIdle()#so that any final stdout/err gets written
         self.outputWindow.flush()
-    def onChgCoverage(self, event=None):
-        """Toggle coverage suite in testing
-        """
-        pass
-    
+        self.btnRun.Enable()
+#    def onChgCoverage(self, event=None):
+#        """Toggle coverage suite in testing
+#        """
+#        pass
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
