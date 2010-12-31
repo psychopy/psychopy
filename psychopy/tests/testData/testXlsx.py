@@ -1,5 +1,6 @@
 """Tests for psychopy.data.DataHandler"""
 import os, shutil, tempfile
+import nose
 import numpy
 
 from openpyxl.reader.excel import load_workbook
@@ -14,7 +15,7 @@ class TestXLSX:
         
     def tearDown(self):
         os.remove(fullName)
-
+        
     def testReadWriteData(self):
         dat = misc.fromFile(os.path.join(thisDir, 'data.psydat'))
         dat.saveAsExcel(name,
@@ -34,10 +35,8 @@ class TestXLSX:
                     expVal.value = float(expVal.value)
                 except:
                     pass
-                
-                if actVal.value != expVal.value:
-                    print 'expected %s (%s) but got %s (%s)' %(expVal.value, type(expVal.value), actVal.value, type(actVal.value))
-                assert actVal.value == expVal.value
+                nose.tools.eq_(expVal.value, actVal.value, 
+                    msg="expected %s but got %s" %(expVal.value, actVal.value))
 
 def testTrialTypeImport():
     fromCSV = data.importTrialList(os.path.join(thisDir, 'trialTypes.csv'))
