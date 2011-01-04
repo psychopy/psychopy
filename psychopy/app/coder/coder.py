@@ -187,7 +187,7 @@ class UnitTestFrame(wx.Frame):
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
         #include coverage report?
-        if self.chkCoverage.GetValue(): coverage=' --with-coverage'
+        if self.chkCoverage.GetValue(): coverage=' cover'
         else: coverage=''
         #print ALL output?
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
