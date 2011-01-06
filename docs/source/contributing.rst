@@ -24,7 +24,7 @@ If you learn about how to use git, then you can create your own read-write copy 
 
 Documentation
 --------------
-The documentation is all written using `Sphinx`_ and the source for this is also stored in the svn repository, under trunk/docs/source
+The documentation is all written using `Sphinx`_ and the source for this is also stored in the git repository, under `docs/source`
 
 How do I contribute changes?
 -----------------------------
@@ -60,20 +60,13 @@ PsychoPy is predominantly written and maintained by `Jon Peirce`_ but has receiv
 Included packages
 -------------------
 
-PsychoPy always includes a copy of:
+The PsychoPy library always includes a copy of:
 
     - `pyparallel <http://pyserial.sourceforge.net/pyparallel.html>`_ by Chris Liechti. Used by :ref:`psychopy.parallel <parallel>`
     - `quest.py <http://www.visionegg.org/Quest>`_ by Andrew Straw. Used by :class:`~psychopy.data.QuestHandler`
 
+The Standalone versions also include the :ref:`suggestedPackages`
 
-Additional packages
--------------------------------
-PsychoPy could not exist without the hard work of the developers of the core :ref:`dependencies`. There are numerous other additional packages that are useful to PsychoPy users, e.g. for controlling hardware and performing specific tasks. These are packaged with the Standalone versions of `PsychoPy` but users with their own custom Python environment need to install these manually to use them. Most of these can be installed with easy_install
-
-    - `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
-    - ioLabs
-    - psignifit
-    
 Funding
 ----------------
 
