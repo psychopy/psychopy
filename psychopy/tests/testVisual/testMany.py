@@ -57,7 +57,7 @@ class _baseVisualTest:
         stim.setText('y')
         stim.setFont(font)
         stim.setOri(-30.5)
-    #    stim.setHeight(1.0)
+        stim.setHeight(1.0)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
         stim.setPos([-0.5,0.5],'+')
         stim.draw()

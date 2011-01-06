@@ -3828,12 +3828,11 @@ class TextStim(_BaseVisualStim):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
         """
-        self.fontname=None
         
         if self.win.winType=="pyglet":
             self._font = pyglet.font.load(font, int(self.heightPix), dpi=72, italic=self.italic, bold=self.bold)
-            
-        else:   
+            self.fontname=font
+        else:
             if font==None or len(font)==0:
                 self.fontname = pygame.font.get_default_font()
             elif font in pygame.font.get_fonts():
