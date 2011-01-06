@@ -4,7 +4,6 @@ import os
 import numpy as np
 import OpenGL
 
-
 def compareScreenshot(fileName, win, crit=0.1):
     """Compare the current front buffer of the given window with the file 
     """
@@ -16,7 +15,7 @@ def compareScreenshot(fileName, win, crit=0.1):
         saveImage=True
     else:saveImage=False
     #get the frame from the window
-    win.getMovieFrame(buffer='front')
+    win.getMovieFrame(buffer='back')
     frame=win.movieFrames[-1]
     win.movieFrames=[]
     if saveImage:
