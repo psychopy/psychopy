@@ -91,13 +91,17 @@ General packages:
     - psignifit for bootsrtapping and other resampling tests
     - pyserial for interfacing with the serial port
     - parallel python (aka pp) for parallel processing
-    - `nose` and `coverage` for running unit tests (if this means nothing to you don't worry)
 
 Specific hardware interfaces:
 
     - `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
     - ioLabs toolbox
     - labjack tolbox
+
+For developers:
+
+    - `nose` and `coverage` for running unit tests (if this means nothing to you don't worry)
+    - `sphinx` for documentation
 
 Please send feedback to the mailing list.
 
