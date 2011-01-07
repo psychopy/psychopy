@@ -11,6 +11,7 @@ import numpy
 from scipy import optimize, special
 from matplotlib import mlab#used for importing csv files
 from _quest import *    #used for QuestHandler
+import inspect#so that Handlers can find the script that called them
 
 try:
     import openpyxl
@@ -48,11 +49,16 @@ class TrialHandler:
                  method='random',
                  dataTypes=None,
                  extraInfo=None,
-                 seed=None):
+                 seed=None,
+                 originFile=None):
         """
         trialList: a simple list (or flat array) of trials.
             
             """
+        if originFile==None:
+            self.originFile = inspect.getouterframes(inspect.currentframe())[1][1]
+        else: self.originFile = originFile
+        
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
         else:
@@ -675,7 +681,8 @@ class StairHandler:
                  method = '2AFC',
                  stepType='db',
                  minVal=None,
-                 maxVal=None):
+                 maxVal=None,
+                 originFile=None):
         """
         :Parameters:
             
@@ -728,6 +735,10 @@ class StairHandler:
                 
         """
         
+        """
+        trialList: a simple list (or flat array) of trials.
+            
+            """
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -758,6 +769,10 @@ class StairHandler:
         self._warnUseOfNext=True
         self.minVal = minVal
         self.maxVal = maxVal
+        
+        if originFile==None:
+            self.originFile = inspect.getouterframes(inspect.currentframe())[1][1]
+        else: self.originFile = originFile
         
     def __iter__(self):
         return self
