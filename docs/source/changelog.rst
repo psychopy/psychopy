@@ -14,6 +14,12 @@ The windows version is spitting an error message on opening the app about flush 
 PsychoPy 1.63
 ------------------------------
 
+PsychoPy 1.63.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(github)
+* FIXED buglet with ElementArrayStim.setFieldPos() not updating
+* FIXED mouse release problem with pyglet (since in 1.63.00)
+
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Dec 2010
