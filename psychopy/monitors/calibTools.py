@@ -944,13 +944,14 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
     y = gammaFun(x, minLum, maxLum, gamma)
 
     a and b are calculated directly from minLum, maxLum, gamma
+    
     **Parameters:**
 
         - **xx** are the input values (range 0-255 or 0.0-1.0)
-        - **params** = [gamma, a, b]
-        - **eq** determines the gamma equation used;
-            eq==1[default]: yy = a + (b*xx)**gamma
-            eq==2: yy = (a + b*xx)**gamma
+        - **minLum** = the minimum luminance of your monitor
+        - **maxLum** = the maximum luminance of your monitor (for this gun)
+        - **gamma** = the value of gamma (for this gun)
+
 
     """
     #scale x to be in range minLum:maxLum
