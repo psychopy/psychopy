@@ -85,7 +85,7 @@ class Updater:
                 return -1
             #this will succeed if every line has a key
             key, keyInfo = line.split(':')
-            latest[key]=keyInfo.replace('\n', '')
+            latest[key]=keyInfo.replace('\n', '').replace('\r', '')
         return latest
     def suggestUpdate(self, confirmationDlg=False):
         """Query user about whether to update (if it's possible to do the update)

@@ -80,6 +80,29 @@ If you want to install each library individually rather than use the simple dist
 * `ctypes <http://python.net/crew/theller/ctypes/>`_ (this is already included in python 2.5)
 * `lxml (needed for printing saving builder experiment files)`
 
+.. _suggestedPackages:
+
+Suggested packages
+~~~~~~~~~~~~~~~~~~~~~~
+In addition to the required packages above, there are numerous other additional packages that are useful to PsychoPy users, e.g. for controlling hardware and performing specific tasks. These are packaged with the Standalone versions of `PsychoPy` but users with their own custom Python environment need to install these manually to use them. Most of these can be installed with easy_install
+
+General packages:
+
+    - psignifit for bootsrtapping and other resampling tests
+    - pyserial for interfacing with the serial port
+    - parallel python (aka pp) for parallel processing
+
+Specific hardware interfaces:
+
+    - `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
+    - ioLabs toolbox
+    - labjack tolbox
+
+For developers:
+
+    - `nose` and `coverage` for running unit tests (if this means nothing to you don't worry)
+    - `sphinx` for documentation
+
 Please send feedback to the mailing list.
 
 .. _download : http://code.google.com/p/psychopy
