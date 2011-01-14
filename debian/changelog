@@ -1,3 +1,9 @@
+psychopy (1.63.01.dfsg-1) experimental; urgency=low
+
+  * New upstream bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 14 Jan 2011 12:32:41 -0500
+
 psychopy (1.63.00+git8-g46ee897.dfsg-1) experimental; urgency=low
 
   * New upstream release:
