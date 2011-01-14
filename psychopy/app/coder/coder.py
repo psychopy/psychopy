@@ -131,27 +131,107 @@ class PsychoDebugger(bdb.Bdb):
         self.set_quit()
         return 1
 
-class ModuleLoader(threading.Thread):
-    #a threading class to run the scripts
-    def __init__(self, parent):
-        self.parent=parent#parent should be the main frame
-        assert isinstance(self.parent, IDEMainFrame)
-        self.complete=False
-        self.run()
-    def run(self):
-        self.parent.SetStatusText('importing modules')
-        import psychopy
-        self.parent.SetStatusText('importing numpy')
-        import numpy
-        self.parent.SetStatusText('importing scipy')
-        import scipy
-        self.parent.SetStatusText('importing pylab')
-        import pylab
-        import monitors
-        self.complete=True
-        self.parent.modulesLoaded=True
-        self.parent.analyseCodeNow(event=None)
-
+class UnitTestFrame(wx.Frame):
+    def __init__(self, parent=None, ID=-1, title='PsychoPy unit testing', files=[], app=None):
+        self.app = app
+        self.frameType='unittest'
+        self.prefs = self.app.prefs
+        self.paths = self.app.prefs.paths
+        self.IDs = self.app.IDs
+        wx.Frame.__init__(self, parent, ID, title, pos=wx.DefaultPosition)
+        self.scriptProcess=None
+        
+        #create menu items
+        menuBar = wx.MenuBar()
+        self.menuTests=wx.Menu()
+        menuBar.Append(self.menuTests, '&Tests')        
+        self.menuTests.Append(wx.ID_CLOSE,   "&Run tests\t%s" %self.app.keys['runScript'])
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onRunTests)
+        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
+        #-------------quit
+        self.menuTests.AppendSeparator()
+        self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate PsychoPy")
+        wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
+        self.SetMenuBar(menuBar)
+        
+        #create controls
+        buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
+            size=wx.Size(600,400))
+        self.btnRun = wx.Button(parent=self,label="Run tests")
+        self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
+        self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
+        self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
+        self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
+#        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
+        self.chkAllStdOut.SetToolTip(wx.ToolTip("Report ALL printed output form the tests"))
+        wx.EVT_IDLE(self, self.onIdle)
+        self.SetDefaultItem(self.btnRun)
+        
+        #arrange controls
+        buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
+        self.sizer.Add(buttonsSizer, 0, wx.ALIGN_RIGHT)
+        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND, border=10)
+        self.SetSizerAndFit(self.sizer)
+        self.Show()
+    def onRunTests(self, event=None):
+        """Run the unit tests
+        """
+        testsPath = os.path.join(self.prefs.paths['psychopy'],'tests','run.py')        
+        #create process
+        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
+        self.scriptProcess.Redirect()#catch the stdout/stdin
+        #include coverage report?
+        if self.chkCoverage.GetValue(): coverage=' cover'
+        else: coverage=''
+        #print ALL output?
+        if self.chkAllStdOut.GetValue(): allStdout=' -s'
+        else: allStdout=''
+        #run tests
+        self.btnRun.Disable()
+        if sys.platform=='win32':
+            command = '"%s" -u "%s%s%s"' %(sys.executable, testsPath, 
+                coverage, allStdout)# the quotes allow file paths with spaces
+            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
+        else:
+            testsPath= testsPath.replace(' ','\ ')
+            command = '%s -u %s%s%s' %(sys.executable, testsPath, 
+                coverage, allStdout)# the quotes would break a unix system command
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+    def onIdle(self, event=None):
+        if self.scriptProcess!=None:
+            if self.scriptProcess.IsInputAvailable():
+                stream = self.scriptProcess.GetInputStream()
+                text = stream.read()
+                self.outputWindow.write(text)
+            if self.scriptProcess.IsErrorAvailable():
+                stream = self.scriptProcess.GetErrorStream()
+                text = stream.read()
+                self.outputWindow.write(text)
+    def onTestsEnded(self, event=None):
+        self.onIdle()#so that any final stdout/err gets written
+        self.outputWindow.flush()
+        self.btnRun.Enable()
+#    def onChgCoverage(self, event=None):
+#        """Toggle coverage suite in testing
+#        """
+#        pass
+    def onURL(self, evt):
+        """decompose the URL of a file and line number"""
+        # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
+        tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ',1)
+        filename = tmpFilename.split('File "',1)[1]
+        lineNumber = int(tmpLineNumber.split(',')[0])
+        self.app.coder.gotoLine(filename,lineNumber)
+    def onCloseTests(self, evt):
+        self.Destroy()
+        
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
     Need this too.
@@ -965,6 +1045,7 @@ class CoderFrame(wx.Frame):
         if self.prefs['showSourceAsst']:
             self.paneManager.GetPane('SourceAsst').Show()
         else:self.paneManager.GetPane('SourceAsst').Hide()
+        self.unitTestFrame=None
 
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
         if self.appData['auiPerspective']:
@@ -1071,7 +1152,11 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
-
+        if self.appPrefs['debugMode']:
+            self.toolsMenu.Append(self.IDs.unitTests, "Unit &testing...\tCtrl-T", 
+                "Show dialog to run unit tests")
+            wx.EVT_MENU(self, self.IDs.unitTests, self.onUnitTests)
+            
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, '&View')
@@ -1110,16 +1195,6 @@ class CoderFrame(wx.Frame):
         self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys['switchToBuilder'], "Open a new Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
 
-        #---_help---#000000#FFFFFF--------------------------------------------------
-        self.helpMenu = wx.Menu()
-        menuBar.Append(self.helpMenu, '&Help')
-        self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
-        wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
-        self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
-        wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
-        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
-        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
-
         self.demosMenu = wx.Menu()
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
@@ -1137,6 +1212,15 @@ class CoderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.loadDemo)
 
+        #---_help---#000000#FFFFFF--------------------------------------------------
+        self.helpMenu = wx.Menu()
+        menuBar.Append(self.helpMenu, '&Help')
+        self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
+        wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
+        self.helpMenu.Append(self.IDs.coderTutorial, "&PsychoPy Coder Tutorial", "Go to the online PsychoPy tutorial")
+        wx.EVT_MENU(self, self.IDs.coderTutorial, self.app.followLink)
+        self.helpMenu.Append(self.IDs.psychopyReference, "&PsychoPy API (reference)", "Go to the online PsychoPy reference manual")
+        wx.EVT_MENU(self, self.IDs.psychopyReference, self.app.followLink)
         self.helpMenu.AppendSeparator()
         self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")#on mac this will move to appication menu
         wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
@@ -1863,4 +1947,9 @@ class CoderFrame(wx.Frame):
         filename = tmpFilename.split('File "',1)[1]
         lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename,lineNumber)
-
+    def onUnitTests(self, evt=None):
+        """Show the unit tests frame
+        """
+        self.unitTestFrame=UnitTestFrame(app = self.app)
+#        UnitTestFrame.Show()
+        

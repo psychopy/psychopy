@@ -14,6 +14,20 @@ The windows version is spitting an error message on opening the app about flush 
 PsychoPy 1.63
 ------------------------------
 
+PsychoPy 1.63.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Jan 2011
+
+* FIXED bug with ElementArrayStim.setFieldPos() not updating
+* FIXED mouse release problem with pyglet (since in 1.63.00)
+* ADDED ability to retrieve a timestamp for a mouse event, similar to those in keyboard events.
+    This is possible even though you may not retrieve the mouse event until later (e.g. waiting
+    for a frame flip). Thanks Dave Britton
+* FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phase
+* FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup 
+    if users selected 'skip ths version')
+* CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.
+
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Dec 2010

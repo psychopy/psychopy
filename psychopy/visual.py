@@ -1358,11 +1358,21 @@ class DotStim(_BaseVisualStim):
                 random position every frame. For 'direction' noise dots follow a 
                 random, but constant direction. For 'walk' noise dots vary their
                 direction every frame, but keep a constant speed.                            
-            rgb : (r,g,b) or [r,g,b] or a single intensity value 
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
+            
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth : 0,
@@ -1987,11 +1997,16 @@ class PatchStim(_BaseVisualStim):
             texRes:
                 resolution of the texture (if not loading from an image file)
             color:
-                Could be a the web name for a color (e.g. 'FireBrick');
-                a hex value (e.g. '#FF0047');
-                a tuple (1.0,1.0,1.0); a list [1.0,1.0, 1.0]; or numpy array.
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
                 If the last three are used then the color space should also be given
                 See :ref:`colorspaces`
+                
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
@@ -2349,7 +2364,7 @@ class RadialStim(PatchStim):
                 
                 - 'sqrXsqr', 'sinXsin', 'sin','sqr',None
                 - or the name of an image file (most formats supported)
-                - or a numpy array (1xN or NxN) ranging -1:1
+                - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
                 
             mask :
                 Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
@@ -2375,28 +2390,21 @@ class RadialStim(PatchStim):
                 of the stimulus
             angularPhase : 
                 the phase of the texture around the stimulus
-            rgb :
-                a tuple (1.0,1.0, 1.0) or a list [1.0,1.0, 1.0]
-                or a single value (which will be applied to all guns).
-                RGB vals are applied to simple textures and to greyscale
-                image files but not to RGB images.
-
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for further info.
-
-            dkl : a tuple (45.0,90.0, 1.0) or a list [45.0,90.0, 1.0]
-                specifying the coordinates of the stimuli in cone-opponent
-                space (Derrington, Krauskopf, Lennie 1984). See :ref:`dkl` for further info.
-                Triplets represent [elevation, azimuth, magnitude].
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
-            lms : a tuple (0.5, 1.0, 1.0) or a list [0.5, 1.0, 1.0]
-                specifying the coordinates of the stimuli in cone space
-                Triplets represent relative modulation of each cone [L, M, S].
-                See :ref:`lms` for further info.
-                Note that the monitor must be calibrated for this to be
-                accurate (if not, example phosphors from a Sony Trinitron
-                CRT will be used).
+                
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             contrast : (default= *1.0* )
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
@@ -3253,6 +3261,7 @@ class ElementArrayStim:
             self.fieldPos=value
         else:
             exec('self.fieldPos'+operation+'=value')
+        self._calcFieldCoordsRendered()
     def setPos(self, newPos=None, operation='', units=None):
         """Obselete - users should use setFieldPos or instead of setPos
         """
@@ -3681,11 +3690,20 @@ class TextStim(_BaseVisualStim):
                 Position on the screen            
             depth: 
                 Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
-            color: 
-                The color of the text (ranging [-1,-1,-1] to [1,1,1])
-                NB: parameter rgb=() is deprecated.  
-            colorSpace: 'rgb'
-                The color-space to use.
+            color:
+            
+                Could be a:
+                
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+                
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity: 
                 How transparent the object will be (0 for transparent, 1 for opaque)
             units : **None**, 'norm', 'cm', 'deg' or 'pix'  
@@ -3810,12 +3828,11 @@ class TextStim(_BaseVisualStim):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
         """
-        self.fontname=None
         
         if self.win.winType=="pyglet":
             self._font = pyglet.font.load(font, int(self.heightPix), dpi=72, italic=self.italic, bold=self.bold)
-            
-        else:   
+            self.fontname=font
+        else:
             if font==None or len(font)==0:
                 self.fontname = pygame.font.get_default_font()
             elif font in pygame.font.get_fonts():
@@ -4238,19 +4255,31 @@ class ShapeStim(_BaseVisualStim):
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.
                 
-            lineRGB :
+            lineColor :
              
-                - (r,g,b) or [r,g,b]
-                - or a single intensity value (which will be applied to all guns).
+                Could be a:
                 
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
                 
-            fillRGB : 
+            lineColorSpace:
+                The color space controlling the interpretation of the `lineColor`.               
+                See :ref:`colorspaces`
+                                    
+            fillColor : 
             
-                - (r,g,b) or [r,g,b] or None
-                - or a single intensity value (which will be applied to all guns).
+                Could be a:
                 
-                **NB** units range -1:1 (so 0.0 is GREY). See :ref:`rgb` for details.
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+                    
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
                 
             lineWidth : int (or float?) 
                 specifying the line width in **pixels**
@@ -4312,21 +4341,33 @@ class ShapeStim(_BaseVisualStim):
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
-    
+    def setColor(self, color, colorSpace=None, operation=''):
+        """For ShapeStim use :meth:`~ShapeStim.setLineColor` or 
+        :meth:`~ShapeStim.setFillColor`
+        """
+        raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use setLineColor
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setLineColor`
         """
         self._set('lineRGB', value, operation)
     def setFillRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use setFillColor
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setFillColor`
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation=''):
-        #run the original setColor, which creates color and 
+        """Sets the color of the shape edge. See :meth:`PatchStim.setColor` 
+        for further details of how to use this function.
+        """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='lineRGB',#the name for this rgb value
                     colorAttrib='lineColor')#the name for this color
     def setFillColor(self, color, colorSpace=None, operation=''):
+        """Sets the color of the shape fill. See :meth:`PatchStim.setColor` 
+        for further details of how to use this function.
+        
+        Note that shapes where some vertices point inwards will usually not
+        'fill' correctly.
+        """
         #run the original setColor, which creates color and 
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value

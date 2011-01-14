@@ -37,12 +37,12 @@ def makeGrating(res,
             a square numpy array of size resXres
             
     """
-    
+    tiny=0.0000000000001#to prevent the sinusoid ever being exactly at zero (for sqr wave)
     ori *= (numpy.pi/180)
     phase *= (numpy.pi/180)
-    cycle1D = numpy.arange(0.0,cycles*2.0*numpy.pi,cycles*2.0*numpy.pi/res),
     xrange, yrange = numpy.mgrid[0.0 : cycles*2.0*numpy.pi : cycles*2.0*numpy.pi/res,
-                                                             0.0 : cycles*2.0*numpy.pi : cycles*2.0*numpy.pi/res]
+                                    0.0 : cycles*2.0*numpy.pi : cycles*2.0*numpy.pi/res]
+
     if gratType is "none":
             res=2
             intensity = numpy.ones((res,res),Float)
@@ -51,7 +51,7 @@ def makeGrating(res,
     elif gratType is "ramp":
             intensity= contr*( xrange*numpy.cos(ori)+yrange*numpy.sin(ori) )/(2*numpy.pi)
     elif gratType is "sqr":#square wave (symmetric duty cycle)
-            intensity = numpy.where(yrange>=numpy.pi, 1, -1)
+            intensity = numpy.where(numpy.sin( xrange*numpy.sin(ori)+yrange*numpy.cos(ori) + phase + tiny)>=0, 1, -1)
     elif gratType is "sinXsin":
             intensity = numpy.sin(xrange)*numpy.sin(yrange)
     else:#might be a filename of an image

@@ -3,18 +3,21 @@
 Timing Issues and synchronisation
 ==================================
 
-Many people ask about how precisely PsychoPy can time stimulus presentation and response recording. While For many scientific experiments precise timing is critical. some software and hardware manufacturers make this sound like a simple question, listing millisecond precision as a feature of their products, it is not actually so simple. This page considers some of 
+One of the key requirements of experimental control software is that it has good temporal precision. PsychoPy aims to be as precise as possible in this domain and does achieve excellent results where these are possible. To check the accuracy with which monitor frame times are recorded on your system run the timeByFrames demo from the Coder view.
 
-The main timing implications come from the fact that PsychoPy uses OpenGL and does so in in double-buffered mode (usually synchronised to the vertical blank of the screen). Since nearly all modern stimulus display methods share these features, much of the information below is relevant to other software products.
+Something that people seem to forget (not helped by the software manufacturers that keep talking about sub-millisecond precision) is that the monitor, keyboard and human participant DO NOT have anything like this sort of precision. Your monitor updates every 10-20ms depending on frame rate. If you use a CRT screen then the top is drawn before the bottom of the screen by several ms. If you use an LCD screen the whole screen refreshes at the same time, but takes around 20ms to switch from one image to the next. Your keyboard has a latency of 4-30ms, depending on brand and system. 
+
+So, yes, PsychoPy's temporal precision can be very good, but the overall accuracy is likely to be severely limited by your experimental hardware. Below are some further details on timing issues.
+
+.. warning::
+	The information about timing in PsychoPy assumes that your graphics card is capable of synchronising with the monitor frame rate. For integrated Intel graphics chips (e.g. GMA 945) under Windows, this is not true and the use of those chips is not recommended for serious experimental use as a result. Desktop systems can have a moderate graphics card added for around £30 which will be vastly superior in performance.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
    
-   millisecondPrecision
    detectingFrameDrops
    reducingFrameDrops
-   timingMechanisms
    synchronisingInfMRI
    synchronisingInEEG
