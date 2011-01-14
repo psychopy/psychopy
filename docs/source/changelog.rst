@@ -16,9 +16,14 @@ PsychoPy 1.63
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(github)
-* FIXED buglet with ElementArrayStim.setFieldPos() not updating
+Released Jan 2011
+
+* FIXED bug with ElementArrayStim.setFieldPos() not updating
 * FIXED mouse release problem with pyglet (since in 1.63.00)
+* FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phse
+* FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup 
+    if users selected 'skip ths version')
+* CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.
 
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
