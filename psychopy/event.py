@@ -243,8 +243,9 @@ def waitKeys(maxWait = None, keyList=None):
         return None #no keypress in period
 
 def xydist(p1=[0.0,0.0],p2=[0.0,0.0]):
-	from numpy import sqrt
-	return sqrt(pow(p1[0]-p2[0],2)+pow(p1[1]-p2[1],2))
+    """Helper function returning the cartesian distance between p1 and p2
+    """
+    return numpy.sqrt(pow(p1[0]-p2[0],2)+pow(p1[1]-p2[1],2))
 
 class Mouse:
     """Easy way to track what your mouse is doing.
@@ -317,27 +318,32 @@ class Mouse:
         return self.lastPos
             
     def mouseMoved(self, distance=None, reset=False):
-        # With no args returns true if mouse has moved at all since last getPos() call,
-        # or distance (x,y) can be set to pos or neg distances from x and y to see if moved either x or y that far from lastPos ,
-        # or distance can be an int/float to test if new coordinates are more than that far in a straight line from old coords.
-        # Retrieve time of last movement from self.mouseClock.getTime().
-        # Reset can be to 'here' or to screen coords (x,y) which allows measuring distance from there to mouse when moved.
-        # if reset is (x,y) and distance is set, then prevPos is set to (x,y) and distance from (x,y) to here is checked,
-        # mouse.lastPos is set as current (x,y) by getPos(), mouse.prevPos holds lastPos from last time mouseMoved was called
+        """Determine whether/how far the mouse has moved
+        
+        With no args returns true if mouse has moved at all since last getPos() call,
+        or distance (x,y) can be set to pos or neg distances from x and y to see if moved either x or y that far from lastPos ,
+        or distance can be an int/float to test if new coordinates are more than that far in a straight line from old coords.
+        
+        Retrieve time of last movement from self.mouseClock.getTime().
+        
+        Reset can be to 'here' or to screen coords (x,y) which allows measuring distance from there to mouse when moved.
+        if reset is (x,y) and distance is set, then prevPos is set to (x,y) and distance from (x,y) to here is checked,
+        mouse.lastPos is set as current (x,y) by getPos(), mouse.prevPos holds lastPos from last time mouseMoved was called
+        """
         global mouseMove # clock that gets reset by pyglet mouse movement handler
         self.prevPos=copy.copy(self.lastPos) # needs initialization before getPos resets lastPos
         self.getPos() # sets self.lastPos to current position
         if not reset:
             if distance is None:
-                if self.prevPos[0] <> self.lastPos[0]: return True 
-                if self.prevPos[1] <> self.lastPos[1]: return True
+                    if self.prevPos[0] <> self.lastPos[0]: return True 
+                    if self.prevPos[1] <> self.lastPos[1]: return True
             else: 
-                if isinstance(distance,int) or isinstance(distance,float):
-                    self.movedistance=xydist(self.prevPos,self.lastPos)
-                    if self.movedistance > distance: return True
-                    else: return False
-                if (self.prevPos[0]+distance[0]) - self.lastPos[0] > 0.0: return True # moved on X-axis
-                if (self.prevPos[1]+distance[1]) - self.lastPos[0] > 0.0: return True # moved on Y-axis
+                    if isinstance(distance,int) or isinstance(distance,float):
+                        self.movedistance=xydist(self.prevPos,self.lastPos)
+                        if self.movedistance > distance: return True
+                        else: return False
+                    if (self.prevPos[0]+distance[0]) - self.lastPos[0] > 0.0: return True # moved on X-axis
+                    if (self.prevPos[1]+distance[1]) - self.lastPos[0] > 0.0: return True # moved on Y-axis
             return False
         if isinstance(reset,bool) and reset:
             # reset is True so just reset the last move time, eg mouseMoved(reset=True) starts/zeroes the move clock
@@ -411,7 +417,7 @@ class Mouse:
                 w=pyglet.window.get_platform().get_default_display().get_windows()[0]  
             w.set_mouse_visible(visible)
     
-    def ClickReset(self,buttons=[0,1,2]):
+    def clickReset(self,buttons=[0,1,2]):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
            The pyglet mouse-button-pressed handler uses their timeAtLastReset when a button is pressed
            so the user can reset them at stimulus onset or offset to measure RT.
@@ -421,13 +427,21 @@ class Mouse:
         for c in buttons:
             mouseClick[c].reset()
 
-
     def getPressed(self, getTime=False):
-        """Returns a 3-item list indicating whether or not buttons
-        1,2,3 are currently pressed
-        Typically you want to call mouse.ClickReset() at stimulus onset, then after the button is pressed in reaction to it,
-        the total time elapsed from reset to click is in mouseTimes. This is the actual RT
-        You can reset individual buttons 
+        """Returns a 3-item list indicating whether or not buttons 1,2,3 are currently pressed
+        
+        If `getTime=True` (False by default( then `getPressed` will return all buttons that
+        have been pressed since the last call to `mouse.clickReset` as well as their
+        time stamps::
+            
+            buttons = mouse.getPressed()
+            buttons, times = mouse.getPressed(getTime=True)        
+        
+        Typically you want to call :ref:`mouse.clickReset()` at stimulus onset, then 
+        after the button is pressed in reaction to it, the total time elapsed 
+        from the last reset to click is in mouseTimes. This is the actual RT,
+        regardless of when the call to `getPressed()` was made.
+        
         """
         global mouseButtons,mouseTimes
         if usePygame: return mouse.get_pressed()
