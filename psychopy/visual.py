@@ -2992,6 +2992,10 @@ class ElementArrayStim:
             self.depths=depths
         if self.win.winType != 'pyglet':
             raise TypeError('ElementArray requires a pyglet context')
+        if not self.win._useShaders:
+            raise Error('Sorry. ElementArrayStim requires Shaders support and floating point textures.' + \
+                "At least one of those is not supported by your graphics card. See the sysinfo demo for further info about your card." + \
+                "Avoid intel integrated graphics solutions if possible")
                 
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
@@ -4814,7 +4818,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
-        internalFormat = GL.GL_RGB32F_ARB
+        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
