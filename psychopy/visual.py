@@ -552,10 +552,14 @@ class Window:
             
             fps: the frame rate to be used throughout the movie **only for quicktime (.mov) movies**
             
+            clearFrames: set this to False if you want the frames to be kept for
+                additional calls to `saveMovieFrames`
+            
         Examples::
+        
             myWin.saveMovieFrames('frame.tif')#writes a series of static frames as frame001.tif, frame002.tif etc...
             myWin.saveMovieFrames('stimuli.mov', fps=25)#on OS X only
-            myWin.saveMovieFrames('stimuli.gif')#but not great quality
+            myWin.saveMovieFrames('stimuli.gif')#not great quality animated gif
             myWin.saveMovieFrames('stimuli.mpg')#not on OS X
             
         """

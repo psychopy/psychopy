@@ -35,6 +35,8 @@ The use of git and the following workflow allows people to contribute changes th
         - when the unit tests pass merge changes back into the `master` branch
         - submit a pull request to the central repository
         - 
+.. createClone:
+
 Create your own fork of the central repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -74,8 +76,10 @@ From the GUI you can select (or `stage` in git terminology) the files that you w
 If you have internet access then you could also push your changes back up to your fork (which is called your `origin` by default), either by pressing the `push` button in the GUI or by closing that and typing::
 
     $ git push
-    
-Sharing your improvement with others
+
+.. _pullRequest:
+
+Share your improvement with others
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Only a couple of people have direct write-access to the psychopy repository, but you can get your changes included in `upstream` by pushing your changes back to your github fork and then `submitting a pull request <http://nipy.sourceforge.net/nitime/devel/development_workflow.html#asking-for-your-changes-to-be-merged-with-the-main-repo>`_. 
 
@@ -99,11 +103,14 @@ You can push your new branch back to your fork (`origin`) with::
 
 Completing work on a feature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When you're done run the unit tests for your feature branch. IF they pass you hopefully haven't damaged other parts of PsychoPy (!?). If possible add a unit test for your new feature too, so that if other people make changes they don't break your new feature!
+When you're done run the unit tests for your feature branch. If they pass you hopefully haven't damaged other parts of PsychoPy (!?). If possible add a unit test for your new feature too, so that if other people make changes they don't break your work!
 
-You can merge your changes back into your master branch with
+You can merge your changes back into your master branch with::
 
     $ git checkout master
     $ git merge feature-somethingNew
 
-    
+Once you've folded your new code back into your master and pushed it back to your github fork then it's time to :ref:`pullRequest`.
+
+Happy Coding Folks!!
+
