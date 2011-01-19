@@ -532,7 +532,7 @@ class Window:
         return im
         
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
-        fps=30):
+        fps=30, clearFrames=True):
         """
         Writes any captured frames to disk. Will write any format
         that is understood by PIL (tif, jpg, bmp, png...)
@@ -586,7 +586,8 @@ class Window:
             for frameN, thisFrame in enumerate(self.movieFrames):
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
-    
+        if clearFrames: self.movieFrames=[]
+        
     def _getRegionOfFrame(self, rect=[-1,1,1,-1], buffer='front', power2=False, squarePower2=False):
         """
         Capture a rectangle (Left Top Right Bottom, norm units) of the window as an RBGA image.
