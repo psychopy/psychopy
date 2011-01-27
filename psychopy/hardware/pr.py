@@ -254,16 +254,9 @@ class PR655(PR650):
         
     '''
     def __init__(self, port):
-        '''
-        Keywords
-        vendor_id: Id of the Hardware Manufacturere
-        product_id: ID of the Hardware
-        both can be checked via lsusb
-        '''
         self.type = None#get this from the device later
         self.com=False
         self.OK=True#until we fail
-        
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
             self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
