@@ -58,7 +58,7 @@ def findPhotometer(ports=None, device=None):
             if len(ports)==0:
                 log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
                     +"serial port name manually, check drivers installed etc...")
-                return -1
+                return None
         elif sys.platform=='linux':
             ports=glob('/dev/ttyS?')#usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
