@@ -16,6 +16,8 @@ except: serial=False
 class PR650:
     """An interface to the PR650 via the serial port.
     
+    (Added in version 1.63.02)
+    
     example usage::
     
         from psychopy.hardware.pr import PR650

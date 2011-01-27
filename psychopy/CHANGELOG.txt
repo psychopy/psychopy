@@ -19,6 +19,7 @@ PsychoPy 1.63.02
 (github)
 
 * ADDED clearFrames option to Window.saveMovieFrames
+* ADDED support for Spectrascan PR655/PR670
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
