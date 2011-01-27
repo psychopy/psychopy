@@ -99,8 +99,7 @@ class PR650:
         self.OK=False
         log.error(msg)
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
-        """
-        send a command to the photometer and wait an alloted
+        """Send a command to the photometer and wait an alloted
         timeout for a response (Timeout should be long for low
         light measurements)
         """
@@ -228,3 +227,256 @@ class PR650:
 
 
 
+
+
+class PR655(PR650):
+    '''An interface to the PR655/PR670 via the serial port.
+    
+    example usage::
+    
+        from psychopy.hardware.pr import PR655
+        myPR655 = PR655(port)
+        myPR655.getLum()#make a measurement
+        nm, power = myPR655.getLastSpectrum()#get a power spectrum for the last measurement
+    
+    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported 
+    device for you so you can also do::
+    
+        from psychopy import hardware
+        phot = hardware.findPhotometer()
+        print phot.getLum()
+        
+    :troubleshooting:
+        
+        If the device isn't responding try turning it off and turning it on again,
+        and/or disconnecting/reconnecting the USB cable. It may be that the port
+        has become controlled by some other program.
+        
+    '''
+    def __init__(self, port):
+        '''
+        Keywords
+        vendor_id: Id of the Hardware Manufacturere
+        product_id: ID of the Hardware
+        both can be checked via lsusb
+        '''
+        self.type = None#get this from the device later
+        self.com=False
+        self.OK=True#until we fail
+        
+        if type(port) in [int, float]:
+            self.portNumber = port #add one so that port 1=COM1
+            self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
+        else:
+            self.portString = port
+            self.portNumber=None
+            
+        self.codes={'OK':'000\r\n',#this is returned after measure
+            '18':'Light Low',#these is returned at beginning of data
+            '10':'Light Low',
+            '00':'OK'
+            }
+        
+        #try to open the port
+        try:
+            self.com = serial.Serial(self.portString)
+        except:
+            self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
+        #setup the params for PR650 comms
+        if self.OK:
+            self.com.setBaudrate(9600)
+            self.com.setParity('N')#none
+            self.com.setStopbits(1)
+            try:
+                self.com.close()#attempt to close if it's currently open
+                self.com.open()
+                self.isOpen=1
+            except:
+                self._error("Found a device on serial port %s, but couldn't open that port" %self.portString)
+        self.com.setTimeout(0.5)#this should be large when making measurements
+        self.startRemoteMode()
+        self.type = self.getDeviceType()
+        if self.type:
+            log.info("Successfully opened %s on %s" %(self.type,self.portString))
+        else:
+            self._error("PR655/PR670 isn't communicating")
+    def __del__(self):
+        self.endRemoteMode()
+        time.sleep(0.1)
+        self.com.close()
+        log.debug('Closed PR655 port')
+    def startRemoteMode( self ):
+        '''
+        Sets the Colorimeter into remote mode
+        '''
+        reply = self.sendMessage('PHOTO', timeout=10.0)
+    def getDeviceType(self):
+        """Return the device type (e.g. 'PR-655' or 'PR-670')
+        """
+        reply = self.sendMessage('D111')#returns errCode,
+        return _stripLineEnds(reply.split(',')[-1])#last element
+    def getDeviceSN(self):
+        """Return the device serial number
+        """
+        reply = self.sendMessage('D110')#returns errCode,
+        return _stripLineEnds(reply.split(',')[-1])#last element
+    def sendMessage(self, message, timeout=0.5, DEBUG=False):
+        """Send a command to the photometer and wait an alloted
+        timeout for a response (Timeout should be long for low
+        light measurements)
+        """
+        log.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
+        if message[-1]!='\n': message+='\n'     #append a newline if necess
+
+        #flush the read buffer first
+        self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
+        
+        #send the message
+        for letter in message:
+            self.com.write(letter)#for PR655 have to send individual chars ! :-/
+            self.com.flush()
+
+        #get feedback (within timeout)
+        self.com.setTimeout(timeout)
+        if message in ['d5\n', 'D5\n']: #we need a spectrum which will have multiple lines
+            return self.com.readlines()
+        else:
+            return self.com.readline()
+    def endRemoteMode( self ):
+        '''
+        Puts the colorimeter back into normal mode
+        '''
+        self.com.write( 'Q' )
+    def getLastTristim( self ):
+        '''Fetches (from the device) the last CIE 1931 Tristimulus values
+        
+        :returns:
+            list: status, units, Tristimulus Values
+            
+        :see also:
+            :func:`~PR655.measure` automatically populates pr655.lastTristim with just the tristimulus
+            coordinates
+        '''
+        result = self.sendMessage( 'D2' )
+        return result.split(',')
+    def getLastUV( self ):
+        '''Fetches (from the device) the last CIE 1976 u,v coords
+        
+        :returns:
+            list: status, units, Photometric brightness, u, v
+            
+        :see also:
+            :func:`~PR655.measure` automatically populates pr655.lastUV with [u,v]
+        '''
+        result = self.sendMessage( 'D3' )
+        return result.split(',')
+    def getLastXY( self ):
+        '''Fetches (from the device) the last CIE 1931 x,y coords
+        
+        
+        :returns:
+            list: status, units, Photometric brightness, x,y
+            
+        :see also:
+            :func:`~PR655.measure` automatically populates pr655.lastXY with [x,y]
+        '''
+        result = self.sendMessage( 'D1' )
+        return result.split(',')
+    def getLastSpectrum(self, parse=True):
+        """This retrieves the spectrum from the last call to :func:`~PR655.measure`
+
+        If `parse=True` (default):
+            
+            The format is a num array with 100 rows [nm, power]
+
+        otherwise:
+        
+            The output will be the raw string from the PR650 and should then
+            be passed to :func:`~PR655.parseSpectrumOutput`. It's more
+            efficient to parse R,G,B strings at once than each individually.
+        """
+        raw = self.sendMessage('D5')#returns a list where each list
+        if parse:
+            return self.parseSpectrumOutput(raw[2:])#skip the first 2 entries (info)
+        else:
+            return raw
+    def getLastColorTemp( self ):
+        '''Fetches (from the device) the color temperature (K) of the last measurement
+        
+        :returns:
+            list: status, units, exponent, correlated color temp (Kelvins), CIE 1960 deviation
+            
+        :see also:
+            :func:`~PR655.measure` automatically populates pr655.lastColorTemp with the color temp in Kelvins
+        '''
+        result = self.sendMessage( 'D4' )
+        return result.split(',')
+    def measure( self, timeOut=30.0 ):
+        """Make a measurement with the device.
+        
+        This automatically populates:
+        
+            - ``.lastLum``
+            - ``.lastSpectrum`
+            - `.lastCIExy`
+            - `.lastCIEuv`
+        """
+        reply = self.sendMessage( 'M0', timeout=30)
+        self.measured = True
+        CIEuv = self.getLastUV()
+        CIExy = self.getLastXY()
+        CIEtristim = self.getLastTristim()
+        self.lastLum = float(CIEuv[2])
+        self.lastUV = [ float(CIEuv[3]), float(CIEuv[4]) ]
+        self.lastXY = [ float(CIExy[3]), float(CIExy[4]) ]
+        self.lastTristim = [ float(CIEtristim[2]), float(CIEtristim[3]), float(CIEtristim[4]) ]
+        self.lastSpectrum = self.getLastSpectrum(parse=True)
+        self.lastColorTemp = int(self.getLastColorTemp()[3])
+    def parseSpectrumOutput( self, rawStr ):
+        """Parses the strings from the PR650 as received after sending
+        the command 'D5'.
+        The input argument "rawStr" can be the output from a single
+        phosphor spectrum measurement or a list of 3 such measurements
+        [rawR, rawG, rawB].
+        """
+
+        if len(rawStr)==3:
+            RGB=True
+            rawR=rawStr[0][2:]
+            rawG=rawStr[1][2:]
+            rawB=rawStr[2][2:]
+            nPoints = len(rawR)
+        else:
+            RGB=False
+            nPoints=len(rawStr)
+            raw=rawStr[2:]
+
+        nm = []
+        if RGB:
+            power=[[],[],[]]
+            for n in range(nPoints):
+                #each entry in list is a string like this:
+                thisNm, thisR = rawR[n].split(',')
+                thisR = thisR.replace('\r\n','')
+                thisNm, thisG = rawG[n].split(',')
+                thisG = thisG.replace('\r\n','')
+                thisNm, thisB = rawB[n].split(',')
+                thisB = thisB.replace('\r\n','')
+                exec('nm.append(%s)' %thisNm)
+                exec('power[0].append(%s)' %thisR)
+                exec('power[1].append(%s)' %thisG)
+                exec('power[2].append(%s)' %thisB)
+                #if progDlg: progDlg.Update(n)
+        else:
+            power = []
+            for n, point in enumerate(rawStr):
+                #each entry in list is a string like this:
+                thisNm, thisPower = point.split(',')
+                nm.append(float(thisNm))
+                power.append(float(thisPower.replace('\r\n','')))
+#            if progDlg: progDlg.Update(n)
+        #if progDlg: progDlg.Destroy()
+        return numpy.asarray(nm), numpy.asarray(power)
+
+def _stripLineEnds(s):
+    return s.replace('\r','').replace('\n','')
