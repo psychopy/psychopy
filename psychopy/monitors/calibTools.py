@@ -604,10 +604,7 @@ class GammaCalculator:
             self.b = self.gammaModel[1]
         else:
             raise AttributeError, "gammaTable needs EITHER a gamma value or some luminance measures"
-
-        #create corrected lookup table
-        #self.gammaTable = self.invertGamma()
-
+    
     def fitGammaFun(self, x, y):
         """
         Fits a gamma function to the monitor calibration data.
@@ -641,16 +638,6 @@ class GammaCalculator:
         model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
         SSQ = numpy.sum((model-y)**2)
         return SSQ
-
-    #def invertGamma(self):
-        #"""
-        #uses self.gammaVal, self.bitsIN & self.bitsOUT to
-        #create a gamma-corrected lookup table
-        #"""
-        #gamLUTOut = numpy.arange(0,1.0, 1.0/(2**self.bitsIN)) #ramp (of length bitsIN)
-        #gamLUTOut = gamLUTOut**(1.0/self.gammaVal)    #inverse gamma
-        #gamLUTOut *= 2**self.bitsOUT   #convert to output range
-        #return gamLUTOut.astype(numpy.uint8)
 
 def makeDKL2RGB(nm,powerRGB):
     """
@@ -975,10 +962,14 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
         a = minLum**(1/gamma)
         b = maxLum**(1/gamma)-a
         yy = (a + b*xx)**gamma
+    elif eq==4:#NB method 3 was an interpolation method that didn't work well
+        a = minLum**(1/gamma)
+        b = maxLum**(1/gamma)-a
+        yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
     #print 'a=%.3f      b=%.3f' %(a,b)
     return yy
 
-def gammaInvFun(yy, minLum, maxLum, gamma, eq=1):
+def gammaInvFun(yy, minLum, maxLum, gamma,b=None, eq=1):
     """Returns inverse gamma function for desired luminance values.
     x = gammaInvFun(y, minLum, maxLum, gamma)
 
@@ -1020,6 +1011,16 @@ def gammaInvFun(yy, minLum, maxLum, gamma, eq=1):
         xx = (yy**(1/gamma)-a)/b
         maxLUT = (maxLum**(1/gamma)-a)/b
         minLUT = (minLum**(1/gamma)-a)/b
+    elif eq==4:#NB method 3 was an interpolation method that didn't work well
+        a = minLum-b**gamma
+        k = (maxLum-a)**(1./gamma) - b        
+        xx = (1./k)*((yy-a)**(1./gamma) - b)
+        xx[yy<a] = -b/kappa
+        minLUT, maxLUT = 0, 1
+        #clip too large values
+        xx[xx>maxLUT]=maxLUT
+        xx[xx<minLUT]=minLUT
+        #print "we are linearising with the special wichmann style equation"
 
     #then return to range (0:1)
     xx = xx/(maxLUT-minLUT) - minLUT
