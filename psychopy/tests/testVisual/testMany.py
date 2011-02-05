@@ -157,6 +157,10 @@ class TestPygletNorm(_baseVisualTest):
     def setUp(self):
         self.win = visual.Window([48,48], winType='pyglet', pos=[50,50])
         self.contextName='norm'
+class TestPygletHeight(_baseVisualTest):
+    def setUp(self):
+        self.win = visual.Window([48,64], winType='pyglet', pos=[50,50])
+        self.contextName='height'
 class TestPygletNormNoShaders(_baseVisualTest):
     def setUp(self):
         self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50])
