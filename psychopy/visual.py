@@ -124,7 +124,7 @@ class Window:
                 If None then PsychoPy will revert to user/site preferences
             monitor : *None*, string or a `~psychopy.monitors.Monitor` object
                 The monitor to be used during the experiment
-            units :  *None*, 'norm' (normalised),'deg','cm','pix'
+            units :  *None*, 'height' (of the window), 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
                 See :ref:`units` for explanation of options.
             screen : *0*, 1 (or higher if you have many screens)
@@ -761,7 +761,7 @@ class Window:
         called by the user in order to draw OpenGl objects manually
         in each frame.
 
-        The `units` can be 'norm'(normalised),'pix'(pixels),'cm' or
+        The `units` can be 'height' (multiples of window height), 'norm'(normalised), 'pix'(pixels), 'cm' or
         'stroke_font'. The `font` parameter is only used if units='stroke_font'
         """
         if units=="norm":
