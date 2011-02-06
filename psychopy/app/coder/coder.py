@@ -1196,21 +1196,29 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
 
         self.demosMenu = wx.Menu()
+        self.demos={}
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
-        self.demoList = glob.glob(os.path.join(self.paths['demos'],'coder','*.py'))
-        self.demoList.sort(key=str.lower)
-        #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
-        self.ID_DEMOS = \
-            map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
-        self.demos={}
-        for n in range(len(self.demoList)):
-            self.demos[self.ID_DEMOS[n]] = self.demoList[n]
-        for thisID in self.ID_DEMOS:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
-            self.demosMenu.Append(thisID, shortname)
-            wx.EVT_MENU(self, thisID, self.loadDemo)
+        for folder in glob.glob(os.path.join(self.paths['demos'],'coder','*')):
+            #skip if it isn't a folder
+            if not os.path.isdir(folder): continue
+            #otherwise create a submenu
+            folderName= os.path.split(folder)[-1]
+            submenu = wx.Menu()
+            self.demosMenu.AppendSubMenu(submenu, folderName)
+            
+            #find the files in the folder
+            demoList = glob.glob(os.path.join(folder,'*.py'))
+            demoList.sort(key=str.lower)
+            demoIDs = map(lambda _makeID: wx.NewId(), range(len(demoList)))
+            
+            for n in range(len(demoList)):
+                self.demos[demoIDs[n]] = demoList[n]
+            for thisID in demoIDs:
+                junk, shortname = os.path.split(self.demos[thisID])
+                if shortname.startswith('_'): continue#remove any 'private' files
+                submenu.Append(thisID, shortname)
+                wx.EVT_MENU(self, thisID, self.loadDemo)
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
