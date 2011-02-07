@@ -3792,7 +3792,7 @@ class TextStim(_BaseVisualStim):
             elif self.units=='cm': self.wrapWidth=15
             elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
-        elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[1]
+        elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[0]
         elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
