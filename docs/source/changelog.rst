@@ -7,19 +7,23 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-Known issues
-------------------
-The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
 PsychoPy 1.63
 ------------------------------
 
 PsychoPy 1.63.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(github)
+Released Feb 2011
 
-* ADDED clearFrames option to Window.saveMovieFrames
 * ADDED support for Spectrascan PR655/PR670
+* ADDED 'height' as a type of unit for visual stimuli
+    NB. this is likely to become the default unit for new users (set in prefs)
+    but for existing users the unit set in their prefs will remain. That means 
+    that your system may behave differently to your (new user) colleague's
+* ADDED clearFrames option to Window.saveMovieFrames
+* IMPROVED handling of damaged experiments in Builder (they don't crash the app any more!)
+* IMPROVED performance of autoLogging (including showing in demos how to turn off autoLog for dynamic stimuli)
+* IMPROVED demos menu (now organised by demo type)
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
