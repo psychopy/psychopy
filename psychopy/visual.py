@@ -289,7 +289,7 @@ class Window:
         
         self.recordFrameIntervals=False
         self.frameIntervals=[]
-        self._loLog=[]
+        self._toLog=[]
         self._toDraw=[]
         
         if self.useNativeGamma:
@@ -377,7 +377,7 @@ class Window:
                 if desired
         """
         
-        self._loLog.append({'msg':msg,'level':level,'obj':str(obj)})
+        self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -473,10 +473,10 @@ class Window:
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
         
         #log events
-        for logEntry in self._loLog:
+        for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             log.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._loLog = []
+        self._toLog = []
         
     def update(self):
         """Deprecated: use Window.flip() instead        
@@ -1220,7 +1220,7 @@ class _BaseVisualStim:
         else:
             exec('self.'+attrib+op+'=val')
         
-        if self.autoLog: 
+        if self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
                 level=log.EXP,obj=self)
         
