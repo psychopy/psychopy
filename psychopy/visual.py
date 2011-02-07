@@ -5038,7 +5038,9 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         showText = False
     if showVisual:
         x,y = myWin.size
-        myStim = PatchStim(myWin, tex='sin', mask='gauss', size=[.6*y/float(x),.6], sf=3.0, opacity=.2)
+        myStim = PatchStim(myWin, tex='sin', mask='gauss', 
+            size=[.6*y/float(x),.6], sf=3.0, opacity=.2,
+            autoLog=False)
     clockt = [] # clock times
     drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
     
