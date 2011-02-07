@@ -19,7 +19,8 @@ myWin = visual.Window((600,600.0), allowGUI=False, monitor='testMonitor', units=
 grating1 = visual.PatchStim(myWin,tex="sin",mask="circle",texRes=128,
             color=[1.0,1.0,1.0],colorSpace='rgb', opacity=1.0,
             size=(5.0,5.0), sf=(2.0,2.0),
-            ori = 45, depth=0.5)
+            ori = 45, depth=0.5,
+            autoLog=False)#this stim changes too much for autologging to be useful
 message = visual.TextStim(myWin,text='Hit Q to quit',
     pos=(-0.95,-0.95),units='norm',
     alignVert='bottom',alignHoriz='left')
@@ -37,7 +38,7 @@ while t<20:#quits after 20 secs
     myWin.flip()          #update the screen
 
     #handle key presses each frame
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
+    for key in event.getKeys():
+        if key in ['escape','q']:
             myWin.close()
             core.quit()

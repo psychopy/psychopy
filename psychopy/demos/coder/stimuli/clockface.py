@@ -6,11 +6,11 @@ win = visual.Window([800,800], monitor='testMonitor')
 handVerts = numpy.array([ [0,0.8],[-0.05,0],[0,-0.05],[0.05,0] ])#vertices (using numpy means we can scale them easily)
 
 second = visual.ShapeStim(win, vertices= [[0,-0.1], [0.1,0.8]],
-    lineColor=[1,-1,-1],fillColor=None, lineWidth=2)
+    lineColor=[1,-1,-1],fillColor=None, lineWidth=2, autoLog=False)
 minute = visual.ShapeStim(win, vertices=handVerts,
-    lineColor=[1,1,1],fillColor=[0.8,0.8,0.8])
+    lineColor=[1,1,1],fillColor=[0.8,0.8,0.8], autoLog=False)
 hour = visual.ShapeStim(win, vertices=handVerts/2.0,
-    lineColor=[-1,-1,-1],fillColor=[-0.8,-0.8,-0.8])
+    lineColor=[-1,-1,-1],fillColor=[-0.8,-0.8,-0.8], autoLog=False)
 clock = core.Clock()
 
 while True: #ie forever

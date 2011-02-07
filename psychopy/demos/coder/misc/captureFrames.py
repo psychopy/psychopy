@@ -3,7 +3,9 @@ from psychopy import visual
 
 #copy pixels from the frame buffer
 myWin = visual.Window([200,200])
-myStim = visual.PatchStim(myWin, pos=[-0.5,-0.5],size=1, sf=5,color=[0,1,1],ori=30, mask='gauss')
+myStim = visual.PatchStim(myWin, pos=[-0.5,-0.5],
+    size=1, sf=5,color=[0,1,1],ori=30, mask='gauss',
+    autoLog=False)#this stim changes too much for autologging to be useful
 n=10
 for frameN in range(n): #for n frames
     myStim.setPhase(0.1, '+')

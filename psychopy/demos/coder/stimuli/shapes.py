@@ -21,7 +21,8 @@ stim1 = visual.ShapeStim(win,
                  closeShape=True,#do you want the final vertex to complete a loop with 1st?
                  pos= [0,0], #the anchor (rotaion and vertices are position with respect to this)
                  interpolate=True,
-                 opacity=0.9)
+                 opacity=0.9,
+                 autoLog=False)#this stim changes too much for autologging to be useful
 
 stim2 = visual.ShapeStim(win, 
                  lineColor='green',
@@ -32,7 +33,9 @@ stim2 = visual.ShapeStim(win,
                  closeShape=True,#do you want the final vertex to complete a loop with 1st?
                  pos= [0.5,0.5], #the anchor (rotaion and vertices are position with respect to this)
                  interpolate=True,
-                 opacity=0.9)
+                 opacity=0.9,
+                 autoLog=False)#this stim changes too much for autologging to be useful
+                 
 clock = core.Clock()
 while True:
     stim1.setOri(2,'+')
