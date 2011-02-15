@@ -945,32 +945,9 @@ class CoderFrame(wx.Frame):
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
         
-        import IPython.gui.wx.ipython_view
-        self.outputWindow = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, background_color='WHITE')
-        #turn off threading - interferes with pygame thread
-        self.outputWindow.options['threading']['value']='False'
-        self.outputWindow.IP.set_threading(False)
-        self.outputWindow.threading_option.SetValue(False)
-        #allow a write fmethod for the window
-        self.outputWindow.cout.write = self.outputWindow.text_ctrl.write
-        self.outputWindow.write = self.outputWindow.text_ctrl.write
-        #set background to white
-        self.outputWindow.options['background_color']['value']='WHITE'#this setting isn't used by __init__ apparently
-        self.outputWindow.text_ctrl.setBackgroundColor(self.outputWindow.options['background_color']['value'])
-        self.outputWindow.background_option.SetValue(True)
-        self.outputWindow.updateOptionTracker('background_color',
-                                 self.outputWindow.options['background_color']['value'])
-        #scintilla autocompletion method
-        self.outputWindow.completion_option.SetValue(True)
-        self.outputWindow.options['completion']['value']='STC'
-        self.outputWindow.text_ctrl.setCompletionMethod(self.outputWindow.options['completion']['value'])
-        self.outputWindow.updateOptionTracker('completion',
-                                 self.outputWindow.options['completion']['value'])
-        self.outputWindow.text_ctrl.SetFocus()
-        
-#        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
-#        self.outputWindow.write('Welcome to PsychoPy2!\n')
-#        self.outputWindow.write("v%s\n" %self.app.version)
+        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        self.outputWindow.write('Welcome to PsychoPy2!\n')
+        self.outputWindow.write("v%s\n" %self.app.version)
 
         self.paneManager.AddPane(self.outputWindow,
                                  wx.aui.AuiPaneInfo().
@@ -1131,8 +1108,10 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()
-        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys['switchToBuilder'], "Open a new Builder view")
+        self.viewMenu.Append(self.IDs.openBuilderView, "Go to &Builder view\t%s" %self.app.keys['switchToBuilder'], "Go to the Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
+        self.viewMenu.Append(self.IDs.openShell, "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'], "Go to a shell window for interactive commands")
+        wx.EVT_MENU(self, self.IDs.openShell,  self.app.showShell)
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()

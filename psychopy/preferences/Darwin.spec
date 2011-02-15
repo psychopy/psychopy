@@ -112,3 +112,4 @@
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     switchToBuilder = string(default='Ctrl+L')
     switchToCoder = string(default='Ctrl+L')
+    switchToShell = string(default='Ctrl+I')
