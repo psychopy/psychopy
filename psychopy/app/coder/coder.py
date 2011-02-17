@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, types, re
-import wx, wx.stc, wx.aui, wx.richtext
+import wx, wx.stc, wx.aui, wx.richtext, wx.py
 import keyword, os, sys, string, StringIO, glob, platform
 import threading, traceback, bdb, cPickle
 import psychoParser
@@ -925,8 +925,8 @@ class CoderFrame(wx.Frame):
 
         self.notebook.SetFocus()
 
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
+        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
@@ -941,6 +941,17 @@ class CoderFrame(wx.Frame):
                 if not os.path.isfile(filename): continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
+        #create the shelf for shell and output views
+        self.shelf = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
+            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
+                wx.aui.AUI_NB_TAB_MOVE)
+        self.paneManager.AddPane(self.shelf,
+                                 wx.aui.AuiPaneInfo().
+                                 Name("Shelf").Caption("Shelf").
+                                 RightDockable(True).LeftDockable(True).CloseButton(False).
+                                 Bottom())
+        self.shelf.DragAcceptFiles(True)
+        
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
@@ -948,12 +959,15 @@ class CoderFrame(wx.Frame):
         self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
         self.outputWindow.write('Welcome to PsychoPy2!\n')
         self.outputWindow.write("v%s\n" %self.app.version)
-
-        self.paneManager.AddPane(self.outputWindow,
-                                 wx.aui.AuiPaneInfo().
-                                 Name("Output").Caption("Output").
-                                 RightDockable(True).LeftDockable(True).CloseButton(False).
-                                 Bottom())
+        self.shelf.AddPage(self.outputWindow, 'Output')
+        
+        self.shell = wx.py.shell.Shell(self.shelf, -1, introText='hello')
+        #IPython shell is nice, but crashes if you draw stimuli
+        #self.ipython = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
+        #    background_color='WHITE',
+        #    )
+        self.shelf.AddPage(self.shell, 'Shell')
+        
         #add help window
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300),
                                           style=wx.TE_MULTILINE|wx.TE_READONLY)
@@ -966,10 +980,12 @@ class CoderFrame(wx.Frame):
         if self.prefs['showSourceAsst']:
             self.paneManager.GetPane('SourceAsst').Show()
         else:self.paneManager.GetPane('SourceAsst').Hide()
-
+        
+        self.defaultPerspective = self.paneManager.SavePerspective()
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
-        if self.appData['auiPerspective']:
-            self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+        if self.appData['auiPerspective'] and \
+            'Shelf' in self.appData['auiPerspective']:#
+                self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
             self.SetMinSize(wx.Size(400, 600)) #min size for the whole window
             self.Fit()
@@ -1098,8 +1114,8 @@ class CoderFrame(wx.Frame):
         
         self.viewMenu.AppendSeparator()
         #output window
-        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output\t%s" %self.app.keys['toggleOutputPanel'],
-                                                  "shows the output (and error messages) from your script")
+        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "Show &Output/Shell\t%s" %self.app.keys['toggleOutputPanel'],
+                                                  "Shows the output and shell panes (and starts capturing stdout)")
         self.outputChk.Check(self.prefs['showOutput'])
         wx.EVT_MENU(self, self.IDs.toggleOutput,  self.setOutputWindow)
         #source assistant
@@ -1110,8 +1126,8 @@ class CoderFrame(wx.Frame):
         self.viewMenu.AppendSeparator()
         self.viewMenu.Append(self.IDs.openBuilderView, "Go to &Builder view\t%s" %self.app.keys['switchToBuilder'], "Go to the Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
-        self.viewMenu.Append(self.IDs.openShell, "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'], "Go to a shell window for interactive commands")
-        wx.EVT_MENU(self, self.IDs.openShell,  self.app.showShell)
+        #        self.viewMenu.Append(self.IDs.openShell, "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'], "Go to a shell window for interactive commands")
+        #        wx.EVT_MENU(self, self.IDs.openShell,  self.app.showShell)
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1777,14 +1793,14 @@ class CoderFrame(wx.Frame):
         if value:
             #show the pane
             self.prefs['showOutput']=True
-            self.paneManager.GetPane('Output').Show()
+            self.paneManager.GetPane('Shelf').Show()
             #will we actually redirect the output?
             sys.stdout = self.outputWindow
             sys.stderr = self.outputWindow
         else:
             #show the pane
             self.prefs['showOutput']=False
-            self.paneManager.GetPane('Output').Hide()
+            self.paneManager.GetPane('Shelf').Hide()
             sys.stdout = self._origStdOut#discovered during __init__
             sys.stderr = self._origStdErr
         self.app.prefs.saveUserPrefs()#includes a validation

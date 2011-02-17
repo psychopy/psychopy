@@ -117,7 +117,7 @@ class PsychoPyApp(wx.App):
         #but then that they end up being local so keep track in self
         splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, ipythonShell, wxIDs, connections, urls
+        from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
@@ -176,7 +176,6 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        self.shell = None
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -251,16 +250,16 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-    def showShell(self, event=None):
-        from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
-        if self.shell==None:
-            self.shell = ipythonShell.ShellFrame(None, -1, 
-                title="IPython in PsychoPy (v%s)" %self.version, app=self)
-            self.shell.Show()
-            self.shell.Raise()
-            self.shell.SendSizeEvent()
-        self.SetTopWindow(self.shell)                           
-        self.shell.SetFocus()
+#    def showShell(self, event=None):
+#        from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
+#        if self.shell==None:
+#            self.shell = ipythonShell.ShellFrame(None, -1, 
+#                title="IPython in PsychoPy (v%s)" %self.version, app=self)
+#            self.shell.Show()
+#            self.shell.SendSizeEvent()
+#        self.shell.Raise()
+#        self.SetTopWindow(self.shell)                           
+#        self.shell.SetFocus()
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)

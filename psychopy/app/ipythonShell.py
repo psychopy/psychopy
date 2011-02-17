@@ -41,5 +41,8 @@ class ShellFrame(wx.Frame):
         self.ipython.text_ctrl.SetFocus()
         
         self.sizer.Add(self.ipython,0,wx.EXPAND)
-        self.SetSizerAndFit(self.sizer)
         self.SendSizeEvent()
+        
+        self.SetSizerAndFit(self.sizer)
+        self.SetAutoLayout(1)
+        
