@@ -18,6 +18,9 @@ PsychoPy 1.63.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (github)
 
+* ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
+    * pyShell (the default, with great tooltips and help)
+    * IPython (for power users, but crashes if you create a psychopy.visual.Window()) due to some threading issue(?)
 * FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
 
 PsychoPy 1.63.02
