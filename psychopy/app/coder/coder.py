@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, types, re
-import wx, wx.stc, wx.aui, wx.richtext, wx.py
+import wx, wx.stc, wx.aui, wx.richtext
 import keyword, os, sys, string, StringIO, glob, platform
 import threading, traceback, bdb, cPickle
 import psychoParser
@@ -961,11 +961,15 @@ class CoderFrame(wx.Frame):
         self.outputWindow.write("v%s\n" %self.app.version)
         self.shelf.AddPage(self.outputWindow, 'Output')
         
-        self.shell = wx.py.shell.Shell(self.shelf, -1, introText='hello')
-        #IPython shell is nice, but crashes if you draw stimuli
-        #self.ipython = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
-        #    background_color='WHITE',
-        #    )
+        if self.prefs['preferredShell'].lower()=='ipython':
+            import IPython.gui.wx.ipython_view
+            #IPython shell is nice, but crashes if you draw stimuli
+            self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
+                background_color='WHITE',
+                )
+        else:
+            from wx import py
+            self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
         self.shelf.AddPage(self.shell, 'Shell')
         
         #add help window
