@@ -14,9 +14,15 @@ The windows version is spitting an error message on opening the app about flush 
 PsychoPy 1.63
 ------------------------------
 
-PsychoPy 1.63.02
+PsychoPy 1.63.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (github)
+
+* FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
+
+PsychoPy 1.63.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2011
 
 * ADDED clearFrames option to Window.saveMovieFrames
 * ADDED support for Spectrascan PR655/PR670
