@@ -3297,13 +3297,17 @@ class ElementArrayStim:
             exec('self.fieldSize'+operation+'=value')
         self.setXYs()#to reflect new settings, overriding individual xys 
         
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         import time
         t0=time.clock()
         if self.needVertexUpdate: 

@@ -19,6 +19,7 @@ PsychoPy 1.63.03
     * pyShell (the default, with great tooltips and help)
     * IPython (for power users, but crashes if you create a psychopy.visual.Window()) due to some threading issue(?)
 * FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
+* FIXED ElementArrayStim was not drawing correctly to second window in multi-display setups
 
 PsychoPy 1.63.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
