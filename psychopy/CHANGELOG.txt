@@ -17,10 +17,11 @@ PsychoPy 1.63.03
 
 * ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
     * pyShell (the default, with great tooltips and help)
-    * IPython (for power users, but crashes if you create a psychopy.visual.Window()) due to some threading issue(?)
+    * IPython (for people that like it, but beware it crashes if you create a psychopy.visual.Window() due to some threading issue(?))
 * FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
 * FIXED ElementArrayStim was not drawing correctly to second window in multi-display setups
 * FIXED negative sound durations coming from Builder, where sound was starting later than t=0
+* FIXED a problem where Builder experiments failed to run if 'participant' wasn't in the experiment info dialog
 
 PsychoPy 1.63.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
