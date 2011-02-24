@@ -11,6 +11,12 @@ import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
 from psychopy import log
 
+try:#needed for wx.py shell
+    import code
+    haveCode=True
+except:
+    haveCode = False
+    
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
               'mono' : 'Courier New',
@@ -1041,16 +1047,17 @@ class CoderFrame(wx.Frame):
         self.outputWindow.write("v%s\n" %self.app.version)
         self.shelf.AddPage(self.outputWindow, 'Output')
         
-        if self.prefs['preferredShell'].lower()=='ipython':
-            import IPython.gui.wx.ipython_view
-            #IPython shell is nice, but crashes if you draw stimuli
-            self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
-                background_color='WHITE',
-                )
-        else:
-            from wx import py
-            self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
-        self.shelf.AddPage(self.shell, 'Shell')
+        if haveCode:
+            if self.prefs['preferredShell'].lower()=='ipython':
+                import IPython.gui.wx.ipython_view
+                #IPython shell is nice, but crashes if you draw stimuli
+                self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
+                    background_color='WHITE',
+                    )
+            else:
+                from wx import py
+                self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
+            self.shelf.AddPage(self.shell, 'Shell')
         
         #add help window
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300),

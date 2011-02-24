@@ -11,19 +11,31 @@ Changelog
 PsychoPy 1.63
 ------------------------------
 
+PsychoPy 1.63.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2011
+
+* ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
+    * pyShell (the default, with great tooltips and help)
+    * IPython (for people that like it, but beware it crashes if you create a psychopy.visual.Window() due to some threading issue(?))
+* ADDED scrollbar to output panel
+* FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
+* FIXED ElementArrayStim was not drawing correctly to second window in multi-display setups
+* FIXED negative sound durations coming from Builder, where sound was starting later than t=0
+* FIXED a problem where Builder experiments failed to run if 'participant' wasn't in the experiment info dialog
+
 PsychoPy 1.63.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2011
 
+* ADDED clearFrames option to Window.saveMovieFrames
 * ADDED support for Spectrascan PR655/PR670
 * ADDED 'height' as a type of unit for visual stimuli
     NB. this is likely to become the default unit for new users (set in prefs)
     but for existing users the unit set in their prefs will remain. That means 
     that your system may behave differently to your (new user) colleague's
-* ADDED clearFrames option to Window.saveMovieFrames
 * IMPROVED handling of damaged experiments in Builder (they don't crash the app any more!)
-* IMPROVED performance of autoLogging (including showing in demos how to turn off autoLog for dynamic stimuli)
-* IMPROVED demos menu (now organised by demo type)
+* IMPROVED performance of autoLogging (including demos showing how to turn of autoLog for dynamic stimuli)
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
