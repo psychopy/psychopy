@@ -13,7 +13,7 @@ PsychoPy 1.63
 
 PsychoPy 1.63.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(github)
+Released Feb 2011
 
 * ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
     * pyShell (the default, with great tooltips and help)
