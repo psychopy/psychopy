@@ -1036,7 +1036,7 @@ class CoderFrame(wx.Frame):
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
         
-        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.VSCROLL)
         self.outputWindow.write('Welcome to PsychoPy2!\n')
         self.outputWindow.write("v%s\n" %self.app.version)
         self.shelf.AddPage(self.outputWindow, 'Output')
