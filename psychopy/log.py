@@ -166,7 +166,10 @@ class LogFile:
         Useful to send messages that only this file receives
         """
         self.stream.write(txt)
-        self.stream.flush()
+        try: 
+            self.stream.flush()
+        except:
+            pass
 class _Logger:
     """Maintains a set of log targets (text streams such as files of stdout)
     
