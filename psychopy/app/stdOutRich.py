@@ -75,7 +75,7 @@ class StdOutFrame(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)
+        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE)
         
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.stdoutCtrl)
