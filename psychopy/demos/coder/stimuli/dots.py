@@ -6,7 +6,7 @@ myWin =visual.Window((600,600), allowGUI=False,
     bitsMode=None, units='norm', winType='pyglet')
 
 #INITIALISE SOME STIMULI
-dotPatch =visual.DotStim(myWin, rgb=(1.0,1.0,1.0), dir=270,
+dotPatch =visual.DotStim(myWin, color=(1.0,1.0,1.0), dir=270,
     nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1,
     dotLife=5, #number of frames for each dot to be drawn
     signalDots='same', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)

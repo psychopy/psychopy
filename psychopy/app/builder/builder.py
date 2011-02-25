@@ -7,7 +7,7 @@ from wx.lib import platebtn, scrolledpanel
 #from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.agw.aquabutton as AB
 import wx.aui
-import sys, os, glob, copy, platform, shutil
+import sys, os, glob, copy, platform, shutil, traceback
 import py_compile, codecs
 import csv, numpy
 import experiment, components
@@ -1955,7 +1955,12 @@ class BuilderFrame(wx.Frame):
         if closeCurrent:
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.exp = experiment.Experiment(prefs=self.app.prefs)
-        self.exp.loadFromXML(filename)
+        try:
+            self.exp.loadFromXML(filename)
+        except Exception, err:
+            print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
+            traceback.print_exc()
+            log.flush()
         self.resetUndoStack()
         self.setIsModified(False)
         self.filename = filename

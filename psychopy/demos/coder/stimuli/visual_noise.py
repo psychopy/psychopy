@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 #demo arbitrary numpy array
 
-from psychopy import *
-from psychopy import ext
+from psychopy import visual, core, event, log
 import scipy
+
+log.console.setLevel(log.DEBUG)
 
 myWin = visual.Window([600,600], allowGUI=False)
 
 noiseTexture = scipy.random.rand(128,128)*2.0-1
 myPatch = visual.PatchStim(myWin, tex=noiseTexture, 
     size=(128,128), units='pix',
-    interpolate=False)
+    interpolate=False,
+    autoLog=True)#this stim changes too much for autologging to be useful
 
 for n in range(200): #for 200 frames
     myPatch.setPhase(1/128.0,'+')# increment by one pixel
-    #draw for two frames
+    #draw for two framess
     myPatch.draw()
     myWin.flip()
     myPatch.draw()
     myWin.flip()
+    #handle key presses each frame
+    for keys in event.getKeys():
+        if keys in ['escape','q']:
+            core.quit()
 
 myWin.close()

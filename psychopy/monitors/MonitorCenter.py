@@ -301,6 +301,8 @@ class MainFrame(wx.Frame):
         #com port entry number
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #photometer button
+        self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:", choices=["PR655/PR670", "PR650", "LS100/LS110"])
+        #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
         
@@ -328,7 +330,7 @@ class MainFrame(wx.Frame):
             parent, -1, "Plot spectra")
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
         
-        photometerBox.AddMany([self.btnFindPhotometer,(0,0),
+        photometerBox.AddMany([self.ctrlPhotomType,self.btnFindPhotometer,
                                 self.comPortLabel,(0,0),
                                 self.btnCalibrateGamma, (0,0),#self.choiceLinearMethod,
                                 self.btnTestGamma, self.btnPlotGamma,
@@ -675,7 +677,7 @@ class MainFrame(wx.Frame):
                                                  lumLevels=lumLevels,
                                                  useBits=useBits,
                                                  autoMode=autoMode,
-                                                 winSize=[800,600],#self.currentMon.getSizePix(),
+                                                 winSize=self.currentMon.getSizePix(),
                                                  stimSize=stimSize, monitor=self.currentMon)
             
             #allow user to type in values
@@ -782,18 +784,25 @@ class MainFrame(wx.Frame):
         newVal = self.ctrlUseBits.GetValue()
         self.currentMon.setUseBits(newVal)
         self.unSavedMonitor=True
-        
+    def onCtrlPhotomType(self, event):
+        pass
     def onBtnFindPhotometer(self, event):
+        photName = self.ctrlPhotomType.GetStringSelection()
         #search all ports
         self.comPortLabel.SetLabel('Scanning ports...')
         self.Update()
-        self.photom = hardware.findPhotometer()
+        if 'PR655' in photName:
+            self.photom = hardware.findPhotometer(device='PR655')
+        elif 'PR650' in photName:
+            self.photom = hardware.findPhotometer(device='PR650')
+        elif 'LS100' in photName:
+            self.photom = hardware.findPhotometer(device='LS100')
         
         if self.photom!=None and self.photom.OK:
             self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
             self.btnTestGamma.Enable(True)
-            if hasattr(self.photom, 'getSpectrum'):
+            if hasattr(self.photom, 'getLastSpectrum'):
                 self.btnCalibrateColor.Enable(True)
             self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
         else:

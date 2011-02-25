@@ -16,10 +16,12 @@ else:
 #NB. if the windows have the same characteristics then 
     #left screen
 contextPatchL = visual.PatchStim(winL, tex='sin',mask='circle',size=1.0,sf=3.0, texRes=512)
-targetStimL= visual.PatchStim(winL, ori=20,tex='sin',mask='circle',size=0.4,sf=3.0, texRes=512)
+targetStimL= visual.PatchStim(winL, ori=20,tex='sin',mask='circle',size=0.4,sf=3.0, texRes=512,
+    autoLog=False)#this stim changes too much for autologging to be useful
     #right screen
 contextPatchR = visual.PatchStim(winR, tex='sin',mask='circle',size=1.0,sf=3.0, texRes=512)
-targetStimR= visual.PatchStim(winR, ori=20,tex='sin',mask='circle',size=0.4,sf=3.0, texRes=512)
+targetStimR= visual.PatchStim(winR, ori=20,tex='sin',mask='circle',size=0.4,sf=3.0, texRes=512,
+    autoLog=False)#this stim changes too much for autologging to be useful
 
 t=0.0
 while t<10:

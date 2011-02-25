@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from calibData import *
-from psychopy import __version__, log
+from psychopy import __version__, log, hardware
 import time
 
 try: 
@@ -93,7 +93,7 @@ def findPR650(ports=None):
 
 class Photometer:
     """
-    DEPRECATED (v.1.60.00):
+    Photometer class is deprecated (as of v.1.60.00):
     
     Import explicit flavour of photometer as needed e.g.::
         
@@ -776,7 +776,7 @@ def getLumSeries(lumLevels=8,
         gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
-    message = psychopy.visual.TextStim(myWin, text = instructions,
+    message = psychopy.visual.TextStim(myWin, text = instructions,height=0.1,
         pos=(0,-0.95), rgb=[1,-1,-1])    
     noise = numpy.random.rand(512,512).round()*2-1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
@@ -879,27 +879,28 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     usage:
         getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1')
 
-    where:
-        'photometer' could be a photometer object or a serial port name on which
-        a photometer
+    :params:
+    
+        - 'photometer' could be a photometer object or a serial port name on which
+        a photometer might be found (not recommended)
     """
     import psychopy.event, psychopy.visual
     
-    if isinstance(photometer, Photometer):
-        pr650=photometer
+    if hasattr(photometer, 'getLastSpectrum'):
+        photom=photometer
     else:
-        #setup pr650
-        pr650 = Photometer(photometer)
-    if pr650!=None:             havePR650 = 1
-    else:       havePR650 = 0
+        #setup photom
+        photom = hardware.Photometer(photometer)
+    if photom!=None: havephotom = 1
+    else:       havephotom = 0
 
     #setup screen and "stimuli"
     myWin = psychopy.visual.Window(fullscr = 0, rgb=0.0, size=winSize,
         units='norm')
 
-    instructions="Point the PR650 at the central square. Hit a key when ready"
-    message = psychopy.visual.TextStim(myWin, text = instructions,
-        pos=(0.0,-0.5), rgb=-1.0)
+    instructions="Point the photometer at the central square. Hit a key when ready"
+    message = psychopy.visual.TextStim(myWin, text = instructions, height=0.1,
+        pos=(0.0,-0.8), rgb=-1.0)
     message.draw()
     testPatch = psychopy.visual.PatchStim(myWin,tex=None,
         size=stimSize*2,rgb=0.3)
@@ -914,10 +915,10 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
         testPatch.draw()
         myWin.flip()
         #make measurement
-        pr650.measure()
-        spectra.append(pr650.getLastSpectrum(parse=False))
+        photom.measure()
+        spectra.append(photom.getLastSpectrum(parse=False))
     myWin.close()
-    nm, power = pr650.parseSpectrumOutput(spectra)
+    nm, power = photom.parseSpectrumOutput(spectra)
     return nm, power
 
 def DACrange(n):

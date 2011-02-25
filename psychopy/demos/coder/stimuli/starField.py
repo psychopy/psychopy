@@ -9,7 +9,7 @@ see also the elementArrayStim demo
 
 """
 
-from psychopy import visual, event, makeMovies, misc
+from psychopy import visual, event, misc
 import numpy
 
 nDots = 500
