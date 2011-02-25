@@ -36,7 +36,6 @@
     # automatically save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
     debugMode = boolean(default='False')
-    preferredShell = option('ipython','pyshell',default='pyshell')
   
 ###  Settings for the coder and builder windows, and connections -----
 [coder]
@@ -50,6 +49,7 @@
     analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
+    preferredShell = option('ipython','pyshell',default='pyshell')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
