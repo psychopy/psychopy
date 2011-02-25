@@ -14,10 +14,11 @@ from psychopy import log
 
 from psychopy import core, visual, event
 try:
-    from psychopy.hardware.ioLabs import USBBox
+   import ioLabs
 except RuntimeError, errMsg:
     log.error('Is an ioLabs button-box connected and turned on? (import failed: "'+str(errMsg)+'")')
     core.quit()
+
 import random
 
 def setup_bbox():
@@ -75,8 +76,9 @@ def waitForVoice():
     detected = False
     while not detected:
         report = usbbox.wait_for_keydown()
-        if (report.key_code == 64) or (report.key_code == 0):
-            detected = True
+        if report != None:
+            if (report.key_code == 64) or (report.key_code == 0):
+                detected = True
     return report.rtc
 
 def waitForButton():
@@ -85,8 +87,9 @@ def waitForButton():
     detected = False
     while not detected:
         report = usbbox.wait_for_keydown()
-        if report.key_code in range(8):
-            detected = True
+        if report != None:
+            if report.key_code in range(8):
+                detected = True
     return report.key_code,report.rtc
 
 #create a window

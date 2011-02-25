@@ -1313,7 +1313,7 @@ class QuestHandler(StairHandler):
             self._nextIntensity = self.maxVal
         elif (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
-    
+        self._questNextIntensity = self._intensity2scale(self._nextIntensity)
     def _intensity(self):
         """assigns the next intensity level"""
         if self.method == 'mean':

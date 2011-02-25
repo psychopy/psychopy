@@ -70,6 +70,8 @@ class SettingsComponent:
             buff.writeIndented("    os.makedirs('data')#if this fails (e.g. permissions) we will get error\n")
             if 'participant' in self.params['Experiment info'].val:
                 buff.writeIndented("filename='data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+            else:
+                buff.writeIndented("filename='data/%s' %(expInfo['date'])\n")
         #handle logging
         level=self.params['logging level'].val.upper()
         buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.warning)#this outputs to the screen, not a file\n")

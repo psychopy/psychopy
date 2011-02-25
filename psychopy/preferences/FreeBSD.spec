@@ -49,6 +49,7 @@
     analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
+    preferredShell = option('ipython','pyshell',default='pyshell')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
@@ -107,7 +108,7 @@
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     switchToBuilder = string(default='Ctrl+L')
     switchToCoder = string(default='Ctrl+L')
-    
+        
     # Experiment (Builder only)
     newRoutine = string(default='Ctrl+Shift+N')
     copyRoutine = string(default='Ctrl+Shift+C')

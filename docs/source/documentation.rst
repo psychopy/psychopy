@@ -8,6 +8,7 @@ Contents:
    
    overview
    contributing
+   credits
    installation
    gettingStarted
    
@@ -21,9 +22,12 @@ Contents:
 .. toctree::
    :maxdepth: 1
    
+   troubleshooting
    recipes/recipes
    faqs/faqs
+   resources/resources
    api/api
+   developers
    psyexp
    glossary
    indices

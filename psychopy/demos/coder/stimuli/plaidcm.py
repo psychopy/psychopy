@@ -10,12 +10,14 @@ grating1 = visual.PatchStim(myWin,tex="sin",mask="gauss",
             color=[1.0,1.0,1.0],opacity=1.0,
             size=(5.0,5.0), sf=(2,0),
             ori = 45,
-            units='deg')
+            units='deg',
+            autoLog=False)#this stim changes too much for autologging to be useful
 grating2 = visual.PatchStim(myWin,tex="sin",mask="gauss",
             color=[1.0,1.0,1.0],opacity=0.5,
             size=(5.0,5.0), sf=(1,0),
             ori = 135,
-            units='deg')
+            units='deg',
+            autoLog=False)#this stim changes too much for autologging to be useful)
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),text='Hit Q to quit')
 
 trialClock = core.Clock()

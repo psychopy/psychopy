@@ -7,12 +7,35 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-Known issues
-------------------
-The windows version is spitting an error message on opening the app about flush and emit. I don't understand yet where this originates, but it seems benign.
 
 PsychoPy 1.63
 ------------------------------
+
+PsychoPy 1.63.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2011
+
+* ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
+    * pyShell (the default, with great tooltips and help)
+    * IPython (for people that like it, but beware it crashes if you create a psychopy.visual.Window() due to some threading issue(?))
+* ADDED scrollbar to output panel
+* FIXED small bug in QUEST which gave an incorrectly-scaled value for the next() trial
+* FIXED ElementArrayStim was not drawing correctly to second window in multi-display setups
+* FIXED negative sound durations coming from Builder, where sound was starting later than t=0
+* FIXED a problem where Builder experiments failed to run if 'participant' wasn't in the experiment info dialog
+
+PsychoPy 1.63.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2011
+
+* ADDED clearFrames option to Window.saveMovieFrames
+* ADDED support for Spectrascan PR655/PR670
+* ADDED 'height' as a type of unit for visual stimuli
+    NB. this is likely to become the default unit for new users (set in prefs)
+    but for existing users the unit set in their prefs will remain. That means 
+    that your system may behave differently to your (new user) colleague's
+* IMPROVED handling of damaged experiments in Builder (they don't crash the app any more!)
+* IMPROVED performance of autoLogging (including demos showing how to turn of autoLog for dynamic stimuli)
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,7 +43,10 @@ Released Jan 2011
 
 * FIXED bug with ElementArrayStim.setFieldPos() not updating
 * FIXED mouse release problem with pyglet (since in 1.63.00)
-* FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phse
+* ADDED ability to retrieve a timestamp for a mouse event, similar to those in keyboard events.
+    This is possible even though you may not retrieve the mouse event until later (e.g. waiting
+    for a frame flip). Thanks Dave Britton
+* FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phase
 * FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup 
     if users selected 'skip ths version')
 * CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.

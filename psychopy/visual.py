@@ -124,7 +124,7 @@ class Window:
                 If None then PsychoPy will revert to user/site preferences
             monitor : *None*, string or a `~psychopy.monitors.Monitor` object
                 The monitor to be used during the experiment
-            units :  *None*, 'norm' (normalised),'deg','cm','pix'
+            units :  *None*, 'height' (of the window), 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
                 See :ref:`units` for explanation of options.
             screen : *0*, 1 (or higher if you have many screens)
@@ -289,7 +289,7 @@ class Window:
         
         self.recordFrameIntervals=False
         self.frameIntervals=[]
-        self._loLog=[]
+        self._toLog=[]
         self._toDraw=[]
         
         if self.useNativeGamma:
@@ -300,6 +300,7 @@ class Window:
         self.lastFrameT = core.getTime()
         
         if self.units=='norm':  self.setScale('norm')
+        elif self.units=='height': self.setScale('height')
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
@@ -376,7 +377,7 @@ class Window:
                 if desired
         """
         
-        self._loLog.append({'msg':msg,'level':level,'obj':str(obj)})
+        self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -472,10 +473,10 @@ class Window:
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
         
         #log events
-        for logEntry in self._loLog:
+        for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             log.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._loLog = []
+        self._toLog = []
         
     def update(self):
         """Deprecated: use Window.flip() instead        
@@ -532,7 +533,7 @@ class Window:
         return im
         
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
-        fps=30):
+        fps=30, clearFrames=True):
         """
         Writes any captured frames to disk. Will write any format
         that is understood by PIL (tif, jpg, bmp, png...)
@@ -552,10 +553,14 @@ class Window:
             
             fps: the frame rate to be used throughout the movie **only for quicktime (.mov) movies**
             
+            clearFrames: set this to False if you want the frames to be kept for
+                additional calls to `saveMovieFrames`
+            
         Examples::
+        
             myWin.saveMovieFrames('frame.tif')#writes a series of static frames as frame001.tif, frame002.tif etc...
             myWin.saveMovieFrames('stimuli.mov', fps=25)#on OS X only
-            myWin.saveMovieFrames('stimuli.gif')#but not great quality
+            myWin.saveMovieFrames('stimuli.gif')#not great quality animated gif
             myWin.saveMovieFrames('stimuli.mpg')#not on OS X
             
         """
@@ -586,7 +591,8 @@ class Window:
             for frameN, thisFrame in enumerate(self.movieFrames):
                thisFileName = frame_name_format % (frameN+1,)
                thisFrame.save(thisFileName) 
-    
+        if clearFrames: self.movieFrames=[]
+        
     def _getRegionOfFrame(self, rect=[-1,1,1,-1], buffer='front', power2=False, squarePower2=False):
         """
         Capture a rectangle (Left Top Right Bottom, norm units) of the window as an RBGA image.
@@ -755,11 +761,13 @@ class Window:
         called by the user in order to draw OpenGl objects manually
         in each frame.
 
-        The `units` can be 'norm'(normalised),'pix'(pixels),'cm' or
+        The `units` can be 'height' (multiples of window height), 'norm'(normalised), 'pix'(pixels), 'cm' or
         'stroke_font'. The `font` parameter is only used if units='stroke_font'
         """
         if units=="norm":
             thisScale = numpy.array([1.0,1.0])
+        elif units=="height":
+            thisScale = numpy.array([2.0*self.size[1]/self.size[0],2.0])
         elif units in ["pix", "pixels"]:
             thisScale = 2.0/numpy.array(self.size)
         elif units=="cm":
@@ -1077,7 +1085,7 @@ class _BaseVisualStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         
     def draw(self):
@@ -1212,7 +1220,7 @@ class _BaseVisualStim:
         else:
             exec('self.'+attrib+op+'=val')
         
-        if self.autoLog: 
+        if self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
                 level=log.EXP,obj=self)
         
@@ -1239,14 +1247,14 @@ class _BaseVisualStim:
         else: self._updateListNoShaders()  
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix']: self._sizeRendered=self.size
+        if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
         elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
         else:
-            log.ERROR("Stimulus units should be 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+            log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix']: self._posRendered=self.pos
+        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, val):
@@ -1645,11 +1653,11 @@ class DotStim(_BaseVisualStim):
         self._calcDotsXYRendered()
         
     def _calcDotsXYRendered(self):
-        if self.units in ['norm','pix']: self._dotsXYRendered=self._dotsXY
+        if self.units in ['norm','pix', 'height']: self._dotsXYRendered=self._dotsXY
         elif self.units in ['deg','degs']: self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
         elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
     def _calcFieldCoordsRendered(self):
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix', 'height']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
@@ -1698,7 +1706,7 @@ class SimpleImageStim:
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
                 (which is almost all).
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options. 
             pos : 
@@ -1725,7 +1733,7 @@ class SimpleImageStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
@@ -1845,8 +1853,7 @@ class SimpleImageStim:
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['pix', 'pixels']: self._posRendered=self.pos
-        elif self.units=='norm': self._posRendered=self.pos
+        if self.units in ['pix', 'pixels', 'height', 'norm']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
@@ -2081,10 +2088,12 @@ class PatchStim(_BaseVisualStim):
         if size==None and self.origSize is None:
             self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
         elif size==None and self.origSize is not None:
+            #we have an image - calculate the size in `units` that matches original pixel size
             if self.units=='pix': self.size=numpy.array(self.origSize)
             elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
             elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
             elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
+            elif self.units=='height': self.size= numpy.array(self.origSize, float)/self.win.size[1]
         elif type(size) in [tuple,list]:
             self.size = numpy.array(size,float)
         else:
@@ -2093,6 +2102,8 @@ class PatchStim(_BaseVisualStim):
         #sf
         if sf is None:
             if units=='norm':
+                self.sf=numpy.array([1.0,1.0])
+            elif units=='height':
                 self.sf=numpy.array([1.0,1.0])
             elif self.origSize is not None or units in ['pix', 'pixels']:
                 self.sf=1.0/self.size#default to one cycle
@@ -2314,7 +2325,7 @@ class PatchStim(_BaseVisualStim):
             GL.glDeleteTextures(1, self.maskID)
             
     def _calcCyclesPerStim(self):
-        if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
+        if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
         
 class RadialStim(PatchStim):
@@ -2888,7 +2899,7 @@ class ElementArrayStim:
             win :
                 a :class:`~psychopy.visual.Window` object (required)
                                  
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` 
                 will be used. See :ref:`units` for explanation of other options.
             
@@ -2967,7 +2978,7 @@ class ElementArrayStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
@@ -2991,8 +3002,10 @@ class ElementArrayStim:
         else:
             self.depths=depths
         if self.win.winType != 'pyglet':
-            raise TypeError('ElementArray requires a pyglet context')
-                
+            raise TypeError('ElementArrayStim requires a pyglet context')
+        if not self.win._haveShaders:
+            raise Exception("ElementArrayStim requires shaders support and floating point textures")
+            
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
             self.fieldPos = numpy.array(fieldPos,float)
@@ -3284,13 +3297,17 @@ class ElementArrayStim:
             exec('self.fieldSize'+operation+'=value')
         self.setXYs()#to reflect new settings, overriding individual xys 
         
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         import time
         t0=time.clock()
         if self.needVertexUpdate: 
@@ -3356,15 +3373,15 @@ class ElementArrayStim:
         GL.glPopMatrix()
         
     def _calcSizesRendered(self):
-        if self.units in ['norm','pix']: self._sizesRendered=self.sizes
+        if self.units in ['norm','pix', 'height']: self._sizesRendered=self.sizes
         elif self.units in ['deg', 'degs']: self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
         elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
     def _calcXYsRendered(self):
-        if self.units in ['norm','pix']: self._XYsRendered=self.xys
+        if self.units in ['norm','pix','height']: self._XYsRendered=self.xys
         elif self.units in ['deg', 'degs']: self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
         elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
     def _calcFieldCoordsRendered(self):
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix','height']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
@@ -3418,7 +3435,7 @@ class ElementArrayStim:
         self._maskCoords = self._maskCoords.repeat(N,0)        
         
         #for the main texture
-        if self.units in ['norm', 'pix']:#sf is dependent on size (openGL default)
+        if self.units in ['norm', 'pix', 'height']:#sf is dependent on size (openGL default)
             L = -self.sfs[:,0]/2 - self.phases[:,0]+0.5
             R = +self.sfs[:,0]/2 - self.phases[:,0]+0.5
             T = +self.sfs[:,1]/2 - self.phases[:,1]+0.5
@@ -3492,7 +3509,7 @@ class MovieStim(_BaseVisualStim):
             filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that 
                 AVbin can read (e.g. mpeg, DivX)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.
             pos :
@@ -3706,7 +3723,7 @@ class TextStim(_BaseVisualStim):
                 See :ref:`colorspaces`
             opacity: 
                 How transparent the object will be (0 for transparent, 1 for opaque)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.      
             ori: 
@@ -3764,17 +3781,22 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 0.1
             else: self.height = height
             self.heightPix = self.height*win.size[1]/2
+        elif self.units=='height':
+            if height==None: self.height = 0.2
+            else: self.height = height
+            self.heightPix = self.height*win.size[1]
         else: #treat units as pix
             if height==None: self.height = 20
             else: self.height = height
             self.heightPix = self.height
         
         if self.wrapWidth ==None:
-            if self.units=='norm': self.wrapWidth=1
+            if self.units in ['height','norm']: self.wrapWidth=1
             elif self.units in ['deg', 'degs']: self.wrapWidth=15
             elif self.units=='cm': self.wrapWidth=15
             elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
+        elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[0]
         elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
@@ -3817,6 +3839,10 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 0.1
             else: self.height = height
             self.heightPix = self.height*self.win.size[1]/2
+        elif self.units=='height':
+            if height==None: self.height = 0.2
+            else: self.height = height
+            self.heightPix = self.height*self.win.size[1]
         else: #treat units as pix
             if height==None: self.height = 20
             else: self.height = height
@@ -4462,7 +4488,7 @@ class ShapeStim(_BaseVisualStim):
 
     def _calcVerticesRendered(self):
         self.needVertexUpdate=False
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix', 'height']: 
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
         elif self.units in ['deg', 'degs']:
@@ -4814,7 +4840,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
-        internalFormat = GL.GL_RGB32F_ARB
+        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
@@ -5016,7 +5042,9 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         showText = False
     if showVisual:
         x,y = myWin.size
-        myStim = PatchStim(myWin, tex='sin', mask='gauss', size=[.6*y/float(x),.6], sf=3.0, opacity=.2)
+        myStim = PatchStim(myWin, tex='sin', mask='gauss', 
+            size=[.6*y/float(x),.6], sf=3.0, opacity=.2,
+            autoLog=False)
     clockt = [] # clock times
     drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
     

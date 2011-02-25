@@ -2,7 +2,7 @@
 from psychopy import core, visual, event
 import psychopy.sound
 #create a window to draw in
-myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1), 
+myWin = visual.Window((600,600), allowGUI=False, color=(-1,-1,-1), 
         monitor='testMonitor',winType='pyglet', units='norm')
 myWin.setRecordFrameIntervals()
 #INITIALISE SOME STIMULI
@@ -18,7 +18,7 @@ faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
     size=(0.5,0.5), sf=1.0, units="norm")
     
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),
-    text='[Esc] to quit', rgb='white', alignHoriz='left', alignVert='bottom')
+    text='[Esc] to quit', color='white', alignHoriz='left', alignVert='bottom')
 
 trialClock = core.Clock()
 t=lastFPSupdate=0

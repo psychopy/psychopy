@@ -21,7 +21,8 @@ fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",pos=(0,0), size=(0.05,
 grating = visual.PatchStim(myWin,pos=(0.5,0),
                     tex="sin",mask="gauss",
                     color=[1.0,0.5,-1.0],colorSpace='rgb',
-                    size=(0.2,.2), sf=(2,0))
+                    size=(0.2,.2), sf=(2,0),
+                    autoLog=False)#this stim changes too much for autologging to be useful
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),text='Hit Q to quit')
 trialClock = core.Clock()
 t = 0

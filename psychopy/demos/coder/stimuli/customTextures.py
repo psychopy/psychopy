@@ -29,32 +29,23 @@ bigStim = visual.PatchStim(win, tex=radialTexture, mask=mainMask,
    color=[1,1,1], size=512, sf=1.0/512, interpolate=True)
 #draw the quadrant stimulus centred in the top left quadrant of the 'base' stimulus (so they're aligned)
 subStim = visual.PatchStim(win, tex=radialTexture_sub, pos=(-128,128), mask=subMask,
-   color=[1,1,1], size=256, sf=1.0/256, interpolate=True)
+   color=[1,1,1], size=256, sf=1.0/256, interpolate=True,
+   autoLog=False)#this stim changes too much for autologging to be useful
 
 bigStim.draw()
 subStim.draw()
+globalClock= core.Clock()
 
 while True:
     #clockwise rotation of sub-patch
-    for i in range(-360,360):
-        bigStim.draw()
-        subStim.setOri(i/10) #control speed 
-        subStim.draw()
-        
-        win.flip()
+    t=globalClock.getTime()
     
-    #smooth reversal to anticlockwise    
-    for i in range(-360,360):
-        bigStim.draw()
-        subStim.setOri(-i/10) #control speed 
-        subStim.draw()
-        try:
-            instruction.draw()
-        except:
-            pass
-        win.flip()
-
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
+    bigStim.draw()
+    subStim.setOri(np.sin(t*2*np.pi)*20) #control speed 
+    subStim.draw()
+    win.flip()
+    
+    for key in event.getKeys():
+        if key in ['escape','q']:
             core.quit()
     event.clearEvents()
