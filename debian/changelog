@@ -1,6 +1,8 @@
 psychopy (1.63.03.dfsg-1) unstable; urgency=low
 
   * New upstream bugfix release
+  * debian/README.Debian-source: no SVN repository any longer etc.
+  * debian/control: updated description, removed pyepl from suggests
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 25 Feb 2011 12:48:15 -0500
 

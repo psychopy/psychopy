@@ -13,7 +13,7 @@ Package: psychopy
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pyglet | python-pygame, python-opengl, python-numpy, python-matplotlib, python-lxml, python-configobj
 Recommends: python-wxgtk2.8, python-pyglet, python-pygame, python-openpyxl, python-imaging, python-serial, python-scipy, libavbin0
-Suggests: python-iolabs, python-pyepl
+Suggests: python-iolabs
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: environment for creating psychology stimuli in Python
@@ -25,8 +25,8 @@ Description: environment for creating psychology stimuli in Python
  The goal is to provide, for the busy scientist, tools to control
  timing and windowing and a simple set of pre-packaged stimuli and
  methods.  PsychoPy features
-  - High-level powerful scripting language (Python)
-  - Simple syntax
+  - IDE GUI for coding in a powerful powerful scripting language (Python)
+  - Builder GUI for rapid development of stimulation sequences
   - Use of hardware-accelerated graphics (OpenGL)
   - Integration with Spectrascan PR650 for easy monitor calibration
   - Simple routines for staircase and constant stimuli experimental
