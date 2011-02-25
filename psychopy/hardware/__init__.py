@@ -42,7 +42,7 @@ def findPhotometer(ports=None, device=None):
     elif device.lower() in ['pr655', 'pr670']:
         photometers=[pr.PR655]
     elif device.lower() in ['ls110', 'ls100']:
-        photometers=[pr.LS100]
+        photometers=[minolta.LS100]
     else:#try them all
         photometers=[pr.PR650, pr.PR655, minolta.LS100]#a list of photometer objects to test for
     
