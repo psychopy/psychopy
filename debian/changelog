@@ -1,4 +1,4 @@
-psychopy (1.63.03.dfsg-1) unstable; urgency=low
+psychopy (1.63.04.dfsg-1) unstable; urgency=low
 
   * New upstream bugfix release
   * debian/README.Debian-source: no SVN repository any longer etc.
