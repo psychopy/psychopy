@@ -27,7 +27,7 @@ Description: environment for creating psychology stimuli in Python
  The goal is to provide, for the busy scientist, tools to control
  timing and windowing and a simple set of pre-packaged stimuli and
  methods.  PsychoPy features
-  - IDE GUI for coding in a powerful powerful scripting language (Python)
+  - IDE GUI for coding in a powerful scripting language (Python)
   - Builder GUI for rapid development of stimulation sequences
   - Use of hardware-accelerated graphics (OpenGL)
   - Integration with Spectrascan PR650 for easy monitor calibration
