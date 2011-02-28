@@ -11,6 +11,13 @@ Changelog
 PsychoPy 1.63
 ------------------------------
 
+PsychoPy 1.63.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released Feb 2011
+
+* FIXED bug in windows prefs that prevents v1.63.03 from starting up
+* FIXED bug that prevents minolte LS100 from being found
+
 PsychoPy 1.63.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2011
