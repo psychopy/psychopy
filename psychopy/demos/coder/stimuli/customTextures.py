@@ -48,4 +48,4 @@ while True:
     for key in event.getKeys():
         if key in ['escape','q']:
             core.quit()
-    event.clearEvents()
+    event.clearEvents('mouse')#only really needed for pygame windows

@@ -66,5 +66,5 @@ while True:
         if key in ['escape','q']:
             win.close()
             core.quit()
-    event.clearEvents()#keep the event buffer from overflowing
+    event.clearEvents('mouse')#only really needed for pygame windows
     

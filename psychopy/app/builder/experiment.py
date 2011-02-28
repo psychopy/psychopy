@@ -650,7 +650,6 @@ class Routine(list):
         #update screen
         buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
         buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
-        buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
 
