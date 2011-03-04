@@ -3,8 +3,12 @@ import wx, sys, re
 class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
     """
-    def __init__(self, parent, style):
-        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+    def __init__(self, parent, style, size=None):
+        if size==None:
+            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+        else:
+            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
+            
         self.parent=parent
         self.Bind(wx.EVT_TEXT_URL, parent.onURL)
         #define style for filename links (URLS) needs wx as late as 2.8.4.0

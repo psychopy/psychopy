@@ -163,8 +163,8 @@ class UnitTestFrame(wx.Frame):
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(600,400))
+        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(300,200))
+        
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
@@ -182,7 +182,7 @@ class UnitTestFrame(wx.Frame):
         buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(buttonsSizer, 0, wx.ALIGN_RIGHT)
-        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND, border=10)
+        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND|wx.GROW, border=10)
         self.SetSizerAndFit(self.sizer)
         self.Show()
     def onRunTests(self, event=None):
