@@ -192,7 +192,7 @@ class TestPygletNormStencil(_baseVisualTest):
         self.contextName='stencil'
 class TestPygameNorm(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame', allowStencil=True)
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame', allowStencil=False)
         self.contextName='norm'
     def testMov(self):
         raise nose.plugins.skip.SkipTest
