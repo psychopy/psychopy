@@ -155,24 +155,44 @@ class _baseVisualTest:
         else:
             nose.tools.assert_raises(Exception, visual.ElementArrayStim, win, nElements=N,sizes=0.5,
                 sfs=3, xys=xys, oris=thetas)
+    def testAperture(self):
+        win = self.win
+        contextName=self.contextName
+        gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
+            sf=4, size=1,
+            color=[0.5,-0.5,1])
+        gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
+            sf=4, size=1,
+            color=[-0.5,-0.5,-1])
+        aperture = visual.Aperture(win, size=20,pos=[5,0])
+        aperture.enable()
+        gabor1.draw()
+        aperture.disable()
+        gabor2.draw()
+        utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        win.flip()#AFTER compare screenshot
         
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], winType='pyglet', pos=[50,50])
+        self.win = visual.Window([48,48], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='norm'
 class TestPygletHeight(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,64], winType='pyglet', pos=[50,50])
+        self.win = visual.Window([48,64], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='height'
 class TestPygletNormNoShaders(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50])
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
         self.win._haveShaders=False
         self.contextName='norm'
+class TestPygletNormStencil(_baseVisualTest):
+    def setUp(self):
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
+        self.contextName='stencil'
 class TestPygameNorm(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame')
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame', allowStencil=True)
         self.contextName='norm'
     def testMov(self):
         raise nose.plugins.skip.SkipTest
