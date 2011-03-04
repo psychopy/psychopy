@@ -31,5 +31,5 @@ while True: #ie forever
     win.flip()
     if 'q' in event.getKeys():
         break
-    event.clearEvents()
+    event.clearEvents('mouse')#only really needed for pygame windows
     

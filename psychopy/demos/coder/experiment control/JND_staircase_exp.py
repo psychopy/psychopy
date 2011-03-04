@@ -78,7 +78,7 @@ for thisIncrement in staircase: #will step through the staircase
                 thisResp = 0#incorrect
             elif thisKey in ['q', 'escape']:
                 core.quit()#abort experiment
-        event.clearEvents() #must clear other events (like mouse) in case they clog the event buffer
+        event.clearEvents('mouse')#only really needed for pygame windows
 
     #add the data to the staircase so it can calculate the next level
     staircase.addData(thisResp)
