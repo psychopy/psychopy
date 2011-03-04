@@ -5290,7 +5290,9 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
-        if self.markerStart not in [None, False]: # do allow 0 as a legal pre-placement
+        #NB in the following, "is not" is needed instead of "!=" because markerStart could be 0
+        # "0==False" but "0 is not False"
+        if self.markerStart!=None and (self.markerStart is not False):
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low
         self.firstDraw = True # triggers self.myClock.reset() at start of draw()
