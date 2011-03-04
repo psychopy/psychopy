@@ -106,7 +106,8 @@ class Window:
                  viewScale = None,
                  viewPos  = None,
                  viewOri  = 0.0,
-                 waitBlanking=True):
+                 waitBlanking=True,
+                 allowStencil=False):
         """        
         :Parameters:
         
@@ -137,11 +138,14 @@ class Window:
                 A single value determining the orientation of the view in degs
             waitBlanking : *None*, True or False. 
                 After a call to flip() should we wait for the blank before the script continues
-            gamma : 1.0, 
+            gamma : 
                 Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
             bitsMode : None, 'fast', ('slow' mode is deprecated). 
                 Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
-            
+            allowStencil : True or *False*
+                When set to True, this allows operations that use the OpenGL stencil buffer
+                (notably, allowing the class:`~psychopy.visual.Aperture` to be used).
+                
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
         
         """
@@ -257,6 +261,7 @@ class Window:
             self.blendMode='average' #resort to the simpler blending without float rendering
         else: self.blendMode=blendMode
         
+        self.allowStencil=allowStencil
         #setup context and openGL()
         if winType==None:#choose the default windowing
             self.winType=prefs.general['winType']
@@ -818,7 +823,11 @@ class Window:
         GLUT.glutInit(sys.argv)
         iconFile = os.path.join(psychopy.__path__[0], 'psychopy.gif')
         GLUT.glutSetIconTitle(iconFile)
-        GLUT.glutInitDisplayMode(GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH)
+        
+        options = GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH
+        if self.allowStencil: options = options|GLUT.GLUT_STENCIL
+        
+        GLUT.glutInitDisplayMode(options)
         self.handle = GLUT.glutCreateWindow('PsychoPy')
 
         if self._isFullScr:      GLUT.glutFullScreen()
@@ -833,7 +842,10 @@ class Window:
         GLU = pyglet.gl
         GL_multitexture = pyglet.gl
         
-        config = GL.Config(depth_size=8, double_buffer=True)
+        if self.allowStencil:
+            config = GL.Config(depth_size=8, double_buffer=True, stencil_size=8)
+        else:
+            config = GL.Config(depth_size=8, double_buffer=True)
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
@@ -895,7 +907,8 @@ class Window:
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
-            
+        if self.allowStencil: pygame.display.gl_set_attribute(pygame.locals.GL_STENCIL_SIZE, 8)
+
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pygame.image.load(iconFile)
@@ -5328,7 +5341,65 @@ class RatingScale:
             return None
         
         return self.decisionTime
+class Aperture:
+    """Used to create a shape (circular for now) to restrict a stimulus
+    visibility area.
     
+    When enabled any drawing commands will only operate on pixels within the 
+    Aperture. Once disabled, subsequent draw operations affect the whole screen
+    as usual.
+    
+    e.g.::
+        
+        win = 
+        
+    """
+    def __init__(self, win, size, pos=(0,0), units='pix'):
+        if units!='pix':
+            raise AttributeError, "Only units of 'pix' are currently supported for Aperture"
+        self.win=win
+        self.quad=GLU.gluNewQuadric() #needed for gluDisk
+        self.winAspect = self.win.size[1] / float(self.win.size[0])
+        self.setSize(size, False)
+        self.setPos(pos)
+
+    def reset(self):
+        self.enable()
+        GL.glClearStencil(0)
+        GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+
+        GL.glPushMatrix()
+
+        GL.glTranslatef(self.pos[0], self.pos[1], 0)
+
+        GL.glDisable(GL.GL_LIGHTING)
+        GL.glDisable(GL.GL_DEPTH_TEST)
+        GL.glDepthMask(GL.GL_FALSE)
+
+        GL.glStencilFunc(GL.GL_NEVER, 0, 0)
+        GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
+        GL.glColor3f(1.0,1.0,1.0)
+        GL.glScalef(self.winAspect, 1.0, 1.0)
+        GLU.gluDisk(self.quad, 0, self.size, 120, 2)
+        GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
+        GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
+
+        GL.glPopMatrix()
+
+    def setSize(self, size, needReset=True):
+        self.size = size / float(self.win.size[1])
+        if needReset: self.reset()
+
+    def setPos(self, pos, needReset=True):
+        self.pos = (pos[0]/float(self.win.size[0]), pos[1]/float(self.win.size[1]))
+        if needReset: self.reset()
+
+    def enable(self):
+        GL.glEnable(GL.GL_STENCIL_TEST)
+
+    def disable(self):
+        GL.glDisable(GL.GL_STENCIL_TEST)
+
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
