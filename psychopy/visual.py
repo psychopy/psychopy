@@ -5345,14 +5345,19 @@ class Aperture:
     """Used to create a shape (circular for now) to restrict a stimulus
     visibility area.
     
+    .. note::
+    
+        This is a new stimulus (1.63.05) and is subject to change. Notably,
+        right now it only uses 'pix' units and only a circular shape
+    
     When enabled any drawing commands will only operate on pixels within the 
     Aperture. Once disabled, subsequent draw operations affect the whole screen
     as usual.
     
-    e.g.::
-        
-        win = 
-        
+    See demos/stimuli/aperture.py for example usage
+       
+    :Author:
+        2011, Yuri Spitsyn    
     """
     def __init__(self, win, size, pos=(0,0), units='pix'):
         if units!='pix':
@@ -5363,7 +5368,7 @@ class Aperture:
         self.setSize(size, False)
         self.setPos(pos)
 
-    def reset(self):
+    def _reset(self):
         self.enable()
         GL.glClearStencil(0)
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
@@ -5387,17 +5392,29 @@ class Aperture:
         GL.glPopMatrix()
 
     def setSize(self, size, needReset=True):
+        """Set the size (diameter) of the Aperture
+        """
         self.size = size / float(self.win.size[1])
-        if needReset: self.reset()
+        if needReset: self._reset()
 
     def setPos(self, pos, needReset=True):
+        """Set the pos (centre) of the Aperture
+        """
         self.pos = (pos[0]/float(self.win.size[0]), pos[1]/float(self.win.size[1]))
-        if needReset: self.reset()
+        if needReset: self._reset()
 
     def enable(self):
+        """Enable the aperture so that it is used in future drawing operations
+        
+        NB. The Aperture is enabled by default, when created.
+        
+        """
         GL.glEnable(GL.GL_STENCIL_TEST)
 
     def disable(self):
+        """Disable the Aperture. Any subsequent drawing operations will not be
+        affected by the aperture until re-enabled.
+        """
         GL.glDisable(GL.GL_STENCIL_TEST)
 
 def makeRadialMatrix(matrixSize):

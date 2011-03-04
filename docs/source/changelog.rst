@@ -11,6 +11,13 @@ Changelog
 PsychoPy 1.63
 ------------------------------
 
+PsychoPy 1.63.05
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In repos (https://github.com/psychopy/psychopy)
+
+* ADDED Aperture object to visual (thanks Yuri Spitsyn!)
+* FIXED bug in RatingScale that prevented scale starting at zero
+
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2011
