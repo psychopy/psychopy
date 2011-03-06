@@ -716,22 +716,26 @@ class MainFrame(wx.Frame):
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLineariseMethod()
-        currentCal = self.currentMon.currentCalib['gammaGrid']
-        if linMethod == 3:
-            #create new interpolator functions for the monitor
-            log.info('Creating linear interpolation for gamma')
-            self.currentMon.lineariseLums(0.5, newInterpolators=True)
+        
+        if linMethod==4:
+            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
-                currentCal[gun,0]=lums[gun,0]#min
-                currentCal[gun,1]=lums[gun,-1]#max
-                currentCal[gun,2]=-1.0#gamma makes no sense for this method
+                gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)                
+                currentCal[gun,0]=gamCalc.min#min
+                currentCal[gun,1]=gamCalc.max#max
+                currentCal[gun,2]=gamCalc.gamma#gamma
+                currentCal[gun,3]=gamCalc.a#gamma
+                currentCal[gun,4]=gamCalc.b#gamma
+                currentCal[gun,5]=gamCalc.k#gamma
         else:
+            currentCal = numpy.ones([4,3],'f')*numpy.nan
             log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min
                 currentCal[gun,1]=lums[gun,-1]#max
-                currentCal[gun,2]=gamCalc.gammaVal#gamma
+                currentCal[gun,2]=gamCalc.gamma#gamma
                 
         self.gammaGrid.setData(currentCal)
         self.unSavedMonitor=True
