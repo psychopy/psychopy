@@ -276,7 +276,12 @@ class Monitor:
     def getGammaGrid(self):
         """Gets the min,max,gamma values for the each gun"""
         if self.currentCalib.has_key('gammaGrid'):
-            return self.currentCalib['gammaGrid']
+            grid = self.currentCalib['gammaGrid']
+            if grid.shape!=[4,6]:
+                newGrid = numpy.zeros([4,6],'f')*numpy.nan#start as NaN
+                newGrid[:grid.shape[0],:grid.shape[1]]=grid
+                grid=newGrid
+            return grid
         else:
             return None
     def getLineariseMethod(self):
@@ -457,7 +462,7 @@ class Monitor:
     def saveMon(self):
         """saves the current dict of calibs to disk"""
         thisFileName = os.path.join(monitorFolder,self.name+".calib")
-        thisFile = open(thisFileName,'w')
+        thisFile = open(thisFileName,'wb')
         cPickle.dump(self.calibs, thisFile)
         thisFile.close()
 
@@ -926,7 +931,7 @@ def getAllMonitors():
     os.chdir(currDir)
     return monitorList
 
-def gammaFun(xx, minLum, maxLum, gamma, eq=1):
+def gammaFun(xx, minLum, maxLum, gamma, k=None, eq=1):
     """
     Returns gamma-transformed luminance values.
     y = gammaFun(x, minLum, maxLum, gamma)
