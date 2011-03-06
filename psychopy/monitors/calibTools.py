@@ -572,19 +572,15 @@ class GammaCalculator:
         - bitsIN = number of values in your lookup table
         - bitsOUT = number of bits in the DACs
 
-    myTable then generates attributes for gammaVal (if not supplied)
-    and lut_corrected (a gamma corrected lookup table) which can be
-    accessed by;
-
-    myTable.gammaTable
-    myTable.gammaVal
+    myTable.gammaModel
+    myTable.gamma
 
     """
 
     def __init__(self,
         inputs=[],
         lums=[],
-        gammaVal=[],
+        gamma=None,
         bitsIN=8,              #how values in the LUT
         bitsOUT=8,
         eq=1 ):   #how many values can the DACs output
@@ -600,13 +596,17 @@ class GammaCalculator:
             self.inputs = inputs
 
         #set or get gammaVal
-        if len(lums)==0 and type(gammaVal)!=list:#we had initialised gammaVal as a list
-            self.gammaVal = gammaVal
-        elif len(lums)>0 and type(gammaVal)==list:
-            self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
-            self.gammaVal = self.gammaModel[2]
-            self.a = self.gammaModel[0]
-            self.b = self.gammaModel[1]
+        if len(lums)==0 or gamma!=None:#user is specifying their own gamma value 
+            self.gamma = gamma
+        elif len(lums)>0:
+            self.min, self.max, self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
+            if eq==4:
+                self.gamma, self.a, self.k = self.gammaModel
+                self.b = (inputs[0]-self.a)**(1.0/self.gamma)
+                print self.a, self.b, self.k, self.gamma
+            else: 
+                self.gamma=self.gammaModel[0]
+                self.a = self.b = self.k = None
         else:
             raise AttributeError, "gammaTable needs EITHER a gamma value or some luminance measures"
     
@@ -625,13 +625,19 @@ class GammaCalculator:
         y = numpy.asarray(y)
         minLum = min(y) #offset
         maxLum = max(y) #gain
-        guess = gammaGuess
+        if self.eq==4:
+            aGuess = minLum/2.0
+            kGuess = (maxLum - aGuess)**(1.0/gammaGuess) - aGuess
+            guess = [gammaGuess, aGuess, kGuess]
+        else:
+            guess = [gammaGuess]
         #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
-
-        gamma = optim.fminbound(self.fitGammaErrFun,
-            minGamma, maxGamma,
-            args=(x,y, minLum, maxLum))
-        return minLum, maxLum, gamma
+#        gamma = optim.fminbound(self.fitGammaErrFun,
+#            minGamma, maxGamma,
+#            args=(x,y, minLum, maxLum))
+        params = optim.fmin_bfgs(self.fitGammaErrFun, guess, args = (x,y, minLum, maxLum))
+        print 'params:', params
+        return minLum, maxLum, params
 
     def fitGammaErrFun(self, params, x, y, minLum, maxLum):
         """
@@ -639,8 +645,12 @@ class GammaCalculator:
 
         (used by fitGammaFun)
         """
-        gamma = params
-        model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
+        if self.eq==4:
+            gamma,k,a = params
+            model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k))
+        else:
+            gamma = params[0]
+            model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
         SSQ = numpy.sum((model-y)**2)
         return SSQ
 
@@ -931,7 +941,7 @@ def getAllMonitors():
     os.chdir(currDir)
     return monitorList
 
-def gammaFun(xx, minLum, maxLum, gamma, k=None, eq=1):
+def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     """
     Returns gamma-transformed luminance values.
     y = gammaFun(x, minLum, maxLum, gamma)
@@ -947,6 +957,7 @@ def gammaFun(xx, minLum, maxLum, gamma, k=None, eq=1):
 
 
     """
+    
     #scale x to be in range minLum:maxLum
     xx = numpy.array(xx,'d')
     maxXX = max(xx)
@@ -956,9 +967,10 @@ def gammaFun(xx, minLum, maxLum, gamma, k=None, eq=1):
     else: #assume data are in range 0:1
         pass
         #xx = xx*maxLum + minLum
-
+    
     #eq1: y = a + (b*xx)**gamma
     #eq2: y = (a+b*xx)**gamma
+    #eq4: y = a+(b+k*xx)**gamma #Pelli & Zhang 1991
     if eq==1:
         a = minLum
         b = (maxLum-a)**(1/gamma)
@@ -970,10 +982,21 @@ def gammaFun(xx, minLum, maxLum, gamma, k=None, eq=1):
     elif eq==3:#NB method 3 was an interpolation method that didn't work well
         pass
     elif eq==4:
+        nMissing = sum([a==None, b==None, k==None])
+        #check params
+        if nMissing>1:
+            raise AttributeError, "For eq=3, gammaFun needs 2 of a,b,k to be specified"
+        elif nMissing==1:
+            if a==None:
+                a = minLum-b**(1.0/gamma)       #when y=min, x=0
+            elif b==None or b==numpy.nan:
+                b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
+            elif k==None:
+                k = (maxLum - a)**(1.0/gamma) - b #when y=max, x=1
         #this is the same as Pelli and Zhang (but different inverse function)
-        a = minLum**(1/gamma)
-        b = maxLum**(1/gamma)-a
         yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
+        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
+        print 'yymax', yy.max()
     #print 'a=%.3f      b=%.3f' %(a,b)
     return yy
 
