@@ -962,14 +962,17 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
         a = minLum**(1/gamma)
         b = maxLum**(1/gamma)-a
         yy = (a + b*xx)**gamma
-    elif eq==4:#NB method 3 was an interpolation method that didn't work well
+    elif eq==3:#NB method 3 was an interpolation method that didn't work well
+        pass
+    elif eq==4:
+        #this is the same as Pelli and Zhang (but different inverse function)
         a = minLum**(1/gamma)
         b = maxLum**(1/gamma)-a
         yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
     #print 'a=%.3f      b=%.3f' %(a,b)
     return yy
 
-def gammaInvFun(yy, minLum, maxLum, gamma,b=None, eq=1):
+def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     """Returns inverse gamma function for desired luminance values.
     x = gammaInvFun(y, minLum, maxLum, gamma)
 
@@ -1011,15 +1014,14 @@ def gammaInvFun(yy, minLum, maxLum, gamma,b=None, eq=1):
         xx = (yy**(1/gamma)-a)/b
         maxLUT = (maxLum**(1/gamma)-a)/b
         minLUT = (minLum**(1/gamma)-a)/b
-    elif eq==4:#NB method 3 was an interpolation method that didn't work well
+    elif eq==3:#NB method 3 was an interpolation method that didn't work well
+        pass
+    elif eq==4:
+        #this is not the same as Zhang and Pelli's inverse
+        #see http://www.psychopy.org/general/gamma.html for derivation
         a = minLum-b**gamma
-        k = (maxLum-a)**(1./gamma) - b        
-        xx = (1./k)*((yy-a)**(1./gamma) - b)
-        xx[yy<a] = -b/kappa
-        minLUT, maxLUT = 0, 1
-        #clip too large values
-        xx[xx>maxLUT]=maxLUT
-        xx[xx<minLUT]=minLUT
+        k = (maxLum-a)**(1./gamma) - b
+        yy = (((1-xx)*b**gamma + xx*(b+k)**gamma)**(1/gamma)-b)/k
         #print "we are linearising with the special wichmann style equation"
 
     #then return to range (0:1)

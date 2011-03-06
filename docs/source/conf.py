@@ -22,7 +22,8 @@ import sys, os, psychopy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage',
+    'sphinx.ext.pngmath']
 autoclass_content='both'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -193,3 +194,6 @@ latex_use_parts = False
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+# path to mathjax on a public server (or could put on our own in static path?)
+mathjax_path = 'http://mathjax.connectmv.com/MathJax.js'
