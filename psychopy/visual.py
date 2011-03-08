@@ -3382,6 +3382,7 @@ class ElementArrayStim:
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         
+        GL.glUseProgram(0)
         GL.glPopClientAttrib()
         GL.glPopMatrix()
         
