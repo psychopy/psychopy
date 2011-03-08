@@ -3,7 +3,7 @@ from psychopy import log
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
 
-def findPhotometer(ports=None):
+def findPhotometer(ports=None, device=None):
     """Try to find a connected photometer/photospectrometer! 
     PsychoPy will sweep a series of serial ports trying to open them. If a port 
     successfully opens then it will try to issue a command to the device. If it 
@@ -18,6 +18,10 @@ def findPhotometer(ports=None):
             will sweep COM0-10 on win32 and search known likely port names on OS X
             and linux.
             
+        device : string giving expected device (e.g. 'PR650', 'PR655', 'LS110').
+            If this is not given then an attempt will be made to find a device of 
+            any type, but this often fails
+            
     :returns:
     
         * An object representing the first photometer found
@@ -26,14 +30,21 @@ def findPhotometer(ports=None):
         
     e.g.::
     
-        photom = findPhotometer() #sweeps ports 0 to 10 searching for a device
+        photom = findPhotometer(device='PR655') #sweeps ports 0 to 10 searching for a PR655
         print photom.getLum()
         if hasattr(photom, 'getSpectrum'):#can retrieve spectrum (e.g. a PR650)
             print photom.getSpectrum()
         
     """
     import minolta, pr
-    photometers=[pr.PR650, minolta.LS100]#a list of photometer objects to test for
+    if device.lower() in ['pr650']:
+        photometers=[pr.PR650]
+    elif device.lower() in ['pr655', 'pr670']:
+        photometers=[pr.PR655]
+    elif device.lower() in ['ls110', 'ls100']:
+        photometers=[minolta.LS100]
+    else:#try them all
+        photometers=[pr.PR650, pr.PR655, minolta.LS100]#a list of photometer objects to test for
     
     #determine candidate ports
     if ports==None:
@@ -43,12 +54,14 @@ def findPhotometer(ports=None):
             ports.extend(glob.glob('/dev/tty.USA*'))#keyspan twin adapter is usually USA28X13P1.1
             ports.extend(glob.glob('/dev/tty.Key*'))#some are Keyspan.1 or Keyserial.1
             ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
-            if len(ports)==0: 
-                log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* Check for " \
+            ports.extend(glob.glob('/dev/cu.usbmodem*'))#for PR650
+            if len(ports)==0:
+                log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
                     +"serial port name manually, check drivers installed etc...")
-                return -1
-        if sys.platform=='darwin':
-            ports=glob('/dev/ttyS?')#usually /dev/ttyS0 or /dev/ttyS1
+                return None
+        elif sys.platform.startswith('linux'):
+            ports = glob.glob('/dev/ttyACM?')#USB CDC devices (virtual serial ports)
+            ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
             ports = range(11)
     elif type(ports) in [int,float]:
@@ -56,14 +69,14 @@ def findPhotometer(ports=None):
         
     #go through each port in turn
     photom=None
-    log.info('scanning serial ports...\n\t')
-    log.console.flush()
+    log.info('scanning serial ports...')
+    log.flush()
     for thisPort in ports:
-        log.info(str(thisPort)); log.console.flush()
+        log.info('...'+str(thisPort)); log.flush()
         for Photometer in photometers:
             photom = Photometer(port=thisPort)
             if photom.OK: 
-                log.info(' ...found a %s\n' %(photom.type)); log.console.flush()
+                log.info(' ...found a %s\n' %(photom.type)); log.flush()
                 #we're now sure that this is the correct device and that it's configured
                 #now increase the number of attempts made to communicate for temperamental devices!
                 if hasattr(photom,'setMaxAttempts'):photom.setMaxAttempts(10)
@@ -74,6 +87,6 @@ def findPhotometer(ports=None):
                     photom.com.close()
 
         #If we got here we didn't find one
-        log.info('...nope!\n\t'); log.console.flush()
+        log.info('...nope!\n\t'); log.flush()
             
     return None

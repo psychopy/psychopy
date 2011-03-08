@@ -11,3 +11,4 @@ PsyScope*
 psychopy1
 .hg*
 .coverage
+psychopy/demos/coder/misc/frame*

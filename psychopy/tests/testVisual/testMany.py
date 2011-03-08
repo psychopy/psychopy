@@ -89,7 +89,7 @@ class _baseVisualTest:
             vertices=[[-0.5, 0],[0, 0.5],[0.5, 0]], 
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
-        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=0.1)
+        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=5.0)
         win.flip()#AFTER compare screenshot
     def testRadial(self):
         win = self.win
@@ -98,7 +98,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        utils.compareScreenshot('data/wedge1_%s.png' %(contextName), win)
+        utils.compareScreenshot('data/wedge1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
         #using .set()
         wedge.setOri(180)
@@ -106,7 +106,7 @@ class _baseVisualTest:
         wedge.setRadialPhase(0.1,operation='+')
         wedge.setAngularPhase(0.1)
         wedge.draw()
-        utils.compareScreenshot('data/wedge2_%s.png' %(contextName), win)
+        utils.compareScreenshot('data/wedge2_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
     def testDots(self):
         #NB we can't use screenshots here - just check that no errors are raised
@@ -146,25 +146,53 @@ class _baseVisualTest:
         radii = numpy.linspace(0,1.0,N)
         x, y = misc.pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5,
-            sfs=3, xys=xys, oris=thetas)
-        spiral.draw()
-        utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
+        if win._haveShaders:
+            spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5,
+                sfs=3, xys=xys, oris=thetas)
+            spiral.draw()
+            utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
+            win.flip()#AFTER compare screenshot
+        else:
+            nose.tools.assert_raises(Exception, visual.ElementArrayStim, win, nElements=N,sizes=0.5,
+                sfs=3, xys=xys, oris=thetas)
+    def testAperture(self):
+        win = self.win
+        contextName=self.contextName
+        gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
+            sf=4, size=1,
+            color=[0.5,-0.5,1])
+        gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
+            sf=4, size=1,
+            color=[-0.5,-0.5,-1])
+        aperture = visual.Aperture(win, size=20,pos=[5,0])
+        aperture.enable()
+        gabor1.draw()
+        aperture.disable()
+        gabor2.draw()
+        utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
         
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], winType='pyglet', pos=[50,50])
+        self.win = visual.Window([48,48], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='norm'
+class TestPygletHeight(_baseVisualTest):
+    def setUp(self):
+        self.win = visual.Window([48,64], winType='pyglet', pos=[50,50], allowStencil=False)
+        self.contextName='height'
 class TestPygletNormNoShaders(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50])
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
         self.win._haveShaders=False
         self.contextName='norm'
+class TestPygletNormStencil(_baseVisualTest):
+    def setUp(self):
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
+        self.contextName='stencil'
 class TestPygameNorm(_baseVisualTest):
     def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame')
+        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame', allowStencil=False)
         self.contextName='norm'
     def testMov(self):
         raise nose.plugins.skip.SkipTest

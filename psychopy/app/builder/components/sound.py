@@ -31,9 +31,8 @@ class SoundComponent(BaseComponent):
             hint="The duration of the sound (ignored if sound is a file with fixed length)") 
 
     def writeInitCode(self,buff):
-        exec('duration= %s-%s' %(self.params['duration'],self.params['startTime']))
-        s = "%s=sound.Sound(%s, secs=%s)\n" %(self.params['name'], self.params['sound'], duration)
-        buff.writeIndented(s)  
+        s = "%s=sound.Sound(%s, secs=%s)\n" %(self.params['name'], self.params['sound'], self.params['duration'])
+        buff.writeIndented(s)
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
@@ -41,6 +40,6 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the start/end time test
         #set parameters that need updating every frame
         self.writeParamUpdates(buff, 'frame')
-        buff.writeIndented("%s.play()\n" %(self.params['name'])) 
+        buff.writeIndented("%s.play()#NB. this is safe when already playing\n" %(self.params['name'])) 
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the start/end time test
-            
+        

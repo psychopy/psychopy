@@ -27,6 +27,7 @@ pasteRoutine=wx.NewId()
 #view menu
 openCoderView = wx.NewId()
 openBuilderView = wx.NewId()
+openShell = wx.NewId()
 toggleOutput=wx.NewId()
 toggleSourceAsst=wx.NewId()
 toggleIndentGuides=wx.NewId()

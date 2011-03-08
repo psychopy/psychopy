@@ -8,6 +8,7 @@ General issues
    units
    colours
    prefs
+   dataOutputs
 
 .. toctree::
    :maxdepth: 2

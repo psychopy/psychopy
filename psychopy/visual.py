@@ -106,7 +106,8 @@ class Window:
                  viewScale = None,
                  viewPos  = None,
                  viewOri  = 0.0,
-                 waitBlanking=True):
+                 waitBlanking=True,
+                 allowStencil=False):
         """        
         :Parameters:
         
@@ -124,7 +125,7 @@ class Window:
                 If None then PsychoPy will revert to user/site preferences
             monitor : *None*, string or a `~psychopy.monitors.Monitor` object
                 The monitor to be used during the experiment
-            units :  *None*, 'norm' (normalised),'deg','cm','pix'
+            units :  *None*, 'height' (of the window), 'norm' (normalised),'deg','cm','pix'
                 Defines the default units of stimuli drawn in the window (can be overridden by each stimulus)
                 See :ref:`units` for explanation of options.
             screen : *0*, 1 (or higher if you have many screens)
@@ -137,11 +138,14 @@ class Window:
                 A single value determining the orientation of the view in degs
             waitBlanking : *None*, True or False. 
                 After a call to flip() should we wait for the blank before the script continues
-            gamma : 1.0, 
+            gamma : 
                 Monitor gamma for linearisation (will use Bits++ if possible). Overrides monitor settings
             bitsMode : None, 'fast', ('slow' mode is deprecated). 
                 Defines how (and if) the Bits++ box will be used. 'fast' updates every frame by drawing a hidden line on the top of the screen.
-            
+            allowStencil : True or *False*
+                When set to True, this allows operations that use the OpenGL stencil buffer
+                (notably, allowing the class:`~psychopy.visual.Aperture` to be used).
+                
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
         
         """
@@ -257,6 +261,7 @@ class Window:
             self.blendMode='average' #resort to the simpler blending without float rendering
         else: self.blendMode=blendMode
         
+        self.allowStencil=allowStencil
         #setup context and openGL()
         if winType==None:#choose the default windowing
             self.winType=prefs.general['winType']
@@ -289,7 +294,7 @@ class Window:
         
         self.recordFrameIntervals=False
         self.frameIntervals=[]
-        self._loLog=[]
+        self._toLog=[]
         self._toDraw=[]
         
         if self.useNativeGamma:
@@ -300,6 +305,7 @@ class Window:
         self.lastFrameT = core.getTime()
         
         if self.units=='norm':  self.setScale('norm')
+        elif self.units=='height': self.setScale('height')
         else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
@@ -376,7 +382,7 @@ class Window:
                 if desired
         """
         
-        self._loLog.append({'msg':msg,'level':level,'obj':str(obj)})
+        self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -472,10 +478,10 @@ class Window:
                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
         
         #log events
-        for logEntry in self._loLog:
+        for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             log.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._loLog = []
+        self._toLog = []
         
     def update(self):
         """Deprecated: use Window.flip() instead        
@@ -552,10 +558,14 @@ class Window:
             
             fps: the frame rate to be used throughout the movie **only for quicktime (.mov) movies**
             
+            clearFrames: set this to False if you want the frames to be kept for
+                additional calls to `saveMovieFrames`
+            
         Examples::
+        
             myWin.saveMovieFrames('frame.tif')#writes a series of static frames as frame001.tif, frame002.tif etc...
             myWin.saveMovieFrames('stimuli.mov', fps=25)#on OS X only
-            myWin.saveMovieFrames('stimuli.gif')#but not great quality
+            myWin.saveMovieFrames('stimuli.gif')#not great quality animated gif
             myWin.saveMovieFrames('stimuli.mpg')#not on OS X
             
         """
@@ -756,11 +766,13 @@ class Window:
         called by the user in order to draw OpenGl objects manually
         in each frame.
 
-        The `units` can be 'norm'(normalised),'pix'(pixels),'cm' or
+        The `units` can be 'height' (multiples of window height), 'norm'(normalised), 'pix'(pixels), 'cm' or
         'stroke_font'. The `font` parameter is only used if units='stroke_font'
         """
         if units=="norm":
             thisScale = numpy.array([1.0,1.0])
+        elif units=="height":
+            thisScale = numpy.array([2.0*self.size[1]/self.size[0],2.0])
         elif units in ["pix", "pixels"]:
             thisScale = 2.0/numpy.array(self.size)
         elif units=="cm":
@@ -811,7 +823,11 @@ class Window:
         GLUT.glutInit(sys.argv)
         iconFile = os.path.join(psychopy.__path__[0], 'psychopy.gif')
         GLUT.glutSetIconTitle(iconFile)
-        GLUT.glutInitDisplayMode(GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH)
+        
+        options = GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH
+        if self.allowStencil: options = options|GLUT.GLUT_STENCIL
+        
+        GLUT.glutInitDisplayMode(options)
         self.handle = GLUT.glutCreateWindow('PsychoPy')
 
         if self._isFullScr:      GLUT.glutFullScreen()
@@ -826,7 +842,10 @@ class Window:
         GLU = pyglet.gl
         GL_multitexture = pyglet.gl
         
-        config = GL.Config(depth_size=8, double_buffer=True)
+        if self.allowStencil:
+            config = GL.Config(depth_size=8, double_buffer=True, stencil_size=8)
+        else:
+            config = GL.Config(depth_size=8, double_buffer=True)
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
@@ -888,7 +907,8 @@ class Window:
         GLU = OpenGL.GLU
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
-            
+        if self.allowStencil: pygame.display.gl_set_attribute(pygame.locals.GL_STENCIL_SIZE, 8)
+
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pygame.image.load(iconFile)
@@ -1078,7 +1098,7 @@ class _BaseVisualStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         
     def draw(self):
@@ -1213,7 +1233,7 @@ class _BaseVisualStim:
         else:
             exec('self.'+attrib+op+'=val')
         
-        if self.autoLog: 
+        if self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
                 level=log.EXP,obj=self)
         
@@ -1240,14 +1260,14 @@ class _BaseVisualStim:
         else: self._updateListNoShaders()  
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix']: self._sizeRendered=self.size
+        if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
         elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
         else:
-            log.ERROR("Stimulus units should be 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+            log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix']: self._posRendered=self.pos
+        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, val):
@@ -1646,11 +1666,11 @@ class DotStim(_BaseVisualStim):
         self._calcDotsXYRendered()
         
     def _calcDotsXYRendered(self):
-        if self.units in ['norm','pix']: self._dotsXYRendered=self._dotsXY
+        if self.units in ['norm','pix', 'height']: self._dotsXYRendered=self._dotsXY
         elif self.units in ['deg','degs']: self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
         elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
     def _calcFieldCoordsRendered(self):
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix', 'height']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
@@ -1699,7 +1719,7 @@ class SimpleImageStim:
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
                 (which is almost all).
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options. 
             pos : 
@@ -1726,7 +1746,7 @@ class SimpleImageStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
@@ -1846,8 +1866,7 @@ class SimpleImageStim:
         self._set('depth', newDepth, operation)    
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['pix', 'pixels']: self._posRendered=self.pos
-        elif self.units=='norm': self._posRendered=self.pos
+        if self.units in ['pix', 'pixels', 'height', 'norm']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None):
@@ -2082,10 +2101,12 @@ class PatchStim(_BaseVisualStim):
         if size==None and self.origSize is None:
             self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
         elif size==None and self.origSize is not None:
+            #we have an image - calculate the size in `units` that matches original pixel size
             if self.units=='pix': self.size=numpy.array(self.origSize)
             elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
             elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
             elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
+            elif self.units=='height': self.size= numpy.array(self.origSize, float)/self.win.size[1]
         elif type(size) in [tuple,list]:
             self.size = numpy.array(size,float)
         else:
@@ -2094,6 +2115,8 @@ class PatchStim(_BaseVisualStim):
         #sf
         if sf is None:
             if units=='norm':
+                self.sf=numpy.array([1.0,1.0])
+            elif units=='height':
                 self.sf=numpy.array([1.0,1.0])
             elif self.origSize is not None or units in ['pix', 'pixels']:
                 self.sf=1.0/self.size#default to one cycle
@@ -2315,7 +2338,7 @@ class PatchStim(_BaseVisualStim):
             GL.glDeleteTextures(1, self.maskID)
             
     def _calcCyclesPerStim(self):
-        if self.units=='norm': self._cycles=self.sf#this is the only form of sf that is not size dependent
+        if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
         
 class RadialStim(PatchStim):
@@ -2889,7 +2912,7 @@ class ElementArrayStim:
             win :
                 a :class:`~psychopy.visual.Window` object (required)
                                  
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` 
                 will be used. See :ref:`units` for explanation of other options.
             
@@ -2968,7 +2991,7 @@ class ElementArrayStim:
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units=='norm': self._winScale='norm'
+        if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
@@ -3287,13 +3310,17 @@ class ElementArrayStim:
             exec('self.fieldSize'+operation+'=value')
         self.setXYs()#to reflect new settings, overriding individual xys 
         
-    def draw(self):
+    def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
         """
+        #set the window to draw to
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+        
         import time
         t0=time.clock()
         if self.needVertexUpdate: 
@@ -3359,15 +3386,15 @@ class ElementArrayStim:
         GL.glPopMatrix()
         
     def _calcSizesRendered(self):
-        if self.units in ['norm','pix']: self._sizesRendered=self.sizes
+        if self.units in ['norm','pix', 'height']: self._sizesRendered=self.sizes
         elif self.units in ['deg', 'degs']: self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
         elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
     def _calcXYsRendered(self):
-        if self.units in ['norm','pix']: self._XYsRendered=self.xys
+        if self.units in ['norm','pix','height']: self._XYsRendered=self.xys
         elif self.units in ['deg', 'degs']: self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
         elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
     def _calcFieldCoordsRendered(self):
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix','height']: 
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
@@ -3421,7 +3448,7 @@ class ElementArrayStim:
         self._maskCoords = self._maskCoords.repeat(N,0)        
         
         #for the main texture
-        if self.units in ['norm', 'pix']:#sf is dependent on size (openGL default)
+        if self.units in ['norm', 'pix', 'height']:#sf is dependent on size (openGL default)
             L = -self.sfs[:,0]/2 - self.phases[:,0]+0.5
             R = +self.sfs[:,0]/2 - self.phases[:,0]+0.5
             T = +self.sfs[:,1]/2 - self.phases[:,1]+0.5
@@ -3495,7 +3522,7 @@ class MovieStim(_BaseVisualStim):
             filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that 
                 AVbin can read (e.g. mpeg, DivX)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.
             pos :
@@ -3709,7 +3736,7 @@ class TextStim(_BaseVisualStim):
                 See :ref:`colorspaces`
             opacity: 
                 How transparent the object will be (0 for transparent, 1 for opaque)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'  
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.      
             ori: 
@@ -3767,17 +3794,22 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 0.1
             else: self.height = height
             self.heightPix = self.height*win.size[1]/2
+        elif self.units=='height':
+            if height==None: self.height = 0.2
+            else: self.height = height
+            self.heightPix = self.height*win.size[1]
         else: #treat units as pix
             if height==None: self.height = 20
             else: self.height = height
             self.heightPix = self.height
         
         if self.wrapWidth ==None:
-            if self.units=='norm': self.wrapWidth=1
+            if self.units in ['height','norm']: self.wrapWidth=1
             elif self.units in ['deg', 'degs']: self.wrapWidth=15
             elif self.units=='cm': self.wrapWidth=15
             elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
+        elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[0]
         elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
@@ -3820,6 +3852,10 @@ class TextStim(_BaseVisualStim):
             if height==None: self.height = 0.1
             else: self.height = height
             self.heightPix = self.height*self.win.size[1]/2
+        elif self.units=='height':
+            if height==None: self.height = 0.2
+            else: self.height = height
+            self.heightPix = self.height*self.win.size[1]
         else: #treat units as pix
             if height==None: self.height = 20
             else: self.height = height
@@ -4465,7 +4501,7 @@ class ShapeStim(_BaseVisualStim):
 
     def _calcVerticesRendered(self):
         self.needVertexUpdate=False
-        if self.units in ['norm', 'pix']: 
+        if self.units in ['norm', 'pix', 'height']: 
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
         elif self.units in ['deg', 'degs']:
@@ -4670,407 +4706,6 @@ class BufferImageStim(PatchStim):
         GL.glCallList(self._listID) # make it happen
         GL.glPopMatrix() #return the view to previous state
         
-def makeRadialMatrix(matrixSize):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
-    """
-    oneStep = 2.0/(matrixSize-1)
-    xx,yy = numpy.mgrid[0:2+oneStep:oneStep, 0:2+oneStep:oneStep] -1.0 #NB need to add one step length because
-    rad = numpy.sqrt(xx**2 + yy**2)
-    return rad
-
-def createTexture(tex, id, pixFormat, stim, res=128):
-    """
-    id is the texture ID
-    pixFormat = GL.GL_ALPHA, GL.GL_RGB
-    useShaders is a bool
-    interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
-    res is the resolution of the texture (unless a bitmap image is used)
-    """
-    
-    """
-    Create an intensity texture, ranging -1:1.0
-    """
-    useShaders = stim._useShaders
-    interpolate = stim.interpolate
-    if type(tex) == numpy.ndarray:
-        #handle a numpy array
-        #for now this needs to be an NxN intensity array        
-        intensity = tex.astype(numpy.float32)
-        if intensity.max()>1 or intensity.min()<-1:
-            log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
-        if len(tex.shape)==3:
-            wasLum=False
-        else: wasLum = True
-        ##is it 1D?
-        if tex.shape[0]==1:
-            stim._tex1D=True
-            res=tex.shape[1]
-        elif len(tex.shape)==1 or tex.shape[1]==1:
-            stim._tex1D=True
-            res=tex.shape[0]
-        else:
-            stim._tex1D=False
-            #check if it's a square power of two
-            maxDim = max(tex.shape)
-            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-            if tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2:
-                log.error("Numpy array textures must be square and must be power of two (e.g. 16x16, 256x256)")      
-                core.quit()
-            res=tex.shape[0]
-    elif tex in [None,"none", "None"]:
-        res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
-        intensity = numpy.ones([res,res],numpy.float32)
-        wasLum = True
-    elif tex == "sin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-        intensity = numpy.sin(onePeriodY-pi/2)
-        wasLum = True
-    elif tex == "sqr":#square wave (symmetric duty cycle)
-        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-        sinusoid = numpy.sin(onePeriodY-pi/2)
-        intensity = numpy.where(sinusoid>0, 1, -1)
-        wasLum = True
-    elif tex == "saw":
-        intensity = numpy.linspace(-1.0,1.0,res,endpoint=True)*numpy.ones([res,1])
-        wasLum = True
-    elif tex == "tri":
-        intensity = numpy.linspace(-1.0,3.0,res,endpoint=True)#-1:3 means the middle is at +1
-        intensity[int(res/2.0+1):] = 2.0-intensity[int(res/2.0+1):]#remove from 3 to get back down to -1
-        intensity = intensity*numpy.ones([res,1])#make 2D
-        wasLum = True
-    elif tex == "sinXsin":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-        intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-        wasLum = True
-    elif tex == "sqrXsqr":
-        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-        sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-        intensity = numpy.where(sinusoid>0, 1, -1)
-        wasLum = True
-    elif tex == "circle":
-        rad=makeRadialMatrix(res)
-        intensity = (rad<=1)*2-1 
-        fromFile=0
-    elif tex == "gauss":
-        rad=makeRadialMatrix(res)
-        sigma = 1/3.0;
-        intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
-        fromFile=0
-    elif tex == "radRamp":#a radial ramp
-        rad=makeRadialMatrix(res)
-        intensity = 1-2*rad
-        intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
-        fromFile=0
-    else:#might be an image, or a filename of an image
-        """if os.path.isfile(tex):
-            im = Image.open(tex)
-            im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        else:
-            log.error("couldn't find tex...%s" %(tex))
-            core.quit()
-            raise #so thatensure we quit"""
-        itsaFile = True # just a guess at this point
-        try:
-            os.path.isfile(tex)
-        except TypeError: # its not a file; maybe an image already?
-            try: 
-                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
-                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
-            except AttributeError: # ...but apparently not
-                log.error("couldn't find image...%s" %(filename))
-                core.quit()
-                raise #ensure we quit
-            itsaFile = False
-        if itsaFile:
-            if os.path.isfile(tex):
-                im = Image.open(tex)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            else:
-                log.error("couldn't find image...%s" %(tex))
-                core.quit()
-                raise #so thatensure we quit
-        stim.origSize=im.size
-        #is it 1D?
-        if im.size[0]==1 or im.size[1]==1:
-            log.error("Only 2D textures are supported at the moment")
-        else:
-            maxDim = max(im.size)
-            powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
-            if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
-                im=im.resize([powerOf2,powerOf2],Image.BILINEAR)      
-                
-        #is it Luminance or RGB?
-        if im.mode=='L':
-            wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
-        elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
-            wasLum = True
-            im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255            
-        elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
-            #texture = im.tostring("raw", "RGB", 0, -1)
-            im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
-            wasLum=False
-            
-    if pixFormat==GL.GL_RGB and wasLum and useShaders:
-        #keep as float32 -1:1
-        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-        dataType = GL.GL_FLOAT
-        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-        data[:,:,0] = intensity#R
-        data[:,:,1] = intensity#G
-        data[:,:,2] = intensity#B
-    elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
-        #scale by rgb and convert to ubyte
-        internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
-        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
-            rgb=stim.rgb
-        else:
-            rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
-        #scale by rgb
-        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-        data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
-        data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
-        data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
-        #convert to ubyte
-        data = psychopy.misc.float_uint8(stim.contrast*data)
-    elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
-        internalFormat = GL.GL_RGB32F_ARB
-        dataType = GL.GL_FLOAT
-        data = intensity
-    elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
-        internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA and useShaders:# a mask with no shader options
-        internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)    
-    elif pixFormat==GL.GL_ALPHA:# not wasLum, not useShaders  - a mask with no shader options
-        internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        #can't use float_uint8 - do it manually
-        data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
-    #check for RGBA textures
-    if len(intensity.shape)>2 and intensity.shape[2] == 4:
-        if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
-        if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
-        elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
-    
-    if stim.win.winType=='pygame':
-        texture = data.tostring()#serialise
-    else:#pyglet on linux needs ctypes instead of string object!?
-        texture = data.ctypes#serialise
-        
-    #bind the texture in openGL
-    GL.glEnable(GL.GL_TEXTURE_2D)
-    GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
-    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-    #important if using bits++ because GL_LINEAR
-    #sometimes extrapolates to pixel vals outside range
-    if interpolate: 
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
-        if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
-                pixFormat, dataType, texture)
-        else:#use glu
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
-            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
-    else:
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                        data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
-                        pixFormat, dataType, texture)
-        
-    GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
-def _setTexIfNoShaders(obj):
-    """Useful decorator for classes that need to update Texture after other properties
-    """
-    if hasattr(obj, 'setTex') and hasattr(obj, '_texName') and not obj._useShaders: 
-        obj.setTex(obj._texName)
-        
-def _setColor(self, color, colorSpace=None, operation='',
-                rgbAttrib='rgb', #or 'fillRGB' etc
-                colorAttrib='color'):#or 'fillColor' etc
-    """Provides the workings needed by setColor, and can perform this for
-    any arbitrary color type (e.g. fillColor,lineColor etc)  
-    """
-    
-    #ho this works:
-    #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
-    #color represents the color in the native space
-    #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
-    #rgb is calculated from converting color
-    #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
-    #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
-    try:
-        color=float(color)
-        isScalar=True
-    except:
-        isScalar=False
-    
-    if type(color) in [str, unicode]:
-        if color.lower() in colors.colors255.keys():
-            #set rgb, color and colorSpace
-            setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
-            setattr(self,colorAttrib,color) #e.g. self.color='red'
-            _setTexIfNoShaders(self)
-            return
-        elif color[0]=='#' or color[0:2]=='0x':
-            setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-            setattr(self,colorAttrib,color) #e.g. self.color='#000000'
-            setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
-            _setTexIfNoShaders(self)
-            return
-#                except:
-#                    pass#this will be handled with AttributeError below
-        #we got a string, but it isn't in the list of named colors and doesn't work as a hex
-        raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-    elif isScalar:
-        color = numpy.asarray([color,color,color],float)
-    elif type(color) in [tuple,list]:
-        color = numpy.asarray(color,float)
-    elif type(color) ==numpy.ndarray:
-        pass
-    elif color==None:
-        setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-        setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-        setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
-        _setTexIfNoShaders(self)
-    else:
-        raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
-    
-    #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
-    #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
-    #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-    if getattr(self,colorAttrib+'Space') in ['named','hex']:
-            raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
-                %(operation))
-    if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
-            raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
-                %(operation, self.colorSpace, colorSpace))
-    else:#OK to update current color
-        exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
-    #get window (for color conversions)
-    if colorSpace in ['dkl','lms']: #only needed for these spaces
-        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
-        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
-        else:
-            print hasattr(self,'dkl_rgb'), dir(self)
-            win=None
-            log.error("_setColor() is being applied to something that has no known Window object")
-    #convert new self.color to rgb space
-    newColor=getattr(self, colorAttrib)
-    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
-    elif colorSpace=='dkl':
-        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
-        else: dkl_rgb=win.dkl_rgb
-        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
-    elif colorSpace=='lms': 
-        if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
-        else: lms_rgb=win.lms_rgb
-        setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
-    else: log.error('Unknown colorSpace: %s' %colorSpace)
-    setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
-    #if needed, set the texture too
-    _setTexIfNoShaders(self)
-    
-def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
-    """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
-    
-    Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
-    The visual is just eye-candy to show that something is happening when assessing many frames. You can
-    also give it text to display instead of a visual,
-    e.g., msg='(testing refresh rate...)'; setting msg implies showVisual == False.
-    To simulate refresh rate under cpu load, you can specify a time to wait within the loop prior to
-    doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
-    
-    Returns timing stats (in ms) of:
-    - average time per frame, for all frames
-    - standard deviation of all frames
-    - median, as the average of 12 frame times around the median (~monitor refresh rate)
-    
-    :Author:
-        - 2010 written by Jeremy Gray
-    """
-    
-    #from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
-    
-    nFrames = max(60, nFrames)  # lower bound of 60 samples--need enough to estimate the SD
-    num2avg = 12  # how many to average from around the median
-    if len(msg):
-        showVisual = False
-        showText = True
-        myMsg = TextStim(myWin, text=msg, italic=True, 
-                            color=(.7,.6,.5),colorSpace='rgb', height=0.1)
-    else:
-        showText = False
-    if showVisual:
-        x,y = myWin.size
-        myStim = PatchStim(myWin, tex='sin', mask='gauss', size=[.6*y/float(x),.6], sf=3.0, opacity=.2)
-    clockt = [] # clock times
-    drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
-    
-    if msDelay > 0 and msDelay < 100:
-        doWait = True
-        delayTime = msDelay/1000. #sec
-    else:
-        doWait = False
-        
-    winUnitsSaved = myWin.units 
-    myWin.units = 'norm' # norm is required for the visual (or text) display, as coded below
-    
-    # accumulate secs per frame (and time-to-draw) for a bunch of frames:
-    rush(True)
-    for i in range(5): # wake everybody up
-        myWin.flip()
-    for i in range(nFrames): # ... and go for real this time
-        clockt.append(core.getTime()) 
-        if showVisual:
-            myStim.setPhase(1.0/nFrames, '+')
-            myStim.setSF(3./nFrames, '+')
-            myStim.setOri(12./nFrames,'+')
-            myStim.setOpacity(.9/nFrames, '+')
-            myStim.draw()
-        elif showText:
-            myMsg.draw()
-        if doWait:
-            wait(delayTime)
-        drawt.append(core.getTime())
-        myWin.flip()
-    rush(False)
-    
-    myWin.units = winUnitsSaved # restore
-    
-    frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1,len(clockt))]
-    drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == drawing only
-    freeTimes = [frameTimes[i] - drawTimes[i] for i in range(len(frameTimes))] # == unused time
-    
-    # cast to float so that the resulting type == type(0.123)
-    frameTimes.sort() # for median
-    msPFmed = 1000. * float(numpy.average(frameTimes[ (nFrames-num2avg)/2 : (nFrames+num2avg)/2 ])) # median-most slice
-    msPFavg = 1000. * float(numpy.average(frameTimes)) 
-    msPFstd = 1000. * float(numpy.std(frameTimes))
-    msdrawAvg = 1000. * float(numpy.average(drawTimes))
-    msdrawSD = 1000. * float(numpy.std(drawTimes))
-    msfree = 1000. * float(numpy.average(freeTimes))
-    #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
-    
-    return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
-
-
 class RatingScale:
     """A class for getting numeric subjective ratings, e.g., on a 1-to-7 scale.
     
@@ -5668,9 +5303,10 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
-        if self.markerStart not in [None, False]: # do allow 0 as a legal pre-placement
+        #NB markerStart could be 0; during __init__, its forced to be numeric and valid, or None (not boolean)
+        if self.markerStart != None:
             self.markerPlaced = True
-            self.markerPlacedAt = self.markerStart - self.low
+            self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid 
         self.firstDraw = True # triggers self.myClock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
@@ -5705,3 +5341,484 @@ class RatingScale:
         
         return self.decisionTime
     
+class Aperture:
+    """Used to create a shape (circular for now) to restrict a stimulus
+    visibility area.
+    
+    .. note::
+    
+        This is a new stimulus (1.63.05) and is subject to change. Notably,
+        right now it only uses 'pix' units and only a circular shape
+    
+    When enabled any drawing commands will only operate on pixels within the 
+    Aperture. Once disabled, subsequent draw operations affect the whole screen
+    as usual.
+    
+    See demos/stimuli/aperture.py for example usage
+       
+    :Author:
+        2011, Yuri Spitsyn    
+    """
+    def __init__(self, win, size, pos=(0,0), units='pix'):
+        if units!='pix':
+            raise AttributeError, "Only units of 'pix' are currently supported for Aperture"
+        self.win=win
+        self.quad=GLU.gluNewQuadric() #needed for gluDisk
+        self.winAspect = self.win.size[1] / float(self.win.size[0])
+        self.setSize(size, False)
+        self.setPos(pos)
+
+    def _reset(self):
+        self.enable()
+        GL.glClearStencil(0)
+        GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+
+        GL.glPushMatrix()
+
+        GL.glTranslatef(self.pos[0], self.pos[1], 0)
+
+        GL.glDisable(GL.GL_LIGHTING)
+        GL.glDisable(GL.GL_DEPTH_TEST)
+        GL.glDepthMask(GL.GL_FALSE)
+
+        GL.glStencilFunc(GL.GL_NEVER, 0, 0)
+        GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
+        GL.glColor3f(1.0,1.0,1.0)
+        GL.glScalef(self.winAspect, 1.0, 1.0)
+        GLU.gluDisk(self.quad, 0, self.size, 120, 2)
+        GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
+        GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
+
+        GL.glPopMatrix()
+
+    def setSize(self, size, needReset=True):
+        """Set the size (diameter) of the Aperture
+        """
+        self.size = size / float(self.win.size[1])
+        if needReset: self._reset()
+
+    def setPos(self, pos, needReset=True):
+        """Set the pos (centre) of the Aperture
+        """
+        self.pos = (pos[0]/float(self.win.size[0]), pos[1]/float(self.win.size[1]))
+        if needReset: self._reset()
+
+    def enable(self):
+        """Enable the aperture so that it is used in future drawing operations
+        
+        NB. The Aperture is enabled by default, when created.
+        
+        """
+        GL.glEnable(GL.GL_STENCIL_TEST)
+
+    def disable(self):
+        """Disable the Aperture. Any subsequent drawing operations will not be
+        affected by the aperture until re-enabled.
+        """
+        GL.glDisable(GL.GL_STENCIL_TEST)
+
+def makeRadialMatrix(matrixSize):
+    """Generate a square matrix where each element val is
+    its distance from the centre of the matrix
+    """
+    oneStep = 2.0/(matrixSize-1)
+    xx,yy = numpy.mgrid[0:2+oneStep:oneStep, 0:2+oneStep:oneStep] -1.0 #NB need to add one step length because
+    rad = numpy.sqrt(xx**2 + yy**2)
+    return rad
+
+def createTexture(tex, id, pixFormat, stim, res=128):
+    """
+    id is the texture ID
+    pixFormat = GL.GL_ALPHA, GL.GL_RGB
+    useShaders is a bool
+    interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
+    res is the resolution of the texture (unless a bitmap image is used)
+    """
+    
+    """
+    Create an intensity texture, ranging -1:1.0
+    """
+    useShaders = stim._useShaders
+    interpolate = stim.interpolate
+    if type(tex) == numpy.ndarray:
+        #handle a numpy array
+        #for now this needs to be an NxN intensity array        
+        intensity = tex.astype(numpy.float32)
+        if intensity.max()>1 or intensity.min()<-1:
+            log.error('numpy arrays used as textures should be in the range -1(black):1(white)')
+        if len(tex.shape)==3:
+            wasLum=False
+        else: wasLum = True
+        ##is it 1D?
+        if tex.shape[0]==1:
+            stim._tex1D=True
+            res=tex.shape[1]
+        elif len(tex.shape)==1 or tex.shape[1]==1:
+            stim._tex1D=True
+            res=tex.shape[0]
+        else:
+            stim._tex1D=False
+            #check if it's a square power of two
+            maxDim = max(tex.shape)
+            powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2:
+                log.error("Numpy array textures must be square and must be power of two (e.g. 16x16, 256x256)")      
+                core.quit()
+            res=tex.shape[0]
+    elif tex in [None,"none", "None"]:
+        res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
+        intensity = numpy.ones([res,res],numpy.float32)
+        wasLum = True
+    elif tex == "sin":
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
+        intensity = numpy.sin(onePeriodY-pi/2)
+        wasLum = True
+    elif tex == "sqr":#square wave (symmetric duty cycle)
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
+        sinusoid = numpy.sin(onePeriodY-pi/2)
+        intensity = numpy.where(sinusoid>0, 1, -1)
+        wasLum = True
+    elif tex == "saw":
+        intensity = numpy.linspace(-1.0,1.0,res,endpoint=True)*numpy.ones([res,1])
+        wasLum = True
+    elif tex == "tri":
+        intensity = numpy.linspace(-1.0,3.0,res,endpoint=True)#-1:3 means the middle is at +1
+        intensity[int(res/2.0+1):] = 2.0-intensity[int(res/2.0+1):]#remove from 3 to get back down to -1
+        intensity = intensity*numpy.ones([res,1])#make 2D
+        wasLum = True
+    elif tex == "sinXsin":
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
+        intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
+        wasLum = True
+    elif tex == "sqrXsqr":
+        onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
+        sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
+        intensity = numpy.where(sinusoid>0, 1, -1)
+        wasLum = True
+    elif tex == "circle":
+        rad=makeRadialMatrix(res)
+        intensity = (rad<=1)*2-1 
+        fromFile=0
+    elif tex == "gauss":
+        rad=makeRadialMatrix(res)
+        sigma = 1/3.0;
+        intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
+        fromFile=0
+    elif tex == "radRamp":#a radial ramp
+        rad=makeRadialMatrix(res)
+        intensity = 1-2*rad
+        intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
+        fromFile=0
+    else:#might be an image, or a filename of an image
+        """if os.path.isfile(tex):
+            im = Image.open(tex)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+        else:
+            log.error("couldn't find tex...%s" %(tex))
+            core.quit()
+            raise #so thatensure we quit"""
+        itsaFile = True # just a guess at this point
+        try:
+            os.path.isfile(tex)
+        except TypeError: # its not a file; maybe an image already?
+            try: 
+                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
+                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
+            except AttributeError: # ...but apparently not
+                log.error("couldn't find image...%s" %(filename))
+                core.quit()
+                raise #ensure we quit
+            itsaFile = False
+        if itsaFile:
+            if os.path.isfile(tex):
+                im = Image.open(tex)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            else:
+                log.error("couldn't find image...%s" %(tex))
+                core.quit()
+                raise #so thatensure we quit
+        stim.origSize=im.size
+        #is it 1D?
+        if im.size[0]==1 or im.size[1]==1:
+            log.error("Only 2D textures are supported at the moment")
+        else:
+            maxDim = max(im.size)
+            powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
+            if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
+                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                im=im.resize([powerOf2,powerOf2],Image.BILINEAR)      
+                
+        #is it Luminance or RGB?
+        if im.mode=='L':
+            wasLum = True
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
+        elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
+            wasLum = True
+            im = im.convert("L")#force to intensity (in case it was rgb)
+            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255            
+        elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
+            #texture = im.tostring("raw", "RGB", 0, -1)
+            im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
+            wasLum=False
+            
+    if pixFormat==GL.GL_RGB and wasLum and useShaders:
+        #keep as float32 -1:1
+        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        dataType = GL.GL_FLOAT
+        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
+        data[:,:,0] = intensity#R
+        data[:,:,1] = intensity#G
+        data[:,:,2] = intensity#B
+    elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
+        #scale by rgb and convert to ubyte
+        internalFormat = GL.GL_RGB
+        dataType = GL.GL_UNSIGNED_BYTE
+        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
+            rgb=stim.rgb
+        else:
+            rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
+        #scale by rgb
+        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
+        data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
+        data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
+        data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
+        #convert to ubyte
+        data = psychopy.misc.float_uint8(stim.contrast*data)
+    elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
+        internalFormat = GL.GL_RGB32F_ARB
+        dataType = GL.GL_FLOAT
+        data = intensity
+    elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
+        internalFormat = GL.GL_RGB
+        dataType = GL.GL_UNSIGNED_BYTE
+        data = psychopy.misc.float_uint8(intensity)
+    elif pixFormat==GL.GL_ALPHA and useShaders:# a mask with no shader options
+        internalFormat = GL.GL_ALPHA
+        dataType = GL.GL_UNSIGNED_BYTE
+        data = psychopy.misc.float_uint8(intensity)    
+    elif pixFormat==GL.GL_ALPHA:# not wasLum, not useShaders  - a mask with no shader options
+        internalFormat = GL.GL_ALPHA
+        dataType = GL.GL_UNSIGNED_BYTE
+        #can't use float_uint8 - do it manually
+        data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
+    #check for RGBA textures
+    if len(intensity.shape)>2 and intensity.shape[2] == 4:
+        if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
+        if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
+        elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+    
+    if stim.win.winType=='pygame':
+        texture = data.tostring()#serialise
+    else:#pyglet on linux needs ctypes instead of string object!?
+        texture = data.ctypes#serialise
+        
+    #bind the texture in openGL
+    GL.glEnable(GL.GL_TEXTURE_2D)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+    #important if using bits++ because GL_LINEAR
+    #sometimes extrapolates to pixel vals outside range
+    if interpolate: 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR) 
+        if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
+                pixFormat, dataType, texture)
+        else:#use glu
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)  
+            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+                data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
+    else:
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST) 
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST) 
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                        data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
+                        pixFormat, dataType, texture)
+        
+    GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
+def _setTexIfNoShaders(obj):
+    """Useful decorator for classes that need to update Texture after other properties
+    """
+    if hasattr(obj, 'setTex') and hasattr(obj, '_texName') and not obj._useShaders: 
+        obj.setTex(obj._texName)
+        
+def _setColor(self, color, colorSpace=None, operation='',
+                rgbAttrib='rgb', #or 'fillRGB' etc
+                colorAttrib='color'):#or 'fillColor' etc
+    """Provides the workings needed by setColor, and can perform this for
+    any arbitrary color type (e.g. fillColor,lineColor etc)  
+    """
+    
+    #ho this works:
+    #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
+    #color represents the color in the native space
+    #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
+    #rgb is calculated from converting color
+    #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
+    #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+    try:
+        color=float(color)
+        isScalar=True
+    except:
+        isScalar=False
+    
+    if type(color) in [str, unicode]:
+        if color.lower() in colors.colors255.keys():
+            #set rgb, color and colorSpace
+            setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
+            setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
+            setattr(self,colorAttrib,color) #e.g. self.color='red'
+            _setTexIfNoShaders(self)
+            return
+        elif color[0]=='#' or color[0:2]=='0x':
+            setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
+            setattr(self,colorAttrib,color) #e.g. self.color='#000000'
+            setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
+            _setTexIfNoShaders(self)
+            return
+#                except:
+#                    pass#this will be handled with AttributeError below
+        #we got a string, but it isn't in the list of named colors and doesn't work as a hex
+        raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+    elif isScalar:
+        color = numpy.asarray([color,color,color],float)
+    elif type(color) in [tuple,list]:
+        color = numpy.asarray(color,float)
+    elif type(color) ==numpy.ndarray:
+        pass
+    elif color==None:
+        setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
+        setattr(self,colorAttrib,None) #e.g. self.color='#000000'
+        setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
+        _setTexIfNoShaders(self)
+    else:
+        raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
+    
+    #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
+    #check if colorSpace is given and use self.colorSpace if not
+    if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
+    #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
+    if getattr(self,colorAttrib+'Space') in ['named','hex']:
+            raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
+                %(operation))
+    if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
+            raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
+                %(operation, self.colorSpace, colorSpace))
+    else:#OK to update current color
+        exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
+    #get window (for color conversions)
+    if colorSpace in ['dkl','lms']: #only needed for these spaces
+        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
+        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        else:
+            print hasattr(self,'dkl_rgb'), dir(self)
+            win=None
+            log.error("_setColor() is being applied to something that has no known Window object")
+    #convert new self.color to rgb space
+    newColor=getattr(self, colorAttrib)
+    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+    elif colorSpace=='dkl':
+        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
+        else: dkl_rgb=win.dkl_rgb
+        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
+    elif colorSpace=='lms': 
+        if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
+        else: lms_rgb=win.lms_rgb
+        setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
+    else: log.error('Unknown colorSpace: %s' %colorSpace)
+    setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
+    #if needed, set the texture too
+    _setTexIfNoShaders(self)
+    
+def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
+    """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
+    
+    Records time for each refresh (frame) for n frames (at least 60), while displaying an optional visual.
+    The visual is just eye-candy to show that something is happening when assessing many frames. You can
+    also give it text to display instead of a visual,
+    e.g., msg='(testing refresh rate...)'; setting msg implies showVisual == False.
+    To simulate refresh rate under cpu load, you can specify a time to wait within the loop prior to
+    doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
+    
+    Returns timing stats (in ms) of:
+    - average time per frame, for all frames
+    - standard deviation of all frames
+    - median, as the average of 12 frame times around the median (~monitor refresh rate)
+    
+    :Author:
+        - 2010 written by Jeremy Gray
+    """
+    
+    #from psychopy import visual # which imports core, so currently need to do here in core.msPerFrame()
+    
+    nFrames = max(60, nFrames)  # lower bound of 60 samples--need enough to estimate the SD
+    num2avg = 12  # how many to average from around the median
+    if len(msg):
+        showVisual = False
+        showText = True
+        myMsg = TextStim(myWin, text=msg, italic=True, 
+                            color=(.7,.6,.5),colorSpace='rgb', height=0.1)
+    else:
+        showText = False
+    if showVisual:
+        x,y = myWin.size
+        myStim = PatchStim(myWin, tex='sin', mask='gauss', 
+            size=[.6*y/float(x),.6], sf=3.0, opacity=.2,
+            autoLog=False)
+    clockt = [] # clock times
+    drawt  = [] # end of drawing time, in clock time units, for testing how long myStim.draw() takes
+    
+    if msDelay > 0 and msDelay < 100:
+        doWait = True
+        delayTime = msDelay/1000. #sec
+    else:
+        doWait = False
+        
+    winUnitsSaved = myWin.units 
+    myWin.units = 'norm' # norm is required for the visual (or text) display, as coded below
+    
+    # accumulate secs per frame (and time-to-draw) for a bunch of frames:
+    rush(True)
+    for i in range(5): # wake everybody up
+        myWin.flip()
+    for i in range(nFrames): # ... and go for real this time
+        clockt.append(core.getTime()) 
+        if showVisual:
+            myStim.setPhase(1.0/nFrames, '+')
+            myStim.setSF(3./nFrames, '+')
+            myStim.setOri(12./nFrames,'+')
+            myStim.setOpacity(.9/nFrames, '+')
+            myStim.draw()
+        elif showText:
+            myMsg.draw()
+        if doWait:
+            wait(delayTime)
+        drawt.append(core.getTime())
+        myWin.flip()
+    rush(False)
+    
+    myWin.units = winUnitsSaved # restore
+    
+    frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1,len(clockt))]
+    drawTimes  = [(drawt[i] - clockt[i]) for i in range(len(clockt))] # == drawing only
+    freeTimes = [frameTimes[i] - drawTimes[i] for i in range(len(frameTimes))] # == unused time
+    
+    # cast to float so that the resulting type == type(0.123)
+    frameTimes.sort() # for median
+    msPFmed = 1000. * float(numpy.average(frameTimes[ (nFrames-num2avg)/2 : (nFrames+num2avg)/2 ])) # median-most slice
+    msPFavg = 1000. * float(numpy.average(frameTimes)) 
+    msPFstd = 1000. * float(numpy.std(frameTimes))
+    msdrawAvg = 1000. * float(numpy.average(drawTimes))
+    msdrawSD = 1000. * float(numpy.std(drawTimes))
+    msfree = 1000. * float(numpy.average(freeTimes))
+    #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
+    
+    return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
+
+
+
+

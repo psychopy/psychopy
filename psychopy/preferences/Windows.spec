@@ -49,6 +49,7 @@
     analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
+    preferredShell = option('ipython','pyshell',default='pyshell')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')

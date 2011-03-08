@@ -151,20 +151,25 @@ class LogFile:
             self.stream=codecs.open(f, filemode, encoding)
         self.level=level
         #add to the appropriate Logger
-        if logger==None:
-            logger = root
-        logger.addTarget(self)
+        if logger==None: self.logger = root
+        else: self.logger=logger
+        
+        self.logger.addTarget(self)
         
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
         self.level = level
+        self.logger._calcLowestTarget()
     def write(self,txt):
         """Write directy to the log file (without using logging functions). 
         Useful to send messages that only this file receives
         """
         self.stream.write(txt)
-        self.stream.flush()
+        try: 
+            self.stream.flush()
+        except:
+            pass
 class _Logger:
     """Maintains a set of log targets (text streams such as files of stdout)
     
@@ -180,16 +185,37 @@ class _Logger:
         self.flushed=[]
         self.toFlush=[]
         self.format=format
+        self.lowestTarget=50
     def __del__(self):
         self.flush()
     def addTarget(self,target):
         """Add a target, typically a :class:`~log.LogFile` to the logger
         """
         self.targets.append(target)
+        self._calcLowestTarget()
+    def removeTarget(self,target):
+        """Remove a target, typically a :class:`~log.LogFile` from the logger
+        """
+        if target in self.targets:
+            self.targets.remove(target)
+        self._calcLowestTarget()
+    def _calcLowestTarget(self):        
+        self.lowestTarget=50
+        for target in self.targets:
+            self.lowestTarget = min(self.lowestTarget, target.level)
     def log(self, message, level, t=None, obj=None):
+        """Add the `message` to the log stack at the appropriate `level`
+        
+        If no relevant targets (files or console) exist then the message is 
+        simply discarded.
+        """
+        #check for at least one relevant logger
+        if level<self.lowestTarget: return
+        #check time
         if t==None:
             global defaultClock
             t=defaultClock.getTime()
+        #add message to list
         self.toFlush.append(_LogEntry(t=t, level=level, message=message, obj=obj))
     def flush(self):
         """Process all current messages to each target

@@ -11,6 +11,12 @@ import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
 from psychopy import log
 
+try:#needed for wx.py shell
+    import code
+    haveCode=True
+except:
+    haveCode = False
+    
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
               'mono' : 'Courier New',
@@ -157,8 +163,8 @@ class UnitTestFrame(wx.Frame):
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(600,400))
+        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(300,200))
+        
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
@@ -176,7 +182,7 @@ class UnitTestFrame(wx.Frame):
         buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(buttonsSizer, 0, wx.ALIGN_RIGHT)
-        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND, border=10)
+        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND|wx.GROW, border=10)
         self.SetSizerAndFit(self.sizer)
         self.Show()
     def onRunTests(self, event=None):
@@ -1005,8 +1011,8 @@ class CoderFrame(wx.Frame):
 
         self.notebook.SetFocus()
 
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
+        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
@@ -1021,18 +1027,38 @@ class CoderFrame(wx.Frame):
                 if not os.path.isfile(filename): continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
+        #create the shelf for shell and output views
+        self.shelf = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
+            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
+                wx.aui.AUI_NB_TAB_MOVE)
+        self.paneManager.AddPane(self.shelf,
+                                 wx.aui.AuiPaneInfo().
+                                 Name("Shelf").Caption("Shelf").
+                                 RightDockable(True).LeftDockable(True).CloseButton(False).
+                                 Bottom())
+        self.shelf.DragAcceptFiles(True)
+        
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
-        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(400,400))
+        
+        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.VSCROLL)
         self.outputWindow.write('Welcome to PsychoPy2!\n')
         self.outputWindow.write("v%s\n" %self.app.version)
-
-        self.paneManager.AddPane(self.outputWindow,
-                                 wx.aui.AuiPaneInfo().
-                                 Name("Output").Caption("Output").
-                                 RightDockable(True).LeftDockable(True).CloseButton(False).
-                                 Bottom())
+        self.shelf.AddPage(self.outputWindow, 'Output')
+        
+        if haveCode:
+            if self.prefs['preferredShell'].lower()=='ipython':
+                import IPython.gui.wx.ipython_view
+                #IPython shell is nice, but crashes if you draw stimuli
+                self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self, 
+                    background_color='WHITE',
+                    )
+            else:
+                from wx import py
+                self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
+            self.shelf.AddPage(self.shell, 'Shell')
+        
         #add help window
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300),
                                           style=wx.TE_MULTILINE|wx.TE_READONLY)
@@ -1048,8 +1074,9 @@ class CoderFrame(wx.Frame):
         self.unitTestFrame=None
 
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
-        if self.appData['auiPerspective']:
-            self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+        if self.appData['auiPerspective'] and \
+            'Shelf' in self.appData['auiPerspective']:#
+                self.paneManager.LoadPerspective(self.appData['auiPerspective'])
         else:
             self.SetMinSize(wx.Size(400, 600)) #min size for the whole window
             self.Fit()
@@ -1182,8 +1209,8 @@ class CoderFrame(wx.Frame):
         
         self.viewMenu.AppendSeparator()
         #output window
-        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "&Output\t%s" %self.app.keys['toggleOutputPanel'],
-                                                  "shows the output (and error messages) from your script")
+        self.outputChk= self.viewMenu.AppendCheckItem(self.IDs.toggleOutput, "Show &Output/Shell\t%s" %self.app.keys['toggleOutputPanel'],
+                                                  "Shows the output and shell panes (and starts capturing stdout)")
         self.outputChk.Check(self.prefs['showOutput'])
         wx.EVT_MENU(self, self.IDs.toggleOutput,  self.setOutputWindow)
         #source assistant
@@ -1192,25 +1219,35 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
         self.viewMenu.AppendSeparator()
-        self.viewMenu.Append(self.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys['switchToBuilder'], "Open a new Builder view")
+        self.viewMenu.Append(self.IDs.openBuilderView, "Go to &Builder view\t%s" %self.app.keys['switchToBuilder'], "Go to the Builder view")
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
+        #        self.viewMenu.Append(self.IDs.openShell, "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'], "Go to a shell window for interactive commands")
+        #        wx.EVT_MENU(self, self.IDs.openShell,  self.app.showShell)
 
         self.demosMenu = wx.Menu()
+        self.demos={}
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
-        self.demoList = glob.glob(os.path.join(self.paths['demos'],'coder','*.py'))
-        self.demoList.sort(key=str.lower)
-        #demoList = glob.glob(os.path.join(appDir,'..','demos','*.py'))
-        self.ID_DEMOS = \
-            map(lambda _makeID: wx.NewId(), range(len(self.demoList)))
-        self.demos={}
-        for n in range(len(self.demoList)):
-            self.demos[self.ID_DEMOS[n]] = self.demoList[n]
-        for thisID in self.ID_DEMOS:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
-            self.demosMenu.Append(thisID, shortname)
-            wx.EVT_MENU(self, thisID, self.loadDemo)
+        for folder in glob.glob(os.path.join(self.paths['demos'],'coder','*')):
+            #skip if it isn't a folder
+            if not os.path.isdir(folder): continue
+            #otherwise create a submenu
+            folderName= os.path.split(folder)[-1]
+            submenu = wx.Menu()
+            self.demosMenu.AppendSubMenu(submenu, folderName)
+            
+            #find the files in the folder
+            demoList = glob.glob(os.path.join(folder,'*.py'))
+            demoList.sort(key=str.lower)
+            demoIDs = map(lambda _makeID: wx.NewId(), range(len(demoList)))
+            
+            for n in range(len(demoList)):
+                self.demos[demoIDs[n]] = demoList[n]
+            for thisID in demoIDs:
+                junk, shortname = os.path.split(self.demos[thisID])
+                if shortname.startswith('_'): continue#remove any 'private' files
+                submenu.Append(thisID, shortname)
+                wx.EVT_MENU(self, thisID, self.loadDemo)
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1858,14 +1895,14 @@ class CoderFrame(wx.Frame):
         if value:
             #show the pane
             self.prefs['showOutput']=True
-            self.paneManager.GetPane('Output').Show()
+            self.paneManager.GetPane('Shelf').Show()
             #will we actually redirect the output?
             sys.stdout = self.outputWindow
             sys.stderr = self.outputWindow
         else:
             #show the pane
             self.prefs['showOutput']=False
-            self.paneManager.GetPane('Output').Hide()
+            self.paneManager.GetPane('Shelf').Hide()
             sys.stdout = self._origStdOut#discovered during __init__
             sys.stderr = self._origStdErr
         self.app.prefs.saveUserPrefs()#includes a validation
