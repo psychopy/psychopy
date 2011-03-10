@@ -63,7 +63,7 @@ def findPR650(ports=None):
     """
     log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
     +"finds a wider range of devices")
-    print 'here'
+    
     if ports==None:
         if sys.platform=='darwin':
             ports=[]
@@ -603,7 +603,6 @@ class GammaCalculator:
             if eq==4:
                 self.gamma, self.a, self.k = self.gammaModel
                 self.b = (inputs[0]-self.a)**(1.0/self.gamma)
-                print self.a, self.b, self.k, self.gamma
             else: 
                 self.gamma=self.gammaModel[0]
                 self.a = self.b = self.k = None
@@ -623,19 +622,23 @@ class GammaCalculator:
         maxGamma = 20.0
         gammaGuess=2.0
         y = numpy.asarray(y)
-        minLum = min(y) #offset
-        maxLum = max(y) #gain
+        minLum = y[0]
+        maxLum = y[-1]
         if self.eq==4:
             aGuess = minLum/2.0
             kGuess = (maxLum - aGuess)**(1.0/gammaGuess) - aGuess
             guess = [gammaGuess, aGuess, kGuess]
+            bounds = [[0.8,5.0],[0.00001,minLum-0.00001],[2,200]]
         else:
             guess = [gammaGuess]
+            bounds = [[0.8,5.0]]
         #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
 #        gamma = optim.fminbound(self.fitGammaErrFun,
 #            minGamma, maxGamma,
 #            args=(x,y, minLum, maxLum))
-        params = optim.fmin_bfgs(self.fitGammaErrFun, guess, args = (x,y, minLum, maxLum))
+        print 'guess', minLum, maxLum, guess
+        params = optim.fmin_l_bfgs_b(self.fitGammaErrFun, guess, 
+            args = (x,y, minLum, maxLum), bounds=bounds)
         print 'params:', params
         return minLum, maxLum, params
 
@@ -646,12 +649,13 @@ class GammaCalculator:
         (used by fitGammaFun)
         """
         if self.eq==4:
-            gamma,k,a = params
+            gamma,a,k = params
             model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k))
         else:
             gamma = params[0]
             model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
         SSQ = numpy.sum((model-y)**2)
+        print SSQ, model
         return SSQ
 
 def makeDKL2RGB(nm,powerRGB):
@@ -985,18 +989,23 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         nMissing = sum([a==None, b==None, k==None])
         #check params
         if nMissing>1:
-            raise AttributeError, "For eq=3, gammaFun needs 2 of a,b,k to be specified"
+            raise AttributeError, "For eq=4, gammaFun needs 2 of a,b,k to be specified"
         elif nMissing==1:
             if a==None:
                 a = minLum-b**(1.0/gamma)       #when y=min, x=0
-            elif b==None or b==numpy.nan:
-                b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
+            elif b==None:
+                if a>=minLum: 
+                    b=0.1**(1.0/gamma)#can't take inv power of -ve
+                else:
+                    b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
             elif k==None:
                 k = (maxLum - a)**(1.0/gamma) - b #when y=max, x=1
+        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
         #this is the same as Pelli and Zhang (but different inverse function)
         yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
-        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
-        print 'yymax', yy.max()
+        print 'yyy', yy
+#        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
+
     #print 'a=%.3f      b=%.3f' %(a,b)
     return yy
 
