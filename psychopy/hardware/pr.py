@@ -330,7 +330,9 @@ class PR655(PR650):
         for letter in message:
             self.com.write(letter)#for PR655 have to send individual chars ! :-/
             self.com.flush()
-
+            
+        time.sleep(0.2)#PR655 can get cranky if rushed
+        
         #get feedback (within timeout)
         self.com.setTimeout(timeout)
         if message in ['d5\n', 'D5\n']: #we need a spectrum which will have multiple lines
