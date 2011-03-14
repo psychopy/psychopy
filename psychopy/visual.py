@@ -4755,7 +4755,8 @@ class RatingScale:
     See coder Demos / stimuli / ratingScale.py for examples.
     
     :Author:
-        2010 Jeremy Gray; updated 2011
+        2010 Jeremy Gray
+        2011 various updates; 'tab' is new default key to mean 'skip this item' ('escape' means 'break out of the experiment' in builder)
     """
     def __init__(self,
                 win,
@@ -4783,8 +4784,9 @@ class RatingScale:
                 markerStart=False,
                 markerExpansion=1,
                 customMarker=None,
+                escapeKeys=[ ],
                 allowSkip=True,
-                escapeKeys=['escape'],
+                skipKeys=['tab'],
                 mouseOnly=False,
                 displaySizeFactor=1.0,
                 stretchHoriz=1.0,
@@ -4856,10 +4858,12 @@ class RatingScale:
                 *False*, or the value in [low..high] to be pre-selected upon initial display
             markerExpansion :
                 how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
-            allowSkip :
-                if True, the subject can skip an item by pressing a key in escapeKeys, default = True
             escapeKeys :
-                list of keys the subject can use to skip a response, default = ['escape']
+                keys that will quit the experiment, calling core.quit(). default = [ ] (none)
+            allowSkip :
+                if True, the subject can skip an item by pressing a key in skipKeys, default = True
+            skipKeys :
+                list of keys the subject can use to skip a response, default = ['tab']
                 
                 .. note:: 
                     to require a response to every item, use allowSkip=False
@@ -4907,6 +4911,8 @@ class RatingScale:
         #  - choices=[list] : present unordered or categorical choices (non-numeric)
         # DEPRECATED : offsetHoriz offsetVert; use pos[] instead
         
+        # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
+        
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
         # - rewrite markers to use GLU.gluDisk() primitives (circle, square, diamond, triangle, rectangle) or sphere
@@ -4927,7 +4933,7 @@ class RatingScale:
         
         # Set scale & position, key-bindings:
         self._initPosScale(pos, offsetHoriz, offsetVert, displaySizeFactor, stretchHoriz)
-        self._initKeyBindings(self.acceptKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
+        self._initKeyBindings(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
         
         # Construct the visual elements:
         self._initLine()
@@ -5084,18 +5090,19 @@ class RatingScale:
         if not 0.06 < self.displaySizeFactor < 3: 
             log.warning("RatingScale: unusual displaySizeFactor")
     
-    def _initKeyBindings(self, acceptKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
+    def _initKeyBindings(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
         # keys for accepting the currently selected response:
         if self.mouseOnly:
             self.acceptKeys = [ ] # no valid keys, so must use mouse
         else:
             self.acceptKeys = list(acceptKeys) 
-        self.escapeKeys = [ ]
+        self.skipKeys = [ ]
         if allowSkip and not self.mouseOnly:
-            if len(list(escapeKeys)) == 0:
-                self.escapeKeys = ['escape']
+            if len(list(skipKeys)) == 0:
+                self.skipKeys = ['tab']
             else:
-                self.escapeKeys = list(escapeKeys)
+                self.skipKeys = list(skipKeys)
+        self.escapeKeys = list(escapeKeys)
         self.leftKeys = list(leftKeys)
         self.rightKeys = list(rightKeys)
         
@@ -5106,7 +5113,7 @@ class RatingScale:
         # but if any digit is used as an action key, that should take precedence
         # so disable using numeric keys:
         if (set(self.respKeys).intersection(self.leftKeys + self.rightKeys +
-                                self.acceptKeys + self.escapeKeys) == set([]) ):
+                                self.acceptKeys + self.skipKeys + self.escapeKeys) == set([]) ):
             self.enableRespKeys = True
         else:
             self.enableRespKeys = False
@@ -5230,7 +5237,9 @@ class RatingScale:
             self.markerBaseSize = tickSize * self.markerSize
             self.markerOffsetVert = .02
             if self.markerExpansion == 0:
-                self.markerBaseSize *= self.markerSize * self.displaySizeFactor
+                self.markerBaseSize *= self.markerSize * 0.7
+                if self.markerSize > 1.2:
+                    self.markerBaseSize *= .7
         else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
             if markerColor == None:
                 markerColor = 'DarkRed'
@@ -5412,13 +5421,15 @@ class RatingScale:
                                         (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
                 else: # markerExpansion == 0:
-                    self.marker.setSize(self.markerBaseSize)
+                    self.marker.setSize(self.markerBaseSize/2.)
             self.marker.draw()
         
         # handle key responses:
         if not self.mouseOnly:
             for key in event.getKeys():
                 if key in self.escapeKeys:
+                    core.quit()
+                if key in self.skipKeys:
                     self.markerPlacedAt = None
                     self.noResponse = False
                 if self.enableRespKeys and key in self.respKeys: # place the marker at the corresponding tick
@@ -5546,7 +5557,8 @@ class Aperture:
         self.quad=GLU.gluNewQuadric() #needed for gluDisk
         self.winAspect = self.win.size[1] / float(self.win.size[0])
         self.setSize(size, False)
-        self.setPos(pos)
+        self.setPos(pos, False)
+        self._reset()
 
     def _reset(self):
         self.enable()
@@ -5574,13 +5586,14 @@ class Aperture:
     def setSize(self, size, needReset=True):
         """Set the size (diameter) of the Aperture
         """
-        self.size = size / float(self.win.size[1])
+        self.size = size / (self.win.size[1] / 2.)
         if needReset: self._reset()
 
     def setPos(self, pos, needReset=True):
         """Set the pos (centre) of the Aperture
         """
-        self.pos = (pos[0]/float(self.win.size[0]), pos[1]/float(self.win.size[1]))
+        x, y = self.win.size
+        self.pos = (pos[0] / (x / 2.), pos[1] / (y / 2.))
         if needReset: self._reset()
 
     def enable(self):
@@ -5596,7 +5609,7 @@ class Aperture:
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
-
+    
 def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
