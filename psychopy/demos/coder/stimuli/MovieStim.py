@@ -6,7 +6,7 @@ print 'orig movie size=[%i,%i]' %(mov.format.width, mov.format.height)
 print 'duration=%.2fs' %(mov.duration)
 globalClock = core.Clock()
 
-while globalClock.getTime()<(mov.duration+0.5):
+while mov.playing != visual.FINISHED:
     mov.draw()
     win.update()
     
