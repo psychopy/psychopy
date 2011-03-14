@@ -248,14 +248,14 @@ class InstallUpdateDialog(wx.Dialog):
                 "You can revert to a previous version by selecting a specific .zip source installation file" 
         else:
             msg = "PsychoPy v%s is available\nYou are running v%s" %(self.latest['version'], self.runningVersion)
-            if self.latest['lastUpdatable']<self.runningVersion:
+            if self.latest['lastUpdatable']<=self.runningVersion:
                 msg+="\nYou can update to the latest version automatically"
             else:
                 msg+="\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"  
         self.statusMessage.SetLabel(msg)
         if self.latest==-1 \
             or self.latest['version']==self.runningVersion \
-            or self.latest['lastCompatible']>self.runningVersion:#can't auto-update
+            or self.latest['lastUpdatable']>self.runningVersion:#can't auto-update
                 self.currentSelection=self.useZipBtn
                 self.useZipBtn.SetValue(True)
                 self.useLatestBtn.Disable()
