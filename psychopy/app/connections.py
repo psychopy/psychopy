@@ -349,7 +349,11 @@ class InstallUpdateDialog(wx.Dialog):
                 os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
                 undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
             except:
-                return "Could not move existing PsychoPy installation (permissions error?)"
+                if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
+                    msg = "Right-click the app and 'Run as admin' to upgrade)"
+                else:
+                    msg = "Could not move existing PsychoPy installation (permissions error?)"
+                return msg
         else:#setuptools-style installation
             #generate new target path
             unzipTarget=currPath
@@ -369,7 +373,11 @@ class InstallUpdateDialog(wx.Dialog):
             undoString += 'os.remove(%s)\n' %unzipTarget
         except: #revert path rename and inform user
             exec(undoString)#undo previous changes
-            return ("Could not create new path (permissions error?):\n%s" %unzipTarget)
+            if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
+                msg = "Right-click the app and 'Run as admin'):\n%s" %unzipTarget
+            else:
+                msg = "Failed to create directory for new version (permissions error?):\n%s" %unzipTarget
+            return msg
 
         #do the actual extraction
         for name in zfile.namelist():#for each file within the zip
