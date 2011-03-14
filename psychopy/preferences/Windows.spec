@@ -40,10 +40,12 @@
 ###  Settings for the coder and builder windows, and connections -----
 [coder]
     # Font is a list of font names - the first found on the system will be used
-    outputFont = list(default=list('Courier', 'Courier New'))
+    codeFont = string(default='Arial')
+    commentFont = string(default='Comic Sans MS')
+    outputFont = string(default='Courier New')
     # Font size (in pts) takes an integer between 6 and 24
-    codeFontSize = integer(6,24, default=12)
-    outputFontSize = integer(6,24, default=12)
+    codeFontSize = integer(6,24, default=10)
+    outputFontSize = integer(6,24, default=10)
     showSourceAsst = boolean(default=False)
     analysisLevel = integer(0,10,default=1)
     analyseAuto = boolean(default=True)

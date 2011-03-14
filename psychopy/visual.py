@@ -3382,6 +3382,7 @@ class ElementArrayStim:
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         
+        GL.glUseProgram(0)
         GL.glPopClientAttrib()
         GL.glPopMatrix()
         
@@ -5303,11 +5304,10 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
-        #NB in the following, "is not" is needed instead of "!=" because markerStart could be 0
-        # "0==False" but "0 is not False"
-        if self.markerStart!=None and (self.markerStart is not False):
+        #NB markerStart could be 0; during __init__, its forced to be numeric and valid, or None (not boolean)
+        if self.markerStart != None:
             self.markerPlaced = True
-            self.markerPlacedAt = self.markerStart - self.low
+            self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid 
         self.firstDraw = True # triggers self.myClock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
@@ -5341,6 +5341,7 @@ class RatingScale:
             return None
         
         return self.decisionTime
+    
 class Aperture:
     """Used to create a shape (circular for now) to restrict a stimulus
     visibility area.

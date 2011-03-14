@@ -17,6 +17,8 @@ In repos (https://github.com/psychopy/psychopy)
 
 * ADDED Aperture object to visual (thanks Yuri Spitsyn!)
 * FIXED bug in RatingScale that prevented scale starting at zero
+* FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
+* ADDED user-configurable code/output font (see coder prefs to change)
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
