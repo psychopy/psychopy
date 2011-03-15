@@ -19,6 +19,8 @@ In repos (https://github.com/psychopy/psychopy)
 * FIXED bug in RatingScale that prevented scale starting at zero
 * FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
 * ADDED user-configurable code/output font (see coder prefs to change)
+* FIXED problem with the error dialog from Builder experiments not being a sensible size
+    (since v1.63.03 it was just showing a tiny box instead of an error message)
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

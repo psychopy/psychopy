@@ -63,7 +63,7 @@ class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
     """
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
-        wx.Frame.__init__(self, parent, ID, title)
+        wx.Frame.__init__(self, parent, ID, title, size=size)
         panel = wx.Panel(self)
         
         self.parent=parent#e.g. the builder frame
@@ -85,7 +85,7 @@ class StdOutFrame(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE)
+        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)
         
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.stdoutCtrl)
