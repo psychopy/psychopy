@@ -1297,9 +1297,14 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetLabel("Missing name")
             self.OKbtn.Disable()
         else:
-            used=self.frame.exp.getUsedName(newName)
+            # need to detect default name (self.params['name'].val) that is already in use
+            used=self.frame.exp.getUsedName(newName) # eventually replace with: self.frame.exp.namespace.exists(newName)
+            valid = self.frame.exp.namespace.is_valid(newName)
             if newName!=self.params['name'].val and used:
                 self.nameOKlabel.SetLabel("Name '%s' is already used by a %s" %(newName, used))
+                self.OKbtn.Disable()
+            elif newName != self.params['name'].val and not valid:
+                self.nameOKlabel.SetLabel("Must be alphanumeric or _, with alpha first")
                 self.OKbtn.Disable()
             else:
                 self.OKbtn.Enable()

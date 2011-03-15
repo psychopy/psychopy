@@ -19,7 +19,7 @@ try:
     haveOpenpyxl=True
 except:
     haveOpenpyxl=False
-    
+
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
     """
@@ -1972,9 +1972,9 @@ def isValidVariableName(name):
         name=str(name)#convert from unicode if possible
     except:
         if type(name)==unicode:
-            raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" %name
+            raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name))
         else:
-            raise AttributeError, "name %s (type %s) could not be converted to a string" %name
+            raise AttributeError, "name %s (type %s) could not be converted to a string" % (name, type(name))
             
     if name[0].isdigit():
         return False, "Variables cannot begin with numeric character"
