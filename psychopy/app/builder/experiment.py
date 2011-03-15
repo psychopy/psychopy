@@ -577,10 +577,10 @@ class Flow(list):
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
             if id==None: 
-                #if the user removes an entire Routine we need to remove all antries in the Flow
+                #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
-                for id, compToDel in enumerate(self):
-                    if component.name==compToDel.name: del self[id]
+                for id, compInFlow in enumerate(self):
+                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name: del self[id]
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
     def writeCode(self, s):
         #initialise
