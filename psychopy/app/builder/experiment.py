@@ -2,10 +2,12 @@
 # Copyright (C) 2010 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import numpy, numpy.random # want to query their name-spaces
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences
 from lxml import etree
+import re
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -60,6 +62,7 @@ class Experiment:
         self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
+        self.namespace = NameSpace() # manage variable names
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -101,7 +104,7 @@ class Experiment:
         s.writeIndented("import os #handy system and path functions\n")
         s.writeIndented("from psychopy import %s\n" %libString)
         s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
-
+        
         self.settings.writeStartCode(s)#present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(s)
@@ -111,16 +114,18 @@ class Experiment:
     def getUsedName(self, name):
         """Check the exp._usedNames dict and return None for unused or
         the type of object using it otherwise
+        plus check exp.namespace
         """
         #look for routines and loop names
         for flowElement in self.flow:
-            if flowElement.getType()in ['LoopInitiator','LoopTerminator']:
+            if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
                 flowElement=flowElement.loop #we want the loop itself
             if flowElement.params['name']==name: return flowElement.getType()
         for routineName in self.routines.keys():
             for comp in self.routines[routineName]:
                 if name==comp.params['name'].val: return comp.getType()
-        return#we didn't find an existing name :-)
+        return self.namespace.exists(name) # False, or a string saying what is using it already
+    
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
@@ -228,12 +233,14 @@ class Experiment:
         #fetch routines
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
+            #r_good_name = self.namespace.make_valid(routineNode.get('name'), self.namespace.user)
             routine = Routine(name=routineNode.get('name'), exp=self)
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
             #then create the
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
                 componentType=componentNode.tag
+                #c_good_name = self.namespace.make_valid(componentNode.get('name'), sublist=self.namespace.user)
                 componentName=componentNode.get('name')
                 #create an actual component of that type
                 component=getAllComponents()[componentType](\
@@ -243,6 +250,7 @@ class Experiment:
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
                 routine.append(component)
+        
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
@@ -599,6 +607,7 @@ class Routine(list):
     each of which knows when it starts and stops.
     """
     def __init__(self, name, exp, components=[]):
+        # name = exp.namespace.make_valid(name, add_to=exp.namespace.user) # do here or elsewhere, not both
         self.params={'name':name}
         self.name=name
         self.exp=exp
@@ -687,6 +696,118 @@ class Routine(list):
             maxTime=float(max(times))
         return maxTime
     
+class NameSpace():
+    """class for managing variable names in builder-constructed experiments.
+    
+    The aim is to help detect and avoid name-space collisions from user-entered variable names.
+    Track four groups of variables, mainly to be informative:
+        numpy = part of numpy or numpy.random (maybe its ok for a user to redefine these?)
+        psychopy = part of psychophy, such as event or data; include os here
+        builder = used internally by the builder when constructing an experiment
+        user = used 'externally' by a user when programming an experiment (via gui or trial conditions file)
+    Some vars, like core, are part of both psychopy and numpy, so the order of operations can matter
+    """
+    def __init__(self):
+        """ set-up a given experiment's namespace 
+        """
+        self.numpy = dir(numpy) + dir(numpy.random)
+        # these are based on a partial test, known to be incomplete:
+        self.psychopy = ['os', 'core', 'data', 'visual', 'event', 'gui']
+        self.builder = ['KeyResponse', '__builtins__', '__doc__', '__file__', '__name__',
+            '__package__', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
+            'logFile', 'sound', 't', 'theseKeys', 'trialClock', 'win', 'x', 'y']
+        # user-entered, from Builder dialog or conditions file:
+        self.user = []
+    
+    def __str__(self, numpy_count_only=True):
+        vars = self.user + self.builder + self.psychopy
+        if numpy_count_only:
+            return "[%d numpy] + %s" % (len(self.numpy), str(vars))
+        else:
+            return str(vars + self.numpy)
+    
+    def is_valid(self, name):
+        """checks for alphanumeric + underscore, non-numeric first character"""
+        if name[0].isdigit() or  name != re.sub('[^a-zA-Z0-9_]', '_', name):
+            return False
+        return True
+        
+    def exists(self, name): 
+        """checks for but cannot guarantee that a name will be conflict-free.
+        does not check whether the string is a valid variable name.
+        
+        >>> exists('t')
+        Builder variable
+        """
+        try: name = str(name) # convert from unicode if possible
+        except: pass
+        
+        # check in this order:
+        if name in self.user:
+            return "script variable"
+        if name in self.builder:
+            return "Builder variable"
+        if name in self.psychopy:
+            return "Psychopy module"
+        if name in self.numpy:
+            return "numpy function"
+        return False
+    
+    def add(self, name, sublist):
+        """add name to namespace by appending a name string to a sublist, eg, self.user
+        """
+        if name is not None:
+            sublist.append(name)
+        sublist = list(set(sublist)) # remove duplicates
+    
+    def remove(self, name, sublist):
+        """remove name from the specified sublist (and hence from the name-space)
+        """
+        sublist = list(set(sublist)) # remove duplicates; should be none but just in case
+        if self.exists(name) and name in sublist:
+            del sublist[sublist.index(name)]
+        
+    def make_valid(self, name, add_to=None):
+        """given a string, try to make a valid and unique variable name.
+        replace bad characters with underscore, add an integer suffix until its unique
+        
+        >>> make_valid('t')
+        't_1'
+        >>> make_valid('t t')
+        't_t'
+        >>> make_valid('a')
+        'a'
+        >>> make_valid('a')
+        'a_1'
+        >>> make_valid('a')
+        'a_2'
+        >>> make_valid('123')
+        '_123'
+        >>> make_valid('123!@#')
+        '_123___'
+        >>> make_valid('123   ')
+        '_123____1'
+        """
+        
+        try: name = str(name) # convert from unicode
+        except: name = 'uvar'
+        
+        # make it legal:
+        if not name: name = 'var'
+        if name[0].isdigit():
+            name = 'var_' + name
+        name = re.sub('[^a-zA-Z0-9_]', '_', name)
+        
+        # try to make it unique; success depends on accuracy of self.exists():
+        i = 1
+        name_orig = name + '_'
+        while self.exists(name):
+            name = name_orig + str(i)
+            i += 1
+        if add_to is not None:
+            self.add(name, add_to)
+        return name
+
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """
