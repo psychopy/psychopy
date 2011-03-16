@@ -69,13 +69,20 @@ class Dlg(wx.Dialog):
         self.inputFieldTypes.append(type(initial))
         if type(initial)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
+        #create label
         labelLength = wx.Size(9*len(label)+16,25)#was 8*until v0.91.4
         container=wx.BoxSizer(wx.HORIZONTAL)
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
                                         style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        inputBox = wx.TextCtrl(self,-1,unicode(initial),size=(5*len(unicode(initial))+16,25))
+        #create input control
+        if type(initial)==bool:
+            inputBox = wx.CheckBox(self, -1)
+            inputBox.SetValue(initial)
+        else:
+            inputBox = wx.TextCtrl(self,-1,unicode(initial),size=(5*len(unicode(initial))+16,25))
+
         container.Add(inputBox,1)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
         
@@ -124,13 +131,8 @@ class Dlg(wx.Dialog):
                     exec("self.data.append("+thisVal+")")#evaluate it
                 elif thisType==numpy.ndarray:
                     exec("self.data.append(numpy.array("+thisVal+"))")
-                elif thisType in [str,unicode]:#a num array or string?
+                elif thisType in [str,unicode,bool]:
                     self.data.append(thisVal)
-                elif thisType==bool:#a num array or string?
-                    if thisVal in ['True','true']: self.data.append(True)
-                    elif thisVal in ['False','false']: self.data.append(False)
-                    else: 
-                        raise TypeError("%s should be 'True' or 'False' but '%s' was entered" %(thisName, thisVal))
                 else:
                     log.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)

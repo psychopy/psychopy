@@ -26,11 +26,17 @@ colour space : rgb, dkl or lms
     See :doc:`../../general/colours`
 
 image : a filename, a standard name ('sin', 'sqr') or a numpy array of dimensions NxNx1 or NxNx3
-    This specifies the image that will be used as the *texture* for the visual patch. The image can be repeated on the patch (in either x or y or both) by setting the spatial frequency to be high (or can be stretched so that only a subset of the image appears by setting the spatial frequency to be low).
-    Filenames can be relative or absolute paths and can refer to most image formats (e.g. , tif, jpg, bmp, png...).
+    This specifies the image that will be used as the *texture* for the visual patch. 
+    The image can be repeated on the patch (in either x or y or both) by setting the spatial 
+    frequency to be high (or can be stretched so that only a subset of the image appears by setting 
+    the spatial frequency to be low).
+    Filenames can be relative or absolute paths and can refer to most image formats (e.g. , tif, 
+    jpg, bmp, png...).
 
 interpolate : True or False
-    If the interpolate box is checked (True) then linear interpolation will be applied when the image is rescaled to the appropriate size for the screen. Otherwise a nearest-neighbour rule will be used.
+    If the interpolate box is checked (True) then linear interpolation will be applied when the 
+    image is rescaled to the appropriate size for the screen. Otherwise a nearest-neighbour rule 
+    will be used.
 
 mask : a filename, a standard name ('gauss', 'circle') or a numpy array of dimensions NxNx1
     The mask defines the shape and, potentially, intermediate transparency values for the patch. For values of -1 the patch will be transparent, for values of 1 it will be opaque and for 0 it will be semi-transparent.
@@ -48,7 +54,7 @@ SF : [SFx, SFy] or a single value (applied to x and y)
     The spatial frequency of the texture on the patch. The units are dependent on the specified units for the stimulus/window; if the units are *deg* then the SF units will be *c/deg*, if units are *norm* then the SF units will be cycles per stimulus.
 
 size : [sizex, sizey] or a single value (applied to x and y)
-    The size of the stimulus in the given units of the stimulus/window.
+    The size of the stimulus in the given units of the stimulus/window. If the mask is a Guassian then the size refers to width at 3 standard devations on either side of the mean (i.e. sd=size/6)
 
 Texture Resolution : an integer (power of two)
     Defines the size of the resolution of the texture for standard textures such as *sin*, *sqr* etc. For most cases a value of 256 pixels will suffice, but if stimuli are going to be very small then a lower resolution will use less memory.
