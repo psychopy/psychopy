@@ -1478,21 +1478,29 @@ class CoderFrame(wx.Frame):
         if filename is None:
             return # should raise an exception
 
-        # Switch over to the changed buffer
-        self.setCurrentDoc(filename)
+        docId = self.findDocID(filename)
+
+        if docId == -1:
+            return
+
+        doc = self.notebook.GetPage(docId)
         
         # is the file still there
         if os.path.isfile(filename):
-            self.currentDoc.SetText(open(filename).read().decode('utf8'))
-            self.currentDoc.fileModTime = os.path.getmtime(filename)
-            self.currentDoc.EmptyUndoBuffer()
-            self.currentDoc.Colourise(0, -1)
-            self.setFileModified(False)
+            doc.SetText(open(filename).read().decode('utf8'))
+            doc.fileModTime = os.path.getmtime(filename)
+            doc.EmptyUndoBuffer()
+            doc.Colourise(0, -1)
+            doc.UNSAVED = False
         else:
             # file was removed after we found the changes, lets keep give the user
             # a chance to save his file.
-            self.setFileModified(self.currentDoc.UNSAVED)
-        
+            self.UNSAVED = True
+
+        # if this is the active document we 
+        if doc == self.currentDoc:
+            self.toolbar.EnableTool(self.IDs.tbFileSave, doc.UNSAVED)
+
         
     def findDocID(self, filename):
         #find the ID of the current doc
