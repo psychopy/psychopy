@@ -10,7 +10,7 @@ iconFile = path.join(thisFolder,'movie.png')
 
 class MovieComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='', movie='', 
+    def __init__(self, exp, parentName, name='movie', movie='', 
         units='window units', 
         pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration=1.0, forceEndTrial=False):
         #initialise main parameters from base stimulus
@@ -23,6 +23,7 @@ class MovieComponent(VisualComponent):
         self.order = ['name','startTime','duration','forceEndTrial']
         
         #params
+        self.params['name'] = Param(name, valType='code', allowedTypes=[])
         #these are normally added but we don't want them for a movie            
         del self.params['color']
         del self.params['colorSpace']

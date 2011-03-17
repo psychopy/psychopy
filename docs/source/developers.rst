@@ -41,7 +41,7 @@ Create your own fork of the central repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Go to `github <http://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
-You can change this fork in any way you choose without it affecting the central project. You can also share your fork with others.
+You can change your fork in any way you choose without it affecting the central project. You can also share your fork with others, including the central project.
 
 Fetch a local copy
 ~~~~~~~~~~~~~~~~~~~~
@@ -61,7 +61,7 @@ Fetching the latest version
 Periodically it's worth fetching any changes to the central psychopy repository (into your `master` branch, more on that below)::
 
     $ git checkout master
-    $ git pull upstream
+    $ git pull upstream master  # here 'master' is the desired branch of psychopy to fetch
 
 Fixing bugs and making minor improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

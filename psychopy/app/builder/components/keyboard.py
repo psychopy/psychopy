@@ -10,7 +10,7 @@ iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
             startTime=0.0, duration=''):
         self.type='Keyboard'

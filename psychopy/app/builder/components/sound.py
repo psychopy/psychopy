@@ -10,7 +10,7 @@ iconFile = path.join(thisFolder,'sound.png')
 
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='', sound='A', 
+    def __init__(self, exp, parentName, name='sound', sound='A', 
             size=1, ori=0, startTime=0.0, duration=''):
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
@@ -19,7 +19,7 @@ class SoundComponent(BaseComponent):
         #params
         self.order=['name','startTime','duration']#make sure name comes first
         self.params={}
-        self.params['name']=Param(name,  valType='code', hint="Everything needs a name (no spaces or punctuation)")  
+        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)")  
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A sound can be a note name (e.g. A or Bf) or dollar then a number (e.g. $440) to specify Hz, or a filename")        
