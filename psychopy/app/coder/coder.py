@@ -1331,7 +1331,6 @@ class CoderFrame(wx.Frame):
                 if dlg.ShowModal() == wx.ID_YES:
                     self.SetStatusText('Reloading file')
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
-                    self.setFileModified(False)
                 self.SetStatusText('')
                 try: dlg.destroy()
                 except: pass
@@ -1476,12 +1475,32 @@ class CoderFrame(wx.Frame):
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
     def fileReload(self, event, filename=None, checkSave=False):
-        # close and reopen the doc having filename == filename
-        print "...reload not implemented yet. please close and reopen the file manually."
-        return
-        # this did not work for me:
-        self.fileClose(event, filename=filename, checkSave=checkSave)
-        self.fileNew(filename) # which does: self.setCurrentDoc(filename)
+        if filename is None:
+            return # should raise an exception
+
+        docId = self.findDocID(filename)
+
+        if docId == -1:
+            return
+
+        doc = self.notebook.GetPage(docId)
+        
+        # is the file still there
+        if os.path.isfile(filename):
+            doc.SetText(open(filename).read().decode('utf8'))
+            doc.fileModTime = os.path.getmtime(filename)
+            doc.EmptyUndoBuffer()
+            doc.Colourise(0, -1)
+            doc.UNSAVED = False
+        else:
+            # file was removed after we found the changes, lets keep give the user
+            # a chance to save his file.
+            self.UNSAVED = True
+
+        # if this is the active document we 
+        if doc == self.currentDoc:
+            self.toolbar.EnableTool(self.IDs.tbFileSave, doc.UNSAVED)
+
         
     def findDocID(self, filename):
         #find the ID of the current doc
