@@ -7,7 +7,7 @@ from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
-import re
+import re, os
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_]+[\w]*$")  # filter for legal var names
@@ -124,12 +124,6 @@ class Experiment:
 
         return script
     
-    '''def getUsedName(self, name):
-        """replaced by exp.namespace.exists(name)
-        Check the namespace and return None for unused, or the type of object using it
-        """
-        return self.namespace.exists(name)'''
-    
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
@@ -224,8 +218,17 @@ class Experiment:
         f.close()
         root=self._doc#.getroot()
         
+        #some error checking on the version (and report that this isn't valid .psyexp)?
+        filename_base = os.path.basename(filename)
+        if root.tag != "PsychoPy2experiment":
+            print '\n%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag)
+            # the current exp is already vaporized at this point, oops
+            return
         self.psychopyVersion = root.get('version')
-        #todo: some error checking on the version (and report that this isn't valid .psyexp)?
+        version_f = float(self.psychopyVersion.rsplit('.',1)[0])
+        if version_f < 1.63:
+            print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
+        
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
@@ -729,11 +732,14 @@ class NameSpace():
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
     
     TO DO (throughout app):
-        rename component is not handled properly
+        updating names when user renames a component is not handled properly
         how to delete names from the namespace when delete components from a panel or loops from the flow?
         how to rename routines?
         staircase resists being reclassified as trialhandler
         trialLists on import
+    
+    :Author:
+        2011 Jeremy Gray
     """
     def __init__(self, exp):
         """ set-up a given experiment's namespace 
@@ -865,11 +871,10 @@ class NameSpace():
         'var_123'
         """
         
+        # make it legal:
         try: name = str(name) # convert from unicode, flag as uni if can't convert
         except: prefix = 'uni'
-        assert not prefix[0].isdigit()
-        
-        # make it legal:
+        assert not prefix[0].isdigit() # programmer error
         if not name: name = prefix+'_1'
         if name[0].isdigit():
             name = prefix+'_' + name

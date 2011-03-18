@@ -15,14 +15,17 @@ PsychoPy 1.63.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In repos (https://github.com/psychopy/psychopy)
 
-* ADDED Aperture object to visual (thanks Yuri Spitsyn)
+* ADDED Aperture object to visual (thanks Yuri Spitsyn) and component to Builder (Jeremy Gray)
 * FIXED bug in RatingScale that prevented scale starting at zero
+* ADDED RatingScale "choices" (non-numeric); text size, color, font, & anchor labels; pos=(x,y) (Jeremy Gray)
+* CHANGED RatingScale internals; renamed escapeKeys as skipKeys; subject now uses 'tab' to skip (Jeremy Gray)
 * FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
 * ADDED user-configurable code/output font (see coder prefs to change)
 * FIXED problem with the error dialog from Builder experiments not being a sensible size
     (since v1.63.03 it was just showing a tiny box instead of an error message)
 * ADDED gui.Dlg now automatically uses checkboxes for bools in inputs (Yuri Spitsyn)
 * FIXED coder now reloads files changed outside the app when needed (thanks William Hogman)
+* ADDED initial management of variable names in Builder (incomplete integration into the app) (Jeremy Gray)
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
