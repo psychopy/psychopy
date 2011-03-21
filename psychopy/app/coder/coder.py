@@ -17,31 +17,6 @@ try:#needed for wx.py shell
 except:
     haveCode = False
     
-if wx.Platform == '__WXMSW__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Courier New',
-              'helv' : 'Arial',
-              'other': 'Comic Sans MS',
-              'size' : 10,
-              'size2': 8,
-             }
-elif wx.Platform == '__WXMAC__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Courier New',
-              'helv' : 'Arial',
-              'other': 'Comic Sans MS',
-              'size' : 14,
-              'size2': 12,
-             }
-else:
-    faces = { 'times': 'Times',
-              'mono' : 'Courier',
-              'helv' : 'Helvetica',
-              'other': 'new century schoolbook',
-              'size' : 12,
-              'size2': 10,
-             }
-
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
 
@@ -163,7 +138,8 @@ class UnitTestFrame(wx.Frame):
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(300,200))
+        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
+            size=wx.Size(300,200), font = self.prefs['outputFont'], fontSize=self.prefs['outputFontSize'])
         
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
@@ -319,32 +295,46 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
-        # Make some styles,  The lexer defines what each style is used for, we
-        # just have to define what each style looks like.  This set is adapted from
-        # Scintilla sample property files.
-
+        self.setFonts()
+        self.SetDropTarget(FileDropTarget(coder = self.coder))
+        
+    def setFonts(self):
+        
+        """Make some styles,  The lexer defines what each style is used for, we
+        just have to define what each style looks like.  This set is adapted from
+        Scintilla sample property files."""
+        
+        if wx.Platform == '__WXMSW__':
+            faces = { 'size' : 10}
+        elif wx.Platform == '__WXMAC__':
+            faces = { 'size' : 14}
+        else:
+            faces = { 'size' : 12}
+        faces['small']=faces['size']-2
         # Global default styles for all languages
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(helv)s,size:%(size)d" % faces)
+        faces['code'] = self.coder.prefs['codeFont']#,'Arial']#use arial as backup
+        faces['comment'] = self.coder.prefs['commentFont']#,'Arial']#use arial as backup
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
         self.StyleClearAll()  # Reset all to be like the default
 
         # Global default styles for all languages
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(helv)s,size:%(size)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,  "back:#C0C0C0,face:%(helv)s,size:%(size2)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR, "face:%(other)s" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,  "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR, "face:%(comment)s" % faces)
         self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,  "fore:#FFFFFF,back:#0000FF,bold")
         self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
 
         # Python styles
         # Default
-        self.StyleSetSpec(wx.stc.STC_P_DEFAULT, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_DEFAULT, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
         # Comments
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(other)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(comment)s,size:%(size)d" % faces)
         # Number
         self.StyleSetSpec(wx.stc.STC_P_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
         # String
-        self.StyleSetSpec(wx.stc.STC_P_STRING, "fore:#7F007F,face:%(helv)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_STRING, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
         # Single quoted string
-        self.StyleSetSpec(wx.stc.STC_P_CHARACTER, "fore:#7F007F,face:%(helv)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_CHARACTER, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
         # Keyword
         self.StyleSetSpec(wx.stc.STC_P_WORD, "fore:#00007F,bold,size:%(size)d" % faces)
         # Triple quotes
@@ -358,14 +348,13 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         # Operators
         self.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
         # Identifiers
-        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
         # Comment-blocks
         self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK, "fore:#7F7F7F,size:%(size)d" % faces)
         # End of line where string is not closed
-        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(helv)s,back:#E0C0E0,eol,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
-        self.SetDropTarget(FileDropTarget(coder = self.coder))
         
     def OnKeyPressed(self, event):
         #various stuff to handle code completion and tooltips
@@ -1042,7 +1031,8 @@ class CoderFrame(wx.Frame):
         self._origStdOut = sys.stdout#keep track of previous output
         self._origStdErr = sys.stderr
         
-        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.VSCROLL)
+        self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.VSCROLL,
+            font=self.prefs['outputFont'], fontSize=self.prefs['outputFontSize'])
         self.outputWindow.write('Welcome to PsychoPy2!\n')
         self.outputWindow.write("v%s\n" %self.app.version)
         self.shelf.AddPage(self.outputWindow, 'Output')
@@ -1341,7 +1331,6 @@ class CoderFrame(wx.Frame):
                 if dlg.ShowModal() == wx.ID_YES:
                     self.SetStatusText('Reloading file')
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
-                    self.setFileModified(False)
                 self.SetStatusText('')
                 try: dlg.destroy()
                 except: pass
@@ -1486,12 +1475,32 @@ class CoderFrame(wx.Frame):
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)
     def fileReload(self, event, filename=None, checkSave=False):
-        # close and reopen the doc having filename == filename
-        print "...reload not implemented yet. please close and reopen the file manually."
-        return
-        # this did not work for me:
-        self.fileClose(event, filename=filename, checkSave=checkSave)
-        self.fileNew(filename) # which does: self.setCurrentDoc(filename)
+        if filename is None:
+            return # should raise an exception
+
+        docId = self.findDocID(filename)
+
+        if docId == -1:
+            return
+
+        doc = self.notebook.GetPage(docId)
+        
+        # is the file still there
+        if os.path.isfile(filename):
+            doc.SetText(open(filename).read().decode('utf8'))
+            doc.fileModTime = os.path.getmtime(filename)
+            doc.EmptyUndoBuffer()
+            doc.Colourise(0, -1)
+            doc.UNSAVED = False
+        else:
+            # file was removed after we found the changes, lets keep give the user
+            # a chance to save his file.
+            self.UNSAVED = True
+
+        # if this is the active document we 
+        if doc == self.currentDoc:
+            self.toolbar.EnableTool(self.IDs.tbFileSave, doc.UNSAVED)
+
         
     def findDocID(self, filename):
         #find the ID of the current doc

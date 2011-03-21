@@ -1984,29 +1984,40 @@ class PatchStim(_BaseVisualStim):
                               
                 + **None**, 'circle', 'gauss'
                 + or the name of an image file (most formats supported)
-                + or a numpy array (1xN or NxN) ranging -1:1   
-                         
+                + or a numpy array (1xN or NxN) ranging -1:1
+
             units : **None**, 'norm', 'cm', 'deg' or 'pix'  
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
                 See :ref:`units` for explanation of other options.
+                
             pos :
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be position beyond the
-                window!                
+                window!
+                                
             size :
                 a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
                 OR a single value (which will be applied to x and y).
                 Units are specified by 'units' (see above).
-                Sizes can be negative and can extend beyond the window.                
+                Sizes can be negative and can extend beyond the window.
+                
+                .. note::
+                    
+                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to 
+                    the stimulus at 3 standard deviations on each side of the
+                    centre (ie. sd=size/6)
+                    
             sf:
                 a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
                 OR a single value (which will be applied to x and y).
                 Where `units` == 'deg' or 'cm' units are in cycles per deg/cm. 
                 If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
                 If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
+                
             ori:
-                orientation of stimulus in degrees                
+                orientation of stimulus in degrees
+                                
             phase:
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y
                 OR a single value (which will be applied to x and y).
@@ -2014,8 +2025,10 @@ class PatchStim(_BaseVisualStim):
                 **NB** phase has modulus 1 (rather than 360 or 2*pi)
                 This is a little unconventional but has the nice effect
                 that setting phase=t*n drifts a stimulus at n Hz
+                
             texRes:
                 resolution of the texture (if not loading from an image file)
+                
             color:
             
                 Could be a:
@@ -2030,17 +2043,21 @@ class PatchStim(_BaseVisualStim):
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
+                
             contrast:
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus).
+                
             opacity:
                 1.0 is opaque, 0.0 is transparent
+                
             depth:
                 This can potentially be used (not tested!) to choose which
                 stimulus overlays which. (more negative values are nearer).
                 At present the window does not do perspective rendering
-                but could do if that's really useful(?!)            
+                but could do if that's really useful(?!)
+                          
             name : string
                 The name of the object to be using during logged messages about 
                 this stim 
@@ -3382,6 +3399,7 @@ class ElementArrayStim:
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         
+        GL.glUseProgram(0)
         GL.glPopClientAttrib()
         GL.glPopMatrix()
         
