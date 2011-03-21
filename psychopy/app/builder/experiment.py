@@ -732,18 +732,15 @@ class NameSpace():
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
     
     TO DO (throughout app):
-        updating names when user renames a component is not handled properly
-        how to delete names from the namespace when delete components from a panel or loops from the flow?
-        how to rename routines?
-        staircase resists being reclassified as trialhandler
         trialLists on import
+        how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
+        staircase resists being reclassified as trialhandler
     
     :Author:
         2011 Jeremy Gray
     """
     def __init__(self, exp):
-        """ set-up a given experiment's namespace 
-        """
+        """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
         self.exp = exp
         #deepcopy fails if you pre-compile regular experessions and stash in self:
         #self.valid_var_re = re.compile(r"^[a-zA-Z_]+[\w]*$") # legal var name filter
@@ -785,7 +782,7 @@ class NameSpace():
         return derived_names 
     
     def get_collisions(self):
-        """return None, or a list of the names involved"""
+        """return None, or a list of names in .user that are also in one of the other spaces"""
         duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
         if duplicates != []:
             return duplicates
@@ -829,29 +826,24 @@ class NameSpace():
         
         return # None, meaning does not exist already
     
-    def add(self, name, sublist):
-        """was buggy at one point, mysteriously so, not sure its entirely fixed
-        add name to namespace by appending a name or list of names to a sublist, eg, self.user
-        returns the number added"""
+    def add(self, name, sublist='default'):
+        """add name to namespace by appending a name or list of names to a sublist, eg, self.user"""
         if name is None: return
-        if type(name) == str:
+        if sublist == 'default': sublist = self.user
+        if type(name) != list:
             sublist.append(name)
         else:
             sublist += name
-        return len(name)
         
-    def remove(self, name, sublist):
-        """remove name from the specified sublist (and hence from the name-space), eg, self.user
-        returns the number deleted"""
+    def remove(self, name, sublist='default'):
+        """remove name from the specified sublist (and hence from the name-space), eg, self.user"""
         if name is None: return
-        if type(name) == str:
+        if sublist == 'default': sublist = self.user
+        if type(name) != list:
             name = [name]
-        num_del = 0
         for n in list(name):
             if n in sublist:
                 del sublist[sublist.index(n)]
-                num_del += 1
-        return num_del
         
     def make_valid(self, name, prefix='var', add_to_space=None):
         """given a string, try to make a valid and unique variable name.

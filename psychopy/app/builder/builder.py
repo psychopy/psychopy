@@ -66,6 +66,7 @@ class FlowPanel(wx.ScrolledWindow):
         #for the context menu
         self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
         self.contextMenuItems=['remove']
+        if self.app.prefs.app['debugMode']: self.contextMenuItems += ['rename']
         self.contextItemFromID={}; self.contextIDFromItem={}
         for item in self.contextMenuItems:
             id = wx.NewId()
@@ -78,8 +79,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
         if self.app.prefs.app['debugMode']: 
             #self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,50))
-            #self.btnRenameRoutine = platebtn.PlateButton(self,-1,'Rename routine', pos=(10,70))
-            self.btnViewNamespace = platebtn.PlateButton(self,-1,'Debug: name-space dump', pos=(10,110))
+            self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
         
         self.draw()
 
@@ -89,8 +89,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
         if self.app.prefs.app['debugMode']: 
             #self.Bind(wx.EVT_BUTTON, self.addNewRoutine, self.btnNewRoutine)
-            #self.Bind(wx.EVT_BUTTON, self.renameRoutine, self.btnRenameRoutine)
-            self.Bind(wx.EVT_BUTTON, self.printNamespace, self.btnViewNamespace)
+            self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
         #create a clear hotkey to abort insertion of Routines etc
@@ -199,23 +198,24 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
     def addNewRoutine(self, evt=None):
         print 'not implemented yet...'
-    def renameRoutine(self, evt=None):
-        print 'not implemented yet...'
-    def printNamespace(self, evt=None):
+    def dumpNamespace(self, evt=None):
         nsu = self.frame.exp.namespace.user
+        if len(nsu) == 0:
+            print "______________________\n <namespace is empty>"
+            return
         nsu.sort()
         m = min(20, 2 + max([len(n) for n in nsu]))  # 2+len of longest word, or 20
         fmt = "%-"+str(m)+"s"  # format string: each word padded to longest
         nsu = map(lambda x: fmt % x, nsu)
         c = min(6, max(2, len(nsu)//4))  # number of columns, 2 - 6
         while len(nsu) % c: nsu += [' '] # avoid index errors later
-        r = len(nsu)//c  # number of rows
-        print '_'*(c*m-1)
+        r = len(nsu) // c  # number of rows
+        print '_' * c * m
         for i in range(r):
             print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typially to coder output
         collisions = self.frame.exp.namespace.get_collisions()
         if collisions:
-            print "*** collisions ***: %s\n" % str(collisions)
+            print "*** collisions ***: %s" % str(collisions)
     def editLoopProperties(self, event=None, loop=None):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
             loopName=event.EventObject.GetName()
@@ -310,8 +310,18 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
+            # update namespace only for loops, not routines
+            #if component.type in ['TrialHandler', 'StairHandler']: 
+            try: # temporary fix:
+                self.frame.exp.namespace.remove(component.params['name'].val)
+            except:
+                pass # then it was a routine, not loop
             flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
+        if op=='rename':
+            print 'rename is not implemented yet'
+            #if component is a loop: DlgLoopProperties
+            #elif comonent is a routine: DlgRoutineProperties
         self.draw()
         self._menuComponentID=None
 
@@ -686,6 +696,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         elif op=='remove':
             r.remove(component)
             self.frame.addToUndoStack("removed" + component.params['name'].val)
+            self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
             lastLoc=r.index(component)
             r.remove(component)
@@ -836,6 +847,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         #does this component have a help page?
         if hasattr(component, 'url'):helpUrl=component.url
         else:helpUrl=None
+        old_name = component.params['name'].val
         #create the dialog
         dlg = DlgComponentProperties(frame=self.frame,
             title=component.params['name'].val+' Properties',
@@ -845,6 +857,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
+            self.frame.exp.namespace.remove(old_name)
+            self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("edit %s" %component.params['name'])
 
     def getSecsPerPixel(self):
@@ -895,8 +909,6 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.AddPage(routinePage, routineName)
     def removePages(self):
         for ii in range(self.GetPageCount()):
-            # namespace: unregister names that are associated uniquely with this page ...? 
-            # self.frame.exp.namespace.remove() 
             currId = self.GetSelection()
             self.DeletePage(currId)
     def createNewRoutine(self):
@@ -917,8 +929,12 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         """
         routine = self.GetPage(event.GetSelection()).routine
         name=routine.name
-        #update experiment object and flow window (if this is being used)
+        #update experiment object, namespace, and flow window (if this is being used)
         if name in self.frame.exp.routines.keys():
+            # remove names of the routine and all its components from namespace
+            for c in self.frame.exp.routines[name]:
+                self.frame.exp.namespace.remove(c.params['name'].val)
+            self.frame.exp.namespace.remove(self.frame.exp.routines[name].name)
             del self.frame.exp.routines[name]
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
