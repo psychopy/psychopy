@@ -66,7 +66,7 @@ class FlowPanel(wx.ScrolledWindow):
         #for the context menu
         self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
         self.contextMenuItems=['remove']
-        if self.app.prefs.app['debugMode']: self.contextMenuItems += ['rename']
+        #if self.app.prefs.app['debugMode']: self.contextMenuItems += ['rename'] #
         self.contextItemFromID={}; self.contextIDFromItem={}
         for item in self.contextMenuItems:
             id = wx.NewId()
@@ -78,7 +78,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
         if self.app.prefs.app['debugMode']: 
-            #self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,50))
+            #self.btnRenameRoutine = platebtn.PlateButton(self,-1,'Rename Routine', pos=(10,50))
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
         
         self.draw()
@@ -88,7 +88,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
         if self.app.prefs.app['debugMode']: 
-            #self.Bind(wx.EVT_BUTTON, self.addNewRoutine, self.btnNewRoutine)
+            #self.Bind(wx.EVT_BUTTON, self.onRenameRoutine, self.btnRenameRoutine)
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -919,7 +919,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             routineName=dlg.GetValue()
             # silently auto-adjust the name to be valid, and register in the namespace:
             routineName = exp.namespace.make_valid(routineName, prefix='routine')
-            exp.namespace.user.append(routineName) #add to the namespace
+            exp.namespace.add(routineName) #add to the namespace
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
             self.frame.addToUndoStack("created %s routine" %routineName)
@@ -1014,7 +1014,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             currRoutine.addComponent(newComp)#add to the actual routing
             namespace = self.frame.exp.namespace
             newComp.params['name'].val = namespace.make_valid(newComp.params['name'].val)
-            namespace.user.append(newComp.params['name'].val)
+            namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
@@ -1392,7 +1392,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.trialListFile=None
 
         #create instances of the two loop types
-        default_name = 'loop' # will append to this after getting info from the dialog
+        default_name = 'loop' # for auto-naming: append to this after getting info from the dialog
+        default_name = 'trials' # suppresses auto-naming of loops
         old_name = ''
         if loop:
             old_name = loop.params['name'].val
@@ -1439,22 +1440,22 @@ class DlgLoopProperties(_BaseParamsDlg):
             except: self.currentHandler.params['nReps'].val = 1
             
             #construct an informative name for the loop, unless exp was created using earlier version
+            # BUT: downside = informative names are harder to remember when using the coder; plus they get last-char trimmed off
+            #   possible solution: use namespace.make_valid(short_name) as the actual var name, merely display the other info
             namespace = frame.exp.namespace
-            if float(''.join(self.exp.psychopyVersion.rsplit('.',1))) >= 1.6304:
+            if default_name == 'loop' and float(''.join(self.exp.psychopyVersion.rsplit('.',1))) >= 1.64:
                 short_name = re.sub(r"_(\d)+x_(ran|seq|sta|que)[a-z]*(_\d+)*$", '',
                                     self.currentHandler.params['name'].val) # strip info from end
                 reps = str(self.currentHandler.params['nReps'].val)
-                type_abbr = self.currentHandler.params['loopType'].val #[0:5] # stair, quest
-                #if type_abbr.startswith('rand'): type_abbr = 'rand'
-                #if type_abbr.startswith('seq'): type_abbr = 'seq'
-                short_name += '_' + reps + 'x_' + type_abbr
-                if short_name != old_name:
-                    self.params['name'].val = namespace.make_valid(short_name)  # might append _(\d)+
+                type_abbr = self.currentHandler.params['loopType'].val 
+                new_long_name = short_name + '_' + reps + 'x_' + type_abbr
+                if new_long_name != old_name:
+                    self.params['name'].val = namespace.make_valid(new_long_name) 
                 else: # if same name and same variable -> don't force a new name via make_valid
                     self.params['name'].val = old_name
             if loop:
-                namespace.remove(old_name, namespace.user)
-            namespace.user.append(self.params['name'].val)
+                namespace.remove(old_name)
+            namespace.add(self.params['name'].val)
         else:
             loop.params['name'].val = old_name
             
