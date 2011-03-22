@@ -889,6 +889,27 @@ class NameSpace():
             self.add(name, add_to_space)
         return name
 
+    def make_loop_index(self, name):
+        """construct a loop-index variable name
+        
+        >>> make_loop_index('trials') # ends in 's'
+        thisTrial
+        >>> make_loop_index('trials_2') # ends in 's' + underscore + digits
+        thisTrial_2
+        >>> make_loop_index('routine') # no final s
+        thisRoutine
+        >>> make_loop_index('routine_2') # no final s or digits
+        thisRoutine_2
+        """
+        new_name = 'this' + name.capitalize()
+        if new_name.endswith('s'): new_name = new_name[:-1]
+        match = re.match(r"(.*)s(_\d+)$", new_name)
+        if match:
+            new_name = match.group(1) + match.group(2) #delete the 's'
+        if self.exists(new_name):
+            pass # ack
+        return new_name
+            
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """
