@@ -25,7 +25,8 @@ In repos (https://github.com/psychopy/psychopy)
     (since v1.63.03 it was just showing a tiny box instead of an error message)
 * ADDED gui.Dlg now automatically uses checkboxes for bools in inputs (Yuri Spitsyn)
 * FIXED coder now reloads files changed outside the app when needed (thanks William Hogman)
-* ADDED initial management of variable names in Builder (incomplete integration into the app) (Jeremy Gray)
+* IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
+* ADDED RatingScale component for Builder (Jeremy Gray)
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
