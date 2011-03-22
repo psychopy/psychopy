@@ -66,7 +66,6 @@ class FlowPanel(wx.ScrolledWindow):
         #for the context menu
         self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
         self.contextMenuItems=['remove']
-        #if self.app.prefs.app['debugMode']: self.contextMenuItems += ['rename'] #
         self.contextItemFromID={}; self.contextIDFromItem={}
         for item in self.contextMenuItems:
             id = wx.NewId()
@@ -78,7 +77,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
         if self.app.prefs.app['debugMode']: 
-            #self.btnRenameRoutine = platebtn.PlateButton(self,-1,'Rename Routine', pos=(10,50))
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
         
         self.draw()
@@ -196,8 +194,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.addToUndoStack("AddLoopToFlow")
         self.clearMode()
         self.draw()
-    def addNewRoutine(self, evt=None):
-        print 'not implemented yet...'
     def dumpNamespace(self, evt=None):
         nsu = self.frame.exp.namespace.user
         if len(nsu) == 0:
@@ -1391,18 +1387,17 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.trialList=None
         self.trialListFile=None
 
-        #create instances of the two loop types
-        default_name = 'loop' # for auto-naming: append to this after getting info from the dialog
-        default_name = 'trials' # suppresses auto-naming of loops
-        old_name = ''
+        #create a valid new name; save old name in case we need to revert
+        default_name = 'trials'
+        old_name = default_name
         if loop:
             old_name = loop.params['name'].val
-            short_name = re.sub(r"_(\d)+x_(ran|seq|sta|que)[a-z]*(_\d+)*$", '', old_name) # strip info from end
-            old_short_name = short_name
-            loop.params['name'].val = short_name
+        namespace = frame.exp.namespace
+        new_name = namespace.make_valid(old_name)
+        #create instances of the two loop types
         if loop==None:
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=default_name,loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name=default_name, nReps=50, nReversals='',
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals='',
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
@@ -1411,12 +1406,12 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialListFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name=short_name, nReps=50, nReversals=None,
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals=None,
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=short_name, #name=loop.params['name'],
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name, #name=loop.params['name'],
                                     loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
@@ -1435,24 +1430,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-            
-            try: int(self.currentHandler.params['nReps'].val)
-            except: self.currentHandler.params['nReps'].val = 1
-            
-            #construct an informative name for the loop, unless exp was created using earlier version
-            # BUT: downside = informative names are harder to remember when using the coder; plus they get last-char trimmed off
-            #   possible solution: use namespace.make_valid(short_name) as the actual var name, merely display the other info
-            namespace = frame.exp.namespace
-            if default_name == 'loop' and float(''.join(self.exp.psychopyVersion.rsplit('.',1))) >= 1.64:
-                short_name = re.sub(r"_(\d)+x_(ran|seq|sta|que)[a-z]*(_\d+)*$", '',
-                                    self.currentHandler.params['name'].val) # strip info from end
-                reps = str(self.currentHandler.params['nReps'].val)
-                type_abbr = self.currentHandler.params['loopType'].val 
-                new_long_name = short_name + '_' + reps + 'x_' + type_abbr
-                if new_long_name != old_name:
-                    self.params['name'].val = namespace.make_valid(new_long_name) 
-                else: # if same name and same variable -> don't force a new name via make_valid
-                    self.params['name'].val = old_name
             if loop:
                 namespace.remove(old_name)
             namespace.add(self.params['name'].val)
