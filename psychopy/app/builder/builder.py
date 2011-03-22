@@ -849,7 +849,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             title=component.params['name'].val+' Properties',
             params = component.params,
             order = component.order,
-            helpUrl=helpUrl)
+            helpUrl=helpUrl, editing=True)
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
@@ -1166,7 +1166,7 @@ class _BaseParamsDlg(wx.Dialog):
             helpUrl=None, suppressTitles=True, 
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
@@ -1175,6 +1175,8 @@ class _BaseParamsDlg(wx.Dialog):
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
+        if not editing: # then we're adding a new component, so suggest a known-valid name:
+            self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
         self.paramCtrls={}
         self.showAdvanced=showAdvanced
         self.order=order
@@ -1356,7 +1358,7 @@ class _BaseParamsDlg(wx.Dialog):
                 self.OKbtn.Disable()
             elif namespace.is_possibly_derivable(newName): # warn but allow, chances are good that its actually ok
                 self.OKbtn.Enable()
-                self.nameOKlabel.SetLabel("safer to avoid this, continue, or Clock in name")
+                self.nameOKlabel.SetLabel("safer to avoid this, these, continue, or Clock in name")
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")
@@ -1588,11 +1590,13 @@ class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,
             helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT,
+            editing=False):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
                                 helpUrl=helpUrl,
-                                pos=pos,size=size,style=style)
+                                pos=pos,size=size,style=style,
+                                editing=editing)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
