@@ -890,7 +890,7 @@ class NameSpace():
         return name
 
     def make_loop_index(self, name):
-        """construct valid loop-index var name: 'this' + plural->singular.capitalize() [+ (_\d+) [+ _x(\d)]]"""
+        """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
         try: new_name = str(name)
         except: new_name = name
         prefix = 'this'
@@ -902,11 +902,8 @@ class NameSpace():
         else: # might end in s_2, so delete that s
             match = re.match(r"^(.*)s(_\d+)$", new_name)
             if match: new_name = match.group(1) + match.group(2)
-        new_name = prefix + new_name.capitalize()
-        i = 1
-        while self.exists(new_name): # e.g., if trial and trials are both names of loops
-            new_name = self.make_valid(new_name+'_x'+str(i)) # different but not informative
-            i += 1
+        new_name = prefix + new_name[0].capitalize() + new_name[1:]
+        new_name = self.make_valid(new_name)
         return new_name
             
 def _XMLremoveWhitespaceNodes(parent):
