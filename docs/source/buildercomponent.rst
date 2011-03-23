@@ -5,7 +5,7 @@ Notes on making a new builder component:
 
 Builder components are auto-detected and displayed to the experimenter as icons (builder, right panel). This makes it straightforward to add new ones.
 
-To get started, clone psychopy from github, and start a feature branch for the development of this component. 
+To get started, make a new feature branch for the development of this component (using git). (This assumes that you have git and have already cloned psychopy from github for development.)
 
 You'll mainly be working in the directory .../psychopy/app/builder/components/. Take a look at several existing components (such as 'patch.py'), and key files including '_base.py' and '_visual.py'.
 
