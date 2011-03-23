@@ -15,7 +15,7 @@ class SettingsComponent:
         self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
-        self.order=['Show info dlg','Experiment info',
+        self.order=['Show info dialog','Experiment info',
             'Save excel file','Save csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
@@ -44,7 +44,7 @@ class SettingsComponent:
             hint="Save data from loops in Excel (.xlsx) format")
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
-        self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
+        self.params['Show info dialog']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 

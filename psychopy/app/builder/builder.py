@@ -558,6 +558,8 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(tmpId, area)
         
         #add a name label that can be clicked on
+        if self.frame.app.prefs.builder['showLoopInfoInFlow']:
+            name += ': '+str(loop.params['nReps'].val)+'x, '+str(loop.params['loopType'].val)
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
