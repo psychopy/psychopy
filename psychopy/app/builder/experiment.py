@@ -115,7 +115,7 @@ class Experiment:
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
         self.namespace.user.sort()
         script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-                    "known_name_collisions = %s  (collisions are bad)\n" % str(self.namespace.get_collisions()) )
+                    "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
         
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
