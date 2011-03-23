@@ -619,7 +619,6 @@ class Routine(list):
     each of which knows when it starts and stops.
     """
     def __init__(self, name, exp, components=[]):
-        # name = exp.namespace.make_valid(name, add_to=exp.namespace.user) # do here or elsewhere, not both
         self.params={'name':name}
         self.name=name
         self.exp=exp
@@ -743,9 +742,7 @@ class NameSpace():
     def __init__(self, exp):
         """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
         self.exp = exp
-        #deepcopy fails if you pre-compile regular experessions and stash in self:
-        #self.valid_var_re = re.compile(r"^[a-zA-Z_]+[\w]*$") # legal var name filter
-        #self.nonalphanumeric_re = re.compile('[^a-zA-Z0-9_]') # match all bad chars
+        #deepcopy fails if you pre-compile regular expressions and stash here
         
         self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
         # these are based on a partial test, known to be incomplete:
@@ -840,7 +837,7 @@ class NameSpace():
                 del sublist[sublist.index(n)]
         
     def make_valid(self, name, prefix='var', add_to_space=None):
-        """given a string, try to make a valid and unique variable name.
+        """given a string, return a valid and unique variable name.
         replace bad characters with underscore, add an integer suffix until its unique
         
         >>> make_valid('t')
