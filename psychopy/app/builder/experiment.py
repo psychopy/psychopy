@@ -896,13 +896,14 @@ class NameSpace():
         prefix = 'this'
         irregular = {'stimuli': 'stimulus', 'mice': 'mouse', 'people': 'person'}
         for plural, singular in irregular.items():
-            new_name = new_name.replace(plural, singular)
+            nn = re.compile(plural, re.IGNORECASE)
+            new_name = nn.sub(singular, new_name)
         if new_name.endswith('s') and not new_name.lower() in irregular.values():
             new_name = new_name[:-1] # trim last 's'
-        else: # might end in s_2, so delete that s
+        else: # might end in s_2, so delete that s; leave S
             match = re.match(r"^(.*)s(_\d+)$", new_name)
             if match: new_name = match.group(1) + match.group(2)
-        new_name = prefix + new_name[0].capitalize() + new_name[1:]
+        new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
         new_name = self.make_valid(new_name)
         return new_name
             
