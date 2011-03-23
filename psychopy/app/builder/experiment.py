@@ -764,10 +764,11 @@ class NameSpace():
             return str(vars + self.numpy)
     
     def get_derived(self, basename):
-        """ buggy; something is not working right somewhere, maybe here
+        """ buggy
         idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
         more specific than is_possibly-derivable()
-        if basename is part of the exp flow, return continueBasename and basenameClock, make_loop_index(name)
+        if basename is a routine, return continueBasename and basenameClock,
+        if basename is a loop, return make_loop_index(name)
         """
         derived_names = []
         for flowElement in self.exp.flow:
@@ -778,8 +779,7 @@ class NameSpace():
             if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
                 derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
         # other derived_names?
-        #assert len(derived_names) == len(set(derived_names)) #should be no duplicates in derived_names
-        
+        # 
         return derived_names 
     
     def get_collisions(self):
@@ -797,6 +797,7 @@ class NameSpace():
     def is_possibly_derivable(self, name):
         """catch all possible derived-names, regardless of whether currently"""
         derivable = name.startswith('this') or name.startswith('continue') or name.endswith('Clock')
+        derivable = derivable or name.startswith('these')
         return derivable
     def exists(self, name): 
         """returns None, or a message indicating where the name is in use.
@@ -809,18 +810,8 @@ class NameSpace():
         try: name = str(name) # convert from unicode if possible
         except: pass
         
-        #try to get names that will exist, even if they don't already:
-        # but this code is not working:
-        '''for flowElement in self.exp.flow:
-            if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
-                flowElement=flowElement.loop #we want the loop itself
-            if name in [flowElement.params['name'], self.get_derived(flowElement.params['name'])]:
-                return flowElement.getType()
-        for routineName in self.exp.routines.keys():
-            for comp in self.exp.routines[routineName]:
-                if name in [comp.params['name'].val, self.get_derived(comp.params['name'].val)]:
-                    return comp.getType()'''
- 
+        # check get_derived:
+        
         # check in this order:
         if name in self.user: return "script variable"
         if name in self.builder: return "Builder variable"
@@ -877,7 +868,7 @@ class NameSpace():
         
         # try to make it unique; success depends on accuracy of self.exists():
         i = 2
-        if name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
+        if self.exists(name) and name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
             basename, count = name.rsplit('_', 1)
             try:
                 i = int(count)
