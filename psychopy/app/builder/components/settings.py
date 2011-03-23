@@ -81,8 +81,8 @@ class SettingsComponent:
         
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
-        fullScr = self.params['Full-screen window']
-        allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse']) #if fullscreen then hide the mouse, unless its requested explicitly
+        fullScr = self.params['Full-screen window'].val
+        allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val) #if fullscreen then hide the mouse, unless its requested explicitly
         allowStencil = False 
         for thisRoutine in self.exp.routines.values(): #NB routines is a dict
            for thisComp in thisRoutine: #a single routine is a list of components
