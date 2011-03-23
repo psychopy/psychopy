@@ -27,7 +27,7 @@ Contents:
    faqs/faqs
    resources/resources
    api/api
-   developers
+   developers/developers
    psyexp
    glossary
    indices
