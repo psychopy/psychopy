@@ -1167,8 +1167,6 @@ class _BaseParamsDlg(wx.Dialog):
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
-        if title == 'None Properties':
-            title = 'Experiment Settings'
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
@@ -1177,7 +1175,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
-        if not editing and title != 'Experiment Settings': # a hack; is there a better way to detect if its experiment settings?
+        if not editing and title != 'Experiment Settings':
             # then we're adding a new component, so provide a known-valid name:
             self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
         self.paramCtrls={}
@@ -1635,7 +1633,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             pos=wx.DefaultPosition, size=wx.DefaultSize,helpUrl=None,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
-        _BaseParamsDlg.__init__(self,frame,title,params,order,
+        _BaseParamsDlg.__init__(self,frame,'Experiment Settings',params,order,
                                 pos=pos,size=size,style=style,helpUrl=helpUrl)
         self.frame=frame
         self.app=frame.app
