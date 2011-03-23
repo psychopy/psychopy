@@ -398,7 +398,7 @@ class TrialHandler:
             trialStr="[None]"
         else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
+        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \n    trialList=%s)\n" \
@@ -491,7 +491,7 @@ class StairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1]) # hey Jon, why the [:-1] here?
+        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
         #write the code
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0' 
@@ -767,14 +767,14 @@ class NameSpace():
         """ buggy; something is not working right somewhere, maybe here
         idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
         more specific than is_possibly-derivable()
-        if basename is part of the exp flow, return continueBasename and basenameClock, thisName[:-1]
+        if basename is part of the exp flow, return continueBasename and basenameClock, make_loop_index(name)
         """
         derived_names = []
         for flowElement in self.exp.flow:
             if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
                 flowElement=flowElement.loop  # we want the loop itself
                 # basename can be <type 'instance'>
-                derived_names += ['this'+str(basename).capitalize()[:-1]] # note trimmed last char
+                derived_names += [self.make_loop_index(basename)]
             if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
                 derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
         # other derived_names?
@@ -892,6 +892,24 @@ class NameSpace():
             self.add(name, add_to_space)
         return name
 
+    def make_loop_index(self, name):
+        """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
+        try: new_name = str(name)
+        except: new_name = name
+        prefix = 'this'
+        irregular = {'stimuli': 'stimulus', 'mice': 'mouse', 'people': 'person'}
+        for plural, singular in irregular.items():
+            nn = re.compile(plural, re.IGNORECASE)
+            new_name = nn.sub(singular, new_name)
+        if new_name.endswith('s') and not new_name.lower() in irregular.values():
+            new_name = new_name[:-1] # trim last 's'
+        else: # might end in s_2, so delete that s; leave S
+            match = re.match(r"^(.*)s(_\d+)$", new_name)
+            if match: new_name = match.group(1) + match.group(2)
+        new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
+        new_name = self.make_valid(new_name)
+        return new_name
+            
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """
