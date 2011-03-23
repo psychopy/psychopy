@@ -115,7 +115,7 @@ class Experiment:
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
         self.namespace.user.sort()
         script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-                    "name_collisions = %s  # collisions are bad\n\n" % str(self.namespace.get_collisions()) )
+                    "known_name_collisions = %s  (collisions are bad)\n" % str(self.namespace.get_collisions()) )
         
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -225,9 +225,10 @@ class Experiment:
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
-        version_f = float(self.psychopyVersion.rsplit('.',1)[0])
+        version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
             print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
+            print 'auto-variable naming in loadFromXML might slightly change some var names.\n'
         
         #Parse document nodes
         #first make sure we're empty
@@ -257,7 +258,7 @@ class Experiment:
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
                 comp_good_name = self.namespace.make_valid(componentNode.get('name'))
-                self.namespace.user.append(comp_good_name) #add_to_space was failing for user but not psychopy
+                self.namespace.add(comp_good_name)
                 component.params['name'].val = comp_good_name
                 routine.append(component)
         
@@ -784,6 +785,8 @@ class NameSpace():
     def get_collisions(self):
         """return None, or a list of names in .user that are also in one of the other spaces"""
         duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
+        su = sorted(self.user)
+        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var] 
         if duplicates != []:
             return duplicates
         return None
