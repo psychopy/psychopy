@@ -41,6 +41,7 @@ xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the buil
 
 There are several internal variables (er, names of python objects) that have a specific, hardcoded meaning within xxx_lastrun.py. You can expect the
 following to be there, and they should only be used in the original way (or something will break for the end-user, likely in a mysterious way):
+
    'win' = the window
    't' = time within the trial loop, referenced to trialClock
    'x', 'y' = mouse coordinates, but only if the experimenter uses a mouse component
