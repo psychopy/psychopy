@@ -1351,7 +1351,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Disable()
         else:
             namespace = self.frame.exp.namespace
-            used = namespace.exists(newName) #replaces: self.frame.exp.getUsedName(newName)
+            used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
                 self.nameOKlabel.SetLabel("Name is already used by a %s" % used)
