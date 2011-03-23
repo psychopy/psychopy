@@ -24,9 +24,9 @@ from psychopy import log
 try:
     from ioLabs import *
 except:
-    msg="""Failed to import the ioLab library. If you're using your own copy of 
+    msg="""Failed to import the ioLabs library. If you're using your own copy of 
 python (not the Standalone distribution of PsychoPy) then try installing it with:
-    > easy_install ioLab
+    > easy_install ioLabs
     
 """
     log.error(msg)

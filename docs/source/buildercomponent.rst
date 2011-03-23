@@ -5,7 +5,9 @@ Notes on making a new builder component:
 
 Builder components are auto-detected and displayed to the experimenter as icons (builder, right panel). This makes it straightforward to add new ones.
 
-To get started, find the directory psychopy/app/builder/components/ . Take a look at several existing components (such as 'patch.py'), and key files including '_base.py' and '_visual.py'.
+To get started, clone psychopy from github, and start a feature branch for the development of this component. 
+
+You'll mainly be working in the directory .../psychopy/app/builder/components/. Take a look at several existing components (such as 'patch.py'), and key files including '_base.py' and '_visual.py'.
 
 There are three main steps, the first being by far the most involved.
 
@@ -27,41 +29,43 @@ Note that while writing a new component, if there's a syntax error in newcomp.py
 
 In addition, you may need to edit settings.py, which writes out the set-up code for the whole experiment (e.g., to define the window). For example, this was necessary for ApertureComponent, to pass "allowStencil=True" to the window creation.
 
-Your new component writes code into a buffer that becomes an executable python file, xxx_lastrun.py (where xxx is whatever the experimenter
-specifies when saving from the builder, xxx.psyexp). You will do a bunch of this kind of call in your newcomp.py file::
+Your new component writes code into a buffer that becomes an executable python file, xxx_lastrun.py (where xxx is whatever the experimenter specifies when saving from the builder, xxx.psyexp). You will do a bunch of this kind of call in your newcomp.py file::
 
    buff.writeIndented(your_python_syntax_string_here)
 
-xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the builder. So you will want to look at xxx_lastrun.py when developing your component. If you run from the builder and get a tiny, blank window ("Psychopy output window"), it can mean that there's a syntax error in xxx_lastrun.py. Unfortunately, it seems like the error trace is lost to the world; maybe there's a way to redirect stderr somewhere for debugging?
+You have to manage the indentation level of the output code, see experiment.IndentingBuffer().
 
-There are several internal variables (er, python objects) that have a specific, hardcoded meaning within xxx_lastrun.py. You can expect the
+xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the builder. So you will want to look at xxx_lastrun.py frequently when developing your component. 
+
+There are several internal variables (er, names of python objects) that have a specific, hardcoded meaning within xxx_lastrun.py. You can expect the
 following to be there, and they should only be used in the original way (or something will break for the end-user, likely in a mysterious way):
    'win' = the window
-   'continueTrial' = boolean; set to False when you want to end the trial (prior to a time-out based on duration)
-   'trialClock' = a core.Clock() for the current trial
    't' = time within the trial loop, referenced to trialClock
+   'x', 'y' = mouse coordinates, but only if the experimenter uses a mouse component
 
-These variable names are an area of active development, so this list may well be out of date. (If so, you might consider updating it or posting a note to psychopy-dev.)
+Handling variable names is under active development, so this list may well be out of date. (If so, you might consider updating it or posting a note to psychopy-dev.)
 
-Preliminary testing suggests that there are 565 names from numpy or numpy.random, plus the following::
-    ['KeyResponse', '__builtins__', '__doc__', '__file__', '__name__', '__package__', 'buttons', 'continueTrial', 'core', 'data', 'dlg', 'event', 'expInfo', 'expName', 'filename', 'gui', 'logFile', 'os', 'psychopy', 'sound', 't', 'theseKeys', 'trialClock', 'visual', 'win', 'x', 'y']
+Preliminary testing suggests that there are 600-ish names from numpy or numpy.random, plus the following::
+    ['KeyResponse', '__builtins__', '__doc__', '__file__', '__name__', '__package__', 'buttons', 'core', 'data', 'dlg', 'event', 'expInfo', 'expName', 'filename', 'gui', 'logFile', 'os', 'psychopy', 'sound', 't', 'visual', 'win', 'x', 'y']
+
+Yet other names get derived from user-entered names, like trials --> thisTrial.
 
 self.params is a key construct that you build up in __init__. You need name, startTime, duration, and several other params to be defined or you get errors. 'name' should be of type 'code'.
 
 To indicate that a param should be considered as an advanced feature, add it to the list self.params['advancedParams']. The the GUI shown to the experimenter will initially hides it as an option. Nice, easy.
 
-During development, I found it helpful at times to save the params and values into the xxx_lastrun.py file as comments::
+During development, I found it helpful at times to save the params into the xxx_lastrun.py file as comments, so I could see what was happening::
 
     def writeInitCode(self,buff):
         # for debugging during component development:
         buff.writeIndented("# self.params for aperture:\n")
         for p in self.params.keys():
-            if p != 'advancedParams':
-                buff.writeIndented("# %s: %s <type %s>\n" % (p, self.params[p].val, self.params[p].valType))    
+            try: buff.writeIndented("# %s: %s <type %s>\n" % (p, self.params[p].val, self.params[p].valType))
+            except: pass
 
 A lot more detail can be infered from Jon's code.
 
-Making things loop-compatible looks interesting.
+Making things loop-compatible looks interesting--see keyboard.py for an example, especially code for saving data at the end.
 
 Step 2. Make an icon: 'newcomp.png':
 =================
