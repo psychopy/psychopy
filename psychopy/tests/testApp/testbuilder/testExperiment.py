@@ -1,5 +1,6 @@
 import psychopy.app.builder.experiment
 from os import path, unlink
+import os, shutil
 import glob
 import py_compile
 
@@ -15,11 +16,20 @@ def testExp_AddRoutine():
 
 
 def testExp_LoadCompileSavePsyexpFiles():
-    tmp_file = path.join(here, 'tmp_lastrun.py')
-    test_psyexp = glob.glob(path.join(here, '*psyexp'))
-    assert len(test_psyexp) >= 2 # want 2+ demo psyexp files to test; bart.psyexp had a unicode char -> error
+    """ copy .psyexp demos -> load in builder -> make script -> compile .pyc
+    """
+    # avoid redundant psyexp scripts; make temp copies of builder demos:
+    tmp_dir = path.join(here, 'tmp_load_compile_psyexp')
+    tmp_file = path.join(tmp_dir, 'tmp_lastrun.py')
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    os.mkdir(tmp_dir) # container for all mucking about we do here
+    for root, dirs, files in os.walk(path.join(tmp_dir, '../../../../demos/builder')):
+        for p in [f for f in files if f.endswith('psyexp')]:
+            shutil.copyfile(path.join(root, p), path.join(tmp_dir,p))
+    test_psyexp = glob.glob(path.join(tmp_dir, '*.psyexp')) + glob.glob(path.join(here, '*.psyexp'))
+    assert len(test_psyexp) > 0 # want something to test; error -> path error in the test?
     for file in test_psyexp:
-        if file.find('bart.psyexp') > -1: continue
+        if file.find('bart.psyexp') > -1: continue # ; bart.psyexp had a unicode char -> error
         # go from psyexp file on disk to internal builder representation:
         exp.loadFromXML(path.join(here, file))
         assert len(exp.namespace.user) # should automatically populate the namespace
@@ -34,8 +44,7 @@ def testExp_LoadCompileSavePsyexpFiles():
         f.close()
         # compile the temp file, catching error msgs (including no file at all):
         py_compile.compile(tmp_file, doraise=True)
-    unlink(tmp_file)
-    unlink(tmp_file+'c')
+    shutil.rmtree(tmp_dir, ignore_errors=True)
         
 def testExp_NameSpace():
     assert exp.namespace.exists('psychopy') == "Psychopy module"
