@@ -172,19 +172,13 @@ class _baseVisualTest:
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
     def testRatingScale(self):
-        # try to avoid text; avoid 'triangle' because it does not display on win XP
+        # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
-        rs = visual.RatingScale(win, displaySizeFactor=2, pos=(0,-.2),
-                        lowAnchorText=' ', highAnchorText=' ', scale=' ', 
-                        markerStyle='circle', markerStart=4)
-        rs.draw()
-        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win)
-        win.flip()#AFTER compare screenshot
         rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
                         lowAnchorText=' ', highAnchorText=' ', scale=' ', 
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
-        utils.compareScreenshot('data/ratingscale2_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
         
 #create different subclasses for each context/backend
