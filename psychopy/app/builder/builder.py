@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -13,6 +13,7 @@ import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
 from psychopy import data, log, misc
+import re
 
 inf=1000000#a million can be infinite?!
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -75,13 +76,18 @@ class FlowPanel(wx.ScrolledWindow):
 #        self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
-
+        if self.app.prefs.app['debugMode']: 
+            self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
+        
         self.draw()
 
         #bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
+        if self.app.prefs.app['debugMode']: 
+            #self.Bind(wx.EVT_BUTTON, self.onRenameRoutine, self.btnRenameRoutine)
+            self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
         #create a clear hotkey to abort insertion of Routines etc
@@ -188,7 +194,24 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.addToUndoStack("AddLoopToFlow")
         self.clearMode()
         self.draw()
-
+    def dumpNamespace(self, evt=None):
+        nsu = self.frame.exp.namespace.user
+        if len(nsu) == 0:
+            print "______________________\n <namespace is empty>"
+            return
+        nsu.sort()
+        m = min(20, 2 + max([len(n) for n in nsu]))  # 2+len of longest word, or 20
+        fmt = "%-"+str(m)+"s"  # format string: each word padded to longest
+        nsu = map(lambda x: fmt % x, nsu)
+        c = min(6, max(2, len(nsu)//4))  # number of columns, 2 - 6
+        while len(nsu) % c: nsu += [' '] # avoid index errors later
+        r = len(nsu) // c  # number of rows
+        print '_' * c * m
+        for i in range(r):
+            print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typially to coder output
+        collisions = self.frame.exp.namespace.get_collisions()
+        if collisions:
+            print "*** collisions ***: %s" % str(collisions)
     def editLoopProperties(self, event=None, loop=None):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
             loopName=event.EventObject.GetName()
@@ -283,8 +306,18 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
+            # update namespace only for loops, not routines
+            #if component.type in ['TrialHandler', 'StairHandler']: 
+            try: # temporary fix:
+                self.frame.exp.namespace.remove(component.params['name'].val)
+            except:
+                pass # then it was a routine, not loop
             flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
+        if op=='rename':
+            print 'rename is not implemented yet'
+            #if component is a loop: DlgLoopProperties
+            #elif comonent is a routine: DlgRoutineProperties
         self.draw()
         self._menuComponentID=None
 
@@ -659,6 +692,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         elif op=='remove':
             r.remove(component)
             self.frame.addToUndoStack("removed" + component.params['name'].val)
+            self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
             lastLoc=r.index(component)
             r.remove(component)
@@ -809,15 +843,18 @@ class RoutineCanvas(wx.ScrolledWindow):
         #does this component have a help page?
         if hasattr(component, 'url'):helpUrl=component.url
         else:helpUrl=None
+        old_name = component.params['name'].val
         #create the dialog
         dlg = DlgComponentProperties(frame=self.frame,
             title=component.params['name'].val+' Properties',
             params = component.params,
             order = component.order,
-            helpUrl=helpUrl)
+            helpUrl=helpUrl, editing=True)
         if dlg.OK:
             self.redrawRoutine()#need to refresh timings section
             self.Refresh()#then redraw visible
+            self.frame.exp.namespace.remove(old_name)
+            self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("edit %s" %component.params['name'])
 
     def getSecsPerPixel(self):
@@ -876,6 +913,9 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         exp = self.frame.exp
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
+            # silently auto-adjust the name to be valid, and register in the namespace:
+            routineName = exp.namespace.make_valid(routineName, prefix='routine')
+            exp.namespace.add(routineName) #add to the namespace
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
             self.frame.addToUndoStack("created %s routine" %routineName)
@@ -885,8 +925,12 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         """
         routine = self.GetPage(event.GetSelection()).routine
         name=routine.name
-        #update experiment object and flow window (if this is being used)
+        #update experiment object, namespace, and flow window (if this is being used)
         if name in self.frame.exp.routines.keys():
+            # remove names of the routine and all its components from namespace
+            for c in self.frame.exp.routines[name]:
+                self.frame.exp.namespace.remove(c.params['name'].val)
+            self.frame.exp.namespace.remove(self.frame.exp.routines[name].name)
             del self.frame.exp.routines[name]
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
@@ -960,9 +1004,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             params = newComp.params,
             order = newComp.order,
             helpUrl=helpUrl)
+        
         compName = newComp.params['name']
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
+            namespace = self.frame.exp.namespace
+            newComp.params['name'].val = namespace.make_valid(newComp.params['name'].val)
+            namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
@@ -1118,7 +1166,9 @@ class _BaseParamsDlg(wx.Dialog):
             helpUrl=None, suppressTitles=True, 
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL):
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
+        if title == 'None Properties':
+            title = 'Experiment Settings'
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
@@ -1127,6 +1177,9 @@ class _BaseParamsDlg(wx.Dialog):
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
+        if not editing and title != 'Experiment Settings': # a hack; is there a better way to detect if its experiment settings?
+            # then we're adding a new component, so provide a known-valid name:
+            self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
         self.paramCtrls={}
         self.showAdvanced=showAdvanced
         self.order=order
@@ -1297,10 +1350,18 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetLabel("Missing name")
             self.OKbtn.Disable()
         else:
-            used=self.frame.exp.getUsedName(newName)
-            if newName!=self.params['name'].val and used:
-                self.nameOKlabel.SetLabel("Name '%s' is already used by a %s" %(newName, used))
+            namespace = self.frame.exp.namespace
+            used = namespace.exists(newName) #replaces: self.frame.exp.getUsedName(newName)
+            same_as_old_name = bool(newName == self.params['name'].val)
+            if used and not same_as_old_name:
+                self.nameOKlabel.SetLabel("Name is already used by a %s" % used)
                 self.OKbtn.Disable()
+            elif not namespace.is_valid(newName): # as var name:
+                self.nameOKlabel.SetLabel("Name must be alpha-numeric or _, no spaces")
+                self.OKbtn.Disable()
+            elif namespace.is_possibly_derivable(newName): # warn but allow, chances are good that its actually ok
+                self.OKbtn.Enable()
+                self.nameOKlabel.SetLabel("safer to avoid this, these, continue, or Clock in name")
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")
@@ -1308,6 +1369,7 @@ class _BaseParamsDlg(wx.Dialog):
         """Uses self.app.followLink() to self.helpUrl
         """
         self.app.followLink(url=self.helpUrl)
+        
 class DlgLoopProperties(_BaseParamsDlg):
     def __init__(self,frame,title="Loop properties",loop=None,
             helpUrl=None,
@@ -1330,10 +1392,17 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.trialList=None
         self.trialListFile=None
 
+        #create a valid new name; save old name in case we need to revert
+        default_name = 'trials'
+        old_name = default_name
+        if loop:
+            old_name = loop.params['name'].val
+        namespace = frame.exp.namespace
+        new_name = namespace.make_valid(old_name)
         #create instances of the two loop types
         if loop==None:
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name='trials',loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals='',
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals='',
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
@@ -1342,14 +1411,17 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialListFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name='trials', nReps=50, nReversals=None,
+            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals=None,
                 stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=loop.params['name'],loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name, #name=loop.params['name'],
+                                    loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+        elif loop.type=='QuestHandler':
+            pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
-
+            
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
         self.makeConstantsCtrls()#the controls for Method of Constants
@@ -1363,7 +1435,12 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-        
+            if loop:
+                namespace.remove(old_name)
+            namespace.add(self.params['name'].val)
+        else:
+            loop.params['name'].val = old_name
+            
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):
@@ -1511,15 +1588,18 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if ctrls.typeCtrl: param.valType = ctrls.getType()
                 if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.currentHandler.params
+
 class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,
             helpUrl=None, suppressTitles=True,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT,
+            editing=False):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
                                 helpUrl=helpUrl,
-                                pos=pos,size=size,style=style)
+                                pos=pos,size=size,style=style,
+                                editing=editing)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
@@ -1570,8 +1650,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
+        
     def onFullScrChange(self,event=None):       
-
         """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             #get screen size for requested display            
@@ -1620,8 +1700,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+    
 class BuilderFrame(wx.Frame):
-
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None,frameData=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
@@ -1935,8 +2015,10 @@ class BuilderFrame(wx.Frame):
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment(prefs=self.app.prefs)
-        self.exp.addRoutine('trial') #create the trial routine as an example
-        self.exp.flow.addRoutine(self.exp.routines['trial'], pos=1)#add it to flow
+        default_routine = 'trial'
+        self.exp.addRoutine(default_routine) #create the trial routine as an example
+        self.exp.flow.addRoutine(self.exp.routines[default_routine], pos=1)#add it to flow
+        self.exp.namespace.add(default_routine, self.exp.namespace.user) # add it to user's namespace
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()

@@ -1,13 +1,4 @@
-.. _developers:
-
-For Developers
-=====================================
-
-There is a separate mailing list to discuss development ideas and issues.
-
-For developers the best way to use PsychoPy is to install a version to your own copy of python (preferably 2.6 but 2.5 is OK). Make sure you have all the :ref:`dependencies`, including the extra :ref:`recommendedPackages` for developers.
-
-Don't *install* PsychoPy. Instead fetch a copy of the git repository and add this to the python path using a .pth file. Other users of the computer might have their own standalone versions installed without your repository version touching them.
+.. _usingRepos:
 
 Using the repository
 ------------------------------
@@ -41,7 +32,7 @@ Create your own fork of the central repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Go to `github <http://www.github.com>`_, create an account and make a fork of the `psychopy repository <https://github.com/psychopy/psychopy>`_
-You can change this fork in any way you choose without it affecting the central project. You can also share your fork with others.
+You can change your fork in any way you choose without it affecting the central project. You can also share your fork with others, including the central project.
 
 Fetch a local copy
 ~~~~~~~~~~~~~~~~~~~~
@@ -61,7 +52,7 @@ Fetching the latest version
 Periodically it's worth fetching any changes to the central psychopy repository (into your `master` branch, more on that below)::
 
     $ git checkout master
-    $ git pull upstream
+    $ git pull upstream master  # here 'master' is the desired branch of psychopy to fetch
 
 Fixing bugs and making minor improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,7 +74,9 @@ Share your improvement with others
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Only a couple of people have direct write-access to the psychopy repository, but you can get your changes included in `upstream` by pushing your changes back to your github fork and then `submitting a pull request <http://nipy.sourceforge.net/nitime/devel/development_workflow.html#asking-for-your-changes-to-be-merged-with-the-main-repo>`_. 
 
-Creating a new feature branch
+.. _addFeatureBranch:
+
+Add a new feature branch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For more substantial work, you should create a new branch in your repository. Often whle working on a new feature other aspects of the code will get broken and the `master` branch should always be in a working state. To create a new branch::
 
@@ -111,6 +104,3 @@ You can merge your changes back into your master branch with::
     $ git merge feature-somethingNew
 
 Once you've folded your new code back into your master and pushed it back to your github fork then it's time to :ref:`pullRequest`.
-
-Happy Coding Folks!!
-

@@ -5,7 +5,7 @@ from _base import *
 
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
-    def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor',
+    def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True):
         self.type='Settings'
@@ -34,6 +34,8 @@ class SettingsComponent:
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
+        self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
+            hint="Should the mouse be visible on screen?") 
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
@@ -54,7 +56,6 @@ class SettingsComponent:
     def getShortType(self):
         return self.getType().replace('Component','')
     def writeStartCode(self,buff):
-        
         buff.writeIndented("#store info about the experiment\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
         buff.writeIndented("expInfo=%s\n" %self.params['Experiment info'])
@@ -81,10 +82,16 @@ class SettingsComponent:
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window']
-        allowGUI = (not bool(fullScr))#if fullscreen then hide the mouse
-        size=self.params['Window size (pixels)']#
-        screenNumber = int(self.params['Screen'].val)-1#computer has 1 as first screen
-        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s,\n" %(size, fullScr, screenNumber,allowGUI))
+        allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse']) #if fullscreen then hide the mouse, unless its requested explicitly
+        allowStencil = False 
+        for thisRoutine in self.exp.routines.values(): #NB routines is a dict
+           for thisComp in thisRoutine: #a single routine is a list of components
+               if thisComp.type=='Aperture': allowStencil = True
+               if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
+        size=self.params['Window size (pixels)']
+        screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
+        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+                           (size, fullScr, screenNumber, allowGUI, allowStencil))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
         
         if self.params['Units'].val=='use prefs': unitsCode=""
@@ -94,5 +101,7 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
+        buff.writeIndented("\n#Shutting down:\n")
+        
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")
