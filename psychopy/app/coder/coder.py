@@ -139,7 +139,7 @@ class UnitTestFrame(wx.Frame):
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(300,200), font = self.prefs['outputFont'], fontSize=self.prefs['outputFontSize'])
+            size=wx.Size(300,200), font = self.prefs.coder['outputFont'], fontSize=self.prefs.coder['outputFontSize'])
         
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
