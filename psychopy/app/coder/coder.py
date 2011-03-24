@@ -126,8 +126,8 @@ class UnitTestFrame(wx.Frame):
         menuBar = wx.MenuBar()
         self.menuTests=wx.Menu()
         menuBar.Append(self.menuTests, '&Tests')        
-        self.menuTests.Append(wx.ID_CLOSE,   "&Run tests\t%s" %self.app.keys['runScript'])
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onRunTests)
+        self.menuTests.Append(wx.ID_DEFAULT,   "&Run tests\t%s" %self.app.keys['runScript'])
+        wx.EVT_MENU(self, wx.ID_DEFAULT,  self.onRunTests)
         self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
         #-------------quit
