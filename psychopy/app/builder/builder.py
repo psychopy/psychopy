@@ -1054,7 +1054,7 @@ class ParamCtrls:
         self.nameCtrl = wx.StaticText(parent,-1,label,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
 
-        if label=='text':
+        if label in ['text', 'customize_everything']:
             #for text input we need a bigger (multiline) box
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
