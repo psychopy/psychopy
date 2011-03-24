@@ -1,29 +1,12 @@
 import psychopy.app.builder.experiment
 from os import path, unlink
 import glob
-import popen2
+import py_compile
 
 # Jeremy Gray March 2011
 
 exp = psychopy.app.builder.experiment.Experiment()
 here = path.abspath(path.dirname(__file__))
-
-#def shellCall(shellCmd):
-#    # this is the preferred way to do things but had build problems on mac when it was in psychopy.core 
-#    import subprocess, shlex
-#    stdoutData, stderrData = subprocess.Popen(shlex.split(shellCmd),
-#            stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
-#    return stdoutData.strip(), stderrData.strip()
-
-def shellCall(shellCmd):
-    # do a shell call, capture stdout, stderr
-    stdO,stdI,stdE = popen2.popen3(shellCmd)
-    stdOData = stdO.read().strip()
-    stdEData = stdE.read().strip()
-    stdO.close()
-    stdI.close()
-    stdE.close()
-    return stdOData, stdEData
 
 def testExp_AddRoutine():
     exp.addRoutine('instructions')
@@ -50,10 +33,7 @@ def testExp_LoadCompileSavePsyexpFiles():
         f.write(script)
         f.close()
         # compile the temp file, catching error msgs (including no file at all):
-        stdout_contents, syntax_error = shellCall("python -m py_compile "+tmp_file)
-        assert not stdout_contents   # from: `python -m py_compile tmp_lastrun.py`
-        assert not syntax_error  # from: `python -m py_compile tmp_lastrun.py`
-        #py_compile.compile(target_file) # fails to catch errors
+        py_compile.compile(tmp_file, doraise=True)
     unlink(tmp_file)
     unlink(tmp_file+'c')
         
