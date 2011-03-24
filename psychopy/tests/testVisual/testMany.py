@@ -164,7 +164,7 @@ class _baseVisualTest:
         gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
             sf=4, size=1,
             color=[-0.5,-0.5,-1])
-        aperture = visual.Aperture(win, size=20,pos=[5,0])
+        aperture = visual.Aperture(win, size=10,pos=[2.5,0])
         aperture.enable()
         gabor1.draw()
         aperture.disable()

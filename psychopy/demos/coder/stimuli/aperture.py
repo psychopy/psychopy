@@ -7,7 +7,7 @@ gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3],
 gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
     sf=4, size=1,
     color=[-0.5,-0.5,-1])
-aperture = visual.Aperture(win, size=200,pos=[20,0])
+aperture = visual.Aperture(win, size=100,pos=[10,0])
 aperture.enable()#actually is enabled by default when created
 gabor1.draw()
 aperture.disable()#drawing from here ignores aperture
