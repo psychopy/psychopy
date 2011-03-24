@@ -3,6 +3,8 @@ from os import path, unlink
 import glob
 import popen2
 
+# Jeremy Gray March 2011
+
 exp = psychopy.app.builder.experiment.Experiment()
 here = path.abspath(path.dirname(__file__))
 
