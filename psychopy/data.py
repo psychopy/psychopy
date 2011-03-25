@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Routines for handling data structures and analysis"""
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import misc, gui, log
@@ -1946,12 +1946,13 @@ def functionFromStaircase(intensities, responses, bins = 10):
         
     return binnedInten, binnedResp, nPoints
 
-def getDateStr():
+def getDateStr(format="%b_%d_%H%M"):
     """Uses ``time.strftime()``_ to generate a string of the form
     Apr_19_1531 for 19th April 3.31pm.
-    This is often useful appended to data filenames to provide unique names
+    This is often useful appended to data filenames to provide unique names.
+    To include the year: getDateStr(format="%Y_%b_%d_%H%M") returns '2011_Mar_16_1307'
     """
-    return time.strftime("%b_%d_%H%M", time.localtime())
+    return time.strftime(format, time.localtime())
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.

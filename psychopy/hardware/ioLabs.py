@@ -17,16 +17,16 @@ for examples see the demos menu of the PsychoPy Coder or go to the URL above.
 
 """
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import log
 try:
     from ioLabs import *
 except:
-    msg="""Failed to import the ioLab library. If you're using your own copy of 
+    msg="""Failed to import the ioLabs library. If you're using your own copy of 
 python (not the Standalone distribution of PsychoPy) then try installing it with:
-    > easy_install ioLab
+    > easy_install ioLabs
     
 """
     log.error(msg)
