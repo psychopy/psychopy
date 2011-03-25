@@ -171,6 +171,15 @@ class _baseVisualTest:
         gabor2.draw()
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
+    def testRatingScale(self):
+        # try to avoid text; avoid default / 'triangle' because it does not display on win XP
+        win = self.win
+        rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
+                        lowAnchorText=' ', highAnchorText=' ', scale=' ', 
+                        markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
+        rs.draw()
+        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win)
+        win.flip()#AFTER compare screenshot
         
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
