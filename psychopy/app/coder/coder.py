@@ -130,12 +130,15 @@ class UnitTestFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_DEFAULT,  self.onRunTests)
         self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
+        self.menuTests.Append(self.IDs.openCoderView, "Go to &Coder view\t%s" %self.app.keys['switchToCoder'], "Go to the Coder view")
+        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
         #-------------quit
         self.menuTests.AppendSeparator()
         self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate PsychoPy")
         wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
         item = self.menuTests.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+            
         self.SetMenuBar(menuBar)
         
         #create controls
@@ -147,10 +150,25 @@ class UnitTestFrame(wx.Frame):
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
-        if self.app.prefs.coder['test_subset']:
-            self.test_path=wx.CheckBox(parent=self,label=self.app.prefs.coder['test_subset'])
-            self.test_path.SetValue(True)
-            self.test_path.SetToolTip(wx.ToolTip("Only run a subset of tests; enter test_path in coder prefs, e.g., 'testApp/testbuilder'"))
+        pref_testSubset = self.app.prefs.coder['testSubset'].strip()
+        known_tests = glob.glob(os.path.join(self.paths['tests'],'test*'))
+        known_test_list = [t.split(os.sep)[-1] for t in known_tests]
+        known_test_list = '[ '+' '.join(known_test_list) +' ]'
+        if len(pref_testSubset):
+            base = pref_testSubset.split(os.sep)[0] # first part of the requested test, eg, testApp
+            if not os.path.join(self.paths['tests'], base) in known_tests: #
+                self.test_path=wx.CheckBox(parent=self,label='all subtests; "%s" not found (typo?)'% pref_testSubset)
+                self.test_path.SetValue(True)
+                self.test_path.SetToolTip(wx.ToolTip("Subtests are a path within psychopy/tests/ ; " + known_test_list))
+            else:
+                self.test_path=wx.CheckBox(parent=self,label='subtest: ' + pref_testSubset)
+                self.test_path.SetValue(True)
+                self.test_path.SetToolTip(wx.ToolTip("Only run a subset of tests;\nprefs.coder 'testSubset' = " + known_test_list))
+        else:
+            self.test_path=wx.CheckBox(parent=self,label='subtest [none specified]')
+            self.test_path.SetValue(False)
+            self.test_path.SetToolTip(wx.ToolTip("In preferences, enter a coder pref 'testSubset'; there specify one of: " +\
+                                known_test_list))
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
         self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
 #        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
@@ -160,8 +178,7 @@ class UnitTestFrame(wx.Frame):
         self.SetDefaultItem(self.btnRun)
         
         #arrange controls
-        if self.app.prefs.coder['test_subset']:
-            buttonsSizer.Add(self.test_path, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.test_path, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -173,7 +190,7 @@ class UnitTestFrame(wx.Frame):
     def onRunTests(self, event=None):
         """Run the unit tests
         """
-        testsPath = os.path.join(self.prefs.paths['psychopy'],'tests','run.py')        
+        runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')        
         #create process
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
@@ -183,22 +200,27 @@ class UnitTestFrame(wx.Frame):
         #print ALL output?
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
-        #targeted test? run only those tests specified in coder pref test_path
-        test_subset = ' '
+        #want only a subset of all tests?
+        test_subset = ''
         if hasattr(self, 'test_path') and self.test_path.GetValue():
-            test_subset = ' '+self.app.prefs.coder['test_subset']
-        #run tests
+            test_subset = self.app.prefs.coder['testSubset']
+        #run tests:
         self.btnRun.Disable()
         if sys.platform=='win32':
-            command = '"%s" -u "%s%s%s%s"' %(sys.executable, testsPath, 
+            test_subset = ' '+test_subset
+            command = '"%s" -u "%s%s%s%s"' %(sys.executable, runpyPath, 
                 coverage, allStdout, test_subset)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            testsPath= testsPath.replace(' ','\ ')
-            command = '%s -u %s%s%s%s' %(sys.executable, testsPath, 
+            runpyPath = runpyPath.replace(' ','\ ')
+            test_subset = ' '+test_subset.replace(' ','\ ')
+            command = '%s -u %s%s%s%s' %(sys.executable, runpyPath, 
                 coverage, allStdout, test_subset)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+        self.outputWindow.write("\n\n#####  Testing: %s%s%s%s   #####\n\n" %
+                (runpyPath, coverage, allStdout, test_subset))
+        self.outputWindow.flush()
     def onIdle(self, event=None):
         if self.scriptProcess!=None:
             if self.scriptProcess.IsInputAvailable():
@@ -2009,6 +2031,9 @@ class CoderFrame(wx.Frame):
     def onUnitTests(self, evt=None):
         """Show the unit tests frame
         """
-        self.unitTestFrame=UnitTestFrame(app = self.app)
+        if self.unitTestFrame:
+            self.unitTestFrame.Raise()
+        else:
+            self.unitTestFrame=UnitTestFrame(app = self.app)
 #        UnitTestFrame.Show()
         

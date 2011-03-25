@@ -52,7 +52,7 @@
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
     preferredShell = option('ipython','pyshell',default='pyshell')
-    test_subset = string(default='')
+    testSubset = string(default='')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')

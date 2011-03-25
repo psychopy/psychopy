@@ -23,7 +23,7 @@ def testExp_LoadCompileSavePsyexpFiles():
     tmp_file = path.join(tmp_dir, 'tmp_lastrun.py')
     shutil.rmtree(tmp_dir, ignore_errors=True) # start clean
     os.mkdir(tmp_dir) # muck about in here
-    for root, dirs, files in os.walk(path.join(tmp_dir, '../../../../demos/builder')):
+    for root, dirs, files in os.walk(path.join(exp.prefsPaths['demos'],'builder')):
         for psy_exp in [f for f in files if f.endswith('.psyexp')]:
             shutil.copyfile(path.join(root, psy_exp), path.join(tmp_dir, psy_exp))
     test_psyexp = glob.glob(path.join(tmp_dir, '*.psyexp')) + glob.glob(path.join(here, '*.psyexp'))

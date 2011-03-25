@@ -69,6 +69,7 @@ class Experiment:
         self.prefsGeneral=prefs.general
         self.prefsCoder=prefs.coder
         self.prefsBuilder=prefs.builder
+        self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
