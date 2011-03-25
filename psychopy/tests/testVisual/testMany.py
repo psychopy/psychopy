@@ -164,12 +164,21 @@ class _baseVisualTest:
         gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
             sf=4, size=1,
             color=[-0.5,-0.5,-1])
-        aperture = visual.Aperture(win, size=20,pos=[5,0])
+        aperture = visual.Aperture(win, size=10,pos=[2.5,0])
         aperture.enable()
         gabor1.draw()
         aperture.disable()
         gabor2.draw()
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        win.flip()#AFTER compare screenshot
+    def testRatingScale(self):
+        # try to avoid text; avoid default / 'triangle' because it does not display on win XP
+        win = self.win
+        rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
+                        lowAnchorText=' ', highAnchorText=' ', scale=' ', 
+                        markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
+        rs.draw()
+        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
         
 #create different subclasses for each context/backend

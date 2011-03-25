@@ -86,7 +86,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
         if self.app.prefs.app['debugMode']: 
-            #self.Bind(wx.EVT_BUTTON, self.onRenameRoutine, self.btnRenameRoutine)
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -558,6 +557,8 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(tmpId, area)
         
         #add a name label that can be clicked on
+        if self.frame.app.prefs.builder['showLoopInfoInFlow']:
+            name += ': '+str(loop.params['nReps'].val)+'x, '+str(loop.params['loopType'].val)
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
@@ -1053,7 +1054,7 @@ class ParamCtrls:
         self.nameCtrl = wx.StaticText(parent,-1,label,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
 
-        if label=='text':
+        if label in ['text', 'customize_everything']:
             #for text input we need a bigger (multiline) box
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
@@ -1167,8 +1168,6 @@ class _BaseParamsDlg(wx.Dialog):
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
-        if title == 'None Properties':
-            title = 'Experiment Settings'
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
@@ -1177,7 +1176,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
-        if not editing and title != 'Experiment Settings': # a hack; is there a better way to detect if its experiment settings?
+        if not editing and title != 'Experiment Settings':
             # then we're adding a new component, so provide a known-valid name:
             self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
         self.paramCtrls={}
@@ -1351,7 +1350,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Disable()
         else:
             namespace = self.frame.exp.namespace
-            used = namespace.exists(newName) #replaces: self.frame.exp.getUsedName(newName)
+            used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
                 self.nameOKlabel.SetLabel("Name is already used by a %s" % used)
@@ -1635,7 +1634,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             pos=wx.DefaultPosition, size=wx.DefaultSize,helpUrl=None,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
-        _BaseParamsDlg.__init__(self,frame,title,params,order,
+        _BaseParamsDlg.__init__(self,frame,'Experiment Settings',params,order,
                                 pos=pos,size=size,style=style,helpUrl=helpUrl)
         self.frame=frame
         self.app=frame.app

@@ -52,6 +52,7 @@
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
     preferredShell = option('ipython','pyshell',default='pyshell')
+    test_subset = string(default='')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
@@ -63,6 +64,7 @@
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list())
     unpackedDemosDir = string(default='')
+    showLoopInfoInFlow = boolean(default=False)
   
 [connections]
     # the http proxy (for usage stats and auto-updating, format is 000.000.000.000:0000)

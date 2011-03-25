@@ -126,24 +126,31 @@ class UnitTestFrame(wx.Frame):
         menuBar = wx.MenuBar()
         self.menuTests=wx.Menu()
         menuBar.Append(self.menuTests, '&Tests')        
-        self.menuTests.Append(wx.ID_CLOSE,   "&Run tests\t%s" %self.app.keys['runScript'])
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onRunTests)
+        self.menuTests.Append(wx.ID_DEFAULT,   "&Run tests\t%s" %self.app.keys['runScript'])
+        wx.EVT_MENU(self, wx.ID_DEFAULT,  self.onRunTests)
         self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
         #-------------quit
         self.menuTests.AppendSeparator()
         self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate PsychoPy")
         wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
+        item = self.menuTests.Append(wx.ID_PREFERENCES, text = "&Preferences")
+        self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         self.SetMenuBar(menuBar)
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(300,200), font = self.prefs.coder['outputFont'], fontSize=self.prefs.coder['outputFontSize'])
+            size=wx.Size(750,600), font = self.prefs.coder['outputFont'],
+            fontSize=self.prefs.coder['outputFontSize'])
         
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
+        if self.app.prefs.coder['test_subset']:
+            self.test_path=wx.CheckBox(parent=self,label=self.app.prefs.coder['test_subset'])
+            self.test_path.SetValue(True)
+            self.test_path.SetToolTip(wx.ToolTip("Only run a subset of tests; enter test_path in coder prefs, e.g., 'testApp/testbuilder'"))
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
         self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
 #        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
@@ -153,6 +160,8 @@ class UnitTestFrame(wx.Frame):
         self.SetDefaultItem(self.btnRun)
         
         #arrange controls
+        if self.app.prefs.coder['test_subset']:
+            buttonsSizer.Add(self.test_path, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
         buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
@@ -174,17 +183,21 @@ class UnitTestFrame(wx.Frame):
         #print ALL output?
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
+        #targeted test? run only those tests specified in coder pref test_path
+        test_subset = ' '
+        if hasattr(self, 'test_path') and self.test_path.GetValue():
+            test_subset = ' '+self.app.prefs.coder['test_subset']
         #run tests
         self.btnRun.Disable()
         if sys.platform=='win32':
-            command = '"%s" -u "%s%s%s"' %(sys.executable, testsPath, 
-                coverage, allStdout)# the quotes allow file paths with spaces
+            command = '"%s" -u "%s%s%s%s"' %(sys.executable, testsPath, 
+                coverage, allStdout, test_subset)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             testsPath= testsPath.replace(' ','\ ')
-            command = '%s -u %s%s%s' %(sys.executable, testsPath, 
-                coverage, allStdout)# the quotes would break a unix system command
+            command = '%s -u %s%s%s%s' %(sys.executable, testsPath, 
+                coverage, allStdout, test_subset)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
     def onIdle(self, event=None):
         if self.scriptProcess!=None:

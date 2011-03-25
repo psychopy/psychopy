@@ -40,7 +40,7 @@ You have to manage the indentation level of the output code, see experiment.Inde
 xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the builder. So you will want to look at xxx_lastrun.py frequently when developing your component. 
 
 There are several internal variables (er, names of python objects) that have a specific, hardcoded meaning within xxx_lastrun.py. You can expect the
-following to be there, and they should only be used in the original way (or something will break for the end-user, likely in a mysterious way):
+following to be there, and they should only be used in the original way (or something will break for the end-user, likely in a mysterious way)::
 
    'win' = the window
    't' = time within the trial loop, referenced to trialClock
@@ -71,6 +71,10 @@ A lot more detail can be infered from Jon's code.
 
 Making things loop-compatible looks interesting -- see keyboard.py for an example, especially code for saving data at the end.
 
+Gotchas:
+
+    param[].val : If you have a boolean variable (e.g., my_flag) as one of your params, note that 'self.param["my_flag"]' is always True (the param exists --> True). So you almost always want 'self.param["my_flag"].val'.
+    
 Step 2. Make an icon: 'newcomp.png':
 ----------------------------------------
 Using your favorite image software, make an icon for your Component, 'newcomp.png'. Dimensions = 48 x 48. Put it in the components directory.
