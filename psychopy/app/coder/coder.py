@@ -185,7 +185,7 @@ class UnitTestFrame(wx.Frame):
         else: allStdout=''
         #targeted test? run only those tests specified in coder pref test_path
         test_subset = ' '
-        if self.test_path.GetValue():
+        if hasattr(self, 'test_path') and self.test_path.GetValue():
             test_subset = ' '+self.app.prefs.coder['test_subset']
         #run tests
         self.btnRun.Disable()
