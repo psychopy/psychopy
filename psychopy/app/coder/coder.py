@@ -117,29 +117,33 @@ class UnitTestFrame(wx.Frame):
         """richTextCtrl window for unit test output"""
         def __init__(self, parent, style, size=None, font=None, fontSize=None):
             stdOutRich.StdOutRich.__init__(self, parent=parent, style=style, size=size)
+            self.bad = [150,0,0]
+            self.good = [0,150,0]
+            self.skip = [170,170,170]
         def write(self,inStr):
             self.MoveEnd()#always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
-                if thisLine=='OK\n':
+                if thisLine.startswith('OK'):
                     self.BeginBold()
-                    self.BeginTextColour([0,150,0])  
-                    self.WriteText("OK\n")
+                    self.BeginTextColour(self.good)  
+                    self.WriteText("OK")
                     self.EndTextColour()
                     self.EndBold()
+                    self.WriteText(thisLine[2:]) # for OK (SKIP=xx)
                     self.parent.status = 1
-                elif thisLine.startswith('##### Testing'):
+                elif thisLine.startswith('#####'):
                     self.BeginBold()
                     self.WriteText(thisLine)
                     self.EndBold()
-                elif thisLine.find('... SKIP')>-1:
-                    self.BeginTextColour([170,170,170])
-                    self.WriteText(thisLine)
-                    self.EndTextColour()
                 elif thisLine.startswith('FAILED') or thisLine.find('ERROR')>-1:
-                    self.BeginTextColour([150,0,0])
+                    self.BeginTextColour(self.bad)
                     self.WriteText(thisLine)
                     self.EndTextColour()
                     self.parent.status = -1
+                elif thisLine.find('SKIP')>-1:
+                    self.BeginTextColour(self.skip)
+                    self.WriteText(thisLine)
+                    self.EndTextColour()
                 else:#line to write as simple text
                     self.WriteText(thisLine)
             self.MoveEnd()#go to end of stdout so user can see updated text
