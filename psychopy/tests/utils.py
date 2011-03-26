@@ -20,6 +20,7 @@ def compareScreenshot(fileName, win, crit=5.0):
     win.movieFrames=[]
     if saveImage:
         frame.save(fileName, optimize=1)
+        raise nose.plugins.skip.SkipTest, "Create %s" % os.path.basename(fileName)
     else:
         expected=Image.open(fileName)
         expDat = np.array(expected.getdata())
