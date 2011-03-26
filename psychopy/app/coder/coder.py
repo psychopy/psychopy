@@ -113,84 +113,119 @@ class PsychoDebugger(bdb.Bdb):
         return 1
 
 class UnitTestFrame(wx.Frame):
+    class _unitTestOutRich(stdOutRich.StdOutRich):
+        """richTextCtrl window for unit test output"""
+        def __init__(self, parent, style, size=None, font=None, fontSize=None):
+            stdOutRich.StdOutRich.__init__(self, parent=parent, style=style, size=size)
+        def write(self,inStr):
+            self.MoveEnd()#always 'append' text rather than 'writing' it
+            for thisLine in inStr.splitlines(True):
+                if thisLine=='OK\n':
+                    self.BeginBold()
+                    self.BeginTextColour([0,150,0])  
+                    self.WriteText("OK\n")
+                    self.EndTextColour()
+                    self.EndBold()
+                    self.parent.status = 1
+                elif thisLine.startswith('##### Testing'):
+                    self.BeginBold()
+                    self.WriteText(thisLine)
+                    self.EndBold()
+                elif thisLine.find('... SKIP')>-1:
+                    self.BeginTextColour([170,170,170])
+                    self.WriteText(thisLine)
+                    self.EndTextColour()
+                elif thisLine.startswith('FAILED') or thisLine.find('ERROR')>-1:
+                    self.BeginTextColour([150,0,0])
+                    self.WriteText(thisLine)
+                    self.EndTextColour()
+                    self.parent.status = -1
+                else:#line to write as simple text
+                    self.WriteText(thisLine)
+            self.MoveEnd()#go to end of stdout so user can see updated text
+            self.ShowPosition(self.GetLastPosition() )
     def __init__(self, parent=None, ID=-1, title='PsychoPy unit testing', files=[], app=None):
         self.app = app
         self.frameType='unittest'
         self.prefs = self.app.prefs
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
-        wx.Frame.__init__(self, parent, ID, title, pos=wx.DefaultPosition)
+        wx.Frame.__init__(self, parent, ID, title, pos=(450,45)) # to right, so Cancel button is clickable during a long test
         self.scriptProcess=None
+        self.run_all_text = 'all tests'
+        border = 10
+        self.status = 0 # outcome of the last test run: -1 fail, 0 not run, +1 ok
         
         #create menu items
         menuBar = wx.MenuBar()
         self.menuTests=wx.Menu()
         menuBar.Append(self.menuTests, '&Tests')        
-        self.menuTests.Append(wx.ID_DEFAULT,   "&Run tests\t%s" %self.app.keys['runScript'])
-        wx.EVT_MENU(self, wx.ID_DEFAULT,  self.onRunTests)
-        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" %self.app.keys['close'])
+        self.menuTests.Append(wx.ID_APPLY,   "&Run tests\t%s" % self.app.keys['runScript'])
+        wx.EVT_MENU(self, wx.ID_APPLY,  self.onRunTests)
+        self.menuTests.Append(self.IDs.stopFile, "&Cancel running test\t%s" %
+                              self.app.keys['stopScript'], "Quit a test in progress")
+        wx.EVT_MENU(self, self.IDs.stopFile,  self.onCancelTests)
+        self.menuTests.AppendSeparator()
+        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" % self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
-        self.menuTests.Append(self.IDs.openCoderView, "Go to &Coder view\t%s" %self.app.keys['switchToCoder'], "Go to the Coder view")
+        self.menuTests.Append(self.IDs.openCoderView, "Go to &Coder view\t%s" %
+                              self.app.keys['switchToCoder'], "Go to the Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
         #-------------quit
         self.menuTests.AppendSeparator()
-        self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate PsychoPy")
+        self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" % self.app.keys['quit'], "Terminate PsychoPy")
         wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
         item = self.menuTests.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
-            
         self.SetMenuBar(menuBar)
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.outputWindow=stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY, 
-            size=wx.Size(750,600), font = self.prefs.coder['outputFont'],
+        self.outputWindow=self.unitTestOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.EXPAND|wx.GROW, 
+            size=wx.Size(750,500), font=self.prefs.coder['outputFont'],
             fontSize=self.prefs.coder['outputFontSize'])
         
-        self.btnRun = wx.Button(parent=self,label="Run tests")
-        self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
-        self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
-        pref_testSubset = self.app.prefs.coder['testSubset'].strip()
         known_tests = glob.glob(os.path.join(self.paths['tests'],'test*'))
         known_test_list = [t.split(os.sep)[-1] for t in known_tests]
-        known_test_list = '[ '+' '.join(known_test_list) +' ]'
-        if len(pref_testSubset):
-            base = pref_testSubset.split(os.sep)[0] # first part of the requested test, eg, testApp
-            if not os.path.join(self.paths['tests'], base) in known_tests: #
-                self.test_path=wx.CheckBox(parent=self,label='all subtests; "%s" not found (typo?)'% pref_testSubset)
-                self.test_path.SetValue(True)
-                self.test_path.SetToolTip(wx.ToolTip("Subtests are a path within psychopy/tests/ ; " + known_test_list))
-            else:
-                self.test_path=wx.CheckBox(parent=self,label='subtest: ' + pref_testSubset)
-                self.test_path.SetValue(True)
-                self.test_path.SetToolTip(wx.ToolTip("Only run a subset of tests;\nprefs.coder 'testSubset' = " + known_test_list))
-        else:
-            self.test_path=wx.CheckBox(parent=self,label='subtest [none specified]')
-            self.test_path.SetValue(False)
-            self.test_path.SetToolTip(wx.ToolTip("In preferences, enter a coder pref 'testSubset'; there specify one of: " +\
-                                known_test_list))
+        self.known_test_list = [self.run_all_text] + known_test_list
+        self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.known_test_list)
+        self.testSelect.SetToolTip(wx.ToolTip("Select the directory of tests to be run, from:\npsychopy/tests/test*/"))
+        pref_testSubset = self.app.prefs.coder['testSubset'].strip()
+        if pref_testSubset in self.known_test_list:
+            self.testSelect.SetStringSelection(pref_testSubset)
+            
+        self.btnRun = wx.Button(parent=self,label="Run tests")
+        self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
+        self.btnCancel = wx.Button(parent=self,label="Cancel")
+        self.btnCancel.Bind(wx.EVT_BUTTON, self.onCancelTests)
+        self.btnCancel.Disable()
+        self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
+        
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
         self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
-#        self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        #self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
         self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
         self.chkAllStdOut.SetToolTip(wx.ToolTip("Report ALL printed output form the tests"))
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
         
         #arrange controls
-        buttonsSizer.Add(self.test_path, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
-        buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
-        buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
-        buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=10)
+        buttonsSizer.Add(self.chkCoverage, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=border)
+        buttonsSizer.Add(self.chkAllStdOut, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=border)
+        buttonsSizer.Add(self.btnRun, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=border)
+        buttonsSizer.Add(self.btnCancel, 0, wx.LEFT|wx.RIGHT|wx.TOP, border=border)
         self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
         self.sizer.Add(buttonsSizer, 0, wx.ALIGN_RIGHT)
-        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND|wx.GROW, border=10)
+        self.sizer.Add(self.outputWindow, 0, wx.ALL|wx.EXPAND|wx.GROW, border=border)
         self.SetSizerAndFit(self.sizer)
         self.Show()
+        
     def onRunTests(self, event=None):
         """Run the unit tests
         """
         runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')        
+        self.status = 0
+        
         #create process
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
@@ -201,11 +236,13 @@ class UnitTestFrame(wx.Frame):
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
         #want only a subset of all tests?
-        test_subset = ''
-        if hasattr(self, 'test_path') and self.test_path.GetValue():
-            test_subset = self.app.prefs.coder['testSubset']
-        #run tests:
+        tselect = self.known_test_list[self.testSelect.GetCurrentSelection()]
+        if tselect == self.run_all_text: tselect = ''
+        test_subset = tselect
+        
+        # launch the tests using wx.Execute():
         self.btnRun.Disable()
+        self.btnCancel.Enable()
         if sys.platform=='win32':
             test_subset = ' '+test_subset
             command = '"%s" -u "%s%s%s%s"' %(sys.executable, runpyPath, 
@@ -218,9 +255,17 @@ class UnitTestFrame(wx.Frame):
             command = '%s -u %s%s%s%s' %(sys.executable, runpyPath, 
                 coverage, allStdout, test_subset)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
-        self.outputWindow.write("\n\n#####  Testing: %s%s%s%s   #####\n\n" %
-                (runpyPath, coverage, allStdout, test_subset))
-        self.outputWindow.flush()
+        msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (runpyPath, coverage, allStdout, test_subset)
+        self.outputWindow.write(msg)
+        
+    def onCancelTests(self, event=None):
+        if self.scriptProcess != None:
+            self.scriptProcess.Kill(self.scriptProcessID, wx.SIGTERM, wx.SIGKILL)
+        self.scriptProcess = None
+        self.scriptProcessID = None
+        self.outputWindow.write("\n --->> cancelled <<---\n\n")
+        self.status = 0
+        self.onTestsEnded()
     def onIdle(self, event=None):
         if self.scriptProcess!=None:
             if self.scriptProcess.IsInputAvailable():
@@ -235,10 +280,8 @@ class UnitTestFrame(wx.Frame):
         self.onIdle()#so that any final stdout/err gets written
         self.outputWindow.flush()
         self.btnRun.Enable()
-#    def onChgCoverage(self, event=None):
-#        """Toggle coverage suite in testing
-#        """
-#        pass
+        self.btnCancel.Disable()
+        output = self.outputWindow.GetValue()
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
@@ -1198,7 +1241,7 @@ class CoderFrame(wx.Frame):
 
         self.toolsMenu.Append(self.IDs.runFile, "Run\t%s" %self.app.keys['runScript'], "Run the current script")
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
-        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys['stopScript'], "Run the current script")
+        self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys['stopScript'], "Stop the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
         
         self.toolsMenu.AppendSeparator()
