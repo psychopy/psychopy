@@ -181,7 +181,7 @@ class UnitTestFrame(wx.Frame):
         
         #create controls
         buttonsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.outputWindow=self.unitTestOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.EXPAND|wx.GROW, 
+        self.outputWindow=self._unitTestOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.EXPAND|wx.GROW, 
             size=wx.Size(750,500), font=self.prefs.coder['outputFont'],
             fontSize=self.prefs.coder['outputFontSize'])
         
