@@ -15,9 +15,9 @@ def testExp_AddRoutine():
 #    exp.Add
 
 
-def testExp_LoadCompileSavePsyexpFiles():
-    """ copy .psyexp demos -> import XML -> lastrun.py -> py_compile to .pyc
-    """
+def testExp_LoadCompilePsyexp():
+    # copy .psyexp demos -> import XML -> lastrun.py -> py_compile to .pyc
+    
     # avoid redundant psyexp scripts; make temp copies of builder demos:
     tmp_dir = path.join(here, 'tmp_load_compile_psyexp')
     tmp_file = path.join(tmp_dir, 'tmp_lastrun.py')
@@ -29,7 +29,7 @@ def testExp_LoadCompileSavePsyexpFiles():
     test_psyexp = glob.glob(path.join(tmp_dir, '*.psyexp')) + glob.glob(path.join(here, '*.psyexp'))
     if len(test_psyexp) == 0:
         # need something to test; found no demos, maybe its a path error here in the test
-        raise nose.plugins.skip.SkipTest
+        raise nose.plugins.skip.SkipTest, "No Builder .psyexp demos found"
     for file in test_psyexp:
         if file.find('bart.psyexp') > -1: continue # ; bart.psyexp had a unicode char -> error
         # go from psyexp file on disk to internal builder representation:
