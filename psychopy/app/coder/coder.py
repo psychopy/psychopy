@@ -135,7 +135,7 @@ class UnitTestFrame(wx.Frame):
                     self.BeginBold()
                     self.WriteText(thisLine)
                     self.EndBold()
-                elif thisLine.startswith('FAILED') or thisLine.find('ERROR')>-1:
+                elif thisLine.find('FAIL') > -1 or thisLine.find('ERROR')>-1:
                     self.BeginTextColour(self.bad)
                     self.WriteText(thisLine)
                     self.EndTextColour()
