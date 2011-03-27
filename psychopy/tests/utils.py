@@ -5,7 +5,7 @@ import numpy as np
 import OpenGL
 
 def compareScreenshot(fileName, win, crit=5.0):
-    """Compare the current front buffer of the given window with the file 
+    """Compare the current back buffer of the given window with the file 
     """
     #if we start this from a folder below run.py the data folder won't be found 
     if not os.path.isdir(os.path.split(fileName)[0]):
