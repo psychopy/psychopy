@@ -149,7 +149,7 @@ class RunTimeInfo(dict):
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self['experimentScript.directory'] = scriptDir
         # sha1 digest, text-format compatibility
-        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]))
+        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]), file=True)
         # subversion revision?
         try:
             svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0])) # svn revision
@@ -538,24 +538,32 @@ def _getUserNameUID():
         pass
     return str(user), int(uid)
 
-def _getSha1hexDigest(str):
-    """Returns base64 / hex encoded sha1 digest of a file or string, using hashlib.sha1() if available
+def _getSha1hexDigest(thing, file=False):
+    """Returns base64 / hex encoded sha1 digest of str(thing), or of a file contents
+    return None if a file is requested but no such file exists
     
     :Author:
-        - 2010 written by Jeremy Gray
+        - 2010 Jeremy Gray; updated 2011 to be more explicit
 
     >>> _getSha1hexDigest('1')
+    '356a192b7913b04c54574d18c28d46e6395428ab'
+    >>> _getSha1hexDigest(1)
     '356a192b7913b04c54574d18c28d46e6395428ab'
     """
     try:
         sha1 = hashlib.sha1()
-    except ImportError:
+    except:
         sha1 = sha.new() # deprecated, here for python 2.4
-    if os.path.isfile(str):
-        f = open(str,'r')
-        sha1.update(f.read())
-        f.close()
+    if file:
+        filename = thing
+        if os.path.isfile(filename):
+            f = open(filename,'rb')
+            sha1.update(f.read()) # check file size < available RAM first? or update in chunks?
+            f.close()
+        else:
+            return None
+            #raise IOError, "file '" + filename + "' not found'"
     else:
-        sha1.update(str)
+        sha1.update(str(thing))
     return sha1.hexdigest()
         
