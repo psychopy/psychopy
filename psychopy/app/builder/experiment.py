@@ -858,7 +858,6 @@ class NameSpace():
         # make it legal:
         try: name = str(name) # convert from unicode, flag as uni if can't convert
         except: prefix = 'uni'
-        assert not prefix[0].isdigit() # programmer error
         if not name: name = prefix+'_1'
         if name[0].isdigit():
             name = prefix+'_' + name
