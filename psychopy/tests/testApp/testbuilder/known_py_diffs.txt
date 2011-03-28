@@ -1,0 +1,63 @@
+#
+# This file is used to contain diffs that do not indicate a meaningful test failure, and so should be ignored.
+#
+# If testExperiment fails because of a diff between .py files, a tmp_py_diff.tmp file will be generated.
+# However, the .py file from (load psyexp -> .py) might differ in uninteresting ways from the the .py file
+# from (load psyexp -> saveToXML -> loadFromXML -> .py). For example: the order of items within a dict.
+# So if a diff is generated, its worth inspecting it as a clue to a bug, or 
+# 
+# Go to the relevant directory, currently:
+#    cd psychopy/tests/testApp/testbuilder/
+# View the diff in the temp file:
+#    cat tmp_py_diff.tmp
+# If it looks like that differences should not appear, well, here's a starting point for fixing it.
+# And if it looks like something that SHOULD be ignored, append (>>) it to this file (the known diff file):
+#    cat tmp_py_diff.txt >> known_py_diffs.txt
+#
+# If you then run testApp again, and that was the only issue, the test should succeed.
+
+# ------------------------------------- append diffs below: -------------------------------------
+
+
+l1,l2,%: 188, 188, 0  branching.psyexp
+l1,l2,%: 337, 337, 2  NavonTask.psyexp
+NavonTask.psyexp load-save difference in resulting .py files:
+***************
+*** 226,232 ****
+  
+  practiceTrials.saveAsPickle(filename+'practiceTrials')
+  practiceTrials.saveAsExcel(filename+'.xlsx', sheetName='practiceTrials',
+!     stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
+      dataOut=['n','all_mean','all_std', 'all_raw'])
+  
+  #update component parameters for each repeat
+--- 226,232 ----
+  
+  practiceTrials.saveAsPickle(filename+'practiceTrials')
+  practiceTrials.saveAsExcel(filename+'.xlsx', sheetName='practiceTrials',
+!     stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
+      dataOut=['n','all_mean','all_std', 'all_raw'])
+  
+  #update component parameters for each repeat
+***************
+*** 308,314 ****
+  
+  trials.saveAsPickle(filename+'trials')
+  trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
+!     stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
+      dataOut=['n','all_mean','all_std', 'all_raw'])
+  
+  #update component parameters for each repeat
+--- 308,314 ----
+  
+  trials.saveAsPickle(filename+'trials')
+  trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
+!     stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
+      dataOut=['n','all_mean','all_std', 'all_raw'])
+  
+  #update component parameters for each repeat
+
+l1,l2,%: 141, 141, 0  psychophysicsStaircase.psyexp
+l1,l2,%: 310, 310, 0  sternberg.psyexp
+l1,l2,%: 309, 309, 0  stroop.psyexp
+l1,l2,%: 309, 309, 0  stroopReverse.psyexp
