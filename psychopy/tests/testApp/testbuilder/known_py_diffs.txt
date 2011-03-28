@@ -21,41 +21,27 @@
 
 # ------------------------------------- append diffs below: -------------------------------------
 
+# example:
 
-NavonTask.psyexp load vs load-save-load differences in resulting .py files = from dict in XML file
-***************
-*** 226,232 ****
-  
-  practiceTrials.saveAsPickle(filename+'practiceTrials')
-  practiceTrials.saveAsExcel(filename+'.xlsx', sheetName='practiceTrials',
-!     stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
-      dataOut=['n','all_mean','all_std', 'all_raw'])
-  
-  #update component parameters for each repeat
---- 226,232 ----
-  
-  practiceTrials.saveAsPickle(filename+'practiceTrials')
-  practiceTrials.saveAsExcel(filename+'.xlsx', sheetName='practiceTrials',
-!     stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
-      dataOut=['n','all_mean','all_std', 'all_raw'])
-  
-  #update component parameters for each repeat
-***************
-*** 308,314 ****
-  
-  trials.saveAsPickle(filename+'trials')
-  trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
-!     stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
-      dataOut=['n','all_mean','all_std', 'all_raw'])
-  
-  #update component parameters for each repeat
---- 308,314 ----
-  
-  trials.saveAsPickle(filename+'trials')
-  trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
-!     stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
-      dataOut=['n','all_mean','all_std', 'all_raw'])
-  
-  #update component parameters for each repeat
+NavonTask.psyexp.py load-save difference in resulting .py files: ---------------
+@@ -226,7 +226,7 @@
+ 
+ practiceTrials.saveAsPickle(filename+'practiceTrials')
+ practiceTrials.saveAsExcel(filename+'.xlsx', sheetName='practiceTrials',
+-    stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
++    stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
+     dataOut=['n','all_mean','all_std', 'all_raw'])
+ 
+ #update component parameters for each repeat
+@@ -308,7 +308,7 @@
+ 
+ trials.saveAsPickle(filename+'trials')
+ trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
+-    stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ],
++    stimOut=['xPos', 'congruence', 'yPos', 'corrAns', 'stimFile', 'location', ],
+     dataOut=['n','all_mean','all_std', 'all_raw'])
+ 
+ #update component parameters for each repeat
 
+--------------------------------------------------------------------------------
 

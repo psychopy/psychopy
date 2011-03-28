@@ -2,8 +2,9 @@ import psychopy.app.builder.experiment
 from os import path
 import os, shutil, glob
 import py_compile
+import difflib
 import nose
-from psychopy.info import _getSha1hexDigest as sha1hex
+#from psychopy.info import _getSha1hexDigest as sha1hex
 
 # Jeremy Gray March 2011
 
@@ -11,9 +12,16 @@ from psychopy.info import _getSha1hexDigest as sha1hex
 # dicts have no defined order, can load and save differently: use a known-diff file to suppress boring errors
 # namespace.make_valid() can change var names from the orig demos, but should not do so from a load-save-load
 #    because only the first load should change things
-# maybe look into python difflib instead of os.popen("diff ...")
 
-exp = psychopy.app.builder.experiment.Experiment()
+exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+
+def _diff(a, b): 
+    """ diff of strings; returns a generator, 3 lines of context by default, - or + for changes """
+    return difflib.unified_diff(a, b) 
+def _diff_file(a, b):
+    """ diff of files read as strings, by line; output is similar to git gui diff """
+    diff = _diff(open(a).readlines(), open(b).readlines()) 
+    return list(diff)
 
 class TestExpt():
     def setUp(self):
@@ -22,13 +30,13 @@ class TestExpt():
         
         # dirs and files:
         self.here = path.abspath(path.dirname(__file__))
+        self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
         self.tmp_dir = path.join(self.here, '.nose.tmp')
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
         os.mkdir(self.tmp_dir)
         
     def tearDown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
-        pass
     
     def _checkLoadSave(self, file):
         exp = self.exp
@@ -57,58 +65,62 @@ class TestExpt():
         py_compile.compile(py_file, doraise=True)
         return py_file + 'c'
     
-    def _checkPyDiff(self, file_py, file2_py, known_diffs):
-        """return '' for no meaningful diff, or a diff -c patch"""
-        # check for differences in lastrun.py versions:
-        diff_py_lines = os.popen('diff -c ' + file_py + ' ' + file2_py).readlines()
-        if len(diff_py_lines):
-            bad_diff = False # not all diffs are bad...
-            # different file lengths is a bad sign:
-            if len(open(file_py).readlines()) != len(open(file2_py).readlines()):
+    def _checkPyDiff(self, file_py, file2_py):
+        """return '' for no meaningful diff, or a diff patch"""
+        
+        diff_py_lines = _diff_file(file_py, file2_py)[2:] # ignore first two lines --- +++
+        if not len(diff_py_lines):
+            return ''
+        
+        bad_diff = False # not all diffs are bad...
+        # get all differing lines only, no context:
+        f1 = [x[1:] for x in diff_py_lines if x[0] == '+']
+        f2 = [x[1:] for x in diff_py_lines if x[0] == '-']
+        if len(f1) != len(f2):
+            bad_diff = True
+        diff_py_keylines = f1 + f2
+        
+        # if line starts with stimOut, check for mere variation in order within line = ok
+        #     fails for multiple stimOut lines with diff trialLists ==> len(set()) > 1 
+        if not bad_diff:
+            # get only the stimOut lines, ignore leading whitespace:
+            diff_py_stimOut = [y.replace("'", " ' ").strip() for y in diff_py_keylines
+                                 if y.lstrip().startswith('stimOut')]
+            # in Navon demo, stimOut comes from a dict written as a list, for trialList
+            diff_py_stimOut_sort = []
+            for line in diff_py_stimOut:
+                sp_line = line.split()
+                sp_line.sort() # squash order
+                diff_py_stimOut_sort.append(' '.join(sp_line))
+            # for diff lines that start with stimOut, are they same except order?
+            if len(set(diff_py_stimOut_sort)) > 1: # set() squashes duplicates
                 bad_diff = True
-            # check for mere variation in order within line, if line starts with stimOut=[
-            # will fail if there are multiple stimOut lines with different trialLists ==> len(set()) will be > 1 
-            if not bad_diff:
-                # get all differing lines only, no context:
-                diff_py_keylines = [x for x in diff_py_lines if x.startswith('!')] 
-                # get only the stimOut lines:
-                diff_py_stimOut = [y.replace("'"," ' ").strip() for y in diff_py_keylines
-                                     if y.startswith('!     stimOut=[')]
-                # stimOut comes from a dict written as a list for trialList, so order can vary, = ok
-                diff_py_stimOut_sort = []
-                for line in diff_py_stimOut:
-                    sp_line = line.split()
-                    sp_line.sort() # squash order
-                    diff_py_stimOut_sort.append(' '.join(sp_line))
-                # for diff lines that start with stimOut, are they all identical except for order of items?
-                if len(set(diff_py_stimOut_sort)) > 1: # set() squashes duplicates
-                    bad_diff = True
-                # are the stimOut lines the only ones that differ? (if so, we're ok)
-                if len(diff_py_keylines) != len(diff_py_stimOut):
-                    bad_diff = True
-            # add another checks here:
-            #if not bad_diff:
-            #    some_condition = ...
-            #    if some_condition:
-            #        bad_diff = True
-            
-            # create a diff file if bad_diff and not already a known-ok-diff:
-            if bad_diff:
-                diff_py_patch = '\n' + ''.join(diff_py_lines[2:])
-                    # NB the first two lines have file names & current time when diff
-                    # was run -> will fail to match cached, so ignore them
-                if known_diffs.find(diff_py_patch) == -1:
-                    patch = open(self.new_diff_file+'_'+os.path.basename(file_py)+'.patch', 'wb+')
-                    patch.write(os.path.basename(file_py) + ' load-save difference in resulting .py files:\n' + diff_py_patch + '\n\n')
-                    patch.close()
-                    
-                    return diff_py_patch  # --> final assert will fail
+            # are the stimOut lines the only ones that differ? if so, we're ok
+            if len(diff_py_keylines) != len(diff_py_stimOut):
+                bad_diff = True
+        
+        # add another checks here:
+        #if not bad_diff:
+        #    some_condition = ...
+        #    if some_condition:
+        #        bad_diff = True
+        
+        # create a patch / diff file if bad_diff and not already a known-ok-diff:
+        if bad_diff:
+            diff_py_patch = ''.join(diff_py_lines)
+            known_diffs = open(self.known_diffs_file).read()
+            if known_diffs.find(diff_py_patch) < 0:
+                patch = open(self.new_diff_file+'_'+path.basename(file_py)+'.patch', 'wb+')
+                patch.write(path.basename(file_py) + ' load-save difference in resulting .py files: '
+                            + '-'*15 + '\n' + diff_py_patch+'\n' + '-'*80 +'\n\n')
+                patch.close()
+                
+                return diff_py_patch  # --> final assert will fail
         return ''
     
     def testExp_LoadCompilePsyexp(self):
-        """ for each builder demo .psyexp: load-save-load, compile (syntax check), namespace"""
+        #""" for each builder demo .psyexp: load-save-load, compile (syntax check), namespace"""
         exp = self.exp
-        known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
         self.new_diff_file = path.join(self.here, 'tmp_py_diff')
         
         # make temp copies of all builder demos:
@@ -118,12 +130,11 @@ class TestExpt():
                     shutil.copyfile(path.join(root, f), path.join(self.tmp_dir, f))
         # also copy any psyexp in 'here' (testExperiment dir)
         for f in glob.glob(path.join(self.here, '*.psyexp')):
-            shutil.copyfile(f, path.join(self.tmp_dir, os.path.basename(f)))
+            shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
         test_psyexp = list(glob.glob(path.join(self.tmp_dir, '*.psyexp')))
         if len(test_psyexp) == 0:
             raise nose.plugins.skip.SkipTest, "No test .psyexp files found (no Builder demos??)"
         
-        known_diffs = open(known_diffs_file).read()
         diff_in_file_py = '' # will later assert that this is empty
         #diff_in_file_psyexp = ''
         #diff_in_file_pyc = ''
@@ -137,8 +148,8 @@ class TestExpt():
             #sha1_second = sha1hex(file2_pyc, file=True)
             
             # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
-            diff_in_file_py += self._checkPyDiff(file_py, file2_py, known_diffs)
-            #diff_psyexp = os.popen('diff -c ' + file_psyexp + ' ' + file2_psyexp).read().strip()
+            diff_in_file_py += self._checkPyDiff(file_py, file2_py)
+            #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
             #diff_in_file_psyexp += diff_psyexp
             #diff_pyc = (sha1_first != sha1_second)
             #assert not diff_pyc 
