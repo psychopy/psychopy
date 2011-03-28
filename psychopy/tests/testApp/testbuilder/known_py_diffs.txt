@@ -1,27 +1,28 @@
 #
 # This file is used to contain diffs that do not indicate a meaningful test failure, and so should be ignored.
 #
-# If testExperiment fails because of a diff between .py files, a tmp_py_diff.tmp file will be generated.
+# If testExperiment fails because of a diff between .py files, a file "tmp_py_diff_NameOfPsyexpScript.tmp" will be generated.
 # However, the .py file from (load psyexp -> .py) might differ in uninteresting ways from the the .py file
-# from (load psyexp -> saveToXML -> loadFromXML -> .py). For example: the order of items within a dict.
-# So if a diff is generated, its worth inspecting it as a clue to a bug, or 
+# from (load psyexp -> saveToXML -> loadFromXML -> .py), e.g., based merely on the order of items within a dict.
+# If a diff is generated, its worth inspecting it as a clue to a bug, or for how to ignore it.
 # 
-# Go to the relevant directory, currently:
-#    cd psychopy/tests/testApp/testbuilder/
-# View the diff in the temp file:
-#    cat tmp_py_diff.tmp
-# If it looks like that differences should not appear, well, here's a starting point for fixing it.
-# And if it looks like something that SHOULD be ignored, append (>>) it to this file (the known diff file):
+# Check for a new file (e.g., shows up as an unstaged change in git gui), and view the diff in the temp file.
+# From there, inspect the original XML file. In the case of the Navon task, there was a dict for a trialList:
+#     <Param name="trialList" val="[{'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 'h',
+#         'stimFile': 'bigHsmallH.png', 'location': 'up_right'},
+# that was getting written out in different orders into the .py file:
+#     stimOut=['xPos', 'congruence', 'yPos', 'location', 'stimFile', 'corrAns', ]
+# So it looks like something that SHOULD be ignored. To ignore, you can just append (>>) the tmp_py_diff.tmp to this file
+# (the "known_py_diff.txt" file):
 #    cat tmp_py_diff.txt >> known_py_diffs.txt
-#
 # If you then run testApp again, and that was the only issue, the test should succeed.
+# For the Navon task, I added logic to screen out diffs that consist of lines starting with stimOut and
+# vary only in the order of items within the line. So that one is suppressed without reference to this file
 
 # ------------------------------------- append diffs below: -------------------------------------
 
 
-l1,l2,%: 188, 188, 0  branching.psyexp
-l1,l2,%: 337, 337, 2  NavonTask.psyexp
-NavonTask.psyexp load-save difference in resulting .py files:
+NavonTask.psyexp load vs load-save-load differences in resulting .py files = from dict in XML file
 ***************
 *** 226,232 ****
   
@@ -57,7 +58,4 @@ NavonTask.psyexp load-save difference in resulting .py files:
   
   #update component parameters for each repeat
 
-l1,l2,%: 141, 141, 0  psychophysicsStaircase.psyexp
-l1,l2,%: 310, 310, 0  sternberg.psyexp
-l1,l2,%: 309, 309, 0  stroop.psyexp
-l1,l2,%: 309, 309, 0  stroopReverse.psyexp
+
