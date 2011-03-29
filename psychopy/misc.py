@@ -54,6 +54,14 @@ def mergeFolder(src, dst, pattern=None):
                 print why
 
 def radians(degrees):
+    """Convert degrees to radians
+    
+    >>> radians(180)
+    3.1415926535897931
+    >>> degrees(45)
+    0.78539816339744828
+    
+    """
     return degrees*numpy.pi/180.0
 
 def shuffleArray(inArray, shuffleAxis=-1, seed=None):
@@ -77,7 +85,14 @@ def shuffleArray(inArray, shuffleAxis=-1, seed=None):
 
 def extendArr(inArray,newSize):
     """Takes a numpy array and returns it padded with zeros to the necessary size
+    
+    >>> misc.extendArr([1,2,3],5)
+    array([1, 2, 3, 0, 0])
+    
     """ 
+    if type(inArray) in [tuple,list]:
+        inArray=numpy.asarray(inArray)
+        
     newArr = numpy.zeros(newSize,inArray.dtype)
     #create a string to eval (see comment below)
     indString=''
@@ -100,10 +115,12 @@ def ratioRange(start, nSteps=None, stop=None,
     
     Specify *start* and any 2 of, *nSteps*, *stop*, *stepRatio*, *stepdB*, *stepLogUnits*
     
-    examples (all return [1, 2, 4, 8]):
-        rangeRatio(1,nSteps=4,stop=8) 
-        rangeRatio(1,nSteps=4,stepRatio=2)
-        rangeRatio(1,stop=8,stepRatio=2)
+    >>> ratioRange(1,nSteps=4,stop=8)
+    array([ 1.,  2.,  4.,  8.])    
+    >>> ratioRange(1,nSteps=4,stepRatio=2)
+    array([ 1.,  2.,  4.,  8.])    
+    >>> ratioRange(1,stop=8,stepRatio=2)
+    array([ 1.,  2.,  4.,  8.])    
             
     """
 
@@ -183,6 +200,12 @@ def array2image(a):
 def float_uint8(inarray):
     """Converts arrays, lists, tuples and floats ranging -1:1
     into an array of Uint8s ranging 0:255
+    
+    >>> float_uint8(-1)
+    0
+    >>> float_uint8(0)
+    128
+    
     """
     retVal = numpy.around(255*(0.5+0.5*numpy.asarray(inarray)))
     return retVal.astype(numpy.uint8)

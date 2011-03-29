@@ -178,8 +178,12 @@ class _baseVisualTest:
                         lowAnchorText=' ', highAnchorText=' ', scale=' ', 
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
-        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
+    def testRefreshRate(self):
+        #make sure that we're successfully syncing to the frame rate
+        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
+        nose.tools.ok_(1000/150.0 < msPFavg < 1000/40.0, "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg)
         
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
