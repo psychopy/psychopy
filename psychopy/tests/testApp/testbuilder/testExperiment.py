@@ -60,7 +60,7 @@ class TestExpt():
         f.close()
         return py_file, psyexp_file
     
-    def _compile(self, py_file):
+    def _checkCompile(self, py_file):
         # compile the temp file to .pyc, catching error msgs (including no file at all):
         py_compile.compile(py_file, doraise=True)
         return py_file + 'c'
@@ -140,11 +140,11 @@ class TestExpt():
         #diff_in_file_pyc = ''
         for file in test_psyexp:
             file_py, file_psyexp = self._checkLoadSave(file)
-            file_pyc = self._compile(file_py)
+            file_pyc = self._checkCompile(file_py)
             #sha1_first = sha1hex(file_pyc, file=True)
             
             file2_py, file2_psyexp = self._checkLoadSave(file_psyexp)
-            file2_pyc = self._compile(file2_py)
+            file2_pyc = self._checkCompile(file2_py)
             #sha1_second = sha1hex(file2_pyc, file=True)
             
             # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
