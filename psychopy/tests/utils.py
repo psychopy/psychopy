@@ -20,12 +20,16 @@ def compareScreenshot(fileName, win, crit=5.0):
     win.movieFrames=[]
     if saveImage:
         frame.save(fileName, optimize=1)
-        raise nose.plugins.skip.SkipTest, "Create %s" % os.path.basename(fileName)
+        raise nose.plugins.skip.SkipTest, "Created %s" % os.path.basename(fileName)
     else:
         expected=Image.open(fileName)
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
         print 'RMS:', rms
+        if rms>=crit:
+            filenameLocal = fileName.replace('.png','_local.png')
+            frame.save(filenameLocal, optimize=1)
+            print "** Saved copy of actual frame to %s **" %filenameLocal
         assert rms<crit
         
