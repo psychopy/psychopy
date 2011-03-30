@@ -120,6 +120,9 @@ class UnitTestFrame(wx.Frame):
             self.bad = [150,0,0]
             self.good = [0,150,0]
             self.skip = [170,170,170]
+            self.png = []
+        def _write_image_3x(self, img):
+            self.WriteImage(img.Rescale(3*img.GetWidth(), 3*img.GetHeight()))
         def write(self,inStr):
             self.MoveEnd()#always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
@@ -142,10 +145,37 @@ class UnitTestFrame(wx.Frame):
                     self.parent.status = -1
                 elif thisLine.find('SKIP')>-1:
                     self.BeginTextColour(self.skip)
-                    self.WriteText(thisLine)
+                    self.WriteText(thisLine.strip())
+                    # show the new image, double size for easier viewing:
+                    if thisLine.strip().endswith('.png'):
+                        new_img = thisLine.split()[-1]
+                        img = os.path.join(self.parent.paths['tests'], 'data', new_img)
+                        self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
+                        self.MoveEnd()
+                        self._write_image_3x(self.png[-1])
+                    self.MoveEnd()
+                    self.WriteText('\n')
                     self.EndTextColour()
                 else:#line to write as simple text
                     self.WriteText(thisLine)
+                if thisLine.find('Saved copy of actual frame')>-1:
+                    # show the new images, double size for easier viewing:
+                    new_img = [f for f in thisLine.split() if f.find('_local.png')>-1]
+                    new_file = new_img[0]
+                    orig_file = new_file.replace('_local.png', '.png')
+                    img = os.path.join(self.parent.paths['tests'], orig_file)
+                    self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
+                    self.MoveEnd()
+                    self._write_image_3x(self.png[-1])
+                    self.MoveEnd()
+                    self.WriteText('= '+orig_file+';   ')
+                    img = os.path.join(self.parent.paths['tests'], new_file)
+                    self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
+                    self.MoveEnd()
+                    self._write_image_3x(self.png[-1])
+                    self.MoveEnd()
+                    self.WriteText('= '+new_file+'; ')
+                    
             self.MoveEnd()#go to end of stdout so user can see updated text
             self.ShowPosition(self.GetLastPosition() )
     def __init__(self, parent=None, ID=-1, title='PsychoPy unit testing', files=[], app=None):
