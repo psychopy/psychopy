@@ -1,4 +1,5 @@
 import wx, sys, re
+import wx.richtext
 
 class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
