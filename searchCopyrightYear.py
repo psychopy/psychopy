@@ -43,7 +43,7 @@ oldYear = str(int(newYear)-1) # last year; will need to set manually if you miss
 print "Checking all lines of all files for copyright <year> info..."
 
 #get paths and names of eligible files (in or below current directory)
-files = os.popen("find . | sed -e 's/ /\\ /g'" + ' | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
+files = os.popen(r"find . | sed -e 's/ /\\ /g'" + ' | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
 files = [f.strip() for f in files]
 print len(files), 'files found, screening each'
 
