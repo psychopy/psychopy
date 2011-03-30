@@ -183,6 +183,10 @@ class UnitTestFrame(wx.Frame):
         self.frameType='unittest'
         self.prefs = self.app.prefs
         self.paths = self.app.prefs.paths
+        self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')        
+        if sys.platform != 'win32':
+            self.runpyPath = self.runpyPath.replace(' ','\ ')
+            
         self.IDs = self.app.IDs
         wx.Frame.__init__(self, parent, ID, title, pos=(450,45)) # to right, so Cancel button is clickable during a long test
         self.scriptProcess=None
@@ -219,12 +223,13 @@ class UnitTestFrame(wx.Frame):
             size=wx.Size(750,500), font=self.prefs.coder['outputFont'],
             fontSize=self.prefs.coder['outputFontSize'])
         
-        known_tests = glob.glob(os.path.join(self.paths['tests'],'test*'))
+        known_tests = glob.glob(os.path.join(self.paths['tests'], 'test*'))
         known_test_list = [t.split(os.sep)[-1] for t in known_tests]
         self.known_test_list = [self.run_all_text] + known_test_list
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.known_test_list)
         self.testSelect.SetToolTip(wx.ToolTip("Select the directory of tests to be run, from:\npsychopy/tests/test*/"))
-        pref_testSubset = self.app.prefs.coder['testSubset'].strip()
+        # preselect the testGroup in the drop-down menu for display:
+        pref_testSubset = self.app.prefs.coder['testSubset'].split(os.path.sep)[0]
         if pref_testSubset in self.known_test_list:
             self.testSelect.SetStringSelection(pref_testSubset)
             
@@ -239,7 +244,7 @@ class UnitTestFrame(wx.Frame):
         self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
         #self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
         self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
-        self.chkAllStdOut.SetToolTip(wx.ToolTip("Report ALL printed output form the tests"))
+        self.chkAllStdOut.SetToolTip(wx.ToolTip("Report all printed output & show any new rms-test images"))
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
         
@@ -257,7 +262,6 @@ class UnitTestFrame(wx.Frame):
     def onRunTests(self, event=None):
         """Run the unit tests
         """
-        runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')        
         self.status = 0
         
         #create process
@@ -269,7 +273,7 @@ class UnitTestFrame(wx.Frame):
         #print ALL output?
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
-        #want only a subset of all tests?
+        #what subset of tests? (all tests == '')
         tselect = self.known_test_list[self.testSelect.GetCurrentSelection()]
         if tselect == self.run_all_text: tselect = ''
         test_subset = tselect
@@ -279,17 +283,16 @@ class UnitTestFrame(wx.Frame):
         self.btnCancel.Enable()
         if sys.platform=='win32':
             test_subset = ' '+test_subset
-            command = '"%s" -u --with-doctest "%s%s%s%s --with-doctest"' %(sys.executable, runpyPath, 
+            command = '"%s" -u --with-doctest "%s%s%s%s --with-doctest"' %(sys.executable, self.runpyPath, 
                 coverage, allStdout, test_subset)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            runpyPath = runpyPath.replace(' ','\ ')
             test_subset = ' '+test_subset.replace(' ','\ ')
-            command = '%s -u %s%s%s%s --with-doctest' %(sys.executable, runpyPath, 
+            command = '%s -u %s%s%s%s --with-doctest' %(sys.executable, self.runpyPath, 
                 coverage, allStdout, test_subset)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
-        msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (runpyPath, coverage, allStdout, test_subset)
+        msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (self.runpyPath, coverage, allStdout, test_subset)
         self.outputWindow.write(msg)
         
     def onCancelTests(self, event=None):
@@ -315,7 +318,6 @@ class UnitTestFrame(wx.Frame):
         self.outputWindow.flush()
         self.btnRun.Enable()
         self.btnCancel.Disable()
-        output = self.outputWindow.GetValue()
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
