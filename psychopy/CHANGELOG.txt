@@ -11,7 +11,7 @@ Changelog
 PsychoPy 1.63
 ------------------------------
 
-PsychoPy 1.63.05
+PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In repos (https://github.com/psychopy/psychopy)
 
@@ -27,7 +27,12 @@ In repos (https://github.com/psychopy/psychopy)
 * FIXED coder now reloads files changed outside the app when needed (thanks William Hogman)
 * IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
 * ADDED RatingScale component for Builder (Jeremy Gray)
-
+* ADDED packages to Standalone distros:
+    - pyxid (Cedrus button boxes)
+    - labjack (good, fast, cheap USB I/O device)
+    - egi (pynetstation)
+    - pylink (SR Research eye trackers)
+    
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released Feb 2011
@@ -104,10 +109,9 @@ Released Dec 2010
 * UPDATED: Standalone distribution now uses Python2.6 and adds/upgrades;
     * parallel python (pp)
     * pyserial
-    * ioLabs toolbox
+    * ioLabs
     * ipython (for future ipython shell view in coder)
     * numpy=1.5.1, scipy=0.8.0, matplotlib=1.0
-    * labjack toolbox
 * UPDATED: Builder demos
 
 PsychoPy 1.62
