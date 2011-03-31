@@ -168,7 +168,7 @@ class RatingScaleComponent(BaseComponent):
             currLoop = None
         
         #write the actual code
-        if (self.params['storeRating'].val or self.params['storeRatingTime'].val) and currLoop:
+        if currLoop and (self.params['storeRating'].val or self.params['storeRatingTime'].val):
             if currLoop.type in ['StairHandler', 'QuestHandler']:
                 buff.writeIndented("#NB PsychoPy doesn't handle a 'correct answer' for ratingscale " +
                                "events so doesn't know what to tell a StairHandler (or QuestHandler)")

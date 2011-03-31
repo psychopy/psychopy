@@ -595,19 +595,19 @@ class Flow(list):
                 for id, compInFlow in enumerate(self):
                     if hasattr(compInFlow, 'name') and component.name==compInFlow.name: del self[id]
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
-    def writeCode(self, s):
+    def writeCode(self, script):
         #initialise
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
-            entry.writeInitCode(s)
+            entry.writeInitCode(script)
         #run-time code
         for entry in self:
             self._currentRoutine=entry
-            entry.writeMainCode(s)
+            entry.writeMainCode(script)
         #tear-down code (very few components need this)
         for entry in self:
             self._currentRoutine=entry
-            entry.writeExperimentEndCode(s)
+            entry.writeExperimentEndCode(script)
     
 class Routine(list):
     """
