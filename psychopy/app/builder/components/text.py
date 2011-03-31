@@ -31,7 +31,7 @@ class TextComponent(VisualComponent):
             hint="The text to be displayed")
         self.params['font']=Param(font, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The font name, or a list of names, e.g. ['arial','verdana']")
+            hint="The font name (e.g. Comic Sans)")
         #change the hint for size
         del self.params['size']#because you can't specify width for text
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
@@ -45,5 +45,6 @@ class TextComponent(VisualComponent):
         text = unicode(self.params['text'])
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s,\n" %(self.params))
         buff.writeIndented("    text=%s,\n" %text)
+        buff.writeIndented("    font=%(font)s,\n" %(self.params))
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))  
