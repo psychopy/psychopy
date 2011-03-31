@@ -100,7 +100,6 @@ class Experiment:
         """Write a PsychoPy script for the experiment
         """
         
-        self.noKeyResponse = True #if keyboard is used (and data stored) this will be False
         script = IndentingBuffer(u'') #a string buffer object
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +

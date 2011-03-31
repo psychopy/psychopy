@@ -465,6 +465,14 @@ class Mouse:
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
         
+class KeyResponse:
+    def __init__(self):
+        self.keys=[] #the key(s) pressed
+        self.corr=0 #was the resp correct this trial? (0=no, 1=yes)
+        self.rt=None #response time
+        self.clock=psychopy.core.Clock() #we'll use this to measure the rt
+        self.clockNeedsReset = True
+        
 def clearEvents(eventType=None):
     """Clears all events currently in the event buffer.
     Optional argument, eventType, specifies only certain types to be
