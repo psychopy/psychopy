@@ -31,6 +31,7 @@ class PreferencesDlg(wx.Dialog):
                     prefsSection=self.prefsCfg[sectionName],
                     specSection = self.prefsSpec[sectionName])
             self.nb.AddPage(prefsPage, sectionName)
+        self.nb.SetSelection(self.app.prefs.pageCurrent)
         sizer.Add(self.nb,1, wx.EXPAND)
         
         #create buttons
@@ -76,10 +77,11 @@ class PreferencesDlg(wx.Dialog):
         self.app.followLink(url=url)
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
+        self.app.prefs.pageCurrent = self.nb.GetSelection()
     def onCancel(self, event=None):
         self.Close()
     def onOK(self, event=None):
-        self.setPrefsFromCtrls()
+        self.onApply(event=event)
         self.Close()
     def makePrefsPage(self, parent, sectionName, prefsSection, specSection):
         panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
