@@ -1,6 +1,6 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
-from wx.lib import flatnotebook
+import wx.lib.agw.flatnotebook as fnb
 
 import configobj, validate
 dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
@@ -21,8 +21,8 @@ class PreferencesDlg(wx.Dialog):
         
         #notebook, flatnotebook or something else?
         
-        self.nb = flatnotebook.FlatNotebook(self)#flatNoteBook has the option to close pages (which we don't want)
-#        self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
+        self.nb = fnb.FlatNotebook(self, style=fnb.FNB_NO_X_BUTTON|fnb.FNB_NO_NAV_BUTTONS)
+        #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
         
         self.ctrls={}
         for sectionName in self.prefsCfg.keys():
