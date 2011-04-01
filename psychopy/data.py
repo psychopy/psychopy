@@ -1946,7 +1946,7 @@ def functionFromStaircase(intensities, responses, bins = 10):
         
     return binnedInten, binnedResp, nPoints
 
-def getDateStr(format="%b_%d_%H%M"):
+def getDateStr(format="%Y_%b_%d_%H%M"):
     """Uses ``time.strftime()``_ to generate a string of the form
     Apr_19_1531 for 19th April 3.31pm.
     This is often useful appended to data filenames to provide unique names.
