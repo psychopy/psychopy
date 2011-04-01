@@ -1,4 +1,10 @@
 from psychopy import makeMovies
+import nose
+
+try:
+    import QTKit, AppKit
+except:
+    raise nose.plugins.skip.SkipTest, "don't have QTKit, AppKit"
 
 def testQuicktime():
     import numpy, time, os
