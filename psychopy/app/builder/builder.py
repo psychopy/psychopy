@@ -72,8 +72,8 @@ class FlowPanel(wx.ScrolledWindow):
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
             
-#        self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
-#        self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
+        #self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
+        #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
         if self.app.prefs.app['debugMode']: 
@@ -421,15 +421,15 @@ class FlowPanel(wx.ScrolledWindow):
             
         self.SetVirtualSize(size=(currX+100, maxHeight+50))
         #draw all possible locations for routines DEPRECATED SINCE 1.62 because not drawing those
-#        for n, xPos in enumerate(self.pointsToDraw):
-#            font.SetPointSize(600/self.dpi)
-#            self.SetFont(font); pdc.SetFont(font)
-#            w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
-#            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-#            pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
-#            pdc.DrawCircle(xPos,self.linePos[1], w+2)
-#            pdc.SetTextForeground([255,255,255])
-#            pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
+        #for n, xPos in enumerate(self.pointsToDraw):
+        #   font.SetPointSize(600/self.dpi)
+        #   self.SetFont(font); pdc.SetFont(font)
+        #   w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
+        #   pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        #   pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+        #   pdc.DrawCircle(xPos,self.linePos[1], w+2)
+        #   pdc.SetTextForeground([255,255,255])
+        #   pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
 
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
