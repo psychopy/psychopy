@@ -260,9 +260,12 @@ class FlowPanel(wx.ScrolledWindow):
                             comp=thisComp
                             icon=thisIcon
                             break#we've found a Routine so stop looking
-                self._menuComponentID=icon
-                self.showContextMenu(self._menuComponentID,
-                    xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
+                try:
+                    self._menuComponentID=icon
+                    self.showContextMenu(self._menuComponentID,
+                        xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
+                except UnboundLocalError:
+                    pass # right click but not on an icon
         elif self.mode=='routine':
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
