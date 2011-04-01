@@ -424,6 +424,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             faces = { 'size' : 14}
         else:
             faces = { 'size' : 12}
+        if self.coder.prefs['codeFontSize']:
+            faces['size'] = int(self.coder.prefs['codeFontSize'])
         faces['small']=faces['size']-2
         # Global default styles for all languages
         faces['code'] = self.coder.prefs['codeFont']#,'Arial']#use arial as backup
@@ -1630,7 +1632,8 @@ class CoderFrame(wx.Frame):
             self.notebook.SetSelection(docID)
         else:#create new page and load document
             #if there is only a placeholder document then close it
-            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and self.currentDoc.filename.startswith('untitled'):
+            if len(self.getOpenFilenames())==1 and len(self.currentDoc.GetText())==0 and \
+                    self.currentDoc.filename.startswith('untitled'):
                 self.fileClose(self.currentDoc.filename)
 
             #create an editor window to put the text in
@@ -1639,7 +1642,7 @@ class CoderFrame(wx.Frame):
             #load text from document
             if os.path.isfile(filename):
                 self.currentDoc.SetText(open(filename).read().decode('utf8'))
-                self.currentDoc.fileModTime = os.path.getmtime(filename) # JRG
+                self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 self.currentDoc.SetText("")
