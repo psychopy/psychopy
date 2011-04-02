@@ -65,6 +65,7 @@
     hiddenComponents = list(default=list())
     unpackedDemosDir = string(default='')
     showLoopInfoInFlow = boolean(default=False)
+    savedDataFolder = string(default='data')
   
 [connections]
     # the http proxy (for usage stats and auto-updating, format is 000.000.000.000:0000)

@@ -1,5 +1,6 @@
 from os import path
 from _base import *
+import os
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -7,7 +8,9 @@ class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
-                 logging='exp', color='$[0,0,0]', colorSpace='rgb', saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True):
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb',
+                 saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True,
+                 savedDataFolder=''):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -44,6 +47,8 @@ class SettingsComponent:
             hint="Save data from loops in Excel (.xlsx) format")
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
+        self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
+            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
@@ -65,14 +70,20 @@ class SettingsComponent:
         buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")          
         buff.writeIndented("expInfo['expName']=expName\n")
         
+        saveToDir = self.params['Saved data folder'].val.strip()
+        if not saveToDir:
+            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
+            if not saveToDir:
+                saveToDir = 'data'
+        
         if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
             buff.writeIndented("#setup files for saving\n")
-            buff.writeIndented("if not os.path.isdir('data'):\n")
-            buff.writeIndented("    os.makedirs('data')#if this fails (e.g. permissions) we will get error\n")
+            buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
+            buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
             if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='data/%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
             else:
-                buff.writeIndented("filename='data/%s' %(expInfo['date'])\n")
+                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
         #handle logging
         level=self.params['logging level'].val.upper()
         buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.warning)#this outputs to the screen, not a file\n")
