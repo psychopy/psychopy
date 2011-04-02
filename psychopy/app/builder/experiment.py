@@ -228,13 +228,13 @@ class Experiment:
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
             print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
-            print 'auto-variable naming in loadFromXML might slightly change some var names.\n'
         
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         self.namespace = NameSpace(self) # start fresh
+        modified_names = []
         
         #fetch exp settings
         settingsNode=root.find('Settings')
@@ -244,6 +244,8 @@ class Experiment:
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
             routine_good_name = self.namespace.make_valid(routineNode.get('name'))
+            if routine_good_name != routineNode.get('name'):
+                modified_names.append(routineNode.get('name'))
             self.namespace.user.append(routine_good_name)
             routine = Routine(name=routine_good_name, exp=self)
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
@@ -258,6 +260,8 @@ class Experiment:
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
                 comp_good_name = self.namespace.make_valid(componentNode.get('name'))
+                if comp_good_name != componentNode.get('name'):
+                    modified_names.append(componentNode.get('name'))
                 self.namespace.add(comp_good_name)
                 component.params['name'].val = comp_good_name
                 routine.append(component)
@@ -269,6 +273,8 @@ class Experiment:
             if elementNode.tag=="LoopInitiator":
                 loopType=elementNode.get('loopType')
                 loopName=self.namespace.make_valid(elementNode.get('name'))
+                if loopName != elementNode.get('name'):
+                    modified_names.append(elementNode.get('name'))
                 self.namespace.user.append(loopName)
                 exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
@@ -284,6 +290,9 @@ class Experiment:
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
                 
+        if modified_names:
+            print 'duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names)
+            
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
