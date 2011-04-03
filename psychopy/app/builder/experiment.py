@@ -10,8 +10,8 @@ import numpy, numpy.random # want to query their name-spaces
 import re, os
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
-_valid_var_re = re.compile(r"^[a-zA-Z_]+[\w]*$")  # filter for legal var names
-_nonalphanumeric_re = re.compile('[^a-zA-Z0-9_]') # will match all bad var name chars
+_valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
+_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
