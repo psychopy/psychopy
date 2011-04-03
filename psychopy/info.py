@@ -17,6 +17,7 @@ except: pass
 try: import hashlib # python 2.5
 except: import sha
 import random
+import wx
 
 
 class RunTimeInfo(dict):
@@ -67,7 +68,7 @@ class RunTimeInfo(dict):
             a flat dict (but with several groups based on key names):
             
             psychopy : version, rush() availability
-                psychopyVersion, psychopyHaveExtRush
+                psychopyVersion, psychopyHaveExtRush, git branch and current commit hash if available
                 
             experiment : author, version, directory, name, current time-stamp, 
                 SHA1 digest, VCS info (if any, svn or hg only),
@@ -79,7 +80,7 @@ class RunTimeInfo(dict):
             window : (see output; many details about the refresh rate, window, and monitor; units are noted)
                 windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
                 
-            python : version of python, versions of key packages (numpy, scipy, matplotlib, pyglet, pygame)
+            python : version of python, versions of key packages (wx, numpy, scipy, matplotlib, pyglet, pygame)
                 pythonVersion, pythonScipyVersion, ...
                 
             openGL : version, vendor, rendering engine, plus info on whether several extensions are present
@@ -90,6 +91,9 @@ class RunTimeInfo(dict):
         
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
+        githash = _getHashGitHead(dir=os.path.abspath(os.path.dirname(__file__)))
+        if githash: 
+            self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
         self._setSystemUserInfo()
@@ -379,6 +383,7 @@ class RunTimeInfo(dict):
         # External python packages:
         self['pythonNumpyVersion'] = numpy.__version__
         self['pythonScipyVersion'] = scipy.__version__
+        self['pythonWxVersion'] = wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
         self['pythonPygletVersion'] = pyglet.__version__
         try: from pygame import __version__ as pygameVersion
@@ -458,6 +463,11 @@ class RunTimeInfo(dict):
         for k in sk:
             print k,type(self[k]),self[k]
             
+def _getHashGitHead(dir=''):
+    git_hash = shellCall("cd " + dir + "; git rev-parse --verify HEAD", stderr=True)
+    git_branch = shellCall("cd " + dir + """; git branch | awk '$1=="*" {print $2}' """, stderr=True)
+    return git_branch[0].strip() + ' ' + git_hash[0].strip()
+    
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
     
