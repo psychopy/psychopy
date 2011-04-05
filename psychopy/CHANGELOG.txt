@@ -32,6 +32,7 @@ In repos (https://github.com/psychopy/psychopy)
     - labjack (good, fast, cheap USB I/O device)
     - egi (pynetstation)
     - pylink (SR Research eye trackers)
+* FIXED problem with updating to a downloaded zip file (win32 only)
     
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
