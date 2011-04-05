@@ -1062,6 +1062,8 @@ class ParamCtrls:
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
+            if label == 'text':
+                self.valueCtrl.SetFocus()
             #expando seems like a nice idea - but probs with pasting in text and with resizing
             #self.valueCtrl = ExpandoTextCtrl(parent,-1,str(param.val),
             #    style=wx.TE_MULTILINE,
@@ -1085,7 +1087,8 @@ class ParamCtrls:
             #create the full set of ctrls
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                         size=wx.Size(self.valueWidth,-1))
-
+            if label in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
+                self.valueCtrl.SetFocus() 
         self.valueCtrl.SetToolTipString(param.hint)
 
         #create the type control
