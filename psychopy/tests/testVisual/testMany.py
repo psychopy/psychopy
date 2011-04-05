@@ -10,19 +10,23 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
-        
+
 class _baseVisualTest:
     #this class allows others to be created that inherit all the tests for
     #a different window config
-    def setUp(self):
+    @classmethod
+    def setupClass(self):
         #Implement this to create self.win on each use
         self.win=None
         self.contextName
         raise NotImplementedError
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
         self.win.close()#shutil.rmtree(self.temp_dir)
+        
     def testGabor(self):
         win = self.win
+        win.flip()
         contextName=self.contextName
         #using init
         gabor = visual.PatchStim(win, mask='gauss', pos=[0.6, -0.6], sf=2, size=2)
@@ -40,6 +44,7 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def testText(self):
         win = self.win
+        win.flip()
         contextName=self.contextName
         #set font
         if win.winType=='pygame':
@@ -66,9 +71,12 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def testMov(self):
         win = self.win
+        win.flip()
         contextName=self.contextName
         #try to find test movie file
         fileName = 'testMovie.mp4'
+        if win.winType=='pygame':
+            raise nose.plugins.skip.SkipTest
         for prepend in ['','..','data','../data']:
             f = os.path.join(prepend, fileName)
             if os.path.isfile(f): fileName=f
@@ -82,6 +90,7 @@ class _baseVisualTest:
             win.flip()
     def testShape(self):
         win = self.win
+        win.flip()
         contextName=self.contextName
         
         shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0, 
@@ -93,6 +102,7 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def testRadial(self):
         win = self.win
+        win.flip()
         contextName=self.contextName
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2,
@@ -111,6 +121,7 @@ class _baseVisualTest:
     def testDots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
+        win.flip()
         contextName=self.contextName
         #using init        
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
@@ -130,6 +141,7 @@ class _baseVisualTest:
         dots.setFieldPos([-0.5,0.5])
         dots.setSpeed(0.1)
         dots.draw()
+        win.flip()
         #check that things changed
         nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0, 
             msg="dots._dotsDir failed to change after dots.setDir():")
@@ -139,7 +151,10 @@ class _baseVisualTest:
             msg="dots._fieldPosRendered failed to change after dots.setPos()")
     def testElementArray(self):        
         win = self.win
+        win.flip()
         contextName=self.contextName
+        if win.winType=='pygame':
+            raise nose.plugins.skip.SkipTest
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
@@ -151,12 +166,14 @@ class _baseVisualTest:
                 sfs=3, xys=xys, oris=thetas)
             spiral.draw()
             utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
-            win.flip()#AFTER compare screenshot
         else:
             nose.tools.assert_raises(Exception, visual.ElementArrayStim, win, nElements=N,sizes=0.5,
                 sfs=3, xys=xys, oris=thetas)
     def testAperture(self):
         win = self.win
+        win.flip()
+        if win.winType=='pygame':
+            raise nose.plugins.skip.SkipTest
         contextName=self.contextName
         gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
             sf=4, size=1,
@@ -170,10 +187,10 @@ class _baseVisualTest:
         aperture.disable()
         gabor2.draw()
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
-        win.flip()#AFTER compare screenshot
     def testRatingScale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
+        win.flip()
         rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
                         lowAnchorText=' ', highAnchorText=' ', scale=' ', 
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
@@ -187,30 +204,36 @@ class _baseVisualTest:
         
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
-    def setUp(self):
-        self.win = visual.Window([48,48], winType='pyglet', pos=[50,50], allowStencil=False)
+    @classmethod
+    def setupClass(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='norm'
 class TestPygletHeight(_baseVisualTest):
-    def setUp(self):
-        self.win = visual.Window([48,64], winType='pyglet', pos=[50,50], allowStencil=False)
+    @classmethod
+    def setupClass(self):
+        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='height'
 class TestPygletNormNoShaders(_baseVisualTest):
-    def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
+    @classmethod
+    def setupClass(self):
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
         self.win._haveShaders=False
         self.contextName='norm'
 class TestPygletNormStencil(_baseVisualTest):
-    def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
+    @classmethod
+    def setupClass(self):
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='stencil'
 class TestPygameNorm(_baseVisualTest):
-    def setUp(self):
-        self.win = visual.Window([48,48], monitor='testMonitor', winType='pygame', allowStencil=False)
+    @classmethod
+    def setupClass(self):
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False)
         self.contextName='norm'
-    def testMov(self):
-        raise nose.plugins.skip.SkipTest
-    def testElementArray(self):
-        raise nose.plugins.skip.SkipTest
+#    @classmethod
+#    def teardownClass(self):
+#        self.win.close()#shutil.rmtree(self.temp_dir)
+#        import pygame
+#        pygame.quit()#to be sure
     
 if __name__ == "__main__":
     argv = sys.argv
