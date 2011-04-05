@@ -758,7 +758,7 @@ class NameSpace():
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
         self.builder = ['KeyResponse', '__builtins__', '__doc__', '__file__', '__name__',
             '__package__', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
-            'logFile', 'sound', 't', 'theseKeys', 'trialClock', 'win', 'x', 'y', 'level']
+            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
     
