@@ -6033,7 +6033,7 @@ def _setColor(self, color, colorSpace=None, operation='',
     except:
         isScalar=False
     
-    if type(color) in [str, unicode]:
+    if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
