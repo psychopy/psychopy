@@ -1124,7 +1124,7 @@ class _BaseVisualStim:
     def setOpacity(self,newOpacity,operation=''):
         self._set('opacity', newOpacity, operation)
         #opacity is coded by the texture, if not using shaders
-        if not self._useShaders:
+        if not self._useShaders and hasattr(self,'setMask'):
             #turn off autologging
             autoLogging = self.autoLog
             self.autoLog=False

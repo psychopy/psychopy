@@ -191,10 +191,10 @@ class InstallUpdateDialog(wx.Dialog):
         """
         self.app = app
         #get latest version info if poss
-        if app.updater==None:
+        if app.updater in [False,None]:
             #user has turned off check for updates in prefs so check now
             app.updater = updater = Updater(app=self.app)
-            self.latest=updater.getLatestUpdate(warnMsg=False)#don't need a warning - we'll provide one ourselves
+            self.latest=updater.getLatestInfo(warnMsg=False)#don't need a warning - we'll provide one ourselves
         else:
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
@@ -280,6 +280,7 @@ class InstallUpdateDialog(wx.Dialog):
             self.progressBar.Disable()
             self.installBtn.Enable()#if this has been disabled by the fact that we couldn't connect
     def onCancel(self, event):
+        self.app.updater=None
         self.Destroy()
     def onFileBrowse(self, event):
         self.filename = event.GetString()
@@ -332,7 +333,7 @@ class InstallUpdateDialog(wx.Dialog):
                 if searchName!=None:
                     v=searchName.group(0)[:-1]
                 else:log.warning("Couldn't deduce version from zip file: %s" %zFilename)
-            f=open(zfile)
+            f=open(zfile, 'rb')
             zfile=zipfile.ZipFile(f)
         else:#assume here that zfile is a ZipFile
             pass#todo: error checking - is it a zipfile?

@@ -1,6 +1,10 @@
 from psychopy import makeMovies
+import sys, nose
 
 def testQuicktime():
+    
+    if sys.platform!='darwin':
+        raise nose.plugins.skip.SkipTest
     import numpy, time, os
     t0=time.time()
     m = makeMovies.QuicktimeMovie("qtTest.mov")
