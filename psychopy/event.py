@@ -9,7 +9,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 # 01/2011 modified by Dave Britton to get mouse event timing 
 
 import sys, time, copy
-import psychopy.core, psychopy.misc
+import psychopy.core, psychopy.misc, psychopy.visual
 from psychopy import log
 import string, numpy
 
@@ -378,8 +378,8 @@ class Mouse:
         last call to getRel or getPos, in the same units as the :class:`~visual.Window`.
         """
         if usePygame: 
-            relPosPix=mouse.get_rel()
-            return self._pix2windowUnits(self.relPosPix)
+            relPosPix=numpy.array(mouse.get_rel()) * [1,-1]
+            return self._pix2windowUnits(relPosPix)
         else: 
             #NB getPost() resets lastPos so MUST retrieve lastPos first
             if self.lastPos is None: relPos = self.getPos()
@@ -464,6 +464,163 @@ class Mouse:
         elif self.win.units=='norm': return pos*self.win.size/2.0
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
+        
+
+class CustomMouse():
+    """Class for more control over the mouse, including the pointer graphic and bounding box.
+    
+    Seems to work with pix or norm units, pyglet or pygame. Not completely tested.
+    
+    Known limitations:
+    - getRel() always returns [0,0]
+    - mouseMoved() is always False; maybe due to self.mouse.visible == False -> held at [0,0]
+    - no idea if clickReset() works
+    
+    Would be nice to:
+    - detect down-going or up-going mouse buttons, not just state-down, state-up (is-pressed vs was-clicked)
+    - use the system mouse icon as the default mouse pointer
+    
+    Author: Jeremy Gray, 2011
+    """
+    def __init__(self, win, newPos=None, visible=True,
+                 leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
+                 showLimits=False,
+                 pointer=None):
+        """Class for customizing the appearance and behavior of the mouse.
+        Create your `visual.Window` before creating a Mouse.
+        
+        :Parameters:
+            win : required, `visual.Window`
+                the window to which this mouse is attached
+            visible : **True** or False
+                makes the mouse invisbile if necessary
+            newPos : **None** or [x,y]
+                gives the mouse a particular starting position (pygame or pyglet)
+            leftLimit :
+                left edge of a virtual box within which the mouse can move
+            topLimit :
+                top edge of virtual box
+            rightLimit :
+                right edge of virtual box
+            bottomLimit :
+                lower edge of virtual box
+            showLimits : False
+                display the area within which the mouse can move.
+            pointer :
+                The visual display item to use as the pointer; must have .draw() and setPos() methods.
+                If your item has .setOpacity(), you can alter the mouse's opacity.
+        :Note:
+            CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
+            and mouseMoved() always returns False. clickReset() may not be working.
+        """
+        self.win = win
+        self.mouse = Mouse(win=self.win)
+        self.lastPos = None
+        self.prevPos = None
+        self.showLimits = showLimits
+        # maybe just inheriting from Mouse would be easier?
+        self.getRel = self.mouse.getRel
+        self.getWheelRel = self.mouse.getWheelRel
+        self.mouseMoved = self.mouse.mouseMoved  # FAILS
+        self.mouseMoveTime = self.mouse.mouseMoveTime
+        self.getPressed = self.mouse.getPressed
+        self.clickReset = self.mouse.clickReset  # ???
+        self._pix2windowUnits = self.mouse._pix2windowUnits
+        self._windowUnits2pix = self.mouse._windowUnits2pix
+        
+        # the graphic to use as the 'mouse' icon (pointer)
+        if pointer:
+            self.setPointer(pointer)
+        else:
+            self.pointer = psychopy.visual.TextStim(win, text='+')
+            #cursor = self.win.winHandle.get_system_mouse_cursor(self.win.winHandle.CURSOR_DEFAULT)
+            #self.pointer = psychopy.visual.PatchStim(self.win,tex=numpy.array([[1]]),texRes=256,size=.04)
+        self.mouse.setVisible(False) # hide the actual (system) mouse
+        self.visible = visible # the custom (virtual) mouse
+        
+        self.leftLimit = None
+        self.rightLimit = None
+        self.topLimit = None
+        self.bottomLimit = None
+        self.setLimit(leftLimit=leftLimit, topLimit=topLimit, rightLimit=rightLimit, bottomLimit=bottomLimit)
+        if newPos is not None:
+            self.x, self.y = newPos
+        else:
+            self.x = self.y = 0
+    def setPos(self, pos=None):
+        """Place the mouse at a specific position (pyglet or pygame).
+        """
+        if pos is None:
+            pos = self.getPos()
+        self.pointer.setPos(pos)
+    def getPos(self):
+        """Returns the mouse's current position, as constrained to be within its virtual box.
+        """
+        dx, dy = self.getRel()
+        self.x = min(max(self.x+dx, self.leftLimit), self.rightLimit)
+        self.y = min(max(self.y+dy, self.bottomLimit), self.topLimit)
+        self.lastPos = numpy.array([self.x, self.y])
+        return self.lastPos
+    def draw(self):
+        """Draw mouse in the window if visible, plus showBox.
+        """
+        self.setPos()
+        if self.showLimits:
+            self.box.draw()
+        if self.visible:
+            self.pointer.draw()
+        # we draw every frame, so here is good place to detect down-up state and update "clicks"
+        
+    def getVisible(self):
+        return self.visible
+    def setVisible(self, visible):
+        """Make the mouse visible or not (pyglet or pygame).
+        """
+        self.visible = visible
+    def setPointer(self, pointer):
+        """Set the visual item to be drawn as the mouse pointer.
+        """
+        if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
+            self.pointer = pointer
+        else:
+            raise AttributeError, "need .draw() and setPos() methods in pointer"
+    def setLimit(self, leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None):
+        """Set the mouse's virtual box by specifying the edges.
+        """
+        if type(leftLimit) in [int,float]:
+            self.leftLimit = leftLimit
+        elif self.leftLimit is None:
+            self.leftLimit = -1
+            if self.win.units == 'pix':
+                self.leftLimit = self.win.size[0]/-2.
+        if type(rightLimit) in [int,float]:
+            self.rightLimit = rightLimit
+        elif self.rightLimit is None:
+            self.rightLimit = 1
+            if self.win.units == 'pix':
+                self.rightLimit = self.win.size[0]/2.
+        if type(topLimit) in [int,float]:
+            self.topLimit = topLimit
+        elif self.topLimit is None:
+            self.topLimit = 1
+            if self.win.units == 'pix':
+                self.topLimit = self.win.size[1]/2.
+        if type(bottomLimit) in [int,float]:
+            self.bottomLimit = bottomLimit
+        elif self.bottomLimit is None:
+            self.bottomLimit = -1
+            if self.win.units == 'pix':
+                self.bottomLimit = self.win.size[1]/-2.
+        
+        self.box = psychopy.visual.ShapeStim(self.win,
+                    vertices=[[self.leftLimit,self.topLimit],[self.rightLimit,self.topLimit],
+                        [self.rightLimit,self.bottomLimit],
+                        [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]])
+        
+        # avoid accumulated relative-offsets producing a different effective limit:
+        self.mouse.setVisible(True)
+        self.x, self.y = self.mouse.getPos()
+        self.mouse.setVisible(False)
         
 class KeyResponse:
     def __init__(self):
