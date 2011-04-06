@@ -285,8 +285,9 @@ class UnitTestFrame(wx.Frame):
             test_subset = ' '+test_subset
             command = '"%s" -u --with-doctest "%s%s%s%s --with-doctest"' %(sys.executable, self.runpyPath, 
                 coverage, allStdout, test_subset)# the quotes allow file paths with spaces
-            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
+            print command
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
+            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             test_subset = ' '+test_subset.replace(' ','\ ')
             command = '%s -u %s%s%s%s --with-doctest' %(sys.executable, self.runpyPath, 
