@@ -5694,8 +5694,8 @@ class CustomMouse():
         if pointer:
             self.setPointer(pointer)
         else:
-            self.pointer = TextStim(win, text='+')
-            #self.pointer = PatchStim(win, tex='mouse.png',sf=1,size=(.025,.06))
+            #self.pointer = TextStim(win, text='+')
+            self.pointer = PatchStim(win, tex=os.path.join(os.path.split(__file__)[0], 'mouse.png'), sf=1)
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
         
@@ -5715,7 +5715,7 @@ class CustomMouse():
         
         # for counting clicks:
         self.clickOnUp = clickOnUp
-        self.isDown = False # state of mouse 1 frame prior to current frame, look for changes
+        self.wasDown = False # state of mouse 1 frame prior to current frame, look for changes
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
             
@@ -5741,15 +5741,14 @@ class CustomMouse():
             self.box.draw()
         if self.visible:
             self.pointer.draw()
-        # we draw every frame, so this is good place to detect down-up state and detect a change ="clicks"
+        downNow = self.getPressed()[self.clickButton]
         if self.clickOnUp:
-            if self.isDown and not self.getPressed()[self.clickButton]: # newly up
+            if self.wasDown and not downNow: # newly up
                 self.clicks += 1
         else:
-            if not self.isDown and self.getPressed()[self.clickButton]: # newly down
+            if not self.wasDown and downNow: # newly down
                 self.clicks += 1
-        
-        self.isDown = self.getPressed()[self.clickButton]
+        self.wasDown = downNow
     def getClicks(self):
         """return the number of clicks since the last reset"""
         return self.clicks
