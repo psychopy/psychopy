@@ -5639,16 +5639,16 @@ class CustomMouse():
     - no idea if clickReset() works
     
     Would be nice to:
-    - detect down-going or up-going mouse buttons, not just state-down, state-up (is-pressed vs was-clicked)
     - use the system mouse icon as the default mouse pointer
     
     Author: Jeremy Gray, 2011
     """
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
-                 showLimitBox=False, clickOn='down',
+                 showLimitBox=False, clickOnUp=False,
                  pointer=None):
         """Class for customizing the appearance and behavior of the mouse.
+        
         Create your `visual.Window` before creating a Mouse.
         
         :Parameters:
@@ -5666,12 +5666,12 @@ class CustomMouse():
                 right edge of virtual box
             bottomLimit :
                 lower edge of virtual box
-            showLimitBox : False
+            showLimitBox : default is False
                 display the area within which the mouse can move.
             pointer :
                 The visual display item to use as the pointer; must have .draw() and setPos() methods.
                 If your item has .setOpacity(), you can alter the mouse's opacity.
-            clickOn : 'down' (when pressed) or 'up' (when released)
+            clickOnUp : default False; True (record click when released) or False (record when first pressed)
                 when to count a mouse click as having occured
         :Note:
             CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
@@ -5680,7 +5680,7 @@ class CustomMouse():
         self.win = win
         self.mouse = event.Mouse(win=self.win)
         
-        # maybe just inheriting from Mouse would be easier?
+        # maybe inheriting from Mouse would be easier? its not that simple
         self.getRel = self.mouse.getRel
         self.getWheelRel = self.mouse.getWheelRel
         self.mouseMoved = self.mouse.mouseMoved  # FAILS
@@ -5695,8 +5695,7 @@ class CustomMouse():
             self.setPointer(pointer)
         else:
             self.pointer = TextStim(win, text='+')
-            #cursor = self.win.winHandle.get_system_mouse_cursor(self.win.winHandle.CURSOR_DEFAULT)
-            #self.pointer = psychopy.visual.PatchStim(self.win,tex=numpy.array([[1]]),texRes=256,size=.04)
+            #self.pointer = PatchStim(win, tex='mouse.png',sf=1,size=(.025,.06))
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
         
@@ -5715,9 +5714,7 @@ class CustomMouse():
             self.x = self.y = 0
         
         # for counting clicks:
-        self.clickOnDown = True
-        if clickOn == 'up':
-            self.clickOnDown = False
+        self.clickOnUp = clickOnUp
         self.isDown = False # state of mouse 1 frame prior to current frame, look for changes
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
@@ -5745,12 +5742,13 @@ class CustomMouse():
         if self.visible:
             self.pointer.draw()
         # we draw every frame, so this is good place to detect down-up state and detect a change ="clicks"
-        if self.clickOnDown:
-            if not self.isDown and self.getPressed()[self.clickButton]: # newly down
-                self.clicks += 1
-        else:
+        if self.clickOnUp:
             if self.isDown and not self.getPressed()[self.clickButton]: # newly up
                 self.clicks += 1
+        else:
+            if not self.isDown and self.getPressed()[self.clickButton]: # newly down
+                self.clicks += 1
+        
         self.isDown = self.getPressed()[self.clickButton]
     def getClicks(self):
         """return the number of clicks since the last reset"""
@@ -5770,9 +5768,9 @@ class CustomMouse():
         if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
             self.pointer = pointer
         else:
-            raise AttributeError, "need .draw() and setPos() methods in pointer"
+            raise AttributeError, "need .draw() and .setPos() methods in pointer"
     def setLimit(self, leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None):
-        """Set the mouse's virtual box by specifying the edges.
+        """Set the mouse's bounding box by specifying the edges.
         """
         if type(leftLimit) in [int,float]:
             self.leftLimit = leftLimit
