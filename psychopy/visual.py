@@ -5646,7 +5646,7 @@ class CustomMouse():
     """
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
-                 showLimits=False,
+                 showLimitBox=False, clickOn='down',
                  pointer=None):
         """Class for customizing the appearance and behavior of the mouse.
         Create your `visual.Window` before creating a Mouse.
@@ -5666,20 +5666,20 @@ class CustomMouse():
                 right edge of virtual box
             bottomLimit :
                 lower edge of virtual box
-            showLimits : False
+            showLimitBox : False
                 display the area within which the mouse can move.
             pointer :
                 The visual display item to use as the pointer; must have .draw() and setPos() methods.
                 If your item has .setOpacity(), you can alter the mouse's opacity.
+            clickOn : 'down' (when pressed) or 'up' (when released)
+                when to count a mouse click as having occured
         :Note:
             CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
             and mouseMoved() always returns False. clickReset() may not be working.
         """
         self.win = win
         self.mouse = event.Mouse(win=self.win)
-        self.lastPos = None
-        self.prevPos = None
-        self.showLimits = showLimits
+        
         # maybe just inheriting from Mouse would be easier?
         self.getRel = self.mouse.getRel
         self.getWheelRel = self.mouse.getWheelRel
@@ -5705,10 +5705,23 @@ class CustomMouse():
         self.topLimit = None
         self.bottomLimit = None
         self.setLimit(leftLimit=leftLimit, topLimit=topLimit, rightLimit=rightLimit, bottomLimit=bottomLimit)
+        self.showLimitBox = showLimitBox
+        
+        self.lastPos = None
+        self.prevPos = None
         if newPos is not None:
             self.x, self.y = newPos
         else:
             self.x = self.y = 0
+        
+        # for counting clicks:
+        self.clickOnDown = True
+        if clickOn == 'up':
+            self.clickOnDown = False
+        self.isDown = False # state of mouse 1 frame prior to current frame, look for changes
+        self.clicks = 0 # how many mouse clicks since last reset
+        self.clickButton = 0 # which button to count clicks for; 0 = left
+            
     def setPos(self, pos=None):
         """Place the mouse at a specific position (pyglet or pygame).
         """
@@ -5724,15 +5737,27 @@ class CustomMouse():
         self.lastPos = numpy.array([self.x, self.y])
         return self.lastPos
     def draw(self):
-        """Draw mouse in the window if visible, plus showBox.
+        """Draw mouse in the window (if its visible), show its limit box, and update the click count.
         """
         self.setPos()
-        if self.showLimits:
+        if self.showLimitBox:
             self.box.draw()
         if self.visible:
             self.pointer.draw()
-        # we draw every frame, so here is good place to detect down-up state and update "clicks"
-        
+        # we draw every frame, so this is good place to detect down-up state and detect a change ="clicks"
+        if self.clickOnDown:
+            if not self.isDown and self.getPressed()[self.clickButton]: # newly down
+                self.clicks += 1
+        else:
+            if self.isDown and not self.getPressed()[self.clickButton]: # newly up
+                self.clicks += 1
+        self.isDown = self.getPressed()[self.clickButton]
+    def getClicks(self):
+        """return the number of clicks since the last reset"""
+        return self.clicks
+    def resetClicks(self):
+        """set click count to zero"""
+        self.clicks = 0
     def getVisible(self):
         return self.visible
     def setVisible(self, visible):
