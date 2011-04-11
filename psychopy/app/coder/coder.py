@@ -1335,8 +1335,9 @@ class CoderFrame(wx.Frame):
         self.demos={}
         menuBar.Append(self.demosMenu, '&Demos')
         #for demos we need a dict where the event ID will correspond to a filename
+        #add folders
         for folder in glob.glob(os.path.join(self.paths['demos'],'coder','*')):
-            #skip if it isn't a folder
+            #if it isn't a folder either then skip it
             if not os.path.isdir(folder): continue
             #otherwise create a submenu
             folderName= os.path.split(folder)[-1]
@@ -1355,6 +1356,16 @@ class CoderFrame(wx.Frame):
                 if shortname.startswith('_'): continue#remove any 'private' files
                 submenu.Append(thisID, shortname)
                 wx.EVT_MENU(self, thisID, self.loadDemo)
+        #also add simple demos to root
+        self.demosMenu.AppendSeparator()
+        for filename in glob.glob(os.path.join(self.paths['demos'],'coder','*.py')):
+            junk, shortname = os.path.split(filename)
+            if shortname.startswith('_'): continue#remove any 'private' files
+            thisID = wx.NewId()
+            self.demosMenu.Append(thisID, shortname)
+            self.demos[thisID] = filename
+            wx.EVT_MENU(self, thisID, self.loadDemo)
+        
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
