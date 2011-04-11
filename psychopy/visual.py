@@ -5631,15 +5631,13 @@ class Aperture:
 class CustomMouse():
     """Class for more control over the mouse, including the pointer graphic and bounding box.
     
-    Seems to work with pix or norm units, pyglet or pygame. Not completely tested.
+    Seems to work with pyglet or pygame. Not completely tested.
     
     Known limitations:
+    - only norm units are working
     - getRel() always returns [0,0]
     - mouseMoved() is always False; maybe due to self.mouse.visible == False -> held at [0,0]
     - no idea if clickReset() works
-    
-    Would be nice to:
-    - use the system mouse icon as the default mouse pointer
     
     Author: Jeremy Gray, 2011
     """
@@ -5649,7 +5647,9 @@ class CustomMouse():
                  pointer=None):
         """Class for customizing the appearance and behavior of the mouse.
         
-        Create your `visual.Window` before creating a Mouse.
+        Use a custom mouse for extra control over the pointer appearance and function.
+        Its probably slower to render than the regular system mouse.
+        Create your `visual.Window` before creating a CustomMouse.
         
         :Parameters:
             win : required, `visual.Window`
@@ -5667,12 +5667,13 @@ class CustomMouse():
             bottomLimit :
                 lower edge of virtual box
             showLimitBox : default is False
-                display the area within which the mouse can move.
+                display the boundary of the area within which the mouse can move.
             pointer :
                 The visual display item to use as the pointer; must have .draw() and setPos() methods.
                 If your item has .setOpacity(), you can alter the mouse's opacity.
-            clickOnUp : default False; True (record click when released) or False (record when first pressed)
-                when to count a mouse click as having occured
+            clickOnUp : when to count a mouse click as having occured
+                default is False, record a click when the mouse is first pressed down
+                True means record a click when the mouse button is released
         :Note:
             CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
             and mouseMoved() always returns False. clickReset() may not be working.
@@ -5695,13 +5696,15 @@ class CustomMouse():
             self.setPointer(pointer)
         else:
             #self.pointer = TextStim(win, text='+')
-            self.pointer = PatchStim(win, tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'), sf=1)
+            self.pointer = PatchStim(win,
+                    tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'), sf=1)
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
         
         self.leftLimit = self.rightLimit = None
         self.topLimit = self.bottomLimit = None
-        self.setLimit(leftLimit=leftLimit, topLimit=topLimit, rightLimit=rightLimit, bottomLimit=bottomLimit)
+        self.setLimit(leftLimit=leftLimit, topLimit=topLimit,
+                      rightLimit=rightLimit, bottomLimit=bottomLimit)
         self.showLimitBox = showLimitBox
         
         self.lastPos = None
@@ -5796,7 +5799,8 @@ class CustomMouse():
         self.box = psychopy.visual.ShapeStim(self.win,
                     vertices=[[self.leftLimit,self.topLimit],[self.rightLimit,self.topLimit],
                         [self.rightLimit,self.bottomLimit],
-                        [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]])
+                        [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]],
+                    opacity=0.35)
         
         # avoid accumulated relative-offsets producing a different effective limit:
         self.mouse.setVisible(True)
