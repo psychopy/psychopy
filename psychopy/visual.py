@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy #so we can get the __path__
-from psychopy import core, systems, log, preferences, monitors, event
+from psychopy import core, platform_specific, log, preferences, monitors, event
 import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
@@ -991,7 +991,7 @@ class Window:
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
         if sys.platform=='darwin':
-            systems.syncSwapBuffers(1)
+            platform_specific.syncSwapBuffers(1)
 
         if haveFB:
             self._setupFrameBuffer()

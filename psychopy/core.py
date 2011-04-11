@@ -8,7 +8,7 @@ import sys, time, threading
 import os # only needed for temporary shellCall()
 
 # always safe to call rush, even if its not going to do anything for a particular OS
-from psychopy.systems import rush
+from psychopy.platform_specific import rush
 from psychopy import log
 
 # for shellCall: (May 2010: commented out due to v1.61 build issues for mac, even though shellCall() works fine on mac)
