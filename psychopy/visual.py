@@ -5695,26 +5695,24 @@ class CustomMouse():
             self.setPointer(pointer)
         else:
             #self.pointer = TextStim(win, text='+')
-            self.pointer = PatchStim(win, tex=os.path.join(os.path.split(__file__)[0], 'mouse.png'), sf=1)
+            self.pointer = PatchStim(win, tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'), sf=1)
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
         
-        self.leftLimit = None
-        self.rightLimit = None
-        self.topLimit = None
-        self.bottomLimit = None
+        self.leftLimit = self.rightLimit = None
+        self.topLimit = self.bottomLimit = None
         self.setLimit(leftLimit=leftLimit, topLimit=topLimit, rightLimit=rightLimit, bottomLimit=bottomLimit)
         self.showLimitBox = showLimitBox
         
         self.lastPos = None
         self.prevPos = None
         if newPos is not None:
-            self.x, self.y = newPos
+            self.lastPos = newPos
         else:
-            self.x = self.y = 0
+            self.lastPos = self.mouse.getPos()
         
         # for counting clicks:
-        self.clickOnUp = clickOnUp
+        self.clickOnUp = clickOnUp 
         self.wasDown = False # state of mouse 1 frame prior to current frame, look for changes
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
@@ -5726,51 +5724,50 @@ class CustomMouse():
             pos = self.getPos()
         self.pointer.setPos(pos)
     def getPos(self):
-        """Returns the mouse's current position, as constrained to be within its virtual box.
+        """Returns the mouse's current position.
+        Influenced by changes in .getRel(), constrained to be in its virtual box.
         """
         dx, dy = self.getRel()
-        self.x = min(max(self.x+dx, self.leftLimit), self.rightLimit)
-        self.y = min(max(self.y+dy, self.bottomLimit), self.topLimit)
-        self.lastPos = numpy.array([self.x, self.y])
+        x = min(max(self.lastPos[0] + dx, self.leftLimit), self.rightLimit)
+        y = min(max(self.lastPos[1] + dy, self.bottomLimit), self.topLimit)
+        self.lastPos = numpy.array([x,y])
         return self.lastPos
     def draw(self):
-        """Draw mouse in the window (if its visible), show its limit box, and update the click count.
+        """Draw mouse (if its visible), show the limit box, update the click count.
         """
         self.setPos()
         if self.showLimitBox:
             self.box.draw()
         if self.visible:
             self.pointer.draw()
-        downNow = self.getPressed()[self.clickButton]
+        isDownNow = self.getPressed()[self.clickButton]
         if self.clickOnUp:
-            if self.wasDown and not downNow: # newly up
+            if self.wasDown and not isDownNow: # newly up
                 self.clicks += 1
         else:
-            if not self.wasDown and downNow: # newly down
+            if not self.wasDown and isDownNow: # newly down
                 self.clicks += 1
-        self.wasDown = downNow
+        self.wasDown = isDownNow
     def getClicks(self):
-        """return the number of clicks since the last reset"""
+        """Return the number of clicks since the last reset"""
         return self.clicks
     def resetClicks(self):
-        """set click count to zero"""
+        """Set click count to zero"""
         self.clicks = 0
     def getVisible(self):
+        """Return the mouse's visibility state"""
         return self.visible
     def setVisible(self, visible):
-        """Make the mouse visible or not (pyglet or pygame).
-        """
+        """Make the mouse visible or not (pyglet or pygame)."""
         self.visible = visible
     def setPointer(self, pointer):
-        """Set the visual item to be drawn as the mouse pointer.
-        """
+        """Set the visual item to be drawn as the mouse pointer."""
         if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
             self.pointer = pointer
         else:
             raise AttributeError, "need .draw() and .setPos() methods in pointer"
     def setLimit(self, leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None):
-        """Set the mouse's bounding box by specifying the edges.
-        """
+        """Set the mouse's bounding box by specifying the edges."""
         if type(leftLimit) in [int,float]:
             self.leftLimit = leftLimit
         elif self.leftLimit is None:
@@ -5780,9 +5777,9 @@ class CustomMouse():
         if type(rightLimit) in [int,float]:
             self.rightLimit = rightLimit
         elif self.rightLimit is None:
-            self.rightLimit = 1
+            self.rightLimit = .99
             if self.win.units == 'pix':
-                self.rightLimit = self.win.size[0]/2.
+                self.rightLimit = self.win.size[0]/2. - 5
         if type(topLimit) in [int,float]:
             self.topLimit = topLimit
         elif self.topLimit is None:
@@ -5792,9 +5789,9 @@ class CustomMouse():
         if type(bottomLimit) in [int,float]:
             self.bottomLimit = bottomLimit
         elif self.bottomLimit is None:
-            self.bottomLimit = -1
+            self.bottomLimit = -0.98
             if self.win.units == 'pix':
-                self.bottomLimit = self.win.size[1]/-2.
+                self.bottomLimit = self.win.size[1]/-2. + 10
         
         self.box = psychopy.visual.ShapeStim(self.win,
                     vertices=[[self.leftLimit,self.topLimit],[self.rightLimit,self.topLimit],
@@ -5803,7 +5800,7 @@ class CustomMouse():
         
         # avoid accumulated relative-offsets producing a different effective limit:
         self.mouse.setVisible(True)
-        self.x, self.y = self.mouse.getPos()
+        self.lastPos = self.mouse.getPos() # hardware mouse's position
         self.mouse.setVisible(False)
         
 def makeRadialMatrix(matrixSize):
