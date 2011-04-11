@@ -2,10 +2,6 @@
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""
-There are no c extensions for windows at the moment - everything is done
-from ctypes.
-"""
 #these are correct for win32, not sure about 64bit versions
    #DEFINE NORMAL_PRIORITY_CLASS 32
    #DEFINE IDLE_PRIORITY_CLASS 64
