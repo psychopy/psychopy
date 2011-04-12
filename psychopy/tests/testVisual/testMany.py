@@ -56,7 +56,7 @@ class _baseVisualTest:
             height=0.8, pos=[0,0], font=font) 
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ) 
-        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=30)
+        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=35)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
@@ -71,12 +71,12 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def testMov(self):
         win = self.win
+        if self.win.winType=='pygame':
+            raise nose.plugins.skip.SkipTest("movies only available for pyglet backend")
         win.flip()
         contextName=self.contextName
         #try to find test movie file
         fileName = 'testMovie.mp4'
-        if win.winType=='pygame':
-            raise nose.plugins.skip.SkipTest
         for prepend in ['','..','data','../data']:
             f = os.path.join(prepend, fileName)
             if os.path.isfile(f): fileName=f
@@ -98,7 +98,8 @@ class _baseVisualTest:
             vertices=[[-0.5, 0],[0, 0.5],[0.5, 0]], 
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
-        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=5.0)
+        #NB shape rendering can differ a litte, depending on aliasing
+        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
     def testRadial(self):
         win = self.win
@@ -149,31 +150,27 @@ class _baseVisualTest:
             msg="dots._signalDots failed to change after dots.setCoherence()")
         nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered), 
             msg="dots._fieldPosRendered failed to change after dots.setPos()")
-    def testElementArray(self):        
+    def testElementArray(self):
         win = self.win
-        win.flip()
         contextName=self.contextName
-        if win.winType=='pygame':
-            raise nose.plugins.skip.SkipTest
+        if not win._haveShaders:
+            raise nose.plugins.skip.SkipTest("ElementArray requires shaders, which aren't available")
+        win.flip()
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
         radii = numpy.linspace(0,1.0,N)
         x, y = misc.pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        if win._haveShaders:
-            spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5,
-                sfs=3, xys=xys, oris=thetas)
-            spiral.draw()
-            utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
-        else:
-            nose.tools.assert_raises(Exception, visual.ElementArrayStim, win, nElements=N,sizes=0.5,
-                sfs=3, xys=xys, oris=thetas)
+        spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5,
+            sfs=3, xys=xys, oris=thetas)
+        spiral.draw()
+        utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
     def testAperture(self):
         win = self.win
         win.flip()
-        if win.winType=='pygame':
-            raise nose.plugins.skip.SkipTest
+#        if win.winType=='pygame':
+#            raise nose.plugins.skip.SkipTest
         contextName=self.contextName
         gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
             sf=4, size=1,

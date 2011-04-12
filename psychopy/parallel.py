@@ -12,7 +12,7 @@ An alternative (e.g. on Linux) might be to install pyParallel and call that dire
 
 """
 
-import _parallel #this is Dincer Aydin's module
+from thirdParty import parallel #this is Dincer Aydin's module
 
 def setPortAddress(address=0x0378):
     """Set the memory address of your parallel port, to be used in subsequent commands

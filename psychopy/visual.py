@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy #so we can get the __path__
-from psychopy import core, ext, log, preferences, monitors, event
+from psychopy import core, platform_specific, log, preferences, monitors, event
 import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
@@ -17,7 +17,7 @@ import makeMovies
 import numpy
 from numpy import sin, cos, pi
 
-from psychopy.ext import rush as rush
+from core import rush
 
 prefs = preferences.Preferences()#load the site/user config files
 
@@ -991,7 +991,7 @@ class Window:
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
         if sys.platform=='darwin':
-            ext.darwin.syncSwapBuffers(1)
+            platform_specific.syncSwapBuffers(1)
 
         if haveFB:
             self._setupFrameBuffer()
@@ -2787,12 +2787,6 @@ class RadialStim(PatchStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         #set pointers to visible textures
-        GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-        if self.win.winType=='pyglet':
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,self._visibleTexture.ctypes) 
-        else:
-            GL.glTexCoordPointerd(self._visibleTexture)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #mask
         GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
         if self.win.winType=='pyglet':
@@ -2800,15 +2794,24 @@ class RadialStim(PatchStim):
         else:
             GL.glTexCoordPointerd(self._visibleMask)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
+        #texture
+        GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        if self.win.winType=='pyglet':
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,self._visibleTexture.ctypes) 
+        else:
+            GL.glTexCoordPointerd(self._visibleTexture)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        
         #do the drawing
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
 
         #disable set states
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-
+        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        
         GL.glEndList()
 
     def setTex(self,value):

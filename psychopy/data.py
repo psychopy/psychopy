@@ -10,7 +10,7 @@ import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
 from scipy import optimize, special
 from matplotlib import mlab#used for importing csv files
-from _quest import *    #used for QuestHandler
+from contrib.quest import *    #used for QuestHandler
 
 try:
     import openpyxl

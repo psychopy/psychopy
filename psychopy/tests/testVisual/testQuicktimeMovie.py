@@ -4,7 +4,7 @@ import sys, nose
 def testQuicktime():
     
     if sys.platform!='darwin':
-        raise nose.plugins.skip.SkipTest
+        raise nose.plugins.skip.SkipTest("Only OS X can make Quicktime movies")
     import numpy, time, os
     t0=time.time()
     m = makeMovies.QuicktimeMovie("qtTest.mov")
