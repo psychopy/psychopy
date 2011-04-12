@@ -72,4 +72,4 @@ tbCompile=120
 tbPreferences=130#for the app
 tbExpSettings=140#for the experiment
 tbMonitorCenter=150
-
+tbColorPicker=160
