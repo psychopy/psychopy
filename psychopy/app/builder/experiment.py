@@ -659,7 +659,7 @@ class Routine(list):
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-
+        
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#run the trial\n')
         buff.writeIndented('%s=True\n' %self._continueName)
@@ -709,7 +709,9 @@ class Routine(list):
         times=[]
         for event in self:
             if 'startTime' not in event.params.keys(): continue
-            if event.params['duration'].val in ['-1', '']: maxTime=1000000
+            if event.params['duration'].val in ['-1', ''] \
+                or '$' in [event.params['startTime'].val[0], event.params['duration'].val[0]]:
+                maxTime=1000000
             else:
                 exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
             times.append(maxTime)

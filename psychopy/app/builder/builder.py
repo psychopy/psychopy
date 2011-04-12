@@ -822,21 +822,24 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         #draw entries on timeline
         if 'startTime' in component.params.keys():
-            xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
-            #for the fill, draw once in white near-opaque, then in transp color
-            dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
-            h = self.componentStep/2
-            exec("st = %s" %(component.params['startTime']))
-            #get end time if not -1(infinite)
-            if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
-            else: exec("duration = %s" %(component.params['duration']))
-            xSt = self.timeXposStart + st/xScale
-            w = duration/xScale
-            if w<2: w=2#make sure at least one pixel shows
-            dc.DrawRectangle(xSt, y, w,h )
-            fullRect.Union(wx.Rect(xSt, y, w,h ))
-
+            try:
+                xScale = self.getSecsPerPixel()
+                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
+                #for the fill, draw once in white near-opaque, then in transp color
+                dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
+                h = self.componentStep/2
+                exec("st = %s" %(component.params['startTime']))
+                #get end time if not -1(infinite)
+                if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
+                else: exec("duration = %s" %(component.params['duration']))
+                xSt = self.timeXposStart + st/xScale
+                w = duration/xScale
+                if w<2: w=2#make sure at least one pixel shows
+                dc.DrawRectangle(xSt, y, w,h )
+                fullRect.Union(wx.Rect(xSt, y, w,h ))
+            except:
+                pass
+                #probably the component has a non-numeric start/duration
         #set the area for this component
         dc.SetIdBounds(id,fullRect)
 
