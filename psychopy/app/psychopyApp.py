@@ -264,11 +264,13 @@ class PsychoPyApp(wx.App):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
-    def openColorPicker(self, event):
+    def colorPicker(self, event):
         from psychopy.app import colorpicker
         frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(320, 90))
         colorpicker.ColorPicker(frame)
-        frame.Show(True)
+        new_rgb = frame.new_rgb # its also on the system clipboard, try wx.TheClipboard
+        frame.Destroy()
+        return new_rgb
     def openMonitorCenter(self,event):
         from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')

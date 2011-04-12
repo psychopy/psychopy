@@ -1,9 +1,22 @@
 # select a colour with wxPython's wx.ColourDialog(parent, data)
 # largely copies: http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=10137
 
+'''
+usage:
+
+def openColorPicker(self, event):
+    from psychopy.app import colorpicker
+    frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(320, 90))
+    colorpicker.ColorPicker(frame)
+    new_rgb = frame.new_rgb # its also on wx.TheClipboard
+    frame.Destroy()
+    return new_rgb
+'''
+        
 import wx
 
 class ColorPicker(wx.Panel):
+    
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.SetBackgroundColour("grey")
@@ -11,10 +24,11 @@ class ColorPicker(wx.Panel):
         self.button.Bind(wx.EVT_BUTTON, self.selectColour)
         self.label = wx.StaticText(self, wx.ID_ANY, "", (10, 40))
         self.label.SetBackgroundColour("white")
-        self.selectColour(None)
-
+        parent.new_rgb = self.selectColour(None)
+        
     def selectColour(self, event):
         """display the colour dialog and select"""
+        new_rgb = None
         dlg = wx.ColourDialog(self)
         dlg.GetColourData().SetChooseFull(True)
         if dlg.ShowModal() == wx.ID_OK:
@@ -30,15 +44,4 @@ class ColorPicker(wx.Panel):
                 wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                 wx.TheClipboard.Close()
         dlg.Destroy()
-
-if __name__ == '__main__':
-    app = wx.App(0)
-    # create a frame, no parent, use default ID, title, size
-    mytitle = "Select a color with the wx.ColourDialog"
-    width = 450
-    height = 200
-    frame = wx.Frame(None, wx.ID_ANY, mytitle, size=(width, height))
-    ColorPicker(frame)
-    frame.Center()
-    frame.Show()
-    app.MainLoop()
+        return rgb
