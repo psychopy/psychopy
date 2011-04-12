@@ -25,6 +25,7 @@ class ColorPicker(wx.Panel):
             self.SetBackgroundColour(rgb)
             self.Refresh()
             if wx.TheClipboard.Open():
+                #http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
                 wx.TheClipboard.Clear()
                 wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                 wx.TheClipboard.Close()
