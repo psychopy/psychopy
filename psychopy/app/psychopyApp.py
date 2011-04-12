@@ -266,10 +266,9 @@ class PsychoPyApp(wx.App):
         
     def openColorPicker(self, event):
         from psychopy.app import colorpicker
-        frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(450, 200))
+        frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(320, 90))
         colorpicker.ColorPicker(frame)
         frame.Show(True)
-        dlg = wx.ColourDialog(self)
         
     def openMonitorCenter(self,event):
         from psychopy.monitors import MonitorCenter
