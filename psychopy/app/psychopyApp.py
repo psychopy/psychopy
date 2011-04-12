@@ -250,16 +250,16 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-#    def showShell(self, event=None):
-#        from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
-#        if self.shell==None:
-#            self.shell = ipythonShell.ShellFrame(None, -1, 
-#                title="IPython in PsychoPy (v%s)" %self.version, app=self)
-#            self.shell.Show()
-#            self.shell.SendSizeEvent()
-#        self.shell.Raise()
-#        self.SetTopWindow(self.shell)                           
-#        self.shell.SetFocus()
+    #def showShell(self, event=None):
+    #    from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
+    #    if self.shell==None:
+    #        self.shell = ipythonShell.ShellFrame(None, -1, 
+    #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
+    #        self.shell.Show()
+    #        self.shell.SendSizeEvent()
+    #    self.shell.Raise()
+    #    self.SetTopWindow(self.shell)                           
+    #    self.shell.SetFocus()
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
