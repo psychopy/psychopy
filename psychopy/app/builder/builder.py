@@ -1276,15 +1276,15 @@ class _BaseParamsDlg(wx.Dialog):
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
     def onMouseRight(self, event):
-        #convert event to fieldName based on its position... somehow
+        # Apr 2011: so far, only the color field catches mouse events. the code below assumes
+        # that is the case, but it would be more general to get the fieldName based on its position
             # -> get which self.paramCtrl[fieldName]
             # e.g., from Flow panel get which component:
             #component=self.componentFromID[self._menuComponentID]
-        # for now, just implement for 'color' field, not fillColor, lineColor, etc
         fieldName = 'color'
         x, y = self.ClientToScreen(event.GetPosition()) # panel's pos relative to its frame
         x2, y2 = self.frame.GetPosition() # frame's pos in whole window
-        #x3, y3 magic numbers might be platform-specific; these work for me on mac 10.6
+        #x3, y3 magic numbers might be platform-specific; these work for me on mac 10.6 and ubuntu 10
         x3 = 80 # should be: width of left-most (label) column
         y3 = 0  # size of the normal params panel if fieldName is in the adv param panel
         if self.showAdvanced and fieldName in self.advParams:
