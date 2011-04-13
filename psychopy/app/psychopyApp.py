@@ -264,11 +264,36 @@ class PsychoPyApp(wx.App):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
-    def openColorPicker(self, event):
-        from psychopy.app import colorpicker
-        frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(320, 90))
-        colorpicker.ColorPicker(frame)
-        frame.Show(True)
+    def colorPicker(self, event=None):
+        """Opens system color-picker, sets clip-board and parent.new_rgb = string [r,g,b].
+        
+        Note: units are psychopy -1..+1 rgb units to two decimal places, so lose a tiny
+        bit of color info in the conversion from 0..255
+        derived from: http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=10137
+        """
+        class ColorPicker(wx.Panel):
+            def __init__(self, parent):
+                wx.Panel.__init__(self, parent, wx.ID_ANY)
+                new_rgb = None
+                dlg = wx.ColourDialog(self)
+                dlg.GetColourData().SetChooseFull(True)
+                if dlg.ShowModal() == wx.ID_OK:
+                    data = dlg.GetColourData()
+                    rgb = data.GetColour().Get()
+                    rgb = map(lambda x: "%.2f" % ((x-127.5)/127.5),list(rgb))
+                    rgb = '['+','.join(rgb)+']'
+                    if wx.TheClipboard.Open():
+                        #http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
+                        wx.TheClipboard.Clear()
+                        wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
+                        wx.TheClipboard.Close()
+                dlg.Destroy()
+                parent.new_rgb = rgb        
+        frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(0,0)) # not shown
+        ColorPicker(frame)
+        new_rgb = frame.new_rgb # string; also on system clipboard, try wx.TheClipboard
+        frame.Destroy()
+        return new_rgb
     def openMonitorCenter(self,event):
         from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
