@@ -267,8 +267,7 @@ class PsychoPyApp(wx.App):
     def colorPicker(self, event=None):
         """Opens system color-picker, sets clip-board and parent.new_rgb = string [r,g,b].
         
-        Note: units are psychopy -1..+1 rgb units to two decimal places, so lose a tiny
-        bit of color info in the conversion from 0..255
+        Note: units are psychopy -1..+1 rgb units to three decimal places, preserving 24-bit color
         derived from: http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=10137
         """
         class ColorPicker(wx.Panel):
@@ -280,7 +279,7 @@ class PsychoPyApp(wx.App):
                 if dlg.ShowModal() == wx.ID_OK:
                     data = dlg.GetColourData()
                     rgb = data.GetColour().Get()
-                    rgb = map(lambda x: "%.2f" % ((x-127.5)/127.5),list(rgb))
+                    rgb = map(lambda x: "%.3f" % ((x-127.5)/127.5),list(rgb))
                     rgb = '['+','.join(rgb)+']'
                     if wx.TheClipboard.Open():
                         #http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard

@@ -20,7 +20,7 @@ class VisualComponent(_base.BaseComponent):
             hint="Units of dimensions for this stimulus")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Color of this stimulus (e.g. $[1,1,0], red )")
+            hint="Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant', allowedUpdates=['constant'],
             hint="Choice of color space for the color (rgb, dkl, lms)")
