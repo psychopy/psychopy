@@ -1233,6 +1233,14 @@ class _BaseParamsDlg(wx.Dialog):
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
                 
+        # contextual menu:
+        self.contextMenuItems=['color picker']
+        self.contextItemFromID={}; self.contextIDFromItem={}
+        for item in self.contextMenuItems:
+            id = wx.NewId()
+            self.contextItemFromID[id] = item
+            self.contextIDFromItem[item] = id
+            
     def addParam(self,fieldName, advanced=False):
         """Add a parameter to the basic sizer
         """
@@ -1259,9 +1267,46 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName=='text':               
             self.ctrlSizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
+        if fieldName in ['color', 'fillColor','lineColor']:
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onMouseRight)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+    def ConvertEventCoords(self, event):
+        xView, yView = self.frame.GetViewStart()
+        xDelta, yDelta = self.frame.GetScrollPixelsPerUnit()
+        return (event.GetX() + (xView * xDelta),
+            event.GetY() + (yView * yDelta))
+
+    def onMouseRight(self, event):
+        #x,y = self.ConvertEventCoords(event)
+        x,y = self.ClientToScreen(event.GetPosition())
+        x2,y2 = self.frame.GetPosition()
+        x3 = 80 # should be: width of left-most label column
+        y3 = 0  # should be: height of adv params panel if present
+        # want: set focus to this value field
+        #self.paramCtrls[fieldName].valueCtrl.SetFocus()
+        self.showContextMenu(-1, xy=wx.Point(x-x2+x3, y-y2+y3))
+    def showContextMenu(self, component, xy):
+        menu = wx.Menu()
+        for item in self.contextMenuItems:
+            id = self.contextIDFromItem[item]
+            menu.Append( id, item )
+            wx.EVT_MENU( menu, id, self.onContextSelect )
+        self.frame.PopupMenu( menu, xy )
+        menu.Destroy() # destroy to avoid mem leak
+    def onContextSelect(self, event):
+        """Perform a given action on the field chosen
+        """
+        op = self.contextItemFromID[event.GetId()]
+        # get which self.paramCtrl[fieldName]
+        # from Flow panel get which component:
+        #component=self.componentFromID[self._menuComponentID]
+        if op=='color picker':
+            rgb = self.app.colorPicker(None) # str, remapped to -1..+1
+            # paste '$'+rgb into the current field
+            # ideally set the associated colorSpace field to 'rgb'
+            
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
         
