@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import nose, sys, os, copy
-from psychopy import visual, misc
+from psychopy import visual, misc, core
 from psychopy.tests import utils
 import numpy
 
@@ -15,18 +15,18 @@ class _baseVisualTest:
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod
-    def setupClass(self):
-        #Implement this to create self.win on each use
+    def setupClass(self):#run once for each test class (window)
         self.win=None
         self.contextName
         raise NotImplementedError
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(self):#run once for each test class (window)
         self.win.close()#shutil.rmtree(self.temp_dir)
-        
+    def setup(self):#this is run for each test individually
+        #make sure we start with a clean window
+        self.win.flip()
     def testGabor(self):
         win = self.win
-        win.flip()
         contextName=self.contextName
         #using init
         gabor = visual.PatchStim(win, mask='gauss', pos=[0.6, -0.6], sf=2, size=2)
@@ -41,10 +41,8 @@ class _baseVisualTest:
         gabor.setPos([-0.5,0.5],'+')
         gabor.draw()
         utils.compareScreenshot('data/gabor2_%s.png' %(contextName), win)
-        win.flip()#AFTER compare screenshot
     def testText(self):
         win = self.win
-        win.flip()
         contextName=self.contextName
         #set font
         if win.winType=='pygame':
@@ -68,7 +66,6 @@ class _baseVisualTest:
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('data/text2_%s.png' %(contextName), win, crit=30)
-        win.flip()#AFTER compare screenshot
     def testMov(self):
         win = self.win
         if self.win.winType=='pygame':
@@ -90,7 +87,6 @@ class _baseVisualTest:
             win.flip()
     def testShape(self):
         win = self.win
-        win.flip()
         contextName=self.contextName
         
         shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0, 
@@ -103,7 +99,6 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def testRadial(self):
         win = self.win
-        win.flip()
         contextName=self.contextName
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2,
@@ -118,11 +113,9 @@ class _baseVisualTest:
         wedge.setAngularPhase(0.1)
         wedge.draw()
         utils.compareScreenshot('data/wedge2_%s.png' %(contextName), win, crit=10.0)
-        win.flip()#AFTER compare screenshot
     def testDots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
-        win.flip()
         contextName=self.contextName
         #using init        
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
@@ -142,7 +135,6 @@ class _baseVisualTest:
         dots.setFieldPos([-0.5,0.5])
         dots.setSpeed(0.1)
         dots.draw()
-        win.flip()
         #check that things changed
         nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0, 
             msg="dots._dotsDir failed to change after dots.setDir():")
@@ -168,9 +160,6 @@ class _baseVisualTest:
         utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
     def testAperture(self):
         win = self.win
-        win.flip()
-#        if win.winType=='pygame':
-#            raise nose.plugins.skip.SkipTest
         contextName=self.contextName
         gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
             sf=4, size=1,
@@ -226,11 +215,11 @@ class TestPygameNorm(_baseVisualTest):
     def setupClass(self):
         self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False)
         self.contextName='norm'
-#    @classmethod
-#    def teardownClass(self):
-#        self.win.close()#shutil.rmtree(self.temp_dir)
-#        import pygame
-#        pygame.quit()#to be sure
+    #@classmethod
+    #def teardownClass(self):
+    #    self.win.close()#shutil.rmtree(self.temp_dir)
+    #    import pygame
+    #    pygame.quit()#to be sure
     
 if __name__ == "__main__":
     argv = sys.argv
