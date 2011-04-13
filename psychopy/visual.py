@@ -5555,7 +5555,7 @@ class Aperture:
     .. note::
     
         This is a new stimulus (1.63.05) and is subject to change. Notably,
-        right now it only uses 'pix' units and only a circular shape
+        right now it supports only a circular shape
     
     When enabled any drawing commands will only operate on pixels within the 
     Aperture. Once disabled, subsequent draw operations affect the whole screen
@@ -5564,16 +5564,21 @@ class Aperture:
     See demos/stimuli/aperture.py for example usage
        
     :Author:
-        2011, Yuri Spitsyn    
+        2011, Yuri Spitsyn
+        2011, Jon Peirce added units options
     """
-    def __init__(self, win, size, pos=(0,0), units='pix'):
-        if units!='pix':
-            raise AttributeError, "Only units of 'pix' are currently supported for Aperture"
+    def __init__(self, win, size, pos=(0,0), units=None):
         self.win=win
+        
+        #unit conversions
+        if units!=None and len(units): self.units = units
+        else: self.units = win.units
+        if self.units in ['norm','height']: self._winScale=self.units
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.quad=GLU.gluNewQuadric() #needed for gluDisk
-        self.winAspect = self.win.size[1] / float(self.win.size[0])
-        self.setSize(size, False)
-        self.setPos(pos, False)
+        self.setSize(size, needReset=False)
+        self.setPos(pos, needReset=False)
         self._reset()
 
     def _reset(self):
@@ -5582,8 +5587,8 @@ class Aperture:
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
         GL.glPushMatrix()
-
-        GL.glTranslatef(self.pos[0], self.pos[1], 0)
+        self.win.setScale(self._winScale)
+        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
 
         GL.glDisable(GL.GL_LIGHTING)
         GL.glDisable(GL.GL_DEPTH_TEST)
@@ -5591,9 +5596,8 @@ class Aperture:
 
         GL.glStencilFunc(GL.GL_NEVER, 0, 0)
         GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
-        GL.glColor3f(1.0,1.0,1.0)
-        GL.glScalef(self.winAspect, 1.0, 1.0)
-        GLU.gluDisk(self.quad, 0, self.size, 120, 2)
+        GL.glColor3f(0,0,0)
+        GLU.gluDisk(self.quad, 0, self._sizeRendered/2.0, 120, 2)
         GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
@@ -5602,14 +5606,14 @@ class Aperture:
     def setSize(self, size, needReset=True):
         """Set the size (diameter) of the Aperture
         """
-        self.size = size / (self.win.size[1] / 2.)
+        self.size = size
+        self._calcSizeRendered()
         if needReset: self._reset()
-
     def setPos(self, pos, needReset=True):
         """Set the pos (centre) of the Aperture
         """
-        x, y = self.win.size
-        self.pos = (pos[0] / (x / 2.), pos[1] / (y / 2.))
+        self.pos = numpy.array(pos)
+        self._calcPosRendered()
         if needReset: self._reset()
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
@@ -5618,20 +5622,11 @@ class Aperture:
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
         else:
             log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
-        #ugly hack to fix broken scaling issue on pygame 
-        #(win.setScale doesn't seem to work as expected for pygame)
-        if self.win.winType=='pygame' and self.units in ['deg','degs','pix', 'cm']:
-            self._sizeRendered *= (self.win.size/2.0)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-        #ugly hack to fix broken scaling issue on pygame 
-        #(win.setScale doesn't seem to work as expected for pygame)
-        if self.win.winType=='pygame' and self.units in ['deg','degs','pix', 'cm']:
-            self._posRendered *= (self.win.size/2.0)
-
     def enable(self):
         """Enable the aperture so that it is used in future drawing operations
         
@@ -5645,7 +5640,9 @@ class Aperture:
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
-    
+    def __del__(self):
+        self.disable()
+        
 class CustomMouse():
     """Class for more control over the mouse, including the pointer graphic and bounding box.
     
