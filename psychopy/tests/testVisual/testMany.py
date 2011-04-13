@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import nose, sys, os, copy
-from psychopy import visual, misc, core
+from psychopy import visual, misc, core, monitors
 from psychopy.tests import utils
 import numpy
 
@@ -162,18 +162,16 @@ class _baseVisualTest:
     def testAperture(self):
         win = self.win
         contextName=self.contextName
-        gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
-            sf=4.0/self.scaleFactor, size=1*self.scaleFactor,
-            color=[0.5,-0.5,1])
-        gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
-            sf=4.0/self.scaleFactor, size=1*self.scaleFactor,
-            color=[-0.5,-0.5,-1])
-        aperture = visual.Aperture(win, size=0.5*self.scaleFactor,pos=[2.5,0])
-        aperture.enable()
-        gabor1.draw()
+        grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
         aperture.disable()
-        gabor2.draw()
+        grating.draw()
+        aperture.enable()
+        grating.setOri(90)
+        grating.setColor('black')
+        grating.draw()
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        #aperture should automatically disable on exit
     def testRatingScale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
@@ -193,7 +191,7 @@ class _baseVisualTest:
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=False)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
@@ -205,7 +203,7 @@ class TestPygletHeight(_baseVisualTest):
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.win._haveShaders=False
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
@@ -218,48 +216,72 @@ class TestPygletNormStencil(_baseVisualTest):
 class TestPygletPix(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
             units='pix')
         self.contextName='pix'
         self.scaleFactor=60#applied to size/pos values
 class TestPygletCm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=False,
             units='cm')
         self.contextName='cm'
         self.scaleFactor=2#applied to size/pos values
 class TestPygletDeg(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
 class TestPygameNorm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False)
+        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygamePix(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
             units='pix')
         self.contextName='pix'
         self.scaleFactor=60#applied to size/pos values
 class TestPygameCm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=False,
             units='cm')
         self.contextName='cm'
         self.scaleFactor=2#applied to size/pos values
 class TestPygameDeg(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False,
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
