@@ -231,7 +231,7 @@ class SoundPygame(_SoundBase):
 
         #check initialisation
         if not mixer.get_init():
-            pygame.mixer.init(22050, -16, 2, 3072)
+            pygame.mixer.init(sampleRate, -16, 2, 3072)
         
         inits = mixer.get_init()
         if inits is None:
@@ -784,7 +784,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     The format cannot be changed once initialised or once a Window has been created. 
     
     If a Sound object is created before this function is run it will be
-    executed with default format (signed 16bit stereo at 44KHz).
+    executed with default format (signed 16bit stereo at 22KHz).
     
     For more details see pygame help page for the mixer.
     """

@@ -40,15 +40,10 @@ class BaseComponent:
         """Write the code for each frame that tests whether the component is being
         drawn/used.
         """
-        exec('times=%s,%s' %(self.params['startTime'],self.params['duration']))
-        start=times[0]
-        #determine end from start and duration (if it exists)
-        if len(times)>1:end=sum(times)
-        else:end=-1
         if self.params['duration'].val=='':
             buff.writeIndented("if (%(startTime)s <= t):\n" %(self.params))            
         else:
-            buff.writeIndented("if (%(startTime)s<= t < (%(startTime)s+%(duration)s)):\n" %(self.params))
+            buff.writeIndented("if (%(startTime)s <= t < (%(startTime)s+%(duration)s)):\n" %(self.params))
     def writeParamUpdates(self, buff, updateType):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
