@@ -304,10 +304,6 @@ class Window:
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = core.getTime()
         
-        if self.units=='norm':  self.setScale('norm')
-        elif self.units=='height': self.setScale('height')
-        else: self.setScale('pix')
-        
         self.waitBlanking = waitBlanking
         
         self._refreshThreshold=1/1.0#initial val needed by flip()
@@ -1265,19 +1261,11 @@ class _BaseVisualStim:
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
         else:
             log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
-        #ugly hack to fix broken scaling issue on pygame 
-        #(win.setScale doesn't seem to work as expected for pygame)
-        if self.win.winType=='pygame' and self.units in ['deg','degs','pix', 'cm']:
-            self._sizeRendered *= (self.win.size/2.0)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-        #ugly hack to fix broken scaling issue on pygame 
-        #(win.setScale doesn't seem to work as expected for pygame)
-        if self.win.winType=='pygame' and self.units in ['deg','degs','pix', 'cm']:
-            self._posRendered *= (self.win.size/2.0)
     def setAutoDraw(self, val):
         """Add or remove a stimulus from the list of stimuli that will be 
         automatically drawn on each flip
@@ -1910,13 +1898,13 @@ class SimpleImageStim:
         #set correct formats for bytes/floats
         self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
         self.internalFormat = GL.GL_RGB      
-        if self._useShaders:            
+        if self._useShaders:
             self.dataType = GL.GL_FLOAT
         else:
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
         self._needStrUpdate = True
-
+        
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -2074,7 +2062,7 @@ class PatchStim(_BaseVisualStim):
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
-                
+        
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
         self.contrast = float(contrast)
@@ -4197,13 +4185,6 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
-    def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        #this has to be overridden for text because we don't want the pygame hack to be included
-        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-        
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -4546,11 +4527,6 @@ class ShapeStim(_BaseVisualStim):
         elif self.units=='cm': 
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-        #ugly hack to fix broken scaling issue on pygame 
-        #(win.setScale doesn't seem to work as expected for pygame)
-        if self.win.winType=='pygame' and self.units in ['deg','degs','pix', 'cm']:
-            self._verticesRendered *= (self.win.size/2.0)
-            self._posRendered *= (self.win.size/2.0)
 
 class BufferImageStim(PatchStim):
     """
