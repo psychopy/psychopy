@@ -174,15 +174,19 @@ class _SoundBase:
             'Dfl' : -8,
             'D' : -7,
             'Dsh' : -6,
+            'Efl' : -6,
             'E' : -5,
             'F' : -4,
             'Fsh' : -3,
+            'Gfl' : -3,
             'G' : -2,
             'Gsh' : -1,
+            'Afl': -1,
             'A': 0,
             'Ash':+1,
             'Bfl': +1,
             'B': +2,
+            'Bsh': +2,
             }
         if thisNote not in stepsFromA.keys():
             return False
