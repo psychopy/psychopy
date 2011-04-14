@@ -31,6 +31,7 @@ In repos (https://github.com/psychopy/psychopy)
     - egi (pynetstation)
     - pylink (SR Research eye trackers)
 * ADDED option for Builder components to take code (e.g. variables) as start/duration times
+* ADDED support for RGBA files in SimpleImageStim
 * IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
 * IMPROVED test sequence for PsychoPy release (so hopefully fewer bugs in future!)
 * FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim

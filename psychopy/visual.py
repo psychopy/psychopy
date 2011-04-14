@@ -1897,8 +1897,12 @@ class SimpleImageStim:
 
         self.size = im.size
         #set correct formats for bytes/floats
-        self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
-        self.internalFormat = GL.GL_RGB      
+        if im.mode=='RGBA':
+            self.imArray = numpy.array(im).astype(numpy.float32)/255
+            self.internalFormat = GL.GL_RGBA
+        else:
+            self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
+            self.internalFormat = GL.GL_RGB      
         if self._useShaders:
             self.dataType = GL.GL_FLOAT
         else:
