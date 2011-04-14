@@ -5646,25 +5646,25 @@ class Aperture:
 class CustomMouse():
     """Class for more control over the mouse, including the pointer graphic and bounding box.
     
-    Seems to work with pix or norm units, pyglet or pygame. Not completely tested.
+    Seems to work with pyglet or pygame. Not completely tested.
     
     Known limitations:
+    - only norm units are working
     - getRel() always returns [0,0]
     - mouseMoved() is always False; maybe due to self.mouse.visible == False -> held at [0,0]
     - no idea if clickReset() works
-    
-    Would be nice to:
-    - detect down-going or up-going mouse buttons, not just state-down, state-up (is-pressed vs was-clicked)
-    - use the system mouse icon as the default mouse pointer
     
     Author: Jeremy Gray, 2011
     """
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
-                 showLimits=False,
+                 showLimitBox=False, clickOnUp=False,
                  pointer=None):
         """Class for customizing the appearance and behavior of the mouse.
-        Create your `visual.Window` before creating a Mouse.
+        
+        Use a custom mouse for extra control over the pointer appearance and function.
+        Its probably slower to render than the regular system mouse.
+        Create your `visual.Window` before creating a CustomMouse.
         
         :Parameters:
             win : required, `visual.Window`
@@ -5681,21 +5681,22 @@ class CustomMouse():
                 right edge of virtual box
             bottomLimit :
                 lower edge of virtual box
-            showLimits : False
-                display the area within which the mouse can move.
+            showLimitBox : default is False
+                display the boundary of the area within which the mouse can move.
             pointer :
                 The visual display item to use as the pointer; must have .draw() and setPos() methods.
                 If your item has .setOpacity(), you can alter the mouse's opacity.
+            clickOnUp : when to count a mouse click as having occured
+                default is False, record a click when the mouse is first pressed down
+                True means record a click when the mouse button is released
         :Note:
             CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
             and mouseMoved() always returns False. clickReset() may not be working.
         """
         self.win = win
         self.mouse = event.Mouse(win=self.win)
-        self.lastPos = None
-        self.prevPos = None
-        self.showLimits = showLimits
-        # maybe just inheriting from Mouse would be easier?
+        
+        # maybe inheriting from Mouse would be easier? its not that simple
         self.getRel = self.mouse.getRel
         self.getWheelRel = self.mouse.getWheelRel
         self.mouseMoved = self.mouse.mouseMoved  # FAILS
@@ -5709,21 +5710,31 @@ class CustomMouse():
         if pointer:
             self.setPointer(pointer)
         else:
-            self.pointer = TextStim(win, text='+')
-            #cursor = self.win.winHandle.get_system_mouse_cursor(self.win.winHandle.CURSOR_DEFAULT)
-            #self.pointer = psychopy.visual.PatchStim(self.win,tex=numpy.array([[1]]),texRes=256,size=.04)
+            #self.pointer = TextStim(win, text='+')
+            self.pointer = PatchStim(win,
+                    tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'), sf=1)
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
         
-        self.leftLimit = None
-        self.rightLimit = None
-        self.topLimit = None
-        self.bottomLimit = None
-        self.setLimit(leftLimit=leftLimit, topLimit=topLimit, rightLimit=rightLimit, bottomLimit=bottomLimit)
+        self.leftLimit = self.rightLimit = None
+        self.topLimit = self.bottomLimit = None
+        self.setLimit(leftLimit=leftLimit, topLimit=topLimit,
+                      rightLimit=rightLimit, bottomLimit=bottomLimit)
+        self.showLimitBox = showLimitBox
+        
+        self.lastPos = None
+        self.prevPos = None
         if newPos is not None:
-            self.x, self.y = newPos
+            self.lastPos = newPos
         else:
-            self.x = self.y = 0
+            self.lastPos = self.mouse.getPos()
+        
+        # for counting clicks:
+        self.clickOnUp = clickOnUp 
+        self.wasDown = False # state of mouse 1 frame prior to current frame, look for changes
+        self.clicks = 0 # how many mouse clicks since last reset
+        self.clickButton = 0 # which button to count clicks for; 0 = left
+            
     def setPos(self, pos=None):
         """Place the mouse at a specific position (pyglet or pygame).
         """
@@ -5731,39 +5742,50 @@ class CustomMouse():
             pos = self.getPos()
         self.pointer.setPos(pos)
     def getPos(self):
-        """Returns the mouse's current position, as constrained to be within its virtual box.
+        """Returns the mouse's current position.
+        Influenced by changes in .getRel(), constrained to be in its virtual box.
         """
         dx, dy = self.getRel()
-        self.x = min(max(self.x+dx, self.leftLimit), self.rightLimit)
-        self.y = min(max(self.y+dy, self.bottomLimit), self.topLimit)
-        self.lastPos = numpy.array([self.x, self.y])
+        x = min(max(self.lastPos[0] + dx, self.leftLimit), self.rightLimit)
+        y = min(max(self.lastPos[1] + dy, self.bottomLimit), self.topLimit)
+        self.lastPos = numpy.array([x,y])
         return self.lastPos
     def draw(self):
-        """Draw mouse in the window if visible, plus showBox.
+        """Draw mouse (if its visible), show the limit box, update the click count.
         """
         self.setPos()
-        if self.showLimits:
+        if self.showLimitBox:
             self.box.draw()
         if self.visible:
             self.pointer.draw()
-        # we draw every frame, so here is good place to detect down-up state and update "clicks"
-        
+        isDownNow = self.getPressed()[self.clickButton]
+        if self.clickOnUp:
+            if self.wasDown and not isDownNow: # newly up
+                self.clicks += 1
+        else:
+            if not self.wasDown and isDownNow: # newly down
+                self.clicks += 1
+        self.wasDown = isDownNow
+    def getClicks(self):
+        """Return the number of clicks since the last reset"""
+        return self.clicks
+    def resetClicks(self):
+        """Set click count to zero"""
+        self.clicks = 0
     def getVisible(self):
+        """Return the mouse's visibility state"""
         return self.visible
     def setVisible(self, visible):
-        """Make the mouse visible or not (pyglet or pygame).
-        """
+        """Make the mouse visible or not (pyglet or pygame)."""
         self.visible = visible
     def setPointer(self, pointer):
-        """Set the visual item to be drawn as the mouse pointer.
-        """
+        """Set the visual item to be drawn as the mouse pointer."""
         if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
             self.pointer = pointer
         else:
-            raise AttributeError, "need .draw() and setPos() methods in pointer"
+            raise AttributeError, "need .draw() and .setPos() methods in pointer"
     def setLimit(self, leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None):
-        """Set the mouse's virtual box by specifying the edges.
-        """
+        """Set the mouse's bounding box by specifying the edges."""
         if type(leftLimit) in [int,float]:
             self.leftLimit = leftLimit
         elif self.leftLimit is None:
@@ -5773,9 +5795,9 @@ class CustomMouse():
         if type(rightLimit) in [int,float]:
             self.rightLimit = rightLimit
         elif self.rightLimit is None:
-            self.rightLimit = 1
+            self.rightLimit = .99
             if self.win.units == 'pix':
-                self.rightLimit = self.win.size[0]/2.
+                self.rightLimit = self.win.size[0]/2. - 5
         if type(topLimit) in [int,float]:
             self.topLimit = topLimit
         elif self.topLimit is None:
@@ -5785,18 +5807,19 @@ class CustomMouse():
         if type(bottomLimit) in [int,float]:
             self.bottomLimit = bottomLimit
         elif self.bottomLimit is None:
-            self.bottomLimit = -1
+            self.bottomLimit = -0.98
             if self.win.units == 'pix':
-                self.bottomLimit = self.win.size[1]/-2.
+                self.bottomLimit = self.win.size[1]/-2. + 10
         
         self.box = psychopy.visual.ShapeStim(self.win,
                     vertices=[[self.leftLimit,self.topLimit],[self.rightLimit,self.topLimit],
                         [self.rightLimit,self.bottomLimit],
-                        [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]])
+                        [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]],
+                    opacity=0.35)
         
         # avoid accumulated relative-offsets producing a different effective limit:
         self.mouse.setVisible(True)
-        self.x, self.y = self.mouse.getPos()
+        self.lastPos = self.mouse.getPos() # hardware mouse's position
         self.mouse.setVisible(False)
         
 def makeRadialMatrix(matrixSize):

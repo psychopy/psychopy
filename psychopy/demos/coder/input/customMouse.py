@@ -7,34 +7,24 @@ from psychopy import visual, event
 
 myWin = visual.Window()
 
-# a virtual mouse, vm:
-vm = visual.CustomMouse(myWin, leftLimit=0, topLimit=0, rightLimit=0.3, bottomLimit=-0.3)
+# a virtual mouse, vm, with limits and click detected when release the left mouse button:
+vm = visual.CustomMouse(myWin, leftLimit=-0.2, topLimit=0, rightLimit=0.2, bottomLimit=-0.4, 
+            showLimitBox=True, clickOnUp=True)
 
-instr = visual.TextStim(myWin,text="move the mouse around.\nclick to free the mouse.", pos=(0,.3))
-new_pointer = visual.TextStim(myWin,text='o')
-
-clicks = 0
-mouseWasDown = False
-print "[getPos] [getRel] [getWheelRel] mouseMoveTime (press,released)"
-while clicks < 3:
+instr = visual.TextStim(myWin,text="move the mouse around.\nclick to give the mouse more room to move.", pos=(0,.3))
+new_pointer = visual.TextStim(myWin, text='o')
+print "[getPos] [getWheelRel] click time"
+while not event.getKeys():
     instr.draw()
     vm.draw()
     myWin.flip()
-    if vm.getPressed()[0]:
-        #vm.setVisible(not vm.getVisible()) # note both get & set -> click toggles mouse visibility
-        if not mouseWasDown:
-            print "[%.2f, %.2f]" % (vm.getPos()[0],vm.getPos()[1]), 
-            print vm.getRel(), vm.getWheelRel(),
-            print "%.3f down, "%vm.mouseMoveTime(),
+    if vm.getClicks():
+        vm.resetClicks()
+        #vm.setVisible(not vm.getVisible()) # can use get & set; here, a click toggles mouse visibility
+        print "click at [%.2f, %.2f]" % (vm.getPos()[0],vm.getPos()[1]), 
+        print vm.getWheelRel(),
+        print "%.3f sec"%vm.mouseMoveTime()
+        vm.setLimit(leftLimit = -0.7, rightLimit = 0.7, bottomLimit = -0.8) # can set some limits, others are unchanged
+        instr.setText("any key to quit")
+        vm.pointer = new_pointer # switch the pointer appearance to anything with a .draw() and setPos() method
         
-        vm.setLimit(rightLimit = .7, bottomLimit = -.8)
-        vm.showLimits=True
-        instr.setText("click twice to quit")
-        vm.pointer = new_pointer # can change the pointer
-        mouseWasDown=True
-    else:
-        if mouseWasDown:
-            print '%.3f up'%vm.mouseMoveTime()
-            clicks += 1
-        mouseWasDown = False
-

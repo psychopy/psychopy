@@ -1236,6 +1236,14 @@ class _BaseParamsDlg(wx.Dialog):
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
                 
+        # contextual menu:
+        self.contextMenuItems=['color picker']
+        self.contextItemFromID={}; self.contextIDFromItem={}
+        for item in self.contextMenuItems:
+            id = wx.NewId()
+            self.contextItemFromID[id] = item
+            self.contextIDFromItem[item] = id
+            
     def addParam(self,fieldName, advanced=False):
         """Add a parameter to the basic sizer
         """
@@ -1262,9 +1270,46 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName=='text':               
             self.ctrlSizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
+        if fieldName in ['color']: # eventually: 'fillColor', 'lineColor'
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onMouseRight)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+    def onMouseRight(self, event):
+        # Apr 2011: so far, only the color field catches mouse events. the code below assumes
+        # that is the case, but it would be more general to get the fieldName based on its position
+            # -> get which self.paramCtrl[fieldName]
+            # e.g., from Flow panel get which component:
+            #component=self.componentFromID[self._menuComponentID]
+        fieldName = 'color'
+        x, y = self.ClientToScreen(event.GetPosition()) # panel's pos relative to its frame
+        x2, y2 = self.frame.GetPosition() # frame's pos in whole window
+        #x3, y3 magic numbers might be platform-specific; these work for me on mac 10.6 and ubuntu 10
+        x3 = 80 # should be: width of left-most (label) column
+        y3 = 0  # size of the normal params panel if fieldName is in the adv param panel
+        if self.showAdvanced and fieldName in self.advParams:
+            y3 = 18 * (1 + len(self.params) - len(self.advParams))
+        self.paramCtrls[fieldName].valueCtrl.SetFocus() # later replace existing text with new color
+        self.showContextMenu(-1, xy=wx.Point(x - x2 + x3, y - y2 + y3))
+    def showContextMenu(self, component, xy):
+        menu = wx.Menu()
+        for item in self.contextMenuItems:
+            id = self.contextIDFromItem[item]
+            menu.Append( id, item )
+            wx.EVT_MENU( menu, id, self.onContextSelect )
+        self.frame.PopupMenu( menu, xy )
+        menu.Destroy() # destroy to avoid mem leak
+    def onContextSelect(self, event):
+        """Perform a given action on the field chosen
+        """
+        op = self.contextItemFromID[event.GetId()]
+        if op=='color picker':
+            rgb = self.app.colorPicker(None) # str, remapped to -1..+1
+            self.paramCtrls['color'].valueCtrl.Clear()
+            self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
+            ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
+            self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
+            # add to undo stack?
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
         
@@ -1834,6 +1879,7 @@ class BuilderFrame(wx.Frame):
         settings_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'settingsExp%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        #colorpicker_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'color%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
 
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
@@ -1856,6 +1902,8 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
         self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
+        #self.toolbar.AddSimpleTool(self.IDs.tbColorPicker, colorpicker_bmp, "Color Picker",  "Color Picker")
+        #self.toolbar.Bind(wx.EVT_TOOL, self.app.colorPicker, id=self.IDs.tbColorPicker)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")

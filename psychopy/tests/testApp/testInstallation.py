@@ -14,7 +14,8 @@ def testExtraImports():
     import serial
     import pp
     import egi
-    import labjack
+    try: import labjack
+    except: import u3, u6, ue9, LabJackPython
     import pylink
     import ioLabs
     import hid
