@@ -669,7 +669,7 @@ class Window:
             pygame.display.quit()
         if self.bitsMode!=None:
             self.bits.reset()
-        
+        log.flush()
     def go(self):
         """start the display loop (GLUT only)"""
         self.frameClock.reset()
@@ -1392,11 +1392,9 @@ class DotStim(_BaseVisualStim):
                 See :ref:`colorspaces`
             opacity : float
                 1.0 is opaque, 0.0 is transparent
-            depth : 0,
-                This can be used to choose which
-                stimulus overlays which. (more negative values are nearer).
-                At present the window does not do perspective rendering
-                but could do if that's really useful(?!)
+            depth:
+                The depth argument is deprecated and may be removed in future versions. 
+                Depth is controlled simply by drawing order.
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
@@ -1442,6 +1440,9 @@ class DotStim(_BaseVisualStim):
             self.setColor(color)
 
         self.depth=depth
+        if depth!=0:
+            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
+            
         """initialise the dots themselves - give them all random dir and then
         fix the first n in the array to have the direction specified"""
 
@@ -2049,10 +2050,8 @@ class PatchStim(_BaseVisualStim):
                 1.0 is opaque, 0.0 is transparent
                 
             depth:
-                This can potentially be used (not tested!) to choose which
-                stimulus overlays which. (more negative values are nearer).
-                At present the window does not do perspective rendering
-                but could do if that's really useful(?!)
+                The depth argument is deprecated and may be removed in future versions. 
+                Depth is controlled simply by drawing order.
                           
             name : string
                 The name of the object to be using during logged messages about 
@@ -2142,6 +2141,8 @@ class PatchStim(_BaseVisualStim):
         self.pos = numpy.array(pos,float)
 
         self.depth=depth
+        if depth!=0:#deprecated in 1.64.00
+            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
 
         #fix scaling to window coords
         self._calcCyclesPerStim()
@@ -2448,11 +2449,9 @@ class RadialStim(PatchStim):
                 values given in the color description of the stimulus)
             opacity :
                 1.0 is opaque, 0.0 is transparent
-            depth :
-                This can potentially be used (not tested!) to choose which
-                stimulus overlays which. (more negative values are nearer).
-                At present the window does not do perspective rendering
-                but could do if that's really useful(?!)
+            depth:
+                The depth argument is deprecated and may be removed in future versions. 
+                Depth is controlled simply by drawing order.
             name : string
                 The name of the object to be using during logged messages about 
                 this stim 
@@ -2500,6 +2499,8 @@ class RadialStim(PatchStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
             
         self.depth=depth
+        if depth!=0:#deprecated in 1.64.00
+            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
 
         #size
         if type(size) in [tuple,list]:
@@ -3729,14 +3730,12 @@ class TextStim(_BaseVisualStim):
                  name='', autoLog=True):
         """
         :Parameters:        
-            win: A :class:`Window` object. 
+            win: A :class:`Window` object.
                 Required - the stimulus must know where to draw itself
             text: 
                 The text to be rendered
             pos: 
-                Position on the screen            
-            depth: 
-                Depth on the screen (if None it will be defined on .draw() to be in front of the last object drawn)
+                Position on the screen
             color:
             
                 Could be a:
@@ -3776,7 +3775,10 @@ class TextStim(_BaseVisualStim):
                 The width the text should run before wrapping
             name : string
                 The name of the object to be using during logged messages about
-                this stim 
+                this stim
+            depth:
+                The depth argument is deprecated and may be removed in future versions. 
+                Depth is controlled simply by drawing order.
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         
@@ -3792,6 +3794,8 @@ class TextStim(_BaseVisualStim):
         self.italic=italic
         self.text='' #NB just a placeholder - real value set below
         self.depth=depth
+        if depth!=0:#deprecated in 1.64.00
+            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
         self.ori=ori
         self.wrapWidth=wrapWidth
         self._pygletTextObj=None
@@ -3830,11 +3834,11 @@ class TextStim(_BaseVisualStim):
         elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
-                
+        
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
         self.setFont(font)
-
+        
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet":
@@ -4355,11 +4359,9 @@ class ShapeStim(_BaseVisualStim):
             opacity : float
                 1.0 is opaque, 0.0 is transparent
                 
-            depth : 0
-                This can be used to choose which
-                stimulus overlays which. (more negative values are nearer).
-                At present the window does not do perspective rendering
-                but could do if that's really useful(?!)
+            depth:
+                The depth argument is deprecated and may be removed in future versions. 
+                Depth is controlled simply by drawing order.
                 
             interpolate : True or False
                 If True the edge of the line will be antialiased.
@@ -4394,6 +4396,8 @@ class ShapeStim(_BaseVisualStim):
             self.setFillColor(fillColor, colorSpace=fillColorSpace)
                     
         self.depth=depth
+        if depth!=0:#deprecated in 1.64.00
+            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
         self.ori = numpy.array(ori,float)
         self.setVertices(vertices)
         self._calcVerticesRendered()
