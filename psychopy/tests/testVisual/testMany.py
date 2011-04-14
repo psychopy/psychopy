@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import nose, sys, os, copy
-from psychopy import visual, misc, core
+from psychopy import visual, misc, core, monitors
 from psychopy.tests import utils
 import numpy
 
@@ -29,16 +29,18 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #using init
-        gabor = visual.PatchStim(win, mask='gauss', pos=[0.6, -0.6], sf=2, size=2)
+        gabor = visual.PatchStim(win, mask='gauss', 
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+            sf=2.0/self.scaleFactor, size=2*self.scaleFactor)
         gabor.draw()
         utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
         #using .set()
         gabor.setOri(45)
-        gabor.setSize(0.2, '-')
+        gabor.setSize(0.2*self.scaleFactor, '-')
         gabor.setColor([45,30,0.3], colorSpace='dkl')
-        gabor.setSF(0.2, '+')
-        gabor.setPos([-0.5,0.5],'+')
+        gabor.setSF(0.2/self.scaleFactor, '+')
+        gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
         gabor.draw()
         utils.compareScreenshot('data/gabor2_%s.png' %(contextName), win)
     def testText(self):
@@ -51,16 +53,16 @@ class _baseVisualTest:
         else: font = 'Times New Roman'
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
-            height=0.8, pos=[0,0], font=font) 
+            height=0.8*self.scaleFactor, pos=[0,0], font=font) 
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ) 
-        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=35)
+        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=40)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
         stim.setFont(font)
         stim.setOri(-30.5)
-        stim.setHeight(1.0)
+        stim.setHeight(1.0*self.scaleFactor)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
         stim.setPos([-0.5,0.5],'+')
         stim.draw()
@@ -91,17 +93,16 @@ class _baseVisualTest:
         
         shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0, 
             fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004], 
-            vertices=[[-0.5, 0],[0, 0.5],[0.5, 0]], 
+            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]], 
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
-        #NB shape rendering can differ a litte, depending on aliasing
+        #NB shape rendering can differ a little, depending on aliasing
         utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=10.0)
-        win.flip()#AFTER compare screenshot
     def testRadial(self):
         win = self.win
         contextName=self.contextName
         #using init
-        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2,
+        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         utils.compareScreenshot('data/wedge1_%s.png' %(contextName), win, crit=10.0)
@@ -119,11 +120,11 @@ class _baseVisualTest:
         contextName=self.contextName
         #using init        
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
-            nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1,
+            nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1*self.scaleFactor,
             dotLife=5, #number of frames for each dot to be drawn
             signalDots='same', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
             noiseDots='direction', #do the noise dots follow random- 'walk', 'direction', or 'position'
-            speed=0.01, coherence=0.9)
+            speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
         #using .set() and check the underlying variable changed
@@ -133,7 +134,7 @@ class _baseVisualTest:
         dots.setDir(20)
         dots.setFieldCoherence(0.5)
         dots.setFieldPos([-0.5,0.5])
-        dots.setSpeed(0.1)
+        dots.setSpeed(0.1*self.scaleFactor)
         dots.draw()
         #check that things changed
         nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0, 
@@ -151,28 +152,26 @@ class _baseVisualTest:
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
-        radii = numpy.linspace(0,1.0,N)
+        radii = numpy.linspace(0,1.0,N)*self.scaleFactor
         x, y = misc.pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5,
-            sfs=3, xys=xys, oris=thetas)
+        spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
+            sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
         utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
     def testAperture(self):
         win = self.win
         contextName=self.contextName
-        gabor1 = visual.PatchStim(win, mask='circle', pos=[0.3, 0.3], 
-            sf=4, size=1,
-            color=[0.5,-0.5,1])
-        gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.3, -0.3], 
-            sf=4, size=1,
-            color=[-0.5,-0.5,-1])
-        aperture = visual.Aperture(win, size=10,pos=[2.5,0])
-        aperture.enable()
-        gabor1.draw()
+        grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
         aperture.disable()
-        gabor2.draw()
+        grating.draw()
+        aperture.enable()
+        grating.setOri(90)
+        grating.setColor('black')
+        grating.draw()
         utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        #aperture should automatically disable on exit
     def testRatingScale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
@@ -192,35 +191,101 @@ class _baseVisualTest:
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=False)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setupClass(self):
         self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='height'
+        self.scaleFactor=1#applied to size/pos values
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=False)
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.win._haveShaders=False
         self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setupClass(self):
         self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='stencil'
+        self.scaleFactor=1#applied to size/pos values
+class TestPygletPix(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
+            units='pix')
+        self.contextName='pix'
+        self.scaleFactor=60#applied to size/pos values
+class TestPygletCm(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=False,
+            units='cm')
+        self.contextName='cm'
+        self.scaleFactor=2#applied to size/pos values
+class TestPygletDeg(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
+            units='deg')
+        self.contextName='deg'
+        self.scaleFactor=2#applied to size/pos values
 class TestPygameNorm(_baseVisualTest):
     @classmethod
     def setupClass(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pygame', allowStencil=False)
+        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
         self.contextName='norm'
-    #@classmethod
-    #def teardownClass(self):
-    #    self.win.close()#shutil.rmtree(self.temp_dir)
-    #    import pygame
-    #    pygame.quit()#to be sure
-    
+        self.scaleFactor=1#applied to size/pos values
+class TestPygamePix(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+            units='pix')
+        self.contextName='pix'
+        self.scaleFactor=60#applied to size/pos values
+class TestPygameCm(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=False,
+            units='cm')
+        self.contextName='cm'
+        self.scaleFactor=2#applied to size/pos values
+class TestPygameDeg(_baseVisualTest):
+    @classmethod
+    def setupClass(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1680,1050])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+            units='deg')
+        self.contextName='deg'
+        self.scaleFactor=2#applied to size/pos values
+        
 if __name__ == "__main__":
     argv = sys.argv
     argv.append('--verbosity=3')

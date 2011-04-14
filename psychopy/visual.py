@@ -66,7 +66,7 @@ except:
 
 global DEBUG; DEBUG=False
 
-_depthIncrements = {'pyglet':+0.001, 'pygame':-0.001, 'glut':-0.001}
+_depthIncrements = {'pyglet':+0.001, 'pygame':+0.001, 'glut':-0.001}
 
 #symbols for MovieStim
 PLAYING=1
@@ -303,10 +303,6 @@ class Window:
             log.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)#using either pygame or bits++
         self.lastFrameT = core.getTime()
-        
-        if self.units=='norm':  self.setScale('norm')
-        elif self.units=='height': self.setScale('height')
-        else: self.setScale('pix')
         
         self.waitBlanking = waitBlanking
         
@@ -948,11 +944,11 @@ class Window:
         GL.glClearColor(desiredRGB[0],desiredRGB[1],desiredRGB[2], 1.0)
         GL.glClearDepth(1.0)
 
-        GL.glViewport(0, 0, int(self.size[0]), int(self.size[1]));
+        GL.glViewport(0, 0, int(self.size[0]), int(self.size[1]))
 
         GL.glMatrixMode(GL.GL_PROJECTION) # Reset The Projection Matrix
         GL.glLoadIdentity()                    
-        if self.winType=='pyglet': GL.gluOrtho2D(-1,1,-1,1) 
+        GLU.gluOrtho2D(-1,1,-1,1) 
 
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()                     
@@ -1260,14 +1256,14 @@ class _BaseVisualStim:
         else: self._updateListNoShaders()  
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
+        if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
         elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
         else:
             log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
+        if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, val):
@@ -1902,13 +1898,13 @@ class SimpleImageStim:
         #set correct formats for bytes/floats
         self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
         self.internalFormat = GL.GL_RGB      
-        if self._useShaders:            
+        if self._useShaders:
             self.dataType = GL.GL_FLOAT
         else:
             self.dataType = GL.GL_UNSIGNED_BYTE
             self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
         self._needStrUpdate = True
-
+        
 class PatchStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
     One of the main stimuli for PsychoPy.
@@ -2066,7 +2062,7 @@ class PatchStim(_BaseVisualStim):
         
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
-                
+        
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
         self.contrast = float(contrast)
@@ -2143,14 +2139,14 @@ class PatchStim(_BaseVisualStim):
         else:
             self.sf = numpy.array(sf,float)
         
-        self.pos = numpy.array(pos, float)
+        self.pos = numpy.array(pos,float)
 
         self.depth=depth
 
         #fix scaling to window coords
         self._calcCyclesPerStim()
-        self._calcPosRendered()
         self._calcSizeRendered()
+        self._calcPosRendered()
         
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
@@ -4532,7 +4528,6 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
 
-
 class BufferImageStim(PatchStim):
     """
     Obtain a "screen-shot" (fullscreen, or region) from a buffer, save to a PatchStim()-like RBGA image.
@@ -5560,7 +5555,7 @@ class Aperture:
     .. note::
     
         This is a new stimulus (1.63.05) and is subject to change. Notably,
-        right now it only uses 'pix' units and only a circular shape
+        right now it supports only a circular shape
     
     When enabled any drawing commands will only operate on pixels within the 
     Aperture. Once disabled, subsequent draw operations affect the whole screen
@@ -5569,16 +5564,21 @@ class Aperture:
     See demos/stimuli/aperture.py for example usage
        
     :Author:
-        2011, Yuri Spitsyn    
+        2011, Yuri Spitsyn
+        2011, Jon Peirce added units options
     """
-    def __init__(self, win, size, pos=(0,0), units='pix'):
-        if units!='pix':
-            raise AttributeError, "Only units of 'pix' are currently supported for Aperture"
+    def __init__(self, win, size, pos=(0,0), units=None):
         self.win=win
+        
+        #unit conversions
+        if units!=None and len(units): self.units = units
+        else: self.units = win.units
+        if self.units in ['norm','height']: self._winScale=self.units
+        else: self._winScale='pix' #set the window to have pixels coords
+        
         self.quad=GLU.gluNewQuadric() #needed for gluDisk
-        self.winAspect = self.win.size[1] / float(self.win.size[0])
-        self.setSize(size, False)
-        self.setPos(pos, False)
+        self.setSize(size, needReset=False)
+        self.setPos(pos, needReset=False)
         self._reset()
 
     def _reset(self):
@@ -5587,8 +5587,8 @@ class Aperture:
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
         GL.glPushMatrix()
-
-        GL.glTranslatef(self.pos[0], self.pos[1], 0)
+        self.win.setScale(self._winScale)
+        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
 
         GL.glDisable(GL.GL_LIGHTING)
         GL.glDisable(GL.GL_DEPTH_TEST)
@@ -5596,9 +5596,8 @@ class Aperture:
 
         GL.glStencilFunc(GL.GL_NEVER, 0, 0)
         GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
-        GL.glColor3f(1.0,1.0,1.0)
-        GL.glScalef(self.winAspect, 1.0, 1.0)
-        GLU.gluDisk(self.quad, 0, self.size, 120, 2)
+        GL.glColor3f(0,0,0)
+        GLU.gluDisk(self.quad, 0, self._sizeRendered/2.0, 120, 2)
         GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
@@ -5607,16 +5606,27 @@ class Aperture:
     def setSize(self, size, needReset=True):
         """Set the size (diameter) of the Aperture
         """
-        self.size = size / (self.win.size[1] / 2.)
+        self.size = size
+        self._calcSizeRendered()
         if needReset: self._reset()
-
     def setPos(self, pos, needReset=True):
         """Set the pos (centre) of the Aperture
         """
-        x, y = self.win.size
-        self.pos = (pos[0] / (x / 2.), pos[1] / (y / 2.))
+        self.pos = numpy.array(pos)
+        self._calcPosRendered()
         if needReset: self._reset()
-
+    def _calcSizeRendered(self):
+        """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
+        elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+        else:
+            log.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+    def _calcPosRendered(self):
+        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
+        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def enable(self):
         """Enable the aperture so that it is used in future drawing operations
         
@@ -5630,7 +5640,9 @@ class Aperture:
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
-    
+    def __del__(self):
+        self.disable()
+        
 class CustomMouse():
     """Class for more control over the mouse, including the pointer graphic and bounding box.
     
