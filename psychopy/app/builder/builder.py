@@ -1185,6 +1185,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.Center()
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
+        self.title = title
         if not editing and title != 'Experiment Settings':
             # then we're adding a new component, so provide a known-valid name:
             self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
@@ -1290,6 +1291,8 @@ class _BaseParamsDlg(wx.Dialog):
         if self.showAdvanced and fieldName in self.advParams:
             y3 = 18 * (1 + len(self.params) - len(self.advParams))
         self.paramCtrls[fieldName].valueCtrl.SetFocus() # later replace existing text with new color
+        if self.title == 'Experiment Settings': # total kludge, but puts it in about the right spot
+            y += 210 # I think its y that is not set right for Exp Settings window
         self.showContextMenu(-1, xy=wx.Point(x - x2 + x3, y - y2 + y3))
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
