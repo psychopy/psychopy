@@ -192,23 +192,15 @@ class PsychoPyApp(wx.App):
             self.updater=connections.Updater(app=self, proxy=self.prefs.connections['proxy'])
             self.updater.suggestUpdate(confirmationDlg=False)#check for updates (silently)
         else: self.updater=False
-        """This is in wx demo. Probably useful one day.
-        #---------------------------------------------
-        def ShowTip(self):
-            config = GetConfig()
-            showTipText = config.Read("tips")
-            if showTipText:
-                showTip, index = eval(showTipText)
-            else:
-                showTip, index = (1, 0)
-
-            if showTip:
-                tp = wx.CreateFileTipProvider(opj("data/tips.txt"), index)
-                ##tp = MyTP(0)
-                showTip = wx.ShowTip(self, tp)
-                index = tp.GetCurrentTip()
-                config.Write("tips", str( (showTip, index) ))
-                config.Flush()"""
+        
+        if self.prefs.app['showStartupTips']:
+            tipIndex = self.prefs.appData['tipIndex']            
+            tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
+            showTip = wx.ShowTip(None, tp)
+            self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
+            self.prefs.saveAppData()
+            self.prefs.app['showStartupTips'] = showTip
+            self.prefs.saveUserPrefs()
 
         return True
     def getPrimaryDisplaySize(self):

@@ -21,6 +21,7 @@
 
 ###  Application settings, applied to coder, builder, & prefs windows -----
 [app]
+    showStartupTips = boolean(default='True')
     # NB: icons on OS X are large (?: unless you have a recent version of wx? wx 2.8.7.1 gives me small icons)
     largeIcons = boolean(default='True')
     # defaultView can be 'builder', 'coder', 'both', or 'last' (retrieve previous windows)

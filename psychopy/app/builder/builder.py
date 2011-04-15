@@ -234,9 +234,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
 
     def OnMouse(self, event):
+        x,y = self.ConvertEventCoords(event)
         if self.mode=='normal':
             if event.LeftDown():
-                x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
                 for thisIcon in icons:#might intersect several and only one has a callback
                     if thisIcon in self.componentFromID:
@@ -246,7 +246,6 @@ class FlowPanel(wx.ScrolledWindow):
                         if comp.getType() == 'Routine':
                             self.frame.routinePanel.setCurrentRoutine(routine=comp)
             elif event.RightDown():
-                x,y = self.ConvertEventCoords(event)
                 icons = self.pdc.FindObjectsByBBox(x, y)
                 comp=None
                 for thisIcon in icons:#might intersect several and only one has a callback
@@ -270,19 +269,19 @@ class FlowPanel(wx.ScrolledWindow):
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
             else:#move spot if needed
-                point = self.getNearestGapPoint(mouseX=event.GetX())
+                point = self.getNearestGapPoint(mouseX=x)
                 self.drawEntryPoints([point])
         elif self.mode=='loopPoint1':
             if event.LeftDown():
                 self.setLoopPoint2()
             else:#move spot if needed
-                point = self.getNearestGapPoint(mouseX=event.GetX())
+                point = self.getNearestGapPoint(mouseX=x)
                 self.drawEntryPoints([point])
         elif self.mode=='loopPoint2':
             if event.LeftDown():
                 self.insertLoop()
             else:#move spot if needed
-                point = self.getNearestGapPoint(mouseX=event.GetX())
+                point = self.getNearestGapPoint(mouseX=x)
                 self.drawEntryPoints([self.entryPointPosList[0], point])
     def getNearestGapPoint(self, mouseX, exclude=[]):
         d=1000000000

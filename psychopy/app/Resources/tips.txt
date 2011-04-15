@@ -1,0 +1,14 @@
+Most dialogs have a help button that takes you to the relevant online documentation
+You can use Ctrl-[ or Ctrl-] to indent/outdent a block of code in Coder view
+Both in the Coder and Builder views have a demos menu with plenty of demos
+Avoid snorting Pepsi
+Most buttons have tooltips if you hover on them
+PsychoPy can handle many different units once you've calibrated your monitor (see documentation on general>units)
+Menu items show you the current key bindings (which can be configured in preferences)
+Never slap an Irishman on the foot
+Use the source (Luke). PsychoPy comes with all its source code included and you'd be surprised how easy it is to find your own bug-fixes. (On OS X you may need to right-click on the application and select Show Package Contents to find the PsychoPy source files)
+Please cite the relevant papers (Peirce 2007; 2009) if you use PsychoPy in published work
+Sign up the the users mailing list at http://groups.google.com/group/psychopy-users for info and updates
+Did you try typing python commands in the Shell window yet (in the Coder view)?
+Be nice to people that paid hundreds of dollars for inferior software; they deserve your pity
+When you buy a computer make sure it doesn't have an Intel integrated graphics card (or make sure you can upgrade to an nVidia/ATI replacement)
