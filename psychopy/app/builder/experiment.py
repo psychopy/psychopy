@@ -756,10 +756,30 @@ class NameSpace():
         #deepcopy fails if you pre-compile regular expressions and stash here
         
         self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
+        self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
+                        'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
+                        'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
+                        'is', 'return', 'def', 'for', 'lambda', 'try',
+                        
+                         'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
+                         'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp', 'coerce',
+                         'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
+                         'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
+                         'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash',
+                         'help', 'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'issubclass',
+                         'iter', 'len', 'license', 'list', 'locals', 'long', 'map', 'max', 'memoryview',
+                         'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'property',
+                         'quit', 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round',
+                         'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super',
+                         'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange', 'zip',
+                         'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems', 'iterkeys',
+                         'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values',
+                         'viewitems', 'viewkeys', 'viewvalues',
+                         
+                         '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
-        self.builder = ['KeyResponse', '__builtins__', '__doc__', '__file__', '__name__',
-            '__package__', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
+        self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
             'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
@@ -825,6 +845,7 @@ class NameSpace():
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"
+        if name in self.keywords: return "python keyword"
         
         return # None, meaning does not exist already
     
