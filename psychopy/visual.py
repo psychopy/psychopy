@@ -5573,9 +5573,9 @@ class Aperture:
        
     :Author:
         2011, Yuri Spitsyn
-        2011, Jon Peirce added units options
+        2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
     """
-    def __init__(self, win, size, pos=(0,0), units=None):
+    def __init__(self, win, size, pos=(0,0), ori=0, nVert=120, shape='circle', units=None):
         self.win=win
         
         #unit conversions
@@ -5584,6 +5584,15 @@ class Aperture:
         if self.units in ['norm','height']: self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
         
+        if shape.lower() == 'square':
+            ori += 45
+            nVert = 4
+        elif shape.lower() == 'triangle':
+            nVert = 3
+        self.ori = ori
+        self.nVert = 120
+        if type(nVert) == int:
+            self.nVert = nVert
         self.quad=GLU.gluNewQuadric() #needed for gluDisk
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
@@ -5597,7 +5606,8 @@ class Aperture:
         GL.glPushMatrix()
         self.win.setScale(self._winScale)
         GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
-
+        GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
+        
         GL.glDisable(GL.GL_LIGHTING)
         GL.glDisable(GL.GL_DEPTH_TEST)
         GL.glDepthMask(GL.GL_FALSE)
@@ -5605,7 +5615,7 @@ class Aperture:
         GL.glStencilFunc(GL.GL_NEVER, 0, 0)
         GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
         GL.glColor3f(0,0,0)
-        GLU.gluDisk(self.quad, 0, self._sizeRendered/2.0, 120, 2)
+        GLU.gluDisk(self.quad, 0, self._sizeRendered/2.0, self.nVert, 2)
         GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
