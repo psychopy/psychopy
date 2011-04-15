@@ -15,7 +15,7 @@ PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In repos (https://github.com/psychopy/psychopy)
 
-* ADDED Color-picker on toolbar for Coder and Builder (Jeremy Gray)
+* ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
 * ADDED CustomMouse to visual (Jeremy Gray) 
 * ADDED Aperture object to visual (thanks Yuri Spitsyn) and as a component to Builder (Jeremy Gray)
 * CHANGED RatingScale (Jeremy Gray):
@@ -30,17 +30,20 @@ In repos (https://github.com/psychopy/psychopy)
     - labjack (good, fast, cheap USB I/O device)
     - egi (pynetstation)
     - pylink (SR Research eye trackers)
+    - psignifit (for fitting/boostrapping)
 * ADDED option for Builder components to take code (e.g. variables) as start/duration times
 * ADDED support for RGBA files in SimpleImageStim
 * IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
+* IMPROVED prefs dialog
 * IMPROVED test sequence for PsychoPy release (so hopefully fewer bugs in future!)
 * FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
 * FIXED problem with the error dialog from Builder experiments not being a sensible size (since v1.63.03 it was just showing a tiny box instead of an error message)
-* FIXED coder now reloads files changed outside the app when needed (thanks William Hogman)
+* FIXED Coder now reloads files changed outside the app when needed (thanks William Hogman)
 * FIXED Builder Text Component now respects the font property
 * FIXED problem with updating to a downloaded zip file (win32 only)
 * FIXED bug with ShapeStim.setOpacity when no shaders are available
 * FIXED *long-standing pygame scaling bug*
+* FIXED you can now scroll Builder Flow and still insert a Routine way to the right
 
 PsychoPy 1.63
 ------------------------------

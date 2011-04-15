@@ -149,7 +149,6 @@ class PrefCtrls:
         """
         if ctrl==None: return None
         elif hasattr(ctrl, 'GetStringSelection') and len(ctrl.GetStringSelection())>0: #for wx.Choice
-            print 'using ctrl.GetStringSelection()'
             return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
             return ctrl.GetValue()
