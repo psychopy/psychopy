@@ -568,8 +568,7 @@ class TrialHandler:
         ew.save(filename = fileName)
 
 
-
-def importTrialList(fileName):
+def importTrialList(fileName, returnFieldNames=False):
         """Imports a list of TrialTypes from an Excel (.xlsx) or comma-separated-value file. 
         
         If `fileName` ends .csv then import as a comma-separated-value file will be used. 
@@ -649,7 +648,10 @@ def importTrialList(fileName):
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
             
-        return trialList
+        if returnFieldNames:
+            return (trialList,fieldNames)
+        else:
+            return trialList
 
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
