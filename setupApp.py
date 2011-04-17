@@ -59,7 +59,7 @@ else:
     setup(app=['psychopy/app/psychopyApp.py'],
         options=dict(py2app=dict( includes=['Tkinter','FileDialog','tkFileDialog', 'imp', 'subprocess', 'shlex',
                                       '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
-                                      'ioLabs','hid',
+                                      'ioLabs','hid','pypsignifit',
                                       'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
                                       ],
                                       excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
@@ -68,10 +68,11 @@ else:
                                       argv_emulation=True,
                                       site_packages=True,
                                       packages=['wx','pyglet','pygame','OpenGL','psychopy','pytz',
-                                        'scipy','matplotlib','lxml','xml',
+                                        'scipy','matplotlib','lxml','xml','openpyxl',
                                         'nose','coverage',#for unit testing
                                         'serial','IPython',
                                         'egi','labjack','pylink',#handy external science interfaces
+                                        'pyxid',
                                         ],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(
