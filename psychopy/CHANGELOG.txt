@@ -13,7 +13,7 @@ PsychoPy 1.64
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In repos (https://github.com/psychopy/psychopy)
+Released April 2011
 
 * ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
 * ADDED CustomMouse to visual (Jeremy Gray) 
@@ -30,7 +30,7 @@ In repos (https://github.com/psychopy/psychopy)
     - labjack (good, fast, cheap USB I/O device)
     - egi (pynetstation)
     - pylink (SR Research eye trackers)
-    - psignifit (for fitting/boostrapping)
+    - psignifit (bootstrapping, but only added on mac for now)
 * ADDED option for Builder components to take code (e.g. variables) as start/duration times
 * ADDED support for RGBA files in SimpleImageStim
 * IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
