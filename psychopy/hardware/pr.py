@@ -288,18 +288,21 @@ class PR655(PR650):
                 self.isOpen=1
             except:
                 self._error("Found a device on serial port %s, but couldn't open that port" %self.portString)
-        self.com.setTimeout(0.5)#this should be large when making measurements
-        self.startRemoteMode()
-        self.type = self.getDeviceType()
-        if self.type:
-            log.info("Successfully opened %s on %s" %(self.type,self.portString))
-        else:
-            self._error("PR655/PR670 isn't communicating")
+            self.com.setTimeout(0.1)#this should be large when making measurements
+            self.startRemoteMode()
+            self.type = self.getDeviceType()
+            if self.type:
+                log.info("Successfully opened %s on %s" %(self.type,self.portString))
+            else:
+                self._error("PR655/PR670 isn't communicating")
     def __del__(self):
-        self.endRemoteMode()
-        time.sleep(0.1)
-        self.com.close()
-        log.debug('Closed PR655 port')
+        try:
+            self.endRemoteMode()
+            time.sleep(0.1)
+            self.com.close()
+            log.debug('Closed PR655 port')
+        except:
+            pass
     def startRemoteMode( self ):
         '''
         Sets the Colorimeter into remote mode

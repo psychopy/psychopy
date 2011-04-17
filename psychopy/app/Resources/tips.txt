@@ -1,4 +1,4 @@
-Most dialogs have a help button, (?), that takes you to the relevant online documentation
+Most dialogs have a help button that takes you to the relevant online documentation
 You can use Ctrl-[ or Ctrl-] to indent/outdent a block of code in Coder view
 Both in the Coder and Builder views have a demos menu with plenty of demos
 From Builder you can generate and customise the python script that controls your experiment (might be a good way to learn a bit of programming).
