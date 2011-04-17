@@ -283,7 +283,7 @@ class UnitTestFrame(wx.Frame):
         self.btnCancel.Enable()
         if sys.platform=='win32':
             test_subset = ' '+test_subset
-            command = '"%s" -u "%s" %s%s%s --with-doctest' %(sys.executable, runpyPath, 
+            command = '"%s" -u "%s" %s%s%s --with-doctest' %(sys.executable, self.runpyPath, 
                 coverage, allStdout, test_subset)# the quotes allow file paths with spaces
             print command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
