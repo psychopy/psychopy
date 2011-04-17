@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ################
 # see notes at bottom for requirements
-import glob, os
+import glob, os, shutil
 from sys import platform
 from distutils.core import setup
 
@@ -91,6 +91,8 @@ if writeNewInit:
     #remove unwanted info about this system post-build
     createInitFile.createInitFile(dist=None)
 
+#running testApp from within the app raises wx errors
+shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testApp")
 
 """
 I struggled getting the app to build properly. These were some of the problems: 
