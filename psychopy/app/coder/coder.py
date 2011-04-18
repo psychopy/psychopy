@@ -1059,6 +1059,7 @@ class CoderFrame(wx.Frame):
         self.ignoreErrors = False
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60 #sec
+        self.showingReloadDialog = False
         
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
@@ -1453,18 +1454,21 @@ class CoderFrame(wx.Frame):
         if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
-        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
-            self.fileStatusLastChecked = time.time()
+        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval and \
+                not self.showingReloadDialog:
             if not self.expectedModTime(self.currentDoc):
+                self.showingReloadDialog = True
                 dlg = dialogs.MessageDialog(self,
                         message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                         type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
                     self.SetStatusText('Reloading file')
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
+                self.showingReloadDialog = False
                 self.SetStatusText('')
                 try: dlg.destroy()
                 except: pass
+            self.fileStatusLastChecked = time.time()
             
     def pageChanged(self,event):
         old = event.GetOldSelection()
