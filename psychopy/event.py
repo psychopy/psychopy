@@ -466,8 +466,9 @@ class Mouse:
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
         
 
-
-class KeyResponse:
+class _BuilderKeyResponse():
+    """Used in scripts created by the builder
+    """
     def __init__(self):
         self.keys=[] #the key(s) pressed
         self.corr=0 #was the resp correct this trial? (0=no, 1=yes)

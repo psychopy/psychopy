@@ -55,7 +55,7 @@ class KeyboardComponent(BaseComponent):
             and self.params['storeResponseTime'].val==False:
             #the user doesn't want to store anything so don't bother
             return
-        buff.writeIndented("%(name)s = event.KeyResponse() #create an object of type KeyResponse\n" %self.params)
+        buff.writeIndented("%(name)s = event._BuilderKeyResponse() #create an object of type KeyResponse\n" %self.params)
         
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
