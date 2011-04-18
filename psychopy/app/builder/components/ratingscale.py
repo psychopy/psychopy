@@ -83,21 +83,13 @@ class RatingScaleComponent(BaseComponent):
             hint="Description of the high end of the scale")
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Use this text to create the rating scale as you would in a code component; OVERRIDES ALL other settings")
+            hint="Use this text to create the rating scale as you would in a code component; overrides ALL other dialog settings")
         
         # required (?)
         self.params['startTime'] = Param(0.0, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[], hint="")
         
     def writeInitCode(self, buff):
-        # Builder-code set-up:
-        try:
-            f = float(self.params['duration'].val)
-            if f < 0 or self.params['forceEndTrial']:
-                self.params['duration'].val = inf
-        except:
-            self.params['duration'].val = str(inf)
-        
         # build up an initialization string for RatingScale():
         init_str = "%(name)s=visual.RatingScale(win=win" % (self.params)
         if self.params['customize_everything'].val.strip() != '':
