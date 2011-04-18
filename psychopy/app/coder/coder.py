@@ -224,10 +224,10 @@ class UnitTestFrame(wx.Frame):
             fontSize=self.prefs.coder['outputFontSize'])
         
         known_tests = glob.glob(os.path.join(self.paths['tests'], 'test*'))
-        known_test_list = [t.split(os.sep)[-1] for t in known_tests]
+        known_test_list = [t.split(os.sep)[-1] for t in known_tests if t.endswith('.py') or os.path.isdir(t)]
         self.known_test_list = [self.run_all_text] + known_test_list
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.known_test_list)
-        self.testSelect.SetToolTip(wx.ToolTip("Select the directory of tests to be run, from:\npsychopy/tests/test*/"))
+        self.testSelect.SetToolTip(wx.ToolTip("Select the test(s) to run, from:\npsychopy/tests/test*"))
         # preselect the testGroup in the drop-down menu for display:
         pref_testSubset = self.app.prefs.coder['testSubset'].split(os.path.sep)[0]
         if pref_testSubset in self.known_test_list:
@@ -295,6 +295,8 @@ class UnitTestFrame(wx.Frame):
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (self.runpyPath, coverage, allStdout, test_subset)
         self.outputWindow.write(msg)
+        if self.app.prefs.general['units'] != 'norm' and test_subset.find('testVisual') > -1:
+            self.outputWindow.write("Note: default window units = '%s' (in prefs); for visual tests 'norm' is recommended.\n\n" % self.app.prefs.general['units'])
         
     def onCancelTests(self, event=None):
         if self.scriptProcess != None:
@@ -1059,6 +1061,7 @@ class CoderFrame(wx.Frame):
         self.ignoreErrors = False
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60 #sec
+        self.showingReloadDialog = False
         
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
@@ -1453,18 +1456,21 @@ class CoderFrame(wx.Frame):
         if hasattr(self.currentDoc, 'GetCurrentPos') and (self._lastCaretPos!=self.currentDoc.GetCurrentPos()):
             self.currentDoc.OnUpdateUI(evt=None)
             self._lastCaretPos=self.currentDoc.GetCurrentPos()
-        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval:
-            self.fileStatusLastChecked = time.time()
+        if time.time() - self.fileStatusLastChecked > self.fileStatusCheckInterval and \
+                not self.showingReloadDialog:
             if not self.expectedModTime(self.currentDoc):
+                self.showingReloadDialog = True
                 dlg = dialogs.MessageDialog(self,
                         message="'%s' was modified outside of PsychoPy:\n\nReload (without saving)?" % (os.path.basename(self.currentDoc.filename)),
                         type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
                     self.SetStatusText('Reloading file')
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
+                self.showingReloadDialog = False
                 self.SetStatusText('')
                 try: dlg.destroy()
                 except: pass
+            self.fileStatusLastChecked = time.time()
             
     def pageChanged(self,event):
         old = event.GetOldSelection()

@@ -96,7 +96,7 @@ class RatingScaleComponent(BaseComponent):
             if f < 0 or self.params['forceEndTrial']:
                 self.params['duration'].val = inf
         except:
-            self.params['duration'].val = inf
+            self.params['duration'].val = str(inf)
         
         # build up an initialization string for RatingScale():
         init_str = "%(name)s=visual.RatingScale(win=win" % (self.params)
