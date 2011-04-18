@@ -132,7 +132,7 @@ class PrefCtrls:
             self.valueCtrl = wx.CheckBox(self.parent)
             self.valueCtrl.SetValue(value)
         elif spec.startswith('option'):
-            options = spec.replace("option(", '').replace("'","")
+            options = spec.replace("option(", "").replace("'","").replace(", ",",")
             options = options.split(',')[:-1]
             self.valueCtrl = wx.Choice(self.parent, choices=options)
             self.valueCtrl.SetStringSelection(unicode(value))
