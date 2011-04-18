@@ -295,7 +295,7 @@ class UnitTestFrame(wx.Frame):
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (self.runpyPath, coverage, allStdout, test_subset)
         self.outputWindow.write(msg)
-        if self.app.prefs.general['units'] != 'norm':
+        if self.app.prefs.general['units'] != 'norm' and test_subset.find('testVisual') > -1:
             self.outputWindow.write("Note: default window units = '%s' (in prefs); for visual tests 'norm' is recommended.\n\n" % self.app.prefs.general['units'])
         
     def onCancelTests(self, event=None):
