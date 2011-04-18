@@ -224,10 +224,10 @@ class UnitTestFrame(wx.Frame):
             fontSize=self.prefs.coder['outputFontSize'])
         
         known_tests = glob.glob(os.path.join(self.paths['tests'], 'test*'))
-        known_test_list = [t.split(os.sep)[-1] for t in known_tests]
+        known_test_list = [t.split(os.sep)[-1] for t in known_tests if t.endswith('.py') or os.path.isdir(t)]
         self.known_test_list = [self.run_all_text] + known_test_list
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.known_test_list)
-        self.testSelect.SetToolTip(wx.ToolTip("Select the directory of tests to be run, from:\npsychopy/tests/test*/"))
+        self.testSelect.SetToolTip(wx.ToolTip("Select the test(s) to run, from:\npsychopy/tests/test*"))
         # preselect the testGroup in the drop-down menu for display:
         pref_testSubset = self.app.prefs.coder['testSubset'].split(os.path.sep)[0]
         if pref_testSubset in self.known_test_list:
