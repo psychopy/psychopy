@@ -15,6 +15,7 @@ PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released April 2011
 
+* ADDED option to return field names when importing a trial list (thanks Gary Lupyan)
 * ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
 * ADDED CustomMouse to visual (Jeremy Gray) 
 * ADDED Aperture object to visual (thanks Yuri Spitsyn) and as a component to Builder (Jeremy Gray)
