@@ -15,7 +15,7 @@ Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pyglet | 
 Recommends: python-wxgtk2.8, python-pyglet, python-pygame, python-openpyxl, python-imaging, python-serial, python-scipy,
             libavbin0,
             ipython
-Suggests: python-iolabs
+Suggests: python-iolabs, python-pyxid
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: environment for creating psychology stimuli in Python

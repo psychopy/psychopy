@@ -1,6 +1,8 @@
 psychopy (1.64.00.dfsg-1) unstable; urgency=low
 
   * New upstream release
+  * debian/control:
+    - added perspective python-pyxid to Suggests
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 Apr 2011 11:08:58 -0400
 
