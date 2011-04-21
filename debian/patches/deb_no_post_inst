@@ -4,7 +4,7 @@ Origin: Michael Hanke <michael.hanke@gmail.com>
 
 --- a/setup.py
 +++ b/setup.py
-@@ -46,7 +46,8 @@ elif platform=='posix':
+@@ -47,7 +47,8 @@ elif platform=='posix':
  
  setup(name="PsychoPy",
      packages=packages,
