@@ -1,3 +1,9 @@
+psychopy (1.64.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 Apr 2011 11:08:58 -0400
+
 psychopy (1.63.04.dfsg-1) unstable; urgency=low
 
   * New upstream bugfix release
