@@ -8,11 +8,11 @@ On windows `winioport`_ requires the `PortIO driver`_ to be installed.
 An alternative (e.g. on Linux) might be to install pyParallel and call that directly.
 
 .. _winioport: http://www.dinceraydin.com/python/indexeng.html
-.. _PortIO driver: http://www.driverlinx.com/DownLoad/dnload.htm#Windows 95/NT Port I/O Driver?ID=1268914636723
+.. _PortIO driver: http://www.winfordeng.com/support/download.php
 
 """
 
-import _parallel #this is Dincer Aydin's module
+from thirdParty import parallel #this is Dincer Aydin's module
 
 def setPortAddress(address=0x0378):
     """Set the memory address of your parallel port, to be used in subsequent commands

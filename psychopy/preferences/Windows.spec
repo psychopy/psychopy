@@ -21,6 +21,7 @@
 
 ###  Application settings, applied to coder, builder, & prefs windows -----
 [app]
+    showStartupTips = boolean(default='True')
     # NB: icons on OS X are large (?: unless you have a recent version of wx? wx 2.8.7.1 gives me small icons)
     largeIcons = boolean(default='True')
     # defaultView can be 'builder', 'coder', 'both', or 'last' (retrieve previous windows)
@@ -40,16 +41,19 @@
 ###  Settings for the coder and builder windows, and connections -----
 [coder]
     # Font is a list of font names - the first found on the system will be used
-    outputFont = list(default=list('Courier', 'Courier New'))
+    codeFont = string(default='Arial')
+    commentFont = string(default='Comic Sans MS')
+    outputFont = string(default='Courier New')
     # Font size (in pts) takes an integer between 6 and 24
-    codeFontSize = integer(6,24, default=12)
-    outputFontSize = integer(6,24, default=12)
+    codeFontSize = integer(6,24, default=10)
+    outputFontSize = integer(6,24, default=10)
     showSourceAsst = boolean(default=False)
     analysisLevel = integer(0,10,default=1)
     analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
     preferredShell = option('ipython','pyshell',default='pyshell')
+    testSubset = string(default='')
 
 [builder]
     # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
@@ -61,6 +65,8 @@
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list())
     unpackedDemosDir = string(default='')
+    showLoopInfoInFlow = boolean(default=False)
+    savedDataFolder = string(default='data')
   
 [connections]
     # the http proxy (for usage stats and auto-updating, format is 000.000.000.000:0000)

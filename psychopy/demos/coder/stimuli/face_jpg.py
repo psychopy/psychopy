@@ -45,4 +45,4 @@ while True:
             print myWin.fps()
             myWin.close()
             core.quit()
-    event.clearEvents()
+    event.clearEvents('mouse')#only really needed for pygame windows

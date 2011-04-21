@@ -1,14 +1,14 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, threading
 import os # only needed for temporary shellCall()
 
 # always safe to call rush, even if its not going to do anything for a particular OS
-from psychopy.ext import rush
+from psychopy.platform_specific import rush
 from psychopy import log
 
 # for shellCall: (May 2010: commented out due to v1.61 build issues for mac, even though shellCall() works fine on mac)

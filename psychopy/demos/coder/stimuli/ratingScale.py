@@ -10,16 +10,11 @@ import os
 # create a window before creating your rating scale, whatever units you like:
 myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
 
-# if you want skipped frames to be reported uncomment these two lines:
-#myWin.setRecordFrameIntervals(True)
-#log.console.setLevel(log.DEBUG)
+# instructions from the subject's point of view:
+instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are three examples.
 
-# display instructions for using a rating scale, from the subject's point of view:
-instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are two examples.
-
-Example 1 is as simple as possible, relying on the default configuration. You can use keys or the mouse to indicate a rating: just click on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys. Or you can type a number 1 to 7 to indicate your choice. 
-
-To accept your rating, either press 'enter' or click the button.
+Example 1 is close to the default configuration. You can use keys or the mouse to indicate a rating: just click on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys.
+To accept your rating, either press 'enter' or click the glowing button.
 
 Press any key to start Example 1 (or escape to quit).""")
 event.clearEvents()
@@ -28,18 +23,16 @@ myWin.flip()
 if 'escape' in event.waitKeys():
     core.quit()
 
-# Example 1 --------(as simple as possible)--------
-myRatingScale = visual.RatingScale(myWin) # create a RatingScale object
+# Example 1 --------(almost as simple as possible)--------
+# create a default RatingScale object, plus choices[]:
+myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
+myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'])
 
-# for fMRI, you might want to use custom left, right, and accept keys if your buttonbox supports keyboard codes:
-#myRatingScale = visual.RatingScale(myWin, markerStart=4, leftKeys='1', rightKeys = '2', acceptKeys='4')
-# you probably also want to time-out after a while--your script needs to handle that as part of your .draw loop
-# RatingsScale does not have a time-out
-
+# item to-be-rated:
 question = "How cool was that?"
-myItem = visual.TextStim(myWin, text=question, height=.12, units='norm') # item to-be-rated
+myItem = visual.TextStim(myWin, text=question, height=.12, units='norm')
 
-# anything with a frame-by-frame method for being drawn in a visual.Window() should work:
+# note that anything with a frame-by-frame method for being drawn in a visual.Window() should work:
 #myItem = visual.MovieStim(myWin, 'jwpIntro.mov', pos=(0,120))
 
 event.clearEvents()
@@ -52,9 +45,9 @@ rating = myRatingScale.getRating() # get the value indicated by the subject, 'No
 print 'Example 1: rating =', rating
 
 # Example 2 --------(multiple items, multiple dimensions for each)--------
-instr = visual.TextStim(myWin, text="""Example 2. This example uses non-default settings for the visual display, skipping a rating is not possible, and it uses a list of images to be rated. In addition, you will be asked to rate each image on two dimensions: valence and arousal.
+instr = visual.TextStim(myWin, text="""Example 2. This example uses non-default settings for the visual display, skipping a rating is not possible, and it uses a list of images (two) to be rated on several dimensions (valence and arousal).
 
-Try this: Place a marker, then drag it along the line using the mouse. In this example, you cannot use 1 to 7 keys to respond because the scale is 0 to 10.
+Try this: Place a marker, then drag it along the line using the mouse. In this example, you cannot use numeric keys to respond because the scale is 0 to 50.
 
 Press any key to start Example 2 (or escape to quit).""")
 instr.draw()
@@ -64,7 +57,7 @@ if 'escape' in event.waitKeys():
 
 # create a scale for Example 2, using quite a few non-default options:
 myRatingScale = visual.RatingScale(myWin, low=0, high=50, precision=10, 
-        markerStyle='glow', markerExpansion=10, showValue=False, allowSkip=False, offsetVert=-0.6)
+        markerStyle='glow', markerExpansion=10, showValue=False, allowSkip=False, pos=[0,-300])
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
 imageList = [f for f in os.listdir('.') if len(f) > 4 and f[-4:] in ['.jpg','.png']] # find all .png or .jpg images in the directory
@@ -73,7 +66,7 @@ imageList = imageList[:2] # ...but lets just use the first two
 data = []
 for image in imageList: 
     x,y = myRatingScale.win.size
-    myItem = visual.SimpleImageStim(win=myWin, image=image, units='pix', pos=[0, y/7])
+    myItem = visual.SimpleImageStim(win=myWin, image=image, units='pix', pos=[0, y//7])
     
     # rate each image on two dimensions
     for dimension in ['0=very negative . . . 50=very positive', '0=very boring . . . 50=very energizing']:
@@ -105,15 +98,16 @@ myWin.flip()
 if 'escape' in event.waitKeys():
     core.quit()
 
-leftward = -0.35
-rightward = -1 * leftward
-myRatingScaleLeft = visual.RatingScale(myWin, mouseOnly=True, offsetHoriz=leftward,
-    markerStyle='circle', displaySizeFactor=0.85)
-myRatingScaleRight = visual.RatingScale(myWin, mouseOnly=True, offsetHoriz=rightward,
-    markerColor='DarkGreen', displaySizeFactor=0.85) 
 x,y = myRatingScale.win.size # for converting norm units to pix
-myItemLeft = visual.SimpleImageStim(win=myWin, image=imageList[0], pos=[leftward*x/2., y/6.])
-myItemRight = visual.SimpleImageStim(win=myWin, image=imageList[1], pos=[rightward*x/2., y/6.])
+leftward = -0.35 * x / 2 # use pix units, because the drawing window's units are pix
+rightward = -1 * leftward
+myRatingScaleLeft = visual.RatingScale(myWin, mouseOnly=True, pos=(leftward,-y/6),
+    markerStyle='circle', displaySizeFactor=0.85)
+myRatingScaleRight = visual.RatingScale(myWin, mouseOnly=True, pos=(rightward,-y/6),
+    markerColor='DarkGreen', displaySizeFactor=0.85) 
+
+myItemLeft = visual.SimpleImageStim(win=myWin, image=imageList[0], pos=[leftward, y/6.])
+myItemRight = visual.SimpleImageStim(win=myWin, image=imageList[1], pos=[rightward, y/6.])
 
 event.clearEvents()
 while myRatingScaleLeft.noResponse or myRatingScaleRight.noResponse:

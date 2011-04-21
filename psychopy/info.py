@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Fetching data about the system"""
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, os, time, platform
@@ -17,6 +17,7 @@ except: pass
 try: import hashlib # python 2.5
 except: import sha
 import random
+import wx
 
 
 class RunTimeInfo(dict):
@@ -67,7 +68,7 @@ class RunTimeInfo(dict):
             a flat dict (but with several groups based on key names):
             
             psychopy : version, rush() availability
-                psychopyVersion, psychopyHaveExtRush
+                psychopyVersion, psychopyHaveExtRush, git branch and current commit hash if available
                 
             experiment : author, version, directory, name, current time-stamp, 
                 SHA1 digest, VCS info (if any, svn or hg only),
@@ -79,7 +80,7 @@ class RunTimeInfo(dict):
             window : (see output; many details about the refresh rate, window, and monitor; units are noted)
                 windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
                 
-            python : version of python, versions of key packages (numpy, scipy, matplotlib, pyglet, pygame)
+            python : version of python, versions of key packages (wx, numpy, scipy, matplotlib, pyglet, pygame)
                 pythonVersion, pythonScipyVersion, ...
                 
             openGL : version, vendor, rendering engine, plus info on whether several extensions are present
@@ -90,6 +91,9 @@ class RunTimeInfo(dict):
         
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
+        githash = _getHashGitHead(dir=os.path.abspath(os.path.dirname(__file__)))
+        if githash: 
+            self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
         self._setSystemUserInfo()
@@ -149,7 +153,7 @@ class RunTimeInfo(dict):
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self['experimentScript.directory'] = scriptDir
         # sha1 digest, text-format compatibility
-        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]))
+        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]), file=True)
         # subversion revision?
         try:
             svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0])) # svn revision
@@ -379,6 +383,7 @@ class RunTimeInfo(dict):
         # External python packages:
         self['pythonNumpyVersion'] = numpy.__version__
         self['pythonScipyVersion'] = scipy.__version__
+        self['pythonWxVersion'] = wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
         self['pythonPygletVersion'] = pyglet.__version__
         try: from pygame import __version__ as pygameVersion
@@ -458,6 +463,11 @@ class RunTimeInfo(dict):
         for k in sk:
             print k,type(self[k]),self[k]
             
+def _getHashGitHead(dir=''):
+    git_hash = shellCall("cd " + dir + "; git rev-parse --verify HEAD", stderr=True)
+    git_branch = shellCall("cd " + dir + """; git branch | awk '$1=="*" {print $2}' """, stderr=True)
+    return git_branch[0].strip() + ' ' + git_hash[0].strip()
+    
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
     
@@ -538,24 +548,32 @@ def _getUserNameUID():
         pass
     return str(user), int(uid)
 
-def _getSha1hexDigest(str):
-    """Returns base64 / hex encoded sha1 digest of a file or string, using hashlib.sha1() if available
+def _getSha1hexDigest(thing, file=False):
+    """Returns base64 / hex encoded sha1 digest of str(thing), or of a file contents
+    return None if a file is requested but no such file exists
     
     :Author:
-        - 2010 written by Jeremy Gray
+        - 2010 Jeremy Gray; updated 2011 to be more explicit
 
     >>> _getSha1hexDigest('1')
+    '356a192b7913b04c54574d18c28d46e6395428ab'
+    >>> _getSha1hexDigest(1)
     '356a192b7913b04c54574d18c28d46e6395428ab'
     """
     try:
         sha1 = hashlib.sha1()
-    except ImportError:
+    except:
         sha1 = sha.new() # deprecated, here for python 2.4
-    if os.path.isfile(str):
-        f = open(str,'r')
-        sha1.update(f.read())
-        f.close()
+    if file:
+        filename = thing
+        if os.path.isfile(filename):
+            f = open(filename,'rb')
+            sha1.update(f.read()) # check file size < available RAM first? or update in chunks?
+            f.close()
+        else:
+            return None
+            #raise IOError, "file '" + filename + "' not found'"
     else:
-        sha1.update(str)
+        sha1.update(str(thing))
     return sha1.hexdigest()
         

@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import urllib2, socket, re, glob
@@ -191,10 +191,10 @@ class InstallUpdateDialog(wx.Dialog):
         """
         self.app = app
         #get latest version info if poss
-        if app.updater==None:
+        if app.updater in [False,None]:
             #user has turned off check for updates in prefs so check now
             app.updater = updater = Updater(app=self.app)
-            self.latest=updater.getLatestUpdate(warnMsg=False)#don't need a warning - we'll provide one ourselves
+            self.latest=updater.getLatestInfo(warnMsg=False)#don't need a warning - we'll provide one ourselves
         else:
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
@@ -248,14 +248,14 @@ class InstallUpdateDialog(wx.Dialog):
                 "You can revert to a previous version by selecting a specific .zip source installation file" 
         else:
             msg = "PsychoPy v%s is available\nYou are running v%s" %(self.latest['version'], self.runningVersion)
-            if self.latest['lastUpdatable']<self.runningVersion:
+            if self.latest['lastUpdatable']<=self.runningVersion:
                 msg+="\nYou can update to the latest version automatically"
             else:
                 msg+="\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"  
         self.statusMessage.SetLabel(msg)
         if self.latest==-1 \
             or self.latest['version']==self.runningVersion \
-            or self.latest['lastCompatible']>self.runningVersion:#can't auto-update
+            or self.latest['lastUpdatable']>self.runningVersion:#can't auto-update
                 self.currentSelection=self.useZipBtn
                 self.useZipBtn.SetValue(True)
                 self.useLatestBtn.Disable()
@@ -280,6 +280,7 @@ class InstallUpdateDialog(wx.Dialog):
             self.progressBar.Disable()
             self.installBtn.Enable()#if this has been disabled by the fact that we couldn't connect
     def onCancel(self, event):
+        self.app.updater=None
         self.Destroy()
     def onFileBrowse(self, event):
         self.filename = event.GetString()
@@ -332,7 +333,7 @@ class InstallUpdateDialog(wx.Dialog):
                 if searchName!=None:
                     v=searchName.group(0)[:-1]
                 else:log.warning("Couldn't deduce version from zip file: %s" %zFilename)
-            f=open(zfile)
+            f=open(zfile, 'rb')
             zfile=zipfile.ZipFile(f)
         else:#assume here that zfile is a ZipFile
             pass#todo: error checking - is it a zipfile?
@@ -349,7 +350,11 @@ class InstallUpdateDialog(wx.Dialog):
                 os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
                 undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
             except:
-                return "Could not move existing PsychoPy installation (permissions error?)"
+                if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
+                    msg = "Right-click the app and 'Run as admin' to upgrade)"
+                else:
+                    msg = "Could not move existing PsychoPy installation (permissions error?)"
+                return msg
         else:#setuptools-style installation
             #generate new target path
             unzipTarget=currPath
@@ -369,7 +374,11 @@ class InstallUpdateDialog(wx.Dialog):
             undoString += 'os.remove(%s)\n' %unzipTarget
         except: #revert path rename and inform user
             exec(undoString)#undo previous changes
-            return ("Could not create new path (permissions error?):\n%s" %unzipTarget)
+            if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
+                msg = "Right-click the app and 'Run as admin'):\n%s" %unzipTarget
+            else:
+                msg = "Failed to create directory for new version (permissions error?):\n%s" %unzipTarget
+            return msg
 
         #do the actual extraction
         for name in zfile.namelist():#for each file within the zip

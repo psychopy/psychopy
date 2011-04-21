@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
 import StringIO, copy
 if sys.argv[-1] in ['-v', '--version']:
-    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2010, GNU GPL license' %psychopy.__version__
+    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2011, GNU GPL license' %psychopy.__version__
     sys.exit()
 if sys.argv[-1] in ['-h', '--help']:
     print """Starts the PsychoPy2 application.
@@ -192,23 +192,15 @@ class PsychoPyApp(wx.App):
             self.updater=connections.Updater(app=self, proxy=self.prefs.connections['proxy'])
             self.updater.suggestUpdate(confirmationDlg=False)#check for updates (silently)
         else: self.updater=False
-        """This is in wx demo. Probably useful one day.
-        #---------------------------------------------
-        def ShowTip(self):
-            config = GetConfig()
-            showTipText = config.Read("tips")
-            if showTipText:
-                showTip, index = eval(showTipText)
-            else:
-                showTip, index = (1, 0)
-
-            if showTip:
-                tp = wx.CreateFileTipProvider(opj("data/tips.txt"), index)
-                ##tp = MyTP(0)
-                showTip = wx.ShowTip(self, tp)
-                index = tp.GetCurrentTip()
-                config.Write("tips", str( (showTip, index) ))
-                config.Flush()"""
+        
+        if self.prefs.app['showStartupTips']:
+            tipIndex = self.prefs.appData['tipIndex']            
+            tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
+            showTip = wx.ShowTip(None, tp)
+            self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
+            self.prefs.saveAppData()
+            self.prefs.app['showStartupTips'] = showTip
+            self.prefs.saveUserPrefs()
 
         return True
     def getPrimaryDisplaySize(self):
@@ -250,20 +242,48 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-#    def showShell(self, event=None):
-#        from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
-#        if self.shell==None:
-#            self.shell = ipythonShell.ShellFrame(None, -1, 
-#                title="IPython in PsychoPy (v%s)" %self.version, app=self)
-#            self.shell.Show()
-#            self.shell.SendSizeEvent()
-#        self.shell.Raise()
-#        self.SetTopWindow(self.shell)                           
-#        self.shell.SetFocus()
+    #def showShell(self, event=None):
+    #    from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
+    #    if self.shell==None:
+    #        self.shell = ipythonShell.ShellFrame(None, -1, 
+    #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
+    #        self.shell.Show()
+    #        self.shell.SendSizeEvent()
+    #    self.shell.Raise()
+    #    self.SetTopWindow(self.shell)                           
+    #    self.shell.SetFocus()
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
         
+    def colorPicker(self, event=None):
+        """Opens system color-picker, sets clip-board and parent.new_rgb = string [r,g,b].
+        
+        Note: units are psychopy -1..+1 rgb units to three decimal places, preserving 24-bit color
+        """
+        class ColorPicker(wx.Panel):
+            def __init__(self, parent):
+                wx.Panel.__init__(self, parent, wx.ID_ANY)
+                rgb = 'None'
+                dlg = wx.ColourDialog(self)
+                dlg.GetColourData().SetChooseFull(True)
+                if dlg.ShowModal() == wx.ID_OK:
+                    data = dlg.GetColourData()
+                    rgb = data.GetColour().Get()
+                    rgb = map(lambda x: "%.3f" % ((x-127.5)/127.5),list(rgb))
+                    rgb = '['+','.join(rgb)+']'
+                    if wx.TheClipboard.Open():
+                        #http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
+                        wx.TheClipboard.Clear()
+                        wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
+                        wx.TheClipboard.Close()
+                dlg.Destroy()
+                parent.new_rgb = rgb        
+        frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(0,0)) # not shown
+        ColorPicker(frame)
+        new_rgb = frame.new_rgb # string; also on system clipboard, try wx.TheClipboard
+        frame.Destroy()
+        return new_rgb
     def openMonitorCenter(self,event):
         from psychopy.monitors import MonitorCenter
         frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
@@ -328,7 +348,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2010 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2011 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')

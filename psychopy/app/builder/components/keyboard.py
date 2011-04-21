@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _base import *
@@ -10,7 +10,7 @@ iconFile = path.join(thisFolder,'keyboard.png')
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    def __init__(self, exp, parentName, name='resp', allowedKeys='["left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
             startTime=0.0, duration=''):
         self.type='Keyboard'
@@ -45,30 +45,17 @@ class KeyboardComponent(BaseComponent):
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns")
-        #todo: add response time clock to keyboard!!
         self.params['storeResponseTime']=Param(storeResponseTime, 
             valType='bool', 
             updates='constant', allowedUpdates=[],
             hint="Response time (saved as 'rt') is based from start of keyboard available period")
-    def writeInitCode(self,buff):
-        #create a key response object - easier to store data (including a clock to start 
-        #at beginning of keyboard testing
-        if self.exp.noKeyResponse and self.params['store'].val!='nothing':
-            buff.writeIndented("#create our own class to store info from keyboard\n")
-            buff.writeIndented("class KeyResponse:\n")
-            buff.writeIndented("    def __init__(self):\n")
-            buff.writeIndented("        self.keys=[]#the key(s) pressed\n")
-            buff.writeIndented("        self.corr=0#was the resp correct this trial? (0=no, 1=yes)\n")
-            buff.writeIndented("        self.rt=None#response time\n")
-            buff.writeIndented("        self.clock=None#we'll use this to measure the rt\n")
-            self.exp.noKeyResponse=False#don't write this again
     def writeRoutineStartCode(self,buff):
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False \
             and self.params['storeResponseTime'].val==False:
             #the user doesn't want to store anything so don't bother
             return
-        buff.writeIndented("%(name)s = KeyResponse()#create an object of type KeyResponse\n" %self.params)
+        buff.writeIndented("%(name)s = event._BuilderKeyResponse() #create an object of type KeyResponse\n" %self.params)
         
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
@@ -83,10 +70,11 @@ class KeyboardComponent(BaseComponent):
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         dedentAtEnd=1
-        #create a clo
-        if self.params['storeResponseTime'].val==True:
-            buff.writeIndented("if %(name)s.clock==None: #if we don't have one we've just started\n" %self.params)
-            buff.writeIndented("    %(name)s.clock=core.Clock()#create one (now t=0)\n" %self.params)
+        #init the key-rt clock
+        if self.params['storeResponseTime'].val:
+            buff.writeIndented("if %(name)s.clockNeedsReset:\n" % self.params)
+            buff.writeIndented("    %(name)s.clock.reset() # now t=0\n" % self.params)
+            buff.writeIndented("    %(name)s.clockNeedsReset = False\n" % self.params)
             
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""

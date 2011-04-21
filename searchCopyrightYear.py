@@ -43,8 +43,9 @@ oldYear = str(int(newYear)-1) # last year; will need to set manually if you miss
 print "Checking all lines of all files for copyright <year> info..."
 
 #get paths and names of eligible files (in or below current directory)
-files = os.popen('find . | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
-files = [f.strip() for f in files if f.find(os.path.basename(sys.argv[0])) == -1] # strip(), and remove self from the list
+files = os.popen(r"find . | sed -e 's/ /\\ /g'" + ' | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
+files = [f.strip() for f in files]
+print len(files), 'files found, screening each'
 
 badLines = 0 #  ['$/] will mess with perl search-replace; other characters might too
 targetFiles = 0 # count of files to be updated
@@ -88,5 +89,5 @@ if targetFiles:
     if badLines:
         print "Warning: %d lines were skipped because they had a special character, see output" % badLines
 else:
-    print 'No matching files found for', oldYear
+    print 'No matching files found for year', oldYear
     os.unlink(tmpFile)
