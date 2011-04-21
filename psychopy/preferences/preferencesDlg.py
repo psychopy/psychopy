@@ -99,7 +99,7 @@ class PreferencesDlg(wx.Dialog):
             ctrlName = sectionName+'.'+prefName
             if platform.system() == 'Darwin' and sectionName == 'keyBindings' and \
                     thisSpec.startswith('string'):
-                thisPref = str(thisPref).replace('Ctrl+', 'Cmd+')
+                thisPref = thisPref.replace('Ctrl+', 'Cmd+')
             self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)            
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
