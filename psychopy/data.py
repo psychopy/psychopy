@@ -584,7 +584,9 @@ def importTrialList(fileName, returnFieldNames=False):
             - contain no spaces or other punctuation (underscores are permitted)
         
         """
-        if not os.path.isfile(fileName):
+        if fileName in ['None','none',None]:
+            return []
+        elif not os.path.isfile(fileName):
             raise ImportError, 'TrialTypes file not found: %s' %os.path.abspath(fileName)
         
         if fileName.endswith('.csv'):
