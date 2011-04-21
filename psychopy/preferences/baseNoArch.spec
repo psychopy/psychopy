@@ -1,7 +1,5 @@
 
-# This file specifies defaults for psychopy prefs for Darwin.
-# !! This file is auto-generated and will be overwritten!!
-#Edit baseNoArch.spec instead.
+# This file specifies defaults for psychopy prefs for ALL PLATFORMS
 
 # Notes on usage for developers (not needed or intended for use when making or running experiments):
 # - baseNoArch.spec is copied & edited to be platform specific when you run generateSpec.py
@@ -46,7 +44,7 @@
     # best leave this mysterious setting as 'process'
     runScripts = option('process', 'thread', 'inline', default='process')
     # on win32 only, we can allow module imports for analysis of code
-    
+    allowModuleImports = boolean(default='True')
     # should common libs be imported during launch
     importLibs = option('none', 'thread', 'inline', default='none')
     # will reset site & key prefs to defaults immediately
