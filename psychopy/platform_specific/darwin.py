@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time
@@ -9,7 +9,7 @@ try:
     importCtypesFailed = False
 except:
     importCtypesFailed = True
-    log.debug("rush() not available because import ctypes failed in ext/darwin.py")
+    log.debug("rush() not available because import ctypes failed in contrib/darwin.py")
 
 #constants
 KERN_SUCCESS=0;
@@ -197,10 +197,11 @@ def getScreenSizePix(screen=0):
     return [h,w]
 
 def waitForVBL(screen=0,nFrames=1):
-    """Wait for the given screen (typically screen is 0 or 1) to finish drawing before returning/
-    If no screen is given then screen 0 is used.
+    """DEPRECATED: the code for doing this is now smaller and cross-platform so 
+    is included in visual.Window.flip()
     
-    This is based on detecting the display beam position and may give unpredictable results for an LCD.
+    This version is based on detecting the display beam position. It may give 
+    unpredictable results for an LCD.
     """    
     if importCtypesFailed: return False
     

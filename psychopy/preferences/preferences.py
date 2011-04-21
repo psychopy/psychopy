@@ -47,6 +47,7 @@ class Preferences:
         self.paths['appFile']=join(dirApp, 'PsychoPy.py')
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
+        self.paths['tests'] = join(dirPsychoPy, 'tests')
         
         if sys.platform=='win32':
             self.paths['prefsSpecFile']= join(prefSpecDir,'Windows.spec')

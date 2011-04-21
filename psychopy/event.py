@@ -3,7 +3,7 @@
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing 
@@ -378,8 +378,8 @@ class Mouse:
         last call to getRel or getPos, in the same units as the :class:`~visual.Window`.
         """
         if usePygame: 
-            relPosPix=mouse.get_rel()
-            return self._pix2windowUnits(self.relPosPix)
+            relPosPix=numpy.array(mouse.get_rel()) * [1,-1]
+            return self._pix2windowUnits(relPosPix)
         else: 
             #NB getPost() resets lastPos so MUST retrieve lastPos first
             if self.lastPos is None: relPos = self.getPos()
@@ -464,6 +464,17 @@ class Mouse:
         elif self.win.units=='norm': return pos*self.win.size/2.0
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
+        
+
+class _BuilderKeyResponse():
+    """Used in scripts created by the builder
+    """
+    def __init__(self):
+        self.keys=[] #the key(s) pressed
+        self.corr=0 #was the resp correct this trial? (0=no, 1=yes)
+        self.rt=None #response time
+        self.clock=psychopy.core.Clock() #we'll use this to measure the rt
+        self.clockNeedsReset = True
         
 def clearEvents(eventType=None):
     """Clears all events currently in the event buffer.

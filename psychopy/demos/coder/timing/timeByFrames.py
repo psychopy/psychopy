@@ -14,7 +14,7 @@ matplotlib.use('WXAgg')
 import pylab
 
 nIntervals=1000
-win = visual.Window([1280,1024], fullscr=True, allowGUI=False)
+win = visual.Window([1280,1024], fullscr=True, allowGUI=False, waitBlanking=True)
 progBar = visual.PatchStim(win, tex=None, mask=None, 
     size=[0,0.05],color='red',pos=[0,-0.9],
     autoLog=False)

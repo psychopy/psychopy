@@ -26,5 +26,5 @@ while True:#quits after 20 secs
             print myWin.fps()
             myWin.close()
             core.quit()
-    event.clearEvents()#keep the event buffer from overflowing
+    event.clearEvents('mouse')#only really needed for pygame windows
 

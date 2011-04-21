@@ -23,7 +23,7 @@ while True:
     #check for a keypress
     if event.getKeys():
         break
-    event.clearEvents()
+    event.clearEvents('mouse')#only really needed for pygame windows
 
 
 #reset the bits++ (and update the window so that this is done properly)

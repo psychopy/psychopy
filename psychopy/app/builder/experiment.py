@@ -1,11 +1,25 @@
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences
 from lxml import etree
+import numpy, numpy.random # want to query their name-spaces
+import re, os
+
+# predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
+_valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
+_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+
+"""the code that writes out an actual experiment file is (in order):
+    experiment.Experiment.writeScript() - starts things off, calls other parts
+    settings.SettingsComponent.writeStartCode()
+    experiment.Flow.writeCode()
+        which will call .writeCode() bits from each component
+    settings.SettingsComponent.writeStartCode()
+"""
 
 class IndentingBuffer(StringIO.StringIO):
     def __init__(self, *args, **kwargs):
@@ -55,11 +69,13 @@ class Experiment:
         self.prefsGeneral=prefs.general
         self.prefsCoder=prefs.coder
         self.prefsBuilder=prefs.builder
+        self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['core','data', 'event']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
+        self.namespace = NameSpace(self) # manage variable names
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -83,44 +99,31 @@ class Experiment:
     def writeScript(self):
         """Write a PsychoPy script for the experiment
         """
-        self.noKeyResponse=True#if keyboard is used (and data stored) this will be False
-        s=IndentingBuffer(u'') #a string buffer object
-        s.writeIndented('#!/usr/bin/env python\n')
-        s.writeIndented('# -*- coding: utf-8 -*-\n')
-        s.writeIndented('"""This experiment was created using PsychoPy2 Experiment Builder\n')
-        s.writeIndented('If you publish work using this script please cite the relevant PsychoPy publications\n')
-        s.writeIndented('  Peirce (2007) Journal of Neuroscience Methods 162:8-1\n  Peirce (2009) Frontiers in Neuroinformatics, 2: 10"""\n\n')
-
-        #import psychopy libs
-        libString=""; separator=""
-        for lib in self.psychopyLibs:
-            libString = libString+separator+lib
-            separator=", "#for the second lib upwards we need a comma
-        s.writeIndented("from numpy import * #many different maths functions\n") 
-        s.writeIndented("from numpy.random import * #maths randomisation functions\n")
-        s.writeIndented("import os #handy system and path functions\n")
-        s.writeIndented("from psychopy import %s\n" %libString)
-        s.writeIndented("import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
-
-        self.settings.writeStartCode(s)#present info dlg, make logfile, Window
+        
+        script = IndentingBuffer(u'') #a string buffer object
+        script.write('#!/usr/bin/env python\n' +
+                    '# -*- coding: utf-8 -*-\n' +
+                    '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
+                        self.psychopyVersion, data.getDateStr(format="%B %d, %Y, at %H:%M") ) +
+                    'If you publish work using this script please cite the relevant PsychoPy publications\n' +
+                    '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
+                    '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
+        script.write("from numpy import * #many different maths functions\n" +
+                    "from numpy.random import * #maths randomisation functions\n" +
+                    "import os #handy system and path functions\n" +
+                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
+        self.namespace.user.sort()
+        script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
+                    "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
+        
+        self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
-        self.flow.writeCode(s)
-        self.settings.writeEndCode(s)#close log file
+        self.flow.writeCode(script)
+        self.settings.writeEndCode(script) #close log file
 
-        return s
-    def getUsedName(self, name):
-        """Check the exp._usedNames dict and return None for unused or
-        the type of object using it otherwise
-        """
-        #look for routines and loop names
-        for flowElement in self.flow:
-            if flowElement.getType()in ['LoopInitiator','LoopTerminator']:
-                flowElement=flowElement.loop #we want the loop itself
-            if flowElement.params['name']==name: return flowElement.getType()
-        for routineName in self.routines.keys():
-            for comp in self.routines[routineName]:
-                if name==comp.params['name'].val: return comp.getType()
-        return#we didn't find an existing name :-)
+        return script
+    
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
@@ -215,12 +218,24 @@ class Experiment:
         f.close()
         root=self._doc#.getroot()
         
+        #some error checking on the version (and report that this isn't valid .psyexp)?
+        filename_base = os.path.basename(filename)
+        if root.tag != "PsychoPy2experiment":
+            print '\n%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag)
+            # the current exp is already vaporized at this point, oops
+            return
         self.psychopyVersion = root.get('version')
-        #todo: some error checking on the version (and report that this isn't valid .psyexp)?
+        version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
+        if version_f < 1.63:
+            print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
+        
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
+        self.namespace = NameSpace(self) # start fresh
+        modified_names = []
+        
         #fetch exp settings
         settingsNode=root.find('Settings')
         for child in settingsNode:
@@ -228,28 +243,39 @@ class Experiment:
         #fetch routines
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
-            routine = Routine(name=routineNode.get('name'), exp=self)
+            routine_good_name = self.namespace.make_valid(routineNode.get('name'))
+            if routine_good_name != routineNode.get('name'):
+                modified_names.append(routineNode.get('name'))
+            self.namespace.user.append(routine_good_name)
+            routine = Routine(name=routine_good_name, exp=self)
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
-            #then create the
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
                 componentType=componentNode.tag
-                componentName=componentNode.get('name')
                 #create an actual component of that type
                 component=getAllComponents()[componentType](\
-                    name=componentName,
+                    name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
+                comp_good_name = self.namespace.make_valid(componentNode.get('name'))
+                if comp_good_name != componentNode.get('name'):
+                    modified_names.append(componentNode.get('name'))
+                self.namespace.add(comp_good_name)
+                component.params['name'].val = comp_good_name
                 routine.append(component)
+        
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
         for elementNode in flowNode:
             if elementNode.tag=="LoopInitiator":
                 loopType=elementNode.get('loopType')
-                loopName=elementNode.get('name')
+                loopName=self.namespace.make_valid(elementNode.get('name'))
+                if loopName != elementNode.get('name'):
+                    modified_names.append(elementNode.get('name'))
+                self.namespace.user.append(loopName)
                 exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
                 for paramNode in elementNode:
@@ -264,6 +290,9 @@ class Experiment:
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
                 
+        if modified_names:
+            print 'duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names)
+            
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
@@ -378,7 +407,7 @@ class TrialHandler:
             trialStr="[None]"
         else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
+        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \n    trialList=%s)\n" \
@@ -471,7 +500,7 @@ class StairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = ("this"+self.params['name'].val.capitalize()[:-1])
+        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
         #write the code
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0' 
@@ -569,24 +598,24 @@ class Flow(list):
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
             if id==None: 
-                #if the user removes an entire Routine we need to remove all antries in the Flow
+                #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
-                for id, compToDel in enumerate(self):
-                    if component.name==compToDel.name: del self[id]
+                for id, compInFlow in enumerate(self):
+                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name: del self[id]
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
-    def writeCode(self, s):
+    def writeCode(self, script):
         #initialise
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
-            entry.writeInitCode(s)
+            entry.writeInitCode(script)
         #run-time code
         for entry in self:
             self._currentRoutine=entry
-            entry.writeMainCode(s)
+            entry.writeMainCode(script)
         #tear-down code (very few components need this)
         for entry in self:
             self._currentRoutine=entry
-            entry.writeExperimentEndCode(s)
+            entry.writeExperimentEndCode(script)
     
 class Routine(list):
     """
@@ -630,7 +659,7 @@ class Routine(list):
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-
+        
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#run the trial\n')
         buff.writeIndented('%s=True\n' %self._continueName)
@@ -650,7 +679,6 @@ class Routine(list):
         #update screen
         buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
         buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
-        buff.writeIndented("event.clearEvents()#so that it doesn't get clogged with other events\n")
         buff.writeIndented('#refresh the screen\n')
         buff.writeIndented('win.flip()\n')
 
@@ -681,13 +709,226 @@ class Routine(list):
         times=[]
         for event in self:
             if 'startTime' not in event.params.keys(): continue
-            if event.params['duration'].val in ['-1', '']: maxTime=1000000
+            if event.params['duration'].val in ['-1', ''] \
+                or '$' in [event.params['startTime'].val[0], event.params['duration'].val[0]]:
+                maxTime=1000000
             else:
                 exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime
     
+class NameSpace():
+    """class for managing variable names in builder-constructed experiments.
+    
+    The aim is to help detect and avoid name-space collisions from user-entered variable names.
+    Track four groups of variables:
+        numpy =    part of numpy or numpy.random (maybe its ok for a user to redefine these?)
+        psychopy = part of psychopy, such as event or data; include os here
+        builder =  used internally by the builder when constructing an experiment
+        user =     used 'externally' by a user when programming an experiment
+    Some vars, like core, are part of both psychopy and numpy, so the order of operations can matter
+    
+    Notes for development:
+    are these all of the ways to get into the namespace?
+    - import statements at top of file: numpy, psychopy, os, etc
+    - a handful of things that always spring up automatically, like t and win
+    - routines: user-entered var name = routine['name'].val, plus sundry helper vars, like theseKeys
+    - flow elements: user-entered = flowElement['name'].val
+    - routine & flow from either GUI or .psyexp file
+    - each routine and flow element potentially has a ._continueName and a ._clockName,
+        which for "name" means "continueName" and "nameClock"
+        loops have thisName, albeit thisNam (missing end character)
+    - column headers in condition files
+    - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
+    
+    TO DO (throughout app):
+        trialLists on import
+        how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
+        staircase resists being reclassified as trialhandler
+    
+    :Author:
+        2011 Jeremy Gray
+    """
+    def __init__(self, exp):
+        """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
+        self.exp = exp
+        #deepcopy fails if you pre-compile regular expressions and stash here
+        
+        self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
+        self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
+                        'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
+                        'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
+                        'is', 'return', 'def', 'for', 'lambda', 'try',
+                        
+                         'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
+                         'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp', 'coerce',
+                         'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
+                         'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
+                         'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash',
+                         'help', 'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'issubclass',
+                         'iter', 'len', 'license', 'list', 'locals', 'long', 'map', 'max', 'memoryview',
+                         'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'property',
+                         'quit', 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round',
+                         'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super',
+                         'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange', 'zip',
+                         'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems', 'iterkeys',
+                         'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values',
+                         'viewitems', 'viewkeys', 'viewvalues',
+                         
+                         '__builtins__', '__doc__', '__file__', '__name__', '__package__']
+        # these are based on a partial test, known to be incomplete:
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
+        self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
+            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
+        # user-entered, from Builder dialog or conditions file:
+        self.user = []
+    
+    def __str__(self, numpy_count_only=True):
+        vars = self.user + self.builder + self.psychopy
+        if numpy_count_only:
+            return "%s + [%d numpy]" % (str(vars), len(self.numpy))
+        else:
+            return str(vars + self.numpy)
+    
+    def get_derived(self, basename):
+        """ buggy
+        idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
+        more specific than is_possibly-derivable()
+        if basename is a routine, return continueBasename and basenameClock,
+        if basename is a loop, return make_loop_index(name)
+        """
+        derived_names = []
+        for flowElement in self.exp.flow:
+            if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
+                flowElement=flowElement.loop  # we want the loop itself
+                # basename can be <type 'instance'>
+                derived_names += [self.make_loop_index(basename)]
+            if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
+                derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
+        # other derived_names?
+        # 
+        return derived_names 
+    
+    def get_collisions(self):
+        """return None, or a list of names in .user that are also in one of the other spaces"""
+        duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
+        su = sorted(self.user)
+        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var] 
+        if duplicates != []:
+            return duplicates
+        return None
+    
+    def is_valid(self, name):
+        """var-name compatible? return True if string name is alphanumeric + underscore only, with non-digit first"""
+        return bool(_valid_var_re.match(name))
+    def is_possibly_derivable(self, name):
+        """catch all possible derived-names, regardless of whether currently"""
+        derivable = name.startswith('this') or name.startswith('continue') or name.endswith('Clock')
+        derivable = derivable or name.startswith('these')
+        return derivable
+    def exists(self, name): 
+        """returns None, or a message indicating where the name is in use.
+        cannot guarantee that a name will be conflict-free.
+        does not check whether the string is a valid variable name.
+        
+        >>> exists('t')
+        Builder variable
+        """
+        try: name = str(name) # convert from unicode if possible
+        except: pass
+        
+        # check get_derived:
+        
+        # check in this order:
+        if name in self.user: return "script variable"
+        if name in self.builder: return "Builder variable"
+        if name in self.psychopy: return "Psychopy module"
+        if name in self.numpy: return "numpy function"
+        if name in self.keywords: return "python keyword"
+        
+        return # None, meaning does not exist already
+    
+    def add(self, name, sublist='default'):
+        """add name to namespace by appending a name or list of names to a sublist, eg, self.user"""
+        if name is None: return
+        if sublist == 'default': sublist = self.user
+        if type(name) != list:
+            sublist.append(name)
+        else:
+            sublist += name
+        
+    def remove(self, name, sublist='default'):
+        """remove name from the specified sublist (and hence from the name-space), eg, self.user"""
+        if name is None: return
+        if sublist == 'default': sublist = self.user
+        if type(name) != list:
+            name = [name]
+        for n in list(name):
+            if n in sublist:
+                del sublist[sublist.index(n)]
+        
+    def make_valid(self, name, prefix='var', add_to_space=None):
+        """given a string, return a valid and unique variable name.
+        replace bad characters with underscore, add an integer suffix until its unique
+        
+        >>> make_valid('t')
+        't_1'
+        >>> make_valid('Z Z Z')
+        'Z_Z_Z'
+        >>> make_valid('a')
+        'a'
+        >>> make_valid('a')
+        'a_1'
+        >>> make_valid('a')
+        'a_2'
+        >>> make_valid('123')
+        'var_123'
+        """
+        
+        # make it legal:
+        try: name = str(name) # convert from unicode, flag as uni if can't convert
+        except: prefix = 'uni'
+        if not name: name = prefix+'_1'
+        if name[0].isdigit():
+            name = prefix+'_' + name
+        name = _nonalphanumeric_re.sub('_', name) # replace all bad chars with _
+        
+        # try to make it unique; success depends on accuracy of self.exists():
+        i = 2
+        if self.exists(name) and name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
+            basename, count = name.rsplit('_', 1)
+            try:
+                i = int(count)
+                name = basename
+            except:
+                pass
+        name_orig = name + '_'
+        while self.exists(name): # brute-force a unique name
+            name = name_orig + str(i)
+            i += 1
+        if add_to_space:
+            self.add(name, add_to_space)
+        return name
+
+    def make_loop_index(self, name):
+        """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
+        try: new_name = str(name)
+        except: new_name = name
+        prefix = 'this'
+        irregular = {'stimuli': 'stimulus', 'mice': 'mouse', 'people': 'person'}
+        for plural, singular in irregular.items():
+            nn = re.compile(plural, re.IGNORECASE)
+            new_name = nn.sub(singular, new_name)
+        if new_name.endswith('s') and not new_name.lower() in irregular.values():
+            new_name = new_name[:-1] # trim last 's'
+        else: # might end in s_2, so delete that s; leave S
+            match = re.match(r"^(.*)s(_\d+)$", new_name)
+            if match: new_name = match.group(1) + match.group(2)
+        new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
+        new_name = self.make_valid(new_name)
+        return new_name
+            
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """

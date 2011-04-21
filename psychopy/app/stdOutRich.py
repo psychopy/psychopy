@@ -1,10 +1,21 @@
 import wx, sys, re
+import wx.richtext
 
 class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
     """
-    def __init__(self, parent, style):
-        wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+    def __init__(self, parent, style, size=None, font=None, fontSize=None):
+        if size==None:
+            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+        else:
+            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
+            
+        if font and fontSize: 
+            currFont = self.GetFont()
+            currFont.SetFaceName(font)
+            currFont.SetPointSize(fontSize)
+            self.BeginFont(currFont)
+        
         self.parent=parent
         self.Bind(wx.EVT_TEXT_URL, parent.onURL)
         #define style for filename links (URLS) needs wx as late as 2.8.4.0
@@ -53,7 +64,7 @@ class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
     """
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
-        wx.Frame.__init__(self, parent, ID, title)
+        wx.Frame.__init__(self, parent, ID, title, size=size)
         panel = wx.Panel(self)
         
         self.parent=parent#e.g. the builder frame
@@ -75,7 +86,7 @@ class StdOutFrame(wx.Frame):
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
         
-        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE)
+        self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)
         
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.stdoutCtrl)

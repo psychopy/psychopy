@@ -3,7 +3,7 @@ Various useful functions for creating filters and textures (e.g. for PatchStim)
 	
 """
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy
@@ -157,10 +157,10 @@ def conv2d(smaller, larger):
     Actually right now the matrices must be the same size (will sort out
     padding issues another day!)
     """
-    smallerFFT = numpy.fft2(smaller)
-    largerFFT = numpy.fft2(larger)
+    smallerFFT = fft2(smaller)
+    largerFFT = fft2(larger)
     
-    invFFT = numpy.ifft(smallerFFT*largerFFT)
+    invFFT = ifft2(smallerFFT*largerFFT)
     return invFFT.real
 
 def imfft(X):

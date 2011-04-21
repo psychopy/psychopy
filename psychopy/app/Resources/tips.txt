@@ -1,0 +1,18 @@
+Most dialogs have a help button that takes you to the relevant online documentation
+You can use Ctrl-[ or Ctrl-] to indent/outdent a block of code in Coder view
+Both in the Coder and Builder views have a demos menu with plenty of demos
+From Builder you can generate and customise the python script that controls your experiment (might be a good way to learn a bit of programming).
+Avoid snorting Pepsi
+Most buttons have tooltips if you hover over them
+PsychoPy can handle many different units once you've calibrated your monitor (see documentation on general > units)
+Menu items show you the current key bindings (which can be configured in preferences)
+Use the source. PsychoPy comes with all its source code included. If you know python, you'd be surprised how easy it is to find your own bug-fixes. (Warning: can become addictive.)
+PsychoPy is free. Please cite the relevant papers (Peirce 2007; 2009) if you use PsychoPy in published work. 
+The mailing list is a great place to ask questions and receive updates, at http://groups.google.com/group/psychopy-users 
+Coder: Did you try typing python commands in the Shell window yet?
+If you buy a computer, make sure it doesn't have an "Intel integrated graphics card" (or make sure you can upgrade to an nVidia/ATI replacement)
+Builder: right-clicking on any 'color' parameter will bring up the system's color-picker.
+Coder: you can click the color-picker icon on the toolbar. The rgb color triplet will be saved to the clipboard (in PsychoPy's rgb color units, -1..+1 not 0..255), which you can then paste into a script.
+In the Builder, you can right click on things to bring up a menu, e.g., to remove a trial.
+To flip a Patch stimulus, give it a negative 'size', in x, y or both
+Coder: most commands like stim.setOri() can also take an operation argument (e.g. '+' to increment orientation)

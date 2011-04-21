@@ -4,7 +4,7 @@ See http://www.photoresearch.com/
 --------
 """
 # Part of the PsychoPy library
-# Copyright (C) 2010 Jonathan Peirce
+# Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import log
@@ -288,18 +288,21 @@ class PR655(PR650):
                 self.isOpen=1
             except:
                 self._error("Found a device on serial port %s, but couldn't open that port" %self.portString)
-        self.com.setTimeout(0.5)#this should be large when making measurements
-        self.startRemoteMode()
-        self.type = self.getDeviceType()
-        if self.type:
-            log.info("Successfully opened %s on %s" %(self.type,self.portString))
-        else:
-            self._error("PR655/PR670 isn't communicating")
+            self.com.setTimeout(0.1)#this should be large when making measurements
+            self.startRemoteMode()
+            self.type = self.getDeviceType()
+            if self.type:
+                log.info("Successfully opened %s on %s" %(self.type,self.portString))
+            else:
+                self._error("PR655/PR670 isn't communicating")
     def __del__(self):
-        self.endRemoteMode()
-        time.sleep(0.1)
-        self.com.close()
-        log.debug('Closed PR655 port')
+        try:
+            self.endRemoteMode()
+            time.sleep(0.1)
+            self.com.close()
+            log.debug('Closed PR655 port')
+        except:
+            pass
     def startRemoteMode( self ):
         '''
         Sets the Colorimeter into remote mode
@@ -330,7 +333,9 @@ class PR655(PR650):
         for letter in message:
             self.com.write(letter)#for PR655 have to send individual chars ! :-/
             self.com.flush()
-
+            
+        time.sleep(0.2)#PR655 can get cranky if rushed
+        
         #get feedback (within timeout)
         self.com.setTimeout(timeout)
         if message in ['d5\n', 'D5\n']: #we need a spectrum which will have multiple lines
