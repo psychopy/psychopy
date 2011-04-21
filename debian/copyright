@@ -3,7 +3,7 @@ Upstream-Name: psychopy
 Upstream-Source-Location: http://www.psychopy.org
 
 Files: *
-Copyright: Copyright, 2002-2010, Jon W. Peirce
+Copyright: Copyright, 2002-2011, Jon W. Peirce
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -50,11 +50,15 @@ License: BSD-3
  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  DAMAGE.
 
+Files: psychopy/contrib/mseq*
+Copyright: 2011, Jeremy Gray
+License: BSD-3
+
 Files: psychopy/hardware/ioLabs/*
 Copyright: Copyright, 2010, IOLAB SYSTEMS INC <development@iolab.co.uk>
 License: GPL-3+
 
 Files: debian/*
-Copyright: 2007-2010, Yaroslav Halchenko <debian@onerussian.com>
+Copyright: 2007-2011, Yaroslav Halchenko <debian@onerussian.com>
            2007-2009, Michael Hanke <michael.hanke@gmail.com>
 License: GPL-3+
