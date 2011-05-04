@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 from psychopy import *
+import pygame.joystick
+#see http://www.pygame.org/docs/ref/joystick.html#pygame.joystick.Joystick
 
 #create a window to draw in
 myWin = visual.Window((800.0,800.0), allowGUI=False)
 
+pygame.joystick.init()#initialise the module
+
 if event.joystick.get_count()>0:
-    myJoystick = event.Joystick(0)
-    myJoystick.init()
+    myJoystick = pygame.joystick.Joystick(0)
+    myJoystick.init()#initialise the device
     print 'found ', myJoystick.get_name(), ' with:'
     print '...', myJoystick.get_numbuttons(), ' buttons'
     print '...', myJoystick.get_numhats(), ' hats'
@@ -35,12 +39,14 @@ while 1:
     #get joystick data
     xx = myJoystick.get_axis(0)*1.0
     yy = myJoystick.get_axis(1)*1.0
-    sf = (1+myJoystick.get_axis(2))*5.0
-    deltaOri = myJoystick.get_axis(3)*-5.0
     grating.setPos((xx, -yy))
-    grating.setSF(sf)
-    if abs(deltaOri)>2:
-        grating.setOri(deltaOri,'+')
+    if myJoystick.get_numaxes()>2:#check if we have a control for this
+        sf = (1+myJoystick.get_axis(2))*5.0
+        grating.setSF(sf)
+    if myJoystick.get_numaxes()>3:#check if we have a control for this
+        deltaOri = myJoystick.get_axis(3)*-5.0
+        if abs(deltaOri)>2:#only change for a decent size change?
+            grating.setOri(deltaOri,'+')
     
     t=trialClock.getTime()
     
