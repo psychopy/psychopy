@@ -50,14 +50,11 @@ class TrialHandler:
                  dataTypes=None,
                  extraInfo=None,
                  seed=None,
-                 originFile=None):
+                 originPath=None):
         """
         trialList: a simple list (or flat array) of trials.
             
             """
-        if originFile==None:
-            self.originFile = inspect.getouterframes(inspect.currentframe())[1][1]
-        else: self.originFile = originFile
         
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
@@ -89,6 +86,14 @@ class TrialHandler:
         if self.method in ['random','sequential']:
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
+        
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
+        
     def __iter__(self):
         return self
     def __repr__(self): 
@@ -682,7 +687,7 @@ class StairHandler:
                  stepType='db',
                  minVal=None,
                  maxVal=None,
-                 originFile=None):
+                 originPath=None):
         """
         :Parameters:
             
@@ -738,7 +743,7 @@ class StairHandler:
         """
         trialList: a simple list (or flat array) of trials.
             
-            """
+            """        
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -770,9 +775,12 @@ class StairHandler:
         self.minVal = minVal
         self.maxVal = maxVal
         
-        if originFile==None:
-            self.originFile = inspect.getouterframes(inspect.currentframe())[1][1]
-        else: self.originFile = originFile
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
         
     def __iter__(self):
         return self
