@@ -2333,13 +2333,19 @@ class BuilderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
+        #get abs path of expereiment so it can be stored with data at end of exp 
+        expPath = self.filename
+        if expPath==None or expPath.startswith('untitled'):
+            ok = self.fileSave()
+            if not ok: return#save file before compiling script
+        expPath = os.path.abspath(expPath)
+        #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
-        script = self.exp.writeScript()
-        path, scriptName = os.path.split(fullPath)
-        shortName, ext = os.path.splitext(scriptName)
+        script = self.exp.writeScript(expPath=expPath)
         
         #set the directory and add to path
-        if len(path)>0: os.chdir(path)#otherwise this is unsaved 'untitled.psyexp'
+        folder, scriptName = os.path.split(fullPath)
+        if len(folder)>0: os.chdir(folder)#otherwise this is unsaved 'untitled.psyexp'
         f = codecs.open(fullPath, 'w', 'utf-8')
         f.write(script.getvalue())
         f.close()
@@ -2426,7 +2432,7 @@ class BuilderFrame(wx.Frame):
         self.app.coder.gotoLine(filename,lineNumber)
         self.app.showCoder()
     def compileScript(self, event=None):
-        script = self.exp.writeScript()
+        script = self.exp.writeScript(expPath=None)#leave the experiment path blank
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
         self.app.showCoder()#make sure coder is visible
         self.app.coder.fileNew(filepath=name)
