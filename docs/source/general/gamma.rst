@@ -52,7 +52,7 @@ The inverse values, required to build the LUT are found by:
     
     LUT(i) = \frac{( (1-i)b^\gamma + i(b+k)^\gamma )^{1/\gamma}-b}{k}
     
-This is not the same solution as presented by Pelli and Zhang [#1]_ and is derived below for the interested reader.
+This is derived below from Pelli and Zhang [#1]_ for the interested reader. ;-)
 
 And the associated luminance values for each point in the LUT are given by:
 
@@ -72,9 +72,9 @@ The difficulty with the full gamma equation :eq:`full` is that the presence of t
     
     LUT(i) = \frac{((L-a)^{1/\gamma} - b )}{k}
 
-and then using :math:`LUT(i)=-b/k` in the cases where :math:`L \ge a`. The method works well for the main inverse values but, for the :math:`L \ge a` case, it results in negative values and the LUT cannot contain negatives (or may silently round them to 0).
+and then using :math:`LUT(i)=-b/k` in the cases where :math:`L \ge a`.
 
-The solution is to calculate first the resulting luminance values at linear intervals needed by the LUT and /then/ deduce the LUT value needed to generate that luminance value.
+To use this equation we need to first calculate the linear set of luminance values, `L`, that we are able to produce the current monitor and lighting conditions and /then/ deduce the LUT value needed to generate that luminance value.
 
 We need to insert into the LUT values starting at 0 and ending at 1 (to use the maximum range) that map onto the linear range from the minimum, `m`, to the maximum `M` possible luminance. From the parameters in :eq:`full` it is clear that:
 
@@ -104,7 +104,7 @@ Now, to generate the LUT as needed we simply take the inverse of :eq:`full`:
     
     LUT(x) = \frac{( x -a)^{1/\gamma}-b}{k}
     
-and insert our :math:`L(i)` values from :eq:`lumsLUT`:
+and substitute our :math:`L(i)` values from :eq:`lumsLUT`:
 
 .. math::
     :label: fullLUTderived

@@ -70,7 +70,7 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
         #update the data for the grid
         for nRow in range(self.nRows):
             for nCol in range(self.nCols):
-                if type(data)==numpy.ndarray or data!=None: 
+                if data!=None and nRow<data.shape[0] and nCol<data.shape[1]: 
                     self.SetCellValue(nRow, nCol, '%f' %data[nRow, nCol])
                 else: self.SetCellValue(nRow,nCol,'0.000')
         self.AutoSize()
@@ -89,7 +89,6 @@ class PlotFrame(wx.Dialog):
         self.sizer.Add(canvas)
         self.SetSizerAndFit(self.sizer)
         self.ShowModal()
-        
     #def OnCloseWindow(self, event):
         #self.Destroy()
         
@@ -351,6 +350,9 @@ class MainFrame(wx.Frame):
         
         self.choiceLinearMethod = wx.Choice(self, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
+        if self.currentMon.getLineariseMethod()==4:
+            self.choiceLinearMethod.SetSelection(2)
+        else: self.choiceLinearMethod.SetSelection(1)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
         
@@ -502,7 +504,9 @@ class MainFrame(wx.Frame):
         self.ctrlCalibNotes.SetValue(str(self.currentMon.getNotes()))
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())                    
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
-        #self.choiceLinearMethod.SetSelection(self.currentMon.getLineariseMethod()-1)
+        if self.currentMon.getLineariseMethod()==4:
+            self.choiceLinearMethod.SetSelection(2)
+        else: self.choiceLinearMethod.SetSelection(1)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
         self.DKLgrid.setData(self.currentMon.getDKL_RGB())
         
@@ -738,6 +742,7 @@ class MainFrame(wx.Frame):
                 currentCal[gun,2]=gamCalc.gamma#gamma
                 
         self.gammaGrid.setData(currentCal)
+        self.currentMon.setGammaGrid(currentCal)
         self.unSavedMonitor=True
         
     def onChangeLinearMethod(self,event):
@@ -848,13 +853,21 @@ class MainFrame(wx.Frame):
         if lumsPre!=None:
             colors='krgb'
             xxSmooth = monitors.numpy.arange(0,255.5, 0.5)
+            eq = self.currentMon.getLineariseMethod()
             for gun in range(4): #includes lum
                 gamma = gammaGrid[gun,2]
                 minLum = gammaGrid[gun,0]	
                 maxLum = gammaGrid[gun,1]	
-                if self.currentMon.getLineariseMethod()!=3:
+                if  eq<=2:
                     #plot fitted curve
-                    curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma)
+                    curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
+                        eq=eq, a=None, b=None, k=None)
+                    plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)	
+                if self.currentMon.getLineariseMethod() ==4:
+                    a,b,k = gammaGrid[gun,3:]
+                    #plot fitted curve
+                    curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
+                        eq=eq, a=a, b=b, k=k)
                     plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 else:
                     pass

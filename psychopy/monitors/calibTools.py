@@ -602,7 +602,7 @@ class GammaCalculator:
             self.min, self.max, self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
             if eq==4:
                 self.gamma, self.a, self.k = self.gammaModel
-                self.b = (inputs[0]-self.a)**(1.0/self.gamma)
+                self.b = (lums[0]-self.a)**(1.0/self.gamma)
             else: 
                 self.gamma=self.gammaModel[0]
                 self.a = self.b = self.k = None
@@ -625,7 +625,7 @@ class GammaCalculator:
         minLum = y[0]
         maxLum = y[-1]
         if self.eq==4:
-            aGuess = minLum/2.0
+            aGuess = minLum/5.0
             kGuess = (maxLum - aGuess)**(1.0/gammaGuess) - aGuess
             guess = [gammaGuess, aGuess, kGuess]
             bounds = [[0.8,5.0],[0.00001,minLum-0.00001],[2,200]]
@@ -636,11 +636,9 @@ class GammaCalculator:
 #        gamma = optim.fminbound(self.fitGammaErrFun,
 #            minGamma, maxGamma,
 #            args=(x,y, minLum, maxLum))
-        print 'guess', minLum, maxLum, guess
-        params = optim.fmin_l_bfgs_b(self.fitGammaErrFun, guess, 
-            args = (x,y, minLum, maxLum), bounds=bounds)
-        print 'params:', params
-        return minLum, maxLum, params
+        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess), approx_grad=True,
+            args = (x,y, minLum, maxLum), bounds=bounds, messages=0)
+        return minLum, maxLum, params[0]
 
     def fitGammaErrFun(self, params, x, y, minLum, maxLum):
         """
@@ -655,7 +653,6 @@ class GammaCalculator:
             gamma = params[0]
             model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
         SSQ = numpy.sum((model-y)**2)
-        print SSQ, model
         return SSQ
 
 def makeDKL2RGB(nm,powerRGB):
@@ -1000,13 +997,9 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
                     b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
             elif k==None:
                 k = (maxLum - a)**(1.0/gamma) - b #when y=max, x=1
-        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
         #this is the same as Pelli and Zhang (but different inverse function)
         yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
-        print 'yyy', yy
-#        print 'testing', nMissing, b==None, minLum, maxLum, gamma, eq, a, b, k
 
-    #print 'a=%.3f      b=%.3f' %(a,b)
     return yy
 
 def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
