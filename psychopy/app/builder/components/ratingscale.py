@@ -83,7 +83,8 @@ class RatingScaleComponent(BaseComponent):
             hint="Description of the high end of the scale")
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Use this text to create the rating scale as you would in a code component; overrides ALL other dialog settings")
+            hint="Use this text to create the rating scale as you would in a code component; overrides all"+
+                " dialog settings except startTime, forceEndTrial, duration, storeRatingTime, storeRating")
         
         # required (?)
         self.params['startTime'] = Param(0.0, valType='code', allowedTypes=[],
@@ -106,7 +107,7 @@ class RatingScaleComponent(BaseComponent):
             # position: x -> (x,x); x,y -> (x,y)
             try:
                 s = str(self.params['pos'].val)
-                s = s.lstrip().lstrip('(').lstrip('[').strip().strip('(').strip('[')
+                s = s.lstrip().lstrip('(').lstrip('[').strip().strip(')').strip(']')
                 pos = map(float, s.split(',')) * 2
                 init_str += ",\n    pos=%s" % pos[0:2]
             except:
@@ -118,7 +119,8 @@ class RatingScaleComponent(BaseComponent):
             if self.params['visualAnalogScale'].val:
                 if self.params['lowAnchorText'].val == '': self.params['lowAnchorText'].val = '0%'
                 if self.params['highAnchorText'].val == '': self.params['highAnchorText'].val = '100%'
-                init_str += ", low=0, high=1, showScale=False, lowAnchorText='"+self.params['lowAnchorText'].val+"', highAnchorText='"+self.params['highAnchorText'].val+"'"
+                init_str += ", low=0, high=1, showScale=False, lowAnchorText='"+self.params['lowAnchorText'].val
+                init_str += "', highAnchorText='"+self.params['highAnchorText'].val+"'"
                 init_str += ",\n    precision=100, markerStyle='glow', showValue=False, markerExpansion=0"
             elif len(choices):
                 if choices.find(',') > -1:
@@ -127,6 +129,28 @@ class RatingScaleComponent(BaseComponent):
                     ch_list = choices.split(' ')
                 ch_list = [c.strip().strip(',').lstrip().lstrip(',') for c in ch_list]
                 init_str += ', choices=' + str(ch_list)
+            else:
+                # low/lowAnchorText
+                if len(self.params['lowAnchorText'].val):
+                    init_str += ", lowAnchorText='"+self.params['lowAnchorText'].val+"'"
+                else:
+                    try:
+                        int(self.params['low'].val)
+                        init_str += ', low='+self.params['low'].val
+                    except ValueError:
+                        if len(self.params['low'].val):
+                            init_str += ", lowAnchorText='"+self.params['low'].val+"'"
+                # high/highAnchorText
+                if len(self.params['highAnchorText'].val):
+                    init_str += ", highAnchorText='"+self.params['highAnchorText'].val+"'"
+                else:
+                    try:
+                        int(self.params['high'].val)
+                        init_str += ', high='+self.params['high'].val
+                    except ValueError:
+                        if len(self.params['high'].val):
+                            init_str += ", highAnchorText='"+self.params['high'].val+"'"
+                
             if not len(choices) and len(str(scaleDescription)):
                 init_str += ", scale='" + str(scaleDescription) +"'"
         
