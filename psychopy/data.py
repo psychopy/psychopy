@@ -11,6 +11,7 @@ import numpy
 from scipy import optimize, special
 from matplotlib import mlab#used for importing csv files
 from contrib.quest import *    #used for QuestHandler
+import inspect#so that Handlers can find the script that called them
 
 try:
     import openpyxl
@@ -48,7 +49,8 @@ class TrialHandler:
                  method='random',
                  dataTypes=None,
                  extraInfo=None,
-                 seed=None):
+                 seed=None,
+                 originPath=None):
         """
         trialList: a simple list (or flat array) of trials.
             
@@ -83,6 +85,14 @@ class TrialHandler:
         if self.method in ['random','sequential']:
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
+        
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
+        
     def __iter__(self):
         return self
     def __repr__(self): 
@@ -721,7 +731,8 @@ class StairHandler:
                  method = '2AFC',
                  stepType='db',
                  minVal=None,
-                 maxVal=None):
+                 maxVal=None,
+                 originPath=None):
         """
         :Parameters:
             
@@ -774,6 +785,10 @@ class StairHandler:
                 
         """
         
+        """
+        trialList: a simple list (or flat array) of trials.
+            
+            """        
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -804,6 +819,13 @@ class StairHandler:
         self._warnUseOfNext=True
         self.minVal = minVal
         self.maxVal = maxVal
+        
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
         
     def __iter__(self):
         return self
