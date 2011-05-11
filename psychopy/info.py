@@ -8,7 +8,7 @@ import sys, os, time, platform
 
 from psychopy import visual# imports for RuntimeInfo()
 from psychopy.core import shellCall
-from psychopy.ext import rush
+from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
 from pyglet.gl import gl_info
 import numpy, scipy, matplotlib, pyglet
