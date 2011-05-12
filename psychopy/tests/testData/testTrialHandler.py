@@ -4,7 +4,7 @@ import shutil
 import tempfile, nose
 
 from psychopy import data
-
+from numpy.random import random, randint
 
 class TestTrialHandler:
     def setUp(self):
@@ -36,3 +36,23 @@ class TestTrialHandler:
             print expected_header,type(expected_header),len(expected_header)
             print header, type(header), len(header)
         assert expected_header == unicode(header)
+
+class TestMultiStairs:
+    def testSimple(self):
+        conditions = data.importTrialList('stairsStartPoints.xlsx')
+        stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
+            method='random', nTrials=5)
+        for intensity,condition in stairs:
+            corr=randint(0,2)
+            stairs.addData(corr)
+            print condition, intensity, corr
+        print 'all simple staircases finished'
+    def testQuest(self):
+        conditions = data.importTrialList('stairsStartPoints.xlsx')
+        stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
+            method='random', nTrials=5)
+        for intensity,condition in stairs:
+            corr=randint(0,2)
+            stairs.addData(corr)
+            print condition, intensity, corr
+        print 'all quest staircases finished'

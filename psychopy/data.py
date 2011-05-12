@@ -832,6 +832,8 @@ class StairHandler:
         
     def addData(self, result):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        
+        This is essential to advance the staircase to a new intensity level!
         """
         self.data.append(result)
         
@@ -1494,6 +1496,122 @@ class QuestHandler(StairHandler):
         else:
             self.finished = False
 
+
+class MultiStairHandler:
+    def __init__(self, stairType='simple', method='random',
+            conditions=None, nTrials=50):
+        self.type=stairType
+        self.method=method #'random' or 'sequential'
+        self.conditions=conditions
+        self.finished=False
+        self._checkArguments()
+        #create staircases
+        self.stairs=[]#all staircases
+        self.runningStairs=[]#staircases that haven't finished yet
+        self.thisPassRemaining=[]#staircases to run this pass
+        self._createStairs()
+    def _checkArguments(self):
+        #did we get a conditions parameter, correctly formatted
+        if type(self.conditions) not in [list]:
+            raise TypeError('conditions parameter to MultiStairHandler should be a list, not a %s' %type(conditions))
+        c0=self.conditions[0]
+        if type(c0)!=dict:
+            raise TypeError('conditions to MultiStairHandler should be a list of python dictionaries' + \
+                ', not a list of %ss' %type(c0))
+        #did conditions contain the things we need?
+        params = c0.keys()
+        if self.type in ['simple','quest']:
+            if 'startVal' not in params: log.error('MultiStairHandler needs a param called startVal in conditions')
+            if self.type=='quest':
+                if 'startValSd' not in params: log.error('MultiStairHandler needs a param called startValSd in conditions')
+        else:
+            raise ValueError("MultiStairHandler `stairType` should be 'simple' or 'quest', not '%s'" %self.type)
+    def _createStairs(self):
+        if self.type=='simple':
+            defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':0, 
+                'nUp':1, 'nDown':3, 'extraInfo':None, 
+                'stepType':'db', 'minVal':None, 'maxVal':None}
+        elif self.type=='quest':
+            defaults = {'pThreshold':0.82, 'nTrials':None, 'stopInterval':None, 
+                'method':'quantile', 'stepType':'log', 'beta':3.5, 'delta':0.01, 
+                'gamma':0.5, 'grain':0.01, 'range':None, 'extraInfo':None, 
+                'minVal':None, 'maxVal':None, 'staircase':None}
+        
+        for condition in self.conditions:
+            startVal=condition['startVal']
+            #fetch each params from conditions if possible
+            for paramName in defaults:
+                #get value for the parameter 
+                if paramName in condition.keys(): val=condition[paramName]
+                else: val = defaults[paramName]
+                #assign value to variable name
+                exec('%s=%s' %(paramName, repr(val)))
+            #then create actual staircase
+            if self.type=='simple':
+                thisStair = StairHandler(startVal, nReversals=nReversals, 
+                    stepSizes=stepSizes, nTrials=nTrials, nUp=nUp, nDown=nDown, 
+                    extraInfo=extraInfo, 
+                    stepType=stepType, minVal=minVal, maxVal=maxVal)
+            elif self.type=='quest':
+                thisStair = QuestHandler(startVal, startValSd=condition['startValSd'], 
+                    pThreshold=pThreshold, nTrials=nTrials, stopInterval=stopInterval, 
+                    method=method, stepType=stepType, beta=beta, delta=delta, 
+                    gamma=gamma, grain=grain, range=range, extraInfo=extraInfo, 
+                    minVal=minVal, maxVal=maxVal, staircase=staircase)
+            thisStair.condition = condition#this isn't normally part of handler
+            #and finally, add it to the list
+            self.stairs.append(thisStair)
+            self.runningStairs.append(thisStair)
+    def __iter__(self):
+        return self
+    def next(self):
+        """Advances to next trial and returns it.
+        
+        This can be handled with code such as::
+            
+            staircase = MultiStairHandler(.......)
+            for eachTrial in staircase:#automatically stops when done
+                #do stuff here for the trial
+           
+        or::
+            
+            staircase = MultiStairHandler(.......)
+            while True: #ie forever
+                try:
+                    thisTrial = staircase.next()
+                except StopIteration:#we got a StopIteration error
+                    break #break out of the forever loop
+                #do stuff here for the trial
+            
+        """
+        #create a new set for this pass if needed
+        if not hasattr(self, 'thisPassRemaining') or self.thisPassRemaining==[]:
+            if len(self.runningStairs)>0:
+                self.thisPassRemaining = copy.copy(self.runningStairs)
+                if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
+            else:
+                self.finished=True
+                raise StopIteration
+        #fetch next staircase/value
+        self.currentStaircase = self.thisPassRemaining.pop(0)#take the first and remove it
+        self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
+        #return value
+        if self.finished==False:
+            return self._nextIntensity, self.currentStaircase.condition
+        else:
+            raise StopIteration
+    
+    def addData(self, result):
+        """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        
+        This is essential to advance the staircase to a new intensity level!
+        """
+        self.currentStaircase.addData(result)
+        try:
+            self.currentStaircase.next()
+        except:
+            self.runningStairs.remove(self.currentStaircase)
+            
 class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
