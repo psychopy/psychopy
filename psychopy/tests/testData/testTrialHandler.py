@@ -39,20 +39,26 @@ class TestTrialHandler:
 
 class TestMultiStairs:
     def testSimple(self):
-        conditions = data.importTrialList('stairsStartPoints.xlsx')
+        conditions = data.importTrialList('multiStairConds.xlsx')
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
-            method='random', nTrials=5)
+                method='random', nTrials=10)
         for intensity,condition in stairs:
-            corr=randint(0,2)
+            #make data that will cause different stairs to finish different times
+            if random()>condition['startVal']:
+                corr=1
+            else:corr=0
             stairs.addData(corr)
-            print condition, intensity, corr
-        print 'all simple staircases finished'
+        stairs.saveAsExcel('multiStairOut')
+        stairs.saveAsPickle('multiStairOut')#contains more info
     def testQuest(self):
-        conditions = data.importTrialList('stairsStartPoints.xlsx')
+        conditions = data.importTrialList('multiStairConds.xlsx')
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
-            method='random', nTrials=5)
+                    method='random', nTrials=5)
         for intensity,condition in stairs:
-            corr=randint(0,2)
+            #make data that will cause different stairs to finish different times
+            if random()>condition['startVal']:
+                corr=1
+            else:corr=0
             stairs.addData(corr)
-            print condition, intensity, corr
-        print 'all quest staircases finished'
+        stairs.saveAsExcel('multiQuestOut')
+        stairs.saveAsPickle('multiQuestOut')#contains more info

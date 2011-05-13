@@ -982,7 +982,7 @@ class StairHandler:
                    matrixOnly=False,
                   ):
         """
-        Write a text file with the data and various chosen stimulus attributes
+        Write a text file with the data
         
         :Parameters:
         
@@ -1052,7 +1052,7 @@ class StairHandler:
             f.close()
             log.info('saved data to %s' %f.name)
         
-    def saveAsExcel(self,fileName, sheetName=None,
+    def saveAsExcel(self,fileName, sheetName='data',
                    matrixOnly=False, appendFile=True,
                   ):
         """
@@ -1500,14 +1500,63 @@ class QuestHandler(StairHandler):
 class MultiStairHandler:
     def __init__(self, stairType='simple', method='random',
             conditions=None, nTrials=50):
+        """A Handler to allow easy interleaved staircase procedures (simple or QUEST)
+        
+        
+        :params:
+        
+            stairType: 'simple' or 'quest'
+                Use a `~psychopy.data.StairHandler`_ or `~psychopy.data.QuestHandler`_
+                
+            method: 'random' or 'sequential'
+                The stairs are shuffled in each repeat but not randomised more than 
+                that (so you can't have 3 repeats of the same staircase in a row 
+                unless it's the only one still running)
+                
+            conditions: a list of dictionaries specifying conditions
+                Can be used to control parameters for the different staicases.
+                Can be imported from an Excel file using `psychopy.data.importTrialTypes`
+                MUST include keys providing, 'startVal', 'label' and 'startValSd' (QUEST only).
+                The 'label' will be used in data file saving so should be unique.
+                See Example Usage below.
+                
+            nTrials=50
+                Minimum trials to run (but may take more if the staircase hasn't 
+                also met its minimal reversals. See `~psychopy.data.StairHandler`
+                
+        Example usage::
+        
+            conditions=[
+                {'label':'low', 'startVal': 0.1, 'ori':45},
+                {'label':'high','startVal': 0.8, 'ori':45},
+                {'label':'low', 'startVal': 0.1, 'ori':90},
+                {'label':'high','startVal': 0.8, 'ori':90},
+                ]
+            stairs = MultiStairHandler(conditions=conditions, trials=50)
+            
+            for thisIntensity, thisCondition in stairs:
+                thisOri = thisCondition['ori']
+                
+                #do something with thisIntensity and thisOri
+                
+                stairs.addData(correctIncorrect)#this is ESSENTIAL
+                
+            #save data as multiple formats
+            stairs.saveDataAsExcel(fileName)#easy to browse
+            stairs.saveAsPickle(fileName)#contains more info
+            
+        """
+        
         self.type=stairType
         self.method=method #'random' or 'sequential'
         self.conditions=conditions
+        self.nTrials=nTrials
         self.finished=False
+        self.totalTrials=0
         self._checkArguments()
         #create staircases
-        self.stairs=[]#all staircases
-        self.runningStairs=[]#staircases that haven't finished yet
+        self.staircases=[]#all staircases
+        self.runningStaircases=[]#staircases that haven't finished yet
         self.thisPassRemaining=[]#staircases to run this pass
         self._createStairs()
     def _checkArguments(self):
@@ -1521,18 +1570,21 @@ class MultiStairHandler:
         #did conditions contain the things we need?
         params = c0.keys()
         if self.type in ['simple','quest']:
-            if 'startVal' not in params: log.error('MultiStairHandler needs a param called startVal in conditions')
-            if self.type=='quest':
-                if 'startValSd' not in params: log.error('MultiStairHandler needs a param called startValSd in conditions')
+            if 'startVal' not in params: 
+                raise ValueError('MultiStairHandler needs a param called `startVal` in conditions')
+            if 'label' not in params: 
+                raise ValueError('MultiStairHandler needs a param called `label` in conditions')
+            if 'startValSd' not in params and self.type=='quest': 
+                raise ValueError("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
         else:
             raise ValueError("MultiStairHandler `stairType` should be 'simple' or 'quest', not '%s'" %self.type)
     def _createStairs(self):
         if self.type=='simple':
-            defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':0, 
+            defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':self.nTrials, 
                 'nUp':1, 'nDown':3, 'extraInfo':None, 
                 'stepType':'db', 'minVal':None, 'maxVal':None}
         elif self.type=='quest':
-            defaults = {'pThreshold':0.82, 'nTrials':None, 'stopInterval':None, 
+            defaults = {'pThreshold':0.82, 'nTrials':self.nTrials, 'stopInterval':None, 
                 'method':'quantile', 'stepType':'log', 'beta':3.5, 'delta':0.01, 
                 'gamma':0.5, 'grain':0.01, 'range':None, 'extraInfo':None, 
                 'minVal':None, 'maxVal':None, 'staircase':None}
@@ -1560,8 +1612,8 @@ class MultiStairHandler:
                     minVal=minVal, maxVal=maxVal, staircase=staircase)
             thisStair.condition = condition#this isn't normally part of handler
             #and finally, add it to the list
-            self.stairs.append(thisStair)
-            self.runningStairs.append(thisStair)
+            self.staircases.append(thisStair)
+            self.runningStaircases.append(thisStair)
     def __iter__(self):
         return self
     def next(self):
@@ -1586,8 +1638,8 @@ class MultiStairHandler:
         """
         #create a new set for this pass if needed
         if not hasattr(self, 'thisPassRemaining') or self.thisPassRemaining==[]:
-            if len(self.runningStairs)>0:
-                self.thisPassRemaining = copy.copy(self.runningStairs)
+            if len(self.runningStaircases)>0:
+                self.thisPassRemaining = copy.copy(self.runningStaircases)
                 if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
             else:
                 self.finished=True
@@ -1610,8 +1662,117 @@ class MultiStairHandler:
         try:
             self.currentStaircase.next()
         except:
-            self.runningStairs.remove(self.currentStaircase)
+            self.runningStaircases.remove(self.currentStaircase)
+        self.totalTrials+=1
+    def saveAsPickle(self, fileName):
+        """Saves a copy of self (with data) to a pickle file.
+        
+        This can be reloaded later and further analyses carried out.
+        """
+        if self.totalTrials<1:
+            log.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
+        #otherwise use default location
+        f = open(fileName+'.psydat', "wb")
+        cPickle.dump(self, f)
+        f.close()
+        log.info('saved data to %s' %f.name)
+    def saveAsExcel(self, fileName, matrixOnly=False, appendFile=False):
+        """
+        Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing 
+        in most spreadsheet packages. This format is compatible with 
+        versions of Excel (2007 or greater) and and with OpenOffice (>=3.0).
+        
+        It has the advantage over the simpler text files (see :func:`TrialHandler.saveAsText()` )
+        that the data from each staircase will be save in the same file, with
+        the sheet name coming from the 'label' given in the dictionary of 
+        conditions during initialisation of the Handler.
+        
+        The file extension `.xlsx` will be added if not given already.
+        
+        The file will contain a set of values specifying the staircase level ('intensity') at each
+        reversal, a list of reversal indices (trial numbers), the raw staircase/intensity 
+        level on *every* trial and the corresponding responses of the participant on every trial.
+        
+        :Parameters:
+        
+            fileName: string
+                the name of the file to create or append. Can include relative or absolute path
+                
+            matrixOnly: True or False
+                If set to True then only the data itself will be output (no additional info)
+                
+            appendFile: True or False
+                If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
+                If a worksheet already exists with that name a number will be added to make it unique.
+                
+        """
+        if self.totalTrials<1:
+            log.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
+        for stairN, thisStair in enumerate(self.staircases):
+            if stairN==0: append=appendFile
+            else: append=True
+            #make a filename
+            label = thisStair.condition['label']
+            thisStair.saveAsExcel(fileName=fileName, sheetName=label, 
+                matrixOnly=False, appendFile=append)
+    def saveAsText(self,fileName, 
+                   delim='\t',
+                   matrixOnly=False):
+        """
+        Write out text files with the data. 
+        
+        For MultiStairHandler this will output one file for each staircase 
+        that was run, with _label added to the fileName that you specify above
+        (label comes from the condition dictionary you specified when you
+        created the Handler). 
+        
+        :Parameters:
+        
+            fileName: a string
+                The name of the file, including path if needed. The extension 
+                `.dlm` will be added if not included.
             
+            delim: a string
+                the delimitter to be used (e.g. '\t' for tab-delimitted, ',' for csv files)
+                
+            matrixOnly: True/False
+                If True, prevents the output of the `extraInfo` provided at initialisation.
+        """
+        if self.totalTrials<1:
+            log.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
+        for stairN, thisStair in enumerate(self.staircases):
+            #make a filename
+            label = thisStair.condition['label']
+            thisFileName = fileName+"_"+label
+            thisStair.saveAsText(fileName=thisFileName, delim=delim, 
+                matrixOnly=matrixOnly)
+    def printAsText(self, 
+                   delim='\t',
+                   matrixOnly=False):
+        """
+        Write the data to the standard output stream 
+        
+        :Parameters:
+        
+            delim: a string
+                the delimitter to be used (e.g. '\t' for tab-delimitted, ',' for csv files)
+                
+            matrixOnly: True/False
+                If True, prevents the output of the `extraInfo` provided at initialisation.
+        """
+        nStairs=len(self.staircases)
+        for stairN, thisStair in enumerate(self.staircases):
+            if stairN<(nStairs-1): thisMatrixOnly=True #never print info for first files
+            else: thisMatrixOnly = matrixOnly
+            #make a filename
+            label = thisStair.condition['label']
+            print "\n%s:" %label
+            thisStair.saveAsText(fileName='stdout', delim=delim, 
+                matrixOnly=thisMatrixOnly)
+        
 class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
