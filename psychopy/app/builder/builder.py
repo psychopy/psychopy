@@ -2419,10 +2419,11 @@ class BuilderFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
             newRoutine = copy.deepcopy(self.app.copiedRoutine)
-            newRoutine.name = routineName
-            self.exp.addRoutine(routineName, newRoutine)#add to the experiment
-            self.routinePanel.addRoutinePage(routineName, newRoutine)#could do redrawRoutines but would be slower?
-            self.addToUndoStack("paste Routine %s" %routineName)
+            newRoutine.name = self.exp.namespace.make_valid(routineName, prefix='routine')
+            self.exp.namespace.add(newRoutine.name)
+            self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
+            self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?
+            self.addToUndoStack("paste Routine %s" % newRoutine.name)
         dlg.Destroy()        
     def onURL(self, evt):
         """decompose the URL of a file and line number"""

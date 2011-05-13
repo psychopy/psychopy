@@ -9,8 +9,11 @@ A given routine might involve an image (patch component), along with a rating sc
 
 Three common usage styles are enabled on the first settings page:
     'visual analog scale': the subject uses the mouse to position a marker on an unmarked line
-    'category choices': choose among verbal labels
-    'scale description': numeric choices, e.g., 1 to 7 rating
+    
+    'category choices': choose among verbal labels (categories, e.g., "True, False" or "Yes, No, Not sure")
+    
+    'scale description': used for numeric choices, e.g., 1 to 7 rating
+    
 Complete control over the display options is available as an advanced setting, 'customize_everything'.
 
 Properties
@@ -30,11 +33,11 @@ choices : string
 scaleDescription :
     Brief instructions, reminding the subject how to interpret the numerical scale, default = "1 = not at all ... extremely = 7"
     
-low : int
-    The lowest number (bottom end of the scale), default = 1.
+low : str
+    The lowest number (bottom end of the scale), default = 1. If its not an integer, it will be converted to lowAnchorText (see Advanced).
     
-high : int
-    The highest number (top end of the scale), default = 7.
+high : str
+    The highest number (top end of the scale), default = 7. If its not an integer, it will be converted to highAnchorText (see Advanced).
     
 
 Advanced settings
@@ -56,14 +59,21 @@ duration : float or integer
     The maximum duration in seconds for which the stimulus is presented. Typically, the subject's response should end the trial, not a duration.
     A blank or negative value means wait for a very long time.
 
+storeRatingTime:
+    save the response time
+    
+storeRating:
+    save the rating that was selected
+    
 lowAnchorText : str
-    Custom text to display at the low end of the scale, e.g., "0%"
+    Custom text to display at the low end of the scale, e.g., "0%"; overrides 'low' setting
 
 highAnchorText : str
-    Custom text to display at the low end of the scale, e.g., "100%"
+    Custom text to display at the low end of the scale, e.g., "100%"; overrides 'high' setting
     
 customize_everything : str
-    If this is not blank, it will be used when initializing the rating scale just as it would be in a code component. This allows access to all the customizable aspects of a rating scale, and supercedes all of the other settings in the dialog panel.
+    If this is not blank, it will be used when initializing the rating scale just as it would be in a code component (see :class:`~psychopy.visual.RatingScale`). This allows access to all the customizable aspects of a rating scale, and supercedes all of the other RatingScale settings in the dialog panel.
+    (This does not affect: startTime, forceEndTrial, duration, storeRatingTime, storeRating.)
 
 .. seealso::
 	
