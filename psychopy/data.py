@@ -1500,8 +1500,17 @@ class QuestHandler(StairHandler):
 class MultiStairHandler:
     def __init__(self, stairType='simple', method='random',
             conditions=None, nTrials=50):
-        """A Handler to allow easy interleaved staircase procedures (simple or QUEST)
-        
+        """A Handler to allow easy interleaved staircase procedures (simple or 
+        QUEST).
+
+        Parameters for the staircases, as used by the relevant :class:`StairHandler` or 
+        :class:`QuestHandler` (e.g. the `startVal`, `minVal`, `maxVal`...)
+        should be specified in the `conditions` list and may vary between 
+        each staircase. In particular, the conditions /must/ include the 
+        a `startVal` (because this is a required argument to the above handlers)
+        a `label` to tag the staircase and a `startValSd` (only for QUEST 
+        staircases). Any parameters not specified in the conditions file
+        will revert to the default for that individual handler.
         
         :params:
         
@@ -1559,6 +1568,10 @@ class MultiStairHandler:
         self.runningStaircases=[]#staircases that haven't finished yet
         self.thisPassRemaining=[]#staircases to run this pass
         self._createStairs()
+        
+        #fetch first staircase/value (without altering/advancing it)
+        self.currentStaircase = self.thisPassRemaining[0]#take the first and remove it
+        self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
