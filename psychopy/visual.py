@@ -1684,15 +1684,12 @@ class SimpleImageStim:
     Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or 
     masked (although flipping horizontally or vertically is possible). Drawing will
     also tend to be marginally slower, because the image isn't preloaded to the 
-    gfx card. The advantage, however is that the stimulus will always be in its
-    original aspect ratio, with no interplotation or other transformation. It is always 
+    graphics card. The advantage, however is that the stimulus will always be in its
+    original aspect ratio, with no interplotation or other transformation.
     
     SimpleImageStim does not support a depth parameter (the OpenGL method
     that draws the pixels does not support it). Simple images will obscure any other 
     stimulus type.
-    
-    Also, unlike the PatchStim (whose textures should be square and power-of-two
-    in size, there is no restriction on the size of images for the SimpleImageStim 
     
     
     """
@@ -1932,7 +1929,7 @@ class PatchStim(_BaseVisualStim):
     Also since transparency can be controlled two PatchStims can combine e.g.
     to form a plaid.    
 
-    **Using Patchstim with images from disk (jpg, tif, pgn...)**
+    **Using Patchstim with images from disk (jpg, tif, png...)**
     
     Ideally images to be rendered should be square with 'power-of-2' dimensions 
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
@@ -1943,8 +1940,7 @@ class PatchStim(_BaseVisualStim):
 
     **Why can't I have a normal image, drawn pixel-by-pixel?** PatchStims are 
     rendered using OpenGL textures. This is more powerful than using simple screen 
-    blitting - it allows the rotation, masking, transparency to work. It is still 
-    necessary to have power-of-2 textures on most graphics cards.
+    blitting - it allows the rotation, masking, transparency to work.
     """
     def __init__(self,
                  win,
