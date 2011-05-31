@@ -28,7 +28,7 @@ The Standalone versions also include the :ref:`suggestedPackages`
 Funding
 ----------------
 
-PsychoPy project has attracted small grants from the `HEA Psychology Network`_ and `Cambridge Research Systems`_
+PsychoPy project has attracted small grants from the `HEA Psychology Network`_ and `Cambridge Research Systems`_ . Thanks to those organisations for their support.
 
 Jon is paid by `The University of Nottingham`_, and has been funded by the `BBSRC`_
 

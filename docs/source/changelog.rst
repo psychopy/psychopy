@@ -11,6 +11,13 @@ Changelog
 PsychoPy 1.64
 ------------------------------
 
+PsychoPy 1.64.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(in github)
+
+* ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
+* FIXED error in joystick demos
+
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Released April 2011
