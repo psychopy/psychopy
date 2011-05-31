@@ -17,6 +17,9 @@ PsychoPy 1.64.01
 
 * ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
 * FIXED error in joystick demos
+* RatingScale:
+  - ADDED single-click option, custom-marker support
+  - CHANGED default marker is triangle (affects windows only)
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

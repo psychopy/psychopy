@@ -21,6 +21,7 @@ class RatingScaleComponent(BaseComponent):
                  categoryChoices='',
                  visualAnalogScale=False,
                  low=1, high=7,
+                 singleClick=False,
                  size=1.0,
                  pos='0, -0.4',
                  startTime=0, duration='',
@@ -37,7 +38,7 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {} 
-        self.params['advancedParams'] = ['startTime', 'forceEndTrial', 'size',
+        self.params['advancedParams'] = ['singleClick', 'startTime', 'forceEndTrial', 'size', 
                         'pos', 'duration', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
         
         # normal params:
@@ -58,6 +59,9 @@ class RatingScaleComponent(BaseComponent):
             updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.")
         
         # advanced params:
+        self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Should clicking the line accept that rating (without needing to confirm via 'accept')?")
         self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
@@ -153,7 +157,8 @@ class RatingScaleComponent(BaseComponent):
                 
             if not len(choices) and len(str(scaleDescription)):
                 init_str += ", scale='" + str(scaleDescription) +"'"
-        
+            if self.params['singleClick'].val:
+                init_str += ", singleClick=True"
         # write the RatingScale() instantiation code:
         init_str += ")\n"
         buff.writeIndented(init_str)

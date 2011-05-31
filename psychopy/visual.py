@@ -4812,6 +4812,7 @@ class RatingScale:
                 allowSkip=True,
                 skipKeys=['tab'],
                 mouseOnly=False,
+                singleClick=False,
                 displaySizeFactor=1.0,
                 stretchHoriz=1.0,
                 pos=None,
@@ -4903,9 +4904,13 @@ class RatingScale:
                     skipping an item is done via key press (mouseOnly wins)
                     mouseOnly=True is helpful if there will be something else
                     on the screen expecting keyboard input
-
+            singleClick :
+                enable a mouse click to both indicate and accept the rating, default = False.
+                note that the 'accept' box is visible, but clicking it has no effect,
+                its just to display the value. a legal key press will also count as a singleClick.
             displaySizeFactor :
-                how much to expand or contract the overall rating scale display (not just the line length)
+                how much to expand or contract the overall rating scale display
+                (not just the line length)
             pos : tuple (x, y)
                 where to position the rating scale (x, y) in terms of the window's units (pix, norm);
                 default (0.0, -0.4) in norm units; pos takes precedence over (offsetHoriz, offsetVert)
@@ -4914,18 +4919,25 @@ class RatingScale:
             offsetVert :
                 DEPRECATED (use pos instead); how much to shift the rating line up or down
             stretchHoriz:
-                multiplicative factor for stretching (or compressing) the scale horizontally (3 -> use the whole window);
+                multiplicative factor for stretching (or compressing) the scale
+                horizontally (3 -> use the whole window);
                 like displaySizeFactor, but only in the horizontal direction
             minTime :
-                number of seconds that must elapse before a reponse can be accepted, default = 1.0s
+                number of seconds that must elapse before a reponse can be accepted,
+                default = 1.0s
                                 
-                .. note:: for a max response time (upper limit), record the response only within a desired time window.
-                present the ratingScale for as long as you like, and just ignore 'late' responses. 
+                .. note:: for a max response time (upper limit), record the response
+                only within a desired time window. present the ratingScale for as
+                long as you like, and just ignore 'late' responses. 
                 
             name : string
                 The name of the object to be using during logged messages about 
                 this stim 
         """
+        
+        ### May 2011
+        # ADDED: singleClick, customMarker,
+        # CHANGED: default = triangle for windows too
         
         ### March 2011
         # REORGANIZED
@@ -4934,13 +4946,10 @@ class RatingScale:
         #  - pos=(x,y) : position on the screen, uses the units of the window (norm or pix only)
         #  - choices=[list] : present unordered or categorical choices (non-numeric)
         # DEPRECATED : offsetHoriz offsetVert; use pos[] instead
-        
         # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
         
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
-        # - rewrite markers to use GLU.gluDisk() primitives (circle, square, diamond, triangle, rectangle) or sphere
-        # - customMarker hook
         
         self.win=win
         self.name=name
@@ -4951,8 +4960,9 @@ class RatingScale:
         self.win.units = 'norm'
         
         # Generally make things well-behaved if the requested value(s) would be trouble:
-        self._initFirst(showAccept, mouseOnly, acceptKeys, markerStart, low, high, precision,
-                        choices, lowAnchorText, highAnchorText, scale, showScale)
+        self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
+                        markerStart, low, high, precision, choices, 
+                        lowAnchorText, highAnchorText, scale, showScale)
         self._initMisc(minTime)
         
         # Set scale & position, key-bindings:
@@ -4979,13 +4989,15 @@ class RatingScale:
         self.reset()
         self.win.units = self.savedWinUnits # restore
         
-    def _initFirst(self, showAccept, mouseOnly, acceptKeys, markerStart, low, high, precision,
-                            choices, lowAnchorText, highAnchorText, scale, showScale):
-        """some sanity checking; various things are set, especially those that are used later;
-        choices, anchors, markerStart settings are handled here
+    def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys, 
+                   markerStart, low, high, precision, choices,
+                   lowAnchorText, highAnchorText, scale, showScale):
+        """some sanity checking; various things are set, especially those that are 
+        used later; choices, anchors, markerStart settings are handled here
         """
         self.showAccept = bool(showAccept) 
         self.mouseOnly = bool(mouseOnly)
+        self.singleClick = bool(singleClick)
         self.acceptKeys = acceptKeys
         self.precision = precision
         
@@ -5235,7 +5247,16 @@ class RatingScale:
         # decide how to define self.marker:
         if customMarker: 
             self.marker = customMarker
-        elif (self.markerStyle not in ['circle', 'glow'] and sys.platform in ['linux2', 'darwin']): # ==> 'triangle'
+            if markerColor == None:
+                if hasattr(customMarker, 'color'):
+                    if not customMarker.color: # 0 causes other problems, so ignore it here
+                        customMarker.color = 'DarkBlue'
+                elif hasattr(customMarker, 'fillColor'):
+                    customMarker.color = customMarker.fillColor 
+                else:
+                    customMarker.color = 'DarkBlue'
+                markerColor = customMarker.color
+        elif self.markerStyle == 'triangle': # and sys.platform in ['linux2', 'darwin']):
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
             if markerColor == None:
@@ -5264,7 +5285,8 @@ class RatingScale:
                 self.markerBaseSize *= self.markerSize * 0.7
                 if self.markerSize > 1.2:
                     self.markerBaseSize *= .7
-        else: # self.markerStyle == 'circle': # triangle is invisible on Win XP for me, so default to circle
+                self.marker.setSize(self.markerBaseSize/2.)
+        else: # self.markerStyle == 'circle':
             if markerColor == None:
                 markerColor = 'DarkRed'
             x,y = self.win.size
@@ -5368,7 +5390,7 @@ class RatingScale:
                             interpolate=False)
         
         # text to display inside accept button before a marker has been placed:
-        if self.low > 0 and self.high < 10:
+        if self.low > 0 and self.high < 10 and not self.mouseOnly:
             self.keyClick = 'key, click' 
         else:
             self.keyClick = 'click line'
@@ -5386,11 +5408,37 @@ class RatingScale:
         if markerColor in ['White']:
             self.acceptTextColor = 'Black'
             
+    def _nearLine(self, mouseX, mouseY):
+        if (mouseY > -2 * self.padSize + self.offsetVert and
+                mouseY < 2 * self.padSize + self.offsetVert and 
+                mouseX > self.lineLeftEnd - self.padSize and 
+                mouseX < self.lineRightEnd + self.padSize):
+            return True
+        return False
+    def _inAcceptBox(self, mouseX, mouseY):
+        if (mouseY > self.acceptBoxbot and mouseY < self.acceptBoxtop and
+                mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
+            return True
+        return False
+    def _getMarkerPos(self, mouseX):
+        """Convert mouseX into units of tick marks, 0 .. high-low, possibly fractional
+        """
+        mouseX = min(max(mouseX, self.lineLeftEnd), self.lineRightEnd)
+        markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
+            self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
+        if markerPos < 0:
+            markerPos = 0
+        if self.precision == 1:
+            markerPos = round(markerPos) # round to nearest tick; scale to 0..tickMarks, quantized
+        else:
+            markerPos = (int(float(markerPos) * self.precision * self.autoRescaleFactor) / 
+                    float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
+        return markerPos # 0 .. high-low
     def draw(self):
         """
-        update visual display, check for subject response (key, mouse, skip),
-        set self.noResponse as appropriate.
+        Update the visual display, check for response (key, mouse, skip).
         
+        sets self.noResponse as appropriate.
         draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
@@ -5403,7 +5451,7 @@ class RatingScale:
         if self.noResponse == False: 
             # fix the marker position on the line
             if not self.markerPosFixed:
-                self.marker.pos[1] -= .012 # drop it onto the line
+                self.marker.setPos((0, -.012), '+') # drop it onto the line
                 self.markerPosFixed = True # flag to park it there
             self.marker.draw()
             if self.showAccept:
@@ -5413,27 +5461,10 @@ class RatingScale:
             self.win.units = self.savedWinUnits
             return # makes the marker unresponsive
         
-        # draw the marker, if it has been placed (by subject or experimenter):
-        if self.markerPlaced: 
-            if self.showAccept:
-                self.frame = (self.frame + 1) % 100
-                self.acceptBox.setFillColor(self.pulseColor[self.frame])
-                self.acceptBox.setLineColor(self.pulseColor[self.frame])
-                self.accept.setColor(self.acceptTextColor)
-                if self.showValue:
-                    if self.choices:
-                        val = str(self.choices[int(self.markerPlacedAt)])
-                    else:
-                        val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
-                    self.accept.setText(val)
-                else:
-                    self.accept.setText(self.acceptText) # doesn't need to happen every frame
-            
-            # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
-            self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz * 
-                                (-0.5 + self.markerPlacedAt / self.tickMarks),
-                                self.offsetVert + self.markerOffsetVert])
-            
+        mouseX, mouseY = self.myMouse.getPos() # norm units
+        
+        # draw the marker:
+        if self.markerPlaced or self.singleClick: 
             # expansion fun & games with 'glow':
             if self.markerStyle == 'glow':
                 if self.markerExpansion > 0: 
@@ -5444,9 +5475,30 @@ class RatingScale:
                     self.marker.setSize(self.markerBaseSize - 0.1 * self.markerExpansion *
                                         (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
-                else: # markerExpansion == 0:
-                    self.marker.setSize(self.markerBaseSize/2.)
-            self.marker.draw()
+                #else: # markerExpansion == 0:
+                #    self.marker.setSize(self.markerBaseSize/2.)
+            # update position:
+            if self.singleClick and self._nearLine(mouseX, mouseY):
+                self.markerPlacedAt = self._getMarkerPos(mouseX)
+            elif not hasattr(self, 'markerPlacedAt'):
+                self.markerPlacedAt = False
+            # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
+            if self.markerPlacedAt is not False:
+                self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz * 
+                                (-0.5 + self.markerPlacedAt / self.tickMarks),
+                                self.offsetVert + self.markerOffsetVert])
+                self.marker.draw()
+            if self.showAccept:
+                self.frame = (self.frame + 1) % 100
+                self.acceptBox.setFillColor(self.pulseColor[self.frame])
+                self.acceptBox.setLineColor(self.pulseColor[self.frame])
+                self.accept.setColor(self.acceptTextColor)
+                if self.showValue and self.markerPlacedAt is not False:
+                    if self.choices:
+                        val = str(self.choices[int(self.markerPlacedAt)])
+                    else:
+                        val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
+                    self.accept.setText(val)
         
         # handle key responses:
         if not self.mouseOnly:
@@ -5461,6 +5513,9 @@ class RatingScale:
                     self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
                     self.marker.setPos([self.displaySizeFactor * 
                                         (-0.5 + self.markerPlacedAt / self.tickMarks), 0])
+                    if self.singleClick and self.myClock.getTime() > self.minimumTime:
+                        self.noResponse = False
+                        self.marker.setPos((0, self.offsetVert), '+')
                 if key in self.leftKeys:
                     if self.markerPlaced and self.markerPlacedAt > 0:
                         self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
@@ -5469,30 +5524,20 @@ class RatingScale:
                         self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt + 
                                                   1. / self.autoRescaleFactor / self.precision)
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
-                    self.noResponse = False 
-                
+                    self.noResponse = False
+        
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
-            mouseX, mouseY = self.myMouse.getPos() # norm units
-            # if near the line, place the marker there:
-            if (mouseY > -2 * self.padSize + self.offsetVert and mouseY < self.padSize + self.offsetVert and 
-                    mouseX > self.lineLeftEnd - self.padSize and 
-                    mouseX < self.lineRightEnd + self.padSize):
-                mouseX = max(mouseX, self.lineLeftEnd)
-                mouseX = min(mouseX, self.lineRightEnd)
+            #mouseX, mouseY = self.myMouse.getPos() # done above
+            if self._nearLine(mouseX, mouseY): # if near the line, place the marker there:
                 self.markerPlaced = True
-                markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
-                                self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
-                if markerPos < 0: markerPos = 0
-                if self.precision == 1:
-                    self.markerPlacedAt = round(markerPos) # round to nearest tick; scale to 0..tickMarks, quantized
-                else:
-                    self.markerPlacedAt = (int(float(markerPos) * self.precision * self.autoRescaleFactor) / 
-                            float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
+                self.markerPlacedAt = self._getMarkerPos(mouseX)
+                if (self.singleClick and self.myClock.getTime() > self.minimumTime):
+                    self.noResponse = False
             # if in accept box, and a value has been selected, and enough time has elapsed: 
             if self.showAccept:
-                if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and mouseY > self.acceptBoxbot and
-                        mouseY < self.acceptBoxtop and mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
+                if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
+                        self._inAcceptBox(mouseX,mouseY)):
                     self.noResponse = False # accept the currently marked value
         
         # decision time = time from the first .draw() to when 'accept' was pressed:
