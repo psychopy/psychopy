@@ -472,7 +472,7 @@ def sendUsageStats(proxy=None):
     if sys.platform=='darwin':
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s_%s" %(OSXver, architecture)
-    elif sys.platform=='linux':
+    elif sys.platform.startswith('linux'):
         systemInfo = '%s_%s_%s' % (
             'Linux',
             ':'.join([x for x in platform.dist() if x != '']),
