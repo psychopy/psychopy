@@ -4794,26 +4794,24 @@ class RatingScale:
                 showScale=True,
                 showAnchors=True,
                 showAccept=True,
-                acceptKeys=['return'],
+                acceptKeys='return',
                 acceptPreText='key, click',
                 acceptText='accept?',
-                leftKeys=['left'],
-                rightKeys=['right'],
+                leftKeys='left',
+                rightKeys='right',
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
                 markerExpansion=1,
                 customMarker=None,
-                escapeKeys=[ ],
+                escapeKeys=None,
                 allowSkip=True,
-                skipKeys=['tab'],
+                skipKeys='tab',
                 mouseOnly=False,
                 singleClick=False,
                 displaySizeFactor=1.0,
                 stretchHoriz=1.0,
                 pos=None,
-                offsetHoriz=None,
-                offsetVert=None, 
                 minTime=1.0,
                 name='',
                 autoLog=True):
@@ -4826,7 +4824,7 @@ class RatingScale:
                 string, explanation of the numbers to display to the subject;
                 default = None will result in a default scale: <low>=not at all, <high>=extremely
             choices :
-                a list of items which the subject to choose among;
+                a list of items which the subject can choose among;
                 (takes precedence over low, high, lowAnchorText, highAnchorText, showScale)
             low :
                 lowest numeric rating / low anchor (integer, default = 1)
@@ -4904,16 +4902,12 @@ class RatingScale:
                 enable a mouse click to both indicate and accept the rating, default = False.
                 note that the 'accept' box is visible, but clicking it has no effect,
                 its just to display the value. a legal key press will also count as a singleClick.
+            pos : tuple (x, y)
+                where to position the rating scale (x, y) in terms of the window's units (pix, norm);
+                default (0.0, -0.4) in norm units
             displaySizeFactor :
                 how much to expand or contract the overall rating scale display
                 (not just the line length)
-            pos : tuple (x, y)
-                where to position the rating scale (x, y) in terms of the window's units (pix, norm);
-                default (0.0, -0.4) in norm units; pos takes precedence over (offsetHoriz, offsetVert)
-            offsetHoriz:
-                DEPRECATED (use pos instead); how much to shift the rating line right - left
-            offsetVert :
-                DEPRECATED (use pos instead); how much to shift the rating line up or down
             stretchHoriz:
                 multiplicative factor for stretching (or compressing) the scale
                 horizontally (3 -> use the whole window);
@@ -4922,8 +4916,8 @@ class RatingScale:
                 number of seconds that must elapse before a reponse can be accepted,
                 default = 1.0s
                                 
-                .. note:: for a max response time (upper limit), record the response
-                only within a desired time window. present the ratingScale for as
+                .. note:: For a max response time (upper limit), record the response
+                only within a desired time window. Or present the ratingScale for as
                 long as you like, and just ignore 'late' responses. 
                 
             name : string
@@ -4931,9 +4925,13 @@ class RatingScale:
                 this stim 
         """
         
-        ### May 2011
+        ### May June 2011
         # ADDED: singleClick, customMarker,
+        # ADDED: markerStart for choices
         # CHANGED: default = triangle for windows too
+        #          when using choices=[ ], default showAnchors=False 
+        # REMOVED: offsetHoriz, offsetVert; use pos=(offsetHoriz,offsetVert) instead
+        # - rewrite default params to be immutables only
         
         ### March 2011
         # REORGANIZED
@@ -4947,9 +4945,9 @@ class RatingScale:
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
         
-        self.win=win
-        self.name=name
-        self.autoLog=autoLog
+        self.win = win
+        self.name = name
+        self.autoLog = autoLog
         
         # internally work in norm units, restore to orig units at the end of __init__:
         self.savedWinUnits = self.win.units 
@@ -4958,11 +4956,11 @@ class RatingScale:
         # Generally make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
                         markerStart, low, high, precision, choices, 
-                        lowAnchorText, highAnchorText, scale, showScale)
+                        lowAnchorText, highAnchorText, scale, showScale, showAnchors)
         self._initMisc(minTime)
         
         # Set scale & position, key-bindings:
-        self._initPosScale(pos, offsetHoriz, offsetVert, displaySizeFactor, stretchHoriz)
+        self._initPosScale(pos, displaySizeFactor, stretchHoriz)
         self._initKeyBindings(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
         
         # Construct the visual elements:
@@ -4976,10 +4974,9 @@ class RatingScale:
         # List-ify the requested visual elements; self.marker is handled separately
         self.visualDisplayElements = []
         if self.showScale:   self.visualDisplayElements += [self.scaleDescription]
-        if showAnchors:      self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
+        if self.showAnchors: self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
         if self.showAccept:  self.visualDisplayElements += [self.acceptBox, self.accept]
-        # NB: win XP had issues: self.line disappeared if it came first, okay if last:
-        self.visualDisplayElements += [self.line]
+        self.visualDisplayElements += [self.line] # last b/c win xp had display issues for me in a VM
         
         # Final touches:
         self.reset()
@@ -4987,7 +4984,7 @@ class RatingScale:
         
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys, 
                    markerStart, low, high, precision, choices,
-                   lowAnchorText, highAnchorText, scale, showScale):
+                   lowAnchorText, highAnchorText, scale, showScale, showAnchors):
         """some sanity checking; various things are set, especially those that are 
         used later; choices, anchors, markerStart settings are handled here
         """
@@ -4996,6 +4993,7 @@ class RatingScale:
         self.singleClick = bool(singleClick)
         self.acceptKeys = acceptKeys
         self.precision = precision
+        self.showAnchors = bool(showAnchors)
         
         if not self.showAccept: 
             # the accept button is the mouse-based way to accept the current response
@@ -5017,8 +5015,12 @@ class RatingScale:
         if choices and len(list(choices)) >= 2:
             low = 0
             high = len(list(choices)) - 1 # can be modified in anchors; do self.low there
-            self.lowAnchorText = str(choices[0])
-            self.highAnchorText = str(choices[-1])
+            # anchor text defaults to blank, unless low or highAnchorText is requested explicitly:
+            if lowAnchorText is None and highAnchorText is None:
+                self.showAnchors = False 
+            else:
+                self.lowAnchorText = str(lowAnchorText)
+                self.highAnchorText = str(highAnchorText)
             if high > 1: # if more than 2 items, show them all:
                 self.scale = '  '.join(map(str, choices)) # str for display
             else: # avoid redundant display if only 2
@@ -5045,6 +5047,10 @@ class RatingScale:
                 type(markerStart) == int) and
                 markerStart >= self.low and markerStart <= self.high):
             self.markerStart = markerStart
+            self.markerPlacedAt = markerStart
+            self.markerPlaced = True
+        elif type(markerStart) == str and type(self.choices) == list and markerStart in self.choices:
+            self.markerStart = self.choices.index(markerStart)
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
         else:
@@ -5074,19 +5080,19 @@ class RatingScale:
         frames_per_cycle = 100
         self.pulseColor = [0.6 + 0.22 * float(cos(i/15.65)) for i in range(frames_per_cycle)]
         
-    def _initPosScale(self, pos, offsetHoriz, offsetVert, displaySizeFactor, stretchHoriz):
+    def _initPosScale(self, pos, displaySizeFactor, stretchHoriz):
         """position (x,y) and magnitification (size) of the rating scale
         """
         
         # Screen position (translation) of the rating scale as a whole:
-        avoiding_offset = True # flag / hack for backwards compatibility
-        if type(offsetVert) in [float,int] or type(offsetHoriz) in [float,int]:
-            log.warning("RatingScale: offsetHoriz, offsetVert are deprecated; pos=[x,y] is supported")
-            avoiding_offset = False
+        #avoiding_offset = True # flag / hack for backwards compatibility
+        #if type(offsetVert) in [float,int] or type(offsetHoriz) in [float,int]:
+        #    log.warning("RatingScale: offsetHoriz, offsetVert are deprecated; pos=[x,y] is supported")
+        #    avoiding_offset = False
         if pos:
             if len(list(pos)) == 2:
                 offsetHoriz, offsetVert = pos
-                avoiding_offset = True
+        #        avoiding_offset = True
             else:
                 log.warning("RatingScale: pos expects a tuple (x,y)")
         try:
@@ -5103,9 +5109,8 @@ class RatingScale:
                 self.offsetVert = int(self.win.size[1] / -5.0)
             else: # default y in norm units:
                 self.offsetVert = -0.4 
-        # using pos=(x,y) will consider x,y to be in win units, but
-        # convert to norm for internal use; but stick to norm units if not avoiding_offset
-        if self.savedWinUnits == 'pix' and avoiding_offset: 
+        # pos=(x,y) will consider x,y to be in win units, but want norm internally
+        if self.savedWinUnits == 'pix': # and avoiding_offset: 
             self.offsetHoriz = float(self.offsetHoriz) / self.win.size[0] / 0.5
             self.offsetVert = float(self.offsetVert) / self.win.size[1] / 0.5
         self.pos = [self.offsetHoriz, self.offsetVert] # just expose; not used elsewhere yet
@@ -5127,16 +5132,24 @@ class RatingScale:
         if self.mouseOnly:
             self.acceptKeys = [ ] # no valid keys, so must use mouse
         else:
-            self.acceptKeys = list(acceptKeys) 
+            if type(acceptKeys) != list:
+                acceptKeys = [acceptKeys]
+            self.acceptKeys = acceptKeys
         self.skipKeys = [ ]
         if allowSkip and not self.mouseOnly:
-            if len(list(skipKeys)) == 0:
-                self.skipKeys = ['tab']
-            else:
-                self.skipKeys = list(skipKeys)
-        self.escapeKeys = list(escapeKeys)
-        self.leftKeys = list(leftKeys)
-        self.rightKeys = list(rightKeys)
+            if type(acceptKeys) != list:
+                self.skipKeys = [skipKeys]
+            self.skipKeys = list(skipKeys)
+        if type(escapeKeys) != list:
+            if escapeKeys is None: escapeKeys = [ ]
+            else: escapeKeys = [escapeKeys]
+        self.escapeKeys = escapeKeys
+        if type(leftKeys) != list:
+            leftKeys = [leftKeys]
+        self.leftKeys = leftKeys
+        if type(rightKeys) != list:
+            rightKeys = [rightKeys]
+        self.rightKeys = rightKeys
         
         # allow responding via numeric keys if the response range is in 0-9:
         self.respKeys = [ ]
