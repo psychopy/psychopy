@@ -3355,8 +3355,10 @@ class ElementArrayStim:
         self.win.setScale(self._winScale)
         if self.fieldDepth==0:
             thisDepth=self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
+            self.win._defDepth += _depthIncrements[self.win.winType]*self.nElements
+        else:
+            thisDepth=self.fieldDepth
+        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
         
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
