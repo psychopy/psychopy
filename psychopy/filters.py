@@ -38,7 +38,7 @@ def makeGrating(res,
             
     """
     tiny=0.0000000000001#to prevent the sinusoid ever being exactly at zero (for sqr wave)
-    ori *= (numpy.pi/180)
+    ori *= (-numpy.pi/180)
     phase *= (numpy.pi/180)
     xrange, yrange = numpy.mgrid[0.0 : cycles*2.0*numpy.pi : cycles*2.0*numpy.pi/res,
                                     0.0 : cycles*2.0*numpy.pi : cycles*2.0*numpy.pi/res]
@@ -76,10 +76,11 @@ def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0,0.0)):
             center:  2x1 tuple or list (default=[0.0,0.0])
                 the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
     """
-    alphaMask = makeMask(matrix.shape[0],shape,radius, center=(0.0,0.0))
+    #NB makeMask now returns a value -1:1
+    alphaMask = makeMask(matrix.shape[0],shape,radius, center=(0.0,0.0), range=[0,1])
     return matrix*alphaMask
 
-def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0)):
+def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0), range=[-1,1]):
     """
     Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
     
@@ -103,7 +104,9 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0)):
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
     else:
             raise ValueError('Unknown value for shape argument %s' % shape)
-    return outArray*2-1
+    mag=range[1]-range[0]
+    offset = range[0]
+    return outArray*mag + offset
 
 def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
     """Generate a square matrix where each element val is

@@ -17,6 +17,9 @@ PsychoPy 1.64.01
 
 * ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
 * FIXED error in joystick demos
+* FIXED bug in ElementArrayStim depth
+* FIXED bug in misc.maskMatrix. Was not using correct scale (0:1) for the mask stage
+
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
