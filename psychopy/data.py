@@ -601,7 +601,7 @@ def importTrialList(fileName, returnFieldNames=False):
         
         if fileName.endswith('.csv'):
             #use csv import library to fetch the fieldNames
-            f = open(fileName,'rU')#the U converts lineendings to os.linesep
+            f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
             #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
             reader = csv.reader(f)#.split(os.linesep))
             fieldNames = reader.next()
@@ -622,7 +622,9 @@ def importTrialList(fileName, returnFieldNames=False):
                     val = trialsArr[trialN][fieldN]
                     #if it looks like a list, convert it
                     if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
-                        exec('val=%s' %val)
+                        exec('val=%s' %unicode(val.decode('utf8')))
+                    elif type(val)==numpy.string_:#if it looks like a string read it as utf8
+                        val=unicode(val.decode('utf-8'))
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
         else:

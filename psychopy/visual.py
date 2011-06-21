@@ -3355,8 +3355,10 @@ class ElementArrayStim:
         self.win.setScale(self._winScale)
         if self.fieldDepth==0:
             thisDepth=self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
+            self.win._defDepth += _depthIncrements[self.win.winType]*self.nElements
+        else:
+            thisDepth=self.fieldDepth
+        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
         
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
@@ -5437,10 +5439,7 @@ class RatingScale:
             self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
         if markerPos < 0:
             markerPos = 0
-        if self.precision == 1:
-            markerPos = round(markerPos) # round to nearest tick; scale to 0..tickMarks, quantized
-        else:
-            markerPos = (int(float(markerPos) * self.precision * self.autoRescaleFactor) / 
+        markerPos = (int(float(markerPos) * self.precision * self.autoRescaleFactor) / 
                     float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
         return markerPos # 0 .. high-low
     def draw(self):
