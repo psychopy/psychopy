@@ -39,7 +39,7 @@ class TestTrialHandler:
 
 class TestMultiStairs:
     def testSimple(self):
-        conditions = data.importTrialList('multiStairConds.xlsx')
+        conditions = data.importTrialList('testData/multiStairConds.xlsx')
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
                 method='random', nTrials=10)
         for intensity,condition in stairs:
@@ -51,7 +51,7 @@ class TestMultiStairs:
         stairs.saveAsExcel('multiStairOut')
         stairs.saveAsPickle('multiStairOut')#contains more info
     def testQuest(self):
-        conditions = data.importTrialList('multiStairConds.xlsx')
+        conditions = data.importTrialList('testData/multiStairConds.xlsx')
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
                     method='random', nTrials=5)
         for intensity,condition in stairs:

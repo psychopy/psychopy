@@ -1572,6 +1572,7 @@ class MultiStairHandler:
         self._createStairs()
         
         #fetch first staircase/value (without altering/advancing it)
+        self._startNewPass()
         self.currentStaircase = self.thisPassRemaining[0]#take the first and remove it
         self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
     def _checkArguments(self):
@@ -1654,8 +1655,7 @@ class MultiStairHandler:
         #create a new set for this pass if needed
         if not hasattr(self, 'thisPassRemaining') or self.thisPassRemaining==[]:
             if len(self.runningStaircases)>0:
-                self.thisPassRemaining = copy.copy(self.runningStaircases)
-                if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
+                self._startNewPass()
             else:
                 self.finished=True
                 raise StopIteration
@@ -1668,6 +1668,14 @@ class MultiStairHandler:
         else:
             raise StopIteration
     
+    def _startNewPass(self):
+        """Create a new iteration of the running staircases for this pass.
+        
+        This is not normally needed byt he user - it gets called at __init__ 
+        and every time that next() runs out of trials for this pass.
+        """
+        self.thisPassRemaining = copy.copy(self.runningStaircases)
+        if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
     def addData(self, result):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
         
