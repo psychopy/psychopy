@@ -4799,8 +4799,9 @@ class RatingScale:
                 acceptKeys='return',
                 acceptPreText='key, click',
                 acceptText='accept?',
-                leftKeys='left',
-                rightKeys='right',
+                leftKeys=['left'],
+                rightKeys=['right'],
+                lineColor='White',
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
@@ -4871,6 +4872,8 @@ class RatingScale:
                 list of keys that mean "move leftwards", default = ['left']
             rightKeys :
                 list of keys that mean "move rightwards", default = ['right']
+            lineColor :
+            	color to use for the scale line, default = 'White'
             markerStyle :
                 *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
             markerColor :
@@ -4944,6 +4947,10 @@ class RatingScale:
         # DEPRECATED : offsetHoriz offsetVert; use pos[] instead
         # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
         
+        ### June 2011
+        # ADDED :
+        #  - parameter to set line color (default white): lineColor
+        
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
         
@@ -4966,7 +4973,7 @@ class RatingScale:
         self._initKeyBindings(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
         
         # Construct the visual elements:
-        self._initLine()
+        self._initLine(lineColor=lineColor)
         self._initMarker(customMarker, markerExpansion, markerColor, markerStyle, self.tickSize)
         self._initTextElements(win, self.lowAnchorText, self.highAnchorText, self.scale,
                             textColor, textFont, textSizeFactor, showValue)
@@ -5165,7 +5172,7 @@ class RatingScale:
         else:
             self.enableRespKeys = False
         
-    def _initLine(self):
+    def _initLine(self, lineColor='White'):
         """define a ShapeStim to be a graphical line, with tick marks.
         
         ### Notes (JRG Aug 2010)
@@ -5202,7 +5209,7 @@ class RatingScale:
         relative to the default (internal) scaling, and not worry about the internal scaling.
         """
         
-        self.lineColor = 'White'
+        self.lineColor = lineColor
         self.lineColorSpace = 'rgb'
         self.tickMarks = float(self.high - self.low)
         
