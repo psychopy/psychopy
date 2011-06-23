@@ -1,6 +1,7 @@
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
+import platform, re
 
 import configobj, validate
 dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
@@ -90,14 +91,29 @@ class PreferencesDlg(wx.Dialog):
         for prefName in specSection.keys():
             if prefName in ['version']:#any other prefs not to show?
                 continue
+            #if platform.system() != 'Windows' and prefName == 'allowModuleImports':
+            #    continue # allowModuleImports is handled by generateSpec.py
             #NB if something is in prefs but not in spec then it won't be shown (removes outdated prefs)
             thisPref = prefsSection[prefName]
             thisSpec = specSection[prefName]
             ctrlName = sectionName+'.'+prefName
+            if platform.system() == 'Darwin' and sectionName == 'keyBindings' and \
+                    thisSpec.startswith('string'):
+                thisPref = thisPref.replace('Ctrl+', 'Cmd+')
             self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)            
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
+            
+            # get tooltips from comment lines from the spec, as parsed by configobj
+            hints = self.prefsSpec[sectionName].comments[prefName] # a list
+            if len(hints):
+                # use only one comment line, from right above the pref
+                hint = hints[-1].lstrip().lstrip('#').lstrip()
+            else:
+                hint = ''
+            ctrls.valueCtrl.SetToolTipString(hint)
+            
             vertBox.Add(ctrlSizer)
         #size the panel and setup scrolling
         panel.SetSizer(vertBox)
@@ -105,13 +121,26 @@ class PreferencesDlg(wx.Dialog):
         panel.SetupScrolling()
         return panel
     def setPrefsFromCtrls(self):
+        # case-insensitive match for Cmd+ at start of string:
+        re_cmd2ctrl = re.compile('^Cmd\+', re.I) 
         for sectionName in self.prefsCfg.keys():
             for prefName in self.prefsSpec[sectionName].keys():
                 if prefName in ['version']:#any other prefs not to show?
                     continue
                 ctrlName = sectionName+'.'+prefName
                 ctrl = self.ctrls[ctrlName]
-                self.prefsCfg[sectionName][prefName]=ctrl.getValue()
+                thisPref = ctrl.getValue()
+                # remove invisible trailing whitespace:
+                if type(thisPref) in [str, unicode]:
+                    thisPref = thisPref.strip()
+                # regularize the display format for keybindings
+                if sectionName == 'keyBindings':
+                    thisPref = thisPref.replace(' ','')
+                    thisPref = '+'.join([part.capitalize() for part in thisPref.split('+')])
+                    if platform.system() == 'Darwin':
+                        # key-bindings were displayed as 'Cmd+O', revert to 'Ctrl+O' internally
+                        thisPref = re_cmd2ctrl.sub('Ctrl+', thisPref)
+                self.prefsCfg[sectionName][prefName]=thisPref
         self.app.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
         

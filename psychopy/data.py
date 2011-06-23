@@ -11,6 +11,7 @@ import numpy
 from scipy import optimize, special
 from matplotlib import mlab#used for importing csv files
 from contrib.quest import *    #used for QuestHandler
+import inspect#so that Handlers can find the script that called them
 
 try:
     import openpyxl
@@ -48,7 +49,8 @@ class TrialHandler:
                  method='random',
                  dataTypes=None,
                  extraInfo=None,
-                 seed=None):
+                 seed=None,
+                 originPath=None):
         """
         trialList: a simple list (or flat array) of trials.
             
@@ -83,6 +85,14 @@ class TrialHandler:
         if self.method in ['random','sequential']:
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
+        
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
+        
     def __iter__(self):
         return self
     def __repr__(self): 
@@ -584,12 +594,14 @@ def importTrialList(fileName, returnFieldNames=False):
             - contain no spaces or other punctuation (underscores are permitted)
         
         """
-        if not os.path.isfile(fileName):
+        if fileName in ['None','none',None]:
+            return []
+        elif not os.path.isfile(fileName):
             raise ImportError, 'TrialTypes file not found: %s' %os.path.abspath(fileName)
         
         if fileName.endswith('.csv'):
             #use csv import library to fetch the fieldNames
-            f = open(fileName,'rU')#the U converts lineendings to os.linesep
+            f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
             #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
             reader = csv.reader(f)#.split(os.linesep))
             fieldNames = reader.next()
@@ -610,7 +622,9 @@ def importTrialList(fileName, returnFieldNames=False):
                     val = trialsArr[trialN][fieldN]
                     #if it looks like a list, convert it
                     if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
-                        exec('val=%s' %val)
+                        exec('val=%s' %unicode(val.decode('utf8')))
+                    elif type(val)==numpy.string_:#if it looks like a string read it as utf8
+                        val=unicode(val.decode('utf-8'))
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
         else:
@@ -652,6 +666,48 @@ def importTrialList(fileName, returnFieldNames=False):
             return (trialList,fieldNames)
         else:
             return trialList
+        
+def createFactorialTrialList(factors):
+    """Create a trialList by entering a list of factors with names (keys) and levels (values)
+    it will return a trialList in which all factors have been factorially combined (so for example
+    if there are two factors with 3 and 5 levels the trialList will be a list of 3*5 = 15, each specifying
+    the values for a given trial
+
+    Usage::
+    
+        trialList = createFactorialTrialList(factors)
+
+    :Parameters:
+    
+        factors : a dictionary with names (keys) and levels (values) of the factors
+
+    Example::
+    
+        mytrials = createFactorialTrialList( factors={"text": ["red", "green", "blue"], 
+            "letterColor": ["red", "green"], "size": [0,1]})
+    """
+
+    # the first step is to place all the factorial conbinations in a list of lists
+    tempListOfLists=[[]]
+    for key in factors:
+        alist = factors[key]   # this takes the levels of each factor as a set of values (a list) at a time
+        tempList = []
+        for value in alist:     # now we loop over the values in a given list, and add each value of the other lists
+            for iterList in tempListOfLists:
+                tempList.append(iterList + [key,value])
+        tempListOfLists = tempList
+
+    # this second step is so we can return a list in the format of trialList
+    trialList = []
+    for atrial in tempListOfLists:
+        keys = atrial[0::2]          #the even elements are keys
+        values = atrial[1::2]       #the odd elements are values
+        atrialDict = {}
+        for i in range(len(keys)):
+            atrialDict[keys[i]] = values[i]     #this combines the key with the value
+        trialList.append(atrialDict)             #append one trial at a time to the final trialList
+
+    return trialList
 
 class StairHandler:
     """Class to handle smoothly the selection of the next trial
@@ -677,7 +733,8 @@ class StairHandler:
                  method = '2AFC',
                  stepType='db',
                  minVal=None,
-                 maxVal=None):
+                 maxVal=None,
+                 originPath=None):
         """
         :Parameters:
             
@@ -730,6 +787,10 @@ class StairHandler:
                 
         """
         
+        """
+        trialList: a simple list (or flat array) of trials.
+            
+            """        
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -760,6 +821,13 @@ class StairHandler:
         self._warnUseOfNext=True
         self.minVal = minVal
         self.maxVal = maxVal
+        
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            log.debug("Using %s as origin file" %self.originPath)
+        else: self.originPath = originPath
+        self.origin = open(self.originPath).read().decode('utf8')
         
     def __iter__(self):
         return self

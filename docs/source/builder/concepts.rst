@@ -6,15 +6,15 @@ Routines and Flow
 
 The Builder view of the PsychoPy application is designed to allow the rapid development of a wide range of experiments for experimental psychology and cognitive neuroscience experiments.
 
-The Builder view comprises two main panels for viewing the experiment's :doc:`Routines </builder/routines>` (upper left) and another for viewing the :doc:`Flow </builder/flow>` (lower part of the window).
+The Builder view comprises two main panels for viewing the experiment's :ref:`routines` (upper left) and another for viewing the :ref:`flow` (lower part of the window).
 
-An experiment can have any number of `Routines`, describing the timing of stimuli, instructions and responses. These are portrayed in a simple track-based view, similar to that of video-editing software, which allows stimuli to come on go off repeatedly and to overlap with each other.
+An experiment can have any number of :ref:`routines`, describing the timing of stimuli, instructions and responses. These are portrayed in a simple track-based view, similar to that of video-editing software, which allows stimuli to come on go off repeatedly and to overlap with each other.
 
-The way in which these `Routines` are combined and/or repeated is controlled by the :doc:`Flow </builder/flow>` panel. All experiments have exactly one :doc:`Flow </builder/flow>`. This takes the form of a standard flowchart allowing a sequence of routines to occur one after another, and for loops to be inserted around one or more of the `Routines`. The loop also controls variables that change between repetitions, such as stimulus attributes.
+The way in which these :ref:`routines` are combined and/or repeated is controlled by the :ref:`flow` panel. All experiments have exactly one :ref:`flow`. This takes the form of a standard flowchart allowing a sequence of routines to occur one after another, and for loops to be inserted around one or more of the `Routines`. The loop also controls variables that change between repetitions, such as stimulus attributes.
 
 Example 1 - a reaction time experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For a simple reaction time experiment there might be 3 :doc:`Routines </builder/routines>`, one that presents instructions and waits for a keypress, one that controls the trial timing, and one that thanks the participant at the end. These could then be combined in the :doc:`Flow </builder/flow>` so that the instructions come first, followed by `trial`, followed by the `thanks` :doc:`Routines </builder/routines>`, and a loop could be inserted so that the `Routine` repeated 4 times for each of 6 stimulus intensities.
+For a simple reaction time experiment there might be 3 :ref:`routines`, one that presents instructions and waits for a keypress, one that controls the trial timing, and one that thanks the participant at the end. These could then be combined in the :ref:`flow` so that the instructions come first, followed by `trial`, followed by the `thanks` :ref:`Routine <routines>`, and a loop could be inserted so that the `Routine` repeated 4 times for each of 6 stimulus intensities.
 
 Example 2 - an fMRI block design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -96,10 +96,10 @@ class Experiment:
         else:
             self.routines[routineName]=routine
 
-    def writeScript(self):
+    def writeScript(self, expPath=None):
         """Write a PsychoPy script for the experiment
         """
-        
+        self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
@@ -410,8 +410,10 @@ class TrialHandler:
         self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, extraInfo=expInfo, \n    trialList=%s)\n" \
-            %(self.params['name'], self.params['nReps'], self.params['loopType'], trialStr))
+        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
+                %(self.params['name'], self.params['nReps'], self.params['loopType']))
+        buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
+        buff.writeIndented("    trialList=%s)\n" %(trialStr))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
@@ -501,14 +503,15 @@ class StairHandler:
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
-        #write the code
         if self.params['N reversals'].val in ["", None, 'None']:
-            self.params['N reversals'].val='0' 
+            self.params['N reversals'].val='0'
+        #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
-        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s)\n" %self.params)
+        buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
+        buff.writeIndented("    originPath=%s)\n" %repr(self.exp.expPath))
         buff.writeIndented("level=%s=%s#initialise some vals\n" %(self.thisName, self.params['start value']))
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:

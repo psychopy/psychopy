@@ -1684,15 +1684,12 @@ class SimpleImageStim:
     Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or 
     masked (although flipping horizontally or vertically is possible). Drawing will
     also tend to be marginally slower, because the image isn't preloaded to the 
-    gfx card. The advantage, however is that the stimulus will always be in its
-    original aspect ratio, with no interplotation or other transformation. It is always 
+    graphics card. The advantage, however is that the stimulus will always be in its
+    original aspect ratio, with no interplotation or other transformation.
     
     SimpleImageStim does not support a depth parameter (the OpenGL method
     that draws the pixels does not support it). Simple images will obscure any other 
     stimulus type.
-    
-    Also, unlike the PatchStim (whose textures should be square and power-of-two
-    in size, there is no restriction on the size of images for the SimpleImageStim 
     
     
     """
@@ -1932,7 +1929,7 @@ class PatchStim(_BaseVisualStim):
     Also since transparency can be controlled two PatchStims can combine e.g.
     to form a plaid.    
 
-    **Using Patchstim with images from disk (jpg, tif, pgn...)**
+    **Using Patchstim with images from disk (jpg, tif, png...)**
     
     Ideally images to be rendered should be square with 'power-of-2' dimensions 
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
@@ -1943,8 +1940,7 @@ class PatchStim(_BaseVisualStim):
 
     **Why can't I have a normal image, drawn pixel-by-pixel?** PatchStims are 
     rendered using OpenGL textures. This is more powerful than using simple screen 
-    blitting - it allows the rotation, masking, transparency to work. It is still 
-    necessary to have power-of-2 textures on most graphics cards.
+    blitting - it allows the rotation, masking, transparency to work.
     """
     def __init__(self,
                  win,
@@ -3359,8 +3355,10 @@ class ElementArrayStim:
         self.win.setScale(self._winScale)
         if self.fieldDepth==0:
             thisDepth=self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0.0)
+            self.win._defDepth += _depthIncrements[self.win.winType]*self.nElements
+        else:
+            thisDepth=self.fieldDepth
+        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
         
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
@@ -4803,6 +4801,7 @@ class RatingScale:
                 acceptText='accept?',
                 leftKeys=['left'],
                 rightKeys=['right'],
+                lineColor='White',
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
@@ -4874,6 +4873,8 @@ class RatingScale:
                 list of keys that mean "move leftwards", default = ['left']
             rightKeys :
                 list of keys that mean "move rightwards", default = ['right']
+            lineColor :
+            	color to use for the scale line, default = 'White'
             markerStyle :
                 *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
             markerColor :
@@ -4937,6 +4938,10 @@ class RatingScale:
         
         # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
         
+        ### June 2011
+        # ADDED :
+        #  - parameter to set line color (default white): lineColor
+        
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
         # - rewrite markers to use GLU.gluDisk() primitives (circle, square, diamond, triangle, rectangle) or sphere
@@ -4960,7 +4965,7 @@ class RatingScale:
         self._initKeyBindings(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
         
         # Construct the visual elements:
-        self._initLine()
+        self._initLine(lineColor=lineColor)
         self._initMarker(customMarker, markerExpansion, markerColor, markerStyle, self.tickSize)
         self._initTextElements(win, self.lowAnchorText, self.highAnchorText, self.scale,
                             textColor, textFont, textSizeFactor, showValue)
@@ -5142,7 +5147,7 @@ class RatingScale:
         else:
             self.enableRespKeys = False
         
-    def _initLine(self):
+    def _initLine(self, lineColor='White'):
         """define a ShapeStim to be a graphical line, with tick marks.
         
         ### Notes (JRG Aug 2010)
@@ -5179,7 +5184,7 @@ class RatingScale:
         relative to the default (internal) scaling, and not worry about the internal scaling.
         """
         
-        self.lineColor = 'White'
+        self.lineColor = lineColor
         self.lineColorSpace = 'rgb'
         self.tickMarks = float(self.high - self.low)
         

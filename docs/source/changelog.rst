@@ -8,25 +8,53 @@ Changelog
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
 
-PsychoPy 1.63
+PsychoPy 1.64
 ------------------------------
 
-PsychoPy 1.63.05
+PsychoPy 1.64.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In repos (https://github.com/psychopy/psychopy)
+(in github)
 
-* ADDED Aperture object to visual (thanks Yuri Spitsyn) and component to Builder (Jeremy Gray)
-* FIXED bug in RatingScale that prevented scale starting at zero
-* ADDED RatingScale "choices" (non-numeric); text size, color, font, & anchor labels; pos=(x,y) (Jeremy Gray)
-* CHANGED RatingScale internals; renamed escapeKeys as skipKeys; subject now uses 'tab' to skip (Jeremy Gray)
-* FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
+* ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
+* FIXED error in joystick demos
+
+PsychoPy 1.64.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Released April 2011
+
+* ADDED option to return field names when importing a trial list (thanks Gary Lupyan)
+* ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
+* ADDED CustomMouse to visual (Jeremy Gray) 
+* ADDED Aperture object to visual (thanks Yuri Spitsyn) and as a component to Builder (Jeremy Gray)
+* CHANGED RatingScale (Jeremy Gray):
+    - FIXED bug in RatingScale that prevented scale starting at zero
+    - ADDED RatingScale "choices" (non-numeric); text size, color, font, & anchor labels; pos=(x,y) (Jeremy Gray)
+    - CHANGED RatingScale internals; renamed escapeKeys as skipKeys; subject now uses 'tab' to skip (Jeremy Gray)
 * ADDED user-configurable code/output font (see coder prefs to change)
-* FIXED problem with the error dialog from Builder experiments not being a sensible size
-    (since v1.63.03 it was just showing a tiny box instead of an error message)
 * ADDED gui.Dlg now automatically uses checkboxes for bools in inputs (Yuri Spitsyn)
-* FIXED coder now reloads files changed outside the app when needed (thanks William Hogman)
-* IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
 * ADDED RatingScale component for Builder (Jeremy Gray)
+* ADDED packages to Standalone distros:
+    - pyxid (Cedrus button boxes)
+    - labjack (good, fast, cheap USB I/O device)
+    - egi (pynetstation)
+    - pylink (SR Research eye trackers)
+    - psignifit (bootstrapping, but only added on mac for now)
+* ADDED option for Builder components to take code (e.g. variables) as start/duration times
+* ADDED support for RGBA files in SimpleImageStim
+* IMPROVED namespace management for variables in Builder experiments (Jeremy Gray)
+* IMPROVED prefs dialog
+* IMPROVED test sequence for PsychoPy release (so hopefully fewer bugs in future!)
+* FIXED bug with ElementArrayStim affecting the subsequent color of ShapeStim
+* FIXED problem with the error dialog from Builder experiments not being a sensible size (since v1.63.03 it was just showing a tiny box instead of an error message)
+* FIXED Coder now reloads files changed outside the app when needed (thanks William Hogman)
+* FIXED Builder Text Component now respects the font property
+* FIXED problem with updating to a downloaded zip file (win32 only)
+* FIXED bug with ShapeStim.setOpacity when no shaders are available
+* FIXED *long-standing pygame scaling bug*
+* FIXED you can now scroll Builder Flow and still insert a Routine way to the right
+
+PsychoPy 1.63
+------------------------------
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,10 +132,9 @@ Released Dec 2010
 * UPDATED: Standalone distribution now uses Python2.6 and adds/upgrades;
     * parallel python (pp)
     * pyserial
-    * ioLabs toolbox
+    * ioLabs
     * ipython (for future ipython shell view in coder)
     * numpy=1.5.1, scipy=0.8.0, matplotlib=1.0
-    * labjack toolbox
 * UPDATED: Builder demos
 
 PsychoPy 1.62
