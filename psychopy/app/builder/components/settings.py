@@ -31,7 +31,7 @@ class SettingsComponent:
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (must match one in Monitor Center)") 
         self.params['color']=Param(color, valType='str', allowedTypes=[],
-            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable)") 
+            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)") 
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)") 
         self.params['Units']=Param(units, valType='str', allowedTypes=[],

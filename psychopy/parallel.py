@@ -12,7 +12,7 @@ An alternative (e.g. on Linux) might be to install pyParallel and call that dire
 
 """
 
-from thirdParty import parallel #this is Dincer Aydin's module
+from contrib import parallel #this is Dincer Aydin's module
 
 def setPortAddress(address=0x0378):
     """Set the memory address of your parallel port, to be used in subsequent commands
@@ -24,9 +24,9 @@ def setPortAddress(address=0x0378):
         LPT3 = 0x0278
         
     """
-    _parallel.baseAddress = address#address for parallel port on many machines
-    _parallel.statusRegAdrs = address + 1                     # status register address
-    _parallel.ctrlRegAdrs = address + 2                       # control register address
+    parallel.baseAddress = address#address for parallel port on many machines
+    parallel.statusRegAdrs = address + 1                     # status register address
+    parallel.ctrlRegAdrs = address + 2                       # control register address
 
 def setData(data):
     """Set the data to be presented on the parallel port (one ubyte).
@@ -46,7 +46,7 @@ def setData(data):
         parallel.setData( int("00000101",2) )#pins 2 and 4 high
         
     """
-    _parallel.pportOut(data)
+    parallel.pportOut(data)
     
 def setPin(pinNumber, state):
     """Set a desired pin to be high(1) or low(0).
@@ -56,7 +56,7 @@ def setPin(pinNumber, state):
         parallel.setPin(3, 1)#sets pin 3 high
         parallel.setPin(3, 0)#sets pin 3 low
     """
-    exec("_parallel.pportD%i(state)" %(pinNumber-2))
+    exec("parallel.pportD%i(state)" %(pinNumber-2))
    
   
 def readPin(pinNumber):
@@ -65,12 +65,12 @@ def readPin(pinNumber):
     Only pins 'status' pins (10-14 and 15) are currently read here, although the data
     pins (2-9) probably could be too.
     """
-    if pinNumber==10: return _parallel.pportInAcknowledge() #should then give 1 or 0 on pin 10
-    elif pinNumber==11: return _parallel.pportInBusy() 
-    elif pinNumber==12: return _parallel.pportInPaperOut()
-    elif pinNumber==13: return _parallel.pportInSelected()
+    if pinNumber==10: return parallel.pportInAcknowledge() #should then give 1 or 0 on pin 10
+    elif pinNumber==11: return parallel.pportInBusy() 
+    elif pinNumber==12: return parallel.pportInPaperOut()
+    elif pinNumber==13: return parallel.pportInSelected()
     elif pinNumber==14: return 
-    elif pinNumber==15: return _parallel.pportInError()
+    elif pinNumber==15: return parallel.pportInError()
     else: 
         print 'Pin %i cannot be read (by the psychopy.parallel.readPin() yet)' %(pinNumber)
     
