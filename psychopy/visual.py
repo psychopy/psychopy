@@ -5439,14 +5439,12 @@ class RatingScale:
             return True
         return False
     def _getMarkerPos(self, mouseX):
-        """Convert mouseX into units of tick marks, 0 .. high-low, possibly fractional
+        """Convert mouseX into units of tick marks, 0 .. high-low, fractional if precision > 1
         """
         mouseX = min(max(mouseX, self.lineLeftEnd), self.lineRightEnd)
         markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
             self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
-        if markerPos < 0:
-            markerPos = 0
-        markerPos = (int(float(markerPos) * self.precision * self.autoRescaleFactor) / 
+        markerPos = (round(markerPos * self.precision * self.autoRescaleFactor) / 
                     float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
         return markerPos # 0 .. high-low
     def draw(self):
