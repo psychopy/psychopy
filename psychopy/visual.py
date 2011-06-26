@@ -5030,10 +5030,7 @@ class RatingScale:
             else:
                 self.lowAnchorText = str(lowAnchorText)
                 self.highAnchorText = str(highAnchorText)
-            if high > 1: # if more than 2 items, show them all:
-                self.scale = '  '.join(map(str, choices)) # str for display
-            else: # avoid redundant display if only 2
-                self.showScale = False
+            self.scale = '  '.join(map(str, choices)) # str for display
             self.choices = choices
         else:
             self.choices = False
