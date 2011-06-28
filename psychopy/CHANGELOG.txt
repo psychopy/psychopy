@@ -19,7 +19,10 @@ PsychoPy 1.64.01
 * FIXED error in joystick demos
 * FIXED bug in ElementArrayStim depth
 * FIXED bug in misc.maskMatrix. Was not using correct scale (0:1) for the mask stage
-
+* CHANGED RatingScale:
+  - CHANGED default marker is triangle (affects windows only)
+  - ADDED single-click option, custom-marker support
+  - FIXED: bug with precision=1 plus auto-rescaling going in steps of 10 (not 1)
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
