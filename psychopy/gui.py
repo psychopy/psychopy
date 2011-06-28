@@ -60,7 +60,7 @@ class Dlg(wx.Dialog):
                                 size=textLength)
         self.sizer.Add(myTxt,1,wx.ALIGN_CENTER)
         
-    def addField(self, label='', initial=''):
+    def addField(self, label='', initial='', color=''):
         """
         Adds a (labelled) input field to the dialogue box
         Returns a handle to the field (but not to the label).
@@ -75,6 +75,7 @@ class Dlg(wx.Dialog):
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
                                         style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        if len(color): inputLabel.SetForegroundColour(color)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         #create input control
         if type(initial)==bool:
@@ -83,8 +84,8 @@ class Dlg(wx.Dialog):
         else:
             inputLength = wx.Size(max((5*len(unicode(initial))+16),50), 25)
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
-
-        container.Add(inputBox,1)
+        if len(color): inputBox.SetForegroundColour(color)
+        container.Add(inputBox,1, wx.ALIGN_CENTER_VERTICAL)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
         
         self.inputFields.append(inputBox)#store this to get data back on OK
@@ -95,7 +96,7 @@ class Dlg(wx.Dialog):
         the field cannot be edited. e.g. Display experiment
         version.
         """
-        thisField = self.addField(label,value)
+        thisField = self.addField(label,value,color='Gray')
         thisField.Disable()
         return thisField
         
