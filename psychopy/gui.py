@@ -69,19 +69,20 @@ class Dlg(wx.Dialog):
         self.inputFieldTypes.append(type(initial))
         if type(initial)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
+        container=wx.GridSizer(cols=2, hgap=10)
         #create label
         labelLength = wx.Size(9*len(label)+16,25)#was 8*until v0.91.4
-        container=wx.BoxSizer(wx.HORIZONTAL)
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
-                                        style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+                                        style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         #create input control
         if type(initial)==bool:
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         else:
-            inputBox = wx.TextCtrl(self,-1,unicode(initial),size=(5*len(unicode(initial))+16,25))
+            inputLength = wx.Size(max((5*len(unicode(initial))+16),50), 25)
+            inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
 
         container.Add(inputBox,1)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
