@@ -52,18 +52,19 @@ class Dlg(wx.Dialog):
         #self.addText('')#insert some space at top of dialogue
         if pos==None:
             self.Center()
-    def addText(self, text):
+    def addText(self, text, color=''):
         textLength = wx.Size(8*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
                                 label=text,
                                 style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL,
                                 size=textLength)
+        if len(color): myTxt.SetForegroundColour(color)
         self.sizer.Add(myTxt,1,wx.ALIGN_CENTER)
         
-    def addField(self, label='', initial='', color=''):
+    def addField(self, label='', initial='', color='', tip=''):
         """
-        Adds a (labelled) input field to the dialogue box
-        Returns a handle to the field (but not to the label).
+        Adds a (labelled) input field to the dialogue box, optional text color
+        and tooltip. Returns a handle to the field (but not to the label).
         """
         self.inputFieldNames.append(label)
         self.inputFieldTypes.append(type(initial))
@@ -82,22 +83,23 @@ class Dlg(wx.Dialog):
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         else:
-            inputLength = wx.Size(max((5*len(unicode(initial))+16),50), 25)
+            inputLength = wx.Size(max(50, 5*len(unicode(initial))+16), 25)
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         if len(color): inputBox.SetForegroundColour(color)
+        if len(tip): inputBox.SetToolTip(wx.ToolTip(tip))
+        
         container.Add(inputBox,1, wx.ALIGN_CENTER_VERTICAL)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
         
         self.inputFields.append(inputBox)#store this to get data back on OK
         return inputBox
     
-    def addFixedField(self,label='',value=''):
-        """Adds a field to the dialogue box (like addField) but
-        the field cannot be edited. e.g. Display experiment
-        version.
+    def addFixedField(self,label='',value='',tip=''):
+        """Adds a field to the dialogue box (like addField) but the field cannot
+        be edited. e.g. Display experiment version. tool-tips are disabled (by wx).
         """
-        thisField = self.addField(label,value,color='Gray')
-        thisField.Disable()
+        thisField = self.addField(label,value,color='Gray',tip=tip)
+        thisField.Disable() # wx disables tooltips too; we pass them in anyway
         return thisField
         
     def show(self):
@@ -167,21 +169,27 @@ class DlgFromDict(Dlg):
     If the user cancels (rather than pressing OK),
     then the dictionary remains unchanged. If you want to check whether
     the user hit OK, then check whether DlgFromDict.OK equals
-    True or False    
+    True or False
+    
+    See GUI.py for a usage demo, including order and tip (tooltip).
     """
-    def __init__(self, dictionary, title='',fixed=[]):
+    def __init__(self, dictionary, title='',fixed=[], order=[], tip={}):
         Dlg.__init__(self, title)
         self.dictionary=dictionary
         keys = self.dictionary.keys()
         keys.sort()
+        if len(order):
+            keys = order + list(set(keys).difference(set(order)))
         types=dict([])
         for field in keys:
             #DEBUG: print field, type(dictionary[field])
             types[field] = type(self.dictionary[field])
+            tooltip = ''
+            if field in tip.keys(): tooltip = tip[field]
             if field in fixed:
-                self.addFixedField(field,self.dictionary[field])
+                self.addFixedField(field,self.dictionary[field], tip=tooltip)
             else:
-                self.addField(field,self.dictionary[field])
+                self.addField(field,self.dictionary[field], tip=tooltip)
         #show it and collect data
         #tmp= wx.PySimpleApp()#this should have been done by Dlg ?
         self.show()
