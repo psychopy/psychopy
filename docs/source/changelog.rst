@@ -8,18 +8,28 @@ Changelog
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
 
-PsychoPy 1.64
+PsychoPy 1.65
 ------------------------------
 
-PsychoPy 1.64.01
+PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(in github)
 
+* ADDED improved gamma correction using L=a+(b+kI)**G formula (in addition to industry-standard form). Existing gamma calibrations will continue to use old equation but new calibrations will take the new extended formula by default.
+* ADDED MultiStairHandler to run multiple interleaved staircases (also from the Builder)
 * ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
+* CHANGED RatingScale:
+  - ADDED: argument to set lineColor independently (thanks Jeff Bye)
+  - CHANGED default marker is triangle (affects windows only)
+  - ADDED single-click option, custom-marker support
+  - FIXED: bug with precision=1 plus auto-rescaling going in steps of 10 (not 1)
+* FIXED errors with importing from 'ext' and 'contrib'
 * FIXED error in joystick demos
 * FIXED bug in ElementArrayStim depth
 * FIXED bug in misc.maskMatrix. Was not using correct scale (0:1) for the mask stage
+* FIXED buglet in StairHandler, which was only terminating during a reversal
 
+PsychoPy 1.64
+------------------------------
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
