@@ -41,7 +41,7 @@ class TestMultiStairs:
     def testSimple(self):
         conditions = data.importTrialList('testData/multiStairConds.xlsx')
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
-                method='random', nTrials=10)
+                method='random', nTrials=20)
         for intensity,condition in stairs:
             #make data that will cause different stairs to finish different times
             if random()>condition['startVal']:

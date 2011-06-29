@@ -909,17 +909,17 @@ class StairHandler:
         if reversal:
             self.reversalPoints.append(self.thisTrialN)
             self.reversalIntensities.append(self.intensities[-1])
-            #and test if we're done
-            if len(self.reversalIntensities)>=self.nReversals and \
-                len(self.intensities)>=self.nTrials:
-                    self.finished=True
-            #new step size if necessary
-            if self._variableStep and self.finished==False:
-                if len(self.reversalIntensities) >= len(self.stepSizes):
-                    #we've gone beyond the list of step sizes so just use the last one
-                    self.stepSizeCurrent = self.stepSizes[-1]
-                else:
-                    self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
+        #test if we're done
+        if len(self.reversalIntensities)>=self.nReversals and \
+            len(self.intensities)>=self.nTrials:
+                self.finished=True
+        #new step size if necessary
+        if reversal and self._variableStep and self.finished==False:
+            if len(self.reversalIntensities) >= len(self.stepSizes):
+                #we've gone beyond the list of step sizes so just use the last one
+                self.stepSizeCurrent = self.stepSizes[-1]
+            else:
+                self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
                 
                 
     def next(self):
