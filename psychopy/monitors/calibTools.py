@@ -63,7 +63,7 @@ def findPR650(ports=None):
     """
     log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
     +"finds a wider range of devices")
-    print 'here'
+    
     if ports==None:
         if sys.platform=='darwin':
             ports=[]
@@ -276,7 +276,12 @@ class Monitor:
     def getGammaGrid(self):
         """Gets the min,max,gamma values for the each gun"""
         if self.currentCalib.has_key('gammaGrid'):
-            return self.currentCalib['gammaGrid']
+            grid = self.currentCalib['gammaGrid']
+            if grid.shape!=[4,6]:
+                newGrid = numpy.zeros([4,6],'f')*numpy.nan#start as NaN
+                newGrid[:grid.shape[0],:grid.shape[1]]=grid
+                grid=newGrid
+            return grid
         else:
             return None
     def getLineariseMethod(self):
@@ -457,7 +462,7 @@ class Monitor:
     def saveMon(self):
         """saves the current dict of calibs to disk"""
         thisFileName = os.path.join(monitorFolder,self.name+".calib")
-        thisFile = open(thisFileName,'w')
+        thisFile = open(thisFileName,'wb')
         cPickle.dump(self.calibs, thisFile)
         thisFile.close()
 
@@ -567,19 +572,15 @@ class GammaCalculator:
         - bitsIN = number of values in your lookup table
         - bitsOUT = number of bits in the DACs
 
-    myTable then generates attributes for gammaVal (if not supplied)
-    and lut_corrected (a gamma corrected lookup table) which can be
-    accessed by;
-
-    myTable.gammaTable
-    myTable.gammaVal
+    myTable.gammaModel
+    myTable.gamma
 
     """
 
     def __init__(self,
         inputs=[],
         lums=[],
-        gammaVal=[],
+        gamma=None,
         bitsIN=8,              #how values in the LUT
         bitsOUT=8,
         eq=1 ):   #how many values can the DACs output
@@ -595,19 +596,19 @@ class GammaCalculator:
             self.inputs = inputs
 
         #set or get gammaVal
-        if len(lums)==0 and type(gammaVal)!=list:#we had initialised gammaVal as a list
-            self.gammaVal = gammaVal
-        elif len(lums)>0 and type(gammaVal)==list:
-            self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
-            self.gammaVal = self.gammaModel[2]
-            self.a = self.gammaModel[0]
-            self.b = self.gammaModel[1]
+        if len(lums)==0 or gamma!=None:#user is specifying their own gamma value 
+            self.gamma = gamma
+        elif len(lums)>0:
+            self.min, self.max, self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
+            if eq==4:
+                self.gamma, self.a, self.k = self.gammaModel
+                self.b = (lums[0]-self.a)**(1.0/self.gamma)
+            else: 
+                self.gamma=self.gammaModel[0]
+                self.a = self.b = self.k = None
         else:
             raise AttributeError, "gammaTable needs EITHER a gamma value or some luminance measures"
-
-        #create corrected lookup table
-        #self.gammaTable = self.invertGamma()
-
+    
     def fitGammaFun(self, x, y):
         """
         Fits a gamma function to the monitor calibration data.
@@ -621,15 +622,23 @@ class GammaCalculator:
         maxGamma = 20.0
         gammaGuess=2.0
         y = numpy.asarray(y)
-        minLum = min(y) #offset
-        maxLum = max(y) #gain
-        guess = gammaGuess
+        minLum = y[0]
+        maxLum = y[-1]
+        if self.eq==4:
+            aGuess = minLum/5.0
+            kGuess = (maxLum - aGuess)**(1.0/gammaGuess) - aGuess
+            guess = [gammaGuess, aGuess, kGuess]
+            bounds = [[0.8,5.0],[0.00001,minLum-0.00001],[2,200]]
+        else:
+            guess = [gammaGuess]
+            bounds = [[0.8,5.0]]
         #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
-
-        gamma = optim.fminbound(self.fitGammaErrFun,
-            minGamma, maxGamma,
-            args=(x,y, minLum, maxLum))
-        return minLum, maxLum, gamma
+#        gamma = optim.fminbound(self.fitGammaErrFun,
+#            minGamma, maxGamma,
+#            args=(x,y, minLum, maxLum))
+        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess), approx_grad=True,
+            args = (x,y, minLum, maxLum), bounds=bounds, messages=0)
+        return minLum, maxLum, params[0]
 
     def fitGammaErrFun(self, params, x, y, minLum, maxLum):
         """
@@ -637,20 +646,14 @@ class GammaCalculator:
 
         (used by fitGammaFun)
         """
-        gamma = params
-        model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
+        if self.eq==4:
+            gamma,a,k = params
+            model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k))
+        else:
+            gamma = params[0]
+            model = numpy.asarray(gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
         SSQ = numpy.sum((model-y)**2)
         return SSQ
-
-    #def invertGamma(self):
-        #"""
-        #uses self.gammaVal, self.bitsIN & self.bitsOUT to
-        #create a gamma-corrected lookup table
-        #"""
-        #gamLUTOut = numpy.arange(0,1.0, 1.0/(2**self.bitsIN)) #ramp (of length bitsIN)
-        #gamLUTOut = gamLUTOut**(1.0/self.gammaVal)    #inverse gamma
-        #gamLUTOut *= 2**self.bitsOUT   #convert to output range
-        #return gamLUTOut.astype(numpy.uint8)
 
 def makeDKL2RGB(nm,powerRGB):
     """
@@ -939,7 +942,7 @@ def getAllMonitors():
     os.chdir(currDir)
     return monitorList
 
-def gammaFun(xx, minLum, maxLum, gamma, eq=1):
+def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     """
     Returns gamma-transformed luminance values.
     y = gammaFun(x, minLum, maxLum, gamma)
@@ -955,6 +958,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
 
 
     """
+    
     #scale x to be in range minLum:maxLum
     xx = numpy.array(xx,'d')
     maxXX = max(xx)
@@ -964,9 +968,10 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
     else: #assume data are in range 0:1
         pass
         #xx = xx*maxLum + minLum
-
+    
     #eq1: y = a + (b*xx)**gamma
     #eq2: y = (a+b*xx)**gamma
+    #eq4: y = a+(b+k*xx)**gamma #Pelli & Zhang 1991
     if eq==1:
         a = minLum
         b = (maxLum-a)**(1/gamma)
@@ -975,10 +980,29 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1):
         a = minLum**(1/gamma)
         b = maxLum**(1/gamma)-a
         yy = (a + b*xx)**gamma
-    #print 'a=%.3f      b=%.3f' %(a,b)
+    elif eq==3:#NB method 3 was an interpolation method that didn't work well
+        pass
+    elif eq==4:
+        nMissing = sum([a==None, b==None, k==None])
+        #check params
+        if nMissing>1:
+            raise AttributeError, "For eq=4, gammaFun needs 2 of a,b,k to be specified"
+        elif nMissing==1:
+            if a==None:
+                a = minLum-b**(1.0/gamma)       #when y=min, x=0
+            elif b==None:
+                if a>=minLum: 
+                    b=0.1**(1.0/gamma)#can't take inv power of -ve
+                else:
+                    b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
+            elif k==None:
+                k = (maxLum - a)**(1.0/gamma) - b #when y=max, x=1
+        #this is the same as Pelli and Zhang (but different inverse function)
+        yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)
+
     return yy
 
-def gammaInvFun(yy, minLum, maxLum, gamma, eq=1):
+def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     """Returns inverse gamma function for desired luminance values.
     x = gammaInvFun(y, minLum, maxLum, gamma)
 
@@ -1020,6 +1044,15 @@ def gammaInvFun(yy, minLum, maxLum, gamma, eq=1):
         xx = (yy**(1/gamma)-a)/b
         maxLUT = (maxLum**(1/gamma)-a)/b
         minLUT = (minLum**(1/gamma)-a)/b
+    elif eq==3:#NB method 3 was an interpolation method that didn't work well
+        pass
+    elif eq==4:
+        #this is not the same as Zhang and Pelli's inverse
+        #see http://www.psychopy.org/general/gamma.html for derivation
+        a = minLum-b**gamma
+        k = (maxLum-a)**(1./gamma) - b
+        yy = (((1-xx)*b**gamma + xx*(b+k)**gamma)**(1/gamma)-b)/k
+        #print "we are linearising with the special wichmann style equation"
 
     #then return to range (0:1)
     xx = xx/(maxLUT-minLUT) - minLUT
