@@ -1423,7 +1423,7 @@ class QuestHandler(StairHandler):
 
     def mode(self):
         """mode of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.mode())
+        return self._scale2intensity(self._quest.mode()[0])
 
     def quantile(self, p=None):
         """quantile of Quest posterior pdf"""
