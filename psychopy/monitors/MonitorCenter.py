@@ -348,7 +348,7 @@ class MainFrame(wx.Frame):
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
         
-        self.choiceLinearMethod = wx.Choice(self, -1, name='formula:',
+        self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
         if self.currentMon.getLineariseMethod()==4:
             self.choiceLinearMethod.SetSelection(2)

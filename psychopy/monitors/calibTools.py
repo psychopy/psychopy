@@ -780,7 +780,7 @@ def getLumSeries(lumLevels=8,
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,height=0.1,
-        pos=(0,-0.95), rgb=[1,-1,-1])    
+        pos=(0,-0.85), rgb=[1,-1,-1])    
     noise = numpy.random.rand(512,512).round()*2-1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
         sf=[winSize[0]/512.0, winSize[1]/512.0])
