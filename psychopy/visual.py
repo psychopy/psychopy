@@ -69,10 +69,12 @@ global DEBUG; DEBUG=False
 _depthIncrements = {'pyglet':+0.001, 'pygame':+0.001, 'glut':-0.001}
 
 #symbols for MovieStim
-PLAYING=1
-PAUSED=2
-NOT_STARTED=0
-FINISHED=-1
+from psychopy.constants import *
+#PLAYING=1
+#STARTED=1
+#PAUSED=2
+#NOT_STARTED=0
+#FINISHED=-1
 
 class Window:
     """Used to set up a context in which to draw objects,
