@@ -775,7 +775,7 @@ def getLumSeries(lumLevels=8,
         initRGB= 0.5**(1/2.0)*2-1
     else: initRGB=0.8
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
+    myWin = psychopy.visual.Window(fullscr = 1, size=winSize,
         gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
@@ -804,6 +804,8 @@ def getLumSeries(lumLevels=8,
         if len(psychopy.event.getKeys()):
             break#we got a keypress so move on
     
+    
+    message.setText('Q to quit at any time')
     #
     if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
         junk=photometer.getLum()
@@ -832,12 +834,13 @@ def getLumSeries(lumLevels=8,
             backPatch.draw()
             testPatch.setColor(rgb)
             testPatch.draw()
+            message.draw()
             myWin.flip()
             
             time.sleep(0.2)#allowing the screen to settle (no good reason!)
             #check for quit request
             for thisKey in psychopy.event.getKeys():
-                if thisKey in ['q', 'Q']:
+                if thisKey in ['q', 'Q', 'escape']:
                     myWin.close()
                     return numpy.array([])
             #take measurement
@@ -898,7 +901,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     else:       havephotom = 0
 
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 0, rgb=0.0, size=winSize,
+    myWin = psychopy.visual.Window(fullscr = 1, rgb=0.0, size=winSize,
         units='norm')
 
     instructions="Point the photometer at the central square. Hit a key when ready"
