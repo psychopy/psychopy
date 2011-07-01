@@ -12,7 +12,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
-            startTime=0.0, duration=''):
+            startTime=0.0, duration='', discardPrev=True):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
@@ -33,6 +33,9 @@ class KeyboardComponent(BaseComponent):
         self.params['duration']=Param(duration, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The length of time that the keyboard should be checked")
+        self.params['discard previous']=Param(discardPrev, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Do you want to discard any keypresses occuring before the onset of this component?") 
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")  
@@ -50,6 +53,7 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="Response time (saved as 'rt') is based from start of keyboard available period")
     def writeRoutineStartCode(self,buff):
+        buff.writeIndented("%(name)sStatus=NOT_STARTED\n" %self.params)
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False \
             and self.params['storeResponseTime'].val==False:
@@ -70,6 +74,17 @@ class KeyboardComponent(BaseComponent):
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         dedentAtEnd=1
+        
+        #if we've only just started then do a clearEvents()
+        buff.writeIndented("if %(name)sStatus==NOT_STARTED:\n" %self.params)
+        buff.setIndentLevel(1, relative=True)#indent
+        buff.writeIndented("#keyboard checking is just starting\n")
+        print self.params['discard previous'].val, type(self.params['discard previous'].val)
+        if self.params['discard previous'].val:
+            buff.writeIndented("event.clearEvents()\n")
+        buff.writeIndented("%(name)sStatus=STARTED\n" %self.params)
+        buff.setIndentLevel(-1, relative=True)#dedent
+        
         #init the key-rt clock
         if self.params['storeResponseTime'].val:
             buff.writeIndented("if %(name)s.clockNeedsReset:\n" % self.params)

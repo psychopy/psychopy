@@ -17,6 +17,7 @@ PsychoPy 1.65.00
 * ADDED improved gamma correction using L=a+(b+kI)**G formula (in addition to industry-standard form). Existing gamma calibrations will continue to use old equation but new calibrations will take the new extended formula by default.
 * ADDED MultiStairHandler to run multiple interleaved staircases (also from the Builder)
 * ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
+* CHANGED Builder keyboard components now have the option to discard previous keys (on by default)
 * CHANGED RatingScale:
   - ADDED: argument to set lineColor independently (thanks Jeff Bye)
   - CHANGED default marker is triangle (affects windows only)
