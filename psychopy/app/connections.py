@@ -493,3 +493,37 @@ def sendUsageStats(proxy=None):
     except:
         log.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
+
+def getAutoProxyURL():
+    """Return a list of possible auto proxy .pac files being used, 
+    based on the system registry (win32) or system preferences (OSX).
+    """
+    pacFiles=[]
+    if sys.platform=='win32':
+        try:
+            import _winreg as winreg#used from python 2.0-2.6
+        except:
+            import winreg#used from python 2.7 onwards
+        net = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
+            )
+        nSubs, nVals, lastMod = winreg.QueryInfoKey(net)
+        subkeys={}
+        for i in range(nVals):
+            thisName, thisVal, thisType=winreg.EnumValue(net,i)
+            subkeys[thisName]=thisVal
+        if 'AutoConfigURL' in subkeys.keys() and len(subkeys['AutoConfigURL'])>0:
+            pacFiles.append(subkeys['AutoConfigURL'])
+    elif sys.platform=='darwin':
+        import plistlib
+        sysPrefs = plistlib.readPlist('/Library/Preferences/SystemConfiguration/preferences.plist')
+        networks=sysPrefs['NetworkServices']
+        pacFiles = []
+        #loop through each possible network (e.g. Ethernet, Airport...)
+        for network in networks.items():
+            netKey, network=network#the first part is a long identifier
+            if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
+                pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
+    return pacFiles
+        
