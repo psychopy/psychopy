@@ -12,3 +12,5 @@ psychopy1
 .hg*
 .coverage
 psychopy/demos/coder/misc/frame*
+psychopy/tests/*Out.*
+psychopy/tests/data/*_local.png
