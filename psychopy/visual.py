@@ -3643,11 +3643,12 @@ class MovieStim(_BaseVisualStim):
         while self._player.source!=self._movie:
             self._player.next()
         self.playing=NOT_STARTED
+        self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
 
     def pause(self):
         """Pause the current point in the movie (sound will stop, current frame
-        will not advance
+        will not advance)
         """
         self._player.pause()
         self.playing=PAUSED
@@ -3706,7 +3707,7 @@ class MovieStim(_BaseVisualStim):
                 z=thisDepth)        
         GL.glPopMatrix()
     
-    def _onEos(self):        
+    def _onEos(self):
         self.playing=FINISHED
         
 class TextStim(_BaseVisualStim):

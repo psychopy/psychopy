@@ -28,6 +28,7 @@ PsychoPy 1.65.00
 * FIXED bug in ElementArrayStim depth
 * FIXED bug in misc.maskMatrix. Was not using correct scale (0:1) for the mask stage
 * FIXED buglet in StairHandler, which was only terminating during a reversal
+* FIXED bug when loading movies - they should implicitly pause until first draw() (thanks Giovanni Ottoboni)
 
 PsychoPy 1.64
 ------------------------------
