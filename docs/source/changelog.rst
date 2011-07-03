@@ -14,6 +14,8 @@ PsychoPy 1.65
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(Released July 2011)
+
 * ADDED improved gamma correction using L=a+(b+kI)**G formula (in addition to industry-standard form). Existing gamma calibrations will continue to use old equation but new calibrations will take the new extended formula by default.
 * ADDED MultiStairHandler to run multiple interleaved staircases (also from the Builder)
 * ADDED createFactorialTrialList, a convenience function for full factorial conditions (thanks Marco Bertamini)
