@@ -256,6 +256,8 @@ class TrialHandler:
                 dataOutNew.append(thisDataOut)
         dataOut=dataOutNew        
         dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        
+        #do the various analyses, keeping track of fails (e.g. mean of a string)
         dataOutInvalid=[]
         if 'ran_sum' in dataOut:#move n to the first column
             dataOut.remove('ran_sum')
@@ -551,20 +553,28 @@ class TrialHandler:
                 if tmpData is None:#just go to next column
                     colN+=1
                     continue
+                #handle single data values
                 elif not hasattr(tmpData,'__iter__') or \
                     (hasattr(tmpData,'shape') and tmpData.shape==()):
-                    try: 
-                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
-                    except:#some thi
-                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
-                    colN+=1                    
+                    if hasattr(tmpData,'mask') and tmpData.mask: 
+                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
+                    else:
+                        try: 
+                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
+                        except:#some thi
+                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
+                    colN+=1
+                #handle arrays of data (e.g. multiple trials per condition)
                 else:
                     for entry in tmpData:
-                        try: 
-                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
-                        except:#some thi
-                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
-                        colN+=1
+                        if hasattr(entry,'mask') and entry.mask: 
+                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
+                        else:
+                            try: 
+                                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
+                            except:#some thi
+                                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
+                            colN+=1
         
         #add self.extraInfo
         rowN = len(self.trialList)+2
