@@ -1,3 +1,10 @@
+psychopy (1.65.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Upgraded policy to 3.9.2 -- no changes
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 03 Jul 2011 20:58:55 -0400
+
 psychopy (1.65.00~pre1.dfsg-1) unstable; urgency=low
 
   * Getting ready for the upstream release
