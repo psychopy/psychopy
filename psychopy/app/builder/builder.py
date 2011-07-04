@@ -225,10 +225,12 @@ class FlowPanel(wx.ScrolledWindow):
         if loopDlg.OK:
             if loopDlg.params['loopType'].val=='staircase': #['random','sequential','staircase']
                 loop= loopDlg.stairHandler
+            if loopDlg.params['loopType'].val=='interleaved stairs':
+                loop= loopDlg.multiStairHandler
             else:
                 loop=loopDlg.trialHandler
             loop.params=loop.params
-            self.frame.addToUndoStack("EditLoop")
+            self.frame.addToUndoStack("Edit Loop")
         #remove the points from the timeline
         self.setDrawPoints(None)
         self.draw()
@@ -1442,6 +1444,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.globalCtrls={}
         self.constantsCtrls={}
         self.staircaseCtrls={}
+        self.multiStairCtrls={}
+        self.currentCtrls={}
         self.data = []
         self.ctrlSizer= wx.BoxSizer(wx.VERTICAL)
         self.trialList=None
@@ -1454,11 +1458,17 @@ class DlgLoopProperties(_BaseParamsDlg):
             old_name = loop.params['name'].val
         namespace = frame.exp.namespace
         new_name = namespace.make_valid(old_name)
-        #create instances of the two loop types
+        #create default instances of the diff loop types
+        self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
+            loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+        self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, 
+            nReps=50, nReversals='',
+            stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases            
+        self.multiStairHandler=experiment.MultiStairHandler(exp=self.exp, name=new_name,
+            nReps=50, stairType='simple', switchStairs='random', 
+            conditions=[], conditionsFile='')
+        #replace defaults with the loop we were given
         if loop==None:
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals='',
-                stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
             self.currentType='random'
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
@@ -1466,20 +1476,20 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialListFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
-            self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, nReps=50, nReversals=None,
-                stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
-            self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name, #name=loop.params['name'],
-                                    loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+        elif loop.type=='MultiStairHandler':
+            self.multiStairHandler = self.currentHandler = loop
+            self.currentType='interleaved staircase'
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
-            
+        
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
         self.makeConstantsCtrls()#the controls for Method of Constants
+        self.makeMultiStairCtrls()
         self.setCtrls(self.currentType)
 
         #show dialog and get most of the data
@@ -1504,7 +1514,8 @@ class DlgLoopProperties(_BaseParamsDlg):
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
-            self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName, self.currentHandler.params[fieldName])
+            self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName, 
+                self.currentHandler.params[fieldName])
             container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
             self.ctrlSizer.Add(container)
 
@@ -1540,7 +1551,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if handler.params.has_key('trialList'):
                     text=self.getTrialsSummary(handler.params['trialList'].val)
                 else:
-                    text = """No parameters set (select a .csv file above)"""
+                    text = """No parameters set (select a file above)"""
                 ctrls = ParamCtrls(self, 'trialList',text,noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
@@ -1552,6 +1563,48 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.constantsCtrls[fieldName] = ctrls
+            
+    def makeMultiStairCtrls(self):
+        #a list of controls for the random/sequential versions
+        #that can be hidden or shown
+        handler=self.multiStairHandler
+        #loop through the params
+        keys = handler.params.keys()
+        #add trialList stuff to the *end*
+        if 'conditions' in keys:
+            keys.remove('conditions')
+            keys.insert(-1,'conditions')
+        if 'conditionsFile' in keys:
+            keys.remove('conditionsFile')
+            keys.insert(-1,'conditionsFile')
+        #then step through them
+        for fieldName in keys:
+            if fieldName=='endPoints':continue#this was deprecated in v1.62.00
+            if fieldName in self.globalCtrls.keys():
+                #these have already been made and inserted into sizer
+                ctrls=self.globalCtrls[fieldName]
+            elif fieldName=='conditionsFile':
+                container=wx.BoxSizer(wx.HORIZONTAL)
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
+                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
+                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
+                self.ctrlSizer.Add(container)
+            elif fieldName=='conditions':
+                if handler.params.has_key('conditions'):
+                    text=self.getTrialsSummary(handler.params['conditions'].val)
+                else:
+                    text = """No parameters set (select a file above)"""
+                ctrls = ParamCtrls(self, 'conditions',text,noCtrls=True)#we'll create our own widgets
+                size = wx.Size(350, 50)
+                ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
+                #self.ctrlSizer.Add(ctrls.valueCtrl)
+            else: #normal text entry field
+                container=wx.BoxSizer(wx.HORIZONTAL)
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName])
+                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
+                self.ctrlSizer.Add(container)
+            #store info about the field
+            self.multiStairCtrls[fieldName] = ctrls
     def makeStaircaseCtrls(self):
         """Setup the controls for a StairHandler"""
         handler=self.stairHandler
@@ -1568,7 +1621,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.staircaseCtrls[fieldName] = ctrls
-
     def getAbbriev(self, longStr, n=30):
         """for a filename (or any string actually), give the first
         5 characters, an ellipsis and then n of the final characters"""
@@ -1588,27 +1640,34 @@ class DlgLoopProperties(_BaseParamsDlg):
         else:
             return "No parameters set"
     def setCtrls(self, ctrlType):
+        #create a list of ctrls to hide
+        toHide = self.currentCtrls.values()
+        if len(toHide)==0:
+            toHide.extend(self.staircaseCtrls.values())
+            toHide.extend(self.multiStairCtrls.values())
+            toHide.extend(self.constantsCtrls.values())
         #choose the ctrls to show/hide
         if ctrlType=='staircase':
             self.currentHandler = self.stairHandler
-            self.currentCtrls = self.staircaseCtrls
-            toHideCtrls = self.constantsCtrls
+            toShow = self.staircaseCtrls
+        elif ctrlType=='interleaved staircase':
+            self.currentHandler = self.multiStairHandler
+            toShow = self.multiStairCtrls
         else:
             self.currentHandler = self.trialHandler
-            self.currentCtrls = self.constantsCtrls
-            toHideCtrls = self.staircaseCtrls
+            toShow = self.constantsCtrls
         #hide them
-        for paramName in toHideCtrls.keys():
-            ctrls = toHideCtrls[paramName]
+        for ctrls in toHide:
             if ctrls.nameCtrl: ctrls.nameCtrl.Hide()
             if ctrls.valueCtrl: ctrls.valueCtrl.Hide()
             if ctrls.browseCtrl: ctrls.browseCtrl.Hide()
         #show them
-        for paramName in self.currentCtrls.keys():
-            ctrls = self.currentCtrls[paramName]
+        for paramName in toShow.keys():
+            ctrls=toShow[paramName]
             if ctrls.nameCtrl: ctrls.nameCtrl.Show()
             if ctrls.valueCtrl: ctrls.valueCtrl.Show()
             if ctrls.browseCtrl: ctrls.browseCtrl.Show()
+        self.currentCtrls=toShow
         self.ctrlSizer.Layout()
         self.Fit()
         self.Refresh()
@@ -1626,8 +1685,12 @@ class DlgLoopProperties(_BaseParamsDlg):
             newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
             self.trialList=data.importTrialList(dlg.GetPath())
-            self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
-            self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
+            if 'conditionsFile' in self.currentCtrls.keys():                
+                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
+                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
+            else:
+                self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
+                self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -1635,7 +1698,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in self.currentHandler.params.keys():
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
-            if fieldName=='trialListFile':
+            if fieldName in ['trialListFile', 'conditionsFile']:
                 param.val=self.trialListFile#not the value from ctrl - that was abbrieviated
             else:#most other fields
                 ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param

@@ -12,7 +12,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
             forceEndTrial=True,storeCorrect=False,correctAns="",storeResponseTime=True,
-            startTime=0.0, duration=''):
+            startTime=0.0, duration='', discardPrev=True):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
@@ -20,9 +20,9 @@ class KeyboardComponent(BaseComponent):
         self.parentName=parentName
         #params
         self.params={}
-        self.order=['name','allowedKeys',
-            'store','storeCorrect','correctAns',
-            'forceEndTrial','startTime']
+        self.order=['name','startTime','duration','forceEndTrial','allowedKeys',
+            'store','storeResponseTime','storeCorrect','correctAns',
+            ]
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")  
         self.params['allowedKeys']=Param(allowedKeys, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
@@ -33,6 +33,9 @@ class KeyboardComponent(BaseComponent):
         self.params['duration']=Param(duration, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The length of time that the keyboard should be checked")
+        self.params['discard previous']=Param(discardPrev, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Do you want to discard any keypresses occuring before the onset of this component?") 
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")  
@@ -50,6 +53,7 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="Response time (saved as 'rt') is based from start of keyboard available period")
     def writeRoutineStartCode(self,buff):
+        buff.writeIndented("%(name)sStatus=NOT_STARTED\n" %self.params)
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False \
             and self.params['storeResponseTime'].val==False:
@@ -70,6 +74,16 @@ class KeyboardComponent(BaseComponent):
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         dedentAtEnd=1
+        
+        #if we've only just started then do a clearEvents()
+        buff.writeIndented("if %(name)sStatus==NOT_STARTED:\n" %self.params)
+        buff.setIndentLevel(1, relative=True)#indent
+        buff.writeIndented("#keyboard checking is just starting\n")
+        if self.params['discard previous'].val:
+            buff.writeIndented("event.clearEvents()\n")
+        buff.writeIndented("%(name)sStatus=STARTED\n" %self.params)
+        buff.setIndentLevel(-1, relative=True)#dedent
+        
         #init the key-rt clock
         if self.params['storeResponseTime'].val:
             buff.writeIndented("if %(name)s.clockNeedsReset:\n" % self.params)
@@ -95,7 +109,7 @@ class KeyboardComponent(BaseComponent):
         elif store=='last key':
             buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
         elif store=='all keys':
-            buff.writeIndented("%(name)s.keys.extend(theseKeys)#just the last key pressed\n" %(self.params))
+            buff.writeIndented("%(name)s.keys.extend(theseKeys)#storing all keys\n" %(self.params))
         
         if storeRT:
             buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
@@ -117,23 +131,31 @@ class KeyboardComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
         else: currLoop=None
-                
+        
         #write the actual code
-        if store!='nothing' and currLoop and currLoop.type=='StairHandler':
-            #data belongs to a StairHandler
-            buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            if self.params['storeCorrect'].val==True:
-                buff.writeIndented("    %s.addData(%s.corr)\n" \
-                                   %(currLoop.params['name'], name))
-        elif store!='nothing' and currLoop:
-            #data belongs to a TrialHandler
-            buff.writeIndented("if len(%s.keys)>0:#we had a response\n" %name)
-            buff.writeIndented("    %s.addData('%s.keys',%s.keys)\n" \
-                               %(currLoop.params['name'],name,name))
-            if self.params['storeCorrect'].val==True:
-                buff.writeIndented("    %s.addData('%s.corr',%s.corr)\n" \
-                                   %(currLoop.params['name'], name, name))
-            if self.params['storeResponseTime'].val==True:
-                buff.writeIndented("    %s.addData('%s.rt',%s.rt)\n" \
-                                   %(currLoop.params['name'], name, name))
+        if (store!='nothing') and currLoop:#need a loop to do the storing of data!
+            buff.writeIndented("#check responses\n" %self.params)
+            buff.writeIndented("if len(%(name)s.keys)==0: #No response was made\n"%self.params)
+            buff.writeIndented("   %(name)s.keys=None\n" %(self.params))
+            if self.params['storeCorrect'].val:#check for correct NON-repsonse
+                buff.writeIndented("   #was no response the correct answer?!\n" %(self.params))
+                buff.writeIndented("   if str(%(correctAns)s).lower()=='none':%(name)s.corr=1 #correct non-response\n" %(self.params))
+                buff.writeIndented("   else: %(name)s.corr=0 #failed to respond (incorrectly)\n" %(self.params))
+            buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+            if currLoop.type=='StairHandler':
+                #data belongs to a StairHandler
+                if self.params['storeCorrect'].val==True:
+                    buff.writeIndented("%s.addData(%s.corr)\n" %(currLoop.params['name'], name))
+            else:
+                #always add keys
+                buff.writeIndented("%s.addData('%s.keys',%s.keys)\n" \
+                   %(currLoop.params['name'],name,name))
+                if self.params['storeCorrect'].val==True:
+                    buff.writeIndented("%s.addData('%s.corr',%s.corr)\n" \
+                                       %(currLoop.params['name'], name, name))
+                #only add an RT if we had a response
+                if self.params['storeResponseTime'].val==True:
+                    buff.writeIndented("if %(name)s.keys != None:#we had a response\n" %(self.params))
+                    buff.writeIndented("    %s.addData('%s.rt',%s.rt)\n" \
+                                       %(currLoop.params['name'], name, name))
             

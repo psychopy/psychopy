@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import nose, sys, os, copy
-from psychopy import visual, misc, core, monitors
+from psychopy import visual, misc, core, monitors, filters
 from psychopy.tests import utils
 import numpy
 
@@ -29,9 +29,10 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #using init
-        gabor = visual.PatchStim(win, mask='gauss', 
+        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
             pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
-            sf=2.0/self.scaleFactor, size=2*self.scaleFactor)
+            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
+            interpolate=True)
         gabor.draw()
         utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
@@ -43,6 +44,25 @@ class _baseVisualTest:
         gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
         gabor.draw()
         utils.compareScreenshot('data/gabor2_%s.png' %(contextName), win)
+    #def testMaskMatrix(self):
+    #    #aims to draw the exact same stimulus as in testGabor, but using filters
+    #    win=self.win
+    #    contextName=self.contextName
+    #    #create gabor using filters
+    #    size=2*self.scaleFactor#to match Gabor1 above
+    #    if win.units in ['norm','height']:
+    #        sf=1.0/size
+    #    else:
+    #        sf=2.0/self.scaleFactor#to match Gabor1 above
+    #    cycles=size*sf
+    #    grating = filters.makeGrating(256, ori=135, cycles=cycles)
+    #    gabor = filters.maskMatrix(grating, shape='gauss')
+    #    stim = visual.PatchStim(win, tex=gabor,
+    #        pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+    #        sf=1.0/size, size=size,
+    #        interpolate=True)
+    #    stim.draw()
+    #    utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
     def testText(self):
         win = self.win
         contextName=self.contextName

@@ -112,7 +112,8 @@ class Experiment:
                     "from numpy.random import * #maths randomisation functions\n" +
                     "import os #handy system and path functions\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
-                    "import psychopy.log #import like this so it doesn't interfere with numpy.log\n\n")
+                    "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
+                    "from psychopy.constants import *\n\n")
         self.namespace.user.sort()
         script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
                     "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
@@ -395,7 +396,8 @@ class TrialHandler:
             hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
-        self.params['loopType']=Param(loopType, valType='str', allowedVals=['random','sequential','staircase'],
+        self.params['loopType']=Param(loopType, valType='str', 
+            allowedVals=['random','sequential','staircase','interleaved staircases'],
             hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
@@ -496,7 +498,8 @@ class StairHandler:
         self.params['N reversals']=Param(nReversals, valType='code',
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['loopType']=Param('staircase', valType='str', allowedVals=['random','sequential','staircase'],
+        self.params['loopType']=Param('staircase', valType='str', 
+            allowedVals=['random','sequential','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
@@ -533,7 +536,75 @@ class StairHandler:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'StairHandler'
-
+    
+class MultiStairHandler:
+    """To handle multiple interleaved staircases
+    """
+    def __init__(self, exp, name, nReps='50', stairType='simple', 
+        switchStairs='random', 
+        conditions=[], conditionsFile='', endPoints=[0,1]):
+        """
+        @param name: name of the loop e.g. trials
+        @type name: string
+        @param nReps: number of reps (for all trial types)
+        @type nReps:int
+        """
+        self.type='MultiStairHandler'
+        self.exp=exp
+        self.order=['name']#make name come first
+        self.params={}
+        self.params['name']=Param(name, valType='code', hint="Name of this loop")
+        self.params['nReps']=Param(nReps, valType='code',
+            hint="(Minimum) number of trials in *each* staircase")
+        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST'],
+            hint="How to select the next staircase to run")
+        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential'],
+            hint="How to select the next staircase to run")
+        #these two are really just for making the dialog easier (they won't be used to generate code)
+        self.params['loopType']=Param('staircase', valType='str', 
+        allowedVals=['random','sequential','staircase','interleaved stairs'],
+            hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
+        self.params['endPoints']=Param(endPoints,valType='num',
+            hint='Where to loop from and to (see values currently shown in the flow view)')
+        self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
+            hint="A list of dictionaries describing the differences between each condition")
+        self.params['trialListFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            hint="An xlsx or csv file specifying the parameters for each condition")
+    def writeInitCode(self,buff):
+        #also a 'thisName' for use in "for thisTrial in trials:"
+        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        if self.params['N reversals'].val in ["", None, 'None']:
+            self.params['N reversals'].val='0'
+        #write the code
+        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("conditions=data.importTrialList(%s)" %self.params['conditionsFile'])
+        buff.writeIndented("%(name)s=data.MultiStairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
+        buff.writeIndented("    nTrials=%(nReps)s,\n" %self.params)
+        buff.writeIndented("    conditions=conditions,\n")
+        buff.writeIndented("    originPath=%s)\n" %repr(self.exp.expPath))
+        buff.writeIndented("#initialise values for first condition\n" %repr(self.exp.expPath))
+        buff.writeIndented("level=%s._nextIntensity#initialise some vals\n" %(self.thisName))
+        buff.writeIndented("condition=%s.currentStaircase.condition\n" %(self.thisName))
+    def writeLoopStartCode(self,buff):
+        #work out a name for e.g. thisTrial in trials:
+        buff.writeIndented("\n")
+        buff.writeIndented("for level, condition in %s:\n" %(self.thisName, self.params['name']))
+        buff.setIndentLevel(1, relative=True)
+    def writeLoopEndCode(self,buff):
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("\n")
+        buff.writeIndented("#all staircases completed\n")
+        buff.writeIndented("\n")
+        #save data
+        if self.exp.settings.params['Save psydat file'].val:
+            buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
+        if self.exp.settings.params['Save excel file'].val:
+            buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s')\n" %self.params)
+        if self.exp.settings.params['Save csv file'].val:
+            buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
+    def getType(self):
+        return 'MultiStairHandler'
+    
 class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""

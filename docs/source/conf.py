@@ -22,7 +22,8 @@ import sys, os, psychopy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage',
+    'sphinx.ext.pngmath']
 autoclass_content='both'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -148,7 +149,7 @@ html_sidebars = {}
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-html_show_sourcelink = False
+html_show_sourcelink = True
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
@@ -193,3 +194,6 @@ latex_use_parts = False
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+# path to mathjax on a public server (or could put on our own in static path?)
+mathjax_path = 'http://mathjax.connectmv.com/MathJax.js'
