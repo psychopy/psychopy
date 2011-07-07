@@ -11,6 +11,12 @@ Changelog
 PsychoPy 1.65
 ------------------------------
 
+PsychoPy 1.65.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED buglets in QUEST handler (thanks Gerrit Maus)
+
+
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
