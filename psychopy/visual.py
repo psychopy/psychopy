@@ -2201,8 +2201,9 @@ class PatchStim(_BaseVisualStim):
         
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]   
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
@@ -2597,8 +2598,10 @@ class RadialStim(PatchStim):
         if self._useShaders:
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]               
+
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
             
             #assign vertex array
@@ -4105,8 +4108,9 @@ class TextStim(_BaseVisualStim):
         
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]                     
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
         
@@ -4226,8 +4230,9 @@ class TextStim(_BaseVisualStim):
             #setup color
             if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
                 desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-                if numpy.any(desiredRGB**2.0>1.0):
-                    desiredRGB=[0.6,0.6,0.4]
+                if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                    log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                    desiredRGB=[0.0,0.0,1.0]                
                 GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
             else:
                 desiredRGB = (self.rgb*self.contrast)/255.0
@@ -4633,8 +4638,9 @@ class BufferImageStim(PatchStim):
         # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
-            if numpy.any(self.desiredRGB**2.0 > 1.0):
-                self.desiredRGB=[0.6, 0.6, 0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]  
         else:
             self.desiredRGB = (self.rgb * self.contrast)/255.0
         
