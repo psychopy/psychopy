@@ -5,7 +5,9 @@
 from _visual import * # to get the template visual component
 from os import path
 
-__author__ = 'Jeremy Gray' # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
+__author__ = 'Jeremy Gray, Jon Peirce' 
+# March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
+# July 2011: jwp added the code for it to be enabled only when needed
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'aperture.png')
@@ -30,24 +32,29 @@ class ApertureComponent(VisualComponent):
         self.params['pos'] = Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="position on the screen")
-        self.params['duration'] = Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="An aperture is on for the entire duration of the routine, start to finish. aperture.disable() in a code component could be used to turn it on or off.")
+        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The time that the aperture starts to be used for drawing")
+        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="The duration for which the aperture is used for drawing")
+        self.order=['name','startTime','duration']#make name come first (others don't matter)
         del self.params['ori']
-        del self.params['startTime']
         del self.params['color']
         del self.params['colorSpace']
         
     def writeInitCode(self, buff):
         #do writing of init
         buff.writeIndented("%(name)s=visual.Aperture(win=win, size=%(size)s, pos=%(pos)s, units='pix') # enabled by default\n" % (self.params))  
-    
+        buff.writeIndented("%(name)s.disable()\n" %(self.params))
     def writeFrameCode(self, buff):
-       """No code that will be called every frame for an aperture
-       """
-       # an aperture is imposed on the whole window, persistently, via enable() or disable()
-       # there's nothing to draw or do each frame, so we need to override the default for VisualComponent:
-       pass
+        """Only activate the aperture for the required frames
+        """
+        buff.writeIndented("if %(startTime)s <= t < (%(startTime)s+%(duration)s) and not %(name)s.enabled:\n" %(self.params))
+        buff.writeIndented("    %(name)s.enable()#needs to start\n" %(self.params))
+        buff.writeIndented("elif t>=(%(startTime)s+%(duration)s) and %(name)s.enabled:\n" %(self.params))
+        buff.writeIndented("    %(name)s.disable()#needs to finish\n" %(self.params))
         
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented("%(name)s.disable()\n" % (self.params))
+        buff.writeIndented("%(name)s.disable() #this was probably done anyway\n" % (self.params))
     

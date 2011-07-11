@@ -2127,7 +2127,7 @@ class PatchStim(_BaseVisualStim):
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
 
         #sf
-        if sf is None:
+        if sf==None:
             if units=='norm':
                 self.sf=numpy.array([1.0,1.0])
             elif units=='height':
@@ -2139,6 +2139,7 @@ class PatchStim(_BaseVisualStim):
             self.sf = numpy.array((sf,sf),float)
         else:
             self.sf = numpy.array(sf,float)
+        print self.units, self.sf
         
         self.pos = numpy.array(pos,float)
 
@@ -5661,7 +5662,8 @@ class Aperture:
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
         self._reset()
-
+        self.enabled=True#by default
+        
     def _reset(self):
         self.enable()
         GL.glClearStencil(0)
@@ -5716,12 +5718,14 @@ class Aperture:
         
         """
         GL.glEnable(GL.GL_STENCIL_TEST)
+        self.enabled=True
 
     def disable(self):
         """Disable the Aperture. Any subsequent drawing operations will not be
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
+        self.enabled=False
     def __del__(self):
         self.disable()
         
