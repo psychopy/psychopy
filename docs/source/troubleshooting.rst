@@ -85,4 +85,4 @@ On windows they are::
 
 The files are simple text, which you should be able to edit in any text editor. Particular changes that you might need to make:
 
-If the problem is that you have a corrupt experiment file or script that is trying and failing to load on startup, you could simply delete the `appData.cfg` file. Please *also* :ref:`_contribForum` a copy of the file that isn't working so that the underlying cause of the problem can be investigated (google first to see if it's a known issue).
+If the problem is that you have a corrupt experiment file or script that is trying and failing to load on startup, you could simply delete the `appData.cfg` file. Please *also* :ref:`contribForum` a copy of the file that isn't working so that the underlying cause of the problem can be investigated (google first to see if it's a known issue).

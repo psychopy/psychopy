@@ -1,4 +1,4 @@
-.._movie:
+.. _movie:
 
 Movie Component
 -------------------------------

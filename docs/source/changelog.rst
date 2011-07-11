@@ -11,6 +11,14 @@ Changelog
 PsychoPy 1.65
 ------------------------------
 
+PsychoPy 1.65.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED buglets in QUEST handler (thanks Gerrit Maus)
+* FIXED absence of pygame in 1.65.00 Standalone release
+* ADDED shelve module to Standalone (needed by scipy.io)
+* ADDED warnings about going outside the monitor gamut for certain colors (thanks Alex Holcombe) 
+
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

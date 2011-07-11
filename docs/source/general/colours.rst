@@ -57,6 +57,8 @@ In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Ma
 
 In PsychoPy these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
 
+Note that not all colours that can be specified in DKL colour space can be reproduced on a monitor. `Alex Holcombe <http://www.psych.usyd.edu.au/staff/alexh/>`_ has produced a movie showing `the gamut of producable DKL colors <http://www.youtube.com/watch?v=GwACmja-U-g>`_ on a typical (CRT) monitor.
+
 Examples:
 
     * [90,0,1] is white (maximum elevation aligns the color with the luminance axis)
