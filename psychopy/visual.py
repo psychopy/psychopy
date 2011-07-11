@@ -2128,18 +2128,17 @@ class PatchStim(_BaseVisualStim):
 
         #sf
         if sf==None:
-            if units=='norm':
+            if self.units in ['norm','height']:
                 self.sf=numpy.array([1.0,1.0])
-            elif units=='height':
-                self.sf=numpy.array([1.0,1.0])
-            elif self.origSize is not None or units in ['pix', 'pixels']:
+            elif self.units in ['pix', 'pixels'] \
+                or self.origSize is not None and self.units in ['deg','cm']:
                 self.sf=1.0/self.size#default to one cycle
-            else: self.sf=numpy.array([1.0,1.0])
+            else:
+                self.sf=numpy.array([1.0,1.0])
         elif type(sf) in [float, int] or len(sf)==1:
             self.sf = numpy.array((sf,sf),float)
         else:
             self.sf = numpy.array(sf,float)
-        print self.units, self.sf
         
         self.pos = numpy.array(pos,float)
 
