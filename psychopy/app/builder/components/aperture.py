@@ -50,11 +50,16 @@ class ApertureComponent(VisualComponent):
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
-        buff.writeIndented("if %(startTime)s <= t < (%(startTime)s+%(duration)s) and not %(name)s.enabled:\n" %(self.params))
+        #enable aperture
+        if self.params['duration'].val=='':#infinite duration
+            buff.writeIndented("if %(startTime)s <= t and not %(name)s.enabled:\n" %(self.params))
+        else: buff.writeIndented("if %(startTime)s <= t < (%(startTime)s+%(duration)s) and not %(name)s.enabled:\n" %(self.params))
         buff.writeIndented("    %(name)s.enable()#needs to start\n" %(self.params))
-        buff.writeIndented("elif t>=(%(startTime)s+%(duration)s) and %(name)s.enabled:\n" %(self.params))
-        buff.writeIndented("    %(name)s.disable()#needs to finish\n" %(self.params))
+        #disable aperture
+        if self.params['duration'].val!='':#infinite duration
+            buff.writeIndented("elif t>=(%(startTime)s+%(duration)s) and %(name)s.enabled:\n" %(self.params))
+            buff.writeIndented("    %(name)s.disable()#needs to finish\n" %(self.params))
         
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented("%(name)s.disable() #this was probably done anyway\n" % (self.params))
+        buff.writeIndented("%(name)s.disable() #just in case it was left enabled\n" % (self.params))
     
