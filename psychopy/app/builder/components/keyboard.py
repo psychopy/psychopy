@@ -106,13 +106,13 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("if %(name)s.keys==[]:#then this was the first keypress\n" %(self.params))
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
             buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
+            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='last key':
             buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
+            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='all keys':
             buff.writeIndented("%(name)s.keys.extend(theseKeys)#storing all keys\n" %(self.params))
-        
-        if storeRT:
-            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+            buff.writeIndented("%(name)s.rt.append(%(name)s.clock.getTime())\n" %(self.params))
         
         if storeCorr:
             buff.writeIndented("#was this 'correct'?\n" %self.params)

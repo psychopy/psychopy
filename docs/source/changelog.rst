@@ -11,8 +11,18 @@ Changelog
 PsychoPy 1.65
 ------------------------------
 
+PsychoPy 1.65.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
+
+
 PsychoPy 1.65.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released July 2011)
 
 * FIXED buglets in QUEST handler (thanks Gerrit Maus)
 * FIXED absence of pygame in 1.65.00 Standalone release
