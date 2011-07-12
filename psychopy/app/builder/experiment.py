@@ -429,6 +429,7 @@ class TrialHandler:
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         #fetch parameter info from trialList        
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
@@ -521,6 +522,7 @@ class StairHandler:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         buff.writeIndented("level=%s\n" %(self.thisName))
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
@@ -590,6 +592,7 @@ class MultiStairHandler:
         buff.writeIndented("\n")
         buff.writeIndented("for level, condition in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
