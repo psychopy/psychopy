@@ -15,6 +15,8 @@ Don't *install* PsychoPy. Instead fetch a copy of the git repository and add thi
    
    repository
    *
+x    
+    - Modifying the html documentation (docs). Edit the .rst source files and then in the docs directory type "make html".
 
 Happy Coding Folks!!
 
