@@ -17,6 +17,7 @@ PsychoPy 1.65.02
 (https://github.com/psychopy/psychopy)
 
 * FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
+* FIXED Aperture Component in Builder was on for an entire Routine. Now supports start/stop times like other components
 
 
 PsychoPy 1.65.01

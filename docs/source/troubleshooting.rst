@@ -12,9 +12,11 @@ Below are some of the more common problems and their workarounds, as well as adv
 The application doesn't start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You may find that you try to launch the PsychoPy application, the splash screen appears and then goes away and nothing more happens. What this means is that an error has occured during startup itself. We need to get to an error message in order to work out why. The way to get that message depends on the platform (see below).
+You may find that you try to launch the PsychoPy application, the splash screen appears and then goes away and nothing more happens. What this means is that an error has occured during startup itself. 
 
-Often, the cause of these catastrophic and mysterious crashes is that the user preferences or appData files have been corrupted. See :ref:`cleanPrefs` to fix those problems.
+Commonly, the problem is that a preferences file is somehow corrupt. To fix that see :ref:`cleanPrefs`, below. 
+
+If resetting the preferences files doesn't help then we need to get to an error message in order to work out why the application isn't starting. The way to get that message depends on the platform (see below).
 
 *Windows users* (starting from the Command Prompt):    
     #. open a DOS Command Prompt (terminal): 
