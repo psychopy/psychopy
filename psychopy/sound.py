@@ -32,6 +32,7 @@ from os import path
 from string import capitalize
 from sys import platform, exit, stdout
 from psychopy import event, core, log
+from psychopy.constants import *
 
 if platform=='win32':
     mediaLocation="C:\\Windows\Media"
@@ -135,6 +136,7 @@ class _SoundBase:
             self._fromArray(value)
         if self._snd is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
+        self.status=NOT_STARTED
         
     def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
@@ -246,7 +248,7 @@ class SoundPygame(_SoundBase):
         #try to create sound
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
-
+        
     def play(self, fromStart=True):
         """Starts playing the sound on an available channel. 
         If no sound channels are available, it will not play and return None. 
@@ -258,18 +260,18 @@ class SoundPygame(_SoundBase):
         be played over each other.
         """
         self._snd.play()
-        
+        self.status=STARTED
     def stop(self):
         """Stops the sound immediately"""
         self._snd.stop()
-                    
+        self.status=STOPPED
     def fadeOut(self,mSecs):
         """fades out the sound (when playing) over mSecs.
         Don't know why you would do this in psychophysics but it's easy
         and fun to include as a possibility :)
         """
         self._snd.fadeout(mSecs)
-        
+        self.status=STOPPED
     def getDuration(self):
         """Get's the duration of the current sound in secs"""
         return self._snd.get_length()
@@ -384,6 +386,7 @@ class SoundPyglet(_SoundBase):
         """
         self._player.play()
         pyglet.media.dispatch_events()
+        self.status=STARTED
 
     def _onEOS(self):
         self._player._playing = False
@@ -392,11 +395,13 @@ class SoundPyglet(_SoundBase):
         self._player.queue(self._snd)
         self._player._fill_audio()
         self._player.dispatch_event('on_eos')
+        self.status=FINISHED
         return True
         
     def stop(self):
         """Stops the sound immediately"""
         self._snd._stop()
+        self.status=STOPPED
             
     def getDuration(self):
         s=self._snd      

@@ -16,6 +16,13 @@
     :members:
     :undoc-members:
     :inherited-members:
+    
+:class:`MultiStairHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.MultiStairHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
 
 :class:`QuestHandler`
 ---------------------------------------------------------------------------

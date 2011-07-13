@@ -53,9 +53,8 @@ class MovieComponent(VisualComponent):
         buff.writeIndented("%(name)s.draw()\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)
         #do force end of trial code
-        continueName = self.exp.flow._currentRoutine._continueName
         if self.params['forceEndTrial'].val==True:
-            buff.writeIndented("if %s.playing==visual.FINISHED: %s=False\n" %(self.params['name'], continueName))
+            buff.writeIndented("if %s.playing==visual.FINISHED: continueRoutine=False\n" %(self.params['name']))
             
     def writeTimeTestCode(self,buff):
         """Write the code for each frame that tests whether the component is being

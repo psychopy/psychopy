@@ -69,7 +69,6 @@ class KeyboardComponent(BaseComponent):
         storeCorr=self.params['storeCorrect'].val
         storeRT=self.params['storeResponseTime'].val
         forceEnd=self.params['forceEndTrial'].val
-        continueName = self.exp.flow._currentRoutine._continueName
         
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
@@ -106,13 +105,13 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("if %(name)s.keys==[]:#then this was the first keypress\n" %(self.params))
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
             buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
+            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='last key':
             buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
+            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='all keys':
             buff.writeIndented("%(name)s.keys.extend(theseKeys)#storing all keys\n" %(self.params))
-        
-        if storeRT:
-            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+            buff.writeIndented("%(name)s.rt.append(%(name)s.clock.getTime())\n" %(self.params))
         
         if storeCorr:
             buff.writeIndented("#was this 'correct'?\n" %self.params)
@@ -121,7 +120,7 @@ class KeyboardComponent(BaseComponent):
         
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)
-            buff.writeIndented("%s=False\n" %continueName)
+            buff.writeIndented("continueRoutine=False\n")
             
         buff.setIndentLevel(-(dedentAtEnd), relative=True)          
     def writeRoutineEndCode(self,buff):

@@ -57,7 +57,6 @@ class MouseComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         forceEnd = self.params['forceEndTrialOnPress'].val
-        continueName = self.exp.flow._currentRoutine._continueName
         routineClockName = self.exp.flow._currentRoutine._clockName
         
         #only write code for cases where we are storing data as we go (each frame or each click)
@@ -89,7 +88,7 @@ class MouseComponent(BaseComponent):
         #does the response end the trial?
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)
-            buff.writeIndented("%s=False\n" %continueName)
+            buff.writeIndented("continueRoutine=False\n")
             
         #dedent
         if self.params['saveMouseState'] == 'on click' or forceEnd:

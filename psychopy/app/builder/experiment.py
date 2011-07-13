@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences
+from psychopy import data, preferences, __version__
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -128,8 +128,9 @@ class Experiment:
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
-        self.xmlRoot.set('version', self.psychopyVersion)
+        self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
+        
         ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
@@ -429,6 +430,7 @@ class TrialHandler:
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         #fetch parameter info from trialList        
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
@@ -521,6 +523,7 @@ class StairHandler:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         buff.writeIndented("level=%s\n" %(self.thisName))
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
@@ -590,6 +593,7 @@ class MultiStairHandler:
         buff.writeIndented("\n")
         buff.writeIndented("for level, condition in %s:\n" %(self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
     def writeLoopEndCode(self,buff):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("\n")
@@ -705,7 +709,6 @@ class Routine(list):
         self.params={'name':name}
         self.name=name
         self.exp=exp
-        self._continueName=''#this is used for script-writing e.g. "while continueTrial:"
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
         list.__init__(self, components)
     def __repr__(self):
@@ -720,7 +723,6 @@ class Routine(list):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
         self._clockName = self.name+"Clock"
-        self._continueName = "continue%s" %self.name.capitalize()
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
         for thisEvt in self:
             thisEvt.writeInitCode(buff)
@@ -735,10 +737,10 @@ class Routine(list):
             event.writeRoutineStartCode(buff)
         
         #create the frame loop for this routine
-        buff.writeIndentedLines('\n#run the trial\n')
-        buff.writeIndented('%s=True\n' %self._continueName)
+        buff.writeIndentedLines('\n#run %s\n' %(self.name))
+        buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
-        buff.writeIndented('while %s and (t<%.4f):\n' %(self._continueName, self.getMaxTime()))
+        buff.writeIndented('while continueRoutine and (t<%.4f):\n' %(self.getMaxTime()))
         buff.setIndentLevel(1,True)
 
         #on each frame
@@ -810,8 +812,7 @@ class NameSpace():
     - routines: user-entered var name = routine['name'].val, plus sundry helper vars, like theseKeys
     - flow elements: user-entered = flowElement['name'].val
     - routine & flow from either GUI or .psyexp file
-    - each routine and flow element potentially has a ._continueName and a ._clockName,
-        which for "name" means "continueName" and "nameClock"
+    - each routine and flow element potentially has a ._clockName,
         loops have thisName, albeit thisNam (missing end character)
     - column headers in condition files
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)

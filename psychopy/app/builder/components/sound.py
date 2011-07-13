@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'sound.png')
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='sound', sound='A', 
-            size=1, ori=0, startTime=0.0, duration=''):
+            size=1, ori=0, startTime=0.0, duration='', volume=1):
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
         self.exp=exp#so we can access the experiment if necess
@@ -28,18 +28,27 @@ class SoundComponent(BaseComponent):
             hint="The time that the sound starts")
         self.params['duration']=Param(duration, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="The duration of the sound (ignored if sound is a file with fixed length)") 
+            hint="The maximum duration the sound should play") 
+        self.params['volume']=Param(volume, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
+            hint="The volume (in range 0 to 1)") 
 
     def writeInitCode(self,buff):
-        s = "%s=sound.Sound(%s, secs=%s)\n" %(self.params['name'], self.params['sound'], self.params['duration'])
-        buff.writeIndented(s)
+        buff.writeIndented("#initialise %(name)s\n" %(self.params))
+        if str(self.params['duration'])=='':
+            buff.writeIndented("%(name)s=sound.Sound(%(sound)s)\n" %(self.params))
+        else:
+            buff.writeIndented("%(name)s=sound.Sound(%(sound)s, secs=%(duration)s)\n" %(self.params))
+        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
-        self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the start/end time test
-        #set parameters that need updating every frame
-        self.writeParamUpdates(buff, 'frame')
-        buff.writeIndented("%s.play()#NB. this is safe when already playing\n" %(self.params['name'])) 
-        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the start/end time test
-        
+        #the sound object is unusual, because it is 
+        buff.writeIndented("#start/stop %(name)s\n" %(self.params))
+        self.writeParamUpdates(buff, 'frame')#do this EVERY frame, even before/after playing?
+        buff.writeIndented("if %(startTime)s <= t and %(name)s.status==sound.NOT_STARTED:\n" %(self.params))
+        buff.writeIndented("    %s.play()#start the sound (it finishes automatically)\n" %(self.params['name']))
+        if str(self.params['duration'])!='':
+            buff.writeIndented("if t > (%(startTime)s+%(duration)s) and %(name)s.status==sound.STARTED:\n" %(self.params))
+            buff.writeIndented("    %s.stop()#stop the sound (if longer than duration)\n" %(self.params['name']))
+            
