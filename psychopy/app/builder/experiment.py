@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences
+from psychopy import data, preferences, __version__
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -128,8 +128,9 @@ class Experiment:
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
-        self.xmlRoot.set('version', self.psychopyVersion)
+        self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
+        
         ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')

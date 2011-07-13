@@ -1,5 +1,7 @@
-<PsychoPy2experiment version="1.50.04" encoding="utf-8">
+<PsychoPy2experiment version="1.65.01" encoding="utf-8">
   <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="color" val="black" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[2560, 1440]" valType="code" updates="None"/>
@@ -7,9 +9,12 @@
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant':'', 'session':'01'}" valType="code" updates="None"/>
-    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
     <Param name="Units" val="norm" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="" valType="code" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
@@ -32,10 +37,11 @@
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
         <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="[&quot;left&quot;,&quot;down&quot;,&quot;right&quot;]" valType="str" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -58,10 +64,38 @@
         <Param name="name" val="ready" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
         <Param name="correctAns" val="thisTrial.corrAns" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="" valType="str" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="store" val="nothing" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="instructPractice">
+      <TextComponent name="instr1">
+        <Param name="name" val="instr1" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="Please press;&#10;Left for red LETTERS&#10;Down for green LETTERS&#10;Right for blue LETTERS&#10;(Esc will quit)&#10;&#10;Let's start with a few practice trials&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="ready1">
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="ready1" valType="code" updates="None"/>
+        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="store" val="nothing" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -89,8 +123,8 @@
         <Param name="End Routine" val="" valType="code" updates="constant"/>
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
-      <TextComponent name="feedback">
-        <Param name="name" val="feedback" valType="code" updates="constant"/>
+      <TextComponent name="feedback_2">
+        <Param name="name" val="feedback_2" valType="code" updates="constant"/>
         <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
         <Param name="text" val="$msg" valType="str" updates="set every repeat"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
@@ -102,32 +136,6 @@
         <Param name="units" val="window units" valType="str" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
       </TextComponent>
-    </Routine>
-    <Routine name="instructPractice">
-      <TextComponent name="instr1">
-        <Param name="name" val="instr1" valType="code" updates="constant"/>
-        <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="Please press;&#10;Left for red LETTERS&#10;Down for green LETTERS&#10;Right for blue LETTERS&#10;(Esc will quit)&#10;&#10;Let's start with a few practice trials&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
-        <Param name="font" val="Arial" valType="str" updates="constant"/>
-      </TextComponent>
-      <KeyboardComponent name="ready1">
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="ready1" valType="code" updates="None"/>
-        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="store" val="nothing" valType="str" updates="constant"/>
-      </KeyboardComponent>
     </Routine>
   </Routines>
   <Flow>
