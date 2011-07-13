@@ -11,8 +11,20 @@ Changelog
 PsychoPy 1.65
 ------------------------------
 
+PsychoPy 1.65.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
+* FIXED Aperture Component in Builder, which was on for an entire Routine. Now supports start/stop times like other components
+* FIXED problem with sound stimuli in Builder trying to 'play' multiple times (was causing distorted sounds and not allowing multiple sounds to play at once)
+* ADDED volume parameter to sound stimuli
+
 PsychoPy 1.65.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released July 2011)
 
 * FIXED buglets in QUEST handler (thanks Gerrit Maus)
 * FIXED absence of pygame in 1.65.00 Standalone release
