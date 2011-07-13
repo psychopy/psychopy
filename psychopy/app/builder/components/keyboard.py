@@ -69,7 +69,6 @@ class KeyboardComponent(BaseComponent):
         storeCorr=self.params['storeCorrect'].val
         storeRT=self.params['storeResponseTime'].val
         forceEnd=self.params['forceEndTrial'].val
-        continueName = self.exp.flow._currentRoutine._continueName
         
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
@@ -121,7 +120,7 @@ class KeyboardComponent(BaseComponent):
         
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)
-            buff.writeIndented("%s=False\n" %continueName)
+            buff.writeIndented("continueRoutine=False\n")
             
         buff.setIndentLevel(-(dedentAtEnd), relative=True)          
     def writeRoutineEndCode(self,buff):
