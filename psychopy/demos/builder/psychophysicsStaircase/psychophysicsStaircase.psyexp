@@ -1,5 +1,7 @@
-<PsychoPy2experiment version="1.50.04" encoding="utf-8">
+<PsychoPy2experiment version="1.65.01" encoding="utf-8">
   <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[1024, 768]" valType="code" updates="None"/>
@@ -7,9 +9,12 @@
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant':'s_001', 'ori':10}" valType="code" updates="None"/>
-    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
     <Param name="Units" val="use prefs" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="" valType="code" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
@@ -55,10 +60,11 @@
         <Param name="name" val="resp" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
         <Param name="correctAns" val="up" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.5" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="$[&quot;up&quot;,&quot;down&quot;]" valType="str" updates="constant"/>
         <Param name="duration" val="2.0" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
@@ -81,10 +87,11 @@
         <Param name="name" val="ready" valType="code" updates="None"/>
         <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
         <Param name="correctAns" val="thisTrial.corrAns" valType="str" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="" valType="str" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
+        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>

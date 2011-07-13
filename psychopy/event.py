@@ -472,7 +472,7 @@ class _BuilderKeyResponse():
     def __init__(self):
         self.keys=[] #the key(s) pressed
         self.corr=0 #was the resp correct this trial? (0=no, 1=yes)
-        self.rt=None #response time
+        self.rt=[] #response time(s)
         self.clock=psychopy.core.Clock() #we'll use this to measure the rt
         self.clockNeedsReset = True
         

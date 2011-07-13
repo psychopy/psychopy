@@ -2127,14 +2127,14 @@ class PatchStim(_BaseVisualStim):
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
 
         #sf
-        if sf is None:
-            if units=='norm':
+        if sf==None:
+            if self.units in ['norm','height']:
                 self.sf=numpy.array([1.0,1.0])
-            elif units=='height':
-                self.sf=numpy.array([1.0,1.0])
-            elif self.origSize is not None or units in ['pix', 'pixels']:
+            elif self.units in ['pix', 'pixels'] \
+                or self.origSize is not None and self.units in ['deg','cm']:
                 self.sf=1.0/self.size#default to one cycle
-            else: self.sf=numpy.array([1.0,1.0])
+            else:
+                self.sf=numpy.array([1.0,1.0])
         elif type(sf) in [float, int] or len(sf)==1:
             self.sf = numpy.array((sf,sf),float)
         else:
@@ -2201,8 +2201,9 @@ class PatchStim(_BaseVisualStim):
         
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]   
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
@@ -2597,8 +2598,10 @@ class RadialStim(PatchStim):
         if self._useShaders:
             #setup color
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]               
+
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
             
             #assign vertex array
@@ -4105,8 +4108,9 @@ class TextStim(_BaseVisualStim):
         
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB**2.0>1.0):
-                desiredRGB=[0.6,0.6,0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]                     
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
         
@@ -4226,8 +4230,9 @@ class TextStim(_BaseVisualStim):
             #setup color
             if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
                 desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-                if numpy.any(desiredRGB**2.0>1.0):
-                    desiredRGB=[0.6,0.6,0.4]
+                if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                    log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                    desiredRGB=[0.0,0.0,1.0]                
                 GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
             else:
                 desiredRGB = (self.rgb*self.contrast)/255.0
@@ -4633,8 +4638,9 @@ class BufferImageStim(PatchStim):
         # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
-            if numpy.any(self.desiredRGB**2.0 > 1.0):
-                self.desiredRGB=[0.6, 0.6, 0.4]
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]  
         else:
             self.desiredRGB = (self.rgb * self.contrast)/255.0
         
@@ -5655,7 +5661,8 @@ class Aperture:
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
         self._reset()
-
+        self.enabled=True#by default
+        
     def _reset(self):
         self.enable()
         GL.glClearStencil(0)
@@ -5710,12 +5717,14 @@ class Aperture:
         
         """
         GL.glEnable(GL.GL_STENCIL_TEST)
+        self.enabled=True
 
     def disable(self):
         """Disable the Aperture. Any subsequent drawing operations will not be
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
+        self.enabled=False
     def __del__(self):
         self.disable()
         

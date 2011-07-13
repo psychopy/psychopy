@@ -1368,6 +1368,9 @@ class QuestHandler(StairHandler):
             intensity = self._questNextIntensity
         else:
             intensity = self._intensity2scale(intensity)
+        #update the intensity
+        self.intensities.pop()
+        self.intensities.append(intensity) 
         # Update quest
         self._quest.update(intensity, result)
         # Update other things
@@ -1413,6 +1416,8 @@ class QuestHandler(StairHandler):
             scaled_intensity = numpy.log10(intensity) * 20.0
         elif self.stepType=='log':
             scaled_intensity = numpy.log10(intensity)
+        else:
+            scaled_intensity = intensity 
         return scaled_intensity
     
     def _scale2intensity(self, scaled_intensity):
@@ -1421,6 +1426,8 @@ class QuestHandler(StairHandler):
             intensity = 10.0**(scaled_intensity/20.0)
         elif self.stepType=='log':
             intensity = 10.0**scaled_intensity
+        else:
+            intensity = scaled_intensity 
         return intensity
     
     def mean(self):
@@ -2040,8 +2047,8 @@ class _baseFunctionFit:
         
     def _doFit(self):
         #get some useful variables to help choose starting fit vals     
-#        self.params = optimize.fmin_powell(self._getErr, self.params, (self.xx,self.yy,self.sems),disp=self.display)
-        self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
+        self.params = optimize.fmin_powell(self._getErr, self.params, (self.xx,self.yy,self.sems),disp=self.display)
+#        self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
         self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
         self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
         self.rms = self.ssq/len(self.xx)

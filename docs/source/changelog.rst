@@ -7,12 +7,39 @@ Changelog
   In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-
 PsychoPy 1.65
 ------------------------------
 
+PsychoPy 1.65.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released July 2011
+
+* FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
+* FIXED Aperture Component in Builder, which was on for an entire Routine. Now supports start/stop times like other components
+* IMPROVED Sound stimuli in Builder:
+
+    * FIXED: sounds could be distorted and would repeat if duration was longer than file
+    * ADDED volume parameter to sound stimuli
+    * FIXED: duration parameter now stops a file half-way through if needed
+
+* FIXED buglet preventing some warning messages being printed to screen in Builder experiments
+* FIXED bug in the copying/pasting of Builder Routines, which was previously introducing errors of the script with invalid _continueName values
+
+PsychoPy 1.65.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released July 2011)
+
+* FIXED buglets in QUEST handler (thanks Gerrit Maus)
+* FIXED absence of pygame in 1.65.00 Standalone release
+* ADDED shelve module to Standalone (needed by scipy.io)
+* ADDED warnings about going outside the monitor gamut for certain colors (thanks Alex Holcombe) 
+
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released July 2011)
 
 * ADDED improved gamma correction using L=a+(b+kI)**G formula (in addition to industry-standard form). Existing gamma calibrations will continue to use old equation but new calibrations will take the new extended formula by default.
 * ADDED MultiStairHandler to run multiple interleaved staircases (also from the Builder)

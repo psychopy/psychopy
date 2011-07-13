@@ -58,6 +58,7 @@ if platform == 'win32':
 else:
     setup(app=['psychopy/app/psychopyApp.py'],
         options=dict(py2app=dict( includes=['Tkinter','FileDialog','tkFileDialog', 'imp', 'subprocess', 'shlex',
+                                      'shelve',#for scipy.io
                                       '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
                                       'ioLabs','hid','pypsignifit',
                                       'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
