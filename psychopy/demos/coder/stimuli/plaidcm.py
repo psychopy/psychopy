@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core, event
 
 #create a window to draw in
 myWin = visual.Window((600,600.0), allowGUI=False, 

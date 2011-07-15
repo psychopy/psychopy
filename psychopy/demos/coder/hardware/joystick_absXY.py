@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core, event
 import pygame.joystick
 #see http://www.pygame.org/docs/ref/joystick.html#pygame.joystick.Joystick
 

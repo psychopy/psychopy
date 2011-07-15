@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core, event
 import sys
 
 #create a window to draw in
