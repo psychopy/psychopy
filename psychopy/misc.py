@@ -356,6 +356,56 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     
     return numpy.transpose(rgb)#return in the shape we received it
     
+def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
+    """Like dkl2rgb2D except that it uses cartesian coords (LM,S,LUM) rather than
+    spherical coords for DKL (elev, azim, contr)
+    NB: Due to the matrix multiplication, this may return rgb values >1 or <-1
+    """
+    NxNx3=list(LUM.shape)
+    NxNx3.append(3)
+    dkl_cartesian = np.asarray([LUM.reshape([-1]), LM.reshape([-1]), S.reshape([-1])])
+
+    if conversionMatrix==None:
+        conversionMatrix = np.asarray([ \
+            #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)
+            [1.0000, 1.0000, -0.1462],#R
+            [1.0000, -0.3900, 0.2094],#G
+            [1.0000, 0.0180, -1.0000]])#B
+    rgb = np.dot(conversionMatrix, dkl_cartesian)
+    return np.reshape(np.transpose(rgb), NxNx3)
+    
+def rgb2dklCart(picture, conversionMatrix=None):
+    """convert an RGB image into Cartesian DKL space"""
+    #Turn the picture into an array so we can do maths
+    picture=scipy.array(picture)
+    #Find the original dimensions of the picture
+    origShape = picture.shape
+
+    #this is the inversion of the dkl2rgb conversion matrix
+    if conversionMatrix==None:
+        conversionMatrix = np.asarray([\
+            #LUMIN->%L-M->L+M-S
+            [ 0.25145542,  0.64933633,  0.09920825],
+            [ 0.78737943, -0.55586618, -0.23151325],
+            [ 0.26562825,  0.63933074, -0.90495899]])
+        log.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
+    else:
+        conversionMatrix = np.linalg.inv(conversionMatrix)
+
+    #Reshape the picture so that it can multiplied by the conversion matrix
+    red = picture[:,:,0]
+    green = picture[:,:,1]
+    blue = picture[:,:,2]
+
+    dkl = np.asarray([red.reshape([-1]), green.reshape([-1]), blue.reshape([-1])])
+    
+    #Multiply the picture by the conversion matrix
+    dkl=np.dot(conversionMatrix, dkl)
+
+    #Reshape the picture so that it's back to it's original shape
+    dklPicture = np.reshape(np.transpose(dkl), origShape)
+    return dklPicture
+
 def lms2rgb(lms_Nx3, conversionMatrix=None):
     #Convert from cone space (Long, Medium, Short) to RGB. 
     
