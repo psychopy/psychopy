@@ -777,7 +777,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/10.0#gives roughly 1/10 the width, but in rounded to base 10 of 0.1,1,10...
         if tMax/unitSize<3: unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/50.0#gives units of 2 (0.2,2,20)
         elif tMax/unitSize<6: unitSize = 10**numpy.ceil(numpy.log10(tMax*0.8))/20.0#gives units of 5 (0.5,5,50)
-        for lineN in range(int(numpy.ceil(tMax/unitSize))):
+        for lineN in range(int(numpy.floor(tMax/unitSize))):
             dc.DrawLine(xSt+lineN*unitSize/xScale, yPosTop-4,#vertical line
                     xSt+lineN*unitSize/xScale, yPosBottom+4)
             dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosTop-20)#label above
