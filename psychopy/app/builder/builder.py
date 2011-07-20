@@ -1504,7 +1504,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 namespace.remove(old_name)
             namespace.add(self.params['name'].val)
         else:
-            loop.params['name'].val = old_name
+            if loop!=None:#if we had a loop during init then revert to its old name
+                loop.params['name'].val = old_name
             
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
