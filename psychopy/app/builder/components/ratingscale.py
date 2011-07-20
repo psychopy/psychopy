@@ -96,7 +96,7 @@ class RatingScaleComponent(BaseComponent):
         
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
-        init_str = "%(name)s=visual.RatingScale(win=win" % (self.params)
+        init_str = "%(name)s=visual.RatingScale(win=win, name='%(name)s'," % (self.params)
         if self.params['customize_everything'].val.strip() != '':
             # clean it up a little, remove win=*, leading / trailing typos
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)

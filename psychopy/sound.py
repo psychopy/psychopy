@@ -72,7 +72,7 @@ except:
 class _SoundBase:
     """Create a sound object, from one of many ways.
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16, name='', autoLog=True):
         """
         
         :parameters:
@@ -97,6 +97,8 @@ class _SoundBase:
                 Only used for sounds using pyglet. Pygame uses the same
                 sample rate for all sounds (once initialised) 
         """
+        self.name=name#only needed for autoLogging
+        self.autoLog=autoLog
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
         
@@ -231,10 +233,11 @@ class SoundPygame(_SoundBase):
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised) 
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16, name='', autoLog=True):
         """
         """
-
+        self.name=name#only needed for autoLogging
+        self.autoLog=autoLog
         #check initialisation
         if not mixer.get_init():
             pygame.mixer.init(sampleRate, -16, 2, 3072)

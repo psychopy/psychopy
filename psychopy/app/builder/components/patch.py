@@ -46,7 +46,8 @@ class PatchComponent(VisualComponent):
             hint="How should the image be interpolated if/when rescaled")
             
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=visual.PatchStim(win=win, tex=%(image)s, mask=%(mask)s,\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%(name)s',\n" %(self.params))
+        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(self.params) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(self.params))# no newline - start optional parameters

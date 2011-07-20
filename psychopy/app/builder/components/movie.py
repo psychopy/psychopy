@@ -37,7 +37,7 @@ class MovieComponent(VisualComponent):
             updates='constant', allowedUpdates=[],
             hint="Should the end of the movie cause the end of the routine (e.g. trial)?")
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s,\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
         if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
         buff.writeIndented(")\n")

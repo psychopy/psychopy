@@ -48,6 +48,13 @@ class BaseComponent:
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
         """
+        #add this once all stimulus setXXX() methods have an autoLog argument
+#        if updateType=='frame': 
+#            logStr = ", autoLog=False"
+#            logComment="#updating too often to be worth logging"
+#        else:
+#            logStr = logComment=""
+        
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
             if thisParam.updates==updateType:

@@ -45,8 +45,9 @@ class ApertureComponent(VisualComponent):
         
     def writeInitCode(self, buff):
         #do writing of init
-        buff.writeIndented("%(name)s=visual.Aperture(win=win, size=%(size)s, pos=%(pos)s, units='pix') # enabled by default\n" % (self.params))  
-        buff.writeIndented("%(name)s.disable()\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s,\n" % (self.params))
+        buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (self.params))
+        buff.writeIndented("%(name)s.disable() # is enabled by default\n" %(self.params))
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """

@@ -5639,8 +5639,11 @@ class Aperture:
         2011, Yuri Spitsyn
         2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
     """
-    def __init__(self, win, size, pos=(0,0), ori=0, nVert=120, shape='circle', units=None):
+    def __init__(self, win, size, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
+            name='', autoLog=True):
         self.win=win
+        self.name = name
+        self.autoLog=autoLog
         
         #unit conversions
         if units!=None and len(units): self.units = units

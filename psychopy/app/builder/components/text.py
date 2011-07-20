@@ -43,7 +43,7 @@ class TextComponent(VisualComponent):
         else: units="units=%(units)s, " %self.params
         #do writing of init
         text = unicode(self.params['text'])
-        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s,\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(self.params))
         buff.writeIndented("    text=%s,\n" %text)
         buff.writeIndented("    font=%(font)s,\n" %(self.params))
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
