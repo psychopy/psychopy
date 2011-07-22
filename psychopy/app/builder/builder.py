@@ -1686,7 +1686,22 @@ class DlgLoopProperties(_BaseParamsDlg):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
-            self.trialList=data.importTrialList(dlg.GetPath())
+            self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+            
+            badNames = ''
+            if len(fieldNames):
+                for fname in fieldNames:
+                    if self.exp.namespace.exists(fname) or not self.exp.namespace.is_valid(fname):
+                        badNames += fname+' '
+            if badNames:
+                self.constantsCtrls['trialList'].setValue(
+                    'Oops: file has bad condition name(s):\n'+badNames[:-1]+
+                    '\n[Duplicate or illegal name. Edit file, try again.]')
+                self.trialListFile = self.trialList = ''
+                return
+            for fname in fieldNames:
+                self.exp.namespace.add(fname)
+                
             if 'conditionsFile' in self.currentCtrls.keys():                
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
