@@ -1,10 +1,14 @@
 """Tests for psychopy.data.DataHandler"""
 import os
+from os.path import join as pjoin
 import shutil
 import tempfile, nose
+from numpy.random import random, randint
 
 from psychopy import data
-from numpy.random import random, randint
+from psychopy.tests.utils import TESTS_PATH
+
+TESTSDATA_PATH = pjoin(TESTS_PATH, 'testData')
 
 class TestTrialHandler:
     def setUp(self):
@@ -18,7 +22,7 @@ class TestTrialHandler:
         trials.data.addDataType('with_underscore')
         for trial in trials:#need to run trials or file won't be saved
             trials.addData('with_underscore', 0)
-        base_data_filename = os.path.join(self.temp_dir, 'test_data_file')
+        base_data_filename = pjoin(self.temp_dir, 'test_data_file')
         trials.saveAsExcel(base_data_filename)
         trials.saveAsText(base_data_filename, delim=',')
 
@@ -39,7 +43,8 @@ class TestTrialHandler:
 
 class TestMultiStairs:
     def testSimple(self):
-        conditions = data.importTrialList('testData/multiStairConds.xlsx')
+        conditions = data.importTrialList(
+            pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
                 method='random', nTrials=20)
         for intensity,condition in stairs:
@@ -50,8 +55,10 @@ class TestMultiStairs:
             stairs.addData(corr)
         stairs.saveAsExcel('multiStairOut')
         stairs.saveAsPickle('multiStairOut')#contains more info
+
     def testQuest(self):
-        conditions = data.importTrialList('testData/multiStairConds.xlsx')
+        conditions = data.importTrialList(
+            pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
                     method='random', nTrials=5)
         for intensity,condition in stairs:
