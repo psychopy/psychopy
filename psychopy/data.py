@@ -845,14 +845,23 @@ class StairHandler:
 
     def __iter__(self):
         return self
-
-    def addData(self, result):
+        
+    def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         This is essential to advance the staircase to a new intensity level!
+        
+        Supplying an `intensity` value here indicates that you did not use the 
+        recommended intensity in your last trial and the staircase will 
+        replace its recorded value with the one you supplied here.
         """
         self.data.append(result)
-
+        
+        #if needed replace the existing intensity with this custom one
+        if intensity!=None:
+            self.intensities.pop()
+            self.intensities.append(intensity)
+            
         #increment the counter of correct scores
         if result==1:
             if len(self.data)>1 and self.data[-2]==result:
@@ -1365,16 +1374,19 @@ class QuestHandler(StairHandler):
 
     def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
-        Also update the intensity
+        
+        Supplying an `intensity` value here indicates that you did not use the 
+        recommended intensity in your last trial and the staircase will 
+        replace its recorded value with the one you supplied here.
         """
         # Process user supplied intensity
         if intensity is None:
             intensity = self._questNextIntensity
         else:
             intensity = self._intensity2scale(intensity)
-        #update the intensity
-        self.intensities.pop()
-        self.intensities.append(intensity)
+            #update the intensity
+            self.intensities.pop()#remove the one that had been auto-generated
+            self.intensities.append(intensity)
         # Update quest
         self._quest.update(intensity, result)
         # Update other things
@@ -1697,7 +1709,7 @@ class MultiStairHandler:
         """
         self.thisPassRemaining = copy.copy(self.runningStaircases)
         if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
-    def addData(self, result):
+    def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         This is essential to advance the staircase to a new intensity level!
