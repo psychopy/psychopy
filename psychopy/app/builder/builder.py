@@ -14,8 +14,9 @@ import experiment, components
 from psychopy.app import stdOutRich, dialogs
 from psychopy import data, log, misc
 import re
+from psychopy.constants import *
 
-inf=1000000#a million can be infinite?!
+inf = FOREVER #see constants.py
 canvasColor=[200,200,200]#in prefs? ;-)
 
 class FileDropTarget(wx.FileDropTarget):
