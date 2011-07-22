@@ -34,7 +34,7 @@ class _baseVisualTest:
             sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
             interpolate=True)
         gabor.draw()
-        utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
         #using .set()
         gabor.setOri(45)
@@ -43,7 +43,7 @@ class _baseVisualTest:
         gabor.setSF(0.2/self.scaleFactor, '+')
         gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
         gabor.draw()
-        utils.compareScreenshot('data/gabor2_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor2_%s.png' %(contextName), win)
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
     #    win=self.win
@@ -62,7 +62,7 @@ class _baseVisualTest:
     #        sf=1.0/size, size=size,
     #        interpolate=True)
     #    stim.draw()
-    #    utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
+    #    utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
     def testText(self):
         win = self.win
         contextName=self.contextName
@@ -76,7 +76,7 @@ class _baseVisualTest:
             height=0.8*self.scaleFactor, pos=[0,0], font=font) 
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ) 
-        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=40)
+        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=40)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
@@ -87,26 +87,25 @@ class _baseVisualTest:
         stim.setPos([-0.5,0.5],'+')
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('data/text2_%s.png' %(contextName), win, crit=30)
+        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=30)
+
     def testMov(self):
         win = self.win
         if self.win.winType=='pygame':
             raise nose.plugins.skip.SkipTest("movies only available for pyglet backend")
         win.flip()
         contextName=self.contextName
-        #try to find test movie file
-        fileName = 'testMovie.mp4'
-        for prepend in ['','..','data','../data']:
-            f = os.path.join(prepend, fileName)
-            if os.path.isfile(f): fileName=f
-        #check if any file was found
+        #construct full path to the movie file
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
+        #check if present
         if not os.path.isfile(fileName):
-            raise IOError, 'Could not find movie file: %s' %os.path.abspath(fileName)
+            raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         mov = visual.MovieStim(win, fileName)
         for frameN in range(10):
             mov.draw()
             win.flip()
+
     def testShape(self):
         win = self.win
         contextName=self.contextName
@@ -117,7 +116,7 @@ class _baseVisualTest:
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=10.0)
     def testRadial(self):
         win = self.win
         contextName=self.contextName
@@ -125,7 +124,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        utils.compareScreenshot('data/wedge1_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
         #using .set()
         wedge.setOri(180)
@@ -133,7 +132,7 @@ class _baseVisualTest:
         wedge.setRadialPhase(0.1,operation='+')
         wedge.setAngularPhase(0.1)
         wedge.draw()
-        utils.compareScreenshot('data/wedge2_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge2_%s.png' %(contextName), win, crit=10.0)
     def testDots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
@@ -178,7 +177,7 @@ class _baseVisualTest:
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
             sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
-        utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
+        utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
     def testAperture(self):
         win = self.win
         contextName=self.contextName
@@ -190,7 +189,7 @@ class _baseVisualTest:
         grating.setOri(90)
         grating.setColor('black')
         grating.draw()
-        utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        utils.compareScreenshot('aperture1_%s.png' %(contextName), win)
         #aperture should automatically disable on exit
     def testRatingScale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
@@ -200,7 +199,7 @@ class _baseVisualTest:
                         lowAnchorText=' ', highAnchorText=' ', scale=' ', 
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
-        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
+        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def testRefreshRate(self):
         #make sure that we're successfully syncing to the frame rate
