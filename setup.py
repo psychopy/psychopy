@@ -69,7 +69,7 @@ setup(name="PsychoPy",
           'Operating System :: POSIX',
           'Programming Language :: Python'],
     )
-    
+
 #remove unwanted info about this system post-build
 if writeNewInit:
     createInitFile.createInitFile(dist=None)
