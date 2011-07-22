@@ -45,4 +45,5 @@ for n in range(5):
 #LogFiles can also simply receive direct input from the write() method
 #messages using write() will be sent immediately, and are often not
 #in correct chronological order with logged messages
-logDat.write("Test ended\n\n")
+logDat.write("Testing\n\n")
+log.flush()
