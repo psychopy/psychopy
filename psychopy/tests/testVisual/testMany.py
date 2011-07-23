@@ -67,10 +67,7 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #set font
-        if win.winType=='pygame':
-            if sys.platform=='win32': font = 'times'
-            else:font = '/Library/Fonts/Times New Roman.ttf'
-        else: font = 'Times New Roman'
+        font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font=font) 
