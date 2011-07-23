@@ -1279,9 +1279,11 @@ class _BaseParamsDlg(wx.Dialog):
         #the value to be used as the start/stop
         self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
         #add the controls to a new line
+        startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        startSizer.Add(self.startTypeCtrl)
+        startSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
         self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
-        self.ctrlSizer.Add(self.startTypeCtrl,(self.currRow,1), flag=wx.EXPAND)
-        self.ctrlSizer.Add(self.startValCtrl,(self.currRow,2), flag=wx.EXPAND)
+        self.ctrlSizer.Add(startSizer,(self.currRow,1), flag=wx.EXPAND)
         self.currRow+=1
         remaining.remove('startType')
         remaining.remove('startVal')
@@ -1297,9 +1299,11 @@ class _BaseParamsDlg(wx.Dialog):
         #the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
         #add the controls to a new line
+        stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        stopSizer.Add(self.stopTypeCtrl)
+        stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
         self.ctrlSizer.Add(label, (self.currRow,0), (1,1),wx.ALIGN_RIGHT)
-        self.ctrlSizer.Add(self.stopTypeCtrl,(self.currRow,1), flag=wx.EXPAND)
-        self.ctrlSizer.Add(self.stopValCtrl,(self.currRow,2), flag=wx.EXPAND)
+        self.ctrlSizer.Add(stopSizer,(self.currRow,1), flag=wx.EXPAND)
         self.currRow+=1
         remaining.remove('stopType')
         remaining.remove('stopVal')
