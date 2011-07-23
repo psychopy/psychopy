@@ -13,11 +13,14 @@ class PatchComponent(VisualComponent):
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
         units='window units', color='$[1,1,1]', colorSpace='rgb',
         pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
-        startTime=0.0, duration=1.0):
+        startType='time (s)', startVal=0.0,
+        stopType='duration (s)', stopVal=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
                     color=color, colorSpace=colorSpace,
-                    pos=pos, size=size, ori=ori, startTime=startTime, duration=duration)
+                    pos=pos, size=size, ori=ori,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal)
         self.type='Patch'
         self.url="http://www.psychopy.org/builder/components/patch.html"
         self.exp=exp#so we can access the experiment if necess

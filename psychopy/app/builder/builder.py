@@ -1204,6 +1204,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
+        self.timeParams=['startType','startVal','stopType','stopVal']
         
         #create a header row of titles
         if not suppressTitles:
@@ -1224,7 +1225,20 @@ class _BaseParamsDlg(wx.Dialog):
             remaining.remove('advancedParams')
         else:self.advParams=[]
         
-        #loop through the normal params with a prescribed order (the most important?)
+        #start with the name (always)
+        if 'name' in remaining:
+            self.addParam('name')
+            remaining.remove('name')
+            if 'name' in self.order: 
+                self.order.remove('name')
+            self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
+            self.currRow+=1
+        #add start/stop info
+        if 'startType' in remaining:
+            remaining = self.addStartStopCtrls(remaining=remaining)
+            self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
+            self.currRow+=1
+        #loop through the prescribed order (the most important?)
         for fieldName in self.order:
             if fieldName in self.advParams:continue#skip advanced params
             self.addParam(fieldName)
@@ -1246,7 +1260,52 @@ class _BaseParamsDlg(wx.Dialog):
             id = wx.NewId()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-            
+    def addStartStopCtrls(self,remaining):
+        """Add controls for startType, startVal, stopType, stopVal
+        remaining refers to 
+        """
+        sizer=self.ctrlSizer
+        parent=self
+        currRow = self.currRow
+        
+        ##Start point
+        startTypeParam = self.params['startType']
+        startValParam = self.params['startVal']
+        #create label
+        label = wx.StaticText(self,-1,'start', style=wx.ALIGN_CENTER)
+        #the method to be used to interpret this start/stop
+        self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
+        self.startTypeCtrl.SetStringSelection(startTypeParam.val)
+        #the value to be used as the start/stop
+        self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        #add the controls to a new line
+        self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
+        self.ctrlSizer.Add(self.startTypeCtrl,(self.currRow,1), flag=wx.EXPAND)
+        self.ctrlSizer.Add(self.startValCtrl,(self.currRow,2), flag=wx.EXPAND)
+        self.currRow+=1
+        remaining.remove('startType')
+        remaining.remove('startVal')
+        
+        ##Stop point
+        stopTypeParam = self.params['stopType']
+        stopValParam = self.params['stopVal']
+        #create label
+        label = wx.StaticText(self,-1,'stop', style=wx.ALIGN_CENTER)
+        #the method to be used to interpret this start/stop
+        self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
+        self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
+        #the value to be used as the start/stop
+        self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        #add the controls to a new line
+        self.ctrlSizer.Add(label, (self.currRow,0), (1,1),wx.ALIGN_RIGHT)
+        self.ctrlSizer.Add(self.stopTypeCtrl,(self.currRow,1), flag=wx.EXPAND)
+        self.ctrlSizer.Add(self.stopValCtrl,(self.currRow,2), flag=wx.EXPAND)
+        self.currRow+=1
+        remaining.remove('stopType')
+        remaining.remove('stopVal')
+        
+        return remaining
+    
     def addParam(self,fieldName, advanced=False):
         """Add a parameter to the basic sizer
         """

@@ -10,10 +10,22 @@ class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     def __init__(self, parentName, name='', units='window units', color='$[1,1,1]',
-        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration='', colorSpace='rgb'):
+        pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
+        startType='time (s)',startVal='',stopType='duration (s)', stopVal=''):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
-        self.order=['name','startTime','duration']#make name come first (others don't matter)
+        self.order=['name']#make name come first (others don't matter)
         self.params={}
+        self.params['startType']=Param(startType, valType='str', 
+            allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your start point?")
+        self.params['stopType']=Param(stopType, valType='str', 
+            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your end point?")
+        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
+            hint="When does the stimulus start?")
+        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="When does the stimulus end?")
         self.params['name']=Param(name,  valType='code', updates='constant', 
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
@@ -33,12 +45,6 @@ class VisualComponent(_base.BaseComponent):
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Orientation of this stimulus (in deg)")
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The time that the stimulus is first presented")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The duration for which the stimulus is presented")
             
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
