@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__
+from psychopy import data, preferences, __version__, log
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -224,13 +224,13 @@ class Experiment:
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
-            print '\n%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag)
+            log.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
-            print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
+            log.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
         
         #Parse document nodes
         #first make sure we're empty
@@ -278,7 +278,7 @@ class Experiment:
                 loopName=self.namespace.make_valid(elementNode.get('name'))
                 if loopName != elementNode.get('name'):
                     modified_names.append(elementNode.get('name'))
-                self.namespace.user.append(loopName)
+                self.namespace.add(loopName)
                 exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
                 for paramNode in elementNode:
@@ -287,6 +287,17 @@ class Experiment:
                     if paramNode.get('name')=='trialList':
                         param=loop.params['trialList']
                         exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
+                # get condition names from within trialListFile, if any:
+                trialListFile = loop.params['trialListFile'].val
+                if trialListFile:
+                    trialListFile = os.path.join(os.path.dirname(filename), trialListFile)
+                    loop.params['trialListFile'].val = trialListFile
+                    _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        if fname != self.namespace.make_valid(fname):
+                            log.error('problem with condition name %s in trialListFile %s' % (fname, trialListFile))
+                        else:
+                            self.namespace.add(fname)
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
             elif elementNode.tag=="LoopTerminator":
                 self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
@@ -294,7 +305,7 @@ class Experiment:
                 self.flow.append(self.routines[elementNode.get('name')])
                 
         if modified_names:
-            print 'duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names)
+            log.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
             
     def setExpName(self, name):
         self.name=name

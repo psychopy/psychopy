@@ -310,12 +310,14 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            # update namespace only for loops, not routines
-            #if component.type in ['TrialHandler', 'StairHandler']: 
-            try: # temporary fix:
+            # remove name from namespace only for loops, not routines
+            if component.type in ['TrialHandler', 'StairHandler']:
+                trialListFile = component.params['trialListFile'].val
+                if trialListFile:
+                    self.trialList, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        self.frame.exp.namespace.remove(fname)
                 self.frame.exp.namespace.remove(component.params['name'].val)
-            except:
-                pass # then it was a routine, not loop
             flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
         if op=='rename':
@@ -1686,7 +1688,30 @@ class DlgLoopProperties(_BaseParamsDlg):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
-            self.trialList=data.importTrialList(dlg.GetPath())
+            try:
+                self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+            except ImportError, msg:
+                self.constantsCtrls['trialList'].setValue(
+                    'Bad condition name(s) in file:\n'+str(msg).replace(':','\n')+
+                    '.\n[Edit in the file, try again.]')
+                self.trialListFile = self.trialList = ''
+                log.error('Rejected bad condition name in trialList file: %s' % str(msg).split(':')[0])
+                return
+            
+            badNames = ''
+            if len(fieldNames):
+                for fname in fieldNames:
+                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.is_valid(fname):
+                        badNames += fname+' '
+            if badNames:
+                self.constantsCtrls['trialList'].setValue(
+                    'Bad condition name(s) in file:\n'+badNames[:-1]+
+                    '\n[Duplicate name(s). Edit file, try again.]')
+                log.error('Rejected bad condition names in trialList file: %s' % badNames[:-1])
+                self.trialListFile = self.trialList = ''
+                return
+            self.exp.namespace.add(fieldNames)
+                
             if 'conditionsFile' in self.currentCtrls.keys():                
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
