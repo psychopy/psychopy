@@ -354,8 +354,8 @@ class TrialHandler:
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
-            if delim==',': f=file(fileName+'.csv','w')
-            else: f=file(fileName+'.dlm','w')
+            if delim==',': f=file(fileName+'.csv',writeFormat)
+            else: f=file(fileName+'.dlm',writeFormat)
             
         if not matrixOnly:
             #write a header line
