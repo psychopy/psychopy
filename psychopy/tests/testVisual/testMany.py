@@ -20,8 +20,8 @@ class _baseVisualTest:
         self.contextName
         raise NotImplementedError
     @classmethod
-    def tearDownClass(self):#run once for each test class (window)
-        self.win.close()#shutil.rmtree(self.temp_dir)
+#    def tearDownClass(self):#run once for each test class (window)
+#        self.win.close()#shutil.rmtree(self.temp_dir)
     def setup(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
