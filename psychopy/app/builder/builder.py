@@ -310,12 +310,14 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            # update namespace only for loops, not routines
-            #if component.type in ['TrialHandler', 'StairHandler']: 
-            try: # temporary fix:
+            # remove name from namespace only for loops, not routines
+            if component.type in ['TrialHandler', 'StairHandler']:
+                trialListFile = component.params['trialListFile'].val
+                if trialListFile:
+                    self.trialList, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        self.frame.exp.namespace.remove(fname)
                 self.frame.exp.namespace.remove(component.params['name'].val)
-            except:
-                pass # then it was a routine, not loop
             flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
         if op=='rename':
@@ -1686,7 +1688,22 @@ class DlgLoopProperties(_BaseParamsDlg):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
-            self.trialList=data.importTrialList(dlg.GetPath())
+            self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+            
+            badNames = ''
+            if len(fieldNames):
+                for fname in fieldNames:
+                    if self.exp.namespace.exists(fname) or not self.exp.namespace.is_valid(fname):
+                        badNames += fname+' '
+            if badNames:
+                self.constantsCtrls['trialList'].setValue(
+                    'Oops: file has bad condition name(s):\n'+badNames[:-1]+
+                    '\n[Duplicate or illegal name. Edit file, try again.]')
+                self.trialListFile = self.trialList = ''
+                return
+            for fname in fieldNames:
+                self.exp.namespace.add(fname)
+                
             if 'conditionsFile' in self.currentCtrls.keys():                
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
