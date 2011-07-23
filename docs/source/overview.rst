@@ -25,13 +25,13 @@ There are many advantages to using PsychoPy, but here are some of the key ones
     - :ref:`builder` interface for those that don't
     - Input from keyboard, mouse or button boxes
     - Multi-monitor support
-    - Automated monitor calibration (requires PR650 or Minolta LS110)
+    - Automated monitor calibration (for supported photometers)
 
 Hardware Integration
 ---------------------
 PsychoPy supports communication via serial ports, parallel ports and compiled drivers (dlls and dylibs), so it can talk to any hardware that your computer can! Interfaces are prebuilt for;
-    - Spectrascan PR650
-    - Minolta LS110
+    - Spectrascan PR650, PR655, PR670
+    - Minolta LS110, LS100
     - Cambridge Research Systems Bits++
     - Cedrus response boxes (RB7xx series)
 

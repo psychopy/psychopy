@@ -62,8 +62,8 @@ and then insert the following into the `Begin Routine` section (this will get ru
 Draw your message to the screen
 -------------------------------------
 
-Using one of the above methods to generate you `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`text` to your `feedback` Routine and setting its text to `%msg`. 
+Using one of the above methods to generate you `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`text` to your `feedback` Routine and setting its text to `$msg`. 
 
 .. warning::
 
-    The Text Component needs to be below the Code Component in the Routine (because it needs to be updated second) and it needs to `set every repeat`.
+    The Text Component needs to be below the Code Component in the Routine (because it needs to be updated after the code has been run) and it needs to `set every repeat`.

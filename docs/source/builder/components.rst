@@ -5,7 +5,7 @@ Components
 
 Routines in the Builder contain any number of components, which typically define the parameters of a stimulus or an input/output device.
 
-The following components are available, as at version 1.50, but further components will be added in the future including a Mouse, Parallel/Serial ports, other visual stimuli (e.g. GeometricStim) and a Custom component that will allow arbitrary code to be executed.
+The following components are available, as at version 1.65, but further components will be added in the future including Parallel/Serial ports and other visual stimuli (e.g. GeometricStim).
 
 .. toctree::
    :maxdepth: 1   

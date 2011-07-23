@@ -11,10 +11,10 @@ name : string
 pos : [X,Y]
     The position of the centre of the aperture, in the units specified by the stimulus or window.
     
-size : int
+size : integer
     The size controls how big the aperture will be, in pixels, default = 120
 
-units: pix
+units : pix
     What units to use (currently only pix).
 
 .. seealso::

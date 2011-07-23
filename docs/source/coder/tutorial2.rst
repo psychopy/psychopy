@@ -5,6 +5,8 @@ This tutorial builds an experiment to test your just-noticeable-difference (JND)
 
 You can download the :download:`full code here <tutorial2.py>`. Note that the entire experiment is constructed of less than 100 lines of code, including the initial presentation of a dialogue for parameters, generation and presentation of stimuli, running the trials, saving data and outputing a simple summary analysis for feedback. Not bad, eh?
 
+There are a great many modifications that can be made to this code, however this example is designed to demonstrate how much can be achieved with very simple code. Modifying existing is an excellent way to begin writing your own scripts, for example you may want to try changing the appearance of the text or the stimuli.
+
 Get info from the user
 ---------------------------------
 
@@ -84,7 +86,7 @@ Still within the for-loop (note the level of indentation is the same) we need to
 Now we must tell the staircase the result of this trial with its :meth:`.addData()` method. Then it can work out whether the next trial is an increment or decrement. Also, on each trial (so still within the for-loop) we may as well save the data as a line of text in that .csv file we created earlier.
 
 .. literalinclude:: tutorial2.py
-   :lines: 86-87
+   :lines: 86-88
 
 .. _data-output:
 
@@ -94,11 +96,11 @@ Output your data and clean up
 OK! We're basically done! We've reached the end of the for-loop (which occured because the staircase terminated) which means the trials are over. The next step is to close the text data file and also save the staircase as a binary file (by 'pickling' the file in Python speak) which maintains a lot more info than we were saving in the text file.
 
 .. literalinclude:: tutorial2.py
-   :lines: 90-91
+   :lines: 90-92
 
 While we're here, it's quite nice to give some immediate feedback to the user. Let's tell them the the intensity values at the all the reversals and give them the mean of the last 6. This is an easy way to get an estimate of the threshold, but we might be able to do a better job by trying to reconstruct the psychometric function. To give that a try see the staircase analysis script of :doc:`Tutorial 3 <tutorial3>`.
 
-Having saved the data you can quit!
+Having saved the data you can give your participant some feedback and quit!
 
 .. literalinclude:: tutorial2.py
-   :lines: 93-99   
+   :lines: 93-109   

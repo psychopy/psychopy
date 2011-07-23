@@ -54,7 +54,7 @@ Assumes : pixels are square. Can be verified by drawing a stimulus with matching
 Degrees of visual angle
 ------------------------
 
-Use degrees of visual angle to set the size and location of the stimulus. This is, of course, dependent on the distance that the participant sits from the screen as well as the screen itself, so make sure that this is controlled, and remember to change the setting in :doc:`monitors` if viewing the distance changes.
+Use degrees of visual angle to set the size and location of the stimulus. This is, of course, dependent on the distance that the participant sits from the screen as well as the screen itself, so make sure that this is controlled, and remember to change the setting in :doc:`monitors` if the viewing distance changes.
 
 Spatial frequency: cycles per degree
 
