@@ -37,13 +37,42 @@ class BaseComponent:
         """
         pass
     def writeTimeTestCode(self,buff):
-        """Write the code for each frame that tests whether the component is being
-        drawn/used.
+        """Original code for testing whether to draw. 
+        Most objects should migrate to using writeStartTestCode and writeEndTestCode 
         """
         if self.params['duration'].val=='':
             buff.writeIndented("if (%(startTime)s <= t):\n" %(self.params))            
         else:
             buff.writeIndented("if (%(startTime)s <= t < (%(startTime)s+%(duration)s)):\n" %(self.params))
+    def writeStartTestCode(self,buff):
+        """Test whether we need to start drawing
+        """
+        if self.params['startType'].val=='time (s)':
+            buff.writeIndented("if t>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        elif self.params['startType'].val=='frame N':
+            buff.writeIndented("if frameN>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        elif self.params['startType'].val=='condition':
+            buff.writeIndented("if (%(startVal)s) and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        else:
+            raise "Not a known startType (%(startType)s) for %(name)s" %(self.params)
+        buff.setIndentLevel(+1,relative=True)
+    def writeStopTestCode(self,buff):
+        """Test whether we need to stop drawing
+        """
+        if self.params['stopType'].val=='time (s)':
+            buff.writeIndented("if t>=%(stopVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        elif self.params['stopType'].val=='duration (s)':
+            buff.writeIndented("NOT IMPLEMENTED\n" %(self.params))
+        elif self.params['stopType'].val=='duration (frames)':
+            buff.writeIndented("NOT IMPLEMENTED\n" %(self.params))
+        elif self.params['stopType'].val=='frame N':
+            buff.writeIndented("if frameN>=%(stopVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        elif self.params['stopType'].val=='condition':
+            buff.writeIndented("if (%(stopVal)s) and %(name)s.status==NOT_STARTED:\n" %(self.params))
+        else:
+            raise "Not a known stopType (%(stopType)s) for %(name)s" %(self.params)
+        buff.setIndentLevel(+1,relative=True)
+            
     def writeParamUpdates(self, buff, updateType):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'

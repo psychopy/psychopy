@@ -49,14 +49,14 @@ class VisualComponent(_base.BaseComponent):
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
-        self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
+        self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         #set parameters that need updating every frame
         self.writeParamUpdates(buff, 'set every frame')
         #draw the stimulus
         buff.writeIndented("%(name)s.draw()\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)
-       
+        
     def writeParamUpdates(self, buff, updateType):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
