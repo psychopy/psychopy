@@ -1688,21 +1688,29 @@ class DlgLoopProperties(_BaseParamsDlg):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = _relpath(dlg.GetPath(), expFolder)
             self.trialListFile = newPath
-            self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+            try:
+                self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+            except ImportError, msg:
+                self.constantsCtrls['trialList'].setValue(
+                    'Bad condition name(s) in file:\n'+str(msg).replace(':','\n')+
+                    '.\n[Edit in the file, try again.]')
+                self.trialListFile = self.trialList = ''
+                log.error('Rejected bad condition name in trialList file: %s' % str(msg).split(':')[0])
+                return
             
             badNames = ''
             if len(fieldNames):
                 for fname in fieldNames:
-                    if self.exp.namespace.exists(fname) or not self.exp.namespace.is_valid(fname):
+                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.is_valid(fname):
                         badNames += fname+' '
             if badNames:
                 self.constantsCtrls['trialList'].setValue(
-                    'Oops: file has bad condition name(s):\n'+badNames[:-1]+
-                    '\n[Duplicate or illegal name. Edit file, try again.]')
+                    'Bad condition name(s) in file:\n'+badNames[:-1]+
+                    '\n[Duplicate name(s). Edit file, try again.]')
+                log.error('Rejected bad condition names in trialList file: %s' % badNames[:-1])
                 self.trialListFile = self.trialList = ''
                 return
-            for fname in fieldNames:
-                self.exp.namespace.add(fname)
+            self.exp.namespace.add(fieldNames)
                 
             if 'conditionsFile' in self.currentCtrls.keys():                
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
