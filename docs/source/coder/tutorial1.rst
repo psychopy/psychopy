@@ -6,11 +6,11 @@ A tutorial to get you going with your first stimulus display.
 
 Know your monitor
 ------------------------
-PsychoPy has been designed to handle things like your screen calibrations for you. It is also designed to operate (if possible) in the final experimental units that you like to use, like degrees of visual angle.
+PsychoPy has been designed to handle your screen calibrations for you. It is also designed to operate (if possible) in the final experimental units that you like to use e.g. degrees of visual angle.
 
 In order to do this PsychoPy needs to know a little about your monitor. There is a GUI to help with this (select MonitorCenter from the tools menu of PsychoPyIDE or run ...site-packages/monitors/MonitorCenter.py).
 
-In the MonitorCenter window you can create a new monitor name, insert values that describe your monitor and run calibrations like gamma corrections. For now you can just stick to the [@testMonitor@] but give it correct values for your screen size in number of pixels and width in cm. 
+In the MonitorCenter window you can create a new monitor name, insert values that describe your monitor and run calibrations like gamma corrections. For now you can just stick to the [`testMonitor`] but give it correct values for your screen size in number of pixels and width in cm. 
 
 Now, when you create a window on your monitor you can give it the name 'testMonitor' and stimuli will know how they should be scaled appropriately.
 
@@ -25,10 +25,12 @@ Building stimuli is extremely easy. All you need to do is create a
     
     from psychopy import visual, core #import some libraries from PsychoPy
     
-    mywin = visual.Window([800,600],monitor="testMonitor", units="deg") #create a window
+	#create a window
+    mywin = visual.Window([800,600],monitor="testMonitor", units="deg") 
     
     #create some stimuli
-    grating = visual.PatchStim(win=mywin, mask="circle", size=3, pos=[-4,0], sf=3)
+    grating = visual.PatchStim(win=mywin, mask="circle", size=3,\
+	pos=[-4,0], sf=3)
     fixation = visual.PatchStim(win=mywin, size=0.5, pos=[0,0], sf=0, rgb=-1)
     
     #draw the stimuli and update the window
@@ -39,7 +41,7 @@ Building stimuli is extremely easy. All you need to do is create a
     #pause, so you get a chance to see it!
     core.wait(5.0)
 
-.. note:: **For those new to Python.** Did you notice that the grating and the fixation stimuli call the same :mod:`~psychopy.visual.PatchStim` but had different arguments? One of the nice features about python is that you can give arguments with names and not use them all. PatchStim has over 15 arguments that can be set, but the others just take on default values if they aren't needed.
+.. note:: **For those new to Python.** Did you notice that the grating and the fixation stimuli both call :mod:`~psychopy.visual.PatchStim` but have different arguments? One of the nice features about python is that you can select which arguments to set. PatchStim has over 15 arguments that can be set, but the others just take on default values if they aren't needed.
 
 That's a bit easy though. Let's make the stimulus move, at least! To do that we need to create a loop where we change the phase (or orientation, or position...) of the stimulus and then redraw. Add this code in place of the drawing code above::
     

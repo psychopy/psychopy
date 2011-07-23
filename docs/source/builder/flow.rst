@@ -18,6 +18,10 @@ Loops control the repetition of :ref:`routines` and the choice of stimulus param
 
 As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
 
+It is usually best to use trial information that is contained in an external file (.xlsx or .csv). When inserting a `loop` into the `flow` you can browse to find the file you wish to use for this. An example of this kind of file can be found in the Stroop demo (trialTypes.xlsx). The column names are turned into variables (in this case text, letterColor, corrAns and congruent), these can be used to define parameters in the loop by putting a $ sign before them e.g. `$text`.
+
+As the column names from the input file are used in this way they must have legal variable names i.e. they must be unique, have no punctuation or spaces (underscores are ok) and must not start with a digit.
+
 .. _trialTypes:
 
 Method of Constants

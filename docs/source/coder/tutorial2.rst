@@ -5,6 +5,8 @@ This tutorial builds an experiment to test your just-noticeable-difference (JND)
 
 You can download the :download:`full code here <tutorial2.py>`. Note that the entire experiment is constructed of less than 100 lines of code, including the initial presentation of a dialogue for parameters, generation and presentation of stimuli, running the trials, saving data and outputing a simple summary analysis for feedback. Not bad, eh?
 
+There are a great many modifications that can be made to this code, however this example is designed to demonstrate how much can be achieved with very simple code. Modifying existing is an excellent way to begin writing your own scripts, for example you may want to try changing the appearance of the text or the stimuli.
+
 Get info from the user
 ---------------------------------
 
