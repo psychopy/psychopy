@@ -10,7 +10,7 @@ Be aware that the code for each of the components in your :ref:`Routine <routine
 Within your code you can use other variables and modules from the script. For example, all routines have a stopwatch-style :class:`~psychopy.core.Clock` associated with them, which gets reset at the beginning of that repeat of the routine. So if you have a :ref:`Routine <routines>` called trial, there will be a :class:`~psychopy.core.Clock` called trialClock and so you can get the time (in sec) from the beginning of the trial by using::
 	currentT = trialClock.getTime()
 
-To see what other variables you might want to use, and also what terms you need to avoid in your chunks of code, compile your script before inserting the code object and take a look at the contents of that script.
+To see what other variables you might want to use, and also what terms you need to avoid in your chunks of code, :ref:`compile your script <compileScript>` before inserting the code object and take a look at the contents of that script.
 
 Parameters
 ~~~~~~~~~~~~~~

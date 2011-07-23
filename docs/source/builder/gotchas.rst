@@ -1,5 +1,12 @@
-Common mistakes (aka gotcha's)
+.. _gotchas:
+
+Common Mistakes (aka Gotcha's)
 -------------------------------
 
-todo
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :maxdepth: 1   
+   :glob:
+
+   commonMistakes/*
+   
+If you are having problems getting the application to run please see :ref:`troubleshooting`

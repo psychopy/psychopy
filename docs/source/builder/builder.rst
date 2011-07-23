@@ -24,6 +24,7 @@ Contents:
    settings
    outputs
    gotchas
+   compileScript
 
 Future developments
 -----------------------

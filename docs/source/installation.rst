@@ -10,9 +10,9 @@ Recommended hardware
 
 The bare minimum requirements for PsychoPy are a graphics card that supports OpenGL (most graphics cards do, but on windows you should install new drivers from the graphics card the windows-supplied drivers are buggy and sometimes don't support OpenGL at all).
 
-Ideally OpenGL 2.0 should be supported - certain functions run much faster with where it is available and some stimuli (e.g. ElementArrayStim) even requires it. At the time this was last updated dabs.co.uk were selling the `GeForce 9500GT <http://www.nvidia.com/object/product_geforce_9500gt_us.html|nVidia>`_ for £45, which would be an excellent card for most experiments. 
+Ideally OpenGL 2.0 should be supported - certain functions run much faster with where it is available and some stimuli (e.g. ElementArrayStim) even requires it. 
 
-If you're thinking of buying a laptop for running experiments, *avoid the built-in intel graphics chips (e.g. GMA 950)*. The drivers are crumby and performance is poor. Get something with nVidia or ATI chips instead.
+If you're thinking of buying a laptop for running experiments, *avoid the built-in intel graphics chips (e.g. GMA 950)*. The drivers are crummy and performance is poor. Get something with nVidia or ATI chips instead.
 
 Windows:
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -78,7 +78,7 @@ If you want to install each library individually rather than use the simple dist
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting stuff)
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port, win32 only)
 * `ctypes <http://python.net/crew/theller/ctypes/>`_ (this is already included in python 2.5)
-* `lxml (needed for printing saving builder experiment files)`
+* `lxml <http://lxml.de/>`_ (needed for printing saving builder experiment files)
 
 .. _suggestedPackages:
 

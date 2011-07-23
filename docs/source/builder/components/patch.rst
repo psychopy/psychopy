@@ -26,6 +26,7 @@ image : a filename, a standard name ('sin', 'sqr') or a numpy array of dimension
     the spatial frequency to be low).
     Filenames can be relative or absolute paths and can refer to most image formats (e.g. tif, 
     jpg, bmp, png, etc.).
+	If this is set to none, the patch will be a flat colour.
 
 mask : a filename, a standard name ('gauss', 'circle') or a numpy array of dimensions NxNx1
     The mask can define the shape (e.g. circle will make the patch circular) or something which overlays the patch e.g. noise. 

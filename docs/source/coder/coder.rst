@@ -3,12 +3,12 @@
 Coder
 ================================================
 
-You can learn to use the scripting interface to PsychoPy in several ways, and you should probably follow a combination of them. These do not teach you about Python concepts, and you are recommended also to learn about that. In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments:
+You can learn to use the scripting interface to PsychoPy in several ways, and you should probably follow a combination of them. These do not teach you about Python concepts, and you are recommended also to learn about that (`Python <http://www.python.org/>`_ has an excellent tutorial). In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments:
 
 	- :ref:`concepts`: some of the logic of PsychoPy scripting
 	- :ref:`tutorials`:  walk you through the development of some semi-complete experiments
 	- demos: in the demos menu of Coder view. Many and varied
-	- use the :ref:`builder` to compile a script and see how it works
+	- use the :ref:`builder` to :ref:`compile a script <compileScript>` and see how it works
 	- check the :ref:`api` for further details
 	- ultimately go into PsychoPy and start examining the source code. It's just regular python!
 
