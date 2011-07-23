@@ -1457,6 +1457,14 @@ class _BaseParamsDlg(wx.Dialog):
             param=self.params[fieldName]
             if fieldName=='advancedParams':
                 pass
+            elif fieldName=='startType':
+                param.val = self.startTypeCtrl.GetStringSelection()
+            elif fieldName=='stopType':
+                param.val = self.stopTypeCtrl.GetStringSelection()
+            elif fieldName=='startVal':
+                param.val = self.startValCtrl.GetValue()
+            elif fieldName=='stopVal':
+                param.val = self.stopValCtrl.GetValue()
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()
