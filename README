@@ -1,6 +1,5 @@
-
 PsychoPy is an open-source package for creating psychology stimuli in Python (A real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give psychophysics a free and simple stimulus presentation and control package.
 
 The goal is to provide, for the busy scientist (including me!), tools to control timing and windowing and a simple set of pre-packaged stimuli and methods. The code is platform independent, using Python and C libraries that are widely available.
 
-To contribute, please fork the repository, hack in a topic branch, and send a pull request.  For more information, see http://www.psychopy.org/psychopy1/home.php/Main/Help.
+To contribute, please fork the repository, hack in a feature branch, and send a pull request.  For more, see http://www.psychopy.org/psychopy1/home.php/Main/Help.
