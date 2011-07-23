@@ -4,6 +4,8 @@ import os, shutil, glob
 import py_compile
 import difflib
 import nose
+from tempfile import mkdtemp
+
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
 # Jeremy Gray March 2011
@@ -40,9 +42,7 @@ class TestExpt():
         # dirs and files:
         self.here = path.abspath(path.dirname(__file__))
         self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
-        self.tmp_dir = path.join(self.here, '.nose.tmp')
-        shutil.rmtree(self.tmp_dir, ignore_errors=True)
-        os.mkdir(self.tmp_dir)
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def tearDown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
@@ -130,7 +130,7 @@ class TestExpt():
     def testExp_LoadCompilePsyexp(self):
         #""" for each builder demo .psyexp: load-save-load, compile (syntax check), namespace"""
         exp = self.exp
-        self.new_diff_file = path.join(self.here, 'tmp_py_diff')
+        self.new_diff_file = path.join(self.tmp_dir, 'tmp_py_diff')
 
         # make temp copies of all builder demos:
         for root, dirs, files in os.walk(path.join(exp.prefsPaths['demos'], 'builder')):
