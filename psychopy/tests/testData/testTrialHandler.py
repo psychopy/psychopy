@@ -2,7 +2,8 @@
 import os
 from os.path import join as pjoin
 import shutil
-import tempfile, nose
+import nose
+from tempfile import mkdtemp
 from numpy.random import random, randint
 
 from psychopy import data
@@ -12,10 +13,10 @@ TESTSDATA_PATH = pjoin(TESTS_PATH, 'testData')
 
 class TestTrialHandler:
     def setUp(self):
-        self.temp_dir = tempfile.mkdtemp('psychopy_testtrialhandler')
+        self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
 
     def tearDown(self):
-        pass#shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.temp_dir)
 
     def test_underscores_in_datatype_names(self):
         trials = data.TrialHandler([], 1)
@@ -42,6 +43,12 @@ class TestTrialHandler:
         assert expected_header == unicode(header)
 
 class TestMultiStairs:
+    def setUp(self):
+        self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
     def testSimple(self):
         conditions = data.importTrialList(
             pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
@@ -53,8 +60,8 @@ class TestMultiStairs:
                 corr=1
             else:corr=0
             stairs.addData(corr)
-        stairs.saveAsExcel('multiStairOut')
-        stairs.saveAsPickle('multiStairOut')#contains more info
+        stairs.saveAsExcel(pjoin(self.temp_dir, 'multiStairOut'))
+        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiStairOut'))#contains more info
 
     def testQuest(self):
         conditions = data.importTrialList(
@@ -67,5 +74,5 @@ class TestMultiStairs:
                 corr=1
             else:corr=0
             stairs.addData(corr)
-        stairs.saveAsExcel('multiQuestOut')
-        stairs.saveAsPickle('multiQuestOut')#contains more info
+        stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
+        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))#contains more info
