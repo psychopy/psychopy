@@ -310,12 +310,14 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            # update namespace only for loops, not routines
-            #if component.type in ['TrialHandler', 'StairHandler']: 
-            try: # temporary fix:
+            # remove name from namespace only for loops, not routines
+            if component.type in ['TrialHandler', 'StairHandler']:
+                trialListFile = component.params['trialListFile'].val
+                if trialListFile:
+                    self.trialList, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        self.frame.exp.namespace.remove(fname)
                 self.frame.exp.namespace.remove(component.params['name'].val)
-            except:
-                pass # then it was a routine, not loop
             flow.removeComponent(component, id=self._menuComponentID)
             self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
         if op=='rename':
