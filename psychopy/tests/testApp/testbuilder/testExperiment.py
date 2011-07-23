@@ -9,9 +9,12 @@ import nose
 # Jeremy Gray March 2011
 
 # caveats when comparing files:
-# dicts have no defined order, can load and save differently: use a known-diff file to suppress boring errors
-# namespace.make_valid() can change var names from the orig demos, but should not do so from a load-save-load
-#    because only the first load should change things
+# - dicts have no defined order, can load and save differently: use a
+#   known-diff file to suppress boring errors.  This situation was
+#   addressed in 7e2c72a for stimOut by sorting the keys
+# - namespace.make_valid() can change var names from the orig demos,
+#   but should not do so from a load-save-load because only the first
+#   load should change things
 
 exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
 
