@@ -37,6 +37,10 @@ if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal('2.8')
 import wx
+try:
+    from agw import advancedsplash as AS
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.advancedsplash as AS
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, log#needed by splash screen for the path to resources/psychopySplash.png
@@ -61,29 +65,6 @@ uidRootFlag = '.'
 if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu 
     uidRootFlag = '!'
     
-
-class PsychoSplashScreen(wx.SplashScreen):
-    """
-    Create a splash screen widget.
-    """
-    def __init__(self):
-        prefs=preferences.Preferences()
-        splashFile = os.path.join(prefs.paths['resources'], 'psychopySplash.png')
-        aBitmap = wx.Image(name = splashFile).ConvertToBitmap()
-        splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.NO_BORDER
-        # Call the constructor with the above arguments in exactly the
-        # following order.
-        wx.SplashScreen.__init__(self, aBitmap, splashStyle,
-                                 0, None)        
-        #setup statusbar
-        self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootFlag,
-                                    wx.Point(0,250),#splash image is 640x240
-                                    wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
-        self.status.SetMinSize(wx.Size(520,20))
-        self.Fit()
-        self.Close()
-        
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
     """
@@ -108,20 +89,25 @@ class MenuFrame(wx.Frame):
 class PsychoPyApp(wx.App):
     def OnInit(self):
         self.version=psychopy.__version__
-        self.SetAppName('PsychoPy2')        
-        #show splash screen
-        splash = PsychoSplashScreen()
-        if splash:
-            splash.Show()
-        #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
-        #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
-        from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, wxIDs, connections, urls
-        #set default paths and prefs
+        self.SetAppName('PsychoPy2')
+        #fetch prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
             log.console.setLevel(log.DEBUG)
+        #show splash screen
+        splashFile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
+        splashBitmap = wx.Image(name = splashFile).ConvertToBitmap()
+        splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=2000,
+                                  shadowcolour=wx.RED)#could use this in future for transparency
+        splash.SetTextPosition((10,240))
+        splash.SetText("  Loading libraries..."+uidRootFlag)
+        
+        #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
+        #but then that they end up being local so keep track in self
+        splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
+        from psychopy.monitors import MonitorCenter
+        from psychopy.app import coder, builder, wxIDs, connections, urls
+        #set default paths and prefs
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
@@ -176,6 +162,7 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
+        splash.SetText("  Creating frames..."+uidRootFlag)
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -185,6 +172,8 @@ class PsychoPyApp(wx.App):
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
+        
+        splash.SetText("Checking for updates..."+uidRootFlag)
         if self.prefs.connections['allowUsageStats']:
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
