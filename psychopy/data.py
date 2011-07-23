@@ -356,9 +356,9 @@ class TrialHandler:
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= file(fileName,writeFormat)
         else:
-            if delim==',': f=file(fileName+'.csv','w')
-            else: f=file(fileName+'.dlm','w')
-
+            if delim==',': f=file(fileName+'.csv',writeFormat)
+            else: f=file(fileName+'.dlm',writeFormat)
+            
         if not matrixOnly:
             #write a header line
             for heading in stimOut+dataHead:
@@ -413,6 +413,120 @@ class TrialHandler:
             f.close()
             log.info('saved data to %s' %f.name)
 
+    def saveAsWideText(self,fileName, 
+                   delim='\t',
+                   matrixOnly=False,
+                   appendFile=True,
+                  ):
+        """
+        Write a text file with the session, stimulus, and data values from each trial in chronological order. 
+         
+        That is, unlike 'saveAsText' and 'saveAsExcel':
+        -- each row comprises information from only a single trial.
+        -- no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+        
+        This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some 
+        information must be repeated on every row.
+        
+        In particular, if the trialHandler's 'extraInfo' exists, then each entry in there occurs in every row.
+        In builder, this will include any entries in the 'Experiment info' field of the 'Experiment settings' dialog.
+        In Coder, this information can be set using something like:
+            myTrialHandler.extraInfo = {'SubjID':'Joan Smith', 'DOB':1970 Nov 16, 'Group':'Control'}
+        
+         :Parameters:
+         
+            fileName:
+                if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.txt' will be appended.
+                Can include path info.           
+            
+            delim:
+                allows the user to use a delimiter other than the default tab ("," is popular with file extension ".csv")
+            
+            matrixOnly:
+                outputs the data with no header row.
+            
+            appendFile:
+                will add this output to the end of the specified file if it already exists.
+            
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+            return -1
+                
+        #create the file or print to stdout
+        if appendFile:
+            writeFormat='a'
+        else: writeFormat='w' #will overwrite a file        
+        if fileName=='stdout':
+            f = sys.stdout
+        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
+            f= file(fileName,writeFormat)
+        else:
+            if delim==',': f=file(fileName+'.csv',writeFormat)
+            else: f=file(fileName+'.txt',writeFormat)
+        
+        # collect parameter names related to the stimuli:
+        header = self.trialList[0].keys()                        
+        # and then add parameter names related to data (e.g. RT)                
+        header.extend(self.data.dataTypes)
+
+        # loop through each trial, gathering the actual values:
+        dataOut = []
+        trialCount = 0
+        # total number of trials = number of trialtypes * number of repetitions:
+        for rep in range(self.nReps):
+            for trialType in range(len(self.trialList)):
+            
+                # create a dictionary representing each trial:
+                # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
+                if (self.extraInfo != None):
+                    nextEntry = self.extraInfo.copy()
+                else:
+                    nextEntry = {}
+                    
+                # add a trial number so the original order of the data can always be recovered if sorted during analysis:
+                trialCount += 1
+                nextEntry["TrialNumber"] = trialCount
+
+                # now collect the value from each trial of the variables named in the header:
+                for parameterName in header:
+                    # the header includes both trial and data variables, so need to check before accessing:
+                    trialTypeIndex = self.sequenceIndices[trialType, rep]
+                    if self.trialList[trialTypeIndex].has_key(parameterName):
+                        nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
+                    elif self.data.has_key(parameterName):
+                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][rep]
+                    else: # allow a null value if this parameter wasn't explicitly stored on this trial:
+                        nextEntry[parameterName] = ''
+
+                #store this trial's data
+                dataOut.append(nextEntry)
+        
+        # get the extra 'wide' parameter names into the header line:
+        header.insert(0,"TrialNumber")
+        if (self.extraInfo != None):
+            for key in self.extraInfo:
+                header.insert(0, key)
+        
+        if not matrixOnly:
+        # write the header row:
+            nextLine = ''
+            for parameterName in header:
+                nextLine = nextLine + parameterName + delim
+            f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
+            
+        # write the data matrix:
+        for trial in dataOut:
+            nextLine = ''
+            for parameterName in header:
+                nextLine = nextLine + str(trial[parameterName]) + delim
+            nextLine = nextLine[:-1] # remove the final orphaned tab character
+            f.write(nextLine + '\n')
+            
+        if f != sys.stdout: 
+            f.close()
+            log.info('saved wide-format data to %s' %f.name)    
+    
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
 
