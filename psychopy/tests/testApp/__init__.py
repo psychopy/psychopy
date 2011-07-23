@@ -1,7 +1,7 @@
 def setUp(self):
     global app
     from psychopy.app.psychopyApp import PsychoPyApp
-    self.app=PsychoPyApp()
+    self.app=PsychoPyApp(showSplash=False)
     
 def tearDown():
     global app

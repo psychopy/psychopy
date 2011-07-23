@@ -87,24 +87,31 @@ class MenuFrame(wx.Frame):
         self.Show()
 
 class PsychoPyApp(wx.App):
-    def OnInit(self):
+    def __init__(self, arg=0, showSplash=True):
+        wx.App.__init__(self, arg)
+        self.onInit(showSplash)
+        
+    def onInit(self, showSplash=True):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #fetch prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
             log.console.setLevel(log.DEBUG)
-        #show splash screen
-        splashFile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
-        splashBitmap = wx.Image(name = splashFile).ConvertToBitmap()
-        splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=2000,
-                                  shadowcolour=wx.RED)#could use this in future for transparency
-        splash.SetTextPosition((10,240))
-        splash.SetText("  Loading libraries..."+uidRootFlag)
-        
+            
+        if showSplash:
+            #show splash screen
+            splashFile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
+            splashBitmap = wx.Image(name = splashFile).ConvertToBitmap()
+            splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=2000,
+                                      shadowcolour=wx.RED)#could use this in future for transparency
+            splash.SetTextPosition((10,240))
+            splash.SetText("  Loading libraries..."+uidRootFlag)
+        else:
+            raise "OMG error"
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
+        if showSplash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, wxIDs, connections, urls
         #set default paths and prefs
@@ -162,7 +169,7 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        splash.SetText("  Creating frames..."+uidRootFlag)
+        if showSplash: splash.SetText("  Creating frames..."+uidRootFlag)
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -173,7 +180,7 @@ class PsychoPyApp(wx.App):
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         
-        splash.SetText("Checking for updates..."+uidRootFlag)
+        if showSplash: splash.SetText("Checking for updates..."+uidRootFlag)
         if self.prefs.connections['allowUsageStats']:
             statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
             statsThread.start()
