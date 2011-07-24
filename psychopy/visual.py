@@ -1092,7 +1092,7 @@ class _BaseVisualStim:
         self.win=win
         self.name=name
         self.autoLog=autoLog
-        
+        self.status = NOT_STARTED
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
@@ -1283,10 +1283,12 @@ class _BaseVisualStim:
             self.win._toDraw.append(self)
             if self.autoLog: self.win.logOnFlip(msg=u"Started presenting %s" %self.name, 
                 level=log.EXP, obj=self)
+            self.status = STARTED
         elif val==False:
             self.win._toDraw.remove(self)
             if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name, 
                 level=log.EXP, obj=self)
+            self.status = FINISHED
     def setAutoLog(self,val=True):
         """Turn on (or off) autoLogging for this stimulus.
         
