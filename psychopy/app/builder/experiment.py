@@ -741,6 +741,7 @@ class Routine(list):
         buff.writeIndentedLines('\n#run %s\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
+        buff.writeIndented('frameN=-1\n')
         
         maxtime = self.getMaxTime()
         if maxtime >= FOREVER:
@@ -753,6 +754,7 @@ class Routine(list):
         #on each frame
         buff.writeIndented('#get current time\n')
         buff.writeIndented('t=%s.getTime()\n' %self._clockName)
+        buff.writeIndented('frameN=frameN+1#number of completed frames (so 0 in first frame)\n')
 
         #write the code for each component during frame
         buff.writeIndentedLines('\n#update/draw components on each frame\n')
