@@ -31,7 +31,6 @@ class _baseVisualTest:
         stims.append(visual.PatchStim(win))
         stims.append(visual.ShapeStim(win))
         stims.append(visual.TextStim(win))
-        stims.append(visual.ApertureStim(win))
         for stim in stims:
             assert stim.status==visual.NOT_STARTED
             stim.setAutoDraw(True)

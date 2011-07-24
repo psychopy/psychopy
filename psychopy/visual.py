@@ -1288,7 +1288,7 @@ class _BaseVisualStim:
             self.win._toDraw.remove(self)
             if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name, 
                 level=log.EXP, obj=self)
-            self.status = FINISHED
+            self.status = STOPPED
     def setAutoLog(self,val=True):
         """Turn on (or off) autoLogging for this stimulus.
         
