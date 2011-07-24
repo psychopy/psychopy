@@ -3547,59 +3547,59 @@ class MovieStim(_BaseVisualStim):
             win :
                 a :class:`~psychopy.visual.Window` object (required)
             filename :
-                a string giving the relative or absolute path to the movie. Can be any movie that 
+                a string giving the relative or absolute path to the movie. Can be any movie that
                 AVbin can read (e.g. mpeg, DivX)
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'  
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used. 
+            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
             pos :
-                position of the centre of the movie, given in the units specified                
+                position of the centre of the movie, given in the units specified
             flipVert : True or *False*
-                If True then the movie will be top-bottom flipped                
+                If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
-                If True then the movie will be right-left flipped            
+                If True then the movie will be right-left flipped
             ori :
-                Orientation of the stimulus in degrees                
+                Orientation of the stimulus in degrees
             size :
                 Size of the stimulus in units given. If not specified then the movie will take its
-                original dimensions.                
+                original dimensions.
             opacity :
                 the movie can be made transparent by reducing this
             name : string
-                The name of the object to be using during logged messages about 
-                this stim 
+                The name of the object to be using during logged messages about
+                this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
-        
+
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
         self.loadMovie( self.filename )
-        self.format=self._movie.video_format        
+        self.format=self._movie.video_format
         self.pos=pos
         self.depth=0
         self.pos = numpy.asarray(pos, float)
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
-        self.playing=NOT_STARTED
-        
+        self.status=NOT_STARTED
+
         #size
         if size == None: self.size= numpy.array([self.format.width,
                                                  self.format.height] , float)
-        
+
         elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
         else: self.size = numpy.array((size,size),float)
-        
+
         self.ori = ori
-        
+
         self._calcPosRendered()
         self._calcSizeRendered()
-        
+
         #check for pyglet
-        if win.winType!='pyglet': 
+        if win.winType!='pyglet':
             log.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
     def setOpacity(self,newOpacity,operation=''):
@@ -3610,21 +3610,21 @@ class MovieStim(_BaseVisualStim):
 
         """
         self._set('opacity', newOpacity, operation)
-    
+
     def setMovie(self, filename):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
         """
         self.loadMovie(filename)
-        
+
     def loadMovie(self, filename):
-        """Load a movie from file 
-        
+        """Load a movie from file
+
         :parameters:
-        
+
             filename: string
                 The name of the file, including path if necessary
-                
+
         Brings up a warning if avbin is not found on the computer.
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
@@ -3647,7 +3647,7 @@ class MovieStim(_BaseVisualStim):
         self.duration = self._movie.duration
         while self._player.source!=self._movie:
             self._player.next()
-        self.playing=NOT_STARTED
+        self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
 
@@ -3656,43 +3656,43 @@ class MovieStim(_BaseVisualStim):
         will not advance)
         """
         self._player.pause()
-        self.playing=PAUSED
+        self.status=PAUSED
 
     def play(self):
         """Continue a paused movie from current position
         """
         self._player.play()
-        self.playing=PLAYING
-        
+        self.status=PLAYING
+
     def seek(self,timestamp):
         """ Seek to a particular timestamp in the movie.
         NB this does not seem very robust as at version 1.62 and may cause crashes!
         """
         self._player.seek(float(timestamp))
-        
+
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in the
         movie will be determined automatically.
-        
+
         This method should be called on every frame that the movie is meant to appear"""
-        if self.playing in [NOT_STARTED, FINISHED]:#haven't started yet, so start
+        if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
         #set the window to draw to
         if win==None: win=self.win
         win.winHandle.switch_to()
-        
+
         #work out next default depth
         if self.depth==0:
             thisDepth = self.win._defDepth
             self.win._defDepth += _depthIncrements[self.win.winType]
         else:
             thisDepth=self.depth
-        
+
         #make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        
+
         frameTexture = self._player.get_texture()
         GL.glColor4f(1,1,1,self.opacity)
         GL.glPushMatrix()
@@ -3705,16 +3705,16 @@ class MovieStim(_BaseVisualStim):
         flipBitX = 1-self.flipHoriz*2
         flipBitY = 1-self.flipVert*2
         frameTexture.blit(
-                -self._sizeRendered[0]/2.0*flipBitX, 
-                -self._sizeRendered[1]/2.0*flipBitY, 
-                width=self._sizeRendered[0]*flipBitX, 
+                -self._sizeRendered[0]/2.0*flipBitX,
+                -self._sizeRendered[1]/2.0*flipBitY,
+                width=self._sizeRendered[0]*flipBitX,
                 height=self._sizeRendered[1]*flipBitY,
-                z=thisDepth)        
+                z=thisDepth)
         GL.glPopMatrix()
-    
+
     def _onEos(self):
-        self.playing=FINISHED
-        
+        self.status=FINISHED
+
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """

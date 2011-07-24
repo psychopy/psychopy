@@ -1,11 +1,23 @@
 Changelog
 ====================
 
-.. note:: 
+.. note::
   Version numbers
-  
-  In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things. 
+
+  In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+
+PsychoPy 1.70
+------------------------------
+
+PsychoPy 1.70.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED felxibility for start/stop in Builder Components
+* CHANGED MovieStim.playing property is now called MovisStim.status (in keeping
+    with other stimuli)
+* ADDED wide-format data files (saveAsWideText()) (Thanks Michael Macaskill)
+*
 
 PsychoPy 1.65
 ------------------------------
@@ -34,7 +46,7 @@ PsychoPy 1.65.01
 * FIXED buglets in QUEST handler (thanks Gerrit Maus)
 * FIXED absence of pygame in 1.65.00 Standalone release
 * ADDED shelve module to Standalone (needed by scipy.io)
-* ADDED warnings about going outside the monitor gamut for certain colors (thanks Alex Holcombe) 
+* ADDED warnings about going outside the monitor gamut for certain colors (thanks Alex Holcombe)
 
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,7 +63,7 @@ PsychoPy 1.65.00
   - CHANGED default marker is triangle (affects windows only)
   - ADDED single-click option, custom-marker support
   - FIXED: bug with precision=1 plus auto-rescaling going in steps of 10 (not 1)
-  
+
 * FIXED errors with importing from 'ext' and 'contrib'
 * FIXED error in joystick demos
 * FIXED bug in ElementArrayStim depth
@@ -69,7 +81,7 @@ Released April 2011
 
 * ADDED option to return field names when importing a trial list (thanks Gary Lupyan)
 * ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
-* ADDED CustomMouse to visual (Jeremy Gray) 
+* ADDED CustomMouse to visual (Jeremy Gray)
 * ADDED Aperture object to visual (thanks Yuri Spitsyn) and as a component to Builder (Jeremy Gray)
 * CHANGED RatingScale (Jeremy Gray):
     - FIXED bug in RatingScale that prevented scale starting at zero
@@ -129,7 +141,7 @@ Released Feb 2011
 * ADDED support for Spectrascan PR655/PR670
 * ADDED 'height' as a type of unit for visual stimuli
     NB. this is likely to become the default unit for new users (set in prefs)
-    but for existing users the unit set in their prefs will remain. That means 
+    but for existing users the unit set in their prefs will remain. That means
     that your system may behave differently to your (new user) colleague's
 * IMPROVED handling of damaged experiments in Builder (they don't crash the app any more!)
 * IMPROVED performance of autoLogging (including demos showing how to turn of autoLog for dynamic stimuli)
@@ -144,7 +156,7 @@ Released Jan 2011
     This is possible even though you may not retrieve the mouse event until later (e.g. waiting
     for a frame flip). Thanks Dave Britton
 * FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phase
-* FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup 
+* FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup
     if users selected 'skip ths version')
 * CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.
 
@@ -166,7 +178,7 @@ Released Dec 2010
 * FIXED bug with inseting Routines into Flow under Linux
 * FIXED bug with playing a MovieStim when another is already playing
 * CHANGED default values for Builder experiment settings (minor)
-* CHANGED ShapeStim default fillColor to None (from (0,0,0)) 
+* CHANGED ShapeStim default fillColor to None (from (0,0,0))
 * FIXED DotStim now supports a 2-element fieldSize (x,y) again
 * CHANGED phase of RadialStim to be 'sin' instead of 'cosine' at phase=0
 * FIXED rounding issue in RadialStim phase
@@ -234,7 +246,7 @@ Released: August 2010
 
 * ADDED: support for Excel 2007 files (.xlsx) for data output and trial types input:
     - psychopy.data now has importTrialList(fileName) to generate a trial list (suitable for TrialHandler) from .xlsx or .csv files
-    - Builder loops now accept either an xlsx or csv file for the TrialList 
+    - Builder loops now accept either an xlsx or csv file for the TrialList
     - TrialHandler and StairHandler now have saveToExcel(filename, sheetName='rawData', appendFile=True). This can be used to generate almost identical files to the previous delimited files, but also allows multiple (named) worksheets in a single file. So you could have one file for a participant and then one sheet for each session or run.
 * CHANGED: for builder experiments the trial list for a loop is now imported from the file on every run, rather than just when the file is initially chosen
 * CHANGED: data for TrialHandler are now stored as masked arrays where possible. This means that trials with no response can be more easily ignored by analysis
@@ -308,7 +320,7 @@ Released May 2010
 * FIXED: problem with non-numeric characters being inserted into data structures
 * CHANGED: stimuli using textures now automatically clean these up, so no need for users to call .clearTextures()
 
-PsychoPy 1.60 
+PsychoPy 1.60
 ------------------------------
 
 PsychoPy 1.60.04
@@ -378,7 +390,7 @@ Released Feb 2010
     from psychopy.hardware.PR import PR650
     from psychopy.hardware.cedrus import RB730
 
-PsychoPy 1.51.00 
+PsychoPy 1.51.00
 ------------------------------
 (released Nov 2009)
 
@@ -391,8 +403,8 @@ PsychoPy 1.51.00
 * ADDED: NxNx3 (ie RGB) numpy arrays can now be used as textures
 * FIXED: MovieStim bug on win32 (was giving spurious avbin error if visual was imported before event)
 
-NB. The changes to gamma handling should need no changes to your code, but could alter the gamma correction on 
-some machines. For setups/studies that require good gamma correction it is recommended that you recalibrate when 
+NB. The changes to gamma handling should need no changes to your code, but could alter the gamma correction on
+some machines. For setups/studies that require good gamma correction it is recommended that you recalibrate when
 you install this version of PsychoPy.
 
 PsychoPy 1.50
@@ -438,7 +450,7 @@ PsychoPy 1.50.00
 * ADDED performance enhancements (OS X now blocks on vblank, all platforms rush() if user has permissions)
 * ADDED config files. These are already used by the app, but not the library.
 * ADDED data.getDateStr() for convenience
-* FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0) 
+* FIXED bug on certain intel gfx cards (shaders now require float extension as well as opengl2.0)
 * FIXED bug scaling pygame text (which caused pygame TextStims not to appear)
 * BACKWARDS NONCOMPAT: monitors is moved to be a subpackage of psychopy
 * BACKWARDS NONCOMPAT: added 'all_mean' (and similar) data types to TrialHandler.saveAsText and these are now default
@@ -483,7 +495,7 @@ PsychoPy 1.00.02
 * FIXED bug with DotStim when fieldSize was initialised with a list rather than an array
 * FIXED buglet using event.getKeys in pygame (nothing fetched if pyglet installed)
 * CHANGED image loading code to check whether the image is a file, rather than using try..except
-* FIXED buglet raising trivial error messages on closing final window in IDE  
+* FIXED buglet raising trivial error messages on closing final window in IDE
 * FIXED problem pasting into find dlg in IDE
 
 PsychoPy 1.00.01
@@ -510,8 +522,8 @@ PsychoPy 0.97.01:
 ~~~~~~~~~~~~~~~~~~~~~~
 * FIXED bug with IDE not closing properly (when current file was not right-most)
 * ADDED parallel.readPin(pinN) so that parallel port can be used for input as well as output
-* FIXED bug in parallel.setPortAddress(addr) 
-* ADDED check for floats as arguments to ElementArrayStim set___ methods 
+* FIXED bug in parallel.setPortAddress(addr)
+* ADDED check for floats as arguments to ElementArrayStim set___ methods
 * CHANGED: frame time recording to be *off* by default (for plotting, for Window.fps() and for warnings). To turn it on use Window.setRecordFrameIntervals(True), preferably after first few frames have elapsed
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
@@ -556,11 +568,11 @@ PsychoPy 0.96.00:
 * FIXED pygame back-end so that can be used as a valid alternative to pyglet (requires pygame1.8+ and PyOpenGL3.0+, both included in mac app)
 * CHANGED default sound handler to be pygame again. Although pyglet looked promising for this
   it has turned out to be buggy. Timing of sounds can be very irregular and sometimes they don't even play
-  Although pygame has longer overall latencies (20-30ms) it's behaviour is at least robust. This will be 
+  Although pygame has longer overall latencies (20-30ms) it's behaviour is at least robust. This will be
   revisited one day when i have time to write driver-specific code for sounds
 * FIXED image importing - scaling from square image wasn't working and CMYK images weren't imported
   properly. Both are now fine.
-  
+
 ----------
 
 
@@ -584,7 +596,7 @@ PsychoPy 0.95.8:
 * IDE line number column is larger
 * IDE SaveAs no longer raises (inconsequential) error
 * IDE Cmd-S or Ctrl-S now clears autocomplete
-    
+
 PsychoPy 0.95.7:
 ~~~~~~~~~~~~~~~~~~~~~~
 * ADDED misc.cart2pol()
@@ -643,7 +655,7 @@ PsychoPy 0.95.0:
 * REWRITTEN stimuli to use _BaseClass, defining ._set() method
 * MAJOR IMPROVEMENTS to IDE:
   * Intel mac version available as app bundle, including python
-  * FIXED double help menu 
+  * FIXED double help menu
   * cleaned code for fetching icons
   * fixed code for updating SourceAssistant (now runs from .OnIdle())
 
@@ -660,13 +672,13 @@ PsychoPy 0.94.0:
   * pyglet event.Mouse complete (and supports wheel as well as buttons)
   * pyglet is now the default context. pygame will be used if explicitly called or if pyglet (v1.1+) isn't found
   * pyglet can now get/save movie frames (like pygame)
-  * TextStims are much cleaner (and a bit bigger?) Can use multiple lines too. New method for specifying font 
+  * TextStims are much cleaner (and a bit bigger?) Can use multiple lines too. New method for specifying font
 * added simpler parallel.py (wraps _parallel which will remain for now)
 * removed the C code extensions in favour of ctypes (so compiler no longer necessary)
 * converted "is" for "==" where appropriate (thanks Luca)
 * Window.getMovieFrame now takes a buffer argument ('front' or 'back')
 * monitor calibration files now stored in HOME/.psychopy/monitors rather than site-packages
-* Window.flip() added and supports the option not to clear previous buffer (for incremental drawing). Window.update() is still available for now but can be replaced with flip() commands 
+* Window.flip() added and supports the option not to clear previous buffer (for incremental drawing). Window.update() is still available for now but can be replaced with flip() commands
 * updated demos
 
 PsychoPy 0.93.6:
@@ -689,10 +701,10 @@ PsychoPy 0.93.5:
     * TextStims can be multi-line
     * NO GAMMA-SETTING as yet. Don't use this backend if you need a gamma-corrected window and aren't using Bits++.
 * changed the behaviour of Window winTypes
-    If you leave winType as None PsychoPy tries to use Pygame, Pyglet, GLUT in that order 
+    If you leave winType as None PsychoPy tries to use Pygame, Pyglet, GLUT in that order
     (when Pyglet can handle gamma funcs it will become default). Can be overridden by specifying winType.
-* turned off depth testing for drawing of text (will simply be overlaid in the order called) 
-* changes to TextStim: pyglet fonts are loaded by name only, not filename. PsychoPy TextStim now has an additional argument called 'fontFiles=[]' to allow the adding of custom ttf fonts, but the font name should be used as the font=" " argument.    
+* turned off depth testing for drawing of text (will simply be overlaid in the order called)
+* changes to TextStim: pyglet fonts are loaded by name only, not filename. PsychoPy TextStim now has an additional argument called 'fontFiles=[]' to allow the adding of custom ttf fonts, but the font name should be used as the font=" " argument.
 * updated some of the Reference docs
 
 PsychoPy 0.93.3:
@@ -739,7 +751,7 @@ PsychoPy 0.92.3:
 PsychoPy 0.92.2:
 ~~~~~~~~~~~~~~~~~~~~~~
 * have been trying (and failing) to make scripts run faster from the IDE under Mac OS X. Have tried using threads and debug modules (which would mean you didn't need to import all the libs every time). All these work fine under win32 but not under OS X every time :-( If anyone has a new idea for how to run a pygame window in the same process as the IDE thread I'd love hear it
-* removed the messages from the new TextStim stimuli 
+* removed the messages from the new TextStim stimuli
 * fixed bug in IDE that caused it to crash before starting if pythonw.exe was run rather than python.exe on first run(!)
 * improvements to the source assistant window (better help and now fetches function arguments)
 
@@ -756,7 +768,7 @@ PsychoPy 0.92.0:
 * 'sequential' ordering now implemented for data.TrialHandler (thx Ben Webb)
 * moved to pygame fonts (with unicode support and any TT font onthe system). The switch will break any code that was using TextStim with lineWidth or letterWidth as args. Users wanting to continue using the previous TextStim can call textStimGLUT instead (although I think the new pygame fonts are superior in every way).
 * improved IDE handling of previous size (to cope with being closed in the maximised or minimised state, which previously caused the window not to return)
-  
+
 PsychoPy 0.91.5:
 ~~~~~~~~~~~~~~~~~~~~~~
 * fixed minor bug in using numpy.array as a mask (was only working if array was 128x128)
@@ -776,7 +788,7 @@ PsychoPy 0.91.4
 PsychoPy 0.91.3
 ~~~~~~~~~~~~~~~~~~~~~~
 * added find dialog to IDE
-* added ability of data.FunctionFromStaircase to create unique bins rather than averaging several x values. Give bins='unique' (rather than bins=someInteger). Also fixed very minor issue where this func would only take a list of lists, rather than a single list. 
+* added ability of data.FunctionFromStaircase to create unique bins rather than averaging several x values. Give bins='unique' (rather than bins=someInteger). Also fixed very minor issue where this func would only take a list of lists, rather than a single list.
 
 PsychoPy 0.91.2
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -793,7 +805,7 @@ PsychoPy 0.91.0
 ~~~~~~~~~~~~~~~~~~~~~~
 * PsychoPy now has its own IDE!! With syntax-highlighting, code-folding and auto-complete!! :-)
 * gui.py had to be refactored a little but (I think) should not be noticed by the end user (gui.Dlg is now a subclass of wx.Dialog rather than a modified instance)
-* gui.Dlg and DlgFromDict now end up with an attribute .OK that is either True or False 
+* gui.Dlg and DlgFromDict now end up with an attribute .OK that is either True or False
 * fixed bug in data.StairHandler that could result in too many trials being run (since v0.89)
 
 PsychoPy 0.90.4
@@ -809,7 +821,7 @@ PsychoPy 0.90.3
 PsychoPy 0.90.2
 ~~~~~~~~~~~~~~~~~~~~~~
 * fixed new bug in the minVal/maxVal handling of StairHandler (where these have not been specified)
-* changed the default console log level to be ERROR, due to too much log output! 
+* changed the default console log level to be ERROR, due to too much log output!
 
 PsychoPy 0.90.1
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -868,8 +880,8 @@ Psychopy 0.83
 * NEW hardware module with support for fORP response box (for MRI) using serial port
 * added iterator functionality to data.TrialHandler and data.StairHandler you can now use ::
     for thisTrial in allTrials:
-    
-but a consequence was that .nextTrial() will be deprecated in favour of .next(). 
+
+but a consequence was that .nextTrial() will be deprecated in favour of .next().
 Also, when the end of the trials is reached a StopIteration is raised.
 * added the ability to seed the shuffle mechanism (and trial handler) so you can repeat experiments with the same trial sequence
 
