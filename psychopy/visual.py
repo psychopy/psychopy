@@ -5665,9 +5665,7 @@ class Aperture:
         self.quad=GLU.gluNewQuadric() #needed for gluDisk
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
-        self._reset()
-        self.enabled=True#by default
-        
+        self._reset()#implicitly runs an self.enable()
     def _reset(self):
         self.enable()
         GL.glClearStencil(0)
@@ -5722,14 +5720,15 @@ class Aperture:
         
         """
         GL.glEnable(GL.GL_STENCIL_TEST)
-        self.enabled=True
-
+        self.enabled=True#by default
+        self.status=STARTED
     def disable(self):
         """Disable the Aperture. Any subsequent drawing operations will not be
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
         self.enabled=False
+        self.status=STOPPED
     def __del__(self):
         self.disable()
         
