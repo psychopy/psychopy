@@ -10,25 +10,31 @@ iconFile = path.join(thisFolder,'sound.png')
 
 class SoundComponent(BaseComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='sound', sound='A', 
-            size=1, ori=0, startTime=0.0, duration='', volume=1):
+    def __init__(self, exp, parentName, name='sound', sound='A',volume=1,
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0):
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params
-        self.order=['name','startTime','duration']#make sure name comes first
+        self.order=[]#order for things (after name and timing params)
         self.params={}
         self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)")  
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a note name (e.g. A or Bf) or dollar then a number (e.g. $440) to specify Hz, or a filename")        
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
+            hint="A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename")
+        self.params['startType']=Param(startType, valType='str', 
+            allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your start point?")
+        self.params['stopType']=Param(stopType, valType='str', 
+            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your end point?")
+        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
+            hint="When does the sound start playing?")
+        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="The time that the sound starts")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The maximum duration the sound should play") 
+            hint="The maximum duration for the sound (blank to use the duration of the sound file)")
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The volume (in range 0 to 1)") 

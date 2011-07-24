@@ -14,31 +14,27 @@ iconFile = path.join(thisFolder,'aperture.png')
 
 class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a circle of a given size and position"""
-    def __init__(self, exp, parentName, name='aperture', units='pix',
-                 size=120, pos=(0,0), startTime=0.0, duration=''):
+    def __init__(self, exp, parentName, name='aperture', units='norm',
+                size=[1,1], pos=(0,0),
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0):
         #initialise main parameters
         VisualComponent.__init__(self, parentName, name=name, units=units, 
-                    pos=pos, startTime=startTime, duration=duration)
+                    pos=pos, 
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal)
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
         self.exp = exp #so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         self.parentName = parentName
         #params:
+        #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
-        self.params['size'] = Param(size, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="size of the aperture in pix")
-        self.params['pos'] = Param(pos, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="position on the screen")
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The time that the aperture starts to be used for drawing")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The duration for which the aperture is used for drawing")
-        self.order=['name','startTime','duration']#make name come first (others don't matter)
+        self.params['size'].hint = "Ho big is the apperture?"
+        self.params['pos'].hint = "Where is the apperture centred?"
+        self.params['startVal'].hint = "When does the apperture come into effect?"
+        self.params['stopVal'].hint="When does the apperture stop having an effect?"
         del self.params['ori']
         del self.params['color']
         del self.params['colorSpace']

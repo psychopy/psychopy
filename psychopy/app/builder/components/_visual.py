@@ -13,7 +13,7 @@ class VisualComponent(_base.BaseComponent):
         pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
         startType='time (s)',startVal='',stopType='duration (s)', stopVal=''):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
-        self.order=['name']#make name come first (others don't matter)
+        self.order=[]#make sure these are at top (after name and time params)
         self.params={}
         self.params['startType']=Param(startType, valType='str', 
             allowedVals=['time (s)', 'frame N', 'condition'],
@@ -45,20 +45,23 @@ class VisualComponent(_base.BaseComponent):
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Orientation of this stimulus (in deg)")
-            
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
+        buff.writeIndented("%(name)s.autoDraw(True)\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.autoDraw(False)\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
-        self.writeParamUpdates(buff, 'set every frame')
-        #draw the stimulus
-        buff.writeIndented("%(name)s.draw()\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)
-        
+        if checkNeedToUpdate('set every frame'):#this method inherited from _base
+            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.setIndentLevel(+1, relative=True)#to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(+1, relative=True)#to exit the if block
     def writeParamUpdates(self, buff, updateType):
-        """write updates to the buffer for each parameter that needs it
+        """Write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
         """
         for thisParamName in self.params.keys():

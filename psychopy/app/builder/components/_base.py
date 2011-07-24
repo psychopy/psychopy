@@ -8,13 +8,13 @@ from psychopy.app.builder.experiment import Param
 
 class BaseComponent:
     """A template for components, defining the methods to be overridden"""
-    def __init__(self, exp, parentName, name='', startTime=0.0, duration=1.0):
+    def __init__(self, exp, name=''):
         self.type='Base'
         self.exp=exp#so we can access the experiment if necess
         self.params={}
         self.params['name']=Param(name, valType='code', 
             hint="Name of this component")
-        self.order=['name','startTime','duration']#make name come first (others don't matter)
+        self.order=['name']#make name come first (others don't matter)
     def writeInitCode(self,buff):
         pass
     def writeFrameCode(self,buff):
@@ -60,15 +60,15 @@ class BaseComponent:
         """Test whether we need to stop drawing
         """
         if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("if t>=%(stopVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("elif t>=%(stopVal)s and %(name)s.status==STARTED:\n" %(self.params))
         elif self.params['stopType'].val=='duration (s)':
             buff.writeIndented("NOT IMPLEMENTED\n" %(self.params))
         elif self.params['stopType'].val=='duration (frames)':
             buff.writeIndented("NOT IMPLEMENTED\n" %(self.params))
         elif self.params['stopType'].val=='frame N':
-            buff.writeIndented("if frameN>=%(stopVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("elif frameN>=%(stopVal)s and %(name)s.status==STARTED:\n" %(self.params))
         elif self.params['stopType'].val=='condition':
-            buff.writeIndented("if (%(stopVal)s) and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("elif (%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
         else:
             raise "Not a known stopType (%(stopType)s) for %(name)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)
@@ -91,6 +91,18 @@ class BaseComponent:
                     paramCaps=self.params['colorSpace'].upper() #setRGB, not setColor
                 else:paramCaps=thisParamName.capitalize()
                 buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'],paramCaps, thisParam) )
+    def checkNeedToUpdate(self, updateType):
+        """Determine whether this component has any parameters set to repeat at this level
+        
+        usage::
+            True/False = checkNeedToUpdate(self, updateType)
+            
+        """
+        for thisParamName in self.params.keys():
+            thisParam=self.params[thisParamName]
+            if thisParam.updates==updateType:
+                return True
+        return False
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):

@@ -11,23 +11,30 @@ iconFile = path.join(thisFolder,'mouse.png')
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given timepoints"""
-    def __init__(self, exp, parentName, name='mouse', startTime=0.0, duration='', save='final', 
-            forceEndTrialOnPress=True, timeRelativeTo='routine'):
+    def __init__(self, exp, parentName, name='mouse',
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0,
+                save='final',forceEndTrialOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
         #params
-        self.order = ['name', 'startTime','duration']#make sure that 'name' is at top of dlg
         self.params={}
+        self.order=[]
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="Even mice have names!")
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
+        self.params['startType']=Param(startType, valType='str', 
+            allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your start point?")
+        self.params['stopType']=Param(stopType, valType='str', 
+            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your end point?")
+        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
+            hint="When does the mouse start being checked?")
+        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="The time that the mouse starts being checked")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The duration during which the mouse is checked")
+            hint="When does the mouse stop being checked?")
         self.params['saveMouseState']=Param(save, valType='str',
             allowedVals=['final','on click', 'every frame', 'never'],
             hint="How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?")

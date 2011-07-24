@@ -11,10 +11,10 @@ iconFile = path.join(thisFolder,'patch.png')
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
-        units='window units', color='$[1,1,1]', colorSpace='rgb',
-        pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
-        startType='time (s)', startVal=0.0,
-        stopType='duration (s)', stopVal=1.0):
+                units='window units', color='$[1,1,1]', colorSpace='rgb',
+                pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units, 
                     color=color, colorSpace=colorSpace,
@@ -26,8 +26,6 @@ class PatchComponent(VisualComponent):
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint="A patch is a visual area, whether an image or constructed stimulus")
         self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],

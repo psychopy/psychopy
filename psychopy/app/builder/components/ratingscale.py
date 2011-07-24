@@ -24,7 +24,8 @@ class RatingScaleComponent(BaseComponent):
                  singleClick=False,
                  size=1.0,
                  pos='0, -0.4',
-                 startTime=0, duration='',
+                 startType='time (s)', startVal=0.0,
+                 stopType='duration (s)', stopVal=1.0,
                  forceEndTrial=True,
                  storeRating=True, storeRatingTime=True,
                  lowAnchorText='', highAnchorText='',
@@ -38,12 +39,23 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {} 
-        self.params['advancedParams'] = ['singleClick', 'startTime', 'forceEndTrial', 'size', 
-                        'pos', 'duration', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
+        self.params['advancedParams'] = ['singleClick', 'forceEndTrial', 'size', 
+                        'pos', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
         
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
             hint="A rating scale only collects the response; it does not display the stimulus to be rated.")
+        self.params['startType']=Param(startType, valType='str', 
+            allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your start point?")
+        self.params['stopType']=Param(stopType, valType='str', 
+            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your end point?")
+        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
+            hint="When does the rating scale start being shown?")
+        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="How long to wait for a response (blank is forever)")
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices")
@@ -73,9 +85,6 @@ class RatingScaleComponent(BaseComponent):
             hint="store the time taken to make the choice (in seconds)")
         self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], hint="x,y position on the screen")
-        self.params['duration'] = Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="How many seconds to wait for a response; leave blank for 'forever'")
         self.params['forceEndTrial'] = Param(forceEndTrial, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should accepting a rating cause the end of the routine (e.g. trial)?")
@@ -88,11 +97,7 @@ class RatingScaleComponent(BaseComponent):
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Use this text to create the rating scale as you would in a code component; overrides all"+
-                " dialog settings except startTime, forceEndTrial, duration, storeRatingTime, storeRating")
-        
-        # required (?)
-        self.params['startTime'] = Param(0.0, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="")
+                " dialog settings except time parameters, forceEndTrial, storeRatingTime, storeRating")
         
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():

@@ -36,8 +36,8 @@ class _baseVisualTest:
             stim.setAutoDraw(True)
             assert stim.status==visual.STARTED
             stim.setAutoDraw(False)
+            assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
-            assert stim.status==visual.FINISHED#should be same as STOPPPED
     def testGabor(self):
         win = self.win
         contextName=self.contextName
