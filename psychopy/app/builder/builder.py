@@ -310,8 +310,9 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            # remove name from namespace only for loops, not routines
-            if component.type in ['TrialHandler', 'StairHandler']:
+            # remove name from namespace only if its a loop (exists only in the flow)
+            # routines do not have a type attribute
+            if hasattr(component, 'type') and component.type in ['TrialHandler', 'StairHandler']:
                 trialListFile = component.params['trialListFile'].val
                 if trialListFile:
                     self.trialList, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
