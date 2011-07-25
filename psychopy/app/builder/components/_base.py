@@ -71,7 +71,7 @@ class BaseComponent:
                 buff.writeIndented("elif t>=(%(name)s.tStart+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
         #duration in frames
         elif self.params['stopType'].val=='duration (frames)':
-            buff.writeIndented("elif t>=(%(name)s.frameNStart+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
+            buff.writeIndented("elif frameN>=(%(name)s.frameNStart+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
         #stop frame number
         elif self.params['stopType'].val=='frame N':
             buff.writeIndented("elif frameN>=%(stopVal)s and %(name)s.status==STARTED:\n" %(self.params))
