@@ -2395,7 +2395,9 @@ class BuilderFrame(wx.Frame):
             unpackFolder = dlg.GetPath()
         else:
             return -1#user cancelled        
-        # todo: check if the dir has contents!?        
+        # todo: check if the dir has contents!?
+        if os.listdir(unpackFolder) != []:
+            unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
