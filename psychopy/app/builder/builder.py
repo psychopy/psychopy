@@ -2395,9 +2395,11 @@ class BuilderFrame(wx.Frame):
             unpackFolder = dlg.GetPath()
         else:
             return -1#user cancelled        
-        # todo: check if the dir has contents!?
+        # ensure its an empty dir:
         if os.listdir(unpackFolder) != []:
             unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
+            if not os.path.isdir(unpackFolder):
+                os.mkdir(unpackFolder)
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
@@ -2422,7 +2424,8 @@ class BuilderFrame(wx.Frame):
             self.demos[ID_DEMOS[n]] = demoList[n]
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
+            if shortname.startswith('_') or shortname.lower() == 'readme.':
+                continue #ignore 'private' or README files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
