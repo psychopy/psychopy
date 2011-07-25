@@ -13,7 +13,8 @@ class KeyboardComponent(BaseComponent):
     def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
                 forceEndTrial=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
-                stopType='duration (s)', stopVal=1.0):
+                stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim=''):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
         self.exp=exp#so we can access the experiment if necess
@@ -39,6 +40,10 @@ class KeyboardComponent(BaseComponent):
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="When does the keyboard checking end?")
+        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected start (s), purely for representing in the timeline")
+        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['discard previous']=Param(discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to discard any keypresses occuring before the onset of this component?")

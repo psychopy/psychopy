@@ -15,12 +15,14 @@ class MovieComponent(VisualComponent):
                 pos=[0,0], size='', ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim='',
                 forceEndTrial=False):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
                     startType=startType, startVal=startVal,
-                    stopType=stopType, stopVal=stopVal)
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type='Movie'
         self.url="http://www.psychopy.org/builder/components/movie.html"
         self.exp=exp#so we can access the experiment if necess

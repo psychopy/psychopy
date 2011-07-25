@@ -830,6 +830,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             #deduce a start time (s) if possible
             if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
                 startTime=float(component.params['startVal'].val)
+            #user has given a time estimate
+            elif canBeNumeric(component.params['startEstim'].val):
+                startTime=float(component.params['startEstim'].val)
             else: startTime=None
 
             #deduce duration (s) if possible. Duration used because box needs width
@@ -839,6 +842,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 duration=float(component.params['stopVal'].val)-startTime
             elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
                 duration=float(component.params['stopVal'].val)
+            elif canBeNumeric(component.params['durationEstim'].val):
+                duration=float(component.params['durationEstim'].val)
             else:
                 duration=None
 
@@ -1225,7 +1230,9 @@ class _BaseParamsDlg(wx.Dialog):
             #self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
             self.ctrlSizer.Add(wx.StaticText(self,-1,'Updates',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
             self.currRow+=1
-        self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
+            self.ctrlSizer.Add(
+                wx.StaticLine(self, size=wx.Size(100,20)),
+                (self.currRow,0),(1,2), wx.ALIGN_CENTER|wx.EXPAND)
         self.currRow+=1
 
         #get all params and sort
@@ -1242,13 +1249,14 @@ class _BaseParamsDlg(wx.Dialog):
             remaining.remove('name')
             if 'name' in self.order:
                 self.order.remove('name')
-            self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
-            self.currRow+=1
+#            self.currRow+=1
         #add start/stop info
         if 'startType' in remaining:
             remaining = self.addStartStopCtrls(remaining=remaining)
-            self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
-            self.currRow+=1
+            #self.ctrlSizer.Add(
+            #    wx.StaticLine(self, size=wx.Size(100,10)),
+            #    (self.currRow,0),(1,3), wx.ALIGN_CENTER|wx.EXPAND)
+            self.currRow+=1#an extra row to create space (staticLine didn't look right)
         #loop through the prescribed order (the most important?)
         for fieldName in self.order:
             if fieldName in self.advParams:continue#skip advanced params
@@ -1284,40 +1292,64 @@ class _BaseParamsDlg(wx.Dialog):
         startValParam = self.params['startVal']
         #create label
         label = wx.StaticText(self,-1,'start', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'expected start (s)', style=wx.ALIGN_CENTER)
+        labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
         self.startTypeCtrl.SetStringSelection(startTypeParam.val)
         #the value to be used as the start/stop
         self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        #the value to estimate start/stop if not numeric
+        self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
         #add the controls to a new line
         startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         startSizer.Add(self.startTypeCtrl)
         startSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
+        startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        startEstimSizer.Add(labelEstim)
+        startEstimSizer.Add(self.startEstimCtrl)
+        startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
+        startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
         self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
-        self.ctrlSizer.Add(startSizer,(self.currRow,1), flag=wx.EXPAND)
+        #add our new row
+        self.ctrlSizer.Add(startAllCrtlSizer,(self.currRow,1),(1,1),flag=wx.EXPAND)
         self.currRow+=1
         remaining.remove('startType')
         remaining.remove('startVal')
+        remaining.remove('startEstim')
 
         ##Stop point
         stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
         #create label
         label = wx.StaticText(self,-1,'stop', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'expected duration (s)', style=wx.ALIGN_CENTER)
+        labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
         self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
         #the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        #the value to estimate start/stop if not numeric
+        self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
         #add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         stopSizer.Add(self.stopTypeCtrl)
         stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
-        self.ctrlSizer.Add(label, (self.currRow,0), (1,1),wx.ALIGN_RIGHT)
-        self.ctrlSizer.Add(stopSizer,(self.currRow,1), flag=wx.EXPAND)
+        stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        stopEstimSizer.Add(labelEstim)
+        stopEstimSizer.Add(self.durationEstimCtrl)
+        stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
+        stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
+        self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
+        #add our new row
+        self.ctrlSizer.Add(stopAllCrtlSizer,(self.currRow,1),(1,1),flag=wx.EXPAND)
         self.currRow+=1
         remaining.remove('stopType')
         remaining.remove('stopVal')
+        remaining.remove('durationEstim')
 
         return remaining
 
@@ -1476,6 +1508,10 @@ class _BaseParamsDlg(wx.Dialog):
                 param.val = self.startValCtrl.GetValue()
             elif fieldName=='stopVal':
                 param.val = self.stopValCtrl.GetValue()
+            elif fieldName=='startEstim':
+                param.val = self.startEstimCtrl.GetValue()
+            elif fieldName=='durationEstim':
+                param.val = self.durationEstimCtrl.GetValue()
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()

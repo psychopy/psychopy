@@ -14,6 +14,7 @@ class MouseComponent(BaseComponent):
     def __init__(self, exp, parentName, name='mouse',
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim='',
                 save='final',forceEndTrialOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
@@ -24,10 +25,10 @@ class MouseComponent(BaseComponent):
         self.order=[]
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="Even mice have names!")
-        self.params['startType']=Param(startType, valType='str', 
+        self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
-        self.params['stopType']=Param(stopType, valType='str', 
+        self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
             hint="How do you want to define your end point?")
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
@@ -35,6 +36,10 @@ class MouseComponent(BaseComponent):
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="When does the mouse stop being checked?")
+        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected start (s), purely for representing in the timeline")
+        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['saveMouseState']=Param(save, valType='str',
             allowedVals=['final','on click', 'every frame', 'never'],
             hint="How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?")
@@ -65,19 +70,19 @@ class MouseComponent(BaseComponent):
         """
         forceEnd = self.params['forceEndTrialOnPress'].val
         routineClockName = self.exp.flow._currentRoutine._clockName
-        
+
         #only write code for cases where we are storing data as we go (each frame or each click)
         if self.params['saveMouseState'] not in ['every frame', 'on click'] and not forceEnd:
             return
-        
+
         self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
         self.writeParamUpdates(buff, 'frame')
-        
+
         #get a clock for timing
         if self.params['timeRelativeTo'].val=='experiment':clockStr = 'globalClock'
         elif self.params['timeRelativeTo'].val=='routine':clockStr = routineClockName
-        
+
         #write param checking code
         if self.params['saveMouseState'].val == 'on click' or forceEnd:
             buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
@@ -91,12 +96,12 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton.append(buttons[1])\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton.append(buttons[2])\n" %(self.params))
             buff.writeIndented("%s.time.append(%s.getTime())\n" %(self.params['name'], clockStr))
-            
+
         #does the response end the trial?
         if forceEnd==True:
             buff.writeIndented("#abort routine on response\n" %self.params)
             buff.writeIndented("continueRoutine=False\n")
-            
+
         #dedent
         if self.params['saveMouseState'] == 'on click' or forceEnd:
             buff.setIndentLevel(-2, relative=True)#'if' statement of the time test and button check

@@ -10,8 +10,10 @@ class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     def __init__(self, parentName, name='', units='window units', color='$[1,1,1]',
-        pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
-        startType='time (s)',startVal='',stopType='duration (s)', stopVal=''):
+                pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
+                startType='time (s)',startVal='',
+                stopType='duration (s)', stopVal='',
+                startEstim='', durationEstim=''):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
         self.order=[]#make sure these are at top (after name and time params)
         self.params={}
@@ -26,6 +28,10 @@ class VisualComponent(_base.BaseComponent):
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="When does the stimulus end?")
+        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
+        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['name']=Param(name,  valType='code', updates='constant',
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
