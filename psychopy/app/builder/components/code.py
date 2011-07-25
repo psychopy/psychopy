@@ -8,6 +8,7 @@ from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'code.png')
+tooltip = 'Code component'
 
 class CodeComponent(BaseComponent):
     """An event class for inserting arbitrary code into Builder experiments"""
