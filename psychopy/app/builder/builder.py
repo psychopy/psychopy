@@ -858,7 +858,6 @@ class RoutineCanvas(wx.ScrolledWindow):
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
                 fullRect.Union(wx.Rect(xSt, y, w,h ))#update bounds to include time bar
-            else: print 'st:', startTime, 'dur:', duration
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):

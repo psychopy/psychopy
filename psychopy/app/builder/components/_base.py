@@ -63,21 +63,21 @@ class BaseComponent:
         """Test whether we need to stop
         """
         if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("elif t>=%(stopVal)s and %(name)s.status==STARTED:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status==STARTED and t>=%(stopVal)s:\n" %(self.params))
         #duration in time (s)
         elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
-                buff.writeIndented("elif t>=(%(startVal)s+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
+                buff.writeIndented("elif %(name)s.status==STARTED and t>=(%(startVal)s+%(stopVal)s):\n" %(self.params))
         elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
-                buff.writeIndented("elif t>=(%(name)s.tStart+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
+                buff.writeIndented("elif %(name)s.status==STARTED and t>=(%(name)s.tStart+%(stopVal)s):\n" %(self.params))
         #duration in frames
         elif self.params['stopType'].val=='duration (frames)':
-            buff.writeIndented("elif frameN>=(%(name)s.frameNStart+%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status==STARTED and frameN>=(%(name)s.frameNStart+%(stopVal)s):\n" %(self.params))
         #stop frame number
         elif self.params['stopType'].val=='frame N':
-            buff.writeIndented("elif frameN>=%(stopVal)s and %(name)s.status==STARTED:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status==STARTED and frameN>=%(stopVal)s:\n" %(self.params))
         #end according to a condition
         elif self.params['stopType'].val=='condition':
-            buff.writeIndented("elif (%(stopVal)s) and %(name)s.status==STARTED:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status==STARTED and (%(stopVal)s):\n" %(self.params))
         else:
             raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)

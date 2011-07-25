@@ -735,10 +735,12 @@ class Routine(list):
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
+        buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
         self._clockName = self.name+"Clock"
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
-        for thisEvt in self:
-            thisEvt.writeInitCode(buff)
+        for thisCompon in self:
+            thisCompon.writeInitCode(buff)
+            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
 
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
@@ -760,7 +762,7 @@ class Routine(list):
             maxtime = 'FOREVER'
         else:
             maxtime = '%.4f' % maxtime
-        buff.writeIndented('while continueRoutine and (t<%s):\n' %(maxtime))
+        buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
 
         #on each frame
@@ -772,6 +774,13 @@ class Routine(list):
         buff.writeIndentedLines('\n#update/draw components on each frame\n')
         for event in self:
             event.writeFrameCode(buff)
+
+        #are we done yet?
+        buff.writeIndentedLines('\n#check if all components have finished\n')
+        buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
+        buff.writeIndentedLines('for component in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(component,"status") and component.status!=FINISHED:\n')
+        buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
         #update screen
         buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
