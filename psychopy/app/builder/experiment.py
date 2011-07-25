@@ -118,20 +118,20 @@ class Experiment:
         self.namespace.user.sort()
         script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
                     "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
-        
+
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(script)
         self.settings.writeEndCode(script) #close log file
 
         return script
-    
+
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
-        
+
         ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
@@ -151,7 +151,7 @@ class Experiment:
             elementNode=etree.SubElement(flowNode, element.getType())
             if element.getType() == 'LoopInitiator':
                 loop=element.loop
-                name = loop.params['name'].val      
+                name = loop.params['name'].val
                 elementNode.set('loopType',loop.getType())
                 elementNode.set('name', name)
                 for paramName, param in loop.params.iteritems():
@@ -187,29 +187,41 @@ class Experiment:
         paramNode is the parameter node fetched from the xml file
         """
         name=paramNode.get('name')
-        if name=='times':#handle this parameter, deprecated in v1.60.00
-            exec('times=%s' %paramNode.get('val'))
-            params['startTime'].val =unicode(times[0])
-            params['duration'].val = unicode(times[1]-times[0])
+        if name=='storeResponseTime':
+            return#deprecated in v1.70.00 because it was redundant
+        elif name=='startTime':#handle this parameter, deprecated in v1.70.00
+            params['startType'].val =unicode('time (s)')
+            params['startVal'].val = unicode(paramNode.get('val'))
+            return #times doesn't need to update its type or 'updates' rule
+        elif name=='duration':#handle this parameter, deprecated in v1.70.00
+            params['stopType'].val =u'duration (s)'
+            params['stopVal'].val = unicode(paramNode.get('val'))
             return #times doesn't need to update its type or 'updates' rule
         elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
             corrIf=paramNode.get('val')
             corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
-        if 'olour' in name:#colour parameter was Americanised in v1.61.00
-            name=name.replace('olour','olor')            
+        elif 'olour' in name:#colour parameter was Americanised in v1.61.00
+            name=name.replace('olour','olor')
             params[name].val = paramNode.get('val')
+        elif name=='times':#handle this parameter, deprecated in v1.60.00
+            exec('times=%s' %paramNode.get('val'))
+            params['startType'].val =unicode('time (s)')
+            params['startVal'].val = unicode(times[0])
+            params['stopType'].val =unicode('time (s)')
+            params['stopVal'].val = unicode(times[1])
+            return #times doesn't need to update its type or 'updates' rule
         elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
         #get the value type and update rate
-        if 'valType' in paramNode.keys(): 
+        if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
-            # compatibility checks: 
+            # compatibility checks:
             if name in ['correctAns','allowedKeys','text'] and paramNode.get('valType')=='code':
                 params[name].valType='str'# these components were changed in v1.60.01
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
-        if 'updates' in paramNode.keys(): 
+        if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -220,7 +232,7 @@ class Experiment:
         self._doc=etree.XML(f.read(),parser)
         f.close()
         root=self._doc#.getroot()
-        
+
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
@@ -231,14 +243,14 @@ class Experiment:
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
             print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
-        
+
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         self.namespace = NameSpace(self) # start fresh
         modified_names = []
-        
+
         #fetch exp settings
         settingsNode=root.find('Settings')
         for child in settingsNode:
@@ -268,7 +280,7 @@ class Experiment:
                 self.namespace.add(comp_good_name)
                 component.params['name'].val = comp_good_name
                 routine.append(component)
-        
+
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
@@ -292,10 +304,10 @@ class Experiment:
                 self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
-                
+
         if modified_names:
             print 'duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names)
-            
+
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
@@ -350,14 +362,14 @@ class Param:
         elif self.valType == 'str':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#override the string type and return as code
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
                 return repr(self.val[1:])#the user actually wanted a string repr with the $ as first char
             else:#provide the string representation (the code to create a string)
                 return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
                 return "%s" %(self.val[1:])#the user actually wanted just the $
             else:#provide the code
                 return "%s" %(self.val)
@@ -398,7 +410,7 @@ class TrialHandler:
             hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
-        self.params['loopType']=Param(loopType, valType='str', 
+        self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','staircase','interleaved staircases'],
             hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
@@ -429,7 +441,7 @@ class TrialHandler:
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
-        #fetch parameter info from trialList        
+        #fetch parameter info from trialList
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
@@ -464,7 +476,7 @@ class TrialHandler:
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'
-    
+
 class StairHandler:
     """A staircase experimental control object.
     """
@@ -501,7 +513,7 @@ class StairHandler:
         self.params['N reversals']=Param(nReversals, valType='code',
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['loopType']=Param('staircase', valType='str', 
+        self.params['loopType']=Param('staircase', valType='str',
             allowedVals=['random','sequential','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
@@ -540,12 +552,12 @@ class StairHandler:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'StairHandler'
-    
+
 class MultiStairHandler:
     """To handle multiple interleaved staircases
     """
-    def __init__(self, exp, name, nReps='50', stairType='simple', 
-        switchStairs='random', 
+    def __init__(self, exp, name, nReps='50', stairType='simple',
+        switchStairs='random',
         conditions=[], conditionsFile='', endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
@@ -565,7 +577,7 @@ class MultiStairHandler:
         self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential'],
             hint="How to select the next staircase to run")
         #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['loopType']=Param('staircase', valType='str', 
+        self.params['loopType']=Param('staircase', valType='str',
         allowedVals=['random','sequential','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
@@ -609,7 +621,7 @@ class MultiStairHandler:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'MultiStairHandler'
-    
+
 class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
@@ -662,9 +674,9 @@ class Flow(list):
         self.insert(int(pos), newRoutine)
     def removeComponent(self,component,id=None):
         """Removes a Loop, LoopTerminator or Routine from the flow
-        
+
         For a Loop (or initiator or terminator) to be deleted we can simply remove
-        the object using normal list syntax. For a Routine there may be more than 
+        the object using normal list syntax. For a Routine there may be more than
         one instance in the Flow, so either choose which one by specifying the id, or all
         instances will be removed (suitable if the Routine has been deleted).
         """
@@ -676,7 +688,7 @@ class Flow(list):
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
-            if id==None: 
+            if id==None:
                 #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
                 for id, compInFlow in enumerate(self):
@@ -695,7 +707,7 @@ class Flow(list):
         for entry in self:
             self._currentRoutine=entry
             entry.writeExperimentEndCode(script)
-    
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -731,18 +743,18 @@ class Routine(list):
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
-        
+
         buff.writeIndentedLines("\n#update component parameters for each repeat\n")
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-        
+
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#run %s\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
-        
+
         maxtime = self.getMaxTime()
         if maxtime >= FOREVER:
             maxtime = 'FOREVER'
@@ -802,10 +814,10 @@ class Routine(list):
             times.append(maxTime)
             maxTime=float(max(times))
         return maxTime
-    
+
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.
-    
+
     The aim is to help detect and avoid name-space collisions from user-entered variable names.
     Track four groups of variables:
         numpy =    part of numpy or numpy.random (maybe its ok for a user to redefine these?)
@@ -813,7 +825,7 @@ class NameSpace():
         builder =  used internally by the builder when constructing an experiment
         user =     used 'externally' by a user when programming an experiment
     Some vars, like core, are part of both psychopy and numpy, so the order of operations can matter
-    
+
     Notes for development:
     are these all of the ways to get into the namespace?
     - import statements at top of file: numpy, psychopy, os, etc
@@ -825,12 +837,12 @@ class NameSpace():
         loops have thisName, albeit thisNam (missing end character)
     - column headers in condition files
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
-    
+
     TO DO (throughout app):
         trialLists on import
         how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
         staircase resists being reclassified as trialhandler
-    
+
     :Author:
         2011 Jeremy Gray
     """
@@ -838,13 +850,13 @@ class NameSpace():
         """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
-        
+
         self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
         self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
                         'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
                         'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
                         'is', 'return', 'def', 'for', 'lambda', 'try',
-                        
+
                          'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
                          'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp', 'coerce',
                          'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
@@ -859,7 +871,7 @@ class NameSpace():
                          'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems', 'iterkeys',
                          'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values',
                          'viewitems', 'viewkeys', 'viewvalues',
-                         
+
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
@@ -867,14 +879,14 @@ class NameSpace():
             'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
-    
+
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(vars), len(self.numpy))
         else:
             return str(vars + self.numpy)
-    
+
     def get_derived(self, basename):
         """ buggy
         idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
@@ -891,18 +903,18 @@ class NameSpace():
             if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
                 derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
         # other derived_names?
-        # 
-        return derived_names 
-    
+        #
+        return derived_names
+
     def get_collisions(self):
         """return None, or a list of names in .user that are also in one of the other spaces"""
         duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
         su = sorted(self.user)
-        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var] 
+        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var]
         if duplicates != []:
             return duplicates
         return None
-    
+
     def is_valid(self, name):
         """var-name compatible? return True if string name is alphanumeric + underscore only, with non-digit first"""
         return bool(_valid_var_re.match(name))
@@ -911,28 +923,28 @@ class NameSpace():
         derivable = name.startswith('this') or name.startswith('continue') or name.endswith('Clock')
         derivable = derivable or name.startswith('these')
         return derivable
-    def exists(self, name): 
+    def exists(self, name):
         """returns None, or a message indicating where the name is in use.
         cannot guarantee that a name will be conflict-free.
         does not check whether the string is a valid variable name.
-        
+
         >>> exists('t')
         Builder variable
         """
         try: name = str(name) # convert from unicode if possible
         except: pass
-        
+
         # check get_derived:
-        
+
         # check in this order:
         if name in self.user: return "script variable"
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"
         if name in self.keywords: return "python keyword"
-        
+
         return # None, meaning does not exist already
-    
+
     def add(self, name, sublist='default'):
         """add name to namespace by appending a name or list of names to a sublist, eg, self.user"""
         if name is None: return
@@ -941,7 +953,7 @@ class NameSpace():
             sublist.append(name)
         else:
             sublist += name
-        
+
     def remove(self, name, sublist='default'):
         """remove name from the specified sublist (and hence from the name-space), eg, self.user"""
         if name is None: return
@@ -951,11 +963,11 @@ class NameSpace():
         for n in list(name):
             if n in sublist:
                 del sublist[sublist.index(n)]
-        
+
     def make_valid(self, name, prefix='var', add_to_space=None):
         """given a string, return a valid and unique variable name.
         replace bad characters with underscore, add an integer suffix until its unique
-        
+
         >>> make_valid('t')
         't_1'
         >>> make_valid('Z Z Z')
@@ -969,7 +981,7 @@ class NameSpace():
         >>> make_valid('123')
         'var_123'
         """
-        
+
         # make it legal:
         try: name = str(name) # convert from unicode, flag as uni if can't convert
         except: prefix = 'uni'
@@ -977,7 +989,7 @@ class NameSpace():
         if name[0].isdigit():
             name = prefix+'_' + name
         name = _nonalphanumeric_re.sub('_', name) # replace all bad chars with _
-        
+
         # try to make it unique; success depends on accuracy of self.exists():
         i = 2
         if self.exists(name) and name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
@@ -1012,7 +1024,7 @@ class NameSpace():
         new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
         new_name = self.make_valid(new_name)
         return new_name
-            
+
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """

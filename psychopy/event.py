@@ -464,38 +464,39 @@ class Mouse:
         elif self.win.units=='norm': return pos*self.win.size/2.0
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
-        
 
-class _BuilderKeyResponse():
-    """Used in scripts created by the builder
+
+class BuilderKeyResponse():
+    """Used in scripts created by the builder to keep track of a clock and
+    the current status (whether or not we are currently checking the keyboard)
     """
     def __init__(self):
+        self.status=NOT_STARTED
         self.keys=[] #the key(s) pressed
         self.corr=0 #was the resp correct this trial? (0=no, 1=yes)
         self.rt=[] #response time(s)
         self.clock=psychopy.core.Clock() #we'll use this to measure the rt
-        self.clockNeedsReset = True
-        
+
 def clearEvents(eventType=None):
     """Clears all events currently in the event buffer.
     Optional argument, eventType, specifies only certain types to be
-    cleared 
-    
+    cleared
+
     :Parameters:
-        eventType : **None**, 'mouse', 'joystick', 'keyboard' 
+        eventType : **None**, 'mouse', 'joystick', 'keyboard'
             If this is not None then only events of the given type are cleared
     """
     #pyglet
     if not havePygame or not display.get_init():
-        
-        #for each (pyglet) window, dispatch its events before checking event buffer    
+
+        #for each (pyglet) window, dispatch its events before checking event buffer
         wins = pyglet.window.get_platform().get_default_display().get_windows()
         for win in wins: win.dispatch_events()#pump events on pyglet windows
         if eventType=='mouse': return # pump pyglet mouse events but don't flush keyboard buffer
         global _keyBuffer
         _keyBuffer = []
         return
-    
+
     #for pygame
     if eventType=='mouse':
         junk = evt.get([locals.MOUSEMOTION, locals.MOUSEBUTTONUP,
@@ -503,7 +504,7 @@ def clearEvents(eventType=None):
     elif eventType=='keyboard':
         junk = evt.get([locals.KEYDOWN, locals.KEYUP])
     elif eventType=='joystick':
-        junk = evt.get([locals.JOYAXISMOTION, locals.JOYBALLMOTION, 
+        junk = evt.get([locals.JOYAXISMOTION, locals.JOYBALLMOTION,
               locals.JOYHATMOTION, locals.JOYBUTTONUP, locals.JOYBUTTONDOWN])
     else:
         junk = evt.get()

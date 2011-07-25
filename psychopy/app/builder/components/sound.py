@@ -28,8 +28,8 @@ class SoundComponent(BaseComponent):
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
         self.params['stopType']=Param(stopType, valType='str', 
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
+            allowedVals=['duration (s)'],
+            hint="The maximum duration of a sound in seconds")
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
             hint="When does the sound start playing?")
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
@@ -41,10 +41,9 @@ class SoundComponent(BaseComponent):
 
     def writeInitCode(self,buff):
         buff.writeIndented("#initialise %(name)s\n" %(self.params))
-        if str(self.params['duration'])=='':
-            buff.writeIndented("%(name)s=sound.Sound(%(sound)s)\n" %(self.params))
-        else:
-            buff.writeIndented("%(name)s=sound.Sound(%(sound)s, secs=%(duration)s)\n" %(self.params))
+        if self.params['stopType']=='duration (s)':
+            durationSetting="secs=%(stopVal)s" %self.paramss
+        buff.writeIndented("%s=sound.Sound(%(sound)s,%s)\n" %(self.params['name'], durationSetting))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
