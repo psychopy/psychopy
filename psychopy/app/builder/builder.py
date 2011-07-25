@@ -822,27 +822,38 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawText(name, x-20, y)
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
-        #draw entries on timeline
-        if 'startTime' in component.params.keys():
-            try:
+        #draw entries on timeline (if they have some time definition)
+        if 'startType' in component.params.keys():
+            startType=component.params['startType'].val
+            stopType=component.params['stopType'].val
+
+            #deduce a start time (s) if possible
+            if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
+                startTime=float(component.params['startVal'].val)
+            else: startTime=None
+
+            #deduce duration (s) if possible. Duration used because box needs width
+            if component.params['stopVal'].val in ['','-1','None']:
+                duration=inf#infinite duration
+            elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
+                duration=float(component.params['stopVal'].val)-startTime
+            elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
+                duration=float(component.params['stopVal'].val)
+            else:
+                duration=None
+
+            if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
                 dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
-                #for the fill, draw once in white near-opaque, then in transp color
                 dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
                 h = self.componentStep/2
-                exec("st = %s" %(component.params['startTime']))
-                #get end time if not -1(infinite)
-                if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
-                else: exec("duration = %s" %(component.params['duration']))
-                xSt = self.timeXposStart + st/xScale
+                xSt = self.timeXposStart + startTime/xScale
                 w = duration/xScale
+                if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
-                fullRect.Union(wx.Rect(xSt, y, w,h ))
-            except:
-                pass
-                #probably the component has a non-numeric start/duration
-        #set the area for this component
+                fullRect.Union(wx.Rect(xSt, y, w,h ))#update bounds to include time bar
+            else: print 'st:', startTime, 'dur:', duration
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
