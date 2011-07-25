@@ -959,7 +959,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.SetSelection(currPage)
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def __init__(self, frame, id=-1):
-        """A panel that shows how the routines will fit together
+        """A panel that displays available components.
         """
         self.frame=frame
         self.app=frame.app
@@ -983,11 +983,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn = wx.BitmapButton(self, -1, thisIcon, (20, 20),
                            (thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
+            if thisName in components.tooltips:
+                thisTip = components.tooltips[thisName]
+            else:
+                thisTip = shortName
+            btn.SetToolTip(wx.ToolTip(thisTip))
             self.componentFromID[btn.GetId()]=thisName
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
             self.componentButtons[thisName]=btn#store it for elsewhere
-                    
+            
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.SetupScrolling()
