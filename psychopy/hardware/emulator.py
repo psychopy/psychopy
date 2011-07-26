@@ -156,7 +156,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     In test mode, user responses can also be emulated in a similar fashion. If
     simResponses is a list of tuples [(time, key), (time, key), ...], each key is
     virtually "pressed" at the specified time. (This is also implemented as a
-    thread, an instance of a :class:`~psychopy.hardware.emulator.ResponseGenerator`, again generic
+    thread, an instance of a :class:`~psychopy.hardware.emulator.ResponseEmulator`, again generic
     and not fMRI-specific.)
     
     If your MR hardware interface does not deliver a key character as a sync flag,
@@ -180,7 +180,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
                 stabilization, no sync pulse). default = 0.
                      
         globalClock :
-            optional (but strongly recommended) :class:`~psychopy.core.Clock` to
+            optional but highly recommended :class:`~psychopy.core.Clock` to
             be used during the scan; if one is given, it is reset to 0.000 when
             the first sync pulse is received.
             
@@ -233,7 +233,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     event.clearEvents() # do before starting the threads
     if doSimulation:
         syncPulse = SyncGenerator(**settings)
-        roboResponses = ResponseEmulator(simResponses=simResponses)
+        roboResponses = ResponseEmulator(simResponses)
         syncPulse.start() # start emitting sync pulses
         roboResponses.start() # start emitting simulated user responses
         core.runningThreads.append(syncPulse)

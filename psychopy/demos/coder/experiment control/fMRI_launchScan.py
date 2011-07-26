@@ -3,8 +3,6 @@
 """This demo illustrates using hardware.emulator.launchScan() to either start a real scan, 
 or emulate sync pulses and user responses. Emulation is to allow debugging script timing
 offline, without requiring either a scanner or a hardware sync pulse emulator.
-
-Timing values are not intended to be realistic.
 """
 
 __author__ = 'Jeremy Gray'
@@ -41,7 +39,6 @@ simResponses = [(0.123, 'a'), (4.789, 'c'), (2.456, 'b')]
 
 # launch: operator selects Scan or Test (emulate); see API documentation
 vol = launchScan(win, MR_settings, globalClock=globalClock, simResponses=simResponses)
-#vol = launchScan(win, {'TR':2,'volumes':5}, globalClock=globalClock, simResponses=simResponses)
 
 infer_missed_sync = False # best if your script timing works without this, but this might be useful sometimes
 max_slippage = 0.02 # how long to allow before treating a "slow" sync as missed
