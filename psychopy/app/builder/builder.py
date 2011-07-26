@@ -2636,14 +2636,21 @@ class BuilderFrame(wx.Frame):
         in self.routinePanel after promting for a new name
         """
         if self.app.copiedRoutine == None: return -1
-        dlg = wx.TextEntryDialog(self, message="Paste Routine with what name?",
-            caption='Paste Routine')
+        defaultName = self.exp.namespace.make_valid(self.app.copiedRoutine.name)
+        message = 'New name for copy of "%s"?  [%s]' % (self.app.copiedRoutine.name, defaultName)
+        dlg = wx.TextEntryDialog(self, message=message, caption='Paste Routine')
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
             newRoutine = copy.deepcopy(self.app.copiedRoutine)
-            newRoutine.name = self.exp.namespace.make_valid(routineName, prefix='routine')
+            if not routineName:
+                routineName = defaultName
+            newRoutine.name = self.exp.namespace.make_valid(routineName)
             self.exp.namespace.add(newRoutine.name)
             self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
+            for newComp in newRoutine: # routine == list of components
+                newName = self.exp.namespace.make_valid(newComp.params['name'])
+                self.exp.namespace.add(newName)
+                newComp.params['name'].val = newName
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?
             self.addToUndoStack("paste Routine %s" % newRoutine.name)
         dlg.Destroy()
