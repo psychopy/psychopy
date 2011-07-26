@@ -19,36 +19,36 @@ glDeleteShader = alternate( 'glDeleteShader', glDeleteShader,glDeleteObjectARB )
 glUseProgram = alternate('glUseProgram',glUseProgram,glUseProgramObjectARB )
 
 def compileShader( source, shaderType ):
-	"""Compile shader source of given type"""
-	shader = glCreateShader(shaderType)
-	glShaderSource( shader, source )
-	glCompileShader( shader )
-	return shader
+    """Compile shader source of given type"""
+    shader = glCreateShader(shaderType)
+    glShaderSource( shader, source )
+    glCompileShader( shader )
+    return shader
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
-	program = glCreateProgram()
+    program = glCreateProgram()
 
-	if vertexSource:
-		vertexShader = compileShader(
-			[vertexSource,], GL_VERTEX_SHADER_ARB
-		)
-		glAttachShader(program, vertexShader)
-	if fragmentSource:
-		fragmentShader = compileShader(
-			[fragmentSource,], GL_FRAGMENT_SHADER_ARB
-		)
-		glAttachShader(program, fragmentShader)
+    if vertexSource:
+        vertexShader = compileShader(
+            [vertexSource,], GL_VERTEX_SHADER_ARB
+        )
+        glAttachShader(program, vertexShader)
+    if fragmentSource:
+        fragmentShader = compileShader(
+            [fragmentSource,], GL_FRAGMENT_SHADER_ARB
+        )
+        glAttachShader(program, fragmentShader)
 
-	glValidateProgram( program )
-	glLinkProgram(program)
+    glValidateProgram( program )
+    glLinkProgram(program)
 
-	if vertexShader:
-		glDeleteShader(vertexShader)
-	if fragmentShader:
-		glDeleteShader(fragmentShader)
+    if vertexShader:
+        glDeleteShader(vertexShader)
+    if fragmentShader:
+        glDeleteShader(fragmentShader)
 
-	return program
+    return program
 
 fragSignedColorTex = '''
     // Fragment program

@@ -50,7 +50,7 @@ else:
 class Clock:
     """A convenient class to keep track of time in your experiments.
     You can have as many independent clocks as you like (e.g. one 
-    to time	responses, one to keep track of stimuli...)
+    to time responses, one to keep track of stimuli...)
     The clock is based on python.time.time() which is a sub-millisec
     timer on most machines. i.e. the times reported will be more
     accurate than you need!

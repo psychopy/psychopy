@@ -1804,7 +1804,7 @@ class SimpleImageStim:
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPushMatrix()
         GL.glLoadIdentity()
-        GL.glOrtho( 0, self.win.size[0],0, self.win.size[1], 0, 1 )	#this also sets the 0,0 to be top-left
+        GL.glOrtho( 0, self.win.size[0],0, self.win.size[1], 0, 1 )#this also sets the 0,0 to be top-left
         #but return to modelview for rendering
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
@@ -4884,7 +4884,7 @@ class RatingScale:
             rightKeys :
                 list of keys that mean "move rightwards", default = ['right']
             lineColor :
-            	color to use for the scale line, default = 'White'
+                color to use for the scale line, default = 'White'
             markerStyle :
                 *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
             markerColor :

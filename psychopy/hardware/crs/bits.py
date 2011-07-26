@@ -18,10 +18,10 @@ try:
 except:
     haveBitsDLL=False
 
-bits8BITPALETTEMODE 		=  0x00000001  #/* normal vsg mode */
-NOGAMMACORRECT  	=  0x00004000  #/* Gamma correction mode */
-GAMMACORRECT    		=  0x00008000  #/* Gamma correction mode */
-VIDEOENCODEDCOMMS =  0x00080000 # needs to be set so that LUT is read from screen
+bits8BITPALETTEMODE =  0x00000001  #/* normal vsg mode */
+NOGAMMACORRECT      =  0x00004000  #/* Gamma correction mode */
+GAMMACORRECT        =  0x00008000  #/* Gamma correction mode */
+VIDEOENCODEDCOMMS   =  0x00080000 # needs to be set so that LUT is read from screen
 
 DEBUG=True
 
@@ -66,11 +66,11 @@ class BitsBox:
         self._HEADandLUT[:12,:,0] = numpy.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
         self._HEADandLUT[:12,:,1] = numpy.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
         self._HEADandLUT[:12,:,2] = numpy.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
-        self.LUT=numpy.zeros((256,3),'d')		#just a place holder
+        self.LUT=numpy.zeros((256,3),'d')        #just a place holder
         self.setLUT()#this will set self.LUT and update self._LUTandHEAD
         
 
-    def setLUT(self,newLUT=None, gammaCorrect=True, LUTrange=1.0):		
+    def setLUT(self,newLUT=None, gammaCorrect=True, LUTrange=1.0):        
         """Sets the LUT to a specific range of values.
         
         Note that, if you leave gammaCorrect=True then any LUT values you supply
@@ -82,7 +82,7 @@ class BitsBox:
         
         **Examples:**
             ``bitsBox.setLUT()``
-            	builds a LUT using bitsBox.contrast and bitsBox.gamma
+                builds a LUT using bitsBox.contrast and bitsBox.gamma
             
             ``bitsBox.setLUT(newLUT=some256x1array)``
                 (NB array should be float 0.0:1.0)
@@ -135,7 +135,7 @@ class BitsBox:
             #use LUT as is
             #check range is 0:1
             if max(max(newLUT))>1.0:
-                raise AttributeError, 'newLUT should be float in range 0.0:1.0'				
+                raise AttributeError, 'newLUT should be float in range 0.0:1.0'                
             self.LUT[startII:endII,:]= newLUT
             
         else:
@@ -166,12 +166,12 @@ class BitsBox:
         """
         #push the projection matrix and set to orthorgaphic
         
-        GL.glMatrixMode(GL.GL_PROJECTION)						
-        GL.glPushMatrix()									
-        GL.glLoadIdentity()				
-        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )	#this also sets the 0,0 to be top-left
+        GL.glMatrixMode(GL.GL_PROJECTION)                        
+        GL.glPushMatrix()                                    
+        GL.glLoadIdentity()                
+        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )    #this also sets the 0,0 to be top-left
         #but return to modelview for rendering
-        GL.glMatrixMode(GL.GL_MODELVIEW)							
+        GL.glMatrixMode(GL.GL_MODELVIEW)                            
         GL.glLoadIdentity()
         
         #draw the pixels
@@ -185,7 +185,7 @@ class BitsBox:
         GL.glDrawPixelsub(GL.GL_RGB, self._HEADandLUT)
         #GL.glDrawPixels(524,1, GL.GL_RGB,GL.GL_UNSIGNED_BYTE, self._HEADandLUTstr)
         #return to 3D mode (go and pop the projection matrix)
-        GL.glMatrixMode( GL.GL_PROJECTION )					
+        GL.glMatrixMode( GL.GL_PROJECTION )                    
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
         
@@ -250,11 +250,11 @@ def init():
 def setVideoMode(videoMode):
     """set the video mode of the bits++ (win32 only)
     
-    bits8BITPALETTEMODE 		=  0x00000001  #normal vsg mode
+    bits8BITPALETTEMODE         =  0x00000001  #normal vsg mode
     
-    NOGAMMACORRECT  	=  0x00004000  #No gamma correction mode
+    NOGAMMACORRECT      =  0x00004000  #No gamma correction mode
     
-    GAMMACORRECT    		=  0x00008000  #Gamma correction mode
+    GAMMACORRECT            =  0x00008000  #Gamma correction mode
     
     VIDEOENCODEDCOMMS =  0x00080000
     

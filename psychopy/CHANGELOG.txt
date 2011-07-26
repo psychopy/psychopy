@@ -13,11 +13,20 @@ PsychoPy 1.70
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* IMPROVED felxibility for start/stop in Builder Components
 * CHANGED MovieStim.playing property is now called MovisStim.status (in keeping
     with other stimuli)
-* ADDED wide-format data files (saveAsWideText()) (Thanks Michael Macaskill)
-*
+* ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
+
+    - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
+    - number of frames, rather than time (s), for greater precision
+    - an arbitrary condition (e.g. otherStim.status==STOPPED )
+
+* IMPROVED documentation (thanks Becky Sharman)
+* ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
+* ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
+* ADDED hardware/scanEmulator (see API reference) to emulate fMRI or other scanners for testing (thanks Jeremy)
+* FIXED demos now unpack to an empty folder (thanks Jeremy)
+* FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
 
 PsychoPy 1.65
 ------------------------------

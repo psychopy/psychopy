@@ -67,9 +67,9 @@ class TrialHandler:
         self.nTotal = nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial
         self.method = method
-        self.thisRepN = 0		#records which repetition or pass we are on
-        self.thisTrialN = -1	#records which trial number within this repetition
-        self.thisIndex = 0		#the index of the current trial in the original matrix
+        self.thisRepN = 0        #records which repetition or pass we are on
+        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisIndex = 0        #the index of the current trial in the original matrix
         self.thisTrial = []
         self.finished=False
         self.extraInfo=extraInfo
@@ -236,7 +236,7 @@ class TrialHandler:
     def _parseDataOutput(self, dataOut):
 
         dataHead=[]#will store list of data headers
-        dataAnal=dict([])	#will store data that has been analyzed
+        dataAnal=dict([])    #will store data that has been analyzed
         if type(dataOut)==str: dataout=[dataOut]#don't do list convert or we get a list of letters
         elif type(dataOut)!=list: dataOut = list(dataOut)
 
@@ -2217,7 +2217,7 @@ class FitWeibull(_baseFunctionFit):
     """Fit a Weibull function (either 2AFC or YN)
     of the form::
 
-    	y = chance + (1.0-chance)*(1-exp( -(xx/alpha)**(beta) ))
+        y = chance + (1.0-chance)*(1-exp( -(xx/alpha)**(beta) ))
 
     and with inverse::
 
@@ -2310,7 +2310,7 @@ class FitLogistic(_baseFunctionFit):
     """Fit a Logistic function (either 2AFC or YN)
     of the form::
 
-    	y = chance + (1-chance)/(1+exp((PSE-xx)*JND))
+        y = chance + (1-chance)/(1+exp((PSE-xx)*JND))
 
     and with inverse::
 
@@ -2342,7 +2342,7 @@ class FitCumNormal(_baseFunctionFit):
     """Fit a Cumulative Normal function (aka error function or erf)
     of the form::
 
-    	y = chance + (1-chance)*(special.erf(xx*xScale - xShift)/2.0+0.5)
+        y = chance + (1-chance)*(special.erf(xx*xScale - xShift)/2.0+0.5)
 
     and with inverse::
 
@@ -2408,7 +2408,7 @@ def functionFromStaircase(intensities, responses, bins = 10):
 
     usage::
 
-    	[intensity, meanCorrect, n] = functionFromStaircase(intensities, responses, bins)
+        [intensity, meanCorrect, n] = functionFromStaircase(intensities, responses, bins)
 
     where:
             intensities
