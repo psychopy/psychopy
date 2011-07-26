@@ -1298,8 +1298,10 @@ class _BaseParamsDlg(wx.Dialog):
         self.startTypeCtrl.SetStringSelection(startTypeParam.val)
         #the value to be used as the start/stop
         self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
         #the value to estimate start/stop if not numeric
         self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
+        self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
         #add the controls to a new line
         startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         startSizer.Add(self.startTypeCtrl)
@@ -1330,8 +1332,10 @@ class _BaseParamsDlg(wx.Dialog):
         self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
         #the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
         #the value to estimate start/stop if not numeric
         self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
+        self.durationEstimCtrl.SetToolTipString(self.params['durationEstim'].hint)
         #add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         stopSizer.Add(self.stopTypeCtrl)
