@@ -4,6 +4,7 @@
 
 from _visual import * #to get the template visual component
 from os import path
+from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
@@ -44,12 +45,13 @@ class TextComponent(VisualComponent):
             hint="Specifies the height of the letter (the width is then determined by the font)")
     def writeInitCode(self,buff):
         #do we need units code?
-        if self.params['units'].val=='window units': units=""
-        else: units="units=%(units)s, " %self.params
+        if self.params['units'].val=='window units': unitsStr=""
+        else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        text = unicode(self.params['text'])
-        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(self.params))
-        buff.writeIndented("    text=%s,\n" %text)
-        buff.writeIndented("    font=%(font)s,\n" %(self.params))
-        buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))
+        text = setDefault
+        inits = getInitVals(self.params)#replaces variable params with sensible defaults
+        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
+        buff.writeIndented("    text=%(text)s,\n" %inits)
+        buff.writeIndented("    font=%(font)s,\n" %inits)
+        buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s,\n" %(inits))
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(inits))

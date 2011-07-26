@@ -32,7 +32,6 @@ The parameters of the `Code Component` simply specify the code that will get exe
     End Experiment:
         Use this for things like saving data to disk, presenting a graph(?), resetting hardware to its original state etc.
 
-
 .. _code uses:
 
 Example code uses
@@ -53,8 +52,7 @@ Create a patch of noise
 ====================================================
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
-	import scipy
-	noiseTexture = scipy.random.rand(128,128)*2.0-1
+	noiseTexture = random.rand(128,128)*2.0-1
 
 Send a feedback message at the end of the experiment
 ====================================================
@@ -65,3 +63,35 @@ Create a `Code Component` with this in the `Begin Experiment` field::
 and with this in the `End Experiment` field::
 	
 	print "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
+
+(or you could create a Text Component with that as contents rather than printing it).
+	
+What variables are available to use?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most complete way to find this out for your particular script is to :ref:`compile it <compileScript>` and take a look at what's in there. Below are some options that appear in nearly all scripts. Remember that those variables are Python objects and can have attributes of their own. You can find out about those attributes using::
+	
+	dir(myObject)
+
+Common PsychoPy variables:
+
+	- expInfo: This is a Python Dictionary containing the information from the starting dialog box. e.g. That generally includes the 'participant' identifier. You can access that in your experiment using `exp['participant']`
+	- t: the current time (in seconds) measured from the start of this Routine
+	- frameN: the number of /completed/ frames since the start of the Routine (=0 in the first frame)
+	- win: the :class:`~psychopy.visual.Window` that the experiment is using
+
+Your own variables:
+
+	- anything you've created in a Code Component is available for the rest of the script
+	- the name of any other stimulus or the parameters from your file also exist as variables
+	- most Components have a `status` attribute, which is useful to determine whether a stimulus has `NOT_STARTED`, `STARTED` or `FINISHED`. e.g., to 
+
+The `contents of the numpy library <http://www.scipy.org/Numpy_Example_List_With_Doc>`_ are also imported so you can use a huge number of maths functions from there:
+
+	- `random.random() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.random.html>`_ , `random.randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `random.normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `random.poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
+	
+	- sin(), cos(), pi etc. : for geometry (warning: this is in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
+	
+	- `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: create an array of linearly spaced values
+	
+	- log(), log10(): the natural and base-10 log functions, respectively

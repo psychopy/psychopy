@@ -1,7 +1,7 @@
 .. _compileScript:
 
 Compiling a Script
---------------
+----------------------
 
 If you click the `compile script` icon this will display the script for your experiment in the :ref:`coder` window. 
 

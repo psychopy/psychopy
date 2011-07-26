@@ -4,6 +4,7 @@
 
 from _base import *
 from os import path
+from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
@@ -45,11 +46,11 @@ class SoundComponent(BaseComponent):
             hint="The volume (in range 0 to 1)")
 
     def writeInitCode(self,buff):
-        buff.writeIndented("#initialise %(name)s\n" %(self.params))
+        inits = getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['stopType']=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.paramss
-        buff.writeIndented("%s=sound.Sound(%(sound)s,%s)\n" %(self.params['name'], durationSetting))
-        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(self.params))
+        buff.writeIndented("%s=sound.Sound(%(sound)s,%s)\n" %(inits, durationSetting))
+        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(inits))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """

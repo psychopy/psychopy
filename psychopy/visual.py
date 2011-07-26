@@ -6017,23 +6017,21 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         itsaFile = True # just a guess at this point
         try:
             os.path.isfile(tex)
-        except TypeError: # its not a file; maybe an image already?
+        except TypeError: # it's not a file; maybe an image already?
             try:
                 im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
                 #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
             except AttributeError: # ...but apparently not
-                log.error("couldn't find image...%s" %(filename))
-                core.quit()
-                raise #ensure we quit
+                log.error("Couldn't find image...%s" %(tex)); log.flush()
+                raise AttributeError, "Couldn't find image...%s" %(tex)#ensure we quit
             itsaFile = False
         if itsaFile:
             if os.path.isfile(tex):
                 im = Image.open(tex)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
-                log.error("couldn't find image...%s" %(tex))
-                core.quit()
-                raise #so thatensure we quit
+                log.error("Found image file '%s' but it failed to load" %(tex)); log.flush()
+                raise "couldn't find image...%s" %(tex)#ensure we quit
         stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:

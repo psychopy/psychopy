@@ -67,7 +67,7 @@ class VisualComponent(_base.BaseComponent):
             buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(+1, relative=True)#to exit the if block
+            buff.setIndentLevel(-1, relative=True)#to exit the if block
     def writeParamUpdates(self, buff, updateType):
         """Write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
