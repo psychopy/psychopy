@@ -4,6 +4,7 @@
 
 from _visual import * # to get the template visual component
 from os import path
+from psychopy.app.builder.components import getInitVals
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -42,10 +43,11 @@ class ApertureComponent(VisualComponent):
         del self.params['colorSpace']
 
     def writeInitCode(self, buff):
+        inits = getInitVals(self.params)
         #do writing of init
-        buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s',\n" % (self.params))
-        buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (self.params))
-        buff.writeIndented("%(name)s.disable() # is enabled by default\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s',\n" % (inits))
+        buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (inits))
+        buff.writeIndented("%(name)s.disable() # is enabled by default\n" %(inits))
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """

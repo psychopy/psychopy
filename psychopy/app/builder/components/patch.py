@@ -4,6 +4,7 @@
 
 from _visual import * #to get the template visual component
 from os import path
+from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
@@ -50,13 +51,15 @@ class PatchComponent(VisualComponent):
             hint="How should the image be interpolated if/when rescaled")
 
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%(name)s',\n" %(self.params))
-        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(self.params))
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(self.params) )
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params) )
-        buff.writeIndented("    texRes=%(texture resolution)s" %(self.params))# no newline - start optional parameters
-        if self.params['units'].val!='window units': buff.write(", units=%(units)s" %(self.params) )
-        if self.params['interpolate']=='linear': buff.write(", interpolate=True")
+        inits = getInitVals(self.params)#replaces variable params with defaults
+        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%(name)s',\n" %(inits))
+        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
+        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(inits) )
+        buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
+        if self.params['units'].val!='window units': buff.write(", units=%(units)s" %(inits) )
+        if self.params['interpolate']=='linear':
+            buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
-        buff.write(")\n" %(self.params))#finish with newline
+        buff.write(")\n")#finish with newline
 

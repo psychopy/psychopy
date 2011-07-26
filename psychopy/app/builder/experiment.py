@@ -757,23 +757,17 @@ class Routine(list):
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
-
-        buff.writeIndentedLines("\n#update component parameters for each repeat\n")
-        #This is the beginning of the routine, before the loop starts
-        for event in self:
-            event.writeRoutineStartCode(buff)
-
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#run %s\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
 
-        maxtime = self.getMaxTime()
-        if maxtime >= FOREVER:
-            maxtime = 'FOREVER' # defined in the script by import psychopy.constants
-        else:
-            maxtime = '%.4f' % maxtime
+        buff.writeIndentedLines("\n#update component parameters for each repeat\n")
+        #This is the beginning of the routine, before the loop starts
+        for event in self:
+            event.writeRoutineStartCode(buff)
+
         buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
 
@@ -783,7 +777,7 @@ class Routine(list):
         buff.writeIndented('frameN=frameN+1#number of completed frames (so 0 in first frame)\n')
 
         #write the code for each component during frame
-        buff.writeIndentedLines('#update/draw components on each frame\n')
+        buff.writeIndentedLines('#update/draw components on each frame')
         for event in self:
             event.writeFrameCode(buff)
 
@@ -822,19 +816,6 @@ class Routine(list):
             if comp.params['name']==name:
                 return comp
         return None
-    def getMaxTime(self):
-        maxTime=0
-        times=[]
-        for event in self:
-            if 'startTime' not in event.params.keys(): continue
-            if event.params['duration'].val in ['-1', ''] \
-                or '$' in [event.params['startTime'].val[0], event.params['duration'].val[0]]:
-                maxTime=FOREVER
-            else:
-                exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
-            times.append(maxTime)
-            maxTime=float(max(times))
-        return maxTime
 
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.

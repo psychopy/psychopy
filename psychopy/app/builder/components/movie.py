@@ -4,6 +4,7 @@
 
 from _visual import * #to get the template visual component
 from os import path
+from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
@@ -41,11 +42,21 @@ class MovieComponent(VisualComponent):
         del self.params['color']
         del self.params['colorSpace']
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
-        if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
-        buff.writeIndented(")\n")
-
+        #if the movie is constant then load it once at beginning of script.
+        #if it changes each repeat then we should wait and creat the entire object at
+        #Routine start
+        if self.params['movie'].updates=='constant':
+            initVals = getInitVals(self.params)
+            buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
+            buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
+            if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
+            buff.writeIndented(")\n")
+    def writeRoutineStartCode(self,buff):
+        if self.params['movie'].updates!='constant':
+            buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
+            buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
+            if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
+            buff.writeIndented(")\n")
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
