@@ -307,7 +307,7 @@ class Experiment:
                     _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
                     for fname in fieldNames:
                         if fname != self.namespace.make_valid(fname):
-                            log.error('problem with condition name %s in trialListFile %s' % (fname, trialListFile))
+                            log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, trialListFile))
                         else:
                             self.namespace.add(fname)
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
