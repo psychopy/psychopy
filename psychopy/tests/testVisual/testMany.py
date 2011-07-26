@@ -25,6 +25,19 @@ class _baseVisualTest:
     def setup(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
+    def testAutoDraw(self):
+        win = self.win
+        stims=[]
+        stims.append(visual.PatchStim(win))
+        stims.append(visual.ShapeStim(win))
+        stims.append(visual.TextStim(win))
+        for stim in stims:
+            assert stim.status==visual.NOT_STARTED
+            stim.setAutoDraw(True)
+            assert stim.status==visual.STARTED
+            stim.setAutoDraw(False)
+            assert stim.status==visual.FINISHED
+            assert stim.status==visual.STOPPED
     def testGabor(self):
         win = self.win
         contextName=self.contextName

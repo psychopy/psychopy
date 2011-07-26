@@ -20,7 +20,7 @@ inf = FOREVER #see constants.py
 canvasColor=[200,200,200]#in prefs? ;-)
 
 class FileDropTarget(wx.FileDropTarget):
-    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough. 
+    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
     """
     def __init__(self, builder):
@@ -30,7 +30,7 @@ class FileDropTarget(wx.FileDropTarget):
         log.debug('PsychoPyBuilder: received dropped files: filenames')
         for filename in filenames:
             self.builder.fileOpen(filename=filename)
-            
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -51,7 +51,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         #self.SetAutoLayout(True)
         self.SetScrollRate(self.dpi/4,self.dpi/4)
-        
+
         # create a PseudoDC to record our drawing
         self.pdc = wx.PseudoDC()
         self.pen_cache = {}
@@ -63,7 +63,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.entryPointIDlist = []
         self.mode = 'normal'#can also be 'loopPoint1','loopPoint2','routinePoint'
         self.insertingRoutine=""
-        
+
         #for the context menu
         self.componentFromID={}#use the ID of the drawn icon to retrieve component (loop or routine)
         self.contextMenuItems=['remove']
@@ -72,21 +72,21 @@ class FlowPanel(wx.ScrolledWindow):
             id = wx.NewId()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-            
+
         #self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
-        if self.app.prefs.app['debugMode']: 
+        if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
-        
+
         self.draw()
 
         #bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
-        if self.app.prefs.app['debugMode']: 
+        if self.app.prefs.app['debugMode']:
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -123,8 +123,8 @@ class FlowPanel(wx.ScrolledWindow):
         r.OffsetXY(-(xView*xDelta),-(yView*yDelta))
 
     def onInsertRoutine(self, evt):
-        """For when the insert Routine button is pressed - bring up dialog and 
-        present insertion point on flow line.        
+        """For when the insert Routine button is pressed - bring up dialog and
+        present insertion point on flow line.
         see self.insertRoutine() for further info
         """
         self.frame.SetStatusText("Select a Routine to insert (Esc to exit)")
@@ -142,7 +142,7 @@ class FlowPanel(wx.ScrolledWindow):
         menu.Destroy() # destroy to avoid mem leak
     def onInsertRoutineSelect(self,event):
         """User has selected a routine to be entered so bring up the entrypoint marker
-        and await mouse button press.        
+        and await mouse button press.
         see self.insertRoutine() for further info
         """
         self.mode='routine'
@@ -156,7 +156,7 @@ class FlowPanel(wx.ScrolledWindow):
         onInsertRoutine() the button has been pressed so present menu
         onInsertRoutineSelect() user selected the name so present entry points
         OnMouse() user has selected a point on the timeline to insert entry
-        
+
         """
         self.frame.exp.flow.addRoutine(self.frame.exp.routines[self.insertingRoutine], ii)
         self.frame.addToUndoStack("AddRoutine")
@@ -183,13 +183,13 @@ class FlowPanel(wx.ScrolledWindow):
 
     def insertLoop(self, evt=None):
         #bring up listbox to choose the routine to add and/or create a new one
-        loopDlg = DlgLoopProperties(frame=self.frame, 
+        loopDlg = DlgLoopProperties(frame=self.frame,
             helpUrl = self.app.urls['builder.loops'])
         startII = self.gapMidPoints.index(min(self.entryPointPosList))
         endII = self.gapMidPoints.index(max(self.entryPointPosList))
         if loopDlg.OK:
             handler=loopDlg.currentHandler
-            self.frame.exp.flow.addLoop(handler, 
+            self.frame.exp.flow.addLoop(handler,
                 startPos=startII, endPos=endII)
             self.frame.addToUndoStack("AddLoopToFlow")
         self.clearMode()
@@ -352,7 +352,7 @@ class FlowPanel(wx.ScrolledWindow):
     def draw(self, evt=None):
         """This is the main function for drawing the Flow panel.
         It should be called whenever something changes in the exp.
-        
+
         This then makes calls to other drawing functions, like drawEntryPoints...
         """
         if not hasattr(self.frame, 'exp'):
@@ -373,15 +373,15 @@ class FlowPanel(wx.ScrolledWindow):
         dLoopToBaseLine=40
         dBetweenLoops = 25
         gap=self.dpi/2#gap (X) between entries in the flow
-        
+
         #guess virtual size; nRoutines wide by nLoops high
         #make bigger than needed and shrink later
-        nRoutines = len(expFlow)        
+        nRoutines = len(expFlow)
         nLoops = 0
         for entry in expFlow:
             if entry.getType()=='LoopInitiator': nLoops+=1
         self.SetVirtualSize(size=(nRoutines*self.dpi*2, nLoops*dBetweenLoops+dLoopToBaseLine*3))
-        
+
         #step through components in flow
         currX=self.linePos[0]
         lineId=wx.NewId()
@@ -392,7 +392,7 @@ class FlowPanel(wx.ScrolledWindow):
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
                 self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
-                nestLevel+=1#start of loop so increment level of nesting 
+                nestLevel+=1#start of loop so increment level of nesting
             elif entry.getType()=='LoopTerminator':
                 self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
                 nestLevel-=1#end of loop so decrement level of nesting
@@ -422,7 +422,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.drawLoopStart(pdc,pos=[thisInit,self.linePos[1]], downwards=True)
             self.drawLoopEnd(pdc,pos=[thisTerm,self.linePos[1]], downwards=True)
             if height>maxHeight: maxHeight=height
-            
+
         self.SetVirtualSize(size=(currX+100, maxHeight+50))
         #draw all possible locations for routines DEPRECATED SINCE 1.62 because not drawing those
         #for n, xPos in enumerate(self.pointsToDraw):
@@ -462,7 +462,7 @@ class FlowPanel(wx.ScrolledWindow):
                 rectToRedraw.Inflate(4,4)
                 self.OffsetRect(rectToRedraw)
                 self.RefreshRect(rectToRedraw, False)
-            
+
         self.entryPointPosList=posList
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
 
@@ -480,7 +480,7 @@ class FlowPanel(wx.ScrolledWindow):
         tmpId = wx.NewId()
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))        
+        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         if downwards:
             dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1])#points down
         else:
@@ -528,12 +528,12 @@ class FlowPanel(wx.ScrolledWindow):
         self.componentFromID[id]=routine
         #set the area for this component
         dc.SetIdBounds(id,rect)
-        
+
         return endX
 #        tbtn = AB.AquaButton(self, id, pos=pos, label=name)
 #        tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
 #        print tbtn.GetBackgroundColour()
-        
+
 #        print dir(tbtn)
 #        print tbtn.GetRect()
 #        rect = tbtn.GetRect()
@@ -546,7 +546,7 @@ class FlowPanel(wx.ScrolledWindow):
             base,height,rgb=[0,0,0], downwards=True):
         if downwards: up=-1
         else: up=+1
-        
+
         #draw loop itself
         tmpId = wx.NewId()
         dc.SetId(tmpId)
@@ -562,7 +562,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.DrawSpline(pts)
         area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
         dc.SetIdBounds(tmpId, area)
-        
+
         #add a name label that can be clicked on
         if self.frame.app.prefs.builder['showLoopInfoInFlow']:
             name += ': '+str(loop.params['nReps'].val)+'x, '+str(loop.params['loopType'].val)
@@ -645,7 +645,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_SIZE, self.onResize)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
-        
+
     def onResize(self, event):
         self.sizePix=event.GetSize()
         self.timeXposStart = 200
@@ -662,7 +662,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
         r.OffsetXY(-(xView*xDelta),-(yView*yDelta))
-        
+
     def OnMouse(self, event):
         if event.LeftDown():
             x,y = self.ConvertEventCoords(event)
@@ -738,18 +738,18 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.RemoveAll()#clear all objects (icon buttons)
 
         self.pdc.BeginDrawing()
-        
+
         #work out where the component names and icons should be from name lengths
         self.setFontSize(1000/self.dpi, self.pdc)
         longest=0; w=50
         for comp in self.routine:
             name = comp.params['name'].val
-            if len(name)>longest: 
+            if len(name)>longest:
                 longest=len(name)
                 w = self.GetFullTextExtent(name)[0]
         self.iconXpos = w+50
         self.timeXpos = w+90
-        
+
         #draw timeline at bottom of page
         yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
         self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
@@ -791,13 +791,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
         if yPosBottom>300:#if bottom of grid is far away then draw labels here too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
-    def setFontSize(self, size, dc):        
+    def setFontSize(self, size, dc):
         font = self.GetFont()
         font.SetPointSize(size)
         dc.SetFont(font)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
-        
+
         #set an id for the region of this comonent (so it can act as a button)
         ##see if we created this already
         id=None
@@ -808,11 +808,11 @@ class RoutineCanvas(wx.ScrolledWindow):
             id = wx.NewId()
             self.componentFromID[id]=component
         dc.SetId(id)
-        
+
         thisIcon = components.icons[component.getType()][0]#index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
         fullRect = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
-        
+
         self.setFontSize(1000/self.dpi, dc)
 
         name = component.params['name'].val
@@ -824,27 +824,42 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawText(name, x-20, y)
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
-        #draw entries on timeline
-        if 'startTime' in component.params.keys():
-            try:
+        #draw entries on timeline (if they have some time definition)
+        if 'startType' in component.params.keys():
+            startType=component.params['startType'].val
+            stopType=component.params['stopType'].val
+
+            #deduce a start time (s) if possible
+            if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
+                startTime=float(component.params['startVal'].val)
+            #user has given a time estimate
+            elif canBeNumeric(component.params['startEstim'].val):
+                startTime=float(component.params['startEstim'].val)
+            else: startTime=None
+
+            #deduce duration (s) if possible. Duration used because box needs width
+            if component.params['stopVal'].val in ['','-1','None']:
+                duration=inf#infinite duration
+            elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
+                duration=float(component.params['stopVal'].val)-startTime
+            elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
+                duration=float(component.params['stopVal'].val)
+            elif canBeNumeric(component.params['durationEstim'].val):
+                duration=float(component.params['durationEstim'].val)
+            else:
+                duration=None
+
+            if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
                 dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
-                #for the fill, draw once in white near-opaque, then in transp color
                 dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
                 h = self.componentStep/2
-                exec("st = %s" %(component.params['startTime']))
-                #get end time if not -1(infinite)
-                if component.params['duration'].val in ['','-1','None']: duration=inf#infinite duration
-                else: exec("duration = %s" %(component.params['duration']))
-                xSt = self.timeXposStart + st/xScale
+                xSt = self.timeXposStart + startTime/xScale
                 w = duration/xScale
+                if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
-                fullRect.Union(wx.Rect(xSt, y, w,h ))
-            except:
-                pass
-                #probably the component has a non-numeric start/duration
-        #set the area for this component
+                fullRect.Union(wx.Rect(xSt, y, w,h ))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
@@ -870,11 +885,11 @@ class RoutineCanvas(wx.ScrolledWindow):
 
     def getSecsPerPixel(self):
         return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
-    def getMaxTime(self):  
-        """What the last (predetermined) stimulus time to be presented. If 
+    def getMaxTime(self):
+        """What the last (predetermined) stimulus time to be presented. If
         there are no components or they have code-based times then will default
         to 10secs
-        """      
+        """
         maxTime=0
         for n, component in enumerate(self.routine):
             try:exec('thisT=%(startTime)s+%(duration)s' %component.params)
@@ -901,7 +916,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             return routinePage.routine
         else: #no routine page
             return None
-    def setCurrentRoutine(self, routine):        
+    def setCurrentRoutine(self, routine):
         for ii in range(self.GetPageCount()):
             if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
@@ -986,7 +1001,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
             self.componentButtons[thisName]=btn#store it for elsewhere
-                    
+
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.SetupScrolling()
@@ -1015,7 +1030,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             params = newComp.params,
             order = newComp.order,
             helpUrl=helpUrl)
-        
+
         compName = newComp.params['name']
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
@@ -1095,7 +1110,7 @@ class ParamCtrls:
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                         size=wx.Size(self.valueWidth,-1))
             if label in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
-                self.valueCtrl.SetFocus() 
+                self.valueCtrl.SetFocus()
         self.valueCtrl.SetToolTipString(param.hint)
 
         #create the type control
@@ -1177,7 +1192,7 @@ class ParamCtrls:
 
 class _BaseParamsDlg(wx.Dialog):
     def __init__(self,frame,title,params,order,
-            helpUrl=None, suppressTitles=True, 
+            helpUrl=None, suppressTitles=True,
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
@@ -1206,7 +1221,8 @@ class _BaseParamsDlg(wx.Dialog):
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
-        
+        self.timeParams=['startType','startVal','stopType','stopVal']
+
         #create a header row of titles
         if not suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
@@ -1215,9 +1231,11 @@ class _BaseParamsDlg(wx.Dialog):
             #self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
             self.ctrlSizer.Add(wx.StaticText(self,-1,'Updates',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
             self.currRow+=1
-        self.ctrlSizer.Add(wx.StaticLine(self,-1), (self.currRow,0), (1,3))
+            self.ctrlSizer.Add(
+                wx.StaticLine(self, size=wx.Size(100,20)),
+                (self.currRow,0),(1,2), wx.ALIGN_CENTER|wx.EXPAND)
         self.currRow+=1
-        
+
         #get all params and sort
         remaining = sorted(self.params.keys())
         #check for advanced params
@@ -1225,8 +1243,22 @@ class _BaseParamsDlg(wx.Dialog):
             self.advParams=self.params['advancedParams']
             remaining.remove('advancedParams')
         else:self.advParams=[]
-        
-        #loop through the normal params with a prescribed order (the most important?)
+
+        #start with the name (always)
+        if 'name' in remaining:
+            self.addParam('name')
+            remaining.remove('name')
+            if 'name' in self.order:
+                self.order.remove('name')
+#            self.currRow+=1
+        #add start/stop info
+        if 'startType' in remaining:
+            remaining = self.addStartStopCtrls(remaining=remaining)
+            #self.ctrlSizer.Add(
+            #    wx.StaticLine(self, size=wx.Size(100,10)),
+            #    (self.currRow,0),(1,3), wx.ALIGN_CENTER|wx.EXPAND)
+            self.currRow+=1#an extra row to create space (staticLine didn't look right)
+        #loop through the prescribed order (the most important?)
         for fieldName in self.order:
             if fieldName in self.advParams:continue#skip advanced params
             self.addParam(fieldName)
@@ -1240,7 +1272,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.addAdvancedTab()
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
-                
+
         # contextual menu:
         self.contextMenuItems=['color picker']
         self.contextItemFromID={}; self.contextIDFromItem={}
@@ -1248,7 +1280,84 @@ class _BaseParamsDlg(wx.Dialog):
             id = wx.NewId()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
-            
+    def addStartStopCtrls(self,remaining):
+        """Add controls for startType, startVal, stopType, stopVal
+        remaining refers to
+        """
+        sizer=self.ctrlSizer
+        parent=self
+        currRow = self.currRow
+
+        ##Start point
+        startTypeParam = self.params['startType']
+        startValParam = self.params['startVal']
+        #create label
+        label = wx.StaticText(self,-1,'start', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'expected start (s)', style=wx.ALIGN_CENTER)
+        labelEstim.SetForegroundColour('gray')
+        #the method to be used to interpret this start/stop
+        self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
+        self.startTypeCtrl.SetStringSelection(startTypeParam.val)
+        #the value to be used as the start/stop
+        self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
+        #the value to estimate start/stop if not numeric
+        self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
+        self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
+        #add the controls to a new line
+        startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        startSizer.Add(self.startTypeCtrl)
+        startSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
+        startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        startEstimSizer.Add(labelEstim)
+        startEstimSizer.Add(self.startEstimCtrl)
+        startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
+        startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
+        self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
+        #add our new row
+        self.ctrlSizer.Add(startAllCrtlSizer,(self.currRow,1),(1,1),flag=wx.EXPAND)
+        self.currRow+=1
+        remaining.remove('startType')
+        remaining.remove('startVal')
+        remaining.remove('startEstim')
+
+        ##Stop point
+        stopTypeParam = self.params['stopType']
+        stopValParam = self.params['stopVal']
+        #create label
+        label = wx.StaticText(self,-1,'stop', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'expected duration (s)', style=wx.ALIGN_CENTER)
+        labelEstim.SetForegroundColour('gray')
+        #the method to be used to interpret this start/stop
+        self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
+        self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
+        #the value to be used as the start/stop
+        self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
+        #the value to estimate start/stop if not numeric
+        self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
+        self.durationEstimCtrl.SetToolTipString(self.params['durationEstim'].hint)
+        #add the controls to a new line
+        stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
+        stopSizer.Add(self.stopTypeCtrl)
+        stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
+        stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        stopEstimSizer.Add(labelEstim)
+        stopEstimSizer.Add(self.durationEstimCtrl)
+        stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
+        stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
+        self.ctrlSizer.Add(label, (self.currRow,0),(1,1),wx.ALIGN_RIGHT)
+        #add our new row
+        self.ctrlSizer.Add(stopAllCrtlSizer,(self.currRow,1),(1,1),flag=wx.EXPAND)
+        self.currRow+=1
+        remaining.remove('stopType')
+        remaining.remove('stopVal')
+        remaining.remove('durationEstim')
+
+        return remaining
+
     def addParam(self,fieldName, advanced=False):
         """Add a parameter to the basic sizer
         """
@@ -1272,7 +1381,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow,3) )
-        if fieldName=='text':               
+        if fieldName=='text':
             self.ctrlSizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         if fieldName in ['color']: # eventually: 'fillColor', 'lineColor'
@@ -1319,7 +1428,7 @@ class _BaseParamsDlg(wx.Dialog):
             # add to undo stack?
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
-        
+
     def addText(self, text, size=None):
         if size==None:
             size = wx.Size(8*len(text)+16, 25)
@@ -1370,7 +1479,7 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
-        buttons.Realize()    
+        buttons.Realize()
         #put it all together
         self.mainSizer.Add(self.ctrlSizer,flag=wx.GROW)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
@@ -1383,7 +1492,7 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-    
+
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
         (populated during the __init__ function)
@@ -1396,6 +1505,18 @@ class _BaseParamsDlg(wx.Dialog):
             param=self.params[fieldName]
             if fieldName=='advancedParams':
                 pass
+            elif fieldName=='startType':
+                param.val = self.startTypeCtrl.GetStringSelection()
+            elif fieldName=='stopType':
+                param.val = self.stopTypeCtrl.GetStringSelection()
+            elif fieldName=='startVal':
+                param.val = self.startValCtrl.GetValue()
+            elif fieldName=='stopVal':
+                param.val = self.stopValCtrl.GetValue()
+            elif fieldName=='startEstim':
+                param.val = self.startEstimCtrl.GetValue()
+            elif fieldName=='durationEstim':
+                param.val = self.durationEstimCtrl.GetValue()
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()
@@ -1429,7 +1550,7 @@ class _BaseParamsDlg(wx.Dialog):
         """Uses self.app.followLink() to self.helpUrl
         """
         self.app.followLink(url=self.helpUrl)
-        
+
 class DlgLoopProperties(_BaseParamsDlg):
     def __init__(self,frame,title="Loop properties",loop=None,
             helpUrl=None,
@@ -1464,11 +1585,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
             loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
-        self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name, 
+        self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name,
             nReps=50, nReversals='',
-            stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases            
+            stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
         self.multiStairHandler=experiment.MultiStairHandler(exp=self.exp, name=new_name,
-            nReps=50, stairType='simple', switchStairs='random', 
+            nReps=50, stairType='simple', switchStairs='random',
             conditions=[], conditionsFile='')
         #replace defaults with the loop we were given
         if loop==None:
@@ -1488,7 +1609,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
-        
+
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
         self.makeConstantsCtrls()#the controls for Method of Constants
@@ -1509,7 +1630,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         else:
             if loop!=None:#if we had a loop during init then revert to its old name
                 loop.params['name'].val = old_name
-            
+
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a trialList
         if self.currentHandler.params.has_key('trialListFile'):
@@ -1518,7 +1639,7 @@ class DlgLoopProperties(_BaseParamsDlg):
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
-            self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName, 
+            self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName,
                 self.currentHandler.params[fieldName])
             container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
             self.ctrlSizer.Add(container)
@@ -1567,7 +1688,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.constantsCtrls[fieldName] = ctrls
-            
+
     def makeMultiStairCtrls(self):
         #a list of controls for the random/sequential versions
         #that can be hidden or shown
@@ -1697,7 +1818,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.trialListFile = self.trialList = ''
                 log.error('Rejected bad condition name in trialList file: %s' % str(msg).split(':')[0])
                 return
-            
+
             badNames = ''
             if len(fieldNames):
                 for fname in fieldNames:
@@ -1711,8 +1832,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.trialListFile = self.trialList = ''
                 return
             self.exp.namespace.add(fieldNames)
-                
-            if 'conditionsFile' in self.currentCtrls.keys():                
+
+            if 'conditionsFile' in self.currentCtrls.keys():
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
             else:
@@ -1795,18 +1916,18 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
-        
-    def onFullScrChange(self,event=None):       
+
+    def onFullScrChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
-            #get screen size for requested display            
+            #get screen size for requested display
             num_displays = wx.Display.GetCount()
             if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
                 log.error("User requested non-existent screen")
             else:
                 screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
-            #set vals and disable changes 
+            #set vals and disable changes
             self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(unicode(size))
             self.paramCtrls['Window size (pixels)'].valueCtrl.Disable()
             self.paramCtrls['Window size (pixels)'].nameCtrl.Disable()
@@ -1825,7 +1946,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         #add buttons for help, OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)        
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP)
             helpBtn.SetHelpText("Get help about this component")
@@ -1836,7 +1957,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         buttons.Add(self.OKbtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
-        
+
         self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
@@ -1845,7 +1966,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-    
+
 class BuilderFrame(wx.Frame):
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None,frameData=None,
@@ -1860,7 +1981,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
-                
+
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
         else:#work out a new frame size/location
@@ -1868,21 +1989,21 @@ class BuilderFrame(wx.Frame):
             default=self.appData['defaultFrame']
             default['winW'], default['winH'],  = int(dispW*0.75), int(dispH*0.75)
             if default['winX']+default['winW']>dispW:
-                default['winX']=5           
+                default['winX']=5
             if default['winY']+default['winH']>dispH:
                 default['winY']=5
             self.frameData = dict(self.appData['defaultFrame'])#take a copy
-            #increment default for next frame            
+            #increment default for next frame
             default['winX']+=10
-            default['winY']+=10            
-        
+            default['winY']+=10
+
         if self.frameData['winH']==0 or self.frameData['winW']==0:#we didn't have the key or the win was minimized/invalid
 
             self.frameData['winX'], self.frameData['winY'] = (0,0)
             usingDefaultSize=True
         else:
             usingDefaultSize=False
-        wx.Frame.__init__(self, parent=parent, id=id, title=title, 
+        wx.Frame.__init__(self, parent=parent, id=id, title=title,
                             pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
                             size=(int(self.frameData['winW']),int(self.frameData['winH'])),
                             style=style)
@@ -1910,7 +2031,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutOrig = sys.stdout
         self.stderrOrig = sys.stderr
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
-                
+
         #setup a default exp
         if fileName!=None and os.path.isfile(fileName):
             self.fileOpen(filename=fileName, closeCurrent=False)
@@ -1974,7 +2095,7 @@ class BuilderFrame(wx.Frame):
         #colorpicker_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'color%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
 
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
-        if sys.platform == 'darwin': ctrlKey = 'Cmd+'  
+        if sys.platform == 'darwin': ctrlKey = 'Cmd+'
         self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
         self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
@@ -2015,7 +2136,7 @@ class BuilderFrame(wx.Frame):
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
         menuBar.Append(self.fileMenu, '&File')
-        
+
         #create a file history submenu
         self.fileHistory = wx.FileHistory(maxFiles=10)
         self.recentFilesMenu = wx.Menu()
@@ -2024,7 +2145,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
-            
+
         self.fileMenu.Append(wx.ID_NEW,     "&New\t%s" %self.app.keys['new'])
         self.fileMenu.Append(wx.ID_OPEN,    "&Open...\t%s" %self.app.keys['open'])
         self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
@@ -2063,7 +2184,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
         self.toolsMenu.Append(self.IDs.stopFile, "Stop\t%s" %self.app.keys['stopScript'], "Abort the current script")
         wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
-        
+
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
@@ -2092,10 +2213,10 @@ class BuilderFrame(wx.Frame):
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
         #for demos we need a dict where the event ID will correspond to a filename
-        
+
         self.demosMenu = wx.Menu()
         #unpack demos option
-        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos...", 
+        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos...",
             "Unpack demos to a writable location (so that they can be run)")
         wx.EVT_MENU(self, self.IDs.builderDemosUnpack, self.demosUnpack)
         self.demosMenu.AppendSeparator()
@@ -2115,7 +2236,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
-            
+
     def closeFrame(self, event=None, checkSave=True):
 
         if self.app.coder==None and sys.platform!='darwin':
@@ -2145,7 +2266,7 @@ class BuilderFrame(wx.Frame):
         frameData['winX'], frameData['winY']=self.GetPosition()
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
-            
+
         #assign the data to this filename
         self.appData['frames'][self.filename] = frameData
         self.app.allFrames.remove(self)
@@ -2157,7 +2278,7 @@ class BuilderFrame(wx.Frame):
         """quit the app"""
         self.app.quit()
     def fileNew(self, event=None, closeCurrent=True):
-        """Create a default experiment (maybe an empty one instead)"""        
+        """Create a default experiment (maybe an empty one instead)"""
         # check whether existing file is modified
         if closeCurrent: #if no exp exists then don't try to close it
             if not self.fileClose(): return False #close the existing (and prompt for save if necess)
@@ -2393,8 +2514,8 @@ class BuilderFrame(wx.Frame):
         if dlg.ShowModal()==wx.ID_OK:
             unpackFolder = dlg.GetPath()
         else:
-            return -1#user cancelled        
-        # todo: check if the dir has contents!?        
+            return -1#user cancelled
+        # todo: check if the dir has contents!?
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
@@ -2423,7 +2544,7 @@ class BuilderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
-        #get abs path of expereiment so it can be stored with data at end of exp 
+        #get abs path of expereiment so it can be stored with data at end of exp
         expPath = self.filename
         if expPath==None or expPath.startswith('untitled'):
             ok = self.fileSave()
@@ -2432,7 +2553,7 @@ class BuilderFrame(wx.Frame):
         #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
         script = self.exp.writeScript(expPath=expPath)
-        
+
         #set the directory and add to path
         folder, scriptName = os.path.split(fullPath)
         if len(folder)>0: os.chdir(folder)#otherwise this is unsaved 'untitled.psyexp'
@@ -2443,17 +2564,17 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.getText()
         except:
             self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
-        
+
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
-        
+
         #provide a running... message
         print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-        
+
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
-        
+
         if sys.platform=='win32':
             command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
@@ -2486,10 +2607,10 @@ class BuilderFrame(wx.Frame):
         if len(self.stdoutFrame.getText())>self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
-            
+
         #provide a finished... message
         msg = "\n"+" Finished ".center(80,"#")#80 chars padded with #
-        
+
         #then return stdout to its org location
         sys.stdout=self.stdoutOrig
         sys.stderr=self.stderrOrig
@@ -2514,7 +2635,7 @@ class BuilderFrame(wx.Frame):
             self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?
             self.addToUndoStack("paste Routine %s" % newRoutine.name)
-        dlg.Destroy()        
+        dlg.Destroy()
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
@@ -2550,9 +2671,17 @@ def appDataToFrames(prefs):
     dat = prefs.appData['builder']
 def framesToAppData(prefs):
     pass
-
+def canBeNumeric(inStr):
+    """Determines whether the input can be converted to a float
+    (using a try: float(instr))
+    """
+    try:
+        float(inStr)
+        return True
+    except:
+        return False
 def _relpath(path, start='.'):
-    """This code is based on os.path.repath in the Python 2.6 distribution, 
+    """This code is based on os.path.repath in the Python 2.6 distribution,
     included here for compatibility with Python 2.5"""
 
     if not path:

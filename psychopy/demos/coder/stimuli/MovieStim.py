@@ -6,15 +6,15 @@ print 'orig movie size=[%i,%i]' %(mov.format.width, mov.format.height)
 print 'duration=%.2fs' %(mov.duration)
 globalClock = core.Clock()
 
-while mov.playing != visual.FINISHED:
+while mov.status != visual.FINISHED:
     mov.draw()
     win.update()
-    
+
 core.quit()
 
-"""Different systems have different sets of codecs. 
+"""Different systems have different sets of codecs.
 avbin (which PsychoPy uses to load movies) seems not to load compressed audio on all systems.
 To create a movie that will play on all systems I would recommend using the format:
-    video: H.264 compressed, 
+    video: H.264 compressed,
     audio: Linear PCM
 """

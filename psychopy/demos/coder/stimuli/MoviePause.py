@@ -10,22 +10,22 @@ globalClock = core.Clock()
 for frameN in range(100):
     mov.draw()
     win.flip()
-    
+
 mov.pause()#pause stops sound and prevents frame from advancing
 for frameN in range(100):
     mov.draw()
     win.flip()
-    
+
 mov.play()#frame advance and audio continue
 while globalClock.getTime()<(mov.duration+1.0):
     mov.draw()
     win.update()
-    
+
 core.quit()
 
-"""Different systems have different sets of codecs. 
+"""Different systems have different sets of codecs.
 avbin (which PsychoPy uses to load movies) seems not to load compressed audio on all systems.
 To create a movie that will play on all systems I would recommend using the format:
-    video: H.264 compressed, 
+    video: H.264 compressed,
     audio: Linear PCM
 """

@@ -10,11 +10,29 @@ class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     def __init__(self, parentName, name='', units='window units', color='$[1,1,1]',
-        pos=[0,0], size=[0,0], ori=0, startTime=0.0, duration='', colorSpace='rgb'):
+                pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
+                startType='time (s)',startVal='',
+                stopType='duration (s)', stopVal='',
+                startEstim='', durationEstim=''):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
-        self.order=['name','startTime','duration']#make name come first (others don't matter)
+        self.order=[]#make sure these are at top (after name and time params)
         self.params={}
-        self.params['name']=Param(name,  valType='code', updates='constant', 
+        self.params['startType']=Param(startType, valType='str',
+            allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your start point?")
+        self.params['stopType']=Param(stopType, valType='str',
+            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
+            hint="How do you want to define your end point?")
+        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
+            hint="When does the stimulus start?")
+        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="When does the stimulus end?")
+        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
+        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
+        self.params['name']=Param(name,  valType='code', updates='constant',
             hint="Name of this stimulus")
         self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
@@ -33,29 +51,30 @@ class VisualComponent(_base.BaseComponent):
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Orientation of this stimulus (in deg)")
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The time that the stimulus is first presented")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The duration for which the stimulus is presented")
-            
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
-        self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
+        buff.writeIndented("\n")
+        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.setAutoDraw(True)\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.setAutoDraw(False)\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
-        self.writeParamUpdates(buff, 'set every frame')
-        #draw the stimulus
-        buff.writeIndented("%(name)s.draw()\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)
-       
+        if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
+            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.setIndentLevel(+1, relative=True)#to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(+1, relative=True)#to exit the if block
     def writeParamUpdates(self, buff, updateType):
-        """write updates to the buffer for each parameter that needs it
+        """Write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
         """
         for thisParamName in self.params.keys():
+            if thisParamName=='advancedParams':
+                continue
             thisParam=self.params[thisParamName]
             #capitalise params
             if thisParamName=='advancedParams':
@@ -72,5 +91,5 @@ class VisualComponent(_base.BaseComponent):
             if thisParam.updates==updateType:
                 if thisParamName=='color':
                     buff.writeIndented("%(name)s.setColor(%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))
-                else: buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], paramCaps, thisParam)) 
+                else: buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], paramCaps, thisParam))
 

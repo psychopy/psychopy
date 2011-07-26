@@ -10,21 +10,26 @@ iconFile = path.join(thisFolder,'text.png')
 
 class TextComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='text', 
-                 text='Any text\n\nincluding line breaks', 
-                 font='Arial',units='window units', color='white', colorSpace='rgb',
-                 pos=[0,0], letterHeight=0.1, ori=0, startTime=0.0, duration=1.0):
+    def __init__(self, exp, parentName, name='text',
+                text='Any text\n\nincluding line breaks',
+                font='Arial',units='window units', color='white', colorSpace='rgb',
+                pos=[0,0], letterHeight=0.1, ori=0,
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self, parentName, name=name, units=units, 
+        VisualComponent.__init__(self, parentName, name=name, units=units,
                     color=color, colorSpace=colorSpace,
-                    pos=pos, ori=ori, startTime=startTime, duration=duration)
+                    pos=pos, ori=ori,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type='Text'
         self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         self.parentName=parentName
         #params
-        self.order=['name','startTime','duration']#make sure this is at top
         self.params['name']=Param(name, valType='code', allowedTypes=[])
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
@@ -47,4 +52,4 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    text=%s,\n" %text)
         buff.writeIndented("    font=%(font)s,\n" %(self.params))
         buff.writeIndented("    "+units+"pos=%(pos)s, height=%(letterHeight)s,\n" %(self.params))
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))  
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))
