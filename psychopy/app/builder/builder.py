@@ -2050,19 +2050,34 @@ class BuilderFrame(wx.Frame):
 
         #control the panes using aui manager
         self._mgr = wx.aui.AuiManager(self)
-        self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
-                          Name("Routines").Caption("Routines").
-                          CenterPane(). #'center panes' expand to fill space
-                          CloseButton(False).MaximizeButton(True))
-        self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
-                          Name("Components").Caption("Components").
-                          RightDockable(True).LeftDockable(True).CloseButton(False).
-                          Right())
-        self._mgr.AddPane(self.flowPanel,
-                          wx.aui.AuiPaneInfo().
-                          Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
-                          RightDockable(True).LeftDockable(True).CloseButton(False).
-                          Bottom())
+        if self.prefs['topFlow']:
+            self._mgr.AddPane(self.flowPanel,
+                              wx.aui.AuiPaneInfo().
+                              Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
+                              RightDockable(True).LeftDockable(True).CloseButton(False).
+                              Top())
+            self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+                              Name("Components").Caption("Components").
+                              RightDockable(True).LeftDockable(True).CloseButton(False).
+                              Left())
+            self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+                              Name("Routines").Caption("Routines").
+                              CenterPane(). #'center panes' expand to fill space
+                              CloseButton(False).MaximizeButton(True))
+        else:
+            self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+                              Name("Routines").Caption("Routines").
+                              CenterPane(). #'center panes' expand to fill space
+                              CloseButton(False).MaximizeButton(True))
+            self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+                              Name("Components").Caption("Components").
+                              RightDockable(True).LeftDockable(True).CloseButton(False).
+                              Right())
+            self._mgr.AddPane(self.flowPanel,
+                              wx.aui.AuiPaneInfo().
+                              Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
+                              RightDockable(True).LeftDockable(True).CloseButton(False).
+                              Bottom())
         #tell the manager to 'commit' all the changes just made
         self._mgr.Update()
         #self.SetSizer(self.mainSizer)#not necessary for aui type controls
