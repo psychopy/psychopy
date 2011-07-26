@@ -43,7 +43,7 @@ class _baseVisualTest:
         contextName=self.contextName
         #using init
         gabor = visual.PatchStim(win, mask='gauss', ori=-45,
-            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
             sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
             interpolate=True)
         gabor.draw()
@@ -71,7 +71,7 @@ class _baseVisualTest:
     #    grating = filters.makeGrating(256, ori=135, cycles=cycles)
     #    gabor = filters.maskMatrix(grating, shape='gauss')
     #    stim = visual.PatchStim(win, tex=gabor,
-    #        pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+    #        pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
     #        sf=1.0/size, size=size,
     #        interpolate=True)
     #    stim.draw()
@@ -83,9 +83,9 @@ class _baseVisualTest:
         font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
-            height=0.8*self.scaleFactor, pos=[0,0], font=font) 
+            height=0.8*self.scaleFactor, pos=[0,0], font=font)
         stim.draw()
-        #compare with a LIBERAL criterion (fonts do differ) 
+        #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=40)
         win.flip()#AFTER compare screenshot
         #using set
@@ -119,10 +119,10 @@ class _baseVisualTest:
     def testShape(self):
         win = self.win
         contextName=self.contextName
-        
-        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0, 
-            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004], 
-            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]], 
+
+        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
+            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
+            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]],
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
@@ -147,7 +147,7 @@ class _baseVisualTest:
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
         contextName=self.contextName
-        #using init        
+        #using init
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
             nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1*self.scaleFactor,
             dotLife=5, #number of frames for each dot to be drawn
@@ -166,11 +166,11 @@ class _baseVisualTest:
         dots.setSpeed(0.1*self.scaleFactor)
         dots.draw()
         #check that things changed
-        nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0, 
+        nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0,
             msg="dots._dotsDir failed to change after dots.setDir():")
-        nose.tools.assert_false(prevSignals.sum()==dots._signalDots.sum(), 
+        nose.tools.assert_false(prevSignals.sum()==dots._signalDots.sum(),
             msg="dots._signalDots failed to change after dots.setCoherence()")
-        nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered), 
+        nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered),
             msg="dots._fieldPosRendered failed to change after dots.setPos()")
     def testElementArray(self):
         win = self.win
@@ -206,7 +206,7 @@ class _baseVisualTest:
         win = self.win
         win.flip()
         rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
-                        lowAnchorText=' ', highAnchorText=' ', scale=' ', 
+                        lowAnchorText=' ', highAnchorText=' ', scale=' ',
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
@@ -215,7 +215,7 @@ class _baseVisualTest:
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
         nose.tools.ok_(1000/150.0 < msPFavg < 1000/40.0, "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg)
-        
+
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
     @classmethod
@@ -314,11 +314,11 @@ class TestPygameDeg(_baseVisualTest):
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
-        
+
 if __name__ == "__main__":
     argv = sys.argv
     argv.append('--verbosity=3')
-    if 'cover' in argv: 
+    if 'cover' in argv:
         argv.remove('cover')
         argv.append('--with-coverage')
         argv.append('--cover-package=psychopy')
