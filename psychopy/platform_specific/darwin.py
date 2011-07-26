@@ -37,12 +37,12 @@ CGRefreshRate = ctypes.c_double
 CGCaptureOptions = ctypes.c_uint32
 integer_t = ctypes.c_int32
 natural_t = ctypes.c_uint32
-thread_flavor_t		= ctypes.c_int32 #in mach_types.defs
-thread_info_t		= integer_t * 12 #in mach_types.defs
-thread_policy_flavor_t	= natural_t #in mach_types.defs
-thread_policy_t		= integer_t * 16 #in mach_types.defs
+thread_flavor_t = ctypes.c_int32 #in mach_types.defs
+thread_info_t = integer_t * 12 #in mach_types.defs
+thread_policy_flavor_t = natural_t #in mach_types.defs
+thread_policy_t = integer_t * 16 #in mach_types.defs
 #for use with sysctl()
-CTL_HW=ctypes.c_int(6)		#/* generic cpu/io */
+CTL_HW=ctypes.c_int(6) #/* generic cpu/io */
 HW_BUS_FREQ=ctypes.c_int(14)
 
 cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library("Cocoa"))#could use carbon instead?
@@ -118,7 +118,7 @@ def rush(value=True):
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_STANDARD_POLICY_COUNT)
     return True
-        
+
 def getThreadPolicy(getDefault, flavour):
     """Retrieve the current (or default) thread policy.
     

@@ -1,6 +1,6 @@
 """
 Various useful functions for creating filters and textures (e.g. for PatchStim)
-	
+
 """
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce

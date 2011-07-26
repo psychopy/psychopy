@@ -15,7 +15,7 @@ NO_MEASUREMENTS=False
 
 if DEBUG: log.console.setLevel(log.DEBUG)
 else:log.console.setLevel(log.INFO)
-    
+
 try:
     import matplotlib
     matplotlib.use('WXAgg')
@@ -43,15 +43,15 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
     def __init__(self, parent, id=-1, rows=[], cols=[], data=None):
         self.moveTo = None
         self.nRows, self.nCols = len(rows), len(cols)
-        grid.Grid.__init__(self, parent, -1, wx.Point( 0, 0 ))#,wx.Size( 300, 150 ))        
-        
+        grid.Grid.__init__(self, parent, -1, wx.Point( 0, 0 ))#,wx.Size( 300, 150 ))
+
         self.numEditor = grid.GridCellFloatEditor()
         self.CreateGrid(self.nRows,self.nCols)
-        for nCol, col in enumerate(cols): 
+        for nCol, col in enumerate(cols):
             self.SetColLabelValue(nCol,col)
             self.SetColFormatFloat(nCol,4,4)
             #self.SetColMinimalWidth(nCol,800)
-        for nRow, row in enumerate(rows): 
+        for nRow, row in enumerate(rows):
             self.SetRowLabelValue(nRow,row)
         for nRow in range(self.nRows):
             for nCol in range(self.nCols):
@@ -59,18 +59,18 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
         self.setData(data)
         #self.SetMargins(-5,-5)
         wx.EVT_IDLE(self, self.OnIdle)
-        
+
     def OnIdle(self, evt):
         if self.moveTo != None:
             self.SetGridCursor(self.moveTo[0], self.moveTo[1])
             self.moveTo = None
         evt.Skip()
-        
+
     def setData(self, data=None):
         #update the data for the grid
         for nRow in range(self.nRows):
             for nCol in range(self.nCols):
-                if data!=None and nRow<data.shape[0] and nCol<data.shape[1]: 
+                if data!=None and nRow<data.shape[0] and nCol<data.shape[1]:
                     self.SetCellValue(nRow, nCol, '%f' %data[nRow, nCol])
                 else: self.SetCellValue(nRow,nCol,'0.000')
         self.AutoSize()
@@ -84,15 +84,15 @@ class PlotFrame(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         if not plotCanvas==None:
             self.addCanvas(plotCanvas)
-        
+
     def addCanvas(self, canvas):
         self.sizer.Add(canvas)
         self.SetSizerAndFit(self.sizer)
         self.ShowModal()
     #def OnCloseWindow(self, event):
         #self.Destroy()
-        
-    
+
+
 class MainFrame(wx.Frame):
     def __init__(self, parent, title):
         #create a default monitor with no name
@@ -102,18 +102,18 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor=False
         self.comPort = 1
         self.photom=None
-        
+
         #start building the frame
         wx.Frame.__init__(self, parent, -1, title,size=wx.DefaultSize,
                             style=wx.DEFAULT_FRAME_STYLE )
-        
+
         self.makeMenuBar()
-        
+
         if NOTEBOOKSTYLE:
-            
+
             #make the notebook
             self.noteBook = wx.Notebook(self, -1)
-            
+
             #add the info page
             self.infoPanel = wx.Panel(self.noteBook,-1)
             self.noteBook.AddPage(self.infoPanel, 'Monitor Info')
@@ -122,18 +122,18 @@ class MainFrame(wx.Frame):
             infoSizer.Add(self.makeInfoBox(self.infoPanel), 1, wx.EXPAND)
             self.infoPanel.SetAutoLayout(True)
             self.infoPanel.SetSizerAndFit(infoSizer)
-            
+
             #add the calibration page
             self.calibPanel = wx.Panel(self.noteBook,-1)
             self.noteBook.AddPage(self.calibPanel, 'Calibration')
             calibSizer = self.makeCalibBox(self.calibPanel)
             self.calibPanel.SetAutoLayout(True)
             self.calibPanel.SetSizerAndFit(calibSizer)
-            
+
             self.noteBookSizer.Layout()
             self.noteBookSizer.Fit(self)
-            
-        else:	    
+
+        else:
             #just one page
             self.infoPanel = wx.Panel(self,-1)
             mainSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -145,13 +145,13 @@ class MainFrame(wx.Frame):
             #
             mainSizer.Add(leftSizer, 1, wx.EXPAND|wx.ALL, 2)
             mainSizer.Add(rightSizer, 1, wx.EXPAND|wx.ALL, 2)
-            
+
             #finalise panel layout
             mainSizer.Layout()
             self.infoPanel.SetAutoLayout(True)
             self.infoPanel.SetSizerAndFit(mainSizer)
-            
-            
+
+
         #if wx version 2.5+:
         self.SetSize(self.GetBestSize())
         #self.CreateStatusBar()
@@ -161,10 +161,10 @@ class MainFrame(wx.Frame):
                 self.SetIcon(wx.Icon('psychopy.ico', wx.BITMAP_TYPE_ICO))
             except:
                 pass
-          
+
         wx.EVT_CLOSE(self, self.onCloseWindow)
         self.updateMonList()
-        
+
     def makeMenuBar(self):
         menuBar = wx.MenuBar()
         fileMenu = wx.Menu()
@@ -178,9 +178,9 @@ class MainFrame(wx.Frame):
     def makeAdminBox(self, parent):
         #make the box for the controls
         boxLabel = wx.StaticBox(parent, -1, 'Choose Monitor')
-        boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))  
-        adminBox = wx.StaticBoxSizer(boxLabel)      
-        
+        boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        adminBox = wx.StaticBoxSizer(boxLabel)
+
         #build the controls
         self.ctrlMonList = wx.ListBox(parent, idCtrlMonList,
             choices=['iiyama571','sonyG500'],
@@ -225,7 +225,7 @@ class MainFrame(wx.Frame):
         self.btnDeleteCalib.SetToolTipString(
             "Remove this calibration entry (finalised when monitor is saved)")
 
-        #add controls to box        
+        #add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
         adminBoxMainSizer.AddMany([
             (1,10),(1,10), #a pair of empty boxes each 1x10pix
@@ -240,7 +240,7 @@ class MainFrame(wx.Frame):
         infoBox = wx.StaticBox(parent, -1, 'Monitor Info')
         infoBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         infoBoxSizer = wx.StaticBoxSizer(infoBox,wx.VERTICAL)
-        
+
         #scr distance
         labl_scrDist = wx.StaticText(parent, -1,
             "Screen Distance (cm):",style=wx.ALIGN_RIGHT)
@@ -252,7 +252,7 @@ class MainFrame(wx.Frame):
             "Screen Width (cm):",style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
-        
+
         ##scr pixels
         labl_ScrPixels = wx.StaticText(parent, -1,
             "Size (pixels; Horiz,Vert):",style=wx.ALIGN_RIGHT)
@@ -276,7 +276,7 @@ class MainFrame(wx.Frame):
             size=(150,150),
             style=wx.TE_MULTILINE)
         wx.EVT_TEXT(self, idCtrlCalibNotes, self.onChangeCalibNotes)
-        
+
         #bits++
         self.ctrlUseBits = wx.CheckBox(parent, -1,'Use Bits++')
         wx.EVT_CHECKBOX(self, self.ctrlUseBits.GetId(), self.onChangeUseBits)
@@ -298,21 +298,21 @@ class MainFrame(wx.Frame):
         return infoBoxSizer
 
     def makeCalibBox(self, parent):
-        
+
         boxLabel = wx.StaticBox(parent, -1, 'Calibration')
         boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         calibBox = wx.StaticBoxSizer(boxLabel)
-        
+
         photometerBox = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
         #com port entry number
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #photometer button
-        self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:", 
+        self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
             choices=["PR655/PR670", "PR650", "LS100/LS110"])
         #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
-        
+
         #gamma controls
         self.btnCalibrateGamma = wx.Button(
             parent, -1, "Gamma Calibration...")
@@ -320,7 +320,7 @@ class MainFrame(wx.Frame):
         self.btnTestGamma = wx.Button(
             parent, -1, "Gamma Test...")
         self.btnTestGamma.Enable(False)
-        
+
         #color controls
         wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
         self.btnCalibrateColor = wx.Button(
@@ -333,21 +333,21 @@ class MainFrame(wx.Frame):
         self.btnPlotSpectra = wx.Button(
             parent, -1, "Plot spectra")
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
-        
+
         photometerBox.AddMany([self.ctrlPhotomType,self.btnFindPhotometer,
                                 self.comPortLabel,(0,0),
                                 self.btnCalibrateGamma, (0,0),
                                 self.btnTestGamma, self.btnPlotGamma,
                                 self.btnCalibrateColor, self.btnPlotSpectra])
-        
+
         #-----------------------
         #----GAMMA------------
         #-----------------------
-        #calibration grid     
+        #calibration grid
         gammaBox = wx.StaticBox(parent,-1,'Linearisation')
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
-        
+
         self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
         if self.currentMon.getLineariseMethod()==4:
@@ -355,35 +355,35 @@ class MainFrame(wx.Frame):
         else: self.choiceLinearMethod.SetSelection(1)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
-        
-        self.gammaGrid = SimpleGrid(parent, id=-1, 
+
+        self.gammaGrid = SimpleGrid(parent, id=-1,
                                     cols=['Min','Max','Gamma','a','b','k'],
                                     rows=['lum','R','G','B'])
         gammaBoxSizer.Add(self.gammaGrid)
         grid.EVT_GRID_CELL_CHANGE(self.gammaGrid,self.onChangeGammaGrid)
         gammaBoxSizer.Layout()
-        
+
         #LMS grid
         LMSbox = wx.StaticBox(parent,-1,'LMS->RGB')
         LMSboxSizer = wx.StaticBoxSizer(LMSbox, wx.VERTICAL)
-        self.LMSgrid = SimpleGrid(parent, id=-1, 
+        self.LMSgrid = SimpleGrid(parent, id=-1,
                                   cols=['L','M','S'],
                                   rows=['R','G','B'])
         LMSboxSizer.Add(self.LMSgrid)
         LMSboxSizer.Layout()
         grid.EVT_GRID_CELL_CHANGE(self.LMSgrid,self.onChangeLMSgrid)
-        
+
         #DKL grid
         DKLbox = wx.StaticBox(parent,-1,'DKL->RGB')
         DKLboxSizer = wx.StaticBoxSizer(DKLbox, wx.VERTICAL)
-        self.DKLgrid = SimpleGrid(parent, id=-1, 
+        self.DKLgrid = SimpleGrid(parent, id=-1,
                                   cols=['Lum','L-M','L+M-S'],
                                   rows=['R','G','B'])
         DKLboxSizer.Add(self.DKLgrid)
         DKLboxSizer.Layout()
         grid.EVT_GRID_CELL_CHANGE(self.DKLgrid,self.onChangeDKLgrid)
-        
-        
+
+
         calibBoxMainSizer = wx.BoxSizer(wx.VERTICAL)
         calibBoxMainSizer.AddMany([photometerBox,
                                    gammaBoxSizer,
@@ -391,20 +391,20 @@ class MainFrame(wx.Frame):
                                    DKLboxSizer,
                                   ])
         calibBoxMainSizer.Layout()
-        
+
         if NOTEBOOKSTYLE:
             return calibBoxMainSizer
         else:
-            #put the main sizer into a labeled box	
+            #put the main sizer into a labeled box
             calibBox.Add(calibBoxMainSizer)
             return calibBox
-    
+
     def loadMonitor(self, name=None):
         self.currentMon = monitors.Monitor(name, verbose=False)
         self.currentCalibName= self.currentMon.setCurrent(-1)
         self.updateCalibList()
         self.unSavedMonitor=False
-        
+
     def updateMonList(self):
         #refresh list of all available monitors on path
         monList = monitors.getAllMonitors()
@@ -481,7 +481,7 @@ class MainFrame(wx.Frame):
             newCalib = self.ctrlCalibList.GetStringSelection()
         #do the load and check new name
         self.currentCalibName= self.currentMon.setCurrent(newCalib)
-        
+
         #keys that may not exist
         #todo remove this code - only needed for monitor objects made pre version 0.63
         if not self.currentMon.currentCalib.has_key('gammaGrid'):
@@ -502,18 +502,18 @@ class MainFrame(wx.Frame):
         self.ctrlScrPixVert.SetValue(str(self.currentMon.currentCalib['sizePix'][1]))
         #self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
         self.ctrlCalibNotes.SetValue(str(self.currentMon.getNotes()))
-        self.ctrlUseBits.SetValue(self.currentMon.getUseBits())                    
+        self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
         if self.currentMon.getLineariseMethod()==4:
             self.choiceLinearMethod.SetSelection(2)
         else: self.choiceLinearMethod.SetSelection(1)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
         self.DKLgrid.setData(self.currentMon.getDKL_RGB())
-        
+
         self.enableDisableCtrls()
         self.unSavedMonitor=False
         return 1
-    
+
     def enableDisableCtrls(self):
         #update controls for current monitor
         if not self.currentMon.currentCalib.has_key('lumsPre'):
@@ -525,7 +525,7 @@ class MainFrame(wx.Frame):
         if self.currentMon.getLevelsPre()==None:
             self.choiceLinearMethod.Disable()
         else: self.choiceLinearMethod.Enable()
-    
+
     def onSaveMon(self, event):
         """Saves calibration entry to location.
         Note that the calibration date will reflect the save date/time"""
@@ -627,8 +627,8 @@ class MainFrame(wx.Frame):
         #insert in calibration file
         self.currentMon.setWidth( newVal )
         self.unSavedMonitor=True
-    def onChangeScrPixHoriz(self, event):   
-        newVal = self.ctrlScrPixHoriz.GetValue()  
+    def onChangeScrPixHoriz(self, event):
+        newVal = self.ctrlScrPixHoriz.GetValue()
         #convert to float
         if newVal=='None': newVal=None
         else:
@@ -637,7 +637,7 @@ class MainFrame(wx.Frame):
         self.currentMon.currentCalib['sizePix'][0] = newVal
         self.unSavedMonitor=True
     def onChangeScrPixVert(self, event):
-        newVal = self.ctrlScrPixVert.GetValue()  
+        newVal = self.ctrlScrPixVert.GetValue()
         #convert to float
         if newVal=='None': newVal=None
         else:
@@ -645,8 +645,8 @@ class MainFrame(wx.Frame):
             except: pass #ignore values that can't be a float
         self.currentMon.currentCalib['sizePix'][1] = newVal
         self.unSavedMonitor=True
-    
-#calib callbacks        
+
+#calib callbacks
     def onChangeGammaGrid(self, event):
         #convert to float
         newVal = self.gammaGrid.GetCellValue(event.GetRow(), event.GetCol())
@@ -655,7 +655,7 @@ class MainFrame(wx.Frame):
         #isnert in grid
         self.currentMon.currentCalib['gammaGrid'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
-                
+
     def onChangeLMSgrid(self, event):
         #convert to float
         newVal = self.LMSgrid.GetCellValue(event.GetRow(), event.GetCol())
@@ -664,7 +664,7 @@ class MainFrame(wx.Frame):
         #isnert in grid
         self.currentMon.currentCalib['lms_rgb'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
-        
+
     def onChangeDKLgrid(self, event):
         #convert to float
         newVal = self.DKLgrid.GetCellValue(event.GetRow(), event.GetCol())
@@ -673,7 +673,7 @@ class MainFrame(wx.Frame):
         #isnert in grid
         self.currentMon.currentCalib['dkl_rgb'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
-        
+
     def onCalibGammaBtn(self, event):
 
         if NO_MEASUREMENTS:
@@ -690,7 +690,7 @@ class MainFrame(wx.Frame):
             stimSize = float(calibDlg.ctrlStimSize.GetValue())
             useBits = calibDlg.ctrlUseBits.GetValue()
             calibDlg.Destroy()
-            autoMode = calibDlg.methodChoiceBx.GetStringSelection()        
+            autoMode = calibDlg.methodChoiceBx.GetStringSelection()
             #run the calibration itself
             lumLevels=monitors.DACrange(nPoints)
             lumsPre = monitors.getLumSeries(photometer=self.photom,
@@ -699,13 +699,13 @@ class MainFrame(wx.Frame):
                                                  autoMode=autoMode,
                                                  winSize=self.currentMon.getSizePix(),
                                                  stimSize=stimSize, monitor=self.currentMon)
-            
+
             #allow user to type in values
             if autoMode=='semi':
                 inputDlg = GammaLumValsDlg(lumLevels, parent=self)
                 lumsPre = inputDlg.show()#will be [] if user cancels
                 inputDlg.Destroy()
-                
+
         #fit the gamma curves
         if len(lumsPre)>1:
             self.onCopyCalib(1)#create a new dated calibration
@@ -720,12 +720,12 @@ class MainFrame(wx.Frame):
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLineariseMethod()
-        
+
         if linMethod==4:
             log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
-                gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)                
+                gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=gamCalc.min#min
                 currentCal[gun,1]=gamCalc.max#max
                 currentCal[gun,2]=gamCalc.gamma#gamma
@@ -740,11 +740,11 @@ class MainFrame(wx.Frame):
                 currentCal[gun,0]=lums[gun,0]#min
                 currentCal[gun,1]=lums[gun,-1]#max
                 currentCal[gun,2]=gamCalc.gamma#gamma
-                
+
         self.gammaGrid.setData(currentCal)
         self.currentMon.setGammaGrid(currentCal)
         self.unSavedMonitor=True
-        
+
     def onChangeLinearMethod(self,event):
         newMethod = self.choiceLinearMethod.GetStringSelection()
         if newMethod.startswith('full'):
@@ -754,11 +754,11 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor=True
         if self.currentMon.getLumsPre()!=None:
             self.doGammaFits(self.currentMon.getLevelsPre(), self.currentMon.getLumsPre())
-            
+
     def onCalibTestBtn(self,event):
         #set the gamma and test calibration
         currentCal = self.currentMon.currentCalib['gammaGrid']
-        
+
         calibDlg = GammaDlg(self, self.currentMon)
         if calibDlg.ShowModal()!=wx.ID_OK:
             calibDlg.Destroy()
@@ -768,7 +768,7 @@ class MainFrame(wx.Frame):
         useBits = calibDlg.ctrlUseBits.GetValue()
         calibDlg.Destroy()
         autoMode = calibDlg.methodChoiceBx.GetStringSelection()
-        
+
         lumLevels=monitors.DACrange(nPoints)
         lumsPost = monitors.getLumSeries(photometer=self.photom,
                                               lumLevels=lumLevels,
@@ -779,12 +779,12 @@ class MainFrame(wx.Frame):
                                               monitor = self.currentMon,
                                               gamma=None,#causes the function to use monitor settings
                                               )
-        
+
         if len(lumsPost)>1:
             self.currentMon.setLumsPost(lumsPost)#save for future
             self.currentMon.setLevelsPost(lumLevels)#save for future
             self.unSavedMonitor=True
-            
+
     def onCalibColorBtn(self, event):
         if NO_MEASUREMENTS:
             #get previous spectra:
@@ -796,9 +796,9 @@ class MainFrame(wx.Frame):
             self.currentMon.setSpectra(nm,spectra)
             self.btnPlotSpectra.Enable(True)#can definitely now plot spectra
             self.unSavedMonitor=True
-            
+
         self.onCopyCalib(1)#create a new dated calibration
-        
+
         #dkl
         dkl_rgb = monitors.makeDKL2RGB(nm,spectra)
         self.currentMon.setDKL_RGB(dkl_rgb)
@@ -806,8 +806,8 @@ class MainFrame(wx.Frame):
         #lms
         lms_rgb = monitors.makeLMS2RGB(nm,spectra)
         self.currentMon.setLMS_RGB(lms_rgb)
-        self.LMSgrid.setData(lms_rgb)        
-        
+        self.LMSgrid.setData(lms_rgb)
+
     def onChangeUseBits(self, event):
         newVal = self.ctrlUseBits.GetValue()
         self.currentMon.setUseBits(newVal)
@@ -825,7 +825,7 @@ class MainFrame(wx.Frame):
             self.photom = hardware.findPhotometer(device='PR650')
         elif 'LS100' in photName:
             self.photom = hardware.findPhotometer(device='LS100')
-        
+
         if self.photom!=None and self.photom.OK:
             self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
@@ -836,16 +836,16 @@ class MainFrame(wx.Frame):
         else:
             self.comPortLabel.SetLabel('None found (for LS100 try again)')
             self.photom=None
-        
-    def plotGamma(self, event=None):  
+
+    def plotGamma(self, event=None):
         figTitle = '%s %s Gamma Functions' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
-        
+
         figure = Figure(figsize=(5,5), dpi=80)
-        figureCanvas = FigureCanvas(plotWindow, -1, figure)          
+        figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
         plt.hold('off')
-        
+
         gammaGrid = self.currentMon.getGammaGrid()
         lumsPre = self.currentMon.getLumsPre()
         levelsPre = self.currentMon.getLevelsPre()
@@ -856,13 +856,13 @@ class MainFrame(wx.Frame):
             eq = self.currentMon.getLineariseMethod()
             for gun in range(4): #includes lum
                 gamma = gammaGrid[gun,2]
-                minLum = gammaGrid[gun,0]	
-                maxLum = gammaGrid[gun,1]	
+                minLum = gammaGrid[gun,0]
+                maxLum = gammaGrid[gun,1]
                 if  eq<=2:
                     #plot fitted curve
                     curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
                         eq=eq, a=None, b=None, k=None)
-                    plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)	
+                    plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 if self.currentMon.getLineariseMethod() ==4:
                     a,b,k = gammaGrid[gun,3:]
                     #plot fitted curve
@@ -878,7 +878,7 @@ class MainFrame(wx.Frame):
                     #plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 #plot POINTS
                 plt.plot(levelsPre, lumsPre[gun,:], colors[gun]+'o', linewidth=1.5)
-             
+
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
         if lumsPost!=None:
@@ -889,30 +889,30 @@ class MainFrame(wx.Frame):
                 minLum = min(lums)
                 maxLum = max(lums)
                 #plot CURVE
-                plt.plot([levelsPost[0], levelsPost[-1]], [minLum, maxLum], colors[gun]+'--', linewidth=1.5)  
+                plt.plot([levelsPost[0], levelsPost[-1]], [minLum, maxLum], colors[gun]+'--', linewidth=1.5)
                 #plot POINTS
-                plt.plot(levelsPost,lums,'o', markerfacecolor = 'w', markeredgecolor=colors[gun], linewidth=1.5)   
+                plt.plot(levelsPost,lums,'o', markerfacecolor = 'w', markeredgecolor=colors[gun], linewidth=1.5)
         figureCanvas.draw()#update the canvas
-        
+
         plotWindow.addCanvas(figureCanvas)
-        
-    def plotSpectra(self, event=None): 
+
+    def plotSpectra(self, event=None):
         figTitle = '%s %s Spectra' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
         figure = Figure(figsize=(5,5), dpi=80)
-        figureCanvas = FigureCanvas(plotWindow, -1, figure)        
+        figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
         plt.hold('off')
-        
+
         nm, spectraRGB = self.currentMon.getSpectra()
-        if nm!=None:      
+        if nm!=None:
             plt.plot(nm,spectraRGB[0,:], 'r-', linewidth=1.5)
             plt.hold('on')
             plt.plot(nm,spectraRGB[1,:], 'g-', linewidth=2)
-            plt.plot(nm,spectraRGB[2,:], 'b-', linewidth=2)   
+            plt.plot(nm,spectraRGB[2,:], 'b-', linewidth=2)
         figureCanvas.draw()#update the canvas
         plotWindow.addCanvas(figureCanvas)
-        
+
 
 class GammaLumValsDlg(wx.Dialog):
     #a dialogue to get the luminance values recorded for each level
@@ -928,7 +928,7 @@ class GammaLumValsDlg(wx.Dialog):
         allFields = [lFields, rFields, gFields, bFields]
         #add the necessary input boxes and labels
         for thisLevel in levels:
-            thisRow=wx.BoxSizer(wx.HORIZONTAL)    
+            thisRow=wx.BoxSizer(wx.HORIZONTAL)
             inputLabel = wx.StaticText(self,-1,label,
                                             size=labelLength,
                                             style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
@@ -937,20 +937,20 @@ class GammaLumValsDlg(wx.Dialog):
             thisRow.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
             thisRow.Add(inputBox,1)
             mainSizer.Add(thisRow, 1, wx.ALIGN_CENTER)
-            
+
         #add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         OK = wx.Button(self, wx.ID_OK, " OK ")
         OK.SetDefault()
-        buttons.Add(OK)	
+        buttons.Add(OK)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL)
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
-        
-        self.SetSizerAndFit(self.sizer)     
-        
+
+        self.SetSizerAndFit(self.sizer)
+
     def show(self):
-        #show dialog and retrieve data  
+        #show dialog and retrieve data
         ok = self.ShowModal()
         if  ok == wx.ID_OK:
             #get data from input fields
@@ -960,9 +960,9 @@ class GammaLumValsDlg(wx.Dialog):
                     thisField.append(float(thisVal))
         else:
             allFields= []
-            
+
         return allFields
-        
+
 class GammaDlg(wx.Dialog):
     def __init__(self, parent, monitor):
         self.method = 'auto'

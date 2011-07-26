@@ -12,40 +12,43 @@ tooltip = 'Patch or image stimulus'
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
-        units='window units', color='$[1,1,1]', colorSpace='rgb',
-        pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
-        startTime=0.0, duration=1.0):
+                units='window units', color='$[1,1,1]', colorSpace='rgb',
+                pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,parentName,name=name, units=units, 
+        VisualComponent.__init__(self,parentName,name=name, units=units,
                     color=color, colorSpace=colorSpace,
-                    pos=pos, size=size, ori=ori, startTime=startTime, duration=duration)
+                    pos=pos, size=size, ori=ori,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type='Patch'
         self.url="http://www.psychopy.org/builder/components/patch.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint="A patch is a visual area, whether an image or constructed stimulus")
         self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")        
+            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)")        
+            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)")
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]")             
+            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)")                
+            hint="Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)")            
+            hint="Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled")
-            
+
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%(name)s',\n" %(self.params))
         buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(self.params))

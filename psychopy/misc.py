@@ -231,7 +231,7 @@ def sph2cart(*args):
         #OR 
         #x,y,z = sph2cart(elev, azim, radius)
         
-    if len(args)==1:	#received an Nx3 array
+    if len(args)==1:    #received an Nx3 array
         elev = args[0][0,:]
         azim = args[0][1,:]
         radius = args[0][2,:]
@@ -346,7 +346,7 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     
     if conversionMatrix==None:
         conversionMatrix = numpy.asarray([ \
-            #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)
+            #LUMIN    %L-M    %L+M-S  (note that dkl has to be in cartesian coords first!)
             [1.0000, 1.0000, -0.1462],#R
             [1.0000, -0.3900, 0.2094],#G
             [1.0000, 0.0180, -1.0000]])#B
@@ -367,7 +367,7 @@ def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
 
     if conversionMatrix==None:
         conversionMatrix = np.asarray([ \
-            #LUMIN	%L-M	%L+M-S  (note that dkl has to be in cartesian coords first!)
+            #LUMIN    %L-M    %L+M-S  (note that dkl has to be in cartesian coords first!)
             [1.0000, 1.0000, -0.1462],#R
             [1.0000, -0.3900, 0.2094],#G
             [1.0000, 0.0180, -1.0000]])#B
@@ -421,7 +421,7 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
         
     if conversionMatrix==None:
         cones_to_rgb = numpy.asarray([ \
-            #L		M		S
+            #L        M        S
             [ 4.97068857, -4.14354132, 0.17285275],#R
             [-0.90913894, 2.15671326, -0.24757432],#G
             [-0.03976551, -0.14253782, 1.18230333]#B

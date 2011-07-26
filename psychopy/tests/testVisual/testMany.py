@@ -19,12 +19,25 @@ class _baseVisualTest:
         self.win=None
         self.contextName
         raise NotImplementedError
-    @classmethod
-    def tearDownClass(self):#run once for each test class (window)
-        self.win.close()#shutil.rmtree(self.temp_dir)
+#    @classmethod
+#    def tearDownClass(self):#run once for each test class (window)
+#        self.win.close()#shutil.rmtree(self.temp_dir)
     def setup(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
+    def testAutoDraw(self):
+        win = self.win
+        stims=[]
+        stims.append(visual.PatchStim(win))
+        stims.append(visual.ShapeStim(win))
+        stims.append(visual.TextStim(win))
+        for stim in stims:
+            assert stim.status==visual.NOT_STARTED
+            stim.setAutoDraw(True)
+            assert stim.status==visual.STARTED
+            stim.setAutoDraw(False)
+            assert stim.status==visual.FINISHED
+            assert stim.status==visual.STOPPED
     def testGabor(self):
         win = self.win
         contextName=self.contextName
@@ -67,10 +80,7 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #set font
-        if win.winType=='pygame':
-            if sys.platform=='win32': font = 'times'
-            else:font = '/Library/Fonts/Times New Roman.ttf'
-        else: font = 'Times New Roman'
+        font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font=font) 

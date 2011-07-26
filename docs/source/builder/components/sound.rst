@@ -6,7 +6,7 @@ Sound Component
 Parameters
 ~~~~~~~~~~~~
 
-name : a string
+name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
 startTime : float or integer
@@ -20,7 +20,7 @@ sound :
       
       * a number can specify the frequency in Hz (e.g. 440)
       * a letter gives a note name (e.g. "C") and sharp or flat can also be added (e.g. "Csh" "Bf")
-      * a filename, which can be a relative or absolute path. As at version 1.51.00 only .ogg and .wav files are supported, but this is expected to be greatly increased.
+      * a filename, which can be a relative or absolute path (mid, wav, ogg and mp3 are supported).
 
 
 .. seealso::

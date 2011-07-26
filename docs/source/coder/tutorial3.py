@@ -1,12 +1,13 @@
 
-#This analysis script takes one or more staircase datafiles as input from a GUI
-#It then plots the staircases on top of each other on the left 
-#and a combined psychometric function from the same data
+#This analysis script takes one or more staircase datafiles as input
+#from a GUI. It then plots the staircases on top of each other on 
+#the left and a combined psychometric function from the same data
 #on the right
 
 from psychopy import data, gui, misc, core
 import pylab
 
+#Open a dialog box to select files from
 files = gui.fileOpenDlg('.')
 if not files:
     core.quit()
@@ -31,8 +32,9 @@ for fileN, thisStair in enumerate(allIntensities):
 #get combined data
 combinedInten, combinedResp, combinedN = \
              data.functionFromStaircase(allIntensities, allResponses, 5)
-#fit curve
-fit = data.FitFunction('weibullTAFC',combinedInten, combinedResp, guess=[0.2, 0.5])
+#fit curve - in this case using a Weibull function
+fit = data.FitFunction('weibullTAFC',combinedInten, combinedResp, \
+guess=[0.2, 0.5])
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(0.8)
@@ -41,7 +43,8 @@ print thresh
 #plot curve
 pylab.subplot(122)
 pylab.plot(smoothInt, smoothResp, '-')
-pylab.plot([thresh, thresh],[0,0.8],'--'); pylab.plot([0, thresh],[0.8,0.8],'--')
+pylab.plot([thresh, thresh],[0,0.8],'--'); pylab.plot([0, thresh],\
+[0.8,0.8],'--')
 pylab.title('threshold = %0.3f' %(thresh))
 #plot points
 pylab.plot(combinedInten, combinedResp, 'o')
