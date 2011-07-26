@@ -4750,7 +4750,7 @@ class RatingScale:
     
     Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
     
-    **Example 1.**::
+    **Example 1**::
         
         *Default 7-point scale*::
             
@@ -4763,31 +4763,34 @@ class RatingScale:
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
     
-    **Example 2.**::
+    **Example 2**::
         
-        *Mouse-free*. Considerable customization is possible. For fMRI, if your in-scanner response box sends keys 1-4, you could
-        use custom left, right, and accept keys, and no mouse::
+        Mouse-free. Considerable customization is possible. For fMRI, if your response
+        box sends keys 1-4, you could specify left, right, and accept keys, and no mouse:
         
-            myRatingScale = visual.RatingScale(myWin, markerStart=4, leftKeys='1', rightKeys = '2', acceptKeys='4')
+            myRatingScale = visual.RatingScale(myWin, markerStart=4,
+                leftKeys='1', rightKeys = '2', acceptKeys='4')
     
-    ** Example 3. **::
+    ** Example 3**::
         
-        *Non-numeric* choices (categorical, unordered)::
+        Non-numeric choices (categorical, unordered):
         
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
-            myRatingScale = visual.RatingScale(myWin, choices=['cherry', 'apple', True, 3.14, 'pie'])
+            myRatingScale = visual.RatingScale(myWin,
+                                choices=['cherry', 'apple', True, 3.14, 'pie'])
         
-        str(item) will be displayed, but the value returned by getResponse() will be of type you gave it::
+        str(item) will be displayed, but the value returned by
+        getResponse() will be of type you gave it::
         
             myRatingScale = visual.RatingScale(myWin, choices=[True, False])
         
-        So if you give boolean values and the subject chooses False, getResponse() will return False (bool) and not 'False' (str).
+        So if you give boolean values and the subject chooses False,
+        getResponse() will return False (bool) and not 'False' (str).
         
-    See coder Demos / stimuli / ratingScale.py for examples.
+    See Coder Demos -> stimuli -> ratingScale.py for examples.
     
     :Author:
-        2010 Jeremy Gray
-        2011 various updates; 'tab' is new default key to mean 'skip this item' ('escape' means 'break out of the experiment' in builder)
+        2010 Jeremy Gray, 2011 updates
     """
     def __init__(self,
                 win,
