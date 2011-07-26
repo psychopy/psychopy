@@ -2550,7 +2550,7 @@ class BuilderFrame(wx.Frame):
             self.demos[ID_DEMOS[n]] = demoList[n]
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_') or shortname.lower() == 'readme.':
+            if shortname.startswith('_') or shortname.lower().startswith('readme.'):
                 continue #ignore 'private' or README files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
