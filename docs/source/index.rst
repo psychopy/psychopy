@@ -4,18 +4,10 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-.. raw:: html
-
-    <font color="blue">
     
-**PsychoPy workshop**: The first ever dedicated PsychoPy workshop/conference is coming to Yale, 21-23 July!! See `<https://scanlab.psych.yale.edu/public/psychopy>`_ for details.
-
-.. raw:: html
-
-    </font>
+**PsychoPy workshop**: Thanks to all that participated in the Yale workshop, users and developers, and especially thanks to Jeremy for hosting it. Was great to meet you all and I think we moved the project along a good way too. Happy days!
     
 **Latest version**: 1.65.02 was released July 2011. See complete :doc:`changelog`
-
 
 
 .. title:: Home
