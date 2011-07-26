@@ -8,9 +8,10 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
+tooltip = 'Sound: play recorded files or generated sounds'
 
 class SoundComponent(BaseComponent):
-    """An event class for presenting image-based stimuli"""
+    """An event class for presenting sound stimuli"""
     def __init__(self, exp, parentName, name='sound', sound='A',volume=1,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,

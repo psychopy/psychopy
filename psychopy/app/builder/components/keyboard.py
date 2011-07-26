@@ -7,6 +7,7 @@ from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
+tooltip = 'Keyboard: check and record keypresses'
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""

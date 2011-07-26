@@ -8,6 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
+tooltip = 'Movie: play movie files'
 
 class MovieComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""

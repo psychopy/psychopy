@@ -12,6 +12,7 @@ __author__ = 'Jeremy Gray'
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder, 'ratingscale.png')
+tooltip = 'Rating scale: obtain numerical or categorical responses'
 
 class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component"""

@@ -12,6 +12,7 @@ __author__ = 'Jeremy Gray, Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'aperture.png')
+tooltip = 'Aperture: restrict the viewing area to a given region (circular)'
 
 class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a circle of a given size and position"""

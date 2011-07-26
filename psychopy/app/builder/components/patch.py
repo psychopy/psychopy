@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
-tooltip = 'Patch or image stimulus'
+tooltip = 'Patch: show dynamic visual stimuli or images'
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""

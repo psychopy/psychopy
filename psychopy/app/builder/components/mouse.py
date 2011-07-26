@@ -8,6 +8,7 @@ from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'mouse.png')
+tooltip = 'Mouse: query mouse position and buttons'
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given timepoints"""
