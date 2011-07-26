@@ -310,8 +310,9 @@ class FlowPanel(wx.ScrolledWindow):
         component=self.componentFromID[self._menuComponentID]
         flow = self.frame.exp.flow
         if op=='remove':
-            # remove name from namespace only for loops, not routines
-            if component.type in ['TrialHandler', 'StairHandler']:
+            # remove name from namespace only if its a loop (exists only in the flow)
+            # routines do not have a type attribute
+            if hasattr(component, 'type') and component.type in ['TrialHandler', 'StairHandler']:
                 trialListFile = component.params['trialListFile'].val
                 if trialListFile:
                     self.trialList, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
@@ -973,7 +974,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.SetSelection(currPage)
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def __init__(self, frame, id=-1):
-        """A panel that shows how the routines will fit together
+        """A panel that displays available components.
         """
         self.frame=frame
         self.app=frame.app
@@ -997,6 +998,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn = wx.BitmapButton(self, -1, thisIcon, (20, 20),
                            (thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
+            if thisName in components.tooltips:
+                thisTip = components.tooltips[thisName]
+            else:
+                thisTip = shortName
+            btn.SetToolTip(wx.ToolTip(thisTip))
             self.componentFromID[btn.GetId()]=thisName
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
             self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
@@ -2515,7 +2521,11 @@ class BuilderFrame(wx.Frame):
             unpackFolder = dlg.GetPath()
         else:
             return -1#user cancelled
-        # todo: check if the dir has contents!?
+        # ensure it's an empty dir:
+        if os.listdir(unpackFolder) != []:
+            unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
+            if not os.path.isdir(unpackFolder):
+                os.mkdir(unpackFolder)
         misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
@@ -2540,7 +2550,8 @@ class BuilderFrame(wx.Frame):
             self.demos[ID_DEMOS[n]] = demoList[n]
         for thisID in ID_DEMOS:
             junk, shortname = os.path.split(self.demos[thisID])
-            if shortname.startswith('_'): continue#remove any 'private' files
+            if shortname.startswith('_') or shortname.lower() == 'readme.':
+                continue #ignore 'private' or README files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):

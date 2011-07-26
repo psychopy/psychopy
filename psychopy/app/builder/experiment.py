@@ -771,7 +771,7 @@ class Routine(list):
 
         maxtime = self.getMaxTime()
         if maxtime >= FOREVER:
-            maxtime = 'FOREVER'
+            maxtime = 'FOREVER' # defined in the script by import psychopy.constants
         else:
             maxtime = '%.4f' % maxtime
         buff.writeIndented('while continueRoutine:\n')
@@ -783,7 +783,7 @@ class Routine(list):
         buff.writeIndented('frameN=frameN+1#number of completed frames (so 0 in first frame)\n')
 
         #write the code for each component during frame
-        buff.writeIndentedLines('\n#update/draw components on each frame\n')
+        buff.writeIndentedLines('#update/draw components on each frame\n')
         for event in self:
             event.writeFrameCode(buff)
 
@@ -805,7 +805,7 @@ class Routine(list):
 
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
-        buff.writeIndented('#end of this routine (e.g. trial)\n')
+        buff.writeIndented('#end of this routine\n')
         for event in self:
             event.writeRoutineEndCode(buff)
 

@@ -7,6 +7,7 @@ from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
+tooltip = 'Patch or image stimulus'
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""

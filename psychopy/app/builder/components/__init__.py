@@ -61,6 +61,9 @@ def getComponents(folder=None):
                     if hasattr(module,'iconFile'):
                         icons[name]=getIcons(module.iconFile)
                     else:icons[name]=icons['default']
+                    if hasattr(module, 'tooltip'):
+                        tooltips[name] = module.tooltip
+                    # else will use shortName, done in Builder ComponentsPanel __init__
     return components
 
 def getAllComponents(folderList=[]):
@@ -78,4 +81,5 @@ def getAllComponents(folderList=[]):
             components[thisKey]=userComps[thisKey]
     return components
 
+tooltips = {}
 icons={}
