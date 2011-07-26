@@ -77,6 +77,8 @@ class FlowPanel(wx.ScrolledWindow):
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
+        self.btnQuitInsert = platebtn.PlateButton(self,-1,'cancel insert', pos=(10,50))
+        self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,80))
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
 
@@ -86,11 +88,13 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
+        self.Bind(wx.EVT_BUTTON, self.frame.addRoutine, self.btnNewRoutine)
+        self.Bind(wx.EVT_BUTTON, self.clearMode, self.btnQuitInsert)
         if self.app.prefs.app['debugMode']:
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
-        #create a clear hotkey to abort insertion of Routines etc
+        
         idClear = wx.NewId()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear )
         aTable = wx.AcceleratorTable([
