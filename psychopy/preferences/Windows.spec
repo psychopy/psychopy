@@ -94,6 +94,8 @@
     showLoopInfoInFlow = boolean(default=False)
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
+    # Panels arrangement: topFlow = Flow on top, Components on left
+    topFlow = boolean(default=True)
 
 # Settings for connections
 [connections]
