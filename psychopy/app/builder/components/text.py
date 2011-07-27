@@ -49,7 +49,6 @@ class TextComponent(VisualComponent):
         if self.params['units'].val=='window units': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        text = setDefault
         inits = getInitVals(self.params)#replaces variable params with sensible defaults
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
         buff.writeIndented("    text=%(text)s,\n" %inits)
