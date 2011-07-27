@@ -1586,7 +1586,7 @@ class _BaseParamsDlg(wx.Dialog):
                 self.OKbtn.Disable()
             elif namespace.is_possibly_derivable(newName): # warn but allow, chances are good that its actually ok
                 self.OKbtn.Enable()
-                self.nameOKlabel.SetLabel("safer to avoid this, these, continue, or Clock in name")
+                self.nameOKlabel.SetLabel(namespace.is_possibly_derivable(newName))
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")

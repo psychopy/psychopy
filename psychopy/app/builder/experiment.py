@@ -444,7 +444,7 @@ class TrialHandler:
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
-            buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
+            buff.writeIndented("#abbreviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
@@ -760,6 +760,9 @@ class Routine(list):
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#Start of routine %s\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
+        buff.writeIndented("for _component in %sComponents:\n"%(self.name))
+        buff.writeIndented("    if hasattr(_component,'status'): _component.status = NOT_STARTED\n")
+        
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
 
@@ -786,8 +789,8 @@ class Routine(list):
         buff.writeIndentedLines('if not continueRoutine:\n')
         buff.writeIndentedLines('    break # lets a component forceEndTrial\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
-        buff.writeIndentedLines('for component in %sComponents:\n' %self.name)
-        buff.writeIndentedLines('    if hasattr(component,"status") and component.status!=FINISHED:\n')
+        buff.writeIndentedLines('for _component in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(_component,"status") and _component.status!=FINISHED:\n')
         buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
         #update screen
@@ -881,7 +884,7 @@ class NameSpace():
         # these are based on a partial test, known to be incomplete:
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
-            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
+            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', '_component']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
 
@@ -925,9 +928,14 @@ class NameSpace():
         return bool(_valid_var_re.match(name))
     def is_possibly_derivable(self, name):
         """catch all possible derived-names, regardless of whether currently"""
-        derivable = name.startswith('this') or name.startswith('continue') or name.endswith('Clock')
-        derivable = derivable or name.startswith('these')
-        return derivable
+        derivable = (name.startswith('this') or
+                     name.startswith('these') or
+                     name.startswith('continue') or
+                     name.endswith('Clock') or
+                     name.lower().find('component') > -1)
+        if derivable:
+            return " safer to avoid this, these, continue, Clock, or component in name"
+        return None
     def exists(self, name):
         """returns None, or a message indicating where the name is in use.
         cannot guarantee that a name will be conflict-free.
