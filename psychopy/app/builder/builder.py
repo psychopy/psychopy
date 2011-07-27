@@ -77,7 +77,10 @@ class FlowPanel(wx.ScrolledWindow):
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
-        self.btnQuitInsert = platebtn.PlateButton(self,-1,'cancel insert', pos=(10,50))
+        self.btnQuitInsert = platebtn.PlateButton(self,-1,'  cancel insert  ', pos=(10,50))
+        self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
+        self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
+        self.btnQuitInsert.SetLabelColor(**self.labelTextGray)
         self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,80))
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
@@ -113,6 +116,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.entryPointIDlist = []
         self.draw()
         self.frame.SetStatusText("")
+        self.btnQuitInsert.SetLabel('  cancel insert  ')
+        self.btnQuitInsert.SetLabelColor(**self.labelTextGray)
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
@@ -150,7 +155,9 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.mode='routine'
-        self.frame.SetStatusText('Click where you want to insert the Routine')
+        self.btnQuitInsert.SetLabel('CANCEL Insert')
+        self.btnQuitInsert.SetLabelColor(**self.labelTextRed)
+        self.frame.SetStatusText('Click where you want to insert the Routine, or CANCEL insert.')
         self.insertingRoutine = self.routinesFromID[event.GetId()]
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
@@ -172,7 +179,9 @@ class FlowPanel(wx.ScrolledWindow):
         Fetch the dialog
         """
         self.mode='loopPoint1'
-        self.frame.SetStatusText('Click where you want the loop to start/end')
+        self.frame.SetStatusText('Click where you want the loop to start/end, or CANCEL insert.')
+        self.btnQuitInsert.SetLabel('CANCEL Insert')
+        self.btnQuitInsert.SetLabelColor(**self.labelTextRed)
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
