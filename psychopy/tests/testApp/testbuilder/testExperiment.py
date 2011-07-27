@@ -135,8 +135,11 @@ class TestExpt():
         # make temp copies of all builder demos:
         for root, dirs, files in os.walk(path.join(exp.prefsPaths['demos'], 'builder')):
             for f in files:
-                if f.endswith('.psyexp') and not f.startswith('bart'):
-                    shutil.copyfile(path.join(root, f), path.join(self.tmp_dir, f))
+                if (f.endswith('.psyexp') or
+                    f.endswith('.xlsx') or
+                    f.endswith('.csv') )\
+                    and not f.startswith('bart'):
+                        shutil.copyfile(path.join(root, f), path.join(self.tmp_dir, f))
         # also copy any psyexp in 'here' (testExperiment dir)
         for f in glob.glob(path.join(self.here, '*.psyexp')):
             shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
