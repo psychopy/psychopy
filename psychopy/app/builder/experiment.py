@@ -301,7 +301,7 @@ class Experiment:
                         exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
                 # get condition names from within trialListFile, if any:
                 trialListFile = loop.params['trialListFile'].val
-                if trialListFile:
+                if trialListFile and trialListFile != 'None':
                     trialListFile = os.path.join(os.path.dirname(filename), trialListFile)
                     loop.params['trialListFile'].val = trialListFile
                     _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
