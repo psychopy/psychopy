@@ -11,6 +11,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 import sys, time, copy
 import psychopy.core, psychopy.misc
 from psychopy import log
+from psychopy.constants import *
 import string, numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
