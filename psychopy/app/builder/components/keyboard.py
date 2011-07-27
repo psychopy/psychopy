@@ -11,7 +11,7 @@ tooltip = 'Keyboard: check and record keypresses'
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',storeRT=True,
                 forceEndTrial=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -57,6 +57,9 @@ class KeyboardComponent(BaseComponent):
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
+        self.params['storeRT']=Param(storeRT, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Do you want to save the response times?")
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns")
@@ -71,11 +74,13 @@ class KeyboardComponent(BaseComponent):
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
+        dedentAtEnd = 0
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         #some shortcuts
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
+        storeRT=self.params['storeRT'].val
         forceEnd=self.params['forceEndTrial'].val
 
         buff.writeIndented("\n")
