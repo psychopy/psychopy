@@ -99,7 +99,11 @@ class SettingsComponent:
            for thisComp in thisRoutine: #a single routine is a list of components
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
-        size=self.params['Window size (pixels)']
+        
+        if fullScr:
+            size = list(wx.Display(self.params['Screen']).GetGeometry()[2:])
+        else:
+            size=self.params['Window size (pixels)']
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
