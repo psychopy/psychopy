@@ -794,7 +794,8 @@ class Routine(list):
         buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
         buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
         buff.writeIndented('#refresh the screen\n')
-        buff.writeIndented('win.flip()\n')
+        buff.writeIndented("if continueRoutine:#don't flip if this routine is over or we'll get a blank screen\n")
+        buff.writeIndented('    win.flip()\n')
 
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
