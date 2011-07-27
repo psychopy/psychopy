@@ -101,7 +101,8 @@ class SettingsComponent:
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
         
         if fullScr:
-            size = list(wx.Display(self.params['Screen']).GetGeometry()[2:])
+            #size = list(wx.Display(self.params['Screen']).GetGeometry()[2:]) #tests fail
+            size=self.params['Window size (pixels)']
         else:
             size=self.params['Window size (pixels)']
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
