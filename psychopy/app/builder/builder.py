@@ -75,24 +75,22 @@ class FlowPanel(wx.ScrolledWindow):
 
         #self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
-        self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
-        self.btnQuitInsert = platebtn.PlateButton(self,-1,'  cancel insert  ', pos=(10,50))
+        self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
+        self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
+        
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
-        self.btnQuitInsert.SetLabelColor(**self.labelTextGray)
-        self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,80))
+        self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
         if self.app.prefs.app['debugMode']:
-            self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
-
+            self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,60))
+            self.btnViewNamespace.SetLabelColor(**self.labelTextGray)
+        
         self.draw()
 
         #bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
-        self.Bind(wx.EVT_BUTTON, self.frame.addRoutine, self.btnNewRoutine)
-        self.Bind(wx.EVT_BUTTON, self.clearMode, self.btnQuitInsert)
         if self.app.prefs.app['debugMode']:
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -116,8 +114,10 @@ class FlowPanel(wx.ScrolledWindow):
         self.entryPointIDlist = []
         self.draw()
         self.frame.SetStatusText("")
-        self.btnQuitInsert.SetLabel('  cancel insert  ')
-        self.btnQuitInsert.SetLabelColor(**self.labelTextGray)
+        self.btnInsertRoutine.SetLabel('Insert Routine')
+        self.btnInsertRoutine.SetLabelColor(**self.labelTextBlack)
+        self.btnInsertLoop.SetLabel('Insert Loop')
+        self.btnInsertLoop.SetLabelColor(**self.labelTextBlack)
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
@@ -136,9 +136,18 @@ class FlowPanel(wx.ScrolledWindow):
         present insertion point on flow line.
         see self.insertRoutine() for further info
         """
+        if self.mode.startswith('loopPoint'):
+            self.clearMode()
+        elif self.mode == 'routine': # clicked again with label now being "Cancel..."
+            self.clearMode()
+            return
         self.frame.SetStatusText("Select a Routine to insert (Esc to exit)")
         menu = wx.Menu()
         self.routinesFromID={}
+        id = wx.NewId()
+        menu.Append(id, '(new)')
+        self.routinesFromID[id] = '(new)'
+        wx.EVT_MENU(menu, id, self.insertNewRoutine)
         for routine in self.frame.exp.routines:
             id = wx.NewId()
             menu.Append( id, routine )
@@ -149,14 +158,23 @@ class FlowPanel(wx.ScrolledWindow):
         self.PopupMenu( menu, menuPos )
         menu.Bind(wx.EVT_MENU_CLOSE, self.clearMode)
         menu.Destroy() # destroy to avoid mem leak
+    def insertNewRoutine(self, event):
+        """selecting (new) is a short-cut for: make new routine, insert it into the flow
+        """
+        newRoutine = self.frame.routinePanel.createNewRoutine(returnName=True)
+        if newRoutine:
+            self.routinesFromID[event.GetId()] = newRoutine
+            self.onInsertRoutineSelect(event)
+        else:
+            self.clearMode()
     def onInsertRoutineSelect(self,event):
         """User has selected a routine to be entered so bring up the entrypoint marker
         and await mouse button press.
         see self.insertRoutine() for further info
         """
         self.mode='routine'
-        self.btnQuitInsert.SetLabel('CANCEL Insert')
-        self.btnQuitInsert.SetLabelColor(**self.labelTextRed)
+        self.btnInsertRoutine.SetLabel('CANCEL Insert')
+        self.btnInsertRoutine.SetLabelColor(**self.labelTextRed)
         self.frame.SetStatusText('Click where you want to insert the Routine, or CANCEL insert.')
         self.insertingRoutine = self.routinesFromID[event.GetId()]
         x = self.getNearestGapPoint(0)
@@ -178,10 +196,15 @@ class FlowPanel(wx.ScrolledWindow):
         """Someone pushed the insert loop button.
         Fetch the dialog
         """
+        if self.mode == 'routine':
+            self.clearMode()
+        elif self.mode.startswith('loopPoint'): # clicked again, label is "Cancel..."
+            self.clearMode()
+            return
+        self.btnInsertLoop.SetLabel('CANCEL insert')
+        self.btnInsertLoop.SetLabelColor(**self.labelTextRed)
         self.mode='loopPoint1'
         self.frame.SetStatusText('Click where you want the loop to start/end, or CANCEL insert.')
-        self.btnQuitInsert.SetLabel('CANCEL Insert')
-        self.btnQuitInsert.SetLabelColor(**self.labelTextRed)
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
@@ -946,10 +969,11 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         for ii in range(self.GetPageCount()):
             currId = self.GetSelection()
             self.DeletePage(currId)
-    def createNewRoutine(self):
+    def createNewRoutine(self, returnName=False):
         dlg = wx.TextEntryDialog(self, message="What is the name for the new Routine? (e.g. instr, trial, feedback)",
             caption='New Routine')
         exp = self.frame.exp
+        routineName = None
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
             # silently auto-adjust the name to be valid, and register in the namespace:
@@ -959,6 +983,8 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
             self.frame.addToUndoStack("created %s routine" %routineName)
         dlg.Destroy()
+        if returnName:
+            return routineName
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp
         """
