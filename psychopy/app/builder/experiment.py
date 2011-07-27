@@ -758,7 +758,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         #create the frame loop for this routine
-        buff.writeIndentedLines('\n#run %s\n' %(self.name))
+        buff.writeIndentedLines('\n#Start of routine %s\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
@@ -783,6 +783,8 @@ class Routine(list):
 
         #are we done yet?
         buff.writeIndentedLines('\n#check if all components have finished\n')
+        buff.writeIndentedLines('if not continueRoutine:\n')
+        buff.writeIndentedLines('    break # lets a component forceEndTrial\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for component in %sComponents:\n' %self.name)
         buff.writeIndentedLines('    if hasattr(component,"status") and component.status!=FINISHED:\n')
@@ -799,7 +801,7 @@ class Routine(list):
 
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
-        buff.writeIndented('#end of this routine\n')
+        buff.writeIndented('#end of routine %s\n' %(self.name))
         for event in self:
             event.writeRoutineEndCode(buff)
 
