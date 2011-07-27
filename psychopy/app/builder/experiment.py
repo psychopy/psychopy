@@ -115,9 +115,9 @@ class Experiment:
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
                     "from psychopy.constants import *\n\n")
-        self.namespace.user.sort()
-        script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-                    "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
+        #self.namespace.user.sort()
+        #script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
+        #            "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
