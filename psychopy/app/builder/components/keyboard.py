@@ -57,30 +57,23 @@ class KeyboardComponent(BaseComponent):
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?")
-        self.params['storeRT']=Param(storeRT, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response times?")
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns")
     def writeRoutineStartCode(self,buff):
+        buff.writeIndented("%(name)s = event.BuilderKeyResponse() #create an object of type KeyResponse\n" %self.params)
         buff.writeIndented("%(name)s.status=NOT_STARTED\n" %self.params)
         if self.params['store'].val=='nothing' \
             and self.params['storeCorrect'].val==False:
             #the user doesn't want to store anything so don't bother
             return
-        buff.writeIndented("%(name)s = event.BuilderKeyResponse() #create an object of type KeyResponse\n" %self.params)
 
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
-        dedentAtEnd = 0
-        buff.writeIndented("\n")
-        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         #some shortcuts
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
-        storeRT=self.params['storeRT'].val
         forceEnd=self.params['forceEndTrial'].val
 
         buff.writeIndented("\n")
@@ -89,20 +82,19 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("%(name)s.status=STARTED\n" %(self.params))
         buff.writeIndented("#keyboard checking is just starting\n")
         if store != 'nothing':
-            buff.writeIndented("    %(name)s.clock.reset() # now t=0\n" % self.params)
+            buff.writeIndented("%(name)s.clock.reset() # now t=0\n" % self.params)
         if self.params['discard previous'].val:
             buff.writeIndented("event.clearEvents()\n")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
-        self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%(name)s.status=STOPPED\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        #test for stop (only if there was some setting for duration or stop)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+            buff.writeIndented("%(name)s.status=STOPPED\n" %(self.params))
+            buff.setIndentLevel(-1, relative=True)#to get out of the if statement
 
-        #if we've only just started then do a clearEvents()
-        buff.writeIndented("if %(name)s.status==NOT_STARTED:\n" %self.params)
-        buff.setIndentLevel(1, relative=True)#indent
-        buff.writeIndented("%(name)s.status=STARTED\n" %self.params)
-        buff.setIndentLevel(-1, relative=True)#dedent
-
+        buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+        buff.setIndentLevel(1, relative=True)#to get out of the if statement
+        dedentAtEnd=1#keep track of how far to dedent later
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
         else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
@@ -110,7 +102,7 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
 
         #how do we store it?
-        if store!='nothing' or storeRT or storeCorr or forceEnd:
+        if store!='nothing' or forceEnd:
             #we are going to store something
             buff.writeIndented("if len(theseKeys)>0:#at least one key was pressed\n")
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
@@ -119,10 +111,10 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("if %(name)s.keys==[]:#then this was the first keypress\n" %(self.params))
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
             buff.writeIndented("%(name)s.keys=theseKeys[0]#just the first key pressed\n" %(self.params))
-            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='last key':
             buff.writeIndented("%(name)s.keys=theseKeys[-1]#just the last key pressed\n" %(self.params))
-            if storeRT: buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
+            buff.writeIndented("%(name)s.rt = %(name)s.clock.getTime()\n" %(self.params))
         elif store=='all keys':
             buff.writeIndented("%(name)s.keys.extend(theseKeys)#storing all keys\n" %(self.params))
             buff.writeIndented("%(name)s.rt.append(%(name)s.clock.getTime())\n" %(self.params))

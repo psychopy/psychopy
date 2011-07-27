@@ -59,9 +59,11 @@ class VisualComponent(_base.BaseComponent):
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.setAutoDraw(True)\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
-        self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%(name)s.setAutoDraw(False)\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        #test for stop (only if there was some setting for duration or stop)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+            buff.writeIndented("%(name)s.setAutoDraw(False)\n" %(self.params))
+            buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
         if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
             buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))

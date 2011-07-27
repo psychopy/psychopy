@@ -748,22 +748,17 @@ class Routine(list):
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
-        buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
         self._clockName = self.name+"Clock"
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
-            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
 
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#Start of routine %s\n' %(self.name))
-        buff.writeIndented('continueRoutine=True\n')
-        buff.writeIndented("for _component in %sComponents:\n"%(self.name))
-        buff.writeIndented("    if hasattr(_component,'status'): _component.status = NOT_STARTED\n")
-        
+
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
 
@@ -772,6 +767,15 @@ class Routine(list):
         for event in self:
             event.writeRoutineStartCode(buff)
 
+        buff.writeIndented('#keep track of which have finished\n')
+        buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
+        for thisCompon in self:
+            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
+        buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
+        buff.writeIndented("    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED\n")
+
+        buff.writeIndented('#start the Routine\n')
+        buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
 
@@ -790,8 +794,8 @@ class Routine(list):
         buff.writeIndentedLines('if not continueRoutine:\n')
         buff.writeIndentedLines('    break # lets a component forceEndTrial\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
-        buff.writeIndentedLines('for _component in %sComponents:\n' %self.name)
-        buff.writeIndentedLines('    if hasattr(_component,"status") and _component.status!=FINISHED:\n')
+        buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:\n')
         buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
         #update screen
@@ -807,6 +811,8 @@ class Routine(list):
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
         buff.writeIndented('#end of routine %s\n' %(self.name))
+        buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
 
@@ -883,9 +889,10 @@ class NameSpace():
 
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui',
+            'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
-            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', '_component']
+            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
 

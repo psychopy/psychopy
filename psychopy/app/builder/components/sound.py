@@ -60,6 +60,6 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'frame')#do this EVERY frame, even before/after playing?
         buff.writeIndented("if %(startTime)s <= t and %(name)s.status==sound.NOT_STARTED:\n" %(self.params))
         buff.writeIndented("    %s.play()#start the sound (it finishes automatically)\n" %(self.params['name']))
-        if str(self.params['duration'])!='':
+        if str(self.params['duration'].val)!='':
             buff.writeIndented("if t > (%(startTime)s+%(duration)s) and %(name)s.status==sound.STARTED:\n" %(self.params))
             buff.writeIndented("    %s.stop()#stop the sound (if longer than duration)\n" %(self.params['name']))
