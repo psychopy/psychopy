@@ -8,7 +8,7 @@ The `Code Component` can be used to insert short pieces of python code into your
 Be aware that the code for each of the components in your :ref:`Routine <routines>` are executed in the order they appear on the :ref:`Routine <routines>` display (from top to bottom). If you want your `Code Component` to alter a variable to be used by another component immediately, then it needs to be above that component in the view. You may want the code not to take effect until next frame however, in which case put it at the bottom of the :ref:`Routine <routines>`. You can move `Components` up and down the :ref:`Routine <routines>` by right-clicking on their icons.
 
 Within your code you can use other variables and modules from the script. For example, all routines have a stopwatch-style :class:`~psychopy.core.Clock` associated with them, which gets reset at the beginning of that repeat of the routine. So if you have a :ref:`Routine <routines>` called trial, there will be a :class:`~psychopy.core.Clock` called trialClock and so you can get the time (in sec) from the beginning of the trial by using::
-	currentT = trialClock.getTime()
+    currentT = trialClock.getTime()
 
 To see what other variables you might want to use, and also what terms you need to avoid in your chunks of code, :ref:`compile your script <compileScript>` before inserting the code object and take a look at the contents of that script.
 
@@ -40,58 +40,60 @@ Example code uses
 Set a random location for your target stimulus
 ====================================================
 There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$targetPos` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
-	
-	if random()>0.5:
-	    targetPos=[-2.0, 0.0]#on the left
-	    corrAns='left'
-	else:
-	    targetPos=[+2.0, 0.0]#on the right
-	    corrAns='right'
+    
+    if random()>0.5:
+        targetPos=[-2.0, 0.0]#on the left
+        corrAns='left'
+    else:
+        targetPos=[+2.0, 0.0]#on the right
+        corrAns='right'
 
 Create a patch of noise 
 ====================================================
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
-	noiseTexture = random.rand(128,128)*2.0-1
+    noiseTexture = random.rand(128,128)*2.0-1
 
 Send a feedback message at the end of the experiment
 ====================================================
 Create a `Code Component` with this in the `Begin Experiment` field::
-	
-	expClock = core.Clock()
-	
+    
+    expClock = core.Clock()
+    
 and with this in the `End Experiment` field::
-	
-	print "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
+    
+    print "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
 
 (or you could create a Text Component with that as contents rather than printing it).
-	
+    
 What variables are available to use?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The most complete way to find this out for your particular script is to :ref:`compile it <compileScript>` and take a look at what's in there. Below are some options that appear in nearly all scripts. Remember that those variables are Python objects and can have attributes of their own. You can find out about those attributes using::
-	
-	dir(myObject)
+    
+    dir(myObject)
 
 Common PsychoPy variables:
 
-	- expInfo: This is a Python Dictionary containing the information from the starting dialog box. e.g. That generally includes the 'participant' identifier. You can access that in your experiment using `exp['participant']`
-	- t: the current time (in seconds) measured from the start of this Routine
-	- frameN: the number of /completed/ frames since the start of the Routine (=0 in the first frame)
-	- win: the :class:`~psychopy.visual.Window` that the experiment is using
+    - expInfo: This is a Python Dictionary containing the information from the starting dialog box. e.g. That generally includes the 'participant' identifier. You can access that in your experiment using `exp['participant']`
+    - t: the current time (in seconds) measured from the start of this Routine
+    - frameN: the number of /completed/ frames since the start of the Routine (=0 in the first frame)
+    - win: the :class:`~psychopy.visual.Window` that the experiment is using
 
 Your own variables:
 
-	- anything you've created in a Code Component is available for the rest of the script
-	- the name of any other stimulus or the parameters from your file also exist as variables
-	- most Components have a `status` attribute, which is useful to determine whether a stimulus has `NOT_STARTED`, `STARTED` or `FINISHED`. e.g., to 
+    - anything you've created in a Code Component is available for the rest of the script
+    - the name of any other stimulus or the parameters from your file also exist as variables
+    - most Components have a `status` attribute, which is useful to determine whether a stimulus has `NOT_STARTED`, `STARTED` or `FINISHED`. For example, to play a tone at the end of a Movie Component (of unknown duration) you could set start of your tone to have the 'condition' ::
+    
+        myMovieName.status==FINISHED
 
 The `contents of the numpy library <http://www.scipy.org/Numpy_Example_List_With_Doc>`_ are also imported so you can use a huge number of maths functions from there:
 
-	- `random.random() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.random.html>`_ , `random.randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `random.normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `random.poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
-	
-	- sin(), cos(), pi etc. : for geometry (warning: this is in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
-	
-	- `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: create an array of linearly spaced values
-	
-	- log(), log10(): the natural and base-10 log functions, respectively
+    - `random.random() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.random.html>`_ , `random.randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `random.normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `random.poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
+    
+    - sin(), cos(), pi etc. : for geometry (warning: this is in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
+    
+    - `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: create an array of linearly spaced values
+    
+    - log(), log10(): the natural and base-10 log functions, respectively
