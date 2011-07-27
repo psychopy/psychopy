@@ -77,7 +77,8 @@ class FlowPanel(wx.ScrolledWindow):
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop', pos=(10,30))
-        self.btnQuitInsert = platebtn.PlateButton(self,-1,'cancel insert', pos=(10,50))
+        self.btnQuitInsert = platebtn.PlateButton(self,-1,'  cancel insert  ', pos=(10,50))
+        self.btnQuitInsert.SetLabelColor(wx.Color(150,150,150, 20),hlight=wx.Color(150,150,150, 20))
         self.btnNewRoutine = platebtn.PlateButton(self,-1,'New Routine', pos=(10,80))
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'dump name-space', pos=(10,110))
@@ -113,6 +114,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.entryPointIDlist = []
         self.draw()
         self.frame.SetStatusText("")
+        self.btnQuitInsert.SetLabel('  cancel insert  ')
+        self.btnQuitInsert.SetLabelColor(wx.Color(150,150,150, 20),hlight=wx.Color(150,150,150, 20))
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
@@ -132,6 +135,8 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.frame.SetStatusText("Select a Routine to insert (Esc to exit)")
+        self.btnQuitInsert.SetLabel('CANCEL Insert')
+        self.btnQuitInsert.SetLabelColor(wx.Color(250,10,10, 250),hlight=wx.Color(250,10,10, 250))
         menu = wx.Menu()
         self.routinesFromID={}
         for routine in self.frame.exp.routines:
@@ -173,6 +178,8 @@ class FlowPanel(wx.ScrolledWindow):
         """
         self.mode='loopPoint1'
         self.frame.SetStatusText('Click where you want the loop to start/end')
+        self.btnQuitInsert.SetLabel('CANCEL Insert')
+        self.btnQuitInsert.SetLabelColor(wx.Color(250,10,10, 250),hlight=wx.Color(250,10,10, 250))
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
