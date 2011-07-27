@@ -26,7 +26,8 @@ class RatingScaleComponent(BaseComponent):
                  size=1.0,
                  pos='0, -0.4',
                  startType='time (s)', startVal=0.0,
-                 stopType='duration (s)', stopVal=1.0,
+                 stopType='condition', stopVal='',
+                 startEstim='', durationEstim='',
                  forceEndTrial=True,
                  storeRating=True, storeRatingTime=True,
                  lowAnchorText='', highAnchorText='',
@@ -57,6 +58,10 @@ class RatingScaleComponent(BaseComponent):
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="How long to wait for a response (blank is forever)")
+        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
+        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
+            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices")
@@ -102,7 +107,7 @@ class RatingScaleComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
-        init_str = "%(name)s=visual.RatingScale(win=win, name='%(name)s'," % (self.params)
+        init_str = "%(name)s=visual.RatingScale(win=win, name='%(name)s'" % (self.params)
         if self.params['customize_everything'].val.strip() != '':
             # clean it up a little, remove win=*, leading / trailing typos
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)
@@ -171,10 +176,12 @@ class RatingScaleComponent(BaseComponent):
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
+        buff.writeIndented("%(name)s.status = NOT_STARTED\n" % (self.params))
 
     def writeFrameCode(self, buff):
         name = self.params['name']
-        buff.writeIndented("\n#update and/or draw **%(name)s**\n" %(self.params))
+        buff.writeIndented("\n")
+        buff.writeIndented("#*%(name)s* updates\n" %(self.params))
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
         # if requested, force end of trial when the subject 'accepts' the current rating:
         if self.params['forceEndTrial']:
@@ -182,6 +189,7 @@ class RatingScaleComponent(BaseComponent):
         # only need to do the following the first time it goes False, here gets set every frame:
         buff.writeIndented("if %s.noResponse == False:\n" % name)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndented("%(name)s.status = FINISHED\n" % (self.params))
         buff.writeIndented("%s.response = %s.getRating()\n" % (name, name));
         if self.params['storeRatingTime'].val:
             buff.writeIndented("%s.rt = %s.getRT()\n" % (name, name));
