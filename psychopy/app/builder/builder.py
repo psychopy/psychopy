@@ -1423,8 +1423,8 @@ class _BaseParamsDlg(wx.Dialog):
             y3 = 18 * (1 + len(self.params) - len(self.advParams))
         self.paramCtrls[fieldName].valueCtrl.SetFocus() # later replace existing text with new color
         if self.title == 'Experiment Settings': # total kludge, but puts it in about the right spot
-            y += 210 # I think its y that is not set right for Exp Settings window
-        self.showContextMenu(-1, xy=wx.Point(x - x2 + x3, y - y2 + y3))
+            y += 130 # I think its y that is not set right for Exp Settings window
+        self.showContextMenu(-1, xy=wx.Point(x - x2 + x3, y - y2 + y3 + 85))
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
         for item in self.contextMenuItems:
