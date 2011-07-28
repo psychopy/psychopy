@@ -1,6 +1,7 @@
 from os import path
 from _base import *
 import os
+from psychopy import log
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -61,9 +62,15 @@ class SettingsComponent:
     def getShortType(self):
         return self.getType().replace('Component','')
     def writeStartCode(self,buff):
-        buff.writeIndented("#store info about the experiment\n")
+        buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
-        buff.writeIndented("expInfo=%s\n" %self.params['Experiment info'])
+        expInfo = self.params['Experiment info'].val.strip()
+        if not len(expInfo): expInfo = '{}'
+        try: eval('dict('+expInfo+')')
+        except SyntaxError, err:
+            log.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
+            raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
+        buff.writeIndented("expInfo=%s\n" % expInfo)
         if self.params['Show info dlg'].val:            
             buff.writeIndented("dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)\n")
             buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")            
