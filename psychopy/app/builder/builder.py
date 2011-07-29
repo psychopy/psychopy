@@ -77,14 +77,14 @@ class FlowPanel(wx.ScrolledWindow):
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
-        
+
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,60))
             self.btnViewNamespace.SetLabelColor(**self.labelTextGray)
-        
+
         self.draw()
 
         #bind events
@@ -95,7 +95,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
-        
+
         idClear = wx.NewId()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear )
         aTable = wx.AcceleratorTable([
@@ -1029,12 +1029,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for thisName in self.components.keys():
             #NB thisComp is a class - we can't use its methods until it is an instance
             thisComp=self.components[thisName]
-            thisIcon = components.icons[thisName][1]#index 1 is the 'add' icon
+            thisIcon = components.icons[thisName]['32']#index 1 is the 'add' icon
             shortName=thisName#but might be shortened below
             for redundant in ['component','Component']:
                 if redundant in thisName: shortName=thisName.replace(redundant, "")
-            btn = wx.BitmapButton(self, -1, thisIcon, (20, 20),
-                           (thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
+#            thisIcon.SetSize((16,16))
+            btn = wx.BitmapButton(self, -1, thisIcon, pos=(10, 10),
+                           size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
             if thisName in components.tooltips:
                 thisTip = components.tooltips[thisName]

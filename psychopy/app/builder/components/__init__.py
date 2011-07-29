@@ -8,10 +8,11 @@ import os, glob, copy
 import wx, Image
 from os.path import *
 import psychopy
-def pilToBitmap(pil):
+def pilToBitmap(pil,scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1] )
     image.SetData( pil.convert( "RGB").tostring() )
     image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+    image.Rescale(image.Width*scaleFactor, image.Height*scaleFactor)
     return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
 
 def getIcons(filename=None):
@@ -20,17 +21,20 @@ def getIcons(filename=None):
 
         png files work best, but anything that wx.Image can import should be fine
         """
+        icons={}
         if filename==None:
             filename=join(dirname(abspath(__file__)),'base.png')
         im = Image.open(filename)
-        icon = pilToBitmap(im)
+        icons['32'] = pilToBitmap(im)
+        icons['16'] = pilToBitmap(im, scaleFactor=0.5)
         #add the plus sign
         add = Image.open(join(dirname(abspath(__file__)),'add.png'))
         im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
         #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
-        iconAdd = pilToBitmap(im)
+        icons['32add'] = pilToBitmap(im)
+        icons['16add'] = pilToBitmap(im, scaleFactor=0.5)
 
-        return icon, iconAdd
+        return icons
 
 def getComponents(folder=None):
     """Get a dictionary of available component objects for the Builder experiments.
