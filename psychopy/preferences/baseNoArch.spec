@@ -53,7 +53,7 @@
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-  
+
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
@@ -92,6 +92,7 @@
     showLoopInfoInFlow = boolean(default=False)
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
+    topFlow = boolean(default=False)
 
 # Settings for connections
 [connections]
@@ -162,7 +163,7 @@
     # Coder: show / hide end of line characters
     toggleEOLs = string(default='Ctrl+Shift+L')
     toggleIndentGuides = string(default='Ctrl+Shift+I')
-    
+
     # Builder: create a new routine
     newRoutine = string(default='Ctrl+Shift+N')
     # Builder: copy an existing routine

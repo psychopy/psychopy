@@ -46,7 +46,7 @@
     # best leave this mysterious setting as 'process'
     runScripts = option('process', 'thread', 'inline', default='process')
     # on win32 only, we can allow module imports for analysis of code
-    
+
     # should common libs be imported during launch
     importLibs = option('none', 'thread', 'inline', default='none')
     # will reset site & key prefs to defaults immediately
@@ -55,7 +55,7 @@
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-  
+
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
@@ -95,7 +95,7 @@
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=True)
+    topFlow = boolean(default=False)
 
 # Settings for connections
 [connections]
@@ -166,7 +166,7 @@
     # Coder: show / hide end of line characters
     toggleEOLs = string(default='Ctrl+Shift+L')
     toggleIndentGuides = string(default='Ctrl+Shift+I')
-    
+
     # Builder: create a new routine
     newRoutine = string(default='Ctrl+Shift+N')
     # Builder: copy an existing routine
