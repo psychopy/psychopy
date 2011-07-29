@@ -260,12 +260,12 @@ class FlowPanel(wx.ScrolledWindow):
         loopDlg = DlgLoopProperties(frame=self.frame,
             title=loop.params['name'].val+' Properties', loop=loop)
         if loopDlg.OK:
-            if loopDlg.params['loopType'].val=='staircase': #['random','sequential','staircase']
+            if loopDlg.params['loopType'].val=='staircase':  
                 loop= loopDlg.stairHandler
             if loopDlg.params['loopType'].val=='interleaved stairs':
                 loop= loopDlg.multiStairHandler
             else:
-                loop=loopDlg.trialHandler
+                loop=loopDlg.trialHandler #['random','sequential', 'fullRandom', ]
             loop.params=loop.params
             self.frame.addToUndoStack("Edit Loop")
         #remove the points from the timeline
@@ -1628,7 +1628,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         new_name = namespace.make_valid(old_name)
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
-            loopType='random',nReps=5,trialList=[]) #for 'random','sequential'
+            loopType='random',nReps=5,trialList=[]) #for 'random','sequential', 'fullRandom'
         self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name,
             nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
@@ -1643,7 +1643,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.trialList=loop.params['trialList'].val
             self.trialListFile=loop.params['trialListFile'].val
             self.trialHandler = self.currentHandler = loop
-            self.currentType=loop.params['loopType']#could be 'random' or 'sequential'
+            self.currentType=loop.params['loopType']#could be 'random', 'sequential', 'fullRandom'
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
