@@ -25,14 +25,14 @@ def getIcons(filename=None):
         if filename==None:
             filename=join(dirname(abspath(__file__)),'base.png')
         im = Image.open(filename)
-        icons['32'] = pilToBitmap(im)
-        icons['16'] = pilToBitmap(im, scaleFactor=0.5)
+        icons['48'] = pilToBitmap(im)
+        icons['24'] = pilToBitmap(im, scaleFactor=0.5)
         #add the plus sign
         add = Image.open(join(dirname(abspath(__file__)),'add.png'))
         im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
         #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
-        icons['32add'] = pilToBitmap(im)
-        icons['16add'] = pilToBitmap(im, scaleFactor=0.5)
+        icons['48add'] = pilToBitmap(im)
+        icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 
         return icons
 

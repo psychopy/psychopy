@@ -845,7 +845,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.componentFromID[id]=component
         dc.SetId(id)
 
-        thisIcon = components.icons[component.getType()][0]#index 0 is main icon
+        thisIcon = components.icons[component.getType()]['48']#index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
         fullRect = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
 
@@ -1018,8 +1018,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.app=frame.app
         self.dpi=self.app.dpi
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
-        self.sizer=wx.BoxSizer(wx.VERTICAL)
-
+        if self.app.prefs.app['largeIcons']:
+            self.sizer=wx.BoxSizer(wx.VERTICAL)
+        else:
+            self.sizer=wx.FlexGridSizer(cols=2)
         # add a button for each type of event that can be added
         self.componentButtons={}; self.componentFromID={}
         self.components=experiment.getAllComponents()
@@ -1029,12 +1031,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for thisName in self.components.keys():
             #NB thisComp is a class - we can't use its methods until it is an instance
             thisComp=self.components[thisName]
-            thisIcon = components.icons[thisName]['32']#index 1 is the 'add' icon
             shortName=thisName#but might be shortened below
             for redundant in ['component','Component']:
                 if redundant in thisName: shortName=thisName.replace(redundant, "")
 #            thisIcon.SetSize((16,16))
-            btn = wx.BitmapButton(self, -1, thisIcon, pos=(10, 10),
+            if self.app.prefs.app['largeIcons']:
+                thisIcon = components.icons[thisName]['48']#index 1 is the 'add' icon
+            else:
+                thisIcon = components.icons[thisName]['24']#index 1 is the 'add' icon
+            btn = wx.BitmapButton(self, -1, thisIcon,
                            size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
             if thisName in components.tooltips:
@@ -1044,7 +1049,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn.SetToolTip(wx.ToolTip(thisTip))
             self.componentFromID[btn.GetId()]=thisName
             self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
-            self.sizer.Add(btn, 0,wx.EXPAND|wx.ALIGN_CENTER )
+            self.sizer.Add(btn, proportion=0, flag=wx.ALIGN_TOP)#,wx.EXPAND|wx.ALIGN_CENTER )
             self.componentButtons[thisName]=btn#store it for elsewhere
 
         self.SetSizer(self.sizer)
