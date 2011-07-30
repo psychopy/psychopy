@@ -423,7 +423,8 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
-            allowedVals=['random','sequential','staircase','interleaved staircases'],
+            allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
+                # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
             hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
@@ -526,7 +527,7 @@ class StairHandler:
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
-            allowedVals=['random','sequential','staircase','interleaved stairs'],
+            allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
@@ -586,11 +587,11 @@ class MultiStairHandler:
             hint="(Minimum) number of trials in *each* staircase")
         self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST'],
             hint="How to select the next staircase to run")
-        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential'],
+        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
             hint="How to select the next staircase to run")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
-        allowedVals=['random','sequential','staircase','interleaved stairs'],
+        allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')

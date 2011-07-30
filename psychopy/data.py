@@ -35,11 +35,11 @@ class TrialType(dict):
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
 class TrialHandler:
-    """Class to handle smoothly the selection of the next trial
-    and report current values etc.
-    Calls to .next() will fetch the next object given to this
-    handler, according to the method specified and will raise a
-    StopIteration error if trials have finished
+    """Class to handle trial sequencing and data storage.
+    
+    Calls to .next() will fetch the next trial object given to this handler,
+    according to the method specified (random, sequential, fullRandom). Calls
+    will raise a StopIteration error if trials have finished.
 
     See demo_trialHandler.py
     """
@@ -53,8 +53,7 @@ class TrialHandler:
                  originPath=None):
         """
         trialList: a simple list (or flat array) of trials.
-
-            """
+        """
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
         else:
@@ -63,8 +62,8 @@ class TrialHandler:
         for n, entry in enumerate(trialList):
             if type(entry)==dict:
                 trialList[n]=TrialType(entry)
-        self.nReps = nReps
-        self.nTotal = nReps*len(self.trialList)
+        self.nReps = int(nReps)
+        self.nTotal = self.nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial
         self.method = method
         self.thisRepN = 0        #records which repetition or pass we are on
@@ -82,7 +81,7 @@ class TrialHandler:
         self.data.addDataType('ran')
         self.data['ran'].mask=False#this is a bool - all entries are valid
         #generate stimulus sequence
-        if self.method in ['random','sequential']:
+        if self.method in ['random','sequential', 'fullRandom']:
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
 
@@ -137,30 +136,49 @@ class TrialHandler:
 
     def _createSequence(self):
         """
-        Pre-generates the sequence of trial presentations
-        (for non-adaptive methods). This is called automatically
-        when the TrialHandler is initialised so doesn't need an
-        explicit call from the user.
+        Pre-generates the sequence of trial presentations (for non-adaptive methods).
+        This is called automatically when the TrialHandler is initialised so doesn't
+        need an explicit call from the user.
 
-        sequence has form indices[stimN][repN]
+        The returned sequence has form indices[stimN][repN]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
+            [[0 0 0 0 0]
+             [1 1 1 1 1]
+             [2 2 2 2 2]
+             [3 3 3 3 3]
+             [4 4 4 4 4]
+             [5 5 5 5 5]]
+        These 30 trials will be returned by .next() in the order:
+            0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
+
+        To add a new type of sequence (as of v1.65.02):
+        - add the sequence generation code here
+        - adjust "if self.method in [ ...]:" in both __init__ and .next()
+        - adjust allowedVals in experiment.py -> shows up in DlgLoopProperties
+        Note that users can make any sequence whatsoever outside of PsychoPy, and
+        specify sequential order; any order is possible this way.
         """
+        # create indices for a single rep
+        indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
 
         if self.method == 'random':
             sequenceIndices = []
-            # create indices for a single rep
-            indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
             seed=self.seed
-            for thisRep in range(int(self.nReps)):
+            for thisRep in range(self.nReps):
                 thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
-            return numpy.transpose(sequenceIndices)
-
-        if self.method == 'sequential':
-            sequenceIndices = []
-            indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
+            sequenceIndices = numpy.transpose(sequenceIndices)
+        elif self.method == 'sequential':
             sequenceIndices = numpy.repeat(indices,self.nReps,1)
-            return sequenceIndices
+        elif self.method == 'fullRandom':
+            # indices*nReps, flatten, shuffle, unflatten; only use seed once
+            sequential = numpy.repeat(indices, self.nReps,1) # = sequential
+            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed).tolist()
+            sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+        log.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
+                (self.method, len(indices), self.nReps, str(self.seed) )  )
+        return sequenceIndices
 
     def _makeIndices(self,inputArray):
         """
@@ -226,7 +244,7 @@ class TrialHandler:
             raise StopIteration
 
         #fetch the trial info
-        if self.method in ['random','sequential']:
+        if self.method in ['random','sequential','fullRandom']:
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
