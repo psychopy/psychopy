@@ -62,8 +62,8 @@ class TrialHandler:
         for n, entry in enumerate(trialList):
             if type(entry)==dict:
                 trialList[n]=TrialType(entry)
-        self.nReps = nReps
-        self.nTotal = nReps*len(self.trialList)
+        self.nReps = int(nReps)
+        self.nTotal = self.nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial
         self.method = method
         self.thisRepN = 0        #records which repetition or pass we are on
@@ -141,19 +141,22 @@ class TrialHandler:
         need an explicit call from the user.
 
         The returned sequence has form indices[stimN][repN]
-            Example: 'sequential' with 6 trialtypes (rows), 5 reps (cols), returns:
-               [[0 0 0 0 0]
-                [1 1 1 1 1]
-                [2 2 2 2 2]
-                [3 3 3 3 3]
-                [4 4 4 4 4]
-                [5 5 5 5 5]]
-            Trials will be returned by .next() in the order: 0, 1, 2, 3, 4, 5,   0, 1, 2, ...   ... 4, 5
-        
-        To add a new type of sequence:
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
+            [[0 0 0 0 0]
+             [1 1 1 1 1]
+             [2 2 2 2 2]
+             [3 3 3 3 3]
+             [4 4 4 4 4]
+             [5 5 5 5 5]]
+        These 30 trials will be returned by .next() in the order:
+            0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
+
+        To add a new type of sequence (as of v1.65.02):
         - add the sequence generation code here
-        - update the .next() method, below, "if self.method in [ ...]:"
-        - edit various allowedVals in experiment.py -> show up in DlgLoopProperties
+        - adjust "if self.method in [ ...]:" in both __init__ and .next()
+        - adjust allowedVals in experiment.py -> shows up in DlgLoopProperties
+        Note that users can make any sequence whatsoever outside of PsychoPy, and
+        specify sequential order; any order is possible this way.
         """
         # create indices for a single rep
         indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
@@ -161,7 +164,7 @@ class TrialHandler:
         if self.method == 'random':
             sequenceIndices = []
             seed=self.seed
-            for thisRep in range(int(self.nReps)):
+            for thisRep in range(self.nReps):
                 thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
@@ -169,11 +172,12 @@ class TrialHandler:
         elif self.method == 'sequential':
             sequenceIndices = numpy.repeat(indices,self.nReps,1)
         elif self.method == 'fullRandom':
-            # sequential*nReps, flatten, shuffle, unflatten
+            # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
             randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed).tolist()
-            randomMatrix = [randomFlat[x*self.nReps:(x+1)*self.nReps] for x in range(len(indices))]
-            sequenceIndices = numpy.array(randomMatrix)
+            sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+        log.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
+                (self.method, len(indices), self.nReps, str(self.seed) )  )
         return sequenceIndices
 
     def _makeIndices(self,inputArray):

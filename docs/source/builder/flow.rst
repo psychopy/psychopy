@@ -26,7 +26,7 @@ As the column names from the input file are used in this way they must have lega
 
 Method of Constants
 ^^^^^^^^^^^^^^^^^^^^^
-Selecting a loop type of `random` or `sequential` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv`) file in which columns refer to parameters that are needed to describe stimuli etc and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. The top row should give headers; text labels describing the contents of that column (which must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment). For example, a file containing the following table::
+Selecting a loop type of `random`, `sequential`, or `fullRandom` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. That is, the trials cannot vary depending on how the subject has responded on a previous trial. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv`) file in which columns refer to parameters that are needed to describe stimuli etc and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. (Note that csv files can also be generated using most text editors, as long as they allow you to save the file as "plain text"; other output formats will *not* work, including "rich text".) The top row should be a row of headers: text labels describing the contents of the respective columns. (Headers must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment.) For example, a file containing the following table::
 
   ori	text	corrAns
   0	aaa	left
@@ -34,15 +34,24 @@ Selecting a loop type of `random` or `sequential` will result in a :term:`method
   0	bbb	right
   90	bbb	right
 
-would represent 4 different conditions (trial types) with parameters ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
+would represent 4 different conditions (or trial types, one per line). The header line describes the parameters in the 3 columns: ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
 
-If the loop type is `sequential` then, on each iteration of the :ref:`routines`, the next row will be selected in order, whereas under the `random` type the next row will be selected randomly (without replacement). `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
+If the loop type is `sequential` then, on each iteration through the :ref:`routines`, the next row will be selected in the order listed in the file. Under a `random` order, the next row will be selected at random (without replacement); it can only be selected again after all the other rows have also been selected. `nReps` determines how many repeats will be performed (for all conditions). The total number of trials will be the number of conditions (= number of rows in the file, not counting the header row) times the number of repetitions, `nReps`. With the `fullRandom` option, the entire list of trials including repetitions is used in random order, allowing the same item to appear potentially many times in a row, and to repeat without necessarily having done all of the other trials. For example, with 3 repetitions, a file of trial types like this::
+
+  letter
+  a
+  b
+  c
+
+could result in the following sequences. `sequential` could only ever give [a b c a b c a b c], in exactly this order. `random` could give, for example, [b a c a b c c a b]; it could give 216 different orders (= 6*6*6). Note that the letters come in sets of (abc) (abc) (abc), and randomization is only done within each set, ensuring (for example) that there are two a's before the subject sees a 3rd b. Finally, `fullRandom` could give [b b c a a c c a b] (which `random` never could). There are no longer mini-blocks or "sets of trials" within the longer run. This means that, by chance, it would be possible to get a very un-random-looking sequence like [a a a b b b c c c].
+
+It is possible to achieve any sequence you like, subject to any constraints that are logically possible. To do so, in the file you specify every trial in the desired order, and the for the loop select `sequential` order and nReps=1.
 
 .. _staircaseMethods:
 
 Staircase methods
 ^^^^^^^^^^^^^^^^^^^
-The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
+The loop type `staircase` allows the implementation of adaptive methods. That is, aspects of a trial can depend on (or "adapt to") how a subject has responded earlier in the study. This could be, for example, simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters, or a stop-signal paradigm to assess impulsivity. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
 
 .. _accessingParams:
 
