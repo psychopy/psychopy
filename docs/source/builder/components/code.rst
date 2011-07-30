@@ -93,7 +93,7 @@ Your own variables:
     
         myMovieName.status==FINISHED
 
-The `contents of the numpy library and numpy.random <http://www.scipy.org/Numpy_Example_List_With_Doc>`_ are imported by default so you can use a huge number of maths functions from there:
+The `contents of the numpy library and numpy.random <http://docs.scipy.org/doc/numpy/reference/index.html>`_ are imported by default so you can use a huge number of maths functions from there:
 
     - `rand() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html>`_ , `randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
     
