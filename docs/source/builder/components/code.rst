@@ -37,7 +37,7 @@ The parameters of the `Code Component` simply specify the code that will get exe
 Example code uses
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Set a random location for your target stimulus
+1. Set a random location for your target stimulus
 ====================================================
 There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$targetPos` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
     
@@ -48,13 +48,13 @@ There are many ways to do this, but you could add the following to the `Begin Ro
         targetPos=[+2.0, 0.0]#on the right
         corrAns='right'
 
-Create a patch of noise 
+2. Create a patch of noise 
 ====================================================
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
     noiseTexture = random.rand(128,128)*2.0-1
 
-Send a feedback message at the end of the experiment
+3. Send a feedback message at the end of the experiment
 ====================================================
 Create a `Code Component` with this in the `Begin Experiment` field::
     
@@ -65,7 +65,12 @@ and with this in the `End Experiment` field::
     print "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
 
 (or you could create a Text Component with that as contents rather than printing it).
-    
+
+4. End a loop early.
+====================================================
+
+Code components can also be used to control the end of a loop. See examples in `Recipes:builderTerminateLoops`.
+
 What variables are available to use?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -88,11 +93,11 @@ Your own variables:
     
         myMovieName.status==FINISHED
 
-The `contents of the numpy library <http://www.scipy.org/Numpy_Example_List_With_Doc>`_ are also imported so you can use a huge number of maths functions from there:
+The `contents of the numpy library and numpy.random <http://www.scipy.org/Numpy_Example_List_With_Doc>`_ are imported by default so you can use a huge number of maths functions from there:
 
-    - `random.random() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.random.html>`_ , `random.randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `random.normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `random.poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
+    - `rand() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html>`_ , `randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
     
-    - sin(), cos(), pi etc. : for geometry (warning: this is in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
+    - sin(), cos(), pi, and so on: For geometry and trig. By default angles are in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
     
     - `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: create an array of linearly spaced values
     
