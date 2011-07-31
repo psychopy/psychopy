@@ -18,6 +18,8 @@ from psychopy.constants import *
 
 inf = FOREVER #see constants.py
 canvasColor=[200,200,200]#in prefs? ;-)
+routineTimeColor=wx.Color(100,100,200, 200)
+routineFlowColor=wx.Color(200,150,150, 255)
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -304,6 +306,8 @@ class FlowPanel(wx.ScrolledWindow):
                         xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
                 except UnboundLocalError:
                     pass # right click but not on an icon
+                    self.Refresh() # might as well do something
+                    print 'refresh'
         elif self.mode=='routine':
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
@@ -349,7 +353,7 @@ class FlowPanel(wx.ScrolledWindow):
             # remove name from namespace only if its a loop (which exists only in the flow)
             if component.type in ['TrialHandler', 'StairHandler']:
                 trialListFile = component.params['trialListFile'].val
-                if trialListFile:
+                if trialListFile not in [None, 'None']: # best to avoid it ever getting set to 'None'; where?
                     _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
@@ -433,7 +437,8 @@ class FlowPanel(wx.ScrolledWindow):
                 self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
                 nestLevel-=1#end of loop so decrement level of nesting
             elif entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
+                # just set currX, don't draw yet
+                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10], draw=False)
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetId(lineId)
             pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
@@ -442,9 +447,9 @@ class FlowPanel(wx.ScrolledWindow):
         lineRect = wx.Rect(self.linePos[0]-2, self.linePos[1]-2, currX-self.linePos[0]+2, 4)
         pdc.SetIdBounds(lineId,lineRect)
 
-        #draw the loops second
+        #draw the loops first:
         maxHeight = 0
-        for thisLoop in self.loops.keys():
+        for thisLoop in self.loops:
             thisInit = self.loops[thisLoop]['init']
             thisTerm = self.loops[thisLoop]['term']
             thisNest = len(self.loops.keys())-1-self.loops[thisLoop]['nest']
@@ -458,7 +463,17 @@ class FlowPanel(wx.ScrolledWindow):
             self.drawLoopEnd(pdc,pos=[thisTerm,self.linePos[1]], downwards=True)
             if height>maxHeight: maxHeight=height
 
+        # draw routines second (over loop lines):
+        currX=self.linePos[0]
+        for ii, entry in enumerate(expFlow):
+            if entry.getType()=='Routine':
+                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
+            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
+            currX += gap
+
         self.SetVirtualSize(size=(currX+100, maxHeight+50))
+        
         #draw all possible locations for routines DEPRECATED SINCE 1.62 because not drawing those
         #for n, xPos in enumerate(self.pointsToDraw):
         #   font.SetPointSize(600/self.dpi)
@@ -470,6 +485,8 @@ class FlowPanel(wx.ScrolledWindow):
         #   pdc.SetTextForeground([255,255,255])
         #   pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
 
+        self.drawLineEnd(pdc, (currX, self.linePos[1]))
+        
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def drawEntryPoints(self, posList):
@@ -510,16 +527,25 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=self.gapMidPoints
         else:
             self.pointsToDraw=[]
+    def drawLineEnd(self, dc, pos):
+        #draws arrow at end of timeline
+        #tmpId = wx.NewId()
+        #dc.SetId(tmpId)
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
+        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.DrawPolygon([[0,-3],[5,0],[0,3]], pos[0],pos[1])
+        #dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
     def drawLoopEnd(self, dc, pos, downwards=True):
         #draws a spot that a loop will later attach to
+        return
         tmpId = wx.NewId()
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         if downwards:
-            dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1])#points down
+            dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]+10)#points down
         else:
-            dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5)#points up
+            dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]-5-10)#points up
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-5,pos[1]-5,10,10))
     def drawLoopStart(self, dc, pos, downwards=True):
         #draws a spot that a loop will later attach to
@@ -528,15 +554,15 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         if downwards:
-            dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1])#points up
+            dc.DrawPolygon([[5,5],[0,0],[-5,5]], pos[0],pos[1]+15)#points up
         else:
-            dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5)#points down
+            dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5-15)#points down
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-5,pos[1]-5,10,10))
-    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0]):
+    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
         """
         name=routine.name
-        dc.SetId(id)
+        if draw: dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
             font.SetPointSize(1400/self.dpi)
@@ -545,24 +571,26 @@ class FlowPanel(wx.ScrolledWindow):
         r, g, b = rgb
 
         #get size based on text
-        self.SetFont(font); dc.SetFont(font)
+        self.SetFont(font)
+        if draw: dc.SetFont(font)
         w,h = self.GetFullTextExtent(name)[0:2]
         pad = 20
         #draw box
         rect = wx.Rect(pos[0], pos[1], w+pad,h+pad)
         endX = pos[0]+w+20
         #the edge should match the text
-        dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
-        #for the fill, draw once in white near-opaque, then in transp color
-        dc.SetBrush(wx.Brush(wx.Color(r,g*3,b*3,255)))
-        dc.DrawRoundedRectangleRect(rect, 8)
-        #draw text
-        dc.SetTextForeground(rgb)
-        dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
+        if draw:
+            dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
+            #for the fill, draw once in white near-opaque, then in transp color
+            dc.SetBrush(wx.Brush(routineFlowColor))
+            dc.DrawRoundedRectangleRect(rect, 8)
+            #draw text
+            dc.SetTextForeground(rgb)
+            dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
 
-        self.componentFromID[id]=routine
-        #set the area for this component
-        dc.SetIdBounds(id,rect)
+            self.componentFromID[id]=routine
+            #set the area for this component
+            dc.SetIdBounds(id,rect)
 
         return endX
         #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
@@ -591,12 +619,16 @@ class FlowPanel(wx.ScrolledWindow):
         pts = zip(xx, yy)
         r,g,b=rgb
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
-        dc.DrawSpline(pts)
-        area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
+        #dc.DrawSpline(pts)
+        #area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
+        
+        # loopier loop
+        curve = 10
+        area = wx.Rect(startX, base, endX-startX, max(yy)-min(yy))
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent fill
+        dc.DrawRoundedRectangleRect(area, curve)
+        
         dc.SetIdBounds(tmpId, area)
-        # simplified drawing & smoother curve, but ugly line; draw routines after loop?
-        #dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent fill
-        #dc.DrawRoundedRectangleRect(area, curve) # ugly line on the routine
 
         #add a name label, loop info
         name = loop.params['name'].val
@@ -604,7 +636,9 @@ class FlowPanel(wx.ScrolledWindow):
             if 'trialList' in loop.params.keys() and loop.params['trialList'].val:
                 xnumTrials = 'x'+str(len(loop.params['trialList'].val))
             else: xnumTrials = ''
-            name += ': '+str(loop.params['nReps'].val)+xnumTrials+', '+str(loop.params['loopType'].val)[:4]
+            abbrev = {'random': 'rand', 'sequential': 'seq', 'fullRandom':'full',
+                      'staircase': 'stair', 'interleaved staircases': 'inter'}
+            name += ': '+str(loop.params['nReps'].val)+xnumTrials+', '+abbrev[loop.params['loopType'].val]
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
@@ -613,20 +647,20 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(800/self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
+        
         #get size based on text
+        pad = 10
         w,h = self.GetFullTextExtent(name)[0:2]
-        x = startX+(endX-startX)/2-w/2
+        x = startX+(endX-startX)/2-w/2-pad/2
         y = (height-h/2)
 
         #draw box
-        pad = 10
         rect = wx.Rect(x, y, w+pad,h+pad)
         #the edge should match the text
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
-        loopColor = map(lambda x: min(255, int(1.17*x)), canvasColor)
-        dc.SetBrush(wx.Brush(wx.Color(loopColor[0], loopColor[1], loopColor[2], 250)))
-
+        dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
+        
         dc.DrawRoundedRectangleRect(rect, 8)
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -826,7 +860,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         for lineN in range(int(numpy.floor(tMax/unitSize))):
             dc.DrawLine(xSt+lineN*unitSize/xScale, yPosTop-4,#vertical line
                     xSt+lineN*unitSize/xScale, yPosBottom+4)
-            dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosTop-20)#label above
+            dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosTop-20)#label above
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
                 dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosBottom+10)#label below
         #add a label
@@ -895,10 +929,10 @@ class RoutineCanvas(wx.ScrolledWindow):
             if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
                 dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
-                dc.SetBrush(wx.Brush(wx.Color(200,100,100, 200)))
+                dc.SetBrush(wx.Brush(routineTimeColor))
                 h = self.componentStep/2
                 xSt = self.timeXposStart + startTime/xScale
-                w = duration/xScale
+                w = (duration)/xScale+1 # +1 to compensate for border alpha=0 in dc.SetPen 
                 if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
