@@ -449,9 +449,8 @@ class FlowPanel(wx.ScrolledWindow):
             thisTerm = self.loops[thisLoop]['term']
             thisNest = len(self.loops.keys())-1-self.loops[thisLoop]['nest']
             thisId = self.loops[thisLoop]['id']
-            name = thisLoop.params['name'].val#name of the trialHandler/StairHandler
             height = self.linePos[1]+dLoopToBaseLine + thisNest*dBetweenLoops
-            self.drawLoop(pdc,name,thisLoop,id=thisId,
+            self.drawLoop(pdc,thisLoop,id=thisId,
                         startX=thisInit, endX=thisTerm,
                         base=self.linePos[1],height=height,
                         downwards=True)
@@ -566,18 +565,18 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(id,rect)
 
         return endX
-#        tbtn = AB.AquaButton(self, id, pos=pos, label=name)
-#        tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
-#        print tbtn.GetBackgroundColour()
+        #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
+        #tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
+        #print tbtn.GetBackgroundColour()
 
-#        print dir(tbtn)
-#        print tbtn.GetRect()
-#        rect = tbtn.GetRect()
-#        return rect[0]+rect[2]+20
-#    def onBtn(self, event):
-#        print 'evt:', self.componentFromID[event.GetId()].name
-#        print '\nobj:', dir(event.GetEventObject())
-    def drawLoop(self,dc,name,loop,id,
+        #print dir(tbtn)
+        #print tbtn.GetRect()
+        #rect = tbtn.GetRect()
+        #return rect[0]+rect[2]+20
+    #def onBtn(self, event):
+        #print 'evt:', self.componentFromID[event.GetId()].name
+        #print '\nobj:', dir(event.GetEventObject())
+    def drawLoop(self,dc,loop,id,
             startX,endX,
             base,height,rgb=[0,0,0], downwards=True):
         if downwards: up=-1
@@ -589,37 +588,45 @@ class FlowPanel(wx.ScrolledWindow):
         curve=10 #extra distance, in both h and w caused by curve
         xx = [endX,  endX,   endX,   endX-curve/2, endX-curve, startX+curve,startX+curve/2, startX, startX, startX]
         yy = [base,height+curve*up,height+curve*up/2,height, height, height,  height,  height+curve*up/2, height+curve*up, base]
-        pts=[]
+        pts = zip(xx, yy)
         r,g,b=rgb
-        pad=8
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
-        for n in range(len(xx)):
-            pts.append([xx[n],yy[n]])
         dc.DrawSpline(pts)
         area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
         dc.SetIdBounds(tmpId, area)
+        # simplified drawing & smoother curve, but ugly line; draw routines after loop?
+        #dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent fill
+        #dc.DrawRoundedRectangleRect(area, curve) # ugly line on the routine
 
-        #add a name label that can be clicked on
+        #add a name label, loop info
+        name = loop.params['name'].val
         if self.frame.app.prefs.builder['showLoopInfoInFlow']:
-            name += ': '+str(loop.params['nReps'].val)+'x, '+str(loop.params['loopType'].val)
+            if 'trialList' in loop.params.keys() and loop.params['trialList'].val:
+                xnumTrials = 'x'+str(len(loop.params['trialList'].val))
+            else: xnumTrials = ''
+            name += ': '+str(loop.params['nReps'].val)+xnumTrials+', '+str(loop.params['loopType'].val)[:4]
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
             font.SetPointSize(800/self.dpi)
         else:
             font.SetPointSize(800/self.dpi)
-        self.SetFont(font); dc.SetFont(font)
+        self.SetFont(font)
+        dc.SetFont(font)
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
         x = startX+(endX-startX)/2-w/2
         y = (height-h/2)
 
         #draw box
+        pad = 10
         rect = wx.Rect(x, y, w+pad,h+pad)
         #the edge should match the text
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
-        #for the fill, draw once in white near-opaque, then in transp color
-        dc.SetBrush(wx.Brush(wx.Color(canvasColor[0],canvasColor[1],canvasColor[2],250)))
+        #try to make the loop fill brighter than the background canvas:
+        loopColor = map(lambda x: min(255, int(1.17*x)), canvasColor)
+        dc.SetBrush(wx.Brush(wx.Color(loopColor[0], loopColor[1], loopColor[2], 250)))
+        
         dc.DrawRoundedRectangleRect(rect, 8)
         #draw text
         dc.SetTextForeground([r,g,b])
