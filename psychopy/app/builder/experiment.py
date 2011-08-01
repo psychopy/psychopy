@@ -199,6 +199,12 @@ class Experiment:
         elif name=='forceEndTrialOnPress':#handle this parameter, deprecated in v1.70.00
             params['forceEndRoutineOnPress'].val = bool(paramNode.get('val'))
             return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='trialList':#handle this parameter, deprecated in v1.70.00
+            params['conditions'].val = eval(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='trialListFile':#handle this parameter, deprecated in v1.70.00
+            params['conditionsFile'].val = unicode(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='duration':#handle this parameter, deprecated in v1.70.00
             params['stopType'].val =u'duration (s)'
             params['stopVal'].val = unicode(paramNode.get('val'))
@@ -447,8 +453,8 @@ class TrialHandler:
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
                 %(self.params['name'], self.params['nReps'], self.params['loopType']))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
-        buff.writeIndented("    trialTypes=%s)\n" %(condsStr))
-        buff.writeIndented("%s=%s.conditions[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
+        buff.writeIndented("    trialList=%s)\n" %(condsStr))
+        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbreviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
@@ -860,7 +866,7 @@ class NameSpace():
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
 
     TO DO (throughout app):
-        conditionss on import
+        conditions on import
         how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
         staircase resists being reclassified as trialhandler
 

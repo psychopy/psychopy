@@ -550,7 +550,6 @@ class TrialHandler:
 
         This can be reloaded if necess and further analyses carried out.
         """
-        print 'save as ', fileName, self.thisTrialN<1, self.thisRepN<1
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
