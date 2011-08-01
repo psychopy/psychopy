@@ -95,7 +95,6 @@ class BaseComponent:
 
         for thisParamName in self.params.keys():
             thisParam=self.params[thisParamName]
-            print thisParamName, thisParam
             if thisParam.updates==updateType:
                 if thisParamName=='color':
                     paramCaps=self.params['colorSpace'].upper() #setRGB, not setColor

@@ -49,8 +49,10 @@ class SoundComponent(BaseComponent):
     def writeInitCode(self,buff):
         inits = getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['stopType']=='duration (s)':
-            durationSetting="secs=%(stopVal)s" %self.paramss
-        buff.writeIndented("%s=sound.Sound(%(sound)s,%s)\n" %(inits, durationSetting))
+            durationSetting="secs=%(stopVal)s" %self.params
+        else:
+            durationSetting=""
+        buff.writeIndented("%s=sound.Sound(%s,%s)\n" %(inits['name'], inits['sound'], durationSetting))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(inits))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
@@ -58,8 +60,10 @@ class SoundComponent(BaseComponent):
         #the sound object is unusual, because it is
         buff.writeIndented("#start/stop %(name)s\n" %(self.params))
         self.writeParamUpdates(buff, 'frame')#do this EVERY frame, even before/after playing?
-        buff.writeIndented("if %(startTime)s <= t and %(name)s.status==sound.NOT_STARTED:\n" %(self.params))
-        buff.writeIndented("    %s.play()#start the sound (it finishes automatically)\n" %(self.params['name']))
-        if str(self.params['duration'].val)!='':
-            buff.writeIndented("if t > (%(startTime)s+%(duration)s) and %(name)s.status==sound.STARTED:\n" %(self.params))
-            buff.writeIndented("    %s.stop()#stop the sound (if longer than duration)\n" %(self.params['name']))
+        self.writeStartTestCode(buff)
+        buff.writeIndented("%s.play()#start the sound (it finishes automatically)\n" %(self.params['name']))
+        buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            self.writeStopTestCode(buff)
+            buff.writeIndented("%s.stop()#stop the sound (if longer than duration)\n" %(self.params['name']))
+            buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
