@@ -193,6 +193,12 @@ class Experiment:
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(paramNode.get('val'))
             return #times doesn't need to update its type or 'updates' rule
+        elif name=='forceEndTrial':#handle this parameter, deprecated in v1.70.00
+            params['forceEndRoutine'].val = bool(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='forceEndTrialOnPress':#handle this parameter, deprecated in v1.70.00
+            params['forceEndRoutineOnPress'].val = bool(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='duration':#handle this parameter, deprecated in v1.70.00
             params['stopType'].val =u'duration (s)'
             params['stopVal'].val = unicode(paramNode.get('val'))
@@ -414,17 +420,17 @@ class TrialHandler:
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
             hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
-            hint="Number of repeats (for each type of trial)")
+            hint="Number of repeats (for each condition)")
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint="A list of dictionaries describing the differences between each trial type")
+            hint="A list of dictionaries describing the parameters in each condition")
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
-            hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
+            hint="A comma-separated-value (.csv) file specifying the parameters for each condition")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
                 # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
-            hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
+            hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
@@ -437,7 +443,7 @@ class TrialHandler:
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
-        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after randomisation of conditions etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
                 %(self.params['name'], self.params['nReps'], self.params['loopType']))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
@@ -536,7 +542,7 @@ class StairHandler:
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
-        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after next chosen value etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
@@ -792,7 +798,7 @@ class Routine(list):
         #are we done yet?
         buff.writeIndentedLines('\n#check if all components have finished\n')
         buff.writeIndentedLines('if not continueRoutine:\n')
-        buff.writeIndentedLines('    break # lets a component forceEndTrial\n')
+        buff.writeIndentedLines('    break # lets a component forceEndRoutine\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
         buff.writeIndentedLines('    if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:\n')

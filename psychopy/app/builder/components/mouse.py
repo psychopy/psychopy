@@ -16,7 +16,7 @@ class MouseComponent(BaseComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='',
-                save='final',forceEndTrialOnPress=True, timeRelativeTo='routine'):
+                save='final',forceEndRoutineOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
         self.exp=exp#so we can access the experiment if necess
@@ -44,7 +44,7 @@ class MouseComponent(BaseComponent):
         self.params['saveMouseState']=Param(save, valType='str',
             allowedVals=['final','on click', 'every frame', 'never'],
             hint="How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?")
-        self.params['forceEndTrialOnPress']=Param(forceEndTrialOnPress, valType='bool', allowedTypes=[],
+        self.params['forceEndRoutineOnPress']=Param(forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should a button press force the end of the routine (e.g end the trial)?")
         self.params['timeRelativeTo']=Param(timeRelativeTo, valType='str',
@@ -69,7 +69,7 @@ class MouseComponent(BaseComponent):
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
-        forceEnd = self.params['forceEndTrialOnPress'].val
+        forceEnd = self.params['forceEndRoutineOnPress'].val
         routineClockName = self.exp.flow._currentRoutine._clockName
 
         #only write code for cases where we are storing data as we go (each frame or each click)
