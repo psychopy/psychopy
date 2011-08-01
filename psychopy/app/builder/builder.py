@@ -305,9 +305,8 @@ class FlowPanel(wx.ScrolledWindow):
                     self.showContextMenu(self._menuComponentID,
                         xy=wx.Point(x+self.GetPosition()[0],y+self.GetPosition()[1]))
                 except UnboundLocalError:
-                    pass # right click but not on an icon
+                    # right click but not on an icon
                     self.Refresh() # might as well do something
-                    print 'refresh'
         elif self.mode=='routine':
             if event.LeftDown():
                 self.insertRoutine(ii=self.gapMidPoints.index(self.entryPointPosList[0]))
@@ -351,7 +350,7 @@ class FlowPanel(wx.ScrolledWindow):
         flow = self.frame.exp.flow
         if op=='remove':
             # remove name from namespace only if its a loop (which exists only in the flow)
-            if component.type in ['TrialHandler', 'StairHandler']:
+            if component.type in ['TrialHandler', 'StairHandler'] and component.params.has_key('trialListFile'):
                 trialListFile = component.params['trialListFile'].val
                 if trialListFile not in [None, 'None']: # best to avoid it ever getting set to 'None'; where?
                     _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
@@ -413,6 +412,11 @@ class FlowPanel(wx.ScrolledWindow):
         dLoopToBaseLine=40
         dBetweenLoops = 25
         gap=self.dpi/2#gap (X) between entries in the flow
+        
+        smallMode = True
+        if smallMode:
+            gap /= 2
+            dLoopToBaseLine = 30
 
         #guess virtual size; nRoutines wide by nLoops high
         #make bigger than needed and shrink later
@@ -467,7 +471,7 @@ class FlowPanel(wx.ScrolledWindow):
         currX=self.linePos[0]
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='Routine':
-                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
+                currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10],smallMode=smallMode)
             pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX += gap
@@ -558,14 +562,17 @@ class FlowPanel(wx.ScrolledWindow):
         else:
             dc.DrawPolygon([[5,0],[0,5],[-5,0]], pos[0],pos[1]-5-15)#points down
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-5,pos[1]-5,10,10))
-    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True):
+    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True,smallMode=False):
         """Draw a box to show a routine on the timeline
         """
         name=routine.name
         if draw: dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            font.SetPointSize(1400/self.dpi)
+            if smallMode:
+                font.SetPointSize(1400/self.dpi-4)
+            else:
+                font.SetPointSize(1400/self.dpi)
         else:
             font.SetPointSize(1000/self.dpi)
         r, g, b = rgb
@@ -575,9 +582,10 @@ class FlowPanel(wx.ScrolledWindow):
         if draw: dc.SetFont(font)
         w,h = self.GetFullTextExtent(name)[0:2]
         pad = 20
+        if smallMode: pad / 2
         #draw box
         rect = wx.Rect(pos[0], pos[1], w+pad,h+pad)
-        endX = pos[0]+w+20
+        endX = pos[0]+w+pad
         #the edge should match the text
         if draw:
             dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
