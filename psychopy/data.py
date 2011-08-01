@@ -36,7 +36,7 @@ class TrialType(dict):
 
 class TrialHandler:
     """Class to handle trial sequencing and data storage.
-    
+
     Calls to .next() will fetch the next trial object given to this handler,
     according to the method specified (random, sequential, fullRandom). Calls
     will raise a StopIteration error if trials have finished.
@@ -376,7 +376,7 @@ class TrialHandler:
         else:
             if delim==',': f=file(fileName+'.csv',writeFormat)
             else: f=file(fileName+'.dlm',writeFormat)
-            
+
         if not matrixOnly:
             #write a header line
             for heading in stimOut+dataHead:
@@ -431,50 +431,50 @@ class TrialHandler:
             f.close()
             log.info('saved data to %s' %f.name)
 
-    def saveAsWideText(self,fileName, 
+    def saveAsWideText(self,fileName,
                    delim='\t',
                    matrixOnly=False,
                    appendFile=True,
                   ):
         """
-        Write a text file with the session, stimulus, and data values from each trial in chronological order. 
-         
+        Write a text file with the session, stimulus, and data values from each trial in chronological order.
+
         That is, unlike 'saveAsText' and 'saveAsExcel':
         -- each row comprises information from only a single trial.
         -- no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
-        
-        This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some 
+
+        This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
-        
+
         In particular, if the trialHandler's 'extraInfo' exists, then each entry in there occurs in every row.
         In builder, this will include any entries in the 'Experiment info' field of the 'Experiment settings' dialog.
         In Coder, this information can be set using something like:
             myTrialHandler.extraInfo = {'SubjID':'Joan Smith', 'DOB':1970 Nov 16, 'Group':'Control'}
-        
+
          :Parameters:
-         
+
             fileName:
                 if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.txt' will be appended.
-                Can include path info.           
-            
+                Can include path info.
+
             delim:
                 allows the user to use a delimiter other than the default tab ("," is popular with file extension ".csv")
-            
+
             matrixOnly:
                 outputs the data with no header row.
-            
+
             appendFile:
                 will add this output to the end of the specified file if it already exists.
-            
+
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             log.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
-                
+
         #create the file or print to stdout
         if appendFile:
             writeFormat='a'
-        else: writeFormat='w' #will overwrite a file        
+        else: writeFormat='w' #will overwrite a file
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
@@ -482,10 +482,10 @@ class TrialHandler:
         else:
             if delim==',': f=file(fileName+'.csv',writeFormat)
             else: f=file(fileName+'.txt',writeFormat)
-        
+
         # collect parameter names related to the stimuli:
-        header = self.trialList[0].keys()                        
-        # and then add parameter names related to data (e.g. RT)                
+        header = self.trialList[0].keys()
+        # and then add parameter names related to data (e.g. RT)
         header.extend(self.data.dataTypes)
 
         # loop through each trial, gathering the actual values:
@@ -494,14 +494,14 @@ class TrialHandler:
         # total number of trials = number of trialtypes * number of repetitions:
         for rep in range(self.nReps):
             for trialType in range(len(self.trialList)):
-            
+
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
                 if (self.extraInfo != None):
                     nextEntry = self.extraInfo.copy()
                 else:
                     nextEntry = {}
-                    
+
                 # add a trial number so the original order of the data can always be recovered if sorted during analysis:
                 trialCount += 1
                 nextEntry["TrialNumber"] = trialCount
@@ -519,20 +519,20 @@ class TrialHandler:
 
                 #store this trial's data
                 dataOut.append(nextEntry)
-        
+
         # get the extra 'wide' parameter names into the header line:
         header.insert(0,"TrialNumber")
         if (self.extraInfo != None):
             for key in self.extraInfo:
                 header.insert(0, key)
-        
+
         if not matrixOnly:
         # write the header row:
             nextLine = ''
             for parameterName in header:
                 nextLine = nextLine + parameterName + delim
             f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
-            
+
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
@@ -540,16 +540,17 @@ class TrialHandler:
                 nextLine = nextLine + str(trial[parameterName]) + delim
             nextLine = nextLine[:-1] # remove the final orphaned tab character
             f.write(nextLine + '\n')
-            
-        if f != sys.stdout: 
+
+        if f != sys.stdout:
             f.close()
-            log.info('saved wide-format data to %s' %f.name)    
-    
+            log.info('saved wide-format data to %s' %f.name)
+
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necess and further analyses carried out.
         """
+        print 'save as ', fileName, self.thisTrialN<1, self.thisRepN<1
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
@@ -977,23 +978,23 @@ class StairHandler:
 
     def __iter__(self):
         return self
-        
+
     def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         This is essential to advance the staircase to a new intensity level!
-        
-        Supplying an `intensity` value here indicates that you did not use the 
-        recommended intensity in your last trial and the staircase will 
+
+        Supplying an `intensity` value here indicates that you did not use the
+        recommended intensity in your last trial and the staircase will
         replace its recorded value with the one you supplied here.
         """
         self.data.append(result)
-        
+
         #if needed replace the existing intensity with this custom one
         if intensity!=None:
             self.intensities.pop()
             self.intensities.append(intensity)
-            
+
         #increment the counter of correct scores
         if result==1:
             if len(self.data)>1 and self.data[-2]==result:
@@ -1506,9 +1507,9 @@ class QuestHandler(StairHandler):
 
     def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
-        
-        Supplying an `intensity` value here indicates that you did not use the 
-        recommended intensity in your last trial and the staircase will 
+
+        Supplying an `intensity` value here indicates that you did not use the
+        recommended intensity in your last trial and the staircase will
         replace its recorded value with the one you supplied here.
         """
         # Process user supplied intensity

@@ -11,7 +11,7 @@ tooltip = 'Keyboard: check and record keypresses'
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',storeRT=True,
+    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
                 forceEndTrial=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
