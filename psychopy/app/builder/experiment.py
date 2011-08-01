@@ -156,7 +156,7 @@ class Experiment:
                 elementNode.set('name', name)
                 for paramName, param in loop.params.iteritems():
                     paramNode = self._setXMLparam(parent=elementNode,param=param,name=paramName)
-                    if paramName=='trialList': #override val with repr(val)
+                    if paramName=='conditions': #override val with repr(val)
                         paramNode.set('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
                 elementNode.set('name', element.loop.params['name'].val)
@@ -295,19 +295,19 @@ class Experiment:
                 loops[loopName]=loop
                 for paramNode in elementNode:
                     self._getXMLparam(paramNode=paramNode,params=loop.params)
-                    #for trialList convert string rep to actual list of dicts
-                    if paramNode.get('name')=='trialList':
-                        param=loop.params['trialList']
+                    #for conditions convert string rep to actual list of dicts
+                    if paramNode.get('name')=='conditions':
+                        param=loop.params['conditions']
                         exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
-                # get condition names from within trialListFile, if any:
-                try: trialListFile = loop.params['trialListFile'].val #psychophysicsstaircase demo has no such param
-                except: trialListFile = None
-                if trialListFile and trialListFile not in ['None','']:
-                    trialListFile = os.path.join(os.path.dirname(filename), trialListFile)
-                    _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+                # get condition names from within conditionsFile, if any:
+                try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
+                except: conditionsFile = None
+                if conditionsFile and conditionsFile not in ['None','']:
+                    conditionsFile = os.path.join(os.path.dirname(filename), conditionsFile)
+                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         if fname != self.namespace.makeValid(fname):
-                            log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, trialListFile))
+                            log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
                         else:
                             self.namespace.add(fname)
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
@@ -394,18 +394,18 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        trialList=[], trialListFile='',endPoints=[0,1]):
+        conditions=[], conditionsFile='',endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
         @type name: string
         @param loopType:
         @type loopType: string ('rand', 'seq')
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
-        @param trialList: list of different trial conditions to be used
-        @type trialList: list (of dicts?)
-        @param trialListFile: filename of the .csv file that contains trialList info
-        @type trialList: string (filename)
+        @param conditions: list of different trial conditions to be used
+        @type conditions: list (of dicts?)
+        @param conditionsFile: filename of the .csv file that contains conditions info
+        @type conditions: string (filename)
         """
         self.type='TrialHandler'
         self.exp=exp
@@ -415,9 +415,9 @@ class TrialHandler:
             hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
             hint="Number of repeats (for each type of trial)")
-        self.params['trialList']=Param(trialList, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the differences between each trial type")
-        self.params['trialListFile']=Param(trialListFile, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
@@ -429,11 +429,11 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
-        #todo: write code to fetch trialList from file?
-        #create nice line-separated list of trial types
-        if self.params['trialListFile'].val==None:
-            trialStr="[None]"
-        else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
+        #todo: write code to fetch conditions from file?
+        #create nice line-separated list of conditions
+        if self.params['conditionsFile'].val==None:
+            condsStr="[None]"
+        else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
@@ -441,8 +441,8 @@ class TrialHandler:
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
                 %(self.params['name'], self.params['nReps'], self.params['loopType']))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
-        buff.writeIndented("    trialList=%s)\n" %(trialStr))
-        buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
+        buff.writeIndented("    trialTypes=%s)\n" %(condsStr))
+        buff.writeIndented("%s=%s.conditions[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             buff.writeIndented("#abbreviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
@@ -453,7 +453,7 @@ class TrialHandler:
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
-        #fetch parameter info from trialList
+        #fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
@@ -470,10 +470,10 @@ class TrialHandler:
         buff.writeIndented("\n")
 
         #save data
-        ##a string to show all the available variables (if the trialList isn't just None or [None])
+        ##a string to show all the available variables (if the conditions isn't just None or [None])
         stimOutStr="["
-        if self.params['trialList'].val not in [None, [None]]:
-            for variable in sorted(self.params['trialList'].val[0].keys()):#get the keys for the first trial type
+        if self.params['conditions'].val not in [None, [None]]:
+            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
                 stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         if self.exp.settings.params['Save psydat file'].val:
@@ -498,7 +498,7 @@ class StairHandler:
         """
         @param name: name of the loop e.g. trials
         @type name: string
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
         self.type='StairHandler'
@@ -574,7 +574,7 @@ class MultiStairHandler:
         """
         @param name: name of the loop e.g. trials
         @type name: string
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
         self.type='MultiStairHandler'
@@ -596,7 +596,7 @@ class MultiStairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the differences between each condition")
-        self.params['trialListFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
@@ -605,7 +605,7 @@ class MultiStairHandler:
             self.params['N reversals'].val='0'
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndentedLines("conditions=data.importTrialList(%s)" %self.params['conditionsFile'])
+        buff.writeIndentedLines("conditions=data.importConditions(%s)" %self.params['conditionsFile'])
         buff.writeIndented("%(name)s=data.MultiStairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    nTrials=%(nReps)s,\n" %self.params)
         buff.writeIndented("    conditions=conditions,\n")
@@ -854,7 +854,7 @@ class NameSpace():
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
 
     TO DO (throughout app):
-        trialLists on import
+        conditionss on import
         how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
         staircase resists being reclassified as trialhandler
 
