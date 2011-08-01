@@ -95,7 +95,9 @@
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=False)
+    topFlow = boolean(default=True)
+    # Size of items in flow panel: small or regular
+    smallFlow = boolean(default=False)
 
 # Settings for connections
 [connections]
