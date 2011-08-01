@@ -117,7 +117,7 @@ class Experiment:
                     "from psychopy.constants import *\n\n")
         #self.namespace.user.sort()
         #script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-        #            "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
+        #            "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.getCollisions()) )
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -258,7 +258,7 @@ class Experiment:
         #fetch routines
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
-            routine_good_name = self.namespace.make_valid(routineNode.get('name'))
+            routine_good_name = self.namespace.makeValid(routineNode.get('name'))
             if routine_good_name != routineNode.get('name'):
                 modified_names.append(routineNode.get('name'))
             self.namespace.user.append(routine_good_name)
@@ -274,7 +274,7 @@ class Experiment:
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
-                comp_good_name = self.namespace.make_valid(componentNode.get('name'))
+                comp_good_name = self.namespace.makeValid(componentNode.get('name'))
                 if comp_good_name != componentNode.get('name'):
                     modified_names.append(componentNode.get('name'))
                 self.namespace.add(comp_good_name)
@@ -287,7 +287,7 @@ class Experiment:
         for elementNode in flowNode:
             if elementNode.tag=="LoopInitiator":
                 loopType=elementNode.get('loopType')
-                loopName=self.namespace.make_valid(elementNode.get('name'))
+                loopName=self.namespace.makeValid(elementNode.get('name'))
                 if loopName != elementNode.get('name'):
                     modified_names.append(elementNode.get('name'))
                 self.namespace.add(loopName)
@@ -302,12 +302,11 @@ class Experiment:
                 # get condition names from within trialListFile, if any:
                 try: trialListFile = loop.params['trialListFile'].val #psychophysicsstaircase demo has no such param
                 except: trialListFile = None
-                if trialListFile and trialListFile != 'None':
+                if trialListFile and trialListFile not in ['None','']:
                     trialListFile = os.path.join(os.path.dirname(filename), trialListFile)
-                    loop.params['trialListFile'].val = trialListFile
                     _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
                     for fname in fieldNames:
-                        if fname != self.namespace.make_valid(fname):
+                        if fname != self.namespace.makeValid(fname):
                             log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, trialListFile))
                         else:
                             self.namespace.add(fname)
@@ -436,7 +435,7 @@ class TrialHandler:
             trialStr="[None]"
         else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
@@ -533,7 +532,7 @@ class StairHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
@@ -601,7 +600,7 @@ class MultiStairHandler:
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
@@ -904,26 +903,26 @@ class NameSpace():
         else:
             return str(vars + self.numpy)
 
-    def get_derived(self, basename):
+    def getDerived(self, basename):
         """ buggy
         idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
         more specific than is_possibly-derivable()
         if basename is a routine, return continueBasename and basenameClock,
-        if basename is a loop, return make_loop_index(name)
+        if basename is a loop, return makeLoopIndex(name)
         """
         derived_names = []
         for flowElement in self.exp.flow:
             if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
                 flowElement=flowElement.loop  # we want the loop itself
                 # basename can be <type 'instance'>
-                derived_names += [self.make_loop_index(basename)]
+                derived_names += [self.makeLoopIndex(basename)]
             if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
                 derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
         # other derived_names?
         #
         return derived_names
 
-    def get_collisions(self):
+    def getCollisions(self):
         """return None, or a list of names in .user that are also in one of the other spaces"""
         duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
         su = sorted(self.user)
@@ -932,10 +931,10 @@ class NameSpace():
             return duplicates
         return None
 
-    def is_valid(self, name):
+    def isValid(self, name):
         """var-name compatible? return True if string name is alphanumeric + underscore only, with non-digit first"""
         return bool(_valid_var_re.match(name))
-    def is_possibly_derivable(self, name):
+    def isPossiblyDerivable(self, name):
         """catch all possible derived-names, regardless of whether currently"""
         derivable = (name.startswith('this') or
                      name.startswith('these') or
@@ -956,7 +955,7 @@ class NameSpace():
         try: name = str(name) # convert from unicode if possible
         except: pass
 
-        # check get_derived:
+        # check getDerived:
 
         # check in this order:
         if name in self.user: return "script variable"
@@ -986,21 +985,21 @@ class NameSpace():
             if n in sublist:
                 del sublist[sublist.index(n)]
 
-    def make_valid(self, name, prefix='var', add_to_space=None):
+    def makeValid(self, name, prefix='var', add_to_space=None):
         """given a string, return a valid and unique variable name.
         replace bad characters with underscore, add an integer suffix until its unique
 
-        >>> make_valid('t')
+        >>> makeValid('t')
         't_1'
-        >>> make_valid('Z Z Z')
+        >>> makeValid('Z Z Z')
         'Z_Z_Z'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a_1'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a_2'
-        >>> make_valid('123')
+        >>> makeValid('123')
         'var_123'
         """
 
@@ -1029,7 +1028,7 @@ class NameSpace():
             self.add(name, add_to_space)
         return name
 
-    def make_loop_index(self, name):
+    def makeLoopIndex(self, name):
         """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
         try: new_name = str(name)
         except: new_name = name
@@ -1044,7 +1043,7 @@ class NameSpace():
             match = re.match(r"^(.*)s(_\d+)$", new_name)
             if match: new_name = match.group(1) + match.group(2)
         new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
-        new_name = self.make_valid(new_name)
+        new_name = self.makeValid(new_name)
         return new_name
 
 def _XMLremoveWhitespaceNodes(parent):

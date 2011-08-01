@@ -245,7 +245,7 @@ class FlowPanel(wx.ScrolledWindow):
         print '_' * c * m
         for i in range(r):
             print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typially to coder output
-        collisions = self.frame.exp.namespace.get_collisions()
+        collisions = self.frame.exp.namespace.getCollisions()
         if collisions:
             print "*** collisions ***: %s" % str(collisions)
     def editLoopProperties(self, event=None, loop=None):
@@ -260,7 +260,7 @@ class FlowPanel(wx.ScrolledWindow):
         loopDlg = DlgLoopProperties(frame=self.frame,
             title=loop.params['name'].val+' Properties', loop=loop)
         if loopDlg.OK:
-            if loopDlg.params['loopType'].val=='staircase':  
+            if loopDlg.params['loopType'].val=='staircase':
                 loop= loopDlg.stairHandler
             if loopDlg.params['loopType'].val=='interleaved stairs':
                 loop= loopDlg.multiStairHandler
@@ -626,7 +626,7 @@ class FlowPanel(wx.ScrolledWindow):
         #try to make the loop fill brighter than the background canvas:
         loopColor = map(lambda x: min(255, int(1.17*x)), canvasColor)
         dc.SetBrush(wx.Brush(wx.Color(loopColor[0], loopColor[1], loopColor[2], 250)))
-        
+
         dc.DrawRoundedRectangleRect(rect, 8)
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -984,7 +984,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
             # silently auto-adjust the name to be valid, and register in the namespace:
-            routineName = exp.namespace.make_valid(routineName, prefix='routine')
+            routineName = exp.namespace.makeValid(routineName, prefix='routine')
             exp.namespace.add(routineName) #add to the namespace
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
@@ -1092,7 +1092,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
             namespace = self.frame.exp.namespace
-            newComp.params['name'].val = namespace.make_valid(newComp.params['name'].val)
+            newComp.params['name'].val = namespace.makeValid(newComp.params['name'].val)
             namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
@@ -1264,7 +1264,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.title = title
         if not editing and title != 'Experiment Settings':
             # then we're adding a new component, so provide a known-valid name:
-            self.params['name'].val = self.frame.exp.namespace.make_valid(params['name'].val)
+            self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
         self.paramCtrls={}
         self.showAdvanced=showAdvanced
         self.order=order
@@ -1594,12 +1594,12 @@ class _BaseParamsDlg(wx.Dialog):
             if used and not same_as_old_name:
                 self.nameOKlabel.SetLabel("Name is already used by a %s" % used)
                 self.OKbtn.Disable()
-            elif not namespace.is_valid(newName): # as var name:
+            elif not namespace.isValid(newName): # as var name:
                 self.nameOKlabel.SetLabel("Name must be alpha-numeric or _, no spaces")
                 self.OKbtn.Disable()
-            elif namespace.is_possibly_derivable(newName): # warn but allow, chances are good that its actually ok
+            elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
                 self.OKbtn.Enable()
-                self.nameOKlabel.SetLabel(namespace.is_possibly_derivable(newName))
+                self.nameOKlabel.SetLabel(namespace.isPossiblyDerivable(newName))
             else:
                 self.OKbtn.Enable()
                 self.nameOKlabel.SetLabel("")
@@ -1638,7 +1638,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if loop:
             old_name = loop.params['name'].val
         namespace = frame.exp.namespace
-        new_name = namespace.make_valid(old_name)
+        new_name = namespace.makeValid(old_name)
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
             loopType='random',nReps=5,trialList=[]) #for 'random','sequential', 'fullRandom'
@@ -1879,7 +1879,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             badNames = ''
             if len(fieldNames):
                 for fname in fieldNames:
-                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.is_valid(fname):
+                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.isValid(fname):
                         badNames += fname+' '
             if badNames:
                 self.constantsCtrls['trialList'].setValue(
@@ -2702,7 +2702,7 @@ class BuilderFrame(wx.Frame):
         in self.routinePanel after promting for a new name
         """
         if self.app.copiedRoutine == None: return -1
-        defaultName = self.exp.namespace.make_valid(self.app.copiedRoutine.name)
+        defaultName = self.exp.namespace.makeValid(self.app.copiedRoutine.name)
         message = 'New name for copy of "%s"?  [%s]' % (self.app.copiedRoutine.name, defaultName)
         dlg = wx.TextEntryDialog(self, message=message, caption='Paste Routine')
         if dlg.ShowModal() == wx.ID_OK:
@@ -2710,11 +2710,11 @@ class BuilderFrame(wx.Frame):
             newRoutine = copy.deepcopy(self.app.copiedRoutine)
             if not routineName:
                 routineName = defaultName
-            newRoutine.name = self.exp.namespace.make_valid(routineName)
+            newRoutine.name = self.exp.namespace.makeValid(routineName)
             self.exp.namespace.add(newRoutine.name)
             self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
             for newComp in newRoutine: # routine == list of components
-                newName = self.exp.namespace.make_valid(newComp.params['name'])
+                newName = self.exp.namespace.makeValid(newComp.params['name'])
                 self.exp.namespace.add(newName)
                 newComp.params['name'].val = newName
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?

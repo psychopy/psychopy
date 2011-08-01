@@ -14,7 +14,7 @@ from tempfile import mkdtemp
 # - dicts have no defined order, can load and save differently: use a
 #   known-diff file to suppress boring errors.  This situation was
 #   addressed in 7e2c72a for stimOut by sorting the keys
-# - namespace.make_valid() can change var names from the orig demos,
+# - namespace.makeValid() can change var names from the orig demos,
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
@@ -56,7 +56,7 @@ class TestExpt():
         exp.loadFromXML(file)
         exp.saveToXML(psyexp_file)
         assert len(exp.namespace.user) # should populate the namespace
-        assert not exp.namespace.get_collisions() # ... without duplicates
+        assert not exp.namespace.getCollisions() # ... without duplicates
 
         # generate a script, like 'lastrun.py':
         buff = exp.writeScript() # is a StringIO object
@@ -183,19 +183,19 @@ class TestExpt():
         namespace.add('foo')
         assert namespace.exists('foo') == "script variable"
         namespace.add('foo')
-        assert namespace.get_collisions() == ['foo']
+        assert namespace.getCollisions() == ['foo']
 
-        assert not namespace.is_valid('123')
-        assert not namespace.is_valid('a1 23')
-        assert not namespace.is_valid('a123$')
+        assert not namespace.isValid('123')
+        assert not namespace.isValid('a1 23')
+        assert not namespace.isValid('a123$')
 
-        assert namespace.make_valid('123') == 'var_123'
-        assert namespace.make_valid('123', prefix='wookie') == 'wookie_123'
-        assert namespace.make_valid('a a a') == 'a_a_a'
+        assert namespace.makeValid('123') == 'var_123'
+        assert namespace.makeValid('123', prefix='wookie') == 'wookie_123'
+        assert namespace.makeValid('a a a') == 'a_a_a'
         namespace.add('b')
-        assert namespace.make_valid('b') == 'b_2'
-        assert namespace.make_valid('a123$') == 'a123_'
+        assert namespace.makeValid('b') == 'b_2'
+        assert namespace.makeValid('a123$') == 'a123_'
 
-        assert namespace.make_loop_index('trials') == 'thisTrial'
-        assert namespace.make_loop_index('trials_2') == 'thisTrial_2'
-        assert namespace.make_loop_index('stimuli') == 'thisStimulus'
+        assert namespace.makeLoopIndex('trials') == 'thisTrial'
+        assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
+        assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
