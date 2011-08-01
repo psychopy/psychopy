@@ -18,7 +18,7 @@ from psychopy.constants import *
 
 inf = FOREVER #see constants.py
 canvasColor=[200,200,200]#in prefs? ;-)
-routineTimeColor=wx.Color(100,100,200, 200)
+routineTimeColor=wx.Color(50,100,200, 200)
 routineFlowColor=wx.Color(200,150,150, 255)
 
 class FileDropTarget(wx.FileDropTarget):
@@ -260,7 +260,7 @@ class FlowPanel(wx.ScrolledWindow):
             print "*** collisions ***: %s" % str(collisions)
     def toggleSize(self, event=None):
         self.smallSize = not self.smallSize
-        #self.miniSize = not self.miniSize
+        self.miniSize = not self.miniSize
         if self.smallSize: sizeLabel = 'larger'
         else: sizeLabel = 'smaller'
         self.btnToggleSize.SetLabel(sizeLabel)
@@ -439,7 +439,7 @@ class FlowPanel(wx.ScrolledWindow):
         if miniSize:
             x,y = 2.5*self.dpi,0.5*self.dpi
             self.linePos = (0.8*x, 0.6*y)
-            gap = self.dpi/5
+            gap = self.dpi/7
             dLoopToBaseLine = 15
             dBetweenLoops = 19
 
@@ -606,9 +606,13 @@ class FlowPanel(wx.ScrolledWindow):
     def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
         """
-        name=' '+routine.name+' '
         smallSize = self.smallSize
         miniSize = self.miniSize
+        name = routine.name 
+        if self.miniSize and len(name) > 5:
+                name = ' '+name[:4]+'..'
+        else:
+            name = ' '+name+' '
         if draw: dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
@@ -616,7 +620,7 @@ class FlowPanel(wx.ScrolledWindow):
                 font.SetPointSize(1400/self.dpi-6)
             else:
                 font.SetPointSize(1400/self.dpi)
-            if miniSize: font.SetPointSize(1400/self.dpi-9)
+            if miniSize: font.SetPointSize(1400/self.dpi-10)
         else:
             font.SetPointSize(1000/self.dpi)
         r, g, b = rgb
@@ -695,7 +699,13 @@ class FlowPanel(wx.ScrolledWindow):
             abbrev = {'random': 'rand', 'sequential': 'seq', 'fullRandom':'full',
                       'staircase': 'stair', 'interleaved staircases': 'inter'}
             name += ': '+str(loop.params['nReps'].val)+xnumTrials+', '+abbrev[loop.params['loopType'].val]
-        name = ' '+name+' '
+        if self.miniSize:
+            if len(name) > 6:
+                name = ' '+name[:5]+'..'
+            else: name = ' '+name[:6]
+        else:
+            name = ' '+name+' '
+            
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
