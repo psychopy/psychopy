@@ -84,12 +84,10 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
         
-        self.miniSize = False
-        self.smallSize = self.app.prefs.builder['smallFlow']
-        if self.smallSize: sizeLabel = 'larger  ' # flow will be larger if you click this label
-        else: sizeLabel = 'smaller'
-        self.btnToggleSize = platebtn.PlateButton(self,-1,sizeLabel, pos=(10,50))
-        self.btnToggleSize.SetLabelColor(**self.labelTextGray)
+        #flow drawing size, parameterized 0,1,2
+        self.flowSize = self.app.prefs.builder['flowSize']
+        self.flowMaxSize = 2
+
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,70))
             self.btnViewNamespace.SetLabelColor(**self.labelTextGray)
@@ -100,7 +98,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
-        self.Bind(wx.EVT_BUTTON, self.toggleSize,self.btnToggleSize)
         if self.app.prefs.app['debugMode']:
             self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -258,13 +255,12 @@ class FlowPanel(wx.ScrolledWindow):
         collisions = self.frame.exp.namespace.getCollisions()
         if collisions:
             print "*** collisions ***: %s" % str(collisions)
-    def toggleSize(self, event=None):
-        self.smallSize = not self.smallSize
-        self.miniSize = not self.miniSize
-        if self.smallSize: sizeLabel = 'larger'
-        else: sizeLabel = 'smaller'
-        self.btnToggleSize.SetLabel(sizeLabel)
-        self.draw()
+    def increaseSize(self, event=None):
+        self.flowSize = min(self.flowMaxSize, self.flowSize + 1)
+        self.clearMode() #redraws
+    def decreaseSize(self, event=None):
+        self.flowSize = max(0, self.flowSize - 1)
+        self.clearMode() # redraws
     def editLoopProperties(self, event=None, loop=None):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
             loopName=event.EventObject.GetName()
@@ -424,24 +420,9 @@ class FlowPanel(wx.ScrolledWindow):
 
         #draw the main time line
         self.linePos = (2.5*self.dpi,0.5*self.dpi) #x,y of start
-        dLoopToBaseLine=40
-        dBetweenLoops = 25
-        gap=self.dpi/2#gap (X) between entries in the flow
-        
-        smallSize = self.smallSize
-        miniSize = self.miniSize
-        if smallSize:
-            x,y = 2.5*self.dpi,0.5*self.dpi
-            self.linePos = (0.8*x, 0.6*y)
-            gap = self.dpi/4
-            dLoopToBaseLine = 30
-            dBetweenLoops = 22
-        if miniSize:
-            x,y = 2.5*self.dpi,0.5*self.dpi
-            self.linePos = (0.8*x, 0.6*y)
-            gap = self.dpi/7
-            dLoopToBaseLine = 15
-            dBetweenLoops = 19
+        gap = self.dpi / (7, 4, 2) [self.flowSize]
+        dLoopToBaseLine = (15, 25, 40) [self.flowSize]
+        dBetweenLoops = (20, 24, 30) [self.flowSize]
 
         #guess virtual size; nRoutines wide by nLoops high
         #make bigger than needed and shrink later
@@ -451,7 +432,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType()=='LoopInitiator': nLoops+=1
         self.SetVirtualSize(size=(nRoutines*self.dpi*2, nLoops*dBetweenLoops+dLoopToBaseLine*3))
 
-        #step through components in flow
+        #step through components in flow, get spacing info from text size, etc
         currX=self.linePos[0]
         lineId=wx.NewId()
         pdc.DrawLine(x1=self.linePos[0]-gap,y1=self.linePos[1],x2=self.linePos[0],y2=self.linePos[1])
@@ -466,7 +447,7 @@ class FlowPanel(wx.ScrolledWindow):
                 self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
                 nestLevel-=1#end of loop so decrement level of nesting
             elif entry.getType()=='Routine':
-                # just set currX, don't draw yet
+                # just get currX based on text size, don't draw anything yet:
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10], draw=False)
             self.gapMidPoints.append(currX+gap/2)
             pdc.SetId(lineId)
@@ -476,7 +457,7 @@ class FlowPanel(wx.ScrolledWindow):
         lineRect = wx.Rect(self.linePos[0]-2, self.linePos[1]-2, currX-self.linePos[0]+2, 4)
         pdc.SetIdBounds(lineId,lineRect)
 
-        #draw the loops first:
+        # draw the loops first:
         maxHeight = 0
         for thisLoop in self.loops:
             thisInit = self.loops[thisLoop]['init']
@@ -486,10 +467,9 @@ class FlowPanel(wx.ScrolledWindow):
             height = self.linePos[1]+dLoopToBaseLine + thisNest*dBetweenLoops
             self.drawLoop(pdc,thisLoop,id=thisId,
                         startX=thisInit, endX=thisTerm,
-                        base=self.linePos[1],height=height,
-                        downwards=True)
-            self.drawLoopStart(pdc,pos=[thisInit,self.linePos[1]], downwards=True)
-            self.drawLoopEnd(pdc,pos=[thisTerm,self.linePos[1]], downwards=True)
+                        base=self.linePos[1],height=height)
+            self.drawLoopStart(pdc,pos=[thisInit,self.linePos[1]])
+            self.drawLoopEnd(pdc,pos=[thisTerm,self.linePos[1]])
             if height>maxHeight: maxHeight=height
 
         # draw routines second (over loop lines):
@@ -514,16 +494,13 @@ class FlowPanel(wx.ScrolledWindow):
         #   pdc.SetTextForeground([255,255,255])
         #   pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
 
+        self.drawLineStart(pdc, (self.linePos[0]-gap,self.linePos[1]))
         self.drawLineEnd(pdc, (currX, self.linePos[1]))
         
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def drawEntryPoints(self, posList):
-        smallSize = self.smallSize
-        miniSize = self.miniSize
-        ptSize = 5
-        if smallSize: ptSize = 4
-        if miniSize: ptSize = 3
+        ptSize = (3,4,5)[self.flowSize]
         for n, pos in enumerate(posList):
             if n>=len(self.entryPointPosList):
                 #draw for first time
@@ -561,43 +538,40 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=self.gapMidPoints
         else:
             self.pointsToDraw=[]
+    def drawLineStart(self, dc, pos):
+        #draw bar at start of timeline; circle looked bad, offset vertically
+        ptSize = (3,3,4)[self.flowSize]
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
+        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.DrawPolygon([[0,-ptSize],[1,-ptSize],[1,ptSize], [0,ptSize]], pos[0],pos[1])
     def drawLineEnd(self, dc, pos):
         #draws arrow at end of timeline
         #tmpId = wx.NewId()
         #dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         dc.DrawPolygon([[0,-3],[5,0],[0,3]], pos[0],pos[1])
         #dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
     def drawLoopEnd(self, dc, pos, downwards=True):
-        #draws a spot that a loop will later attach to
-        return
+        # define the right side of a loop but draw nothing
+        # idea: might want a wxID for grabbing and relocating the loop endpoint
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        if self.smallSize or self.miniSize:
-            size = 4
-        else:
-            size = 5
-        if downwards:
-            dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]+2*size)#points down
-        else:
-            dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]-3*size)#points up
+        #dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
+        #dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        size = (3,4,5)[self.flowSize]
+        #if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]+2*size)#points down
+        #else: dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]-3*size)#points up
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
+        return
     def drawLoopStart(self, dc, pos, downwards=True):
-        #draws a spot that a loop will later attach to
+        # draws direction arrow on left side of a loop
         tmpId = wx.NewId()
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        size = 5
-        offset = 0
-        if self.smallSize: size = 4
-        if self.miniSize:
-            size = 3
-            offset = size+1
-            
+        size = (3,4,5)[self.flowSize]
+        offset = (1,2,0)[self.flowSize]
         if downwards:
             dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]+3*size-offset)#points up
         else:
@@ -605,34 +579,31 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
     def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
+        draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
-        smallSize = self.smallSize
-        miniSize = self.miniSize
         name = routine.name 
-        if self.miniSize and len(name) > 5:
-                name = ' '+name[:4]+'..'
+        if self.flowSize==0 and len(name) > 5:
+            name = ' '+name[:4]+'..'
         else:
             name = ' '+name+' '
-        if draw: dc.SetId(id)
+        if draw:
+            dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            if smallSize:
-                font.SetPointSize(1400/self.dpi-6)
-            else:
-                font.SetPointSize(1400/self.dpi)
-            if miniSize: font.SetPointSize(1400/self.dpi-10)
+            delta = (10,6,0)[self.flowSize]
+            font.SetPointSize(1400/self.dpi-delta)
         else:
-            font.SetPointSize(1000/self.dpi)
+            delta = (8,4,0)[self.flowSize]
+            font.SetPointSize(1000/self.dpi-delta)
         r, g, b = rgb
 
         #get size based on text
         self.SetFont(font)
         if draw: dc.SetFont(font)
         w,h = self.GetFullTextExtent(name)[0:2]
-        pad = 20
-        if smallSize: pad = 10
-        if miniSize: pad = 6
+        pad = (5,10,20)[self.flowSize]
         #draw box
+        pos[1] += 2-self.flowSize
         rect = wx.Rect(pos[0], pos[1], w+pad,h+pad)
         endX = pos[0]+w+pad
         #the edge should match the text
@@ -650,6 +621,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetIdBounds(id,rect)
 
         return endX
+    
         #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
         #tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
         #print tbtn.GetBackgroundColour()
@@ -661,67 +633,56 @@ class FlowPanel(wx.ScrolledWindow):
     #def onBtn(self, event):
         #print 'evt:', self.componentFromID[event.GetId()].name
         #print '\nobj:', dir(event.GetEventObject())
-    def drawLoop(self,dc,loop,id,
-            startX,endX,
+    def drawLoop(self,dc,loop,id, startX,endX,
             base,height,rgb=[0,0,0], downwards=True):
         if downwards: up=-1
         else: up=+1
-        smallSize = self.smallSize
-        miniSize = self.miniSize
 
-        #draw loop itself
+        #draw loop itself, as transparent rect with curved corners
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        curve=10 #extra distance, in both h and w caused by curve
-        if smallSize: curve = 7
-        if miniSize: curve = 6
-        xx = [endX,  endX,   endX,   endX-curve/2, endX-curve, startX+curve,startX+curve/2, startX, startX, startX]
-        yy = [base,height+curve*up,height+curve*up/2,height, height, height,  height,  height+curve*up/2, height+curve*up, base]
-        pts = zip(xx, yy)
+        curve = (6, 11, 15)[self.flowSize] #extra distance, in both h and w for curve
+        yy = [base,height+curve*up,height+curve*up/2,height] # for area
         r,g,b=rgb
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
-        #dc.DrawSpline(pts)
-        #area = wx.Rect(min(xx), min(yy), max(xx)-min(xx), max(yy)-min(yy))
-        
-        # loopier loop
-        area = wx.Rect(startX, base, endX-startX, max(yy)-min(yy))
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent fill
-        dc.DrawRoundedRectangleRect(area, curve)
-        
+        vertOffset=0 # 1 is interesting too
+        area = wx.Rect(startX, base+vertOffset, endX-startX, max(yy)-min(yy))
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent
+        dc.DrawRoundedRectangleRect(area, curve) # draws outline
         dc.SetIdBounds(tmpId, area)
 
-        #add a name label, loop info
+        #add a name label, loop info, except at smallest size
         name = loop.params['name'].val
-        if self.frame.app.prefs.builder['showLoopInfoInFlow'] and not self.miniSize:
+        if self.frame.app.prefs.builder['showLoopInfoInFlow'] and not self.flowSize==0:
             if 'trialList' in loop.params.keys() and loop.params['trialList'].val:
                 xnumTrials = 'x'+str(len(loop.params['trialList'].val))
             else: xnumTrials = ''
-            abbrev = {'random': 'rand', 'sequential': 'seq', 'fullRandom':'full',
-                      'staircase': 'stair', 'interleaved staircases': 'inter'}
-            name += ': '+str(loop.params['nReps'].val)+xnumTrials+', '+abbrev[loop.params['loopType'].val]
-        if self.miniSize:
-            if len(name) > 6:
-                name = ' '+name[:5]+'..'
-            else: name = ' '+name[:6]
+            name += '  ('+str(loop.params['nReps'].val)+xnumTrials
+            abbrev = ['', {'random': 'rnd.', 'sequential': 'seq.', 'fullRandom':'fRn.',
+                      'staircase': 'str.', 'interleaved staircases': "in.st."},
+                      {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
+                      'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
+            name += ' '+abbrev[self.flowSize][loop.params['loopType'].val]+')'
+        if self.flowSize==0:
+            if len(name) > 9:
+                name = ' '+name[:8]+'..'
+            else: name = ' '+name[:9]
         else:
             name = ' '+name+' '
-            
+
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            if miniSize:
-                font.SetPointSize(700/self.dpi)
-            else:
-                font.SetPointSize(800/self.dpi)
+            basePtSize = (650,750,900)[self.flowSize]
+            font.SetPointSize(basePtSize/self.dpi)
         else:
-            font.SetPointSize(800/self.dpi)
+            basePtSize = (700,750,800)[self.flowSize]
+            font.SetPointSize(basePtSize/self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
-        
+
         #get size based on text
-        pad = 10
-        if smallSize: pad = 8
-        if miniSize: pad = 7
+        pad = (7,8,10)[self.flowSize]
         w,h = self.GetFullTextExtent(name)[0:2]
         x = startX+(endX-startX)/2-w/2-pad/2
         y = (height-h/2)
@@ -2309,6 +2270,8 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Realize()
 
     def makeMenus(self):
+        """ IDs are from app.wxIDs"""
+        
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
         #---_file---#000000#FFFFFF--------------------------------------------------
@@ -2372,6 +2335,10 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
+        self.viewMenu.Append(self.IDs.tbIncreaseSize, "&Larger Flow\t%s" %self.app.keys['largerSize'], "Larger flow items")
+        wx.EVT_MENU(self, self.IDs.tbIncreaseSize, self.flowPanel.increaseSize)
+        self.viewMenu.Append(self.IDs.tbDecreaseSize, "&Smaller Flow\t%s" %self.app.keys['smallerSize'], "Smaller flow items")
+        wx.EVT_MENU(self, self.IDs.tbDecreaseSize, self.flowPanel.decreaseSize)
 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()
