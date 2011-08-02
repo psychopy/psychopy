@@ -550,7 +550,6 @@ class TrialHandler:
 
         This can be reloaded if necess and further analyses carried out.
         """
-        print 'save as ', fileName, self.thisTrialN<1, self.thisRepN<1
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
@@ -724,13 +723,21 @@ class TrialHandler:
 
         ew.save(filename = fileName)
 
+def importTrialTypes(fileName, returnFieldNames=False):
+    """importTrialTypes is DEPRECATED (as of v1.70.00)
+    Please use `importConditions` for identical functionality.
+    """
+    log.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
 
-def importTrialList(fileName, returnFieldNames=False):
-        """Imports a list of TrialTypes from an Excel (.xlsx) or comma-separated-value file.
+def importConditions(fileName, returnFieldNames=False):
+        """Imports a list of conditions from an .xlsx or .csv file
+
+        The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
+        :class:`MultiStairHandler` as a `conditions` list.
 
         If `fileName` ends .csv then import as a comma-separated-value file will be used.
         All other filenames will be treated as Excel 2007 (xlsx) files. Sorry no
-        support for older versions of Excel file are planned.
+        support for older versions of Excel file is planned.
 
         The file should contain one row per type of trial needed and one column
         for each parameter that defines the trial type. The first row should give

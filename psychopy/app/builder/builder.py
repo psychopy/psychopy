@@ -362,10 +362,10 @@ class FlowPanel(wx.ScrolledWindow):
         flow = self.frame.exp.flow
         if op=='remove':
             # remove name from namespace only if its a loop (which exists only in the flow)
-            if component.type in ['TrialHandler', 'StairHandler'] and component.params.has_key('trialListFile'):
-                trialListFile = component.params['trialListFile'].val
-                if trialListFile not in [None, 'None']: # best to avoid it ever getting set to 'None'; where?
-                    _, fieldNames = data.importTrialList(trialListFile, returnFieldNames=True)
+            if component.type in ['TrialHandler', 'StairHandler']:
+                conditionsFile = component.params['conditionsFile'].val
+                if conditionsFile:
+                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
                 self.frame.exp.namespace.remove(component.params['name'].val)
@@ -655,8 +655,8 @@ class FlowPanel(wx.ScrolledWindow):
         #add a name label, loop info, except at smallest size
         name = loop.params['name'].val
         if self.frame.app.prefs.builder['showLoopInfoInFlow'] and not self.flowSize==0:
-            if 'trialList' in loop.params.keys() and loop.params['trialList'].val:
-                xnumTrials = 'x'+str(len(loop.params['trialList'].val))
+            if 'conditions' in loop.params.keys() and loop.params['conditions'].val:
+                xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
             abbrev = ['', {'random': 'rnd.', 'sequential': 'seq.', 'fullRandom':'fRn.',
@@ -1697,8 +1697,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.currentCtrls={}
         self.data = []
         self.ctrlSizer= wx.BoxSizer(wx.VERTICAL)
-        self.trialList=None
-        self.trialListFile=None
+        self.conditions=None
+        self.conditionsFile=None
 
         #create a valid new name; save old name in case we need to revert
         default_name = 'trials'
@@ -1709,7 +1709,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         new_name = namespace.makeValid(old_name)
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
-            loopType='random',nReps=5,trialList=[]) #for 'random','sequential', 'fullRandom'
+            loopType='random',nReps=5,conditions=[]) #for 'random','sequential', 'fullRandom'
         self.stairHandler=experiment.StairHandler(exp=self.exp, name=new_name,
             nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5) #for staircases
@@ -1721,8 +1721,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentType='random'
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
-            self.trialList=loop.params['trialList'].val
-            self.trialListFile=loop.params['trialListFile'].val
+            self.conditions=loop.params['conditions'].val
+            self.conditionsFile=loop.params['conditionsFile'].val
             self.trialHandler = self.currentHandler = loop
             self.currentType=loop.params['loopType']#could be 'random', 'sequential', 'fullRandom'
         elif loop.type=='StairHandler':
@@ -1757,9 +1757,9 @@ class DlgLoopProperties(_BaseParamsDlg):
                 loop.params['name'].val = old_name
 
         #make sure we set this back regardless of whether OK
-        #otherwise it will be left as a summary string, not a trialList
-        if self.currentHandler.params.has_key('trialListFile'):
-            self.currentHandler.params['trialList'].val=self.trialList
+        #otherwise it will be left as a summary string, not a conditions
+        if self.currentHandler.params.has_key('conditionsFile'):
+            self.currentHandler.params['conditions'].val=self.conditions
 
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType']:
@@ -1778,31 +1778,31 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.trialHandler
         #loop through the params
         keys = handler.params.keys()
-        #add trialList stuff to the *end*
-        if 'trialList' in keys:
-            keys.remove('trialList')
-            keys.insert(-1,'trialList')
-        if 'trialListFile' in keys:
-            keys.remove('trialListFile')
-            keys.insert(-1,'trialListFile')
+        #add conditions stuff to the *end*
+        if 'conditions' in keys:
+            keys.remove('conditions')
+            keys.insert(-1,'conditions')
+        if 'conditionsFile' in keys:
+            keys.remove('conditionsFile')
+            keys.insert(-1,'conditionsFile')
         #then step through them
         for fieldName in keys:
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls.keys():
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
-            elif fieldName=='trialListFile':
+            elif fieldName=='conditionsFile':
                 container=wx.BoxSizer(wx.HORIZONTAL)
                 ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
-            elif fieldName=='trialList':
-                if handler.params.has_key('trialList'):
-                    text=self.getTrialsSummary(handler.params['trialList'].val)
+            elif fieldName=='conditions':
+                if handler.params.has_key('conditions'):
+                    text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set (select a file above)"""
-                ctrls = ParamCtrls(self, 'trialList',text,noCtrls=True)#we'll create our own widgets
+                ctrls = ParamCtrls(self, 'conditions',text,noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
                 #self.ctrlSizer.Add(ctrls.valueCtrl)
@@ -1820,7 +1820,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.multiStairHandler
         #loop through the params
         keys = handler.params.keys()
-        #add trialList stuff to the *end*
+        #add conditions stuff to the *end*
         if 'conditions' in keys:
             keys.remove('conditions')
             keys.insert(-1,'conditions')
@@ -1877,16 +1877,16 @@ class DlgLoopProperties(_BaseParamsDlg):
         if len(longStr)>20:
             return longStr[0:10]+'...'+longStr[(-n+10):]
         else: return longStr
-    def getTrialsSummary(self, trialList):
-        if type(trialList)==list and len(trialList)>0:
-            #get attr names (trialList[0].keys() inserts u'name' and u' is annoying for novice)
+    def getTrialsSummary(self, conditions):
+        if type(conditions)==list and len(conditions)>0:
+            #get attr names (conditions[0].keys() inserts u'name' and u' is annoying for novice)
             paramStr = "["
-            for param in trialList[0].keys():
+            for param in conditions[0].keys():
                 paramStr += (unicode(param)+', ')
             paramStr = paramStr[:-2]+"]"#remove final comma and add ]
             #generate summary info
-            return '%i trial types, with %i parameters\n%s' \
-                %(len(trialList),len(trialList[0]), paramStr)
+            return '%i conditions, with %i parameters\n%s' \
+                %(len(conditions),len(conditions[0]), paramStr)
         else:
             return "No parameters set"
     def setCtrls(self, ctrlType):
@@ -1933,15 +1933,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             )
         if dlg.ShowModal() == wx.ID_OK:
             newPath = _relpath(dlg.GetPath(), expFolder)
-            self.trialListFile = newPath
+            self.conditionsFile = newPath
             try:
-                self.trialList, fieldNames = data.importTrialList(dlg.GetPath(), returnFieldNames=True)
+                self.conditions, fieldNames = data.importConditions(dlg.GetPath(), returnFieldNames=True)
             except ImportError, msg:
-                self.constantsCtrls['trialList'].setValue(
+                self.constantsCtrls['conditions'].setValue(
                     'Bad condition name(s) in file:\n'+str(msg).replace(':','\n')+
                     '.\n[Edit in the file, try again.]')
-                self.trialListFile = self.trialList = ''
-                log.error('Rejected bad condition name in trialList file: %s' % str(msg).split(':')[0])
+                self.conditionsFile = self.conditions = ''
+                log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
                 return
 
             badNames = ''
@@ -1950,20 +1950,20 @@ class DlgLoopProperties(_BaseParamsDlg):
                     if self.exp.namespace.exists(fname): # or not self.exp.namespace.isValid(fname):
                         badNames += fname+' '
             if badNames:
-                self.constantsCtrls['trialList'].setValue(
+                self.constantsCtrls['conditions'].setValue(
                     'Bad condition name(s) in file:\n'+badNames[:-1]+
                     '\n[Duplicate name(s). Edit file, try again.]')
-                log.error('Rejected bad condition names in trialList file: %s' % badNames[:-1])
-                self.trialListFile = self.trialList = ''
+                log.error('Rejected bad condition names in conditions file: %s' % badNames[:-1])
+                self.conditionsFile = self.conditions = ''
                 return
             self.exp.namespace.add(fieldNames)
 
             if 'conditionsFile' in self.currentCtrls.keys():
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
-                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.trialList))
+                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
             else:
-                self.constantsCtrls['trialListFile'].setValue(self.getAbbriev(newPath))
-                self.constantsCtrls['trialList'].setValue(self.getTrialsSummary(self.trialList))
+                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
+                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -1971,8 +1971,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in self.currentHandler.params.keys():
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
-            if fieldName in ['trialListFile', 'conditionsFile']:
-                param.val=self.trialListFile#not the value from ctrl - that was abbrieviated
+            if fieldName in ['conditionsFile', 'conditionsFile']:
+                param.val=self.conditionsFile#not the value from ctrl - that was abbrieviated
             else:#most other fields
                 ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)

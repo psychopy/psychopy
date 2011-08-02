@@ -90,12 +90,12 @@ class TestExpt():
         diff_py_keylines = f1 + f2
 
         # if line starts with stimOut, check for mere variation in order within line = ok
-        #     fails for multiple stimOut lines with diff trialLists ==> len(set()) > 1
+        #     fails for multiple stimOut lines with diff conditionss ==> len(set()) > 1
         if not bad_diff:
             # get only the stimOut lines, ignore leading whitespace:
             diff_py_stimOut = [y.replace("'", " ' ").strip() for y in diff_py_keylines
                                  if y.lstrip().startswith('stimOut')]
-            # in Navon demo, stimOut comes from a dict written as a list, for trialList
+            # in Navon demo, stimOut comes from a dict written as a list, for conditions
             diff_py_stimOut_sort = []
             for line in diff_py_stimOut:
                 sp_line = line.split()

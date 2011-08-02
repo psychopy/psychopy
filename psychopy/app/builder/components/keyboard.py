@@ -12,7 +12,7 @@ tooltip = 'Keyboard: check and record keypresses'
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
-                forceEndTrial=True,storeCorrect=False,correctAns="", discardPrev=True,
+                forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
@@ -23,7 +23,7 @@ class KeyboardComponent(BaseComponent):
         self.parentName=parentName
         #params
         self.params={}
-        self.order=['forceEndTrial','allowedKeys',#NB name and timing params always come 1st
+        self.order=['forceEndRoutine','allowedKeys',#NB name and timing params always come 1st
             'store','storeCorrect','correctAns',
             ]
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")
@@ -51,7 +51,7 @@ class KeyboardComponent(BaseComponent):
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
             hint="Choose which (if any) keys to store at end of trial")
-        self.params['forceEndTrial']=Param(forceEndTrial, valType='bool', allowedTypes=[],
+        self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should the keypress force the end of the routine (e.g end the trial)?")
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
@@ -74,7 +74,7 @@ class KeyboardComponent(BaseComponent):
         #some shortcuts
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
-        forceEnd=self.params['forceEndTrial'].val
+        forceEnd=self.params['forceEndRoutine'].val
 
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
