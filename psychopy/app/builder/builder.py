@@ -85,8 +85,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
         
         #flow drawing size, parameterized 0,1,2
+        # use to index a tuple to get a specific value, eg: (4,6,8)[self.flowSize]
         self.flowSize = self.app.prefs.builder['flowSize']
-        self.flowMaxSize = 2
+        self.flowMaxSize = 2 # upper limit on increaseSize
 
         if self.app.prefs.app['debugMode']:
             self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,70))
@@ -420,8 +421,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         #draw the main time line
         self.linePos = (2.5*self.dpi,0.5*self.dpi) #x,y of start
-        gap = self.dpi / (7, 4, 2) [self.flowSize]
-        dLoopToBaseLine = (15, 25, 40) [self.flowSize]
+        gap = self.dpi / (6, 4, 2) [self.flowSize]
+        dLoopToBaseLine = (15, 25, 43) [self.flowSize]
         dBetweenLoops = (20, 24, 30) [self.flowSize]
 
         #guess virtual size; nRoutines wide by nLoops high
@@ -571,7 +572,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         size = (3,4,5)[self.flowSize]
-        offset = (1,2,0)[self.flowSize]
+        offset = (3,2,0)[self.flowSize]
         if downwards:
             dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]+3*size-offset)#points up
         else:
@@ -590,11 +591,11 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            delta = (10,6,0)[self.flowSize]
-            font.SetPointSize(1400/self.dpi-delta)
+            fontSizeDelta = (9,6,0)[self.flowSize]
+            font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
-            delta = (8,4,0)[self.flowSize]
-            font.SetPointSize(1000/self.dpi-delta)
+            fontSizeDelta = (8,4,0)[self.flowSize]
+            font.SetPointSize(1000/self.dpi-fontSizeDelta)
         r, g, b = rgb
 
         #get size based on text
@@ -611,7 +612,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
             #for the fill, draw once in white near-opaque, then in transp color
             dc.SetBrush(wx.Brush(routineFlowColor))
-            dc.DrawRoundedRectangleRect(rect, 8)
+            dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.flowSize])
             #draw text
             dc.SetTextForeground(rgb)
             dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
@@ -682,7 +683,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetFont(font)
 
         #get size based on text
-        pad = (7,8,10)[self.flowSize]
+        pad = (5,8,10)[self.flowSize]
         w,h = self.GetFullTextExtent(name)[0:2]
         x = startX+(endX-startX)/2-w/2-pad/2
         y = (height-h/2)
@@ -694,7 +695,7 @@ class FlowPanel(wx.ScrolledWindow):
         #try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
         
-        dc.DrawRoundedRectangleRect(rect, 8)
+        dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.flowSize])
         #draw text
         dc.SetTextForeground([r,g,b])
         dc.DrawText(name, x+pad/2, y+pad/2)
