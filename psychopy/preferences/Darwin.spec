@@ -34,6 +34,8 @@
     allowGUI = boolean(default='True')
     # 'version' is for internal usage, not for the user
     version = string(default='')
+    # Add paths here to your custom Python modules
+    paths=list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -43,12 +45,6 @@
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
-    # best leave this mysterious setting as 'process'
-    runScripts = option('process', 'thread', 'inline', default='process')
-    # on win32 only, we can allow module imports for analysis of code
-
-    # should common libs be imported during launch
-    importLibs = option('none', 'thread', 'inline', default='none')
     # will reset site & key prefs to defaults immediately
     resetSitePrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
@@ -69,14 +65,10 @@
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=14)
     showSourceAsst = boolean(default=False)
-    analysisLevel = integer(0,10,default=1)
-    analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
-    # Debug mode: default unit tests
-    testSubset = string(default='')
 
 # Settings for the Builder window
 [builder]
