@@ -83,7 +83,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
-        
+
         #flow drawing size, parameterized 0,1,2
         # use to index a tuple to get a specific value, eg: (4,6,8)[self.flowSize]
         self.flowSize = self.app.prefs.builder['flowSize']
@@ -483,7 +483,7 @@ class FlowPanel(wx.ScrolledWindow):
             currX += gap
 
         self.SetVirtualSize(size=(currX+100, maxHeight+50))
-        
+
         #draw all possible locations for routines DEPRECATED SINCE 1.62 because not drawing those
         #for n, xPos in enumerate(self.pointsToDraw):
         #   font.SetPointSize(600/self.dpi)
@@ -497,7 +497,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         self.drawLineStart(pdc, (self.linePos[0]-gap,self.linePos[1]))
         self.drawLineEnd(pdc, (currX, self.linePos[1]))
-        
+
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def drawEntryPoints(self, posList):
@@ -582,7 +582,7 @@ class FlowPanel(wx.ScrolledWindow):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
-        name = routine.name 
+        name = routine.name
         if self.flowSize==0 and len(name) > 5:
             name = ' '+name[:4]+'..'
         else:
@@ -622,7 +622,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetIdBounds(id,rect)
 
         return endX
-    
+
         #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
         #tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
         #print tbtn.GetBackgroundColour()
@@ -694,7 +694,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
-        
+
         dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.flowSize])
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -966,7 +966,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                 dc.SetBrush(wx.Brush(routineTimeColor))
                 h = self.componentStep/2
                 xSt = self.timeXposStart + startTime/xScale
-                w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen 
+                w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
                 if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
@@ -1111,9 +1111,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 if redundant in thisName: shortName=thisName.replace(redundant, "")
 #            thisIcon.SetSize((16,16))
             if self.app.prefs.app['largeIcons']:
-                thisIcon = components.icons[thisName]['48']#index 1 is the 'add' icon
+                thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
             else:
-                thisIcon = components.icons[thisName]['24']#index 1 is the 'add' icon
+                thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
             btn = wx.BitmapButton(self, -1, thisIcon,
                            size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
@@ -1515,7 +1515,7 @@ class _BaseParamsDlg(wx.Dialog):
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
-    
+
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1
@@ -1524,20 +1524,20 @@ class _BaseParamsDlg(wx.Dialog):
         self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
         ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
         self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
-        
+
         #self.onMouseRight(event, 'color')
     '''#comment out context menu stuff:
     def onMouseRight(self, event):
         # Aug 2011: so far, only the color field catches mouseRight events
         # wxDialog is not as friendly as wxScrolledWindow for event positions
         # simpler to avoid the menu, just call back launchColorPicker directly
-        
+
         need self.orderAdded defined, populated with names of fields in order added
         fieldName = 'color'
         # will later replace existing text with new color, so set focus here in 'color':
         self.paramCtrls[fieldName].valueCtrl.SetFocus()
         # panel's pos relative to its frame:
-        x, y = self.ClientToScreen(event.GetPosition()) 
+        x, y = self.ClientToScreen(event.GetPosition())
         # frame's pos in whole window
         x2, y2 = self.frame.GetPosition()
         x3 = 80 # width of left-most (label) column
@@ -2292,7 +2292,7 @@ class BuilderFrame(wx.Frame):
 
     def makeMenus(self):
         """ IDs are from app.wxIDs"""
-        
+
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
         #---_file---#000000#FFFFFF--------------------------------------------------
