@@ -381,7 +381,14 @@ class Param:
     'a'
     >>> print Param("'\$a'",'str') # string, with the string containing a string, $ escaped (\ removed)
     "'$a'"
-
+    >>> print Param('$$$$$myPathologicalVa$$$$$rName','str')
+    myPathologicalVarName
+    >>> print Param('\$$$$$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$$$myPathologicalVa$$$\$$$rName','str')
+    $myPathologicalVa$rName
     """
 
     def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
@@ -423,8 +430,8 @@ class Param:
                     log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
                 nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
                 if nonEscapedSomewhere: # code wanted, clean-up first
-                    tmp = re.sub(r"^\$", '', self.val) # remove leading $, if any
-                    tmp = re.sub(r"([^\\])\$", r"\1", tmp) # remove all nonescaped $
+                    tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
+                    tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
                     tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
                     return str(tmp) # return code
                 else: # str wanted
