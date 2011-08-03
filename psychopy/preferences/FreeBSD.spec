@@ -87,7 +87,9 @@
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=False)
+    topFlow = boolean(default=True)
+    # Display size of items in flow panel: 0=tiny, 1=medium, 2=large
+    flowSize = integer(0,2,default=2)
 
 # Settings for connections
 [connections]
@@ -171,3 +173,7 @@
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
+    # increase display size in Flow
+    largerSize = string(default='Ctrl+=')
+    # decrease display size in Flow
+    smallerSize = string(default='Ctrl+-')
