@@ -1336,7 +1336,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.paramCtrls={}
         self.showAdvanced=showAdvanced
         self.order=order
-        self.orderAdded = []
         self.data = []
         self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
         self.ctrlSizer.AddGrowableCol(1)#valueCtrl column
@@ -1400,13 +1399,14 @@ class _BaseParamsDlg(wx.Dialog):
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
 
-        # contextual menu:
-        self.contextMenuItems=['color picker']
+        '''# contextual menu:
+        self.contextMenuItems=['color picker'] # better as callback from specific fields
         self.contextItemFromID={}; self.contextIDFromItem={}
         for item in self.contextMenuItems:
             id = wx.NewId()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
+        '''
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1482,7 +1482,6 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
-        self.orderAdded += ['start', 'expected start', 'stop', 'expected stop']
         return remaining
 
     def addParam(self,fieldName, advanced=False):
@@ -1511,17 +1510,29 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName=='text':
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
-        if fieldName in ['color']: # eventually: 'fillColor', 'lineColor'
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onMouseRight)
+        elif fieldName=='color':
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
-        self.orderAdded.append(fieldName)
+    
+    def launchColorPicker(self, event):
+        # bring up a colorPicker
+        rgb = self.app.colorPicker(None) # str, remapped to -1..+1
+        self.paramCtrls['color'].valueCtrl.SetFocus()
+        self.paramCtrls['color'].valueCtrl.Clear()
+        self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
+        ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
+        self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
         
+        #self.onMouseRight(event, 'color')
+    '''#comment out context menu stuff:
     def onMouseRight(self, event):
-        # Aug 2011: so far, only the color field catches mouse events
+        # Aug 2011: so far, only the color field catches mouseRight events
         # wxDialog is not as friendly as wxScrolledWindow for event positions
+        # simpler to avoid the menu, just call back launchColorPicker directly
         
+        need self.orderAdded defined, populated with names of fields in order added
         fieldName = 'color'
         # will later replace existing text with new color, so set focus here in 'color':
         self.paramCtrls[fieldName].valueCtrl.SetFocus()
@@ -1539,7 +1550,7 @@ class _BaseParamsDlg(wx.Dialog):
         if 'name' not in self.params:
             vPos += .5
         xy = wx.Point(x - x2 + x3, y - y2 + vPos*20 - 10)
-        self.showContextMenu(-1, xy=xy)
+        self.showContextMenu(-1, xy)
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
         for item in self.contextMenuItems:
@@ -1559,6 +1570,7 @@ class _BaseParamsDlg(wx.Dialog):
             ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
             self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
             # add to undo stack?
+    '''#end comment-out context menu
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
 
