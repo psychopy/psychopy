@@ -1330,12 +1330,13 @@ class _BaseParamsDlg(wx.Dialog):
         self.panel = wx.Panel(self, -1)
         self.params=params   #dict
         self.title = title
-        if not editing and title != 'Experiment Settings':
+        if not editing and title != 'Experiment Settings' and 'name' in self.params.keys():
             # then we're adding a new component, so provide a known-valid name:
             self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
         self.paramCtrls={}
         self.showAdvanced=showAdvanced
         self.order=order
+        self.orderAdded = []
         self.data = []
         self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
         self.ctrlSizer.AddGrowableCol(1)#valueCtrl column
@@ -1347,6 +1348,7 @@ class _BaseParamsDlg(wx.Dialog):
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
+        self.suppressTitles = suppressTitles
 
         #create a header row of titles
         if not suppressTitles:
@@ -1480,7 +1482,7 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
-
+        self.orderAdded += ['start', 'expected start', 'stop', 'expected stop']
         return remaining
 
     def addParam(self,fieldName, advanced=False):
@@ -1507,31 +1509,37 @@ class _BaseParamsDlg(wx.Dialog):
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow,3) )
         if fieldName=='text':
-            self.ctrlSizer.AddGrowableRow(currRow)#doesn't seem to work though
+            sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         if fieldName in ['color']: # eventually: 'fillColor', 'lineColor'
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.onMouseRight)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+        self.orderAdded.append(fieldName)
+        
     def onMouseRight(self, event):
-        # Apr 2011: so far, only the color field catches mouse events. the code below assumes
-        # that is the case, but it would be more general to get the fieldName based on its position
-            # -> get which self.paramCtrl[fieldName]
-            # e.g., from Flow panel get which component:
-            #component=self.componentFromID[self._menuComponentID]
+        # Aug 2011: so far, only the color field catches mouse events
+        # wxDialog is not as friendly as wxScrolledWindow for event positions
+        
         fieldName = 'color'
-        x, y = self.ClientToScreen(event.GetPosition()) # panel's pos relative to its frame
-        x2, y2 = self.frame.GetPosition() # frame's pos in whole window
-        #x3, y3 magic numbers might be platform-specific; these work for me on mac 10.6 and ubuntu 10
-        x3 = 80 # should be: width of left-most (label) column
-        y3 = 0  # size of the normal params panel if fieldName is in the adv param panel
-        if self.showAdvanced and fieldName in self.advParams:
-            y3 = 18 * (1 + len(self.params) - len(self.advParams))
-        self.paramCtrls[fieldName].valueCtrl.SetFocus() # later replace existing text with new color
-        if self.title == 'Experiment Settings': # total kludge, but puts it in about the right spot
-            y += 130 # I think its y that is not set right for Exp Settings window
-        self.showContextMenu(-1, xy=wx.Point(x - x2 + x3, y - y2 + y3 + 85))
+        # will later replace existing text with new color, so set focus here in 'color':
+        self.paramCtrls[fieldName].valueCtrl.SetFocus()
+        # panel's pos relative to its frame:
+        x, y = self.ClientToScreen(event.GetPosition()) 
+        # frame's pos in whole window
+        x2, y2 = self.frame.GetPosition()
+        x3 = 80 # width of left-most (label) column
+        # vertical position of field on the panel:
+        vPos = self.orderAdded.index(fieldName) # add order -> vertical position
+        if not self.suppressTitles:
+            vPos += 1 # a guess, never tried it
+        if fieldName in self.advParams:
+            vPos += 3.75 # for line and button; eg Patch
+        if 'name' not in self.params:
+            vPos += .5
+        xy = wx.Point(x - x2 + x3, y - y2 + vPos*20 - 10)
+        self.showContextMenu(-1, xy=xy)
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
         for item in self.contextMenuItems:
