@@ -8,7 +8,6 @@ from psychopy import data, preferences, __version__, log
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
-from psychopy.constants import FOREVER
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names

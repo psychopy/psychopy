@@ -1398,15 +1398,6 @@ class _BaseParamsDlg(wx.Dialog):
             self.addAdvancedTab()
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
-
-        '''# contextual menu:
-        self.contextMenuItems=['color picker'] # better as callback from specific fields
-        self.contextItemFromID={}; self.contextIDFromItem={}
-        for item in self.contextMenuItems:
-            id = wx.NewId()
-            self.contextItemFromID[id] = item
-            self.contextIDFromItem[item] = id
-        '''
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1524,53 +1515,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
         ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
         self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
-        
-        #self.onMouseRight(event, 'color')
-    '''#comment out context menu stuff:
-    def onMouseRight(self, event):
-        # Aug 2011: so far, only the color field catches mouseRight events
-        # wxDialog is not as friendly as wxScrolledWindow for event positions
-        # simpler to avoid the menu, just call back launchColorPicker directly
-        
-        need self.orderAdded defined, populated with names of fields in order added
-        fieldName = 'color'
-        # will later replace existing text with new color, so set focus here in 'color':
-        self.paramCtrls[fieldName].valueCtrl.SetFocus()
-        # panel's pos relative to its frame:
-        x, y = self.ClientToScreen(event.GetPosition()) 
-        # frame's pos in whole window
-        x2, y2 = self.frame.GetPosition()
-        x3 = 80 # width of left-most (label) column
-        # vertical position of field on the panel:
-        vPos = self.orderAdded.index(fieldName) # add order -> vertical position
-        if not self.suppressTitles:
-            vPos += 1 # a guess, never tried it
-        if fieldName in self.advParams:
-            vPos += 3.75 # for line and button; eg Patch
-        if 'name' not in self.params:
-            vPos += .5
-        xy = wx.Point(x - x2 + x3, y - y2 + vPos*20 - 10)
-        self.showContextMenu(-1, xy)
-    def showContextMenu(self, component, xy):
-        menu = wx.Menu()
-        for item in self.contextMenuItems:
-            id = self.contextIDFromItem[item]
-            menu.Append( id, item )
-            wx.EVT_MENU( menu, id, self.onContextSelect )
-        self.frame.PopupMenu( menu, xy )
-        menu.Destroy() # destroy to avoid mem leak
-    def onContextSelect(self, event):
-        """Perform a given action on the field chosen
-        """
-        op = self.contextItemFromID[event.GetId()]
-        if op=='color picker':
-            rgb = self.app.colorPicker(None) # str, remapped to -1..+1
-            self.paramCtrls['color'].valueCtrl.Clear()
-            self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
-            ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
-            self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
-            # add to undo stack?
-    '''#end comment-out context menu
+
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
 
