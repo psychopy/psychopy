@@ -12,6 +12,8 @@ Within your code you can use other variables and modules from the script. For ex
 
 To see what other variables you might want to use, and also what terms you need to avoid in your chunks of code, :ref:`compile your script <compileScript>` before inserting the code object and take a look at the contents of that script.
 
+Note that this page is concerned with `Code Components` specifically, and not all cases in which you might use python syntax within the Builder. It is also possible to put code into a non-code input field (such as the duration or text of a `Text Component`). The syntax there is slightly different (requiring a `$` to trigger the special handling, or `\\$` to avoid triggering special handling). The syntax to use within a Code Component is always regular python syntax.
+
 Parameters
 ~~~~~~~~~~~~~~
 
@@ -24,13 +26,13 @@ The parameters of the `Code Component` simply specify the code that will get exe
         Certain things might need to be done just once at the start of a :ref:`Routine <routines>` e.g. at the beginning of each trial you might decide which side a stimulus will appear
         
     Each Frame:
-        Things that need to updated constantly, throughout the experiment. Note that these will be exectued exactly once per video frame (on the order of every 10ms)
+        Things that need to updated constantly, throughout the experiment. Note that these will be exectued exactly once per video frame (on the order of every 10ms), to give dynamic displays. Static displays do not need to be updated every frame.
         
     End Routine:
         At the end of the :ref:`Routine <routines>` (eg. the trial) you may need to do additional things, like checking if the participant got the right answer
         
     End Experiment:
-        Use this for things like saving data to disk, presenting a graph(?), resetting hardware to its original state etc.
+        Use this for things like saving data to disk, presenting a graph(?), or resetting hardware to its original state.
 
 .. _code uses:
 
@@ -87,18 +89,24 @@ Common PsychoPy variables:
 
 Your own variables:
 
-    - anything you've created in a Code Component is available for the rest of the script
-    - the name of any other stimulus or the parameters from your file also exist as variables
+    - anything you've created in a Code Component is available for the rest of the script. (Sometimes you might need to define it at the beginning of the experiment, so that it wil be available throughout.)
+    - the name of any other stimulus or the parameters from your file also exist as variables.
     - most Components have a `status` attribute, which is useful to determine whether a stimulus has `NOT_STARTED`, `STARTED` or `FINISHED`. For example, to play a tone at the end of a Movie Component (of unknown duration) you could set start of your tone to have the 'condition' ::
     
         myMovieName.status==FINISHED
 
-The `contents of the numpy library and numpy.random <http://docs.scipy.org/doc/numpy/reference/index.html>`_ are imported by default so you can use a huge number of maths functions from there:
+Selected contents of `the numpy library and numpy.random <http://docs.scipy.org/doc/numpy/reference/index.html>`_ are imported by default. The entire numpy library is imported as `np`, so you can use a several hundred maths functions by prepending things with 'np.':
 
-    - `rand() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html>`_ , `randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `poisson() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.poisson.html>`_ and various other options for creating arrays of random numbers
+    - `random() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.rand.html>`_ , `randint() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.randint.html>`_ , `normal() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html>`_ , `shuffle() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.shuffle.html>`_ options for creating arrays of random numbers.
     
-    - sin(), cos(), pi, and so on: For geometry and trig. By default angles are in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)
+    - `sin()`, `cos()`, `tan()`, and `pi`: For geometry and trig. By default angles are in radians, if you want the cosine of an angle specified in degrees use `cos(angle*180/pi)`, or use numpy's conversion functions, `rad2deg(angle)` and `deg2rad(angle)`.
     
-    - `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: create an array of linearly spaced values
+    - `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: Create an array of linearly spaced values.
     
-    - log(), log10(): the natural and base-10 log functions, respectively
+    - `log()`, `log10()`: The natural and base-10 log functions, respectively. (Its a lowercase-L in log).
+    
+    - `sum()`, `len()`: For the sum and length of a list or array. To find an average, its better to use `average()` (due to the potential for integer division issues with `sum()/len()` ).
+    
+    - `average()`, `sqrt()`, `std()`: For average (mean), square root, and standard deviation, respectively. **Note:** Be sure that the numpy standard deviation formula is the one you want!
+    
+    - np.______: Many math-related features are available through the complete numpy libraries, which are available within psychopy builder scripts as 'np.'. For example, you could use `np.hanning(3)` or `np.random.poisson(10, 10)` in a code component.

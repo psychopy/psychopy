@@ -14,8 +14,9 @@ _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 # used when writing scripts and in namespace:
-_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'sqrt', 'std', 'deg2rad', 'rad2deg', 'asarray']
-_numpy_random_imports = ['random', 'randint', 'shuffle']
+_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
+                  'deg2rad', 'rad2deg', 'linspace', 'asarray']
+_numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
 
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
