@@ -14,6 +14,10 @@ from psychopy.constants import FOREVER
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
+# used when writing scripts and in namespace:
+_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'sqrt', 'std', 'deg2rad', 'rad2deg', 'asarray']
+_numpy_random_imports = ['random', 'randint', 'shuffle']
+
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
     settings.SettingsComponent.writeStartCode()
@@ -109,15 +113,13 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("from numpy import * #many different maths functions\n" +
-                    "from numpy.random import * #maths randomisation functions\n" +
+        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+                    "from numpy import %s\n" % ', '.join(_numpy_imports) +
+                    "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
                     "from psychopy.constants import *\n\n")
-        #self.namespace.user.sort()
-        #script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-        #            "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.getCollisions()) )
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -917,7 +919,7 @@ class NameSpace():
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 
-        self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
+        self.numpy = _numpy_imports + _numpy_random_imports + ['np']
         self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
                         'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
                         'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
