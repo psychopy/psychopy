@@ -339,19 +339,49 @@ class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
-    >>> sizeParam = Param(val=[3,4], valType='num')
-    >>> print sizeParam
-    numpy.asarray([3,4])
-
-    >>> sizeParam = Param(val=[3,4], valType='str')
-    >>> print sizeParam
-    "[3,4]"
-
-    >>> sizeParam = Param(val=[3,4], valType='code')
-    >>> print sizeParam
-    [3,4]
+    >>> print Param(val=[3,4], valType='num')
+    asarray([3, 4])
+    >>> print Param(val=3, valType='num') # num converts int to float
+    3.0
+    >>> print Param(val=3, valType='str') # str keeps as int, converts to code
+    3
+    >>> print Param(val='3', valType='str') # ... and keeps str as str
+    '3'
+    >>> print Param(val=[3,4], valType='str') # val is <type 'list'> -> code
+    [3, 4]
+    >>> print Param(val='[3,4]', valType='str')
+    '[3,4]'
+    >>> print Param(val=[3,4], valType='code')
+    [3, 4]
+    
+    >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
+    >>> print Param('[x,y]','str') # str normally returns string
+    '[x,y]'
+    >>> print Param('$[x,y]','str') # code, as triggered by $
+    [x,y]
+    >>> print Param('[$x,$y]','str') # code, redundant $ ok, cleaned up
+    [x,y]
+    >>> print Param('[$x,y]','str') # code, a $ anywhere means code
+    [x,y]
+    >>> print Param('[x,y]$','str') # ... even at the end
+    [x,y]
+    >>> print Param('[x,\$y]','str') # string, because the only $ is escaped
+    '[x,$y]'
+    >>> print Param('[x,\ $y]','str') # improper escape -> code (note that \ is not adjacent to $)
+    [x,\ y]
+    >>> print Param('/$[x,y]','str') # improper escape -> code (/ is not the same as \)
+    /[x,y]
+    >>> print Param('[\$x,$y]','str') # code, python syntax error
+    [$x,y]
+    >>> print Param('["\$x",$y]','str') # ... python syntax ok
+    ["$x",y]
+    >>> print Param("'$a'",'str') # code, with the code being a string, $ removed
+    'a'
+    >>> print Param("'\$a'",'str') # string, with the string containing a string, $ escaped (\ removed)
+    "'$a'"
 
     """
+
     def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
         """
         @param val: the value for this parameter
@@ -383,12 +413,21 @@ class Param:
             except:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
-            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
-                return "%s" %(self.val[1:])#override the string type and return as code
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
-                return repr(self.val[1:])#the user actually wanted a string repr with the $ as first char
-            else:#provide the string representation (the code to create a string)
-                return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
+            # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
+            # return str if code wanted
+            # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
+            if type(self.val) in [str, unicode]:
+                if re.search(r"/\$", self.val):
+                    log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
+                nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
+                if nonEscapedSomewhere: # code wanted, clean-up first
+                    tmp = re.sub(r"^\$", '', self.val) # remove leading $, if any
+                    tmp = re.sub(r"([^\\])\$", r"\1", tmp) # remove all nonescaped $
+                    tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
+                    return str(tmp) # return code
+                else: # str wanted
+                    return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
+            return repr(self.val)
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
