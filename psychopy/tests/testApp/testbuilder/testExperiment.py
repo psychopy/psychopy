@@ -23,7 +23,14 @@ exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
 def _filterout_legal(lines):
     return [l
             for l in lines
-            if not "This experiment was created using PsychoPy2 Experiment Builder (" in l]
+            if not "This experiment was created using PsychoPy2 Experiment Builder (" in l
+            and not ("trialList=data.importConditions(" in l and ".xlsx'))" in l) ]
+        #-This experiment was created using PsychoPy2 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
+        #+This experiment was created using PsychoPy2 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
+        #-    trialList=data.importConditions(u'trialTypes.xlsx'))
+        #+    trialList=data.importConditions('trialTypes.xlsx'))
+        #-    trialList=data.importConditions(u'mainTrials.xlsx'))
+        #+    trialList=data.importConditions('mainTrials.xlsx'))
 
 def _diff(a, b):
     """ diff of strings; returns a generator, 3 lines of context by default, - or + for changes """
@@ -42,6 +49,7 @@ class TestExpt():
         # dirs and files:
         self.here = path.abspath(path.dirname(__file__))
         self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
+        self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def tearDown(self):
@@ -130,7 +138,7 @@ class TestExpt():
     def testExp_LoadCompilePsyexp(self):
         #""" for each builder demo .psyexp: load-save-load, compile (syntax check), namespace"""
         exp = self.exp
-        self.new_diff_file = path.join(self.tmp_dir, 'tmp_py_diff')
+        self.new_diff_file = self.tmp_diffs_file
 
         # make temp copies of all builder demos:
         for root, dirs, files in os.walk(path.join(exp.prefsPaths['demos'], 'builder')):
