@@ -1,5 +1,5 @@
 Most dialogs have a help button that takes you to the relevant online documentation
-You can use Ctrl-[ or Ctrl-] to indent/outdent a block of code in Coder view
+You can use "Ctrl + [" or "Ctrl + ]" to indent/outdent a block of code in Coder view
 Both in the Coder and Builder views have a demos menu with plenty of demos
 From Builder you can generate and customise the python script that controls your experiment (might be a good way to learn a bit of programming).
 Avoid snorting Pepsi
@@ -15,7 +15,7 @@ Coder: Did you try typing python commands in the Shell window yet?
 Builder: Documentation on possible code/variables to include in your scripts is available online at; Documentation>Builder>Components>Code
 If you buy a computer, avoid "Intel integrated graphics" cards (or make sure you can upgrade to an nVidia/ATI replacement)
 Degrees of visual angle are 'device independent'. Normalised units mean that your stimulus will be different on each different computer. Do you really want that?
-Builder: you can right click on things to bring up a menu, e.g., to remove a trial.
+Builder: you can often right click on things to bring up a menu, e.g., to remove a trial.
 Coder: you can click the color-picker icon on the toolbar. The rgb color triplet will be saved to the clipboard (in PsychoPy's rgb color units, -1..+1 not 0..255), which you can then paste into a script.
 To flip a Patch stimulus, give it a negative 'size', in x, y or both
 PsychoPy is free. Please cite the relevant papers (Peirce 2007; 2009) if you use PsychoPy in published work
@@ -30,8 +30,8 @@ Did your stimulus not appear? Was it really tiny? Setting units='pix' and size=0
 The default color values in PsychoPy range from -1 to +1, with 0 being the mean grey of the screen. So black is like the maximum decrement from grey and white is an increment. Right?
 Data can be output in many different formats, but it's worth saving the 'psydat' (aka pickle) format as well as the others. Although this isn't "human readable" it stores more information than excel/csv files including an entire copy of your actual experiment!
 You can see how many people used PsychoPy this month at http://www.psychopy.org/usage.php
-Builder: You can increase or decrease the size of the flow using "Ctrl-=" or "Ctrl--" (like some web browsers)
-Builder: You can set a default flow size using builder pref "flowSize"
-Builder: You can automatically show details about loops in the flow using builder pref "showLoopInfoInFlow"
-Builder: You can use $ to indicate a code snippet -- the whole field is interpreted as being Python code. (Not necessary in a code component--its already marked as being code)
-Builder: To put a $ symbol in a stimulus, you need to use \$, like this: "You win \$5.00!"
+Builder: You can increase or decrease the size of the flow using "Ctrl + =" or "Ctrl + -" (like some web browsers)
+In the Builder, you can display details about the trials and sequences of loops. Press "Ctrl + =" when at the largest view size. To turn off, press "Ctrl + -" from the smallest view size.
+Builder: You can use $ to indicate a code snippet, to say that "$color" should be interpreted as a python variable named "color". (This is happens automatically in a code component--its already code.)
+Builder: To put a $ symbol in a stimulus, you need to use \$, like this: "You win \$5.00!". (This is only for input boxes, and not for code components.)
+You can use "Ctrl + Z" and "Ctrl + Shift + Z" to undo and redo many of the actions in the Builder, such as adding, deleting, or changing something.
