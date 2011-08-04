@@ -30,8 +30,8 @@ Name : string
 Start Time : float or integer
     The time (relative to the beginning of this Routine) that the mouse should first be checked.
 
-Duration : float or integer
-    The duration for which the mouse is checked.
+Duration : 
+    The duration for which the mouse is checked. See :ref:`duration` for details.
 	
 Force End Trial on Press
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the mouse buttons is pressed.

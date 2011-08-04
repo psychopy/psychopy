@@ -16,8 +16,8 @@ name : string
 startTime : float or integer
     The time (relative to the beginning of this Routine) that the stimulus should first appear.
 
-duration : float or integer
-    The duration for which the stimulus is presented.
+duration : 
+    The duration for which the stimulus is presented. See :ref:`duration` for details.
 
 movie : string
     The filename of the movie, including the path. The path can be absolute or relative to the location of the experiment (.psyexp) file.

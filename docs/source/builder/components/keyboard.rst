@@ -16,8 +16,8 @@ Name : string
 StartTime : float or integer
     The time (relative to the beginning of this Routine) that the keyboard should first be checked.
 
-Duration : float or integer
-    The duration for which the keyboard is checked.
+Duration : 
+    The duration for which the keyboard is checked. See :ref:`duration` for details.
 
 Force end trial
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the `allowed` keys is pressed.
