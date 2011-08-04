@@ -1533,10 +1533,13 @@ class _BaseParamsDlg(wx.Dialog):
             # try to be helpful, but dict syntax is not so intuitive
             dlg = gui.Dlg(title="oops, syntax error...")
             dlg.addText('') # spacer
-            dlg.addText("Experiment info expects python 'dict' syntax.")
-            dlg.addText("Items are pairs of the form 'a': 'b' or    ")
-            dlg.addText("'a': b, with pairs separated by commas.    ")
-            dlg.addText("Unicode is fine, eg 'a': u'b'              ")
+            dlg.addText("Experiment info needs to have python 'dict' syntax.")
+            dlg.addText("(Delete everything and preview again to reset.)")
+            dlg.addText("- items are pairs of the form 'a1': 'b', 'a2': b, 'a3': u'b',")
+            dlg.addText("  (u' ' is unicode), with pairs separated by commas")
+            dlg.addText("- the a's must be unique ('a1', 'a2', 'a3', ...)")
+            dlg.addText("- the b's must be well-formed (str, int, float, list)")
+            dlg.addText("- enclose everything in {   }")
             dlg.show()
             return
         # show preview

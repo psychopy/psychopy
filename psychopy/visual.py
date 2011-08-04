@@ -4773,7 +4773,7 @@ class RatingScale:
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
     
-    ** Example 3**::
+    **Example 3**::
         
         Non-numeric choices (categorical, unordered):
         
@@ -4790,6 +4790,8 @@ class RatingScale:
         getResponse() will return False (bool) and not 'False' (str).
         
     See Coder Demos -> stimuli -> ratingScale.py for examples.
+    The Builder RatingScale component gives a restricted set of options, but also
+    allows full control over a RatingScale (via 'customizeEverything').
     
     :Author:
         2010 Jeremy Gray, 2011 updates
@@ -5195,7 +5197,11 @@ class RatingScale:
         Non-numeric (categorical) choices are selected using tick-marks interpreted as an index, choice[tick].
         Tick units get mapped to "internal" units based on their proportion of the total ticks (--> 0. to 1.).
         The unit-length internal line is expanded / contracted by stretchHoriz and displaySizeFactor, and then
-        is translated by offsetHoriz and offsetVert. Auto-rescaling reduces the number of tick marks shown on the
+        is translated to position pos (offsetHoriz=pos[0], offsetVert=pos[1]). pos is the name of the arg, and
+        its values appear in the code as offsetHoriz and offsetVert only for historical reasons (should be
+        refactored for clarity).
+        
+        Auto-rescaling reduces the number of tick marks shown on the
         screen by a factor of 10, just for nicer appearance, without affecting the internal representation.
 
         Thus, the horizontal screen position of the i-th tick mark, where i in [0,n], for n total ticks (n = high-low),
