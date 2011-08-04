@@ -367,7 +367,7 @@ class FlowPanel(wx.ScrolledWindow):
             # remove name from namespace only if its a loop (which exists only in the flow)
             if component.type in ['TrialHandler', 'StairHandler']:
                 conditionsFile = component.params['conditionsFile'].val
-                if conditionsFile:
+                if conditionsFile and conditionsFile not in ['None','']:
                     _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)

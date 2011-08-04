@@ -316,8 +316,9 @@ class Experiment:
                 # get condition names from within conditionsFile, if any:
                 try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
                 except: conditionsFile = None
-                if conditionsFile and conditionsFile not in ['None','']:
-                    conditionsFile = os.path.join(os.path.dirname(filename), conditionsFile)
+                if conditionsFile in ['None', '']:
+                    conditionsFile = None
+                if conditionsFile:
                     _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         if fname != self.namespace.makeValid(fname):
