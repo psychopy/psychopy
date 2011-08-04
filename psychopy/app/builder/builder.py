@@ -84,7 +84,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
-        
+
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
 
@@ -585,7 +585,7 @@ class FlowPanel(wx.ScrolledWindow):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
-        name = routine.name 
+        name = routine.name
         if self.appData['flowSize']==0 and len(name) > 5:
             name = ' '+name[:4]+'..'
         else:
@@ -697,7 +697,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
-        
+
         dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -1006,12 +1006,36 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         maxTime=0
         for n, component in enumerate(self.routine):
-            try:exec('thisT=%(startTime)s+%(duration)s' %component.params)
+            start, duration = self.getStartAndDuration(component)
+            try:thisT=start+duration#will fail if either value is not defined
             except:thisT=0
             maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
             maxTime=10
         return maxTime
+    def getStartAndDuration(self, component):
+        startType=component.params['startType'].val
+        stopType=component.params['stopType'].val
+        #deduce a start time (s) if possible
+        if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
+            startTime=float(component.params['startVal'].val)
+        #user has given a time estimate
+        elif canBeNumeric(component.params['startEstim'].val):
+            startTime=float(component.params['startEstim'].val)
+        else: startTime=None
+        #deduce duration (s) if possible. Duration used because box needs width
+        if component.params['stopVal'].val in ['','-1','None']:
+            duration=inf#infinite duration
+        elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
+            duration=float(component.params['stopVal'].val)-startTime
+        elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
+            duration=float(component.params['stopVal'].val)
+        elif canBeNumeric(component.params['durationEstim'].val):
+            duration=float(component.params['durationEstim'].val)
+        else:
+            duration=None
+        return startTime, duration
+
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
     """
@@ -1511,7 +1535,7 @@ class _BaseParamsDlg(wx.Dialog):
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
-    
+
     def previewExpInfo(self, event):
         thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
         expInfo = thisValueCtrl.GetValue()
@@ -1546,7 +1570,7 @@ class _BaseParamsDlg(wx.Dialog):
             thisValueCtrl.SetFocus()
             thisValueCtrl.Clear()
             thisValueCtrl.WriteText(str(newInfo))
-    
+
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1
