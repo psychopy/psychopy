@@ -386,12 +386,13 @@ class FlowPanel(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
+        gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        dc.SetBackground(bg)
-        dc.Clear()
+        gcdc.SetBackground(bg)
+        gcdc.Clear()
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -401,7 +402,7 @@ class FlowPanel(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(dc,r)
+        self.pdc.DrawToDCClipped(gcdc,r)
 
     def draw(self, evt=None):
         """This is the main function for drawing the Flow panel.
@@ -651,7 +652,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
         vertOffset=0 # 1 is interesting too
         area = wx.Rect(startX, base+vertOffset, endX-startX, max(yy)-min(yy))
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0),style=wx.TRANSPARENT)) # transparent
         dc.DrawRoundedRectangleRect(area, curve) # draws outline
         dc.SetIdBounds(tmpId, area)
 
@@ -830,12 +831,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
+        gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        dc.SetBackground(bg)
-        dc.Clear()
+        gcdc.SetBackground(bg)
+        gcdc.Clear()
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -845,7 +847,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(dc,r)
+        self.pdc.DrawToDCClipped(gcdc,r)
 
     def redrawRoutine(self):
         self.pdc.Clear()#clear the screen
