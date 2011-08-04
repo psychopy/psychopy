@@ -53,7 +53,7 @@ class SettingsComponent:
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
-            hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 
+            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.") 
         self.params['logging level']=Param(logging, valType='code', 
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")

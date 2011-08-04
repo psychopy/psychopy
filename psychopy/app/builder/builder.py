@@ -12,7 +12,7 @@ import py_compile, codecs
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, log, misc
+from psychopy import data, log, misc, gui
 import re
 from psychopy.constants import *
 
@@ -1506,9 +1506,46 @@ class _BaseParamsDlg(wx.Dialog):
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         elif fieldName=='color':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
+        elif fieldName=='Experiment info':
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+    
+    def previewExpInfo(self, event):
+        thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
+        expInfo = thisValueCtrl.GetValue()
+        needsUpdate = False
+        if expInfo.strip()=='':
+            expInfo = "{'participant':'', 'session':'001'}"
+            title = 'providing default values...'
+        else:
+            title = 'PREVIEW' # not actually checked yet
+        if not expInfo.lstrip().startswith('{'):
+            expInfo = '{' + expInfo
+            needsUpdate = True
+        if not expInfo.strip().endswith('}'):
+            expInfo += '}'
+            needsUpdate = True
+        try:
+            newInfo = dict(eval(expInfo))
+        except SyntaxError:
+            # try to be helpful, but dict syntax is not so intuitive
+            dlg = gui.Dlg(title="oops, syntax error...")
+            dlg.addText('') # spacer
+            dlg.addText("Experiment info expects python 'dict' syntax.")
+            dlg.addText("Items are pairs of the form 'a': 'b' or    ")
+            dlg.addText("'a': b, with pairs separated by commas.    ")
+            dlg.addText("Unicode is fine, eg 'a': u'b'              ")
+            dlg.show()
+            return
+        # show preview
+        previewDlg = gui.DlgFromDict(dictionary=newInfo, title=title)
+        # if user made edits to values and then clicked OK, save them:
+        if previewDlg.OK or needsUpdate:
+            thisValueCtrl.SetFocus()
+            thisValueCtrl.Clear()
+            thisValueCtrl.WriteText(str(newInfo))
     
     def launchColorPicker(self, event):
         # bring up a colorPicker
