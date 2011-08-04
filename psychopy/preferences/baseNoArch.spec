@@ -84,7 +84,7 @@
     savedDataFolder = string(default='data')
     topFlow = boolean(default=False)
     # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=True)
+    topFlow = boolean(default=False)
 
 # Settings for connections
 [connections]

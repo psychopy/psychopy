@@ -84,7 +84,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
-        
+
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
 
@@ -386,12 +386,13 @@ class FlowPanel(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
+        gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        dc.SetBackground(bg)
-        dc.Clear()
+        gcdc.SetBackground(bg)
+        gcdc.Clear()
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -401,7 +402,7 @@ class FlowPanel(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(dc,r)
+        self.pdc.DrawToDCClipped(gcdc,r)
 
     def draw(self, evt=None):
         """This is the main function for drawing the Flow panel.
@@ -486,7 +487,7 @@ class FlowPanel(wx.ScrolledWindow):
             currX += gap
 
         self.SetVirtualSize(size=(currX+100, maxHeight+50))
-        
+
         #draw all possible locations for routines DEPRECATED SINCE 1.62 because not drawing those
         #for n, xPos in enumerate(self.pointsToDraw):
         #   font.SetPointSize(600/self.dpi)
@@ -500,7 +501,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         self.drawLineStart(pdc, (self.linePos[0]-gap,self.linePos[1]))
         self.drawLineEnd(pdc, (currX, self.linePos[1]))
-        
+
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def drawEntryPoints(self, posList):
@@ -585,7 +586,7 @@ class FlowPanel(wx.ScrolledWindow):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
-        name = routine.name 
+        name = routine.name
         if self.appData['flowSize']==0 and len(name) > 5:
             name = ' '+name[:4]+'..'
         else:
@@ -625,7 +626,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetIdBounds(id,rect)
 
         return endX
-    
+
         #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
         #tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
         #print tbtn.GetBackgroundColour()
@@ -651,7 +652,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
         vertOffset=0 # 1 is interesting too
         area = wx.Rect(startX, base+vertOffset, endX-startX, max(yy)-min(yy))
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0))) # transparent
+        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0),style=wx.TRANSPARENT)) # transparent
         dc.DrawRoundedRectangleRect(area, curve) # draws outline
         dc.SetIdBounds(tmpId, area)
 
@@ -697,7 +698,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
-        
+
         dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
         #draw text
         dc.SetTextForeground([r,g,b])
@@ -830,12 +831,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
+        gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        dc.SetBackground(bg)
-        dc.Clear()
+        gcdc.SetBackground(bg)
+        gcdc.Clear()
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -845,7 +847,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(dc,r)
+        self.pdc.DrawToDCClipped(gcdc,r)
 
     def redrawRoutine(self):
         self.pdc.Clear()#clear the screen
@@ -969,7 +971,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                 dc.SetBrush(wx.Brush(routineTimeColor))
                 h = self.componentStep/2
                 xSt = self.timeXposStart + startTime/xScale
-                w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen 
+                w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
                 if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
                 dc.DrawRectangle(xSt, y, w,h )
@@ -1006,12 +1008,36 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         maxTime=0
         for n, component in enumerate(self.routine):
-            try:exec('thisT=%(startTime)s+%(duration)s' %component.params)
+            start, duration = self.getStartAndDuration(component)
+            try:thisT=start+duration#will fail if either value is not defined
             except:thisT=0
             maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
             maxTime=10
         return maxTime
+    def getStartAndDuration(self, component):
+        startType=component.params['startType'].val
+        stopType=component.params['stopType'].val
+        #deduce a start time (s) if possible
+        if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
+            startTime=float(component.params['startVal'].val)
+        #user has given a time estimate
+        elif canBeNumeric(component.params['startEstim'].val):
+            startTime=float(component.params['startEstim'].val)
+        else: startTime=None
+        #deduce duration (s) if possible. Duration used because box needs width
+        if component.params['stopVal'].val in ['','-1','None']:
+            duration=inf#infinite duration
+        elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
+            duration=float(component.params['stopVal'].val)-startTime
+        elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
+            duration=float(component.params['stopVal'].val)
+        elif canBeNumeric(component.params['durationEstim'].val):
+            duration=float(component.params['durationEstim'].val)
+        else:
+            duration=None
+        return startTime, duration
+
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
     """
@@ -1114,9 +1140,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 if redundant in thisName: shortName=thisName.replace(redundant, "")
 #            thisIcon.SetSize((16,16))
             if self.app.prefs.app['largeIcons']:
-                thisIcon = components.icons[thisName]['48']#index 1 is the 'add' icon
+                thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
             else:
-                thisIcon = components.icons[thisName]['24']#index 1 is the 'add' icon
+                thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
             btn = wx.BitmapButton(self, -1, thisIcon,
                            size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
                            name=thisComp.__name__)
@@ -1511,7 +1537,7 @@ class _BaseParamsDlg(wx.Dialog):
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
-    
+
     def previewExpInfo(self, event):
         thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
         expInfo = thisValueCtrl.GetValue()
@@ -1549,7 +1575,7 @@ class _BaseParamsDlg(wx.Dialog):
             thisValueCtrl.SetFocus()
             thisValueCtrl.Clear()
             thisValueCtrl.WriteText(str(newInfo))
-    
+
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1
@@ -2280,7 +2306,7 @@ class BuilderFrame(wx.Frame):
 
     def makeMenus(self):
         """ IDs are from app.wxIDs"""
-        
+
         #---Menus---#000000#FFFFFF--------------------------------------------------
         menuBar = wx.MenuBar()
         #---_file---#000000#FFFFFF--------------------------------------------------

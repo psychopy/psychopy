@@ -4,7 +4,7 @@
 
 from _visual import * # to get the template visual component
 from os import path
-from psychopy.app.builder.components import getInitVals
+from psychopy.app.builder import components #for getInitVals()
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -44,7 +44,7 @@ class ApertureComponent(VisualComponent):
         del self.params['colorSpace']
 
     def writeInitCode(self, buff):
-        inits = getInitVals(self.params)
+        inits = components.getInitVals(self.params)
         #do writing of init
         buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s',\n" % (inits))
         buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (inits))

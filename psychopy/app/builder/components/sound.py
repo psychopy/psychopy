@@ -4,7 +4,7 @@
 
 from _base import *
 from os import path
-from psychopy.app.builder.components import getInitVals
+from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
@@ -47,7 +47,7 @@ class SoundComponent(BaseComponent):
             hint="The volume (in range 0 to 1)")
 
     def writeInitCode(self,buff):
-        inits = getInitVals(self.params)#replaces variable params with sensible defaults
+        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['stopType']=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.params
         else:

@@ -4,7 +4,7 @@
 
 from _visual import * #to get the template visual component
 from os import path
-from psychopy.app.builder.components import getInitVals
+from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
@@ -47,7 +47,7 @@ class MovieComponent(VisualComponent):
         #if it changes each repeat then we should wait and creat the entire object at
         #Routine start
         if self.params['movie'].updates=='constant':
-            initVals = getInitVals(self.params)
+            initVals = components.getInitVals(self.params)
             buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
             buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
             if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
