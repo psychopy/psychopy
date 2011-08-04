@@ -16,8 +16,8 @@ name : string
 startTime : float or integer
     The time (relative to the beginning of this Routine) that the stimulus should first appear.
 
-duration : float or integer
-    The duration for which the stimulus is presented.
+duration : 
+    The duration for which the stimulus is presented. See :ref:`duration` for details.
 
 image : a filename, a standard name ('sin', 'sqr') or a numpy array of dimensions NxNx1 or NxNx3
     This specifies the image that will be used as the *texture* for the visual patch. 

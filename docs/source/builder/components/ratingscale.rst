@@ -58,8 +58,8 @@ size : float
 pos : [X,Y]
     The position of the centre of the stimulus, in the units specified by the stimulus or window. Default is centered left-right, and somewhat lower than the vertical center (0, -0.4).
 
-duration : float or integer
-    The maximum duration in seconds for which the stimulus is presented. Typically, the subject's response should end the trial, not a duration.
+duration : 
+    The maximum duration in seconds for which the stimulus is presented. See :ref:`duration` for details. Typically, the subject's response should end the trial, not a duration.
     A blank or negative value means wait for a very long time.
 
 storeRatingTime:

@@ -22,6 +22,7 @@ Contents:
    flow
    components
    settings
+   duration
    outputs
    gotchas
    compileScript
