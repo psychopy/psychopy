@@ -4,7 +4,7 @@
 
 from _visual import * #to get the template visual component
 from os import path
-from psychopy.app.builder.components import getInitVals
+from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
@@ -49,7 +49,7 @@ class TextComponent(VisualComponent):
         if self.params['units'].val=='window units': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        inits = getInitVals(self.params)#replaces variable params with sensible defaults
+        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
         buff.writeIndented("    text=%(text)s,\n" %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
