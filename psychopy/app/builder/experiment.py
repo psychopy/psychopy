@@ -8,11 +8,15 @@ from psychopy import data, preferences, __version__, log
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
-from psychopy.constants import FOREVER
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+
+# used when writing scripts and in namespace:
+_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
+                  'deg2rad', 'rad2deg', 'linspace', 'asarray']
+_numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
 
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
@@ -109,15 +113,13 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("from numpy import * #many different maths functions\n" +
-                    "from numpy.random import * #maths randomisation functions\n" +
+        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+                    "from numpy import %s\n" % ', '.join(_numpy_imports) +
+                    "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
                     "from psychopy.constants import *\n\n")
-        #self.namespace.user.sort()
-        #script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-        #            "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.getCollisions()) )
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -314,8 +316,9 @@ class Experiment:
                 # get condition names from within conditionsFile, if any:
                 try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
                 except: conditionsFile = None
-                if conditionsFile and conditionsFile not in ['None','']:
-                    conditionsFile = os.path.join(os.path.dirname(filename), conditionsFile)
+                if conditionsFile in ['None', '']:
+                    conditionsFile = None
+                if conditionsFile:
                     _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         if fname != self.namespace.makeValid(fname):
@@ -339,19 +342,56 @@ class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
-    >>> sizeParam = Param(val=[3,4], valType='num')
-    >>> print sizeParam
-    numpy.asarray([3,4])
-
-    >>> sizeParam = Param(val=[3,4], valType='str')
-    >>> print sizeParam
-    "[3,4]"
-
-    >>> sizeParam = Param(val=[3,4], valType='code')
-    >>> print sizeParam
-    [3,4]
-
+    >>> print Param(val=[3,4], valType='num')
+    asarray([3, 4])
+    >>> print Param(val=3, valType='num') # num converts int to float
+    3.0
+    >>> print Param(val=3, valType='str') # str keeps as int, converts to code
+    3
+    >>> print Param(val='3', valType='str') # ... and keeps str as str
+    '3'
+    >>> print Param(val=[3,4], valType='str') # val is <type 'list'> -> code
+    [3, 4]
+    >>> print Param(val='[3,4]', valType='str')
+    '[3,4]'
+    >>> print Param(val=[3,4], valType='code')
+    [3, 4]
+    
+    >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
+    >>> print Param('[x,y]','str') # str normally returns string
+    '[x,y]'
+    >>> print Param('$[x,y]','str') # code, as triggered by $
+    [x,y]
+    >>> print Param('[$x,$y]','str') # code, redundant $ ok, cleaned up
+    [x,y]
+    >>> print Param('[$x,y]','str') # code, a $ anywhere means code
+    [x,y]
+    >>> print Param('[x,y]$','str') # ... even at the end
+    [x,y]
+    >>> print Param('[x,\$y]','str') # string, because the only $ is escaped
+    '[x,$y]'
+    >>> print Param('[x,\ $y]','str') # improper escape -> code (note that \ is not adjacent to $)
+    [x,\ y]
+    >>> print Param('/$[x,y]','str') # improper escape -> code (/ is not the same as \)
+    /[x,y]
+    >>> print Param('[\$x,$y]','str') # code, python syntax error
+    [$x,y]
+    >>> print Param('["\$x",$y]','str') # ... python syntax ok
+    ["$x",y]
+    >>> print Param("'$a'",'str') # code, with the code being a string, $ removed
+    'a'
+    >>> print Param("'\$a'",'str') # string, with the string containing a string, $ escaped (\ removed)
+    "'$a'"
+    >>> print Param('$$$$$myPathologicalVa$$$$$rName','str')
+    myPathologicalVarName
+    >>> print Param('\$$$$$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$$$myPathologicalVa$$$\$$$rName','str')
+    $myPathologicalVa$rName
     """
+
     def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
         """
         @param val: the value for this parameter
@@ -383,12 +423,21 @@ class Param:
             except:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
-            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
-                return "%s" %(self.val[1:])#override the string type and return as code
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
-                return repr(self.val[1:])#the user actually wanted a string repr with the $ as first char
-            else:#provide the string representation (the code to create a string)
-                return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
+            # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
+            # return str if code wanted
+            # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
+            if type(self.val) in [str, unicode]:
+                if re.search(r"/\$", self.val):
+                    log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
+                nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
+                if nonEscapedSomewhere: # code wanted, clean-up first
+                    tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
+                    tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
+                    tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
+                    return str(tmp) # return code
+                else: # str wanted
+                    return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
+            return repr(self.val)
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
@@ -878,7 +927,7 @@ class NameSpace():
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 
-        self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
+        self.numpy = _numpy_imports + _numpy_random_imports + ['np']
         self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
                         'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
                         'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',

@@ -79,79 +79,11 @@ class Preferences:
         self.appData = self.appDataCfg
         
         # keybindings:
-        #self.keyDict = self.keysPrefsCfg['keybindings']  # == dict, with items in u'___' format
-        #self.keys = self.convertKeyDict()  # no longer a dict, no longer u'___' format
         self.keys = self.userPrefsCfg['keyBindings']
         
         # connections:
         if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
-    
-    def convertKeyDict(self):
-        """a function to convert a keybindings dict from (merged) cfg files to self.keys
-        as expected elsewhere in the app, using a persistent file, psychopy/mySiteKeys.py
-        """
-        # logic: if no write permission for this user in site-packages psychopy/ directory, assume the user
-        # is not an admin so try to use an exisiting mySiteKeys.py file created by an admin earlier
-        # (and if that does not exist, then fall back to using keybindings.py for this user)
-        # if the user does have write permission, then (re)create the mySiteKeys.py file, from
-        # a merge of defaults + platform + possibly edited key prefs (as returned by loadKeysPrefs prior to calling this function)
-        
-        useDefaultKeys = False
-        mySiteKeys = join(self.paths['prefs'], "mySiteKeys.py")
-        
-        try: 
-            file = open(mySiteKeys, "w")  # if admin user, (re)create mySiteKeys.py file
-            file.write("# key-bindings file, created by admin user on first run, used site-wide\n")
-            usedKeys = []
-            keyRegex = re.compile("^(F\d{1,2}|Ctrl[+-]|Alt[+-]|Shift[+-])+(.{1,1}|[Ff]\d{1,2}|Home|Tab){0,1}$", re.IGNORECASE)
-            # extract legal menu items from cfg file, convert to regex syntax
-            menuFile = open(join(self.paths['prefs'], "prefsKeys.cfg"), "r")
-            menuList = []
-            for line in menuFile:
-                if line.find("=") > -1:
-                    menuList.append(line.split()[0] + "|")
-            if sys.platform=='win32':  # update: seems no longer necessary
-                file.write("#" + str(menuList)+"\n")  # jg added this to help debug a windows-only menuRegex issue, and this solved it (!)
-            menuFile.close()
-            menuRegex = '^(' + "".join(menuList)[:-1] + ')$'
-            for k in self.keyDict.keys():
-                keyK = str(self.keyDict[k])
-                k = str(k)
-                if keyK in usedKeys and k.find("switchTo") < 0:  # hard-code allowed duplicates (e.g., Ctrl+L)
-                    print "PsychoPy (preferences.py):  duplicate key %s" % keyK
-                    useDefaultKeys = True
-                else:
-                    usedKeys.append(keyK)
-                if not re.match(menuRegex, k):
-                    print "PsychoPy (preferences.py):  unrecognized menu-item '%s'" % k 
-                    useDefaultKeys = True
-                # standardize user input
-                keyK = re.sub(r"(?i)Ctrl[+-]", 'Ctrl+', keyK)  
-                keyK = re.sub(r"(?i)Cmd[+-]", 'Ctrl+', keyK)
-                keyK = re.sub(r"(?i)Shift[+-]", 'Shift+', keyK)
-                keyK = re.sub(r"(?i)Alt[+-]", 'Alt+', keyK)
-                keyK = "".join([j.capitalize() + "+" for j in keyK.split("+")])[:-1] 
-                # validate user input, not a perfect filter but should be pretty good
-                if keyRegex.match(keyK):
-                    if self.keyDict[k].find("'") > -1: quoteDelim = '"'
-                    else: quoteDelim = "'"
-                    file.write("%s" % str(k) + " = " + quoteDelim + keyK + quoteDelim + "\n")
-                else:
-                    print "PsychoPy (preferences.py):  bad key %s (menu-item %s)" % keyK, k
-            file.close()
-        except:
-            pass
 
-        try:
-            if useDefaultKeys: raise Exception()
-            from psychopy.prefs import mySiteKeys
-            self.keys = mySiteKeys
-        except:
-            from psychopy.app import keybindings
-            self.keys = keybindings
-        
-        return self.keys
-            
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so will
         break easy_install. Saving to files within the psychopy/ is fine, eg for

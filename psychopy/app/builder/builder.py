@@ -12,7 +12,7 @@ import py_compile, codecs
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, log, misc
+from psychopy import data, log, misc, gui
 import re
 from psychopy.constants import *
 
@@ -47,9 +47,10 @@ class FlowPanel(wx.ScrolledWindow):
         self.maxHeight = 2*self.dpi
         self.mousePos = None
         #if we're adding a loop or routine then add spots to timeline
-        self.drawNearestRoutinePoint = True
-        self.drawNearestLoopPoint = False
+        #self.drawNearestRoutinePoint = True
+        #self.drawNearestLoopPoint = False
         self.pointsToDraw=[] #lists the x-vals of points to draw, eg loop locations
+        self.appData = self.app.prefs.appData # for flowSize, showLoopInfoInFlow
 
         #self.SetAutoLayout(True)
         self.SetScrollRate(self.dpi/4,self.dpi/4)
@@ -83,10 +84,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
-
-        #flow drawing size, parameterized 0,1,2
-        # use to index a tuple to get a specific value, eg: (4,6,8)[self.flowSize]
-        self.flowSize = self.app.prefs.builder['flowSize']
+        
+        # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
 
         if self.app.prefs.app['debugMode']:
@@ -257,10 +256,14 @@ class FlowPanel(wx.ScrolledWindow):
         if collisions:
             print "*** collisions ***: %s" % str(collisions)
     def increaseSize(self, event=None):
-        self.flowSize = min(self.flowMaxSize, self.flowSize + 1)
+        if self.appData['flowSize'] == self.flowMaxSize:
+            self.appData['showLoopInfoInFlow'] = True
+        self.appData['flowSize'] = min(self.flowMaxSize, self.appData['flowSize'] + 1)
         self.clearMode() #redraws
     def decreaseSize(self, event=None):
-        self.flowSize = max(0, self.flowSize - 1)
+        if self.appData['flowSize'] == 0:
+            self.appData['showLoopInfoInFlow'] = False
+        self.appData['flowSize'] = max(0, self.appData['flowSize'] - 1)
         self.clearMode() # redraws
     def editLoopProperties(self, event=None, loop=None):
         if event:#we got here from a wx.button press (rather than our own drawn icons)
@@ -364,7 +367,7 @@ class FlowPanel(wx.ScrolledWindow):
             # remove name from namespace only if its a loop (which exists only in the flow)
             if component.type in ['TrialHandler', 'StairHandler']:
                 conditionsFile = component.params['conditionsFile'].val
-                if conditionsFile:
+                if conditionsFile and conditionsFile not in ['None','']:
                     _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
@@ -421,9 +424,9 @@ class FlowPanel(wx.ScrolledWindow):
 
         #draw the main time line
         self.linePos = (2.5*self.dpi,0.5*self.dpi) #x,y of start
-        gap = self.dpi / (6, 4, 2) [self.flowSize]
-        dLoopToBaseLine = (15, 25, 43) [self.flowSize]
-        dBetweenLoops = (20, 24, 30) [self.flowSize]
+        gap = self.dpi / (6, 4, 2) [self.appData['flowSize']]
+        dLoopToBaseLine = (15, 25, 43) [self.appData['flowSize']]
+        dBetweenLoops = (20, 24, 30) [self.appData['flowSize']]
 
         #guess virtual size; nRoutines wide by nLoops high
         #make bigger than needed and shrink later
@@ -501,7 +504,7 @@ class FlowPanel(wx.ScrolledWindow):
         pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def drawEntryPoints(self, posList):
-        ptSize = (3,4,5)[self.flowSize]
+        ptSize = (3,4,5)[self.appData['flowSize']]
         for n, pos in enumerate(posList):
             if n>=len(self.entryPointPosList):
                 #draw for first time
@@ -541,7 +544,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.pointsToDraw=[]
     def drawLineStart(self, dc, pos):
         #draw bar at start of timeline; circle looked bad, offset vertically
-        ptSize = (3,3,4)[self.flowSize]
+        ptSize = (3,3,4)[self.appData['flowSize']]
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
         dc.DrawPolygon([[0,-ptSize],[1,-ptSize],[1,ptSize], [0,ptSize]], pos[0],pos[1])
@@ -560,7 +563,7 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetId(tmpId)
         #dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         #dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        size = (3,4,5)[self.flowSize]
+        size = (3,4,5)[self.appData['flowSize']]
         #if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]+2*size)#points down
         #else: dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]-3*size)#points up
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
@@ -571,8 +574,8 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
         dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        size = (3,4,5)[self.flowSize]
-        offset = (3,2,0)[self.flowSize]
+        size = (3,4,5)[self.appData['flowSize']]
+        offset = (3,2,0)[self.appData['flowSize']]
         if downwards:
             dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]+3*size-offset)#points up
         else:
@@ -582,8 +585,8 @@ class FlowPanel(wx.ScrolledWindow):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
-        name = routine.name
-        if self.flowSize==0 and len(name) > 5:
+        name = routine.name 
+        if self.appData['flowSize']==0 and len(name) > 5:
             name = ' '+name[:4]+'..'
         else:
             name = ' '+name+' '
@@ -591,10 +594,10 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            fontSizeDelta = (9,6,0)[self.flowSize]
+            fontSizeDelta = (9,6,0)[self.appData['flowSize']]
             font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
-            fontSizeDelta = (8,4,0)[self.flowSize]
+            fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
         r, g, b = rgb
 
@@ -602,9 +605,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetFont(font)
         if draw: dc.SetFont(font)
         w,h = self.GetFullTextExtent(name)[0:2]
-        pad = (5,10,20)[self.flowSize]
+        pad = (5,10,20)[self.appData['flowSize']]
         #draw box
-        pos[1] += 2-self.flowSize
+        pos[1] += 2-self.appData['flowSize']
         rect = wx.Rect(pos[0], pos[1], w+pad,h+pad)
         endX = pos[0]+w+pad
         #the edge should match the text
@@ -612,7 +615,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
             #for the fill, draw once in white near-opaque, then in transp color
             dc.SetBrush(wx.Brush(routineFlowColor))
-            dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.flowSize])
+            dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
             #draw text
             dc.SetTextForeground(rgb)
             dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
@@ -642,7 +645,7 @@ class FlowPanel(wx.ScrolledWindow):
         #draw loop itself, as transparent rect with curved corners
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        curve = (6, 11, 15)[self.flowSize] #extra distance, in both h and w for curve
+        curve = (6, 11, 15)[self.appData['flowSize']] #extra distance, in both h and w for curve
         yy = [base,height+curve*up,height+curve*up/2,height] # for area
         r,g,b=rgb
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
@@ -654,7 +657,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         #add a name label, loop info, except at smallest size
         name = loop.params['name'].val
-        if self.frame.app.prefs.builder['showLoopInfoInFlow'] and not self.flowSize==0:
+        if self.appData['showLoopInfoInFlow'] and not self.appData['flowSize']==0:
             if 'conditions' in loop.params.keys() and loop.params['conditions'].val:
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
@@ -663,8 +666,8 @@ class FlowPanel(wx.ScrolledWindow):
                       'staircase': 'str.', 'interleaved staircases': "in.st."},
                       {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
                       'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
-            name += ' '+abbrev[self.flowSize][loop.params['loopType'].val]+')'
-        if self.flowSize==0:
+            name += ' '+abbrev[self.appData['flowSize']][loop.params['loopType'].val]+')'
+        if self.appData['flowSize']==0:
             if len(name) > 9:
                 name = ' '+name[:8]+'..'
             else: name = ' '+name[:9]
@@ -674,16 +677,16 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetId(id)
         font = self.GetFont()
         if sys.platform=='darwin':
-            basePtSize = (650,750,900)[self.flowSize]
+            basePtSize = (650,750,900)[self.appData['flowSize']]
             font.SetPointSize(basePtSize/self.dpi)
         else:
-            basePtSize = (700,750,800)[self.flowSize]
+            basePtSize = (700,750,800)[self.appData['flowSize']]
             font.SetPointSize(basePtSize/self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
 
         #get size based on text
-        pad = (5,8,10)[self.flowSize]
+        pad = (5,8,10)[self.appData['flowSize']]
         w,h = self.GetFullTextExtent(name)[0:2]
         x = startX+(endX-startX)/2-w/2-pad/2
         y = (height-h/2)
@@ -694,8 +697,8 @@ class FlowPanel(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
-
-        dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.flowSize])
+        
+        dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
         #draw text
         dc.SetTextForeground([r,g,b])
         dc.DrawText(name, x+pad/2, y+pad/2)
@@ -1398,15 +1401,6 @@ class _BaseParamsDlg(wx.Dialog):
             self.addAdvancedTab()
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
-
-        '''# contextual menu:
-        self.contextMenuItems=['color picker'] # better as callback from specific fields
-        self.contextItemFromID={}; self.contextIDFromItem={}
-        for item in self.contextMenuItems:
-            id = wx.NewId()
-            self.contextItemFromID[id] = item
-            self.contextIDFromItem[item] = id
-        '''
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1512,10 +1506,47 @@ class _BaseParamsDlg(wx.Dialog):
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         elif fieldName=='color':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
+        elif fieldName=='Experiment info':
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
-
+    
+    def previewExpInfo(self, event):
+        thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
+        expInfo = thisValueCtrl.GetValue()
+        needsUpdate = False
+        if expInfo.strip()=='':
+            expInfo = "{'participant':'', 'session':'001'}"
+            title = 'providing default values...'
+        else:
+            title = 'PREVIEW' # not actually checked yet
+        if not expInfo.lstrip().startswith('{'):
+            expInfo = '{' + expInfo
+            needsUpdate = True
+        if not expInfo.strip().endswith('}'):
+            expInfo += '}'
+            needsUpdate = True
+        try:
+            newInfo = dict(eval(expInfo))
+        except SyntaxError:
+            # try to be helpful, but dict syntax is not so intuitive
+            dlg = gui.Dlg(title="oops, syntax error...")
+            dlg.addText('') # spacer
+            dlg.addText("Experiment info expects python 'dict' syntax.")
+            dlg.addText("Items are pairs of the form 'a': 'b' or    ")
+            dlg.addText("'a': b, with pairs separated by commas.    ")
+            dlg.addText("Unicode is fine, eg 'a': u'b'              ")
+            dlg.show()
+            return
+        # show preview
+        previewDlg = gui.DlgFromDict(dictionary=newInfo, title=title)
+        # if user made edits to values and then clicked OK, save them:
+        if previewDlg.OK or needsUpdate:
+            thisValueCtrl.SetFocus()
+            thisValueCtrl.Clear()
+            thisValueCtrl.WriteText(str(newInfo))
+    
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1
@@ -1525,52 +1556,6 @@ class _BaseParamsDlg(wx.Dialog):
         ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
         self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
 
-        #self.onMouseRight(event, 'color')
-    '''#comment out context menu stuff:
-    def onMouseRight(self, event):
-        # Aug 2011: so far, only the color field catches mouseRight events
-        # wxDialog is not as friendly as wxScrolledWindow for event positions
-        # simpler to avoid the menu, just call back launchColorPicker directly
-
-        need self.orderAdded defined, populated with names of fields in order added
-        fieldName = 'color'
-        # will later replace existing text with new color, so set focus here in 'color':
-        self.paramCtrls[fieldName].valueCtrl.SetFocus()
-        # panel's pos relative to its frame:
-        x, y = self.ClientToScreen(event.GetPosition())
-        # frame's pos in whole window
-        x2, y2 = self.frame.GetPosition()
-        x3 = 80 # width of left-most (label) column
-        # vertical position of field on the panel:
-        vPos = self.orderAdded.index(fieldName) # add order -> vertical position
-        if not self.suppressTitles:
-            vPos += 1 # a guess, never tried it
-        if fieldName in self.advParams:
-            vPos += 3.75 # for line and button; eg Patch
-        if 'name' not in self.params:
-            vPos += .5
-        xy = wx.Point(x - x2 + x3, y - y2 + vPos*20 - 10)
-        self.showContextMenu(-1, xy)
-    def showContextMenu(self, component, xy):
-        menu = wx.Menu()
-        for item in self.contextMenuItems:
-            id = self.contextIDFromItem[item]
-            menu.Append( id, item )
-            wx.EVT_MENU( menu, id, self.onContextSelect )
-        self.frame.PopupMenu( menu, xy )
-        menu.Destroy() # destroy to avoid mem leak
-    def onContextSelect(self, event):
-        """Perform a given action on the field chosen
-        """
-        op = self.contextItemFromID[event.GetId()]
-        if op=='color picker':
-            rgb = self.app.colorPicker(None) # str, remapped to -1..+1
-            self.paramCtrls['color'].valueCtrl.Clear()
-            self.paramCtrls['color'].valueCtrl.WriteText('$'+rgb) # $ flag as code
-            ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
-            self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
-            # add to undo stack?
-    '''#end comment-out context menu
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
 

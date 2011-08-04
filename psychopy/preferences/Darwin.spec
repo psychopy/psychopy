@@ -82,14 +82,10 @@
     hiddenComponents = list(default=list())
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
-    # in Builder Flow panel, display # repetitions and order for loops
-    showLoopInfoInFlow = boolean(default=False)
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=True)
-    # Display size of items in flow panel: 0=tiny, 1=medium, 2=large
-    flowSize = integer(0,2,default=2)
 
 # Settings for connections
 [connections]
