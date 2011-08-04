@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import *
+from psychopy.app.builder import components #for getInitVals()
 from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
@@ -14,8 +15,8 @@ class DotsComponent(VisualComponent):
     def __init__(self, exp, parentName, name='dots',
                 nDots=100,
                 direction=0.0, speed=0.1, coherence=1.0,
-                dotSize=1.0,
-                dotlife=3, signalDots='different', noiseDots='direction',
+                dotSize=2,
+                dotLife=3, signalDots='different', noiseDots='direction',
                 fieldShape='circle', fieldSize=1.0, fieldPos=[0.0,0.0],
                 color='$[1.0,1.0,1.0]',colorSpace='rgb',
                 opacity=1.0,
@@ -37,10 +38,10 @@ class DotsComponent(VisualComponent):
         #params
         self.params['advancedParams']=['signalDots','noiseDots']
         self.params['name']=Param(name, valType='code', allowedTypes=[])
-        self.params['n dots']=Param(nDots, valType='code',
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
+        self.params['nDots']=Param(nDots, valType='code',
+            updates='constant',
             hint="Number of dots in the field (for circular fields this will be average number of dots)")
-        self.params['direction']=Param(direction, valType='code',
+        self.params['dir']=Param(direction, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Direction of motion for the signal dots (degrees)")
         self.params['speed']=Param(speed, valType='code',
@@ -52,14 +53,11 @@ class DotsComponent(VisualComponent):
         self.params['dotSize']=Param(dotSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Size of the dots IN PIXELS regardless of the set units")
-        self.params['dotlife']=Param(dotlife, valType='code',
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
+        self.params['dotLife']=Param(dotLife, valType='code',
             hint="Number of frames before each dot is killed and randomly assigned a new position")
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Are the signal dots the same population as the noise dot? See Scase et al.")
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="What governs the behaviour of the noise dots? See Scase et al.")
         self.params['fieldShape']=Param(fieldShape, valType='str', allowedVals=['circle','square'],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
@@ -79,6 +77,10 @@ class DotsComponent(VisualComponent):
         if self.params['units'].val=='window units': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        inits = getInitVals(self.params)#replaces variable params with sensible defaults
-        buff.writeIndented("%(name)s=visual.DotStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
+        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
+        buff.writeIndented("%(name)s=visual.DotStim(win=win, name='%(name)s',\n" %(inits))
+        buff.writeIndented("    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" %(inits))
+        buff.writeIndented("    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" %(inits))
+        buff.writeIndented("    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" %(inits))
+        buff.writeIndented("    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(inits))
