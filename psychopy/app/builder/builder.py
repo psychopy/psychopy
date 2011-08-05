@@ -681,13 +681,11 @@ class FlowPanel(wx.ScrolledWindow):
         font = self.GetFont()
         if sys.platform=='darwin':
             basePtSize = (650,750,900)[self.appData['flowSize']]
-            font.SetPointSize(basePtSize/self.dpi)
         elif sys.platform.startswith('linux'):
             basePtSize = (750,850,1000)[self.appData['flowSize']]
-            font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
             basePtSize = (700,750,800)[self.appData['flowSize']]
-            font.SetPointSize(basePtSize/self.dpi)
+        font.SetPointSize(basePtSize/self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
 
