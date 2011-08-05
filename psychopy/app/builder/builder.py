@@ -596,6 +596,9 @@ class FlowPanel(wx.ScrolledWindow):
         if sys.platform=='darwin':
             fontSizeDelta = (9,6,0)[self.appData['flowSize']]
             font.SetPointSize(1400/self.dpi-fontSizeDelta)
+        elif sys.platform.startswith('linux'):
+            fontSizeDelta = (6,4,0)[self.appData['flowSize']]
+            font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
@@ -679,6 +682,9 @@ class FlowPanel(wx.ScrolledWindow):
         if sys.platform=='darwin':
             basePtSize = (650,750,900)[self.appData['flowSize']]
             font.SetPointSize(basePtSize/self.dpi)
+        elif sys.platform.startswith('linux'):
+            basePtSize = (750,850,1000)[self.appData['flowSize']]
+            font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
             basePtSize = (700,750,800)[self.appData['flowSize']]
             font.SetPointSize(basePtSize/self.dpi)
