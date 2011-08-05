@@ -440,7 +440,7 @@ class Param:
                     tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
                     tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
                     tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
-                    return str(tmp) # return code
+                    return "%s" %tmp # return code; %s --> str or unicode
                 else: # str wanted
                     return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
             return repr(self.val)
