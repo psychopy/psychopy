@@ -72,7 +72,15 @@ If you have internet access then you could also push your changes back up to you
 
 Share your improvement with others
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Only a couple of people have direct write-access to the psychopy repository, but you can get your changes included in `upstream` by pushing your changes back to your github fork and then `submitting a pull request <http://nipy.sourceforge.net/nitime/devel/development_workflow.html#asking-for-your-changes-to-be-merged-with-the-main-repo>`_. 
+Only a couple of people have direct write-access to the psychopy repository, but you can get your changes included in `upstream` by pushing your changes back to your github fork and then `submitting a pull request <http://nipy.sourceforge.net/nitime/devel/development_workflow.html#asking-for-your-changes-to-be-merged-with-the-main-repo>`_. Communication is good, and hopefully you have already been in touch (via the user or dev lists) about your changes.
+
+When adding an improvement or new feature, consider how it might impact others. Is it likely to be generally useful, or is it something that only you or your lab would need? (Its fun to contribute, but consider: does it actually need to be part of PsychoPy?) Including more features has a downside in terms of complexity and bloat, so try to be sure that there is a "business case" for including it. If there is, try at all times to be be backwards compatible, e.g., by adding a new keyword argument to a method or function (not always possible). If its not possible, its crucial to get wider input about the possible impacts. Flag situations that would break existing user scripts in your commit messages.
+
+Part of sharing your code means making things sensible to others, which includes good coding style and writing some documentation. You are the expert on your feature, and so are in the best position to elaborate nuances or gotchas. Use meaningful variable names, and include comments in the code to explain non-trivial things, especially the intention behind specific choices. Include or edit the appropriate doc-string, because these are automatically turned into API documention (via sphinx). Include doc-tests if that would be meaningful. The existing code base has a comment / code ratio of about 28%, which earns it high marks. 
+
+For larger changes and especially new features, you might need to create some usage examples, such as a new Coder demo, or even a Builder demo. These can be invaluable for being a starting point from which people can adapt things to the needs of their own situation. This is a good place to elaborate usage-related gotchas.
+
+In terms of style, try to make your code blend in with and look like the existing code (e.g., using about the same level of comments, use camelCase for var names, despite the conflict with the usual PEP -- we'll eventually move to the underscore style, but for now keep everything consistent within the code base). In your own code, write however you like of course. This is just about when contributing to the project.
 
 .. _addFeatureBranch:
 
@@ -96,11 +104,31 @@ You can push your new branch back to your fork (`origin`) with::
 
 Completing work on a feature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When you're done run the unit tests for your feature branch. If they pass you hopefully haven't damaged other parts of PsychoPy (!?). If possible add a unit test for your new feature too, so that if other people make changes they don't break your work!
+When you're done run the unit tests for your feature branch. Set the `debug` preference setting (in the app section) to True, and restart psychopy. This will enable access to the test-suite. In debug mode, from the Coder (not Builder) you can now do Ctrl-T / Cmd-T (see Tools menu, Unit Testing) to bring up the unit test window. You can select a subset of tests to run, or run them all.
+
+Its also possible to run just selected tests, such as doctests within a single file. From a terminal window::
+
+    cd psychopy/tests/  #eg /Users/jgray/code/psychopy/psychopy/tests
+    ./run.py path/to/file_with_doctests.py
+
+If the tests pass you hopefully haven't damaged other parts of PsychoPy (!?). If possible add a unit test for your new feature too, so that if other people make changes they don't break your work!
 
 You can merge your changes back into your master branch with::
 
     $ git checkout master
     $ git merge feature-somethingNew
+
+Merge conflicts happen, and need to be resolved.  If you configure your git preferences (~/.gitconfig) to include::
+
+    [merge]
+        summary = true
+        log = true
+        tool = opendiff
+
+then you'll be able to use a handy GUI interface (opendiff) for reviewing differences and conflicts, just by typing::
+
+    git mergetool
+
+from the command line after hitting a merge conflict (such as during a `git pull upstream master`).
 
 Once you've folded your new code back into your master and pushed it back to your github fork then it's time to :ref:`pullRequest`.
