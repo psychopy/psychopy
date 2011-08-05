@@ -13,11 +13,13 @@ Parameters
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
-startTime : float or integer
-    The time (relative to the beginning of this Routine) that the stimulus should first appear.
-
-duration : 
-    The duration for which the stimulus is presented. See :ref:`duration` for details.
+start :
+    The time that the stimulus should first appear. See :ref:`startStop` for details.
+    
+stop : 
+    Governs the duration for which the stimulus is presented (if you want to cut a movie short). 
+    Usually you can leave this blank and insert the `Expected` duration just
+    for visualisation purposes. See :ref:`startStop` for details.
 
 movie : string
     The filename of the movie, including the path. The path can be absolute or relative to the location of the experiment (.psyexp) file.

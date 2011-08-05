@@ -22,6 +22,12 @@ Properties
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
 
+start :
+    The time that the stimulus should first appear. See :ref:`startStop` for details.
+
+stop : 
+    The duration for which the stimulus is presented. See :ref:`startStop` for details.
+    
 visualAnalogScale : checkbox
     If this is checked, a line with no tick marks will be presented using the 'glow' marker, and will return a rating from 0.00 to 1.00 (quasi-continuous). This is intended to bias people away from thinking in terms of numbers, and focus more on the visual bar when making their rating.
     This supercedes either choices or scaleDescription.

@@ -27,13 +27,13 @@ Parameters
 Name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
 
-Start Time : float or integer
-    The time (relative to the beginning of this Routine) that the mouse should first be checked.
+start : 
+    The time that the mouse should first be checked. See :ref:`startStop` for details.
 
-Duration : 
-    The duration for which the mouse is checked. See :ref:`duration` for details.
-	
-Force End Trial on Press
+stop : 
+    When the mouse is no longer checked. See :ref:`startStop` for details.
+    
+Force End Routine on Press
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the mouse buttons is pressed.
 
 Save Mouse State
@@ -45,6 +45,6 @@ Time Relative To
     Whenever the mouse state is saved (e.g. on button press or at end of trial) a time is saved too. Do you want this time to be relative to start of the :ref:`Routine <Routines>`, or the start of the whole experiment?
         
 .. seealso::
-	
-	API reference for :mod:`~psychopy.event.mouse`
+    
+    API reference for :mod:`~psychopy.event.mouse`
      

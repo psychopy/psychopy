@@ -13,13 +13,13 @@ Parameters
 Name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
 
-StartTime : float or integer
-    The time (relative to the beginning of this Routine) that the keyboard should first be checked.
+Start : float or integer
+    The time that the keyboard should first get checked. See :ref:`startStop` for details.
 
-Duration : 
-    The duration for which the keyboard is checked. See :ref:`duration` for details.
+Stop : 
+    When the keyboard is no longer checked. See :ref:`startStop` for details.
 
-Force end trial
+Force end routine
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the `allowed` keys is pressed.
 	
 Allowed keys
