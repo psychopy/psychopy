@@ -1303,23 +1303,19 @@ class DotStim(_BaseVisualStim):
     This stimulus class defines a field of dots with an update rule that determines how they change
     on every call to the .draw() method.
 
-    This standard class can be used to generate a wide variety of dot motion types. For a review of
+    This single class can be used to generate a wide variety of dot motion types. For a review of
     possible types and their pros and cons see Scase, Braddick & Raymond (1996). All six possible
     motions they describe can be generated with appropriate choices of the signalDots (which
-    determines whether signal dots are the 'same' or 'different' from frame to frame), noiseDots
+    determines whether signal dots are the 'same' or 'different' on each frame), noiseDots
     (which determines the locations of the noise dots on each frame) and the dotLife (which
     determines for how many frames the dot will continue before being regenerated).
 
-    'Movshon'-type noise uses a random position, rather than random direction, for the noise dots
-    and the signal dots are distinct (noiseDots='different'). This has the disadvantage that the
-    noise dots not only have a random direction but also a random speed (so differ in two ways
-    from the signal dots). The default option for DotStim is that the dots follow a random walk,
-    with the dot and noise elements being randomised each frame. This provides greater certainty
-    that individual dots cannot be used to determine the motion direction.
+    The default settings (as of v1.70.00) is for the noise dots to have identical velocity
+    but random direction and signal dots that come from a different population
+    to the noise dots (once a signal dot, always a signal dot).
 
-    When dots go out of bounds or reach the end of their life they are given a new random position.
-    As a result, to prevent inhomogeneities arising in the dots distribution across the field, a
-    limitted lifetime dot is strongly recommended.
+    For further detail about the different configurations see :ref:`dots` in the Builder
+    Components section of the documentation.
 
     If further customisation is required, then the DotStim should be subclassed and its
     _update_dotsXY and _newDotsXY methods overridden.
@@ -1342,8 +1338,8 @@ class DotStim(_BaseVisualStim):
                  opacity =1.0,
                  depth  =0,
                  element=None,
-                 signalDots='different',
-                 noiseDots='position',
+                 signalDots='same',
+                 noiseDots='direction',
                  name='', autoLog=True):
         """
         :Parameters:
@@ -1369,11 +1365,11 @@ class DotStim(_BaseVisualStim):
                 direction of the coherent dots
             speed : float
                 speed of the dots (in *units*/frame)
-            signalDots : 'same' or 'different'
-                If 'same' then the chosen signal dots remain the same on each frame.
-                If 'different' they are randomly chosen each frame. This paramater
-                corresponds to Scase et al's (1996) categories of RDK.
-            noiseDots : 'position','direction' or 'walk'
+            signalDots : 'same' or *'different'*
+                If 'same' then the signal and noise dots are constant. If different
+                then the choice of which is signal and which is noise gets
+                randomised on each frame. This corresponds to Scase et al's (1996) categories of RDK.
+            noiseDots : *'direction'*, 'position' or 'walk'
                 Determines the behaviour of the noise dots, taken directly from
                 Scase et al's (1996) categories. For 'position', noise dots take a
                 random position every frame. For 'direction' noise dots follow a
@@ -1625,9 +1621,9 @@ class DotStim(_BaseVisualStim):
         ##update XY based on speed and dir
         #NB self._dotsDir is in radians, but self.dir is in degs
         #update which are the noise/signal dots
-        if self.signalDots =='same':
+        if self.signalDots =='different':
+            #  **up to version 1.70.00 this was the other way around, not in keeping with Scase et al**
             #noise and signal dots change identity constantly
-            #easiest way to keep _signalDots and _dotsDir in sync is to shuffle _dotsDir
             numpy.random.shuffle(self._dotsDir)
             self._signalDots = (self._dotsDir==(self.dir*pi/180))#and then update _signalDots from that
 
@@ -4751,9 +4747,9 @@ class RatingScale:
     to move the marker in small increments (e.g., 1/100th of a tick-mark if precision = 100).
 
     Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
-    
+
     **Example 1**::
-        
+
         *Default 7-point scale*::
 
             myItem = <create your text, image, movie, ...>
@@ -4764,33 +4760,33 @@ class RatingScale:
                 myWin.flip()
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
-    
+
     **Example 2**::
-        
+
         Mouse-free. Considerable customization is possible. For fMRI, if your response
         box sends keys 1-4, you could specify left, right, and accept keys, and no mouse:
-        
+
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
-    
+
     ** Example 3**::
-        
+
         Non-numeric choices (categorical, unordered):
-        
+
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
             myRatingScale = visual.RatingScale(myWin,
                                 choices=['cherry', 'apple', True, 3.14, 'pie'])
-        
+
         str(item) will be displayed, but the value returned by
         getResponse() will be of type you gave it::
-        
+
             myRatingScale = visual.RatingScale(myWin, choices=[True, False])
-        
+
         So if you give boolean values and the subject chooses False,
         getResponse() will return False (bool) and not 'False' (str).
-        
+
     See Coder Demos -> stimuli -> ratingScale.py for examples.
-    
+
     :Author:
         2010 Jeremy Gray, 2011 updates
     """
