@@ -3710,7 +3710,16 @@ class MovieStim(_BaseVisualStim):
 
     def _onEos(self):
         self.status=FINISHED
+    def setAutoDraw(self, val):
+        """Add or remove a stimulus from the list of stimuli that will be
+        automatically drawn on each flip
 
+        :parameters:
+            - val: True/False
+                True to add the stimulus to the draw list, False to remove it
+        """
+        self.play()#set to play in case stoped
+        _BaseVisualStim.setAutoDraw(self, val)
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
