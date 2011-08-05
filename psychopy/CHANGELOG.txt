@@ -31,7 +31,8 @@ PsychoPy 1.70.00
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
     - number of frames, rather than time (s), for greater precision
     - an arbitrary condition (e.g. otherStim.status==STOPPED )
-    
+
+* ADDED a preference setting for adding custom path locations to Standalone PsychoPy
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
 * ADDED builder icons can now be small or large (in prefs)
