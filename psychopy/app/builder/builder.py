@@ -906,7 +906,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                     xSt+lineN*unitSize/xScale, yPosBottom+4)
             dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosTop-20)#label above
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
-                dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosBottom+10)#label below
+                dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosBottom+10)#label below
         #add a label
         self.setFontSize(1000/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
