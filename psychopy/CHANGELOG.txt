@@ -34,6 +34,7 @@ PsychoPy 1.70.00
     
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
+* ADDED builder icons can now be small or large (in prefs)
 * ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
 * ADDED hardware/scanEmulator (see API reference) to emulate fMRI or other scanners for testing (thanks Jeremy)
 * ADDED if you right-click the expInfo in Experiment Settings you'll get a test of the dialog box

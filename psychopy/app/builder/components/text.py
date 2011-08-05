@@ -8,7 +8,7 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
-tooltip = 'Text: present formatted text'
+tooltip = 'Text: present text stimuli'
 
 class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""

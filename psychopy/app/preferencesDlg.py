@@ -3,7 +3,6 @@ import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
 import platform, re
 
-import configobj, validate
 dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
 
 class PreferencesDlg(wx.Dialog):
@@ -19,26 +18,26 @@ class PreferencesDlg(wx.Dialog):
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-        
+
         #notebook, flatnotebook or something else?
-        
+
         self.nb = fnb.FlatNotebook(self, style=fnb.FNB_NO_X_BUTTON|fnb.FNB_NO_NAV_BUTTONS)
         #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
-        
+
         self.ctrls={}
         for sectionName in self.prefsCfg.keys():
-            prefsPage = self.makePrefsPage(parent=self.nb, 
+            prefsPage = self.makePrefsPage(parent=self.nb,
                     sectionName=sectionName,
                     prefsSection=self.prefsCfg[sectionName],
                     specSection = self.prefsSpec[sectionName])
             self.nb.AddPage(prefsPage, sectionName)
         self.nb.SetSelection(self.app.prefs.pageCurrent)
         sizer.Add(self.nb,1, wx.EXPAND)
-        
+
         #create buttons
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-        btnsizer = wx.StdDialogButtonSizer()     
+        btnsizer = wx.StdDialogButtonSizer()
         #ok
         btn = wx.Button(self, wx.ID_OK)
         btn.SetHelpText("Save prefs (in all sections) and close window")
@@ -54,7 +53,7 @@ class PreferencesDlg(wx.Dialog):
         btn = wx.Button(self, wx.ID_APPLY)
         btn.SetHelpText("Apply these prefs (in all sections) and continue")
         btn.Bind(wx.EVT_BUTTON, self.onApply)
-        btnsizer.AddButton(btn)    
+        btnsizer.AddButton(btn)
         #help
         btn = wx.Button(self, wx.ID_HELP)
         btn.SetHelpText("Get help on prefs")
@@ -100,11 +99,11 @@ class PreferencesDlg(wx.Dialog):
             if platform.system() == 'Darwin' and sectionName == 'keyBindings' and \
                     thisSpec.startswith('string'):
                 thisPref = thisPref.replace('Ctrl+', 'Cmd+')
-            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)            
+            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
-            
+
             # get tooltips from comment lines from the spec, as parsed by configobj
             hints = self.prefsSpec[sectionName].comments[prefName] # a list
             if len(hints):
@@ -113,7 +112,7 @@ class PreferencesDlg(wx.Dialog):
             else:
                 hint = ''
             ctrls.valueCtrl.SetToolTipString(hint)
-            
+
             vertBox.Add(ctrlSizer)
         #size the panel and setup scrolling
         panel.SetSizer(vertBox)
@@ -122,7 +121,7 @@ class PreferencesDlg(wx.Dialog):
         return panel
     def setPrefsFromCtrls(self):
         # case-insensitive match for Cmd+ at start of string:
-        re_cmd2ctrl = re.compile('^Cmd\+', re.I) 
+        re_cmd2ctrl = re.compile('^Cmd\+', re.I)
         for sectionName in self.prefsCfg.keys():
             for prefName in self.prefsSpec[sectionName].keys():
                 if prefName in ['version']:#any other prefs not to show?
@@ -141,9 +140,15 @@ class PreferencesDlg(wx.Dialog):
                         # key-bindings were displayed as 'Cmd+O', revert to 'Ctrl+O' internally
                         thisPref = re_cmd2ctrl.sub('Ctrl+', thisPref)
                 self.prefsCfg[sectionName][prefName]=thisPref
+                if prefName=='paths':
+                    paths = eval(thisPref)
+                    if type(paths)!=list:
+                        self.prefsCfg[sectionName][prefName]=[paths]
+                    else:
+                        self.prefsCfg[sectionName][prefName]=paths
         self.app.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
-        
+
 class PrefCtrls:
     def __init__(self, parent, name, value, spec):
         """Create a set of ctrls for a particular preference entry
@@ -153,7 +158,7 @@ class PrefCtrls:
         valueWidth = 200
         labelWidth = 200
         self.nameCtrl = self.valueCtrl = None
-        
+
         self.nameCtrl = wx.StaticText(self.parent,-1,name,size=(labelWidth,-1),
                                         style=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         if type(value)==bool:
@@ -168,7 +173,7 @@ class PrefCtrls:
         else:#just use a string
             self.valueCtrl = wx.TextCtrl(self.parent,-1,str(value),
                             size=(valueWidth,-1))
-        
+
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value from the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
@@ -190,7 +195,7 @@ class PrefCtrls:
         """Get the current value of the value ctrl
         """
         return self._getCtrlValue(self.valueCtrl)
-      
+
 if __name__=='__main__':
     import preferences
     app = wx.PySimpleApp()
