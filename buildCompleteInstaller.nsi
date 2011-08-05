@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.65.01"
+!define PRODUCT_VERSION "1.70.00"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -56,24 +56,24 @@ RequestExecutionLevel admin
 
 ;if previous version installed then remove
 Function .onInit
-  
+
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy2" \
   "UninstallString"
   StrCmp $R0 "" done
- 
+
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
   "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
   previous version or `Cancel` to cancel this upgrade." \
   IDOK uninst
   Abort
-  
+
 ;Run the uninstaller
 uninst:
   ClearErrors
   ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
   Exec $INSTDIR\uninst.exe ; instead of the ExecWait line
-done: 
+done:
 FunctionEnd
 
 Section "PsychoPy" SEC01
@@ -84,7 +84,7 @@ Section "PsychoPy" SEC01
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.6.egg\psychopy\app"
-  
+
   File /r "C:\python26\*.*"
   File /r "windlls\*.dll"
   File "c:\WINDOWS\system32\avbin.dll"
@@ -95,15 +95,15 @@ Section "PsychoPy" SEC01
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\PsychoPy2.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
-  
+
 ; File Associations
   !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\psychopy.ico,0" \
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
-     
+
 ; Update Windows Path
   ;add to path variable
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  
+
 SectionEnd
 
 Section -AdditionalIcons
@@ -131,7 +131,7 @@ SectionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
-  
+
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\avbin.dll"
@@ -144,7 +144,7 @@ Section Uninstall
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR" 
-  
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+
   SetAutoClose true
 SectionEnd

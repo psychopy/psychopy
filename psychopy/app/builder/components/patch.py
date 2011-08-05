@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
-tooltip = 'Patch: show dynamic visual stimuli or images'
+tooltip = 'Patch: present images (bmp, jpg, tif...) or textures like gratings'
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
@@ -56,7 +56,7 @@ class PatchComponent(VisualComponent):
         else: unitsStr="units=%(units)s, " %self.params
 
         inits = getInitVals(self.params)#replaces variable params with defaults
-        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],unitsStr))
+        buff.writeIndented("%s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
         buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(inits) )

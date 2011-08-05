@@ -328,8 +328,9 @@ class PsychoPyApp(wx.App):
         sys.exit()#really force a quit
 
     def showPrefs(self, event):
+        from psychopy.app.preferencesDlg import PreferencesDlg
         log.debug('PsychoPyApp: Showing prefs dlg')
-        prefsDlg = preferences.PreferencesDlg(app=self)
+        prefsDlg = PreferencesDlg(app=self)
         prefsDlg.Show()
 
     def showAbout(self, event):
