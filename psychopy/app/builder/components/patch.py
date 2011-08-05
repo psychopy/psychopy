@@ -61,7 +61,6 @@ class PatchComponent(VisualComponent):
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
-        if self.params['units'].val!='from exp settings': buff.write(", units=%(units)s" %(inits) )
         if self.params['interpolate']=='linear':
             buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
