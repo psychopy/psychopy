@@ -3,9 +3,9 @@
 Defining the onset/duration of components
 ------------------------------------------------------
 
-As of version 1.65.02 the onset and offset times of stimuli can be defined in several ways.
+As of version 1.70.00, the onset and offset times of stimuli can be defined in several ways.
 
-Start and stop times can be entered in terms of seconds (`time (s)`), by frame number (`frameN`) or `condition`.
+Start and stop times can be entered in terms of seconds (`time (s)`), by frame number (`frameN`) or or in relation to another stimulus (`condition`). `Condition` would be used to make :ref:`components` start or stop depending on the status of something else, for example when a sound has finished. Duration can also be varied using a :ref:`code`.
 
 If you need very precise timing (particularly for very brief stimuli for instance) then it is best to control your onset/duration by specifying the number of frames the stimulus will be presented for. 
 
