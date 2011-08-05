@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__
+from psychopy import data, preferences, __version__, log
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -12,6 +12,11 @@ import re, os
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+
+# used when writing scripts and in namespace:
+_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
+                  'deg2rad', 'rad2deg', 'linspace', 'asarray']
+_numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
 
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
@@ -108,29 +113,27 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("from numpy import * #many different maths functions\n" +
-                    "from numpy.random import * #maths randomisation functions\n" +
+        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+                    "from numpy import %s\n" % ', '.join(_numpy_imports) +
+                    "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
                     "from psychopy.constants import *\n\n")
-        self.namespace.user.sort()
-        script.write("#User-defined variables = %s\n" % str(self.namespace.user) +
-                    "known_name_collisions = %s  #(collisions are bad)\n\n" % str(self.namespace.get_collisions()) )
-        
+
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(script)
         self.settings.writeEndCode(script) #close log file
 
         return script
-    
+
     def saveToXML(self, filename):
         #create the dom object
         self.xmlRoot = etree.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
-        
+
         ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
@@ -150,12 +153,12 @@ class Experiment:
             elementNode=etree.SubElement(flowNode, element.getType())
             if element.getType() == 'LoopInitiator':
                 loop=element.loop
-                name = loop.params['name'].val      
+                name = loop.params['name'].val
                 elementNode.set('loopType',loop.getType())
                 elementNode.set('name', name)
                 for paramName, param in loop.params.iteritems():
                     paramNode = self._setXMLparam(parent=elementNode,param=param,name=paramName)
-                    if paramName=='trialList': #override val with repr(val)
+                    if paramName=='conditions': #override val with repr(val)
                         paramNode.set('val',repr(param.val))
             elif element.getType() == 'LoopTerminator':
                 elementNode.set('name', element.loop.params['name'].val)
@@ -186,29 +189,57 @@ class Experiment:
         paramNode is the parameter node fetched from the xml file
         """
         name=paramNode.get('name')
-        if name=='times':#handle this parameter, deprecated in v1.60.00
-            exec('times=%s' %paramNode.get('val'))
-            params['startTime'].val =unicode(times[0])
-            params['duration'].val = unicode(times[1]-times[0])
+        if name=='storeResponseTime':
+            return#deprecated in v1.70.00 because it was redundant
+        elif name=='startTime':#handle this parameter, deprecated in v1.70.00
+            params['startType'].val =unicode('time (s)')
+            params['startVal'].val = unicode(paramNode.get('val'))
+            return #times doesn't need to update its type or 'updates' rule
+        elif name=='forceEndTrial':#handle this parameter, deprecated in v1.70.00
+            params['forceEndRoutine'].val = bool(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='forceEndTrialOnPress':#handle this parameter, deprecated in v1.70.00
+            params['forceEndRoutineOnPress'].val = bool(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='trialList':#handle this parameter, deprecated in v1.70.00
+            params['conditions'].val = eval(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='trialListFile':#handle this parameter, deprecated in v1.70.00
+            params['conditionsFile'].val = unicode(paramNode.get('val'))
+            return #forceEndTrial doesn't need to update its type or 'updates' rule
+        elif name=='duration':#handle this parameter, deprecated in v1.70.00
+            params['stopType'].val =u'duration (s)'
+            params['stopVal'].val = unicode(paramNode.get('val'))
             return #times doesn't need to update its type or 'updates' rule
         elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
             corrIf=paramNode.get('val')
             corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
-        if 'olour' in name:#colour parameter was Americanised in v1.61.00
-            name=name.replace('olour','olor')            
+        elif 'olour' in name:#colour parameter was Americanised in v1.61.00
+            name=name.replace('olour','olor')
             params[name].val = paramNode.get('val')
-        elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        elif name=='times':#handle this parameter, deprecated in v1.60.00
+            exec('times=%s' %paramNode.get('val'))
+            params['startType'].val =unicode('time (s)')
+            params['startVal'].val = unicode(times[0])
+            params['stopType'].val =unicode('time (s)')
+            params['stopVal'].val = unicode(times[1])
+            return #times doesn't need to update its type or 'updates' rule
+        elif 'val' in paramNode.keys():
+            if paramNode.get('val')=='window units':#changed this value in 1.70.00
+                params[name].val = 'from exp settings'
+            else:
+                params[name].val = paramNode.get('val')
         #get the value type and update rate
-        if 'valType' in paramNode.keys(): 
+        if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
-            # compatibility checks: 
+            # compatibility checks:
             if name in ['correctAns','allowedKeys','text'] and paramNode.get('valType')=='code':
                 params[name].valType='str'# these components were changed in v1.60.01
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
-        if 'updates' in paramNode.keys(): 
+        if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -216,28 +247,30 @@ class Experiment:
         #open the file using a parser that ignores prettyprint blank text
         parser = etree.XMLParser(remove_blank_text=True)
         f=open(filename)
+        folder = os.path.split(filename)[0]
+        os.chdir(folder)
         self._doc=etree.XML(f.read(),parser)
         f.close()
         root=self._doc#.getroot()
-        
+
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
-            print '\n%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag)
+            log.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
-            print '\nnote: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag)
-        
+            log.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
+
         #Parse document nodes
         #first make sure we're empty
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         self.namespace = NameSpace(self) # start fresh
         modified_names = []
-        
+
         #fetch exp settings
         settingsNode=root.find('Settings')
         for child in settingsNode:
@@ -245,7 +278,7 @@ class Experiment:
         #fetch routines
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
-            routine_good_name = self.namespace.make_valid(routineNode.get('name'))
+            routine_good_name = self.namespace.makeValid(routineNode.get('name'))
             if routine_good_name != routineNode.get('name'):
                 modified_names.append(routineNode.get('name'))
             self.namespace.user.append(routine_good_name)
@@ -261,40 +294,52 @@ class Experiment:
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
-                comp_good_name = self.namespace.make_valid(componentNode.get('name'))
+                comp_good_name = self.namespace.makeValid(componentNode.get('name'))
                 if comp_good_name != componentNode.get('name'):
                     modified_names.append(componentNode.get('name'))
                 self.namespace.add(comp_good_name)
                 component.params['name'].val = comp_good_name
                 routine.append(component)
-        
+
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
         for elementNode in flowNode:
             if elementNode.tag=="LoopInitiator":
                 loopType=elementNode.get('loopType')
-                loopName=self.namespace.make_valid(elementNode.get('name'))
+                loopName=self.namespace.makeValid(elementNode.get('name'))
                 if loopName != elementNode.get('name'):
                     modified_names.append(elementNode.get('name'))
-                self.namespace.user.append(loopName)
+                self.namespace.add(loopName)
                 exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
                 for paramNode in elementNode:
                     self._getXMLparam(paramNode=paramNode,params=loop.params)
-                    #for trialList convert string rep to actual list of dicts
-                    if paramNode.get('name')=='trialList':
-                        param=loop.params['trialList']
+                    #for conditions convert string rep to actual list of dicts
+                    if paramNode.get('name')=='conditions':
+                        param=loop.params['conditions']
                         exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
+                # get condition names from within conditionsFile, if any:
+                try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
+                except: conditionsFile = None
+                if conditionsFile in ['None', '']:
+                    conditionsFile = None
+                if conditionsFile:
+                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        if fname != self.namespace.makeValid(fname):
+                            log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                        else:
+                            self.namespace.add(fname)
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
             elif elementNode.tag=="LoopTerminator":
                 self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
-                
+
         if modified_names:
-            print 'duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names)
-            
+            log.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
+
     def setExpName(self, name):
         self.name=name
         self.settings.expName=name
@@ -303,19 +348,56 @@ class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
-    >>> sizeParam = Param(val=[3,4], valType='num')
-    >>> print sizeParam
-    numpy.asarray([3,4])
+    >>> print Param(val=[3,4], valType='num')
+    asarray([3, 4])
+    >>> print Param(val=3, valType='num') # num converts int to float
+    3.0
+    >>> print Param(val=3, valType='str') # str keeps as int, converts to code
+    3
+    >>> print Param(val='3', valType='str') # ... and keeps str as str
+    '3'
+    >>> print Param(val=[3,4], valType='str') # val is <type 'list'> -> code
+    [3, 4]
+    >>> print Param(val='[3,4]', valType='str')
+    '[3,4]'
+    >>> print Param(val=[3,4], valType='code')
+    [3, 4]
 
-    >>> sizeParam = Param(val=[3,4], valType='str')
-    >>> print sizeParam
-    "[3,4]"
-
-    >>> sizeParam = Param(val=[3,4], valType='code')
-    >>> print sizeParam
-    [3,4]
-
+    >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
+    >>> print Param('[x,y]','str') # str normally returns string
+    '[x,y]'
+    >>> print Param('$[x,y]','str') # code, as triggered by $
+    [x,y]
+    >>> print Param('[$x,$y]','str') # code, redundant $ ok, cleaned up
+    [x,y]
+    >>> print Param('[$x,y]','str') # code, a $ anywhere means code
+    [x,y]
+    >>> print Param('[x,y]$','str') # ... even at the end
+    [x,y]
+    >>> print Param('[x,\$y]','str') # string, because the only $ is escaped
+    '[x,$y]'
+    >>> print Param('[x,\ $y]','str') # improper escape -> code (note that \ is not adjacent to $)
+    [x,\ y]
+    >>> print Param('/$[x,y]','str') # improper escape -> code (/ is not the same as \)
+    /[x,y]
+    >>> print Param('[\$x,$y]','str') # code, python syntax error
+    [$x,y]
+    >>> print Param('["\$x",$y]','str') # ... python syntax ok
+    ["$x",y]
+    >>> print Param("'$a'",'str') # code, with the code being a string, $ removed
+    'a'
+    >>> print Param("'\$a'",'str') # string, with the string containing a string, $ escaped (\ removed)
+    "'$a'"
+    >>> print Param('$$$$$myPathologicalVa$$$$$rName','str')
+    myPathologicalVarName
+    >>> print Param('\$$$$$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$myPathologicalVa$$$$$rName','str')
+    $myPathologicalVarName
+    >>> print Param('$$$$\$$$myPathologicalVa$$$\$$$rName','str')
+    $myPathologicalVa$rName
     """
+
     def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
         """
         @param val: the value for this parameter
@@ -347,16 +429,25 @@ class Param:
             except:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'str':
-            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
-                return "%s" %(self.val[1:])#override the string type and return as code
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
-                return repr(self.val[1:])#the user actually wanted a string repr with the $ as first char
-            else:#provide the string representation (the code to create a string)
-                return repr(self.val)#this neatly handles like "it's" and 'He says "hello"'
+            # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
+            # return str if code wanted
+            # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
+            if type(self.val) in [str, unicode]:
+                if re.search(r"/\$", self.val):
+                    log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
+                nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
+                if nonEscapedSomewhere: # code wanted, clean-up first
+                    tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
+                    tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
+                    tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
+                    return str(tmp) # return code
+                else: # str wanted
+                    return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
+            return repr(self.val)
         elif self.valType == 'code':
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"): 
+            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
                 return "%s" %(self.val[1:])#the user actually wanted just the $
             else:#provide the code
                 return "%s" %(self.val)
@@ -370,18 +461,18 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        trialList=[], trialListFile='',endPoints=[0,1]):
+        conditions=[], conditionsFile='',endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
         @type name: string
         @param loopType:
         @type loopType: string ('rand', 'seq')
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
-        @param trialList: list of different trial conditions to be used
-        @type trialList: list (of dicts?)
-        @param trialListFile: filename of the .csv file that contains trialList info
-        @type trialList: string (filename)
+        @param conditions: list of different trial conditions to be used
+        @type conditions: list (of dicts?)
+        @param conditionsFile: filename of the .csv file that contains conditions info
+        @type conditions: string (filename)
         """
         self.type='TrialHandler'
         self.exp=exp
@@ -390,37 +481,38 @@ class TrialHandler:
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
             hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
-            hint="Number of repeats (for each type of trial)")
-        self.params['trialList']=Param(trialList, valType='str', updates=None, allowedUpdates=None,
-            hint="A list of dictionaries describing the differences between each trial type")
-        self.params['trialListFile']=Param(trialListFile, valType='str', updates=None, allowedUpdates=None,
-            hint="A comma-separated-value (.csv) file specifying the parameters for each trial")
+            hint="Number of repeats (for each condition)")
+        self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
+            hint="A list of dictionaries describing the parameters in each condition")
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            hint="A comma-separated-value (.csv) file specifying the parameters for each condition")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
-        self.params['loopType']=Param(loopType, valType='str', 
-            allowedVals=['random','sequential','staircase','interleaved staircases'],
-            hint="How should the next trial value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
+        self.params['loopType']=Param(loopType, valType='str',
+            allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
+                # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
+            hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
-        #todo: write code to fetch trialList from file?
-        #create nice line-separated list of trial types
-        if self.params['trialListFile'].val==None:
-            trialStr="[None]"
-        else: trialStr="data.importTrialList(%s)" %self.params['trialListFile']
+        #todo: write code to fetch conditions from file?
+        #create nice line-separated list of conditions
+        if self.params['conditionsFile'].val==None:
+            condsStr="[None]"
+        else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
-        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after randomisation of conditions etc\n")
         buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
                 %(self.params['name'], self.params['nReps'], self.params['loopType']))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
-        buff.writeIndented("    trialList=%s)\n" %(trialStr))
+        buff.writeIndented("    trialList=%s)\n" %(condsStr))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
-            buff.writeIndented("#abbrieviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
+            buff.writeIndented("#abbreviate parameter names if possible (e.g. rgb=%s.rgb)\n" %self.thisName)
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
@@ -428,7 +520,7 @@ class TrialHandler:
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
-        #fetch parameter info from trialList        
+        #fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
@@ -445,10 +537,10 @@ class TrialHandler:
         buff.writeIndented("\n")
 
         #save data
-        ##a string to show all the available variables (if the trialList isn't just None or [None])
+        ##a string to show all the available variables (if the conditions isn't just None or [None])
         stimOutStr="["
-        if self.params['trialList'].val not in [None, [None]]:
-            for variable in self.params['trialList'].val[0].keys():#get the keys for the first trial type
+        if self.params['conditions'].val not in [None, [None]]:
+            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
                 stimOutStr+= "'%s', " %variable
         stimOutStr+= "]"
         if self.exp.settings.params['Save psydat file'].val:
@@ -463,7 +555,7 @@ class TrialHandler:
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'
-    
+
 class StairHandler:
     """A staircase experimental control object.
     """
@@ -473,7 +565,7 @@ class StairHandler:
         """
         @param name: name of the loop e.g. trials
         @type name: string
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
         self.type='StairHandler'
@@ -500,18 +592,18 @@ class StairHandler:
         self.params['N reversals']=Param(nReversals, valType='code',
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['loopType']=Param('staircase', valType='str', 
-            allowedVals=['random','sequential','staircase','interleaved stairs'],
+        self.params['loopType']=Param('staircase', valType='str',
+            allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
-        buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
+        buff.writeIndentedLines("\n#set up handler to look after next chosen value etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
@@ -539,17 +631,17 @@ class StairHandler:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'StairHandler'
-    
+
 class MultiStairHandler:
     """To handle multiple interleaved staircases
     """
-    def __init__(self, exp, name, nReps='50', stairType='simple', 
-        switchStairs='random', 
+    def __init__(self, exp, name, nReps='50', stairType='simple',
+        switchStairs='random',
         conditions=[], conditionsFile='', endPoints=[0,1]):
         """
         @param name: name of the loop e.g. trials
         @type name: string
-        @param nReps: number of reps (for all trial types)
+        @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
         self.type='MultiStairHandler'
@@ -561,26 +653,26 @@ class MultiStairHandler:
             hint="(Minimum) number of trials in *each* staircase")
         self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST'],
             hint="How to select the next staircase to run")
-        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential'],
+        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
             hint="How to select the next staircase to run")
         #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['loopType']=Param('staircase', valType='str', 
-        allowedVals=['random','sequential','staircase','interleaved stairs'],
+        self.params['loopType']=Param('staircase', valType='str',
+        allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the differences between each condition")
-        self.params['trialListFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.make_loop_index(self.params['name'].val)
+        self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of trials etc\n")
-        buff.writeIndentedLines("conditions=data.importTrialList(%s)" %self.params['conditionsFile'])
+        buff.writeIndentedLines("conditions=data.importConditions(%s)" %self.params['conditionsFile'])
         buff.writeIndented("%(name)s=data.MultiStairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    nTrials=%(nReps)s,\n" %self.params)
         buff.writeIndented("    conditions=conditions,\n")
@@ -608,7 +700,7 @@ class MultiStairHandler:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'MultiStairHandler'
-    
+
 class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
@@ -661,9 +753,9 @@ class Flow(list):
         self.insert(int(pos), newRoutine)
     def removeComponent(self,component,id=None):
         """Removes a Loop, LoopTerminator or Routine from the flow
-        
+
         For a Loop (or initiator or terminator) to be deleted we can simply remove
-        the object using normal list syntax. For a Routine there may be more than 
+        the object using normal list syntax. For a Routine there may be more than
         one instance in the Flow, so either choose which one by specifying the id, or all
         instances will be removed (suitable if the Routine has been deleted).
         """
@@ -675,7 +767,7 @@ class Flow(list):
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
                     if comp.loop==component: self.remove(comp)
         elif component.getType()=='Routine':
-            if id==None: 
+            if id==None:
                 #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
                 for id, compInFlow in enumerate(self):
@@ -694,7 +786,7 @@ class Flow(list):
         for entry in self:
             self._currentRoutine=entry
             entry.writeExperimentEndCode(script)
-    
+
 class Routine(list):
     """
     A Routine determines a single sequence of events, such
@@ -710,6 +802,7 @@ class Routine(list):
         self.name=name
         self.exp=exp
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
+        self.type='Routine'
         list.__init__(self, components)
     def __repr__(self):
         return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" %(self.name,self.exp,str(list(self)))
@@ -724,46 +817,69 @@ class Routine(list):
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
         self._clockName = self.name+"Clock"
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
-        for thisEvt in self:
-            thisEvt.writeInitCode(buff)
+        for thisCompon in self:
+            thisCompon.writeInitCode(buff)
 
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
-        
+        #create the frame loop for this routine
+        buff.writeIndentedLines('\n#Start of routine %s\n' %(self.name))
+
+        buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
+        buff.writeIndented('frameN=-1\n')
+
         buff.writeIndentedLines("\n#update component parameters for each repeat\n")
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
-        
-        #create the frame loop for this routine
-        buff.writeIndentedLines('\n#run %s\n' %(self.name))
+
+        buff.writeIndented('#keep track of which have finished\n')
+        buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
+        for thisCompon in self:
+            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
+        buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
+        buff.writeIndented("    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED\n")
+
+        buff.writeIndented('#start the Routine\n')
         buff.writeIndented('continueRoutine=True\n')
-        buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
-        buff.writeIndented('while continueRoutine and (t<%.4f):\n' %(self.getMaxTime()))
+        buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
 
         #on each frame
         buff.writeIndented('#get current time\n')
         buff.writeIndented('t=%s.getTime()\n' %self._clockName)
+        buff.writeIndented('frameN=frameN+1#number of completed frames (so 0 in first frame)\n')
 
         #write the code for each component during frame
-        buff.writeIndentedLines('\n#update/draw components on each frame\n')
+        buff.writeIndentedLines('#update/draw components on each frame')
         for event in self:
             event.writeFrameCode(buff)
+
+        #are we done yet?
+        buff.writeIndentedLines('\n#check if all components have finished\n')
+        buff.writeIndentedLines('if not continueRoutine:\n')
+        buff.writeIndentedLines('    break # lets a component forceEndRoutine\n')
+        buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
+        buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:\n')
+        buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
         #update screen
         buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
         buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
         buff.writeIndented('#refresh the screen\n')
-        buff.writeIndented('win.flip()\n')
+        buff.writeIndented("if continueRoutine:#don't flip if this routine is over or we'll get a blank screen\n")
+        buff.writeIndented('    win.flip()\n')
 
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
 
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
-        buff.writeIndented('#end of this routine (e.g. trial)\n')
+        buff.writeIndented('#end of routine %s\n' %(self.name))
+        buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
+        buff.writeIndentedLines('    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
 
@@ -780,23 +896,10 @@ class Routine(list):
             if comp.params['name']==name:
                 return comp
         return None
-    def getMaxTime(self):
-        maxTime=0
-        times=[]
-        for event in self:
-            if 'startTime' not in event.params.keys(): continue
-            if event.params['duration'].val in ['-1', ''] \
-                or '$' in [event.params['startTime'].val[0], event.params['duration'].val[0]]:
-                maxTime=1000000
-            else:
-                exec("maxTime=%(startTime)s+%(duration)s" %(event.params))#convert params['duration'].val into numeric
-            times.append(maxTime)
-            maxTime=float(max(times))
-        return maxTime
-    
+
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.
-    
+
     The aim is to help detect and avoid name-space collisions from user-entered variable names.
     Track four groups of variables:
         numpy =    part of numpy or numpy.random (maybe its ok for a user to redefine these?)
@@ -804,7 +907,7 @@ class NameSpace():
         builder =  used internally by the builder when constructing an experiment
         user =     used 'externally' by a user when programming an experiment
     Some vars, like core, are part of both psychopy and numpy, so the order of operations can matter
-    
+
     Notes for development:
     are these all of the ways to get into the namespace?
     - import statements at top of file: numpy, psychopy, os, etc
@@ -816,12 +919,12 @@ class NameSpace():
         loops have thisName, albeit thisNam (missing end character)
     - column headers in condition files
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
-    
+
     TO DO (throughout app):
-        trialLists on import
+        conditions on import
         how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
         staircase resists being reclassified as trialhandler
-    
+
     :Author:
         2011 Jeremy Gray
     """
@@ -829,13 +932,13 @@ class NameSpace():
         """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
-        
-        self.numpy = list(set(dir(numpy) + dir(numpy.random))) # remove some redundancies
+
+        self.numpy = _numpy_imports + _numpy_random_imports + ['np']
         self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
                         'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
                         'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
                         'is', 'return', 'def', 'for', 'lambda', 'try',
-                        
+
                          'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
                          'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp', 'coerce',
                          'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
@@ -850,80 +953,86 @@ class NameSpace():
                          'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems', 'iterkeys',
                          'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values',
                          'viewitems', 'viewkeys', 'viewvalues',
-                         
+
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui']
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui',
+            'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
-            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level']
+            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
-    
+
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(vars), len(self.numpy))
         else:
             return str(vars + self.numpy)
-    
-    def get_derived(self, basename):
+
+    def getDerived(self, basename):
         """ buggy
         idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
         more specific than is_possibly-derivable()
         if basename is a routine, return continueBasename and basenameClock,
-        if basename is a loop, return make_loop_index(name)
+        if basename is a loop, return makeLoopIndex(name)
         """
         derived_names = []
         for flowElement in self.exp.flow:
             if flowElement.getType() in ['LoopInitiator','LoopTerminator']:
                 flowElement=flowElement.loop  # we want the loop itself
                 # basename can be <type 'instance'>
-                derived_names += [self.make_loop_index(basename)]
+                derived_names += [self.makeLoopIndex(basename)]
             if basename == str(flowElement.params['name']) and basename+'Clock' not in derived_names:
                 derived_names += [basename+'Clock', 'continue'+basename.capitalize()]
         # other derived_names?
-        # 
-        return derived_names 
-    
-    def get_collisions(self):
+        #
+        return derived_names
+
+    def getCollisions(self):
         """return None, or a list of names in .user that are also in one of the other spaces"""
         duplicates = list(set(self.user).intersection(set(self.builder + self.psychopy + self.numpy)))
         su = sorted(self.user)
-        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var] 
+        duplicates += [var for i,var in enumerate(su) if i<len(su)-1 and su[i+1] == var]
         if duplicates != []:
             return duplicates
         return None
-    
-    def is_valid(self, name):
+
+    def isValid(self, name):
         """var-name compatible? return True if string name is alphanumeric + underscore only, with non-digit first"""
         return bool(_valid_var_re.match(name))
-    def is_possibly_derivable(self, name):
+    def isPossiblyDerivable(self, name):
         """catch all possible derived-names, regardless of whether currently"""
-        derivable = name.startswith('this') or name.startswith('continue') or name.endswith('Clock')
-        derivable = derivable or name.startswith('these')
-        return derivable
-    def exists(self, name): 
+        derivable = (name.startswith('this') or
+                     name.startswith('these') or
+                     name.startswith('continue') or
+                     name.endswith('Clock') or
+                     name.lower().find('component') > -1)
+        if derivable:
+            return " safer to avoid this, these, continue, Clock, or component in name"
+        return None
+    def exists(self, name):
         """returns None, or a message indicating where the name is in use.
         cannot guarantee that a name will be conflict-free.
         does not check whether the string is a valid variable name.
-        
+
         >>> exists('t')
         Builder variable
         """
         try: name = str(name) # convert from unicode if possible
         except: pass
-        
-        # check get_derived:
-        
+
+        # check getDerived:
+
         # check in this order:
         if name in self.user: return "script variable"
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"
         if name in self.keywords: return "python keyword"
-        
+
         return # None, meaning does not exist already
-    
+
     def add(self, name, sublist='default'):
         """add name to namespace by appending a name or list of names to a sublist, eg, self.user"""
         if name is None: return
@@ -932,7 +1041,7 @@ class NameSpace():
             sublist.append(name)
         else:
             sublist += name
-        
+
     def remove(self, name, sublist='default'):
         """remove name from the specified sublist (and hence from the name-space), eg, self.user"""
         if name is None: return
@@ -942,25 +1051,25 @@ class NameSpace():
         for n in list(name):
             if n in sublist:
                 del sublist[sublist.index(n)]
-        
-    def make_valid(self, name, prefix='var', add_to_space=None):
+
+    def makeValid(self, name, prefix='var', add_to_space=None):
         """given a string, return a valid and unique variable name.
         replace bad characters with underscore, add an integer suffix until its unique
-        
-        >>> make_valid('t')
+
+        >>> makeValid('t')
         't_1'
-        >>> make_valid('Z Z Z')
+        >>> makeValid('Z Z Z')
         'Z_Z_Z'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a_1'
-        >>> make_valid('a')
+        >>> makeValid('a')
         'a_2'
-        >>> make_valid('123')
+        >>> makeValid('123')
         'var_123'
         """
-        
+
         # make it legal:
         try: name = str(name) # convert from unicode, flag as uni if can't convert
         except: prefix = 'uni'
@@ -968,7 +1077,7 @@ class NameSpace():
         if name[0].isdigit():
             name = prefix+'_' + name
         name = _nonalphanumeric_re.sub('_', name) # replace all bad chars with _
-        
+
         # try to make it unique; success depends on accuracy of self.exists():
         i = 2
         if self.exists(name) and name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
@@ -986,7 +1095,7 @@ class NameSpace():
             self.add(name, add_to_space)
         return name
 
-    def make_loop_index(self, name):
+    def makeLoopIndex(self, name):
         """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
         try: new_name = str(name)
         except: new_name = name
@@ -1001,9 +1110,9 @@ class NameSpace():
             match = re.match(r"^(.*)s(_\d+)$", new_name)
             if match: new_name = match.group(1) + match.group(2)
         new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
-        new_name = self.make_valid(new_name)
+        new_name = self.makeValid(new_name)
         return new_name
-            
+
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
     """

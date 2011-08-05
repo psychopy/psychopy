@@ -4,62 +4,69 @@
 
 from _visual import * # to get the template visual component
 from os import path
+from psychopy.app.builder import components #for getInitVals()
 
-__author__ = 'Jeremy Gray, Jon Peirce' 
+__author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
 # July 2011: jwp added the code for it to be enabled only when needed
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'aperture.png')
+tooltip = 'Aperture: restrict the viewing area to a given region (circular)'
 
 class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a circle of a given size and position"""
-    def __init__(self, exp, parentName, name='aperture', units='pix',
-                 size=120, pos=(0,0), startTime=0.0, duration=''):
+    def __init__(self, exp, parentName, name='aperture', units='norm',
+                size=[1,1], pos=(0,0),
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=1.0,
+                startEstim='', durationEstim=''):
         #initialise main parameters
-        VisualComponent.__init__(self, parentName, name=name, units=units, 
-                    pos=pos, startTime=startTime, duration=duration)
+        VisualComponent.__init__(self, parentName, name=name, units=units,
+                    pos=pos,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
         self.exp = exp #so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         self.parentName = parentName
         #params:
+        #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
-        self.params['size'] = Param(size, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="size of the aperture in pix")
-        self.params['pos'] = Param(pos, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="position on the screen")
-        self.params['startTime']=Param(startTime, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The time that the aperture starts to be used for drawing")
-        self.params['duration']=Param(duration, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The duration for which the aperture is used for drawing")
-        self.order=['name','startTime','duration']#make name come first (others don't matter)
+        self.params['size'].hint = "How big is the aperture?"
+        self.params['pos'].hint = "Where is the aperture centred?"
+        self.params['startVal'].hint = "When does the aperture come into effect?"
+        self.params['stopVal'].hint="When does the aperture stop having an effect?"
         del self.params['ori']
         del self.params['color']
         del self.params['colorSpace']
-        
+
     def writeInitCode(self, buff):
+        inits = components.getInitVals(self.params)
         #do writing of init
-        buff.writeIndented("%(name)s=visual.Aperture(win=win, size=%(size)s, pos=%(pos)s, units='pix') # enabled by default\n" % (self.params))  
-        buff.writeIndented("%(name)s.disable()\n" %(self.params))
+        buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s',\n" % (inits))
+        buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (inits))
+        buff.writeIndented("%(name)s.disable() # is enabled by default\n" %(inits))
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
-        #enable aperture
-        if self.params['duration'].val=='':#infinite duration
-            buff.writeIndented("if %(startTime)s <= t and not %(name)s.enabled:\n" %(self.params))
-        else: buff.writeIndented("if %(startTime)s <= t < (%(startTime)s+%(duration)s) and not %(name)s.enabled:\n" %(self.params))
-        buff.writeIndented("    %(name)s.enable()#needs to start\n" %(self.params))
-        #disable aperture
-        if self.params['duration'].val!='':#infinite duration
-            buff.writeIndented("elif t>=(%(startTime)s+%(duration)s) and %(name)s.enabled:\n" %(self.params))
-            buff.writeIndented("    %(name)s.disable()#needs to finish\n" %(self.params))
-        
+        buff.writeIndented("\n")
+        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.enable()\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.disable()\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        #set parameters that need updating every frame
+        if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
+            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.setIndentLevel(+1, relative=True)#to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(+1, relative=True)#to exit the if block
+
     def writeRoutineEndCode(self, buff):
         buff.writeIndented("%(name)s.disable() #just in case it was left enabled\n" % (self.params))
-    
+

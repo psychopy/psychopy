@@ -26,4 +26,4 @@ if __git_sha__=='n/a':
     if repo_commit:
         __git_sha__=repo_commit.strip()#remove final linefeed
 
-__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters"]
+__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters", "sound"]

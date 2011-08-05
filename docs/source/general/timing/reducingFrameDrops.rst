@@ -1,3 +1,4 @@
+.. _reducingFrameDrops:
 
 Reducing dropped frames
 --------------------------

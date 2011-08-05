@@ -20,26 +20,26 @@ packageData = []
 requires=[]
 
 if platform=='win32':
-    import py2exe    
-    
+    import py2exe
+
     #get matplotlib data files
     from distutils.filelist import findall
     import os
     import matplotlib
     packageData.extend(matplotlib.get_py2exe_datafiles())
-    #get resources (icons etc)        
+    #get resources (icons etc)
     files = glob.glob('psychopy/app/Resources/*')
     for file in files:
         loc, name = os.path.split(file)
         packageData.append( ['psychopy/app/Resources', [file]])
-        
+
 elif platform=='darwin':
     import bdist_mpkg, py2app
     resources = glob.glob('psychopy/app/Resources/*')
     resources.append('/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5/pyconfig.h')
 elif platform=='posix':
     pass
-    
+
 if platform == 'win32':
     requires.extend(['pymedia'])
     setup(console=[{
@@ -52,7 +52,7 @@ if platform == 'win32':
                         'matplotlib', 'numpy', 'scipy', 'wx',
                         'pyglet','pygame','OpenGL',],
                     #"skip_archive":1,
-                    }          
+                    }
             },
           data_files=packageData)
 else:
@@ -84,9 +84,9 @@ else:
                                       CFBundleExecutable         = "PsychoPy2",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPy2",
                                       CFBundleLicense            = "GNU GPLv3",
-                                      CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],#CFBundleTypeName='Python Script',                                                                 
+                                      CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],#CFBundleTypeName='Python Script',
                                                                  CFBundleTypeRole='Editor')],
-                                      ),                              
+                                      ),
                               )))
 
 if writeNewInit:
@@ -97,9 +97,9 @@ if writeNewInit:
 shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testApp")
 
 """
-I struggled getting the app to build properly. These were some of the problems: 
+I struggled getting the app to build properly. These were some of the problems:
 
-Mac OS X - you need to install 
+Mac OS X - you need to install
 setuptools0.6c9
     (svn co http://svn.python.org/projects/sandbox/branches/setuptools-0.6 then go to the directory and
     do a sudo python setup.py install)
@@ -118,10 +118,10 @@ Fixed this by modifying the use of get_config_vars() in distutils/util around li
             except:
                 pass#we couldn't load up pyconfig.h
 
-to make avbin work from the mac standalone:                
+to make avbin work from the mac standalone:
     In pyglet/lib.py, around line 166, do this:
         search_path.append(join(sys.prefix, '..', 'Frameworks'))
-    instead (or as well as) of 
+    instead (or as well as) of
         search_path.append(os.path.join(
                     os.environ['RESOURCEPATH'],
                     '..',

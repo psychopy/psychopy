@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from random import random
-from psychopy import *
+from psychopy import data
 
 #create your list of stimuli
 #NB as of version 1.62 you could simpmly import an excel spreadsheet with this
