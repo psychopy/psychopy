@@ -27,7 +27,7 @@ class RatingScaleComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
-                 forceEndTrial=True,
+                 forceEndRoutine=True,
                  storeRating=True, storeRatingTime=True,
                  lowAnchorText='', highAnchorText='',
                  customize_everything=''
@@ -40,7 +40,7 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {}
-        self.params['advancedParams'] = ['singleClick', 'forceEndTrial', 'size',
+        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size',
                         'pos', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
 
         # normal params:
@@ -90,7 +90,7 @@ class RatingScaleComponent(BaseComponent):
             hint="store the time taken to make the choice (in seconds)")
         self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], hint="x,y position on the screen")
-        self.params['forceEndTrial'] = Param(forceEndTrial, valType='bool', allowedTypes=[],
+        self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should accepting a rating cause the end of the routine (e.g. trial)?")
         self.params['lowAnchorText'] = Param(lowAnchorText, valType='str', allowedTypes=[],
@@ -102,7 +102,7 @@ class RatingScaleComponent(BaseComponent):
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Use this text to create the rating scale as you would in a code component; overrides all"+
-                " dialog settings except time parameters, forceEndTrial, storeRatingTime, storeRating")
+                " dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating")
 
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
@@ -183,7 +183,7 @@ class RatingScaleComponent(BaseComponent):
         buff.writeIndented("#*%(name)s* updates\n" %(self.params))
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
         # if requested, force end of trial when the subject 'accepts' the current rating:
-        if self.params['forceEndTrial']:
+        if self.params['forceEndRoutine']:
             buff.writeIndented("continueRoutine = %s.noResponse\n" % (name))
         # only need to do the following the first time it goes False, here gets set every frame:
         buff.writeIndented("if %s.noResponse == False:\n" % name)
