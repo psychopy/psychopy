@@ -13,18 +13,32 @@ PsychoPy 1.70
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGED MovieStim.playing property is now called MovisStim.status (in keeping
+*NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
+
+* CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
+* CHANGED MovieStim.playing property to be called MovisStim.status (in keeping
     with other stimuli)
+* CHANGED names:
+
+    - `data.importTrialTypes` is now `data.importConditions`
+    - `forceEndTrial` in Keyboard Component is now `forceEndRoutine`
+    - `forceEndTrialOnPress` in Mouse Component is now `forceEndRoutineOnPress`
+    - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
+    - 'window units' to set Component units is now 'from exp settings' for less confusion
+    
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
     - number of frames, rather than time (s), for greater precision
     - an arbitrary condition (e.g. otherStim.status==STOPPED )
-
-* IMPROVED documentation (thanks Becky Sharman)
+    
+* ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
 * ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
 * ADDED hardware/scanEmulator (see API reference) to emulate fMRI or other scanners for testing (thanks Jeremy)
+* ADDED if you right-click the expInfo in Experiment Settings you'll get a test of the dialog box
+* IMPROVED documentation (thanks Becky Sharman)
+* IMPROVED Flow view in the Builder, with zooming (thanks Jeremy)
 * FIXED demos now unpack to an empty folder (thanks Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
 

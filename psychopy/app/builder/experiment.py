@@ -226,7 +226,11 @@ class Experiment:
             params['stopType'].val =unicode('time (s)')
             params['stopVal'].val = unicode(times[1])
             return #times doesn't need to update its type or 'updates' rule
-        elif 'val' in paramNode.keys(): params[name].val = paramNode.get('val')
+        elif 'val' in paramNode.keys():
+            if paramNode.get('val')=='window units':#changed this value in 1.70.00
+                params[name].val = 'from exp settings'
+            else:
+                params[name].val = paramNode.get('val')
         #get the value type and update rate
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
@@ -243,6 +247,8 @@ class Experiment:
         #open the file using a parser that ignores prettyprint blank text
         parser = etree.XMLParser(remove_blank_text=True)
         f=open(filename)
+        folder = os.path.split(filename)[0]
+        os.chdir(folder)
         self._doc=etree.XML(f.read(),parser)
         f.close()
         root=self._doc#.getroot()
@@ -356,7 +362,7 @@ class Param:
     '[3,4]'
     >>> print Param(val=[3,4], valType='code')
     [3, 4]
-    
+
     >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
     >>> print Param('[x,y]','str') # str normally returns string
     '[x,y]'

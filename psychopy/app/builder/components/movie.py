@@ -13,12 +13,12 @@ tooltip = 'Movie: play movie files'
 class MovieComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='movie', movie='',
-                units='window units',
+                units='from exp settings',
                 pos=[0,0], size='', ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='',
-                forceEndTrial=False):
+                forceEndRoutine=False):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
@@ -29,14 +29,14 @@ class MovieComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/movie.html"
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
-        self.order = ['forceEndTrial']#comes immediately after name and timing params
+        self.order = ['forceEndRoutine']#comes immediately after name and timing params
 
         #params
         self.params['stopVal'].hint="Leave blank simply to play the movie for its full duration"
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="A filename for the movie (including path)")
-        self.params['forceEndTrial']=Param(forceEndTrial, valType='bool', allowedTypes=[],
+        self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should the end of the movie cause the end of the routine (e.g. trial)?")
         #these are normally added but we don't want them for a movie
@@ -46,15 +46,24 @@ class MovieComponent(VisualComponent):
         #if the movie is constant then load it once at beginning of script.
         #if it changes each repeat then we should wait and creat the entire object at
         #Routine start
+        #do we need units code?
+        if self.params['units'].val=='from exp settings': unitsStr=""
+        else: unitsStr="units=%(units)s, " %self.params
         if self.params['movie'].updates=='constant':
             initVals = components.getInitVals(self.params)
-            buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
+            buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(initVals['name'],initVals['name'],unitsStr))
+            buff.writeIndented("    filename=%(movie)s,\n" %(self.params))
             buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
             if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
             buff.writeIndented(")\n")
     def writeRoutineStartCode(self,buff):
+        #do we need units code?
+        if self.params['units'].val=='from exp settings': unitsStr=""
+        else: unitsStr="units=%(units)s, " %self.params
         if self.params['movie'].updates!='constant':
-            buff.writeIndented("%(name)s=visual.MovieStim(win=win, filename=%(movie)s, name='%(name)s',\n" %(self.params))
+            initVals = components.getInitVals(self.params)
+            buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(initVals['name'],initVals['name'],unitsStr))
+            buff.writeIndented("    filename=%(movie)s,\n" %(self.params))
             buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
             if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
             buff.writeIndented(")\n")
@@ -64,7 +73,7 @@ class MovieComponent(VisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%s.autoDraw(True)\n" %(self.params['name']))
+        buff.writeIndented("%s.setAutoDraw(True)\n" %(self.params['name']))
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
@@ -77,6 +86,6 @@ class MovieComponent(VisualComponent):
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(+1, relative=True)#to exit the if block
         #do force end of trial code
-        if self.params['forceEndTrial'].val==True:
-            buff.writeIndented("if %s.playing==visual.FINISHED: continueRoutine=False\n" %(self.params['name']))
+        if self.params['forceEndRoutine'].val==True:
+            buff.writeIndented("if %s.status==FINISHED: continueRoutine=False\n" %(self.params['name']))
 

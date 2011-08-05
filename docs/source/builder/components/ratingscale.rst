@@ -22,6 +22,12 @@ Properties
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
 
+start :
+    The time that the stimulus should first appear. See :ref:`startStop` for details.
+
+stop : 
+    The duration for which the stimulus is presented. See :ref:`startStop` for details.
+    
 visualAnalogScale : checkbox
     If this is checked, a line with no tick marks will be presented using the 'glow' marker, and will return a rating from 0.00 to 1.00 (quasi-continuous). This is intended to bias people away from thinking in terms of numbers, and focus more on the visual bar when making their rating.
     This supercedes either choices or scaleDescription.
@@ -58,8 +64,8 @@ size : float
 pos : [X,Y]
     The position of the centre of the stimulus, in the units specified by the stimulus or window. Default is centered left-right, and somewhat lower than the vertical center (0, -0.4).
 
-duration : float or integer
-    The maximum duration in seconds for which the stimulus is presented. Typically, the subject's response should end the trial, not a duration.
+duration : 
+    The maximum duration in seconds for which the stimulus is presented. See :ref:`duration` for details. Typically, the subject's response should end the trial, not a duration.
     A blank or negative value means wait for a very long time.
 
 storeRatingTime:

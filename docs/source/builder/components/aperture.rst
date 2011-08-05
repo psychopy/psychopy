@@ -7,7 +7,13 @@ This component can be used to filter the visual display, as if the subject is lo
 
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    
+start : float or integer
+    The time that the apperture should start having its effect. See :ref:`startStop` for details.
 
+stop : 
+    When the apperture stops having its effect. See :ref:`startStop` for details.
+    
 pos : [X,Y]
     The position of the centre of the aperture, in the units specified by the stimulus or window.
     

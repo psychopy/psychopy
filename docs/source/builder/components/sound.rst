@@ -9,12 +9,13 @@ Parameters
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
-startTime : float or integer
-    The time (relative to the beginning of this Routine) that the stimulus will begin playing.
+start : float or integer
+    The time that the stimulus should first play. See :ref:`startStop` for details.
 
-duration : float or integer
-    The duration for which the stimulus is presented. This is only needed for sounds, such as tones, that do not have predefined durations. For sounds coming from a file, for instance, this parameter will be ignored.
-
+stop : 
+    For sounds loaded from a file leave this blank and then give the `Expected duration` below for 
+    visualisation purposes. See :ref:`startStop` for details.
+    
 sound : 
     This sound can be described in a variety of ways:
       

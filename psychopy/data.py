@@ -728,6 +728,7 @@ def importTrialTypes(fileName, returnFieldNames=False):
     Please use `importConditions` for identical functionality.
     """
     log.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
+    return importConditions(fileName, returnFieldNames)
 
 def importConditions(fileName, returnFieldNames=False):
         """Imports a list of conditions from an .xlsx or .csv file

@@ -9,12 +9,12 @@ This component can be used to present text to the participant, either instructio
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
-startTime : float or integer
-    The time (relative to the beginning of this Routine) that the stimulus should first appear.
+start :
+    The time that the stimulus should first appear. See :ref:`startStop` for details.
 
-duration : float or integer
-    The duration for which the stimulus is presented.
-    
+stop : 
+    The duration for which the stimulus is presented. See :ref:`startStop` for details.
+
 colour :  
     See :doc:`../../general/colours`
 

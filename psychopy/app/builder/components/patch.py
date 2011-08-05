@@ -13,7 +13,7 @@ tooltip = 'Patch: show dynamic visual stimuli or images'
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
-                units='window units', color='$[1,1,1]', colorSpace='rgb',
+                units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                 pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -51,13 +51,17 @@ class PatchComponent(VisualComponent):
             hint="How should the image be interpolated if/when rescaled")
 
     def writeInitCode(self,buff):
+        #do we need units code?
+        if self.params['units'].val=='from exp settings': unitsStr=""
+        else: unitsStr="units=%(units)s, " %self.params
+
         inits = getInitVals(self.params)#replaces variable params with defaults
-        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%(name)s',\n" %(inits))
+        buff.writeIndented("%(name)s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],unitsStr))
         buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
-        if self.params['units'].val!='window units': buff.write(", units=%(units)s" %(inits) )
+        if self.params['units'].val!='from exp settings': buff.write(", units=%(units)s" %(inits) )
         if self.params['interpolate']=='linear':
             buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
