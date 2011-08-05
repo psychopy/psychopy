@@ -5,7 +5,6 @@
 from _base import *
 from os import path
 from psychopy.app.builder.experiment import Param
-from psychopy.app.builder import inf # infinity
 import re
 
 __author__ = 'Jeremy Gray'

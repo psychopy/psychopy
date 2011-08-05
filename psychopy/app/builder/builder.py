@@ -16,7 +16,6 @@ from psychopy import data, log, misc, gui
 import re
 from psychopy.constants import *
 
-inf = FOREVER #see constants.py
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
 routineFlowColor=wx.Color(200,150,150, 255)
@@ -955,7 +954,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             #deduce duration (s) if possible. Duration used because box needs width
             if component.params['stopVal'].val in ['','-1','None']:
-                duration=inf#infinite duration
+                duration=FOREVER#infinite duration
             elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
                 duration=float(component.params['stopVal'].val)-startTime
             elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
@@ -1008,10 +1007,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         maxTime=0
         for n, component in enumerate(self.routine):
-            start, duration = self.getStartAndDuration(component)
-            try:thisT=start+duration#will fail if either value is not defined
-            except:thisT=0
-            maxTime=max(maxTime,thisT)
+            if component.params.has_key('startType'):
+                start, duration = self.getStartAndDuration(component)
+                if duration==FOREVER:
+                    continue#this shouldn't control the end of the time grid
+                try:thisT=start+duration#will fail if either value is not defined
+                except:thisT=0
+                maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
             maxTime=10
         return maxTime
@@ -1027,7 +1029,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         else: startTime=None
         #deduce duration (s) if possible. Duration used because box needs width
         if component.params['stopVal'].val in ['','-1','None']:
-            duration=inf#infinite duration
+            duration=FOREVER#infinite duration
         elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
             duration=float(component.params['stopVal'].val)-startTime
         elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
