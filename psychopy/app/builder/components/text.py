@@ -14,7 +14,7 @@ class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
     def __init__(self, exp, parentName, name='text',
                 text='Any text\n\nincluding line breaks',
-                font='Arial',units='window units', color='white', colorSpace='rgb',
+                font='Arial',units='from exp settings', color='white', colorSpace='rgb',
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -46,7 +46,7 @@ class TextComponent(VisualComponent):
             hint="Specifies the height of the letter (the width is then determined by the font)")
     def writeInitCode(self,buff):
         #do we need units code?
-        if self.params['units'].val=='window units': unitsStr=""
+        if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults

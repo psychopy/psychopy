@@ -9,7 +9,7 @@ from psychopy.app.builder.experiment import Param
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
-    def __init__(self, parentName, name='', units='window units', color='$[1,1,1]',
+    def __init__(self, parentName, name='', units='from exp settings', color='$[1,1,1]',
                 pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
                 startType='time (s)',startVal='',
                 stopType='duration (s)', stopVal='',
@@ -34,7 +34,7 @@ class VisualComponent(_base.BaseComponent):
             hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['name']=Param(name,  valType='code', updates='constant',
             hint="Name of this stimulus")
-        self.params['units']=Param(units, valType='str', allowedVals=['window units', 'deg', 'cm', 'pix', 'norm'],
+        self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
             hint="Units of dimensions for this stimulus")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
