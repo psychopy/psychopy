@@ -837,7 +837,8 @@ class Routine(list):
         buff.writeIndented('#keep track of which have finished\n')
         buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
         for thisCompon in self:
-            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
+            if thisCompon.params.has_key('startType'):
+                buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
         buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
         buff.writeIndented("    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED\n")
 
