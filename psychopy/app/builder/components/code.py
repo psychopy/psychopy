@@ -9,8 +9,9 @@ from psychopy.app.builder.experiment import Param
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'code.png')
 tooltip = 'Code: insert python commands into an experiment'
-# want a complete, ordered list of codeParams in Builder._BaseParamsDlg:
-codeParams = ['name', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']
+
+# want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
+codeParams = ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']
 
 class CodeComponent(BaseComponent):
     """An event class for inserting arbitrary code into Builder experiments"""
@@ -19,7 +20,7 @@ class CodeComponent(BaseComponent):
         self.url="http://www.psychopy.org/builder/components/code.html"
         self.exp=exp#so we can access the experiment if necess
         #params
-        self.order = codeParams
+        self.order = ['name'] + codeParams[:] # want a copy, else codeParam list gets mutated
         self.params={}
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="") #This name does not actually need to be independent of the others.
