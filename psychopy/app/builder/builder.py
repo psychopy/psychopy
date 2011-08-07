@@ -15,6 +15,8 @@ from psychopy.app import stdOutRich, dialogs
 from psychopy import data, log, misc, gui
 import re
 from psychopy.constants import *
+from tempfile import mkdtemp # to check code syntax
+import py_compile
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
@@ -1382,7 +1384,10 @@ class _BaseParamsDlg(wx.Dialog):
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
-        self.suppressTitles = suppressTitles
+        self.codeParams=['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine','End Experiment']
+        #self.codeParams = components.code.codeParams[:] # nice if it works, but subtle bug (mutable / immutable?)
+        #self.codeParams.pop(0) # remove 'name', always first
+        self.lastCode = {} # for changes in ext events in code boxes
 
         #create a header row of titles
         if not suppressTitles:
@@ -1540,6 +1545,12 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif fieldName=='Experiment info':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
+        elif fieldName in self.codeParams:
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
+            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
+            initLast = self.params[fieldName].val
+            self.lastCode[fieldName] = initLast
+            
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
@@ -1629,18 +1640,20 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_RIGHT)
             self.nameOKlabel.SetForegroundColour(wx.RED)
+        
         #add buttons for OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP)
-            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
-        self.checkName()
+        self.checkName() # disables OKbtn if bad name
+
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
@@ -1652,11 +1665,77 @@ class _BaseParamsDlg(wx.Dialog):
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
+
+        # run syntax check for a code component dialog:
+        valTypes = [self.params[param].valType for param in self.params.keys()
+                    if param in self.codeParams] # not configured to properly handle code fields except in code components
+        if 'code' in valTypes:
+            self.checkCodeSyntax()
+            helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
+
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+    def onTextEventCode(self, event=None):
+        """ process text events; the dialog grabs 'tab' before we can get it
+        """
+        self.getParams() # use current field values
+        # get fieldName from event based on finding diff length changed; got to be an easier way!
+        for param in self.codeParams:
+            if len(self.lastCode[param]) != len(self.params[param].val):
+                current = param
+                self.lastCode[param] = self.params[param].val
+                break
+        self.paramCtrls[current].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # white
+
+    def checkCodeSyntax(self, event=None):
+        """Checks syntax in each code box separately, sets background color to red
+        or green. Method: writes code to a file, if if you can py_compile it.
+        Not intended or suitable for high-freq repeated checking (eg every frome or
+        character, like checkName), ok for CPU but hits the disk every time;
+        manually triggered by user is fine (right-click).
+        
+        Maybe break this down into smaller units, with a syntax check done for one field.
+        That would make it reusable for str that wants to be code, via $
+        """
+        
+        # set all .val's to their current field values:
+        self.getParams()
+         
+        # better to use a StringIO.StringIO() than a tmp dir, couldnt work it out
+        self.tmp_dir = mkdtemp(prefix='psychopy-check-code-syntax')
+        goodSyntax = True
+        tmp = os.path.join(self.tmp_dir,'tmp')
+        for param in self.codeParams: # param is str
+            if self.params[param].valType != 'code':
+                continue
+            if not self.params[param].val.strip():
+                self.paramCtrls[param].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+                continue
+            f = open(tmp, 'w')
+            f.write(self.params[param].val)
+            f.close()
+            #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
+            try:
+                #py_compile.compile(f, doraise=True) # not happy with a StringIO.StringIO
+                py_compile.compile(tmp, doraise=True)
+                #self.paramCtrls[param].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255))
+                self.paramCtrls[param].valueCtrl.SetBackgroundColour(wx.Color(220,250,220, 255)) # green
+            except:
+                goodSyntax = False
+                self.paramCtrls[param].valueCtrl.SetBackgroundColour(wx.Color(250,220,220, 255)) # red
+                # need to capture stderr to get the msg, which has line number etc
+                #msg = py_compile.compile(tmp)
+                #self.nameOKlabel.SetLabel(str(msg))
+        if goodSyntax:
+            self.nameOKlabel.SetLabel("")
+        else:
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            self.nameOKlabel.SetLabel('syntax error')
+        # clean up tmp directory
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls

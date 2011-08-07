@@ -41,6 +41,7 @@ PsychoPy 1.70.00
 * ADDED emulate sync pulses and user key presses for fMRI or other scanners (for testing); see hardware/launchScan  
         API reference, and Coder demo > experimental control > fMRI_launchScan.py) (thanks Jeremy)
 * ADDED right-clicking the expInfo in Experiment Settings tests & previews the dialog box (Jeremy)
+* ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
 * IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
 * IMPROVED Flow view in the Builder, with zooming (thanks Jeremy)
