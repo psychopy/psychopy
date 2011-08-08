@@ -3,23 +3,25 @@
 Movie Component
 -------------------------------
 
-The Movie component allows movie files to be played from a variety of formats (e.g. mpeg). 
+The Movie component allows movie files to be played from a variety of formats (e.g. mpeg, avi, mov). 
 
 The movie can be positioned, rotated, flipped and stretched to any size on the screen (using the :doc:`../../general/units` given).
 
 Parameters
 ~~~~~~~~~~~~
 
-name : a string
+name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
     
-startTime : float or integer
-    The time (relative to the beginning of this Routine) that the stimulus should first appear.
+start :
+    The time that the stimulus should first appear. See :ref:`startStop` for details.
+    
+stop : 
+    Governs the duration for which the stimulus is presented (if you want to cut a movie short). 
+    Usually you can leave this blank and insert the `Expected` duration just
+    for visualisation purposes. See :ref:`startStop` for details.
 
-duration : float or integer
-    The duration for which the stimulus is presented.
-
-movie : a string
+movie : string
     The filename of the movie, including the path. The path can be absolute or relative to the location of the experiment (.psyexp) file.
 
 pos : [X,Y]

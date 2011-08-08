@@ -1,6 +1,7 @@
 from os import path
 from _base import *
 import os
+from psychopy import log
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -52,7 +53,7 @@ class SettingsComponent:
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
-            hint="A dictionary of info about the experiment, e.g. {'participant':001, 'session':001}") 
+            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.") 
         self.params['logging level']=Param(logging, valType='code', 
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")
@@ -61,9 +62,15 @@ class SettingsComponent:
     def getShortType(self):
         return self.getType().replace('Component','')
     def writeStartCode(self,buff):
-        buff.writeIndented("#store info about the experiment\n")
+        buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
-        buff.writeIndented("expInfo=%s\n" %self.params['Experiment info'])
+        expInfo = self.params['Experiment info'].val.strip()
+        if not len(expInfo): expInfo = '{}'
+        try: eval('dict('+expInfo+')')
+        except SyntaxError, err:
+            log.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
+            raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
+        buff.writeIndented("expInfo=%s\n" % expInfo)
         if self.params['Show info dlg'].val:            
             buff.writeIndented("dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)\n")
             buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")            
@@ -99,8 +106,12 @@ class SettingsComponent:
            for thisComp in thisRoutine: #a single routine is a list of components
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
-        size=self.params['Window size (pixels)']
+        
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
+        if fullScr:
+            size = wx.Display(screenNumber).GetGeometry()[2:4]
+        else:
+            size=self.params['Window size (pixels)']
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))

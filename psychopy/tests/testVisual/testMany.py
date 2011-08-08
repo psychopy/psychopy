@@ -19,22 +19,35 @@ class _baseVisualTest:
         self.win=None
         self.contextName
         raise NotImplementedError
-    @classmethod
-    def tearDownClass(self):#run once for each test class (window)
-        self.win.close()#shutil.rmtree(self.temp_dir)
+    #@classmethod
+    #def tearDownClass(self):#run once for each test class (window)
+    #    self.win.close()#shutil.rmtree(self.temp_dir)
     def setup(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
+    def testAutoDraw(self):
+        win = self.win
+        stims=[]
+        stims.append(visual.PatchStim(win))
+        stims.append(visual.ShapeStim(win))
+        stims.append(visual.TextStim(win))
+        for stim in stims:
+            assert stim.status==visual.NOT_STARTED
+            stim.setAutoDraw(True)
+            assert stim.status==visual.STARTED
+            stim.setAutoDraw(False)
+            assert stim.status==visual.FINISHED
+            assert stim.status==visual.STOPPED
     def testGabor(self):
         win = self.win
         contextName=self.contextName
         #using init
         gabor = visual.PatchStim(win, mask='gauss', ori=-45,
-            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
             sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
             interpolate=True)
         gabor.draw()
-        utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
         win.flip()#AFTER compare screenshot
         #using .set()
         gabor.setOri(45)
@@ -43,7 +56,7 @@ class _baseVisualTest:
         gabor.setSF(0.2/self.scaleFactor, '+')
         gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
         gabor.draw()
-        utils.compareScreenshot('data/gabor2_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor2_%s.png' %(contextName), win)
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
     #    win=self.win
@@ -58,25 +71,22 @@ class _baseVisualTest:
     #    grating = filters.makeGrating(256, ori=135, cycles=cycles)
     #    gabor = filters.maskMatrix(grating, shape='gauss')
     #    stim = visual.PatchStim(win, tex=gabor,
-    #        pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor], 
+    #        pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
     #        sf=1.0/size, size=size,
     #        interpolate=True)
     #    stim.draw()
-    #    utils.compareScreenshot('data/gabor1_%s.png' %(contextName), win)
+    #    utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
     def testText(self):
         win = self.win
         contextName=self.contextName
         #set font
-        if win.winType=='pygame':
-            if sys.platform=='win32': font = 'times'
-            else:font = '/Library/Fonts/Times New Roman.ttf'
-        else: font = 'Times New Roman'
+        font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
-            height=0.8*self.scaleFactor, pos=[0,0], font=font) 
+            height=0.8*self.scaleFactor, pos=[0,0], font=font)
         stim.draw()
-        #compare with a LIBERAL criterion (fonts do differ) 
-        utils.compareScreenshot('data/text1_%s.png' %(contextName), win, crit=40)
+        #compare with a LIBERAL criterion (fonts do differ)
+        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=40)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
@@ -87,37 +97,36 @@ class _baseVisualTest:
         stim.setPos([-0.5,0.5],'+')
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('data/text2_%s.png' %(contextName), win, crit=30)
+        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=30)
+
     def testMov(self):
         win = self.win
         if self.win.winType=='pygame':
             raise nose.plugins.skip.SkipTest("movies only available for pyglet backend")
         win.flip()
         contextName=self.contextName
-        #try to find test movie file
-        fileName = 'testMovie.mp4'
-        for prepend in ['','..','data','../data']:
-            f = os.path.join(prepend, fileName)
-            if os.path.isfile(f): fileName=f
-        #check if any file was found
+        #construct full path to the movie file
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
+        #check if present
         if not os.path.isfile(fileName):
-            raise IOError, 'Could not find movie file: %s' %os.path.abspath(fileName)
+            raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         mov = visual.MovieStim(win, fileName)
         for frameN in range(10):
             mov.draw()
             win.flip()
+
     def testShape(self):
         win = self.win
         contextName=self.contextName
-        
-        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0, 
-            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004], 
-            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]], 
+
+        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
+            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
+            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]],
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('data/shape1_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=10.0)
     def testRadial(self):
         win = self.win
         contextName=self.contextName
@@ -125,7 +134,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        utils.compareScreenshot('data/wedge1_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
         #using .set()
         wedge.setOri(180)
@@ -133,12 +142,12 @@ class _baseVisualTest:
         wedge.setRadialPhase(0.1,operation='+')
         wedge.setAngularPhase(0.1)
         wedge.draw()
-        utils.compareScreenshot('data/wedge2_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge2_%s.png' %(contextName), win, crit=10.0)
     def testDots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
         contextName=self.contextName
-        #using init        
+        #using init
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
             nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1*self.scaleFactor,
             dotLife=5, #number of frames for each dot to be drawn
@@ -157,11 +166,11 @@ class _baseVisualTest:
         dots.setSpeed(0.1*self.scaleFactor)
         dots.draw()
         #check that things changed
-        nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0, 
+        nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0,
             msg="dots._dotsDir failed to change after dots.setDir():")
-        nose.tools.assert_false(prevSignals.sum()==dots._signalDots.sum(), 
+        nose.tools.assert_false(prevSignals.sum()==dots._signalDots.sum(),
             msg="dots._signalDots failed to change after dots.setCoherence()")
-        nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered), 
+        nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered),
             msg="dots._fieldPosRendered failed to change after dots.setPos()")
     def testElementArray(self):
         win = self.win
@@ -178,7 +187,7 @@ class _baseVisualTest:
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
             sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
-        utils.compareScreenshot('data/elarray1_%s.png' %(contextName), win)
+        utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
     def testAperture(self):
         win = self.win
         contextName=self.contextName
@@ -190,23 +199,23 @@ class _baseVisualTest:
         grating.setOri(90)
         grating.setColor('black')
         grating.draw()
-        utils.compareScreenshot('data/aperture1_%s.png' %(contextName), win)
+        utils.compareScreenshot('aperture1_%s.png' %(contextName), win)
         #aperture should automatically disable on exit
     def testRatingScale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
         win.flip()
         rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
-                        lowAnchorText=' ', highAnchorText=' ', scale=' ', 
+                        lowAnchorText=' ', highAnchorText=' ', scale=' ',
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
-        utils.compareScreenshot('data/ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
+        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def testRefreshRate(self):
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
         nose.tools.ok_(1000/150.0 < msPFavg < 1000/40.0, "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg)
-        
+
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
     @classmethod
@@ -305,11 +314,11 @@ class TestPygameDeg(_baseVisualTest):
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
-        
+
 if __name__ == "__main__":
     argv = sys.argv
     argv.append('--verbosity=3')
-    if 'cover' in argv: 
+    if 'cover' in argv:
         argv.remove('cover')
         argv.append('--with-coverage')
         argv.append('--cover-package=psychopy')

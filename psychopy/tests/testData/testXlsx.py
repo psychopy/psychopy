@@ -31,12 +31,15 @@ class TestXLSX:
             actWS = actBook.worksheets[wsN]
             for key, expVal in expWS._cells.items():
                 actVal = actWS._cells[key]
-                try:#convert to float if possible (to get around 2.15E-2 probs)
+                try:
+                    # convert to float if possible and compare with a reasonable
+                    # (default) precision
                     expVal.value = float(expVal.value)
+                    nose.tools.assert_almost_equals(expVal.value,
+                                                    float(actVal.value))
                 except:
-                    pass
-                nose.tools.eq_(expVal.value, actVal.value, 
-                    msg="expected %s but got %s" %(expVal.value, actVal.value))
+                    # otherwise do precise comparison
+                    nose.tools.assert_equal(expVal.value, actVal.value)
 
 def testTrialTypeImport():
     fromCSV = data.importTrialList(os.path.join(thisDir, 'trialTypes.csv'))

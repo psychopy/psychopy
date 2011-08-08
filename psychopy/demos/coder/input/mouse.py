@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core, event, misc
 """
 As of version 1.51 the mouse coordinates for
     myMouse.getPos()

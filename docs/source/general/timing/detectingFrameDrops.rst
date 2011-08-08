@@ -55,7 +55,7 @@ The above will save the currently stored frame intervals (using the default file
 
 At any time you can also retrieve the time of the /last/ frame flip using win.lastFrameT (the time is synchronised with log.defaultClock so it will match any logging commands that your script uses).
 
-_blockingOnVBI:
+.. _blockingOnVBI:
 
 'Blocking' on the VBI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

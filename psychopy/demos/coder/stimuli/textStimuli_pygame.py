@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core, event
 import sys
 
 #create a window to draw in
@@ -12,6 +12,14 @@ if sys.platform=='win32':
     sans = 'arial' #on windows you can use short names for any system fonts
     serif = 'c:\\windows\\fonts\\timesi.ttf' #times in (genuine) italic
     comic = 'c:\\windows\\fonts\\comic.ttf' #comic
+elif sys.platform.startswith('linux'):
+    # Note: paths are for Debian-based systems and using the fonts from
+    #       ttf-sil-gentium-basic and ttf-dejavu-core from Debian main and
+    #       use ttf-mscorefonts-installer from contrib for Comic font
+    fancy = '/usr/share/fonts/truetype/ttf-sil-gentium-basic/GenBkBasI.ttf'
+    sans = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf'
+    serif = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif.ttf'
+    comic = '/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS.ttf'
 else:
     #Note that you must have a *.ttf font matching these names/paths
     #You can download ttf fonts free at http://www.webpagepublicity.com/free-fonts.html

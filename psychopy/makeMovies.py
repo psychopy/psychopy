@@ -5,15 +5,15 @@
 """
 Not for users. To create a movie use win.getMovieFrame() and then win.saveMovieFrames(filename)
 
-Many thanks to Ray Pascor (pascor at hotpop.com) for the public domain code on 
-building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette are 
+Many thanks to Ray Pascor (pascor at hotpop.com) for the public domain code on
+building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette are
 very heavily based on his code).
 """
 from psychopy import log
 import string, time, tempfile, os, glob
 import Image, ImageChops
 from GifImagePlugin import getheader, getdata #part of PIL
-try: 
+try:
     import pymedia.video.vcodec as vcodec
     havePyMedia=True
 except:
@@ -23,9 +23,9 @@ try:
     haveQT=True
 except:
     haveQT=False
-    
+
 import numpy
-    
+
 
 # --------------------------------------------------------------------
 # straightforward delta encoding
@@ -37,13 +37,13 @@ def makeAnimatedGIF(filename, images):
     frames = 0
     previous=None
     fp = open(filename, 'wb')
-    if images[0].mode in ['RGB','RGBA']: 
+    if images[0].mode in ['RGB','RGBA']:
         #first make an optimised palette
         optimPalette=makePalette(images, verbose=True)
-        
+
     for n, im in enumerate(images):
         print 'converting frame %i of %i to GIF' %(n+1,len(images))
-        if im.mode=='RGB': 
+        if im.mode=='RGB':
             im = rgb2palette(im, palette=optimPalette, verbose=False)
         if not previous:
             # global header
@@ -60,7 +60,7 @@ def makeAnimatedGIF(filename, images):
             else:
                 for s in getdata(im):
                     fp.write(s)
-                    
+
         previous = im.copy()
         frames = frames + 1
     fp.write(";")
@@ -75,11 +75,11 @@ def RgbHistogram (images, verbose=False):
 
     #make a list if given only one image
     if type(images)== type([]):
-        nImages = len(images)        
+        nImages = len(images)
     else:
         nImages=1
         images= [images]
-        
+
     # Form a histogram dictionary whose keys are the repr(color)
     if verbose:    print 'optimising palette ...'
     datalist=[]
@@ -145,15 +145,15 @@ def Getalphaindex (imgP, maskinv):
 def makePalette(images, verbose=False):
     palette = []                        # will be [0, 0, 0, ... 255, 255, 255]
     for i in xrange (256):
-        palette.append (i); palette.append (i); palette.append (i) 
+        palette.append (i); palette.append (i); palette.append (i)
     #end for
-    
+
     hist = RgbHistogram (images, verbose=verbose)
     #check for alpha in one of the images
     if type(images)==type([]):
         img = images[0]
     else: img = images
-    
+
     if hist == None: # colors > 256:  use PIL dithered image & palette
         palette=None
     else:
@@ -165,12 +165,12 @@ def makePalette(images, verbose=False):
                 r, g, b, a = hist [i][1]            # pick off the color tuple
             else:
                 r, g, b = hist [i][1]               # pick off the color tuple
-            #end if    
+            #end if
             palette [i*3 + 0] = r
             palette [i*3 + 1] = g
             palette [i*3 + 2] = b
     return palette
-    
+
 def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "RGBA"
     """
     Converts an RGB image to a palettised version (for saving as gif).
@@ -200,7 +200,7 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     # any "excess" colors with be transformed later to the closest palette match
     if palette==None:
         palette=makePalette(imgRgb)
-    
+
     numPalette= numpy.reshape(numpy.asarray(palette), [256,3])
     listPalette = numPalette.tolist()
     imgP = Image.new ('P', size)            # Create a brand new paletted image
@@ -219,14 +219,14 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     for yord in xrange (ysize):
         for xord in xrange (xsize):
             pxlcolor = list(datalist [yord*xsize + xord])     # org image color tuple
-            
+
             if pxlcolor in listPalette:
                 index = listPalette.index(list(pxlcolor))
             else: index=0
             #paletteindex = colorsAndIndices [index] [1]     # a simple lookup
 
             imgP.putpixel ((xord, yord), index)
-            
+
     if hasalpha:
         indexleastused, leastcount = Getalphaindex (imgP, maskinv)
         if verbose:
@@ -245,16 +245,16 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
     if not havePyMedia:
         log.error('pymedia (www.pymedia.org) needed to make mpeg movies')
         return 0
-    
+
     fw= open( filename, 'wb' )
-    t= time.time()	
-    
+    t= time.time()
+
     #set bitrate
     if codec== 'mpeg1video':
         bitrate= 2700000
     else:
         bitrate= 9800000
-        
+
     #set other params (or receive params dictionary)
     if codecParams == None:
         codecParams= { \
@@ -270,9 +270,9 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
             'id': vcodec.getCodecID( codec )
             }
         log.info('Setting codec to ' + str(codecParams))
-    encoder= vcodec.Encoder( codecParams )    
-    
-    for im in images:	    
+    encoder= vcodec.Encoder( codecParams )
+
+    for im in images:
         # Create VFrame
         imStr = im.tostring()
         bmpFrame= vcodec.VFrame( vcodec.formats.PIX_FMT_RGB24, im.size, (imStr,None,None))
@@ -286,7 +286,7 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
         log.info('%d frames written in %.2f secs' % ( len(images), time.time()- t))
         i= 0
     fw.close()
-    
+
 
 qtCodecQuality= {
   'lossless':   0x00000400,
@@ -300,19 +300,19 @@ qtCodecQuality= {
 
 class QuicktimeMovie(object):
     """A class to allow creation of Quicktime movies (OS X only).
-    
+
     These might be from frames provided by a PsychoPy `psychopy.visual.Window`, by
     sequences of numpy arrays or from image frames (jpg, png etc.) on a disk.
-    
+
     """
     def __init__(self, filename=None, fps=30):
         """
         :Parameters:
-            
+
             filename: a string giving the name of the file. If None then you can set a filename during save()
-            
+
             fps: the number of frames per second, to be used throughout the movie
-            
+
         """
         if not haveQT:
             raise ImportError("Quicktime movies can only be created under OSX and require QTKit and AppKit to be installed")
@@ -323,18 +323,18 @@ class QuicktimeMovie(object):
         self._movTmpFileName=None#we need a physical temp file to build the frames up?
     def addFrame(self, frame, duration=1):
         """Add a frame to the movie, from an image filename (anything that PIL can read)
-        
+
         :Parameters:
-            
+
             frame: can be;
-                
+
                 - an image filename (including path)
                 - a numpy array
                 - a PIL image
                 - a `psychopy.visual.Window` movie frame (from win.getMovieFrame())
-            
+
             duration: the length of time this frame should be displayed (in units of frame)
-                
+
         """
         if self.movie is None:
             self._movTmpFileName=os.path.join(tempfile.gettempdir(), 'psychopyTmp.mov')#could this line fail if no permissions?
@@ -347,7 +347,7 @@ class QuicktimeMovie(object):
                 print str(err)
             self.movie.setEditable_(True)
 #            self.movie.setLoops_(True)#makes no difference - probably needs to be set in the export settings
-            
+
         #we now have an NSImage of the frame, so add it
         frameAttrs =  {QTKit.QTAddImageCodecType:'jpeg',# see QTKitdefines.h for compression options. These affect the size of the temp file
                                 QTKit.QTAddImageCodecQuality:qtCodecQuality['max']}
@@ -375,7 +375,7 @@ class QuicktimeMovie(object):
         del img
         os.remove(tmpFileName)
         self.frameN += 1
-        
+
     def save(self, filename=None, compressed=True):
         """Save the movie to the self.filename or to a new one if given
         """

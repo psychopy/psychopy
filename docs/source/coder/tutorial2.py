@@ -24,7 +24,7 @@ dataFile.write('targetSide,oriIncrement,correct\n')
 staircase = data.StairHandler(startVal = 20.0,
                           stepType = 'db', stepSizes=[8,4,4,2,2,1,1],
                           nUp=1, nDown=3,  #will home in on the 80% threshold
-                          nTrials=50)
+                          nTrials=1)
                           
 #create window and stimuli
 win = visual.Window([800,600],allowGUI=True, monitor='testMonitor', units='deg')
@@ -91,10 +91,19 @@ for thisIncrement in staircase: #will step through the staircase
 dataFile.close()
 staircase.saveAsPickle(fileName) #special python binary file to save all the info
 
-#give some output to user
+#give some output to user in the command line in the output window
 print 'reversals:'
 print staircase.reversalIntensities
 print 'mean of final 6 reversals = %.3f' %(numpy.average(staircase.reversalIntensities[-6:]))
+
+#give some on screen feedback
+feedback1 = visual.TextStim(win, pos=[0,+3],
+    text='mean of final 6 reversals = %.3f' %
+(numpy.average(staircase.reversalIntensities[-6:])))
+feedback1.draw()
+fixation.draw()
+win.flip() 
+event.waitKeys() #wait for participant to respond
 
 win.close()
 core.quit()

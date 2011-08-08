@@ -34,6 +34,8 @@
     allowGUI = boolean(default='True')
     # 'version' is for internal usage, not for the user
     version = string(default='')
+    # Add paths here to your custom Python modules
+    paths=list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -45,17 +47,13 @@
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # best leave this mysterious setting as 'process'
     runScripts = option('process', 'thread', 'inline', default='process')
-    # on win32 only, we can allow module imports for analysis of code
-    
-    # should common libs be imported during launch
-    importLibs = option('none', 'thread', 'inline', default='none')
     # will reset site & key prefs to defaults immediately
     resetSitePrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-  
+
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
@@ -69,14 +67,10 @@
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=12)
     showSourceAsst = boolean(default=False)
-    analysisLevel = integer(0,10,default=1)
-    analyseAuto = boolean(default=True)
     showOutput = boolean(default=True)
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
-    # Debug mode: default unit tests
-    testSubset = string(default='')
 
 # Settings for the Builder window
 [builder]
@@ -90,10 +84,10 @@
     hiddenComponents = list(default=list())
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
-    # in Builder Flow panel, display # repetitions and order for loops
-    showLoopInfoInFlow = boolean(default=False)
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
+    # Panels arrangement: topFlow = Flow on top, Components on left
+    topFlow = boolean(default=False)
 
 # Settings for connections
 [connections]
@@ -164,7 +158,7 @@
     # Coder: show / hide end of line characters
     toggleEOLs = string(default='Ctrl+Shift+L')
     toggleIndentGuides = string(default='Ctrl+Shift+I')
-    
+
     # Builder: create a new routine
     newRoutine = string(default='Ctrl+Shift+N')
     # Builder: copy an existing routine
@@ -177,3 +171,7 @@
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
+    # increase display size in Flow
+    largerSize = string(default='Ctrl+=')
+    # decrease display size in Flow
+    smallerSize = string(default='Ctrl+-')

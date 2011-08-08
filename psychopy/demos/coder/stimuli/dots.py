@@ -15,7 +15,7 @@ dotPatch =visual.DotStim(myWin, color=(1.0,1.0,1.0), dir=270,
 message =visual.TextStim(myWin,text='Hit Q to quit',
     pos=(0,-0.5))
 trialClock =core.Clock()
-while True:#quits after 20 secs
+while True:#forever
     dotPatch.draw()
     message.draw()
     myWin.flip()#redraw the buffer

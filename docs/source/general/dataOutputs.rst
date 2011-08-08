@@ -18,6 +18,8 @@ PsychoPy data file (.psydat)
 ------------------------------------
 This is actually a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler` object that has been saved to disk with the python `cPickle <http://docs.python.org/library/pickle.html#module-cPickle>`_ module.
 
+These files are designed to be used by experienced users with previous experience of python and, probably, matplotlib. The contents of the file can be explored with dir(), as any other python object. 
+
 These files are ideal for batch analysis with a python script and plotting via `matplotlib`. They contain more information than the Excel or csv data files, and can even be used to (re)create those files. 
 
 Of particular interest might be the attributes of the Handler:
@@ -38,6 +40,8 @@ For example, to open a psydat file and examine some of its contents with::
     for condN, condition in enumerate(conditions):
         print condition, datFile.data['response'][condN], numpy.mean(datFile.data['response'][condN])
 
+Ideally, we should provide a demo script here for fetching and plotting some data feel (free to :ref:`contribute <contribute>`).
+		
 .. _excelFile:
 
 Excel data file
@@ -55,4 +59,4 @@ Builder experiments user the participant name as the file name and then create a
 
 Delimited text files (.dlm, .csv)
 -------------------------------------------------
-For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimitted text file. Typically this would be comma-separated values (.csv file) or tab-delimmited (.dlm file). The format of those files is exactly the same as the Excel file, but is limitted by the file format to a single sheet.
+For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimitted text file. Typically this would be comma-separated values (.csv file) or tab-delimited (.dlm file). The format of those files is exactly the same as the Excel file, but is limited by the file format to a single sheet.

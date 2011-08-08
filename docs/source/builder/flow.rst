@@ -8,21 +8,25 @@ In the Flow panel a number of :doc:`Routines </builder/routines>` can be combine
 Adding Routines
 ~~~~~~~~~~~~~~~~~
 
-The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add and where to add it. To select the location choose the number (being shown in small black disks on the timeline) that corresponds to the location for your :doc:`Routine </builder/routines>`. Note that the numbers do not represent physical units of time (e.g. seconds), merely an ordering.
+The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add. To select the location move the mouse to the section of the flow where you wish to add it and click on the black disk.
 
 .. _loops:
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above) using numbers to indicate the entry points on the time line. Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
+Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above). Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
 
 As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
+
+It is usually best to use trial information that is contained in an external file (.xlsx or .csv). When inserting a `loop` into the `flow` you can browse to find the file you wish to use for this. An example of this kind of file can be found in the Stroop demo (trialTypes.xlsx). The column names are turned into variables (in this case text, letterColor, corrAns and congruent), these can be used to define parameters in the loop by putting a $ sign before them e.g. `$text`.
+
+As the column names from the input file are used in this way they must have legal variable names i.e. they must be unique, have no punctuation or spaces (underscores are ok) and must not start with a digit.
 
 .. _trialTypes:
 
 Method of Constants
 ^^^^^^^^^^^^^^^^^^^^^
-Selecting a loop type of `random` or `sequential` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv`) file in which columns refer to parameters that are needed to describe stimuli etc and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. The top row should give headers; text labels describing the contents of that column (which must also not include spaces or other characters other than letters, numbers or underscores). For example, a file containing the following table::
+Selecting a loop type of `random`, `sequential`, or `fullRandom` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. That is, the trials cannot vary depending on how the subject has responded on a previous trial. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv`) file in which columns refer to parameters that are needed to describe stimuli etc and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. (Note that csv files can also be generated using most text editors, as long as they allow you to save the file as "plain text"; other output formats will *not* work, including "rich text".) The top row should be a row of headers: text labels describing the contents of the respective columns. (Headers must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment.) For example, a file containing the following table::
 
   ori	text	corrAns
   0	aaa	left
@@ -30,13 +34,24 @@ Selecting a loop type of `random` or `sequential` will result in a :term:`method
   0	bbb	right
   90	bbb	right
 
-would represent 4 different conditions (trial types) with parameters ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
+would represent 4 different conditions (or trial types, one per line). The header line describes the parameters in the 3 columns: ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
 
-If the loop type is `sequential` then, on each iteration of the :ref:`routines`, the next row will be selected in order, whereas under the `random` type the next row will be selected randomly. `nReps` determines how many repeats will be performed (for all conditions). All conditions will be presented once before the second repeat etc.
+If the loop type is `sequential` then, on each iteration through the :ref:`routines`, the next row will be selected in the order listed in the file. Under a `random` order, the next row will be selected at random (without replacement); it can only be selected again after all the other rows have also been selected. `nReps` determines how many repeats will be performed (for all conditions). The total number of trials will be the number of conditions (= number of rows in the file, not counting the header row) times the number of repetitions, `nReps`. With the `fullRandom` option, the entire list of trials including repetitions is used in random order, allowing the same item to appear potentially many times in a row, and to repeat without necessarily having done all of the other trials. For example, with 3 repetitions, a file of trial types like this::
+
+  letter
+  a
+  b
+  c
+
+could result in the following possible sequences. `sequential` could only ever give one sequence with this order: [a b c a b c a b c]. `random` will give one of 216 different orders (= 3! * 3! * 3! = nReps * (nTrials!) ), for example: [b a c a b c c a b]. Here the letters are effectively in sets of (abc) (abc) (abc), and randomization is only done within each set, ensuring (for example) that there are at least two a's before the subject sees a 3rd b. Finally, `fullRandom` will return one of 362,880 different orders (= 9! = (nReps * nTrials)! ), such as [b b c a a c c a b], which `random` never would. There are no longer mini-blocks or "sets of trials" within the longer run. This means that, by chance, it would also be possible to get a very un-random-looking sequence like [a a a b b b c c c].
+
+It is possible to achieve any sequence you like, subject to any constraints that are logically possible. To do so, in the file you specify every trial in the desired order, and the for the loop select `sequential` order and nReps=1.
+
+.. _staircaseMethods:
 
 Staircase methods
 ^^^^^^^^^^^^^^^^^^^
-The loop type `staircase` allows the implementation of simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
+The loop type `staircase` allows the implementation of adaptive methods. That is, aspects of a trial can depend on (or "adapt to") how a subject has responded earlier in the study. This could be, for example, simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters, or a stop-signal paradigm to assess impulsivity. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
 
 .. _accessingParams:
 

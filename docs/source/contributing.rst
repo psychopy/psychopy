@@ -31,7 +31,7 @@ The easiest way to help the project is to write to the forum (mailing list) with
 *For documentation suggestions* please try to provide actual replacement text. You, as a user, are probably better placed to write this than the actual developers (they know too much to write good docs)!
 
 *If you're having problems*, e.g. you think you may have found a bug:
-    - take a look at the :ref:`troubleshooting` first
+    - take a look at the :ref:`troubleshooting` and :ref:`gotchas` first
     - submit a message with as much information as possible about your system and the problem
     - please try to be precise. Rather than say "It didn't work" try to say what what specific form of "not working" you found (did the stimulus not appear? or it appeared but poorly rendered? or the whole application crashed?!)
     - if there is an error message, try to provide it completely

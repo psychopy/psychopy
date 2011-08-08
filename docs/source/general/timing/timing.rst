@@ -19,5 +19,5 @@ Contents:
    
    detectingFrameDrops
    reducingFrameDrops
-   synchronisingInfMRI
-   synchronisingInEEG
+   .. synchronisingInfMRI
+   .. synchronisingInEEG

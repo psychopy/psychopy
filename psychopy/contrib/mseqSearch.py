@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-%		Maximum length sequence assuming distinct values = baseVal
+%        Maximum length sequence assuming distinct values = baseVal
 %
 % original matlab code (C) Written by Giedrius T. Buracas, SNL-B, Salk Institute 
 %                                 and Center for Functional MRI, UCSD
@@ -26,7 +26,7 @@ from command line:
   
 --------------------------------------------------------------------------------
 
-%		Maximum length sequence assuming distinct values = baseVal
+%        Maximum length sequence assuming distinct values = baseVal
 %
 %       [ms]=mseqSearch(powerVal,baseVal)
 %
@@ -35,7 +35,7 @@ from command line:
 %              such that all values occur with equal frequency except zero
 %
 %       INPUT:
-%		  baseVal:  any prime number up to 31
+%          baseVal:  any prime number up to 31
 %         powerVal: an integer
 %       NB: the algorithm is performing search in m-sequence register space
 %         so the calculation time grows with baseVal and powerVal

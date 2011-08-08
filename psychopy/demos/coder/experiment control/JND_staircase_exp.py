@@ -34,7 +34,8 @@ message2 = visual.TextStim(win, pos=[0,-3], text="Then press left or right to id
 
 #create the staircase handler
 staircase = data.StairHandler(startVal = 20.0,
-                          stepType = 'db', stepSizes=[8,4,4,2,2,1,1], #reduce step size every two reversals
+                          stepType = 'lin', stepSizes=[8,4,4,2,2,1,1], #reduce step size every two reversals
+                          minVal=0, maxVal=90,
                           nUp=1, nDown=3,  #will home in on the 80% threshold
                           nTrials=50)
 

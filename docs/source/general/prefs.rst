@@ -80,7 +80,7 @@ reloadPrevFiles:
 
 Builder settings
 ---------------------------
-`reloadPrevExp` (default=False):
+reloadPrevExp (default=False):
     for the user to add custom components (comma-separated list)
     
 componentsFolders:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-%		Maximum length sequence assuming 2,3,5 distinct values
+%        Maximum length sequence assuming 2,3,5 distinct values
 %
 % original matlab code (C) Written by Giedrius T. Buracas, SNL-B, Salk Institute 
 %                                 and Center for Functional MRI, UCSD
@@ -25,7 +25,7 @@ run tests with:
   
 --------------------------------------------------------------------------------
 
-%		Maximum length sequence assuming 2,3,5 distinct values
+%        Maximum length sequence assuming 2,3,5 distinct values
 %
 %       [ms]=MSEQ(baseVal,powerVal[,shift,whichSeq])
 %
@@ -33,11 +33,11 @@ run tests with:
 %       ms = generated maximum length sequence, of length basisVal^powerVal-1
 %
 %       INPUT:
-%		  baseVal  -nuber of sequence levels (2,3, or 5 allowed)
-%		  powerVal -power, so that sequence length is baseVal^powerVal-1
-%		  shift    -cyclical shift of the sequence
-%		  whichSeq -sequence istantiation to use 
-%		  (numer of sequences varies with powerVal - see the code)
+%          baseVal  -nuber of sequence levels (2,3, or 5 allowed)
+%          powerVal -power, so that sequence length is baseVal^powerVal-1
+%          shift    -cyclical shift of the sequence
+%          whichSeq -sequence istantiation to use 
+%          (numer of sequences varies with powerVal - see the code)
 %
 % (c) Giedrius T. Buracas, SNL-B, Salk Institute
 % Register values are taken from: WDT Davies, System Identification
