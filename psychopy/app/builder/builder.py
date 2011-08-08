@@ -1670,10 +1670,11 @@ class _BaseParamsDlg(wx.Dialog):
         self.SetSizerAndFit(self.mainSizer)
 
         # run syntax check for a code component dialog:
-        valTypes = [self.params[param].valType for param in self.params.keys()
-                    if param in self.codeParamNames] # not configured to properly handle code fields except in code components
-        if 'code' in valTypes:
-            self.checkCodeSyntax()
+        if hasattr(self, 'codeParamNames'):
+            valTypes = [self.params[param].valType for param in self.params.keys()
+                        if param in self.codeParamNames] # not configured to properly handle code fields except in code components
+            if 'code' in valTypes:
+                self.checkCodeSyntax()
 
         #do show and process return
         retVal = self.ShowModal()
