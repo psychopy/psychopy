@@ -1699,9 +1699,9 @@ class _BaseParamsDlg(wx.Dialog):
         fieldName = self.codeFieldNameFromID[event.GetId()]
         val = self.paramCtrls[fieldName].getValue()
         pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
-        if val[pos-1] != "\n": # only do syntax check at end of line
+        if pos >= 1 and val[pos-1] != "\n": # only do syntax check at end of line
             self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
-        elif val[pos-2] != ":": # ... but skip the check if end of line is colon
+        elif pos >= 2 and val[pos-2] != ":": # ... but skip the check if end of line is colon
             self._setNameColor(self._testCompile(fieldName))
     def _testCompile(self, fieldName):
         """checks code.val for legal python syntax, sets field bg color, returns status
@@ -1714,7 +1714,7 @@ class _BaseParamsDlg(wx.Dialog):
         tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
         tmpFile = os.path.join(tmpDir, 'tmp')
         val = self.paramCtrls[fieldName].getValue() # better than getParams(), which sets them, messes with cancel
-        f = open(tmpFile, 'w')
+        f = codecs.open(tmpFile, 'w', 'utf-8')
         f.write(val)
         f.close()
         #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
