@@ -536,7 +536,7 @@ def _getUserNameUID():
     uid = '-1' 
     try:
         if sys.platform not in ['win32']:
-            uid = os.popen('id -u').read()
+            uid = core.shellCall('id -u')
         else:
             try:
                 uid = '1000'

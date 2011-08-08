@@ -46,7 +46,8 @@ import sys, os, threading, time, platform
 uid = '-1' # -1=undefined, 0=assumed to be root, 500+ = non-root (1000+ for debian-based?)
 try:
     if sys.platform not in ['win32']:
-        uid = os.popen('id -u').read()
+        from psychopy.core import shellCall
+        uid = shellCall('id -u')
     else:
         try:
             import ctypes # only if necessary
@@ -54,7 +55,7 @@ try:
             if ctypes.windll.shell32.IsUserAnAdmin():
                 uid = '0'
         except:
-            raise
+            pass
 except:
     pass
 uidRootFlag = '.'
