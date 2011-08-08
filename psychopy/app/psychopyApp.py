@@ -42,11 +42,19 @@ import wx
 from psychopy import preferences, log#needed by splash screen for the path to resources/psychopySplash.png
 import sys, os, threading, time, platform
 
+"""
+knowing if the user has admin priv is generally a good idea, but not actually needed.
+something below is messing with the unit-tests, probably subprocess; os.popen worked ok
 # get UID early; psychopy should never need anything except plain-vanilla user
 uid = '-1' # -1=undefined, 0=assumed to be root, 500+ = non-root (1000+ for debian-based?)
 try:
     if sys.platform not in ['win32']:
-        uid = os.popen('id -u').read()
+        #from psychopy.core import shellCall # messed with tests -- could not select a test (!?!)
+        import subprocess, shlex
+        #uid = shellCall('id -u')
+        proc = subprocess(shlex('id -u'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        uid, err = proc.communicate()
+        del proc
     else:
         try:
             import ctypes # only if necessary
@@ -54,12 +62,13 @@ try:
             if ctypes.windll.shell32.IsUserAnAdmin():
                 uid = '0'
         except:
-            raise
+            pass
 except:
     pass
+"""
 uidRootFlag = '.'
-if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu
-    uidRootFlag = '!'
+#if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu
+#    uidRootFlag = '!'
 
 
 class PsychoSplashScreen(wx.SplashScreen):

@@ -35,11 +35,15 @@ PsychoPy 1.70.00
 * ADDED a preference setting for adding custom path locations to Standalone PsychoPy
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
+* ADDED option for full randomization of repeated lists (loop type 'fullRandom') (Jeremy)
 * ADDED builder icons can now be small or large (in prefs)
 * ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
-* ADDED hardware/scanEmulator (see API reference) to emulate fMRI or other scanners for testing (thanks Jeremy)
-* ADDED if you right-click the expInfo in Experiment Settings you'll get a test of the dialog box
+* ADDED emulate sync pulses and user key presses for fMRI or other scanners (for testing); see hardware/launchScan  
+        API reference, and Coder demo > experimental control > fMRI_launchScan.py) (thanks Jeremy)
+* ADDED right-clicking the expInfo in Experiment Settings tests & previews the dialog box (Jeremy)
+* ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
+* IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
 * IMPROVED Flow view in the Builder, with zooming (thanks Jeremy)
 * FIXED demos now unpack to an empty folder (thanks Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
