@@ -42,8 +42,8 @@ class TestXLSX:
                     nose.tools.assert_equal(expVal.value, actVal.value)
 
 def testTrialTypeImport():
-    fromCSV = data.importTrialList(os.path.join(thisDir, 'trialTypes.csv'))
-    fromXLSX = data.importTrialList(os.path.join(thisDir, 'trialTypes.xlsx'))
+    fromCSV = data.importConditions(os.path.join(thisDir, 'trialTypes.csv'))
+    fromXLSX = data.importConditions(os.path.join(thisDir, 'trialTypes.xlsx'))
     
     for trialN, trialCSV in enumerate(fromCSV):
         trialXLSX = fromXLSX[trialN]
