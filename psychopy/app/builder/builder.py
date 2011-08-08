@@ -1546,6 +1546,7 @@ class _BaseParamsDlg(wx.Dialog):
         elif fieldName in self.codeParams:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
+            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, lambda x:None) #disables Tab; eventually want self.onNavigationCode
             self.lastCode[fieldName] = self.params[fieldName].val
 
         #increment row number
