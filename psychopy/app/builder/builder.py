@@ -1254,7 +1254,7 @@ class ParamCtrls:
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
 
-        elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+        elif label in components.code.codeParamNames[:]:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
@@ -1384,8 +1384,9 @@ class _BaseParamsDlg(wx.Dialog):
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
-        self.codeParams = components.code.codeParams[:] # want a copy
-        self.lastCode = {} # for changes in text events in code boxes
+        self.codeParamNames = components.code.codeParamNames[:] # want a copy
+        self.codeFieldNameFromID = {}
+        self.codeIDFromFieldName = {}
 
         #create a header row of titles
         if not suppressTitles:
@@ -1543,11 +1544,15 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif fieldName=='Experiment info':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
-        elif fieldName in self.codeParams:
+        elif fieldName in self.codeParamNames:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
-            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, lambda x:None) #disables Tab; eventually want self.onNavigationCode
-            self.lastCode[fieldName] = self.params[fieldName].val
+            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab 
+            id = wx.NewId()
+            self.codeFieldNameFromID[id] = fieldName
+            self.codeIDFromFieldName[fieldName] = id
+            ctrls.valueCtrl.SetId(id)
+            #print id, fieldName
 
         #increment row number
         if advanced: self.advCurrRow+=1
@@ -1666,7 +1671,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         # run syntax check for a code component dialog:
         valTypes = [self.params[param].valType for param in self.params.keys()
-                    if param in self.codeParams] # not configured to properly handle code fields except in code components
+                    if param in self.codeParamNames] # not configured to properly handle code fields except in code components
         if 'code' in valTypes:
             self.checkCodeSyntax()
 
@@ -1675,39 +1680,28 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+    def onNavigationCode(self, event):
+        #print event.GetId(),event.GetCurrentFocus() # 0 None
+        return
+        
+        fieldName = self.codeFieldNameFromID[event.GetId()] #fails
+        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
+        val = self.paramCtrls[fieldName].getValue()
+        newVal = val[:pos] + '    ' + val[pos:]
+        self.paramCtrls[fieldName].valueCtrl.ChangeValue(newVal)
+        self.paramCtrls[fieldName].valueCtrl.SendTextUpdatedEvent()
+        
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
-        dialog intercepts 'tab' characters, so can't convert to 4-spaces here
         """
-        # get fieldName from event based on finding diff length changed; must be an easier way!
-        for fieldName in self.codeParams:
-            val = self.paramCtrls[fieldName].getValue()
-            if len(self.lastCode[fieldName]) != len(val):
-                current = fieldName
-                break
-        # find last char typed (? fails if deleted multiple chars with one key press):
-        if len(val) == 1:
-            lastChar = val[0] # empty field -> first char
-        else:
-            # only need this part to catch <return> key:
-            if len(val) > len(self.lastCode[fieldName]):
-                # added a char
-                found = False
-                for i in xrange(len(self.lastCode[fieldName])):
-                    if val[i] != self.lastCode[fieldName][i]:
-                        found = True
-                        break
-                if not found:
-                    lastChar = val[-1]
-                else:
-                    lastChar = val[i]
-                if lastChar == "\n":
-                    self._setNameColor(self._testCompile(fieldName))
-            else:
-                lastChar = '<delete>' # delete
-        self.lastCode[fieldName] = val
-        if lastChar != "\n":
-            self.paramCtrls[current].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
+        #print event.GetId()
+        fieldName = self.codeFieldNameFromID[event.GetId()]
+        val = self.paramCtrls[fieldName].getValue()
+        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
+        if val[pos-1] != "\n": # only do syntax check at end of line
+            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
+        elif val[pos-2] != ":": # ... but skip the check if end of line is colon
+            self._setNameColor(self._testCompile(fieldName))
     def _testCompile(self, fieldName):
         """checks code.val for legal python syntax, sets field bg color, returns status
         
@@ -1742,7 +1736,7 @@ class _BaseParamsDlg(wx.Dialog):
         """Checks syntax for whole code component by code box, sets box bg-color.
         """
         goodSyntax = True
-        for fieldName in self.codeParams:
+        for fieldName in self.codeParamNames:
             if self.params[fieldName].valType != 'code':
                 continue
             if not self.paramCtrls[fieldName].getValue().strip(): # if basically empty
