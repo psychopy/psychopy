@@ -15,18 +15,18 @@ from psychopy.app import dialogs
 from psychopy import log
 socket.setdefaulttimeout(10)
 
-"""The Updater class checks for updates and suggests that an update is carried 
+"""The Updater class checks for updates and suggests that an update is carried
 out if a new version is found. The actual updating is handled by InstallUpdateDialog
-(via Updater.doUpdate() ). 
+(via Updater.doUpdate() ).
 """
 
 class Updater:
     def __init__(self,app=None, proxy=None, runningVersion=None):
         """The updater will check for updates and download/install them if necess.
         Several dialogs may be created as needed during the process.
-        
+
         Usage::
-            
+
             if app.prefs['AutoUpdate']:
                 app.updates=Updater(app, proxy)
                 app.updater.checkForUpdates()#if updates are found further dialogs will prompt
@@ -35,11 +35,11 @@ class Updater:
         if proxy==None: proxy=self.app.prefs.connections['proxy']
         if runningVersion==None:  self.runningVersion=psychopy.__version__
         else:  self.runningVersion=runningVersion
-        
-        self.headers = {'User-Agent' : 'Mozilla/5.0'}      
+
+        self.headers = {'User-Agent' : 'Mozilla/5.0'}
         self.latest=None
         self.setupProxies(proxy)
-        
+
     def showModal(self):
         #setup output window for info
         origStdOut = sys.stdout
@@ -52,7 +52,7 @@ class Updater:
         sys.stdout = origStdOut
         sys.stderr = origStdErr
         self.Destroy()
-        
+
     def setupProxies(self, proxy=None):
         """Get proxies and insert into url opener"""
         #try to get a proxy
@@ -79,7 +79,7 @@ class Updater:
         #parse update file as a dictionary
         latest={}
         for line in page.readlines():
-            #in some odd circumstances (wifi hotspots) you might successfully fetch a 
+            #in some odd circumstances (wifi hotspots) you might successfully fetch a
             #page that is not the correct URL but a redirect
             if line.find(':')==-1:
                 return -1
@@ -92,7 +92,7 @@ class Updater:
         """
         if self.latest==None:#we haven't checked for updates yet
             self.latest=self.getLatestInfo()
-        
+
         if self.latest==-1: return -1#failed to find out about updates
         #have found 'latest'. Is it newer than running version?
         if self.latest['version']>self.runningVersion and not (self.app.prefs.appData['skipVersion']==self.latest['version']):
@@ -116,10 +116,10 @@ class Updater:
                 msg+= "This version is too big an update to be handled automatically.\n"
                 msg+= "Please fetch the latest version from www.psychopy.org and install manually."
                 confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
-                confirmDlg.cancelBtn.SetLabel('Go to downloads')       
-                confirmDlg.cancelBtn.SetDefault()   
-                confirmDlg.noBtn.SetLabel('Go to changelog')    
-                confirmDlg.yesBtn.SetLabel('Later')              
+                confirmDlg.cancelBtn.SetLabel('Go to downloads')
+                confirmDlg.cancelBtn.SetDefault()
+                confirmDlg.noBtn.SetLabel('Go to changelog')
+                confirmDlg.yesBtn.SetLabel('Later')
                 resp=confirmDlg.ShowModal()
                 confirmDlg.Destroy()
                 if resp==wx.ID_CANCEL:
@@ -144,7 +144,7 @@ class SuggestUpdateDialog(wx.Dialog):
     def __init__(self,latest,runningVersion):
         wx.Dialog.__init__(self,None,-1,title='PsychoPy2 auto-updater')
         sizer=wx.BoxSizer(wx.VERTICAL)
-        
+
         #info about current version
         msg1 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
             label="PsychoPy v%s is available (you are running %s)." %(latest['version'],runningVersion))
@@ -156,15 +156,15 @@ class SuggestUpdateDialog(wx.Dialog):
             label="There are no known compatibility\nissues with your current version.")
         changelogLink = wxhl.HyperLinkCtrl(self, wx.ID_ANY, "View complete Changelog",
                                         URL="http://www.psychopy.org/changelog.html")
-                                        
+
         msg3 = wx.StaticText(self,-1,"Should PsychoPy update itself?")
         sizer.Add(msg1,flag=wx.ALL|wx.CENTER,border=15)
         sizer.Add(msg2,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=15)
         sizer.Add(changelogLink,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=5)
         sizer.Add(msg3,flag=wx.ALL|wx.CENTER,border=15)
-        
+
         #add buttons
-        btnSizer=wx.BoxSizer(wx.HORIZONTAL)        
+        btnSizer=wx.BoxSizer(wx.HORIZONTAL)
         self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
         self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Not now')
         self.noBtn=wx.Button(self,wx.ID_NO,'Skip this version')
@@ -184,7 +184,7 @@ class SuggestUpdateDialog(wx.Dialog):
         self.SetSizerAndFit(sizer)
     def onButton(self,event):
         self.EndModal(event.GetId())
-        
+
 class InstallUpdateDialog(wx.Dialog):
     def __init__(self, parent, ID, app):
         """Latest is optional extra. If not given it will be fetched.
@@ -199,7 +199,7 @@ class InstallUpdateDialog(wx.Dialog):
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
         wx.Dialog.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
-        
+
         mainSizer=wx.BoxSizer(wx.VERTICAL)
         #set the actual content of the status message later in self.updateStatus()
         msg = "x"
@@ -228,10 +228,10 @@ class InstallUpdateDialog(wx.Dialog):
         btnSizer.Add(self.installBtn,flag=wx.ALIGN_RIGHT)
         btnSizer.Add(self.cancelBtn,flag=wx.ALIGN_RIGHT|wx.LEFT,border=5)
         mainSizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
-        
+
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
-        
+
         #positioning and sizing
         self.updateStatus()
         self.Center()
@@ -245,13 +245,13 @@ class InstallUpdateDialog(wx.Dialog):
                 "Check proxy settings in preferences."
         elif self.latest==self.runningVersion:
             msg = "You are running the latest version of PsychoPy (%s)\n " %(self.runningVersion) + \
-                "You can revert to a previous version by selecting a specific .zip source installation file" 
+                "You can revert to a previous version by selecting a specific .zip source installation file"
         else:
             msg = "PsychoPy v%s is available\nYou are running v%s" %(self.latest['version'], self.runningVersion)
             if self.latest['lastUpdatable']<=self.runningVersion:
                 msg+="\nYou can update to the latest version automatically"
             else:
-                msg+="\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"  
+                msg+="\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"
         self.statusMessage.SetLabel(msg)
         if self.latest==-1 \
             or self.latest['version']==self.runningVersion \
@@ -297,7 +297,7 @@ class InstallUpdateDialog(wx.Dialog):
         info = ""
         if v=='latest':
             v=self.latest['version']
-        
+
         #open page
         URL = "http://psychopy.googlecode.com/files/PsychoPy-%s.zip" %(v)
         page = urllib2.urlopen(URL)
@@ -319,13 +319,13 @@ class InstallUpdateDialog(wx.Dialog):
         zfile = zipfile.ZipFile(buffer)
         #buffer.close()
         return zfile, info
-        
+
     def installZipFile(self, zfile, v=None):
         """If v is provided this will be used as new version number, otherwise try and retrieve
-        a version number from zip file name 
+        a version number from zip file name
         """
         info=""#return this at the end
-        
+
         if type(zfile) in [str, unicode] and os.path.isfile(zfile):#zfile is filename not an actual file
             if v==None: #try and deduce it
                 zFilename = os.path.split(zfile)[-1]
@@ -337,7 +337,7 @@ class InstallUpdateDialog(wx.Dialog):
             zfile=zipfile.ZipFile(f)
         else:#assume here that zfile is a ZipFile
             pass#todo: error checking - is it a zipfile?
-            
+
         currPath=self.app.prefs.paths['psychopy']
         #any commands that are successfully executed may need to be undone if a later one fails
         undoString = ""
@@ -368,7 +368,7 @@ class InstallUpdateDialog(wx.Dialog):
                     undoString += 'self.updatePthFile(unzipTarget, currPath)\n'
                     exec(undoString)#undo previous changes
                     return newInfo
-                
+
         try:
             os.makedirs(unzipTarget)#create the new installation directory AFTER renaming existing dir
             undoString += 'os.remove(%s)\n' %unzipTarget
@@ -390,7 +390,7 @@ class InstallUpdateDialog(wx.Dialog):
                 if not os.path.isdir(targetContainer):
                     os.makedirs(targetContainer)#make the containing folder
                 if targetFile.endswith('/'):
-                    os.makedirs(targetFile)#it's a folder                
+                    os.makedirs(targetFile)#it's a folder
                 else:
                     outfile = open(targetFile, 'wb')
                     outfile.write(zfile.read(name))
@@ -410,14 +410,14 @@ class InstallUpdateDialog(wx.Dialog):
         try: zipFile, info =self.fetchPsychoPy(v)
         except:
             self.statusMessage.SetLabel('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences')
-            return -1            
+            return -1
         self.statusMessage.SetLabel(info)
         self.Fit()
         #got a download - try to install it
         info=self.installZipFile(zipFile, v)
         return info
     def updatePthFile(self, oldName, newName):
-        """Searches site-packages for .pth files and replaces any instance of 
+        """Searches site-packages for .pth files and replaces any instance of
         `oldName` with `newName`, where the names likely have the form PsychoPy-1.60.04
         """
         from distutils.sysconfig import get_python_lib
@@ -431,7 +431,7 @@ class InstallUpdateDialog(wx.Dialog):
             lines = open(filename, 'r').readlines()
             needSave=False
             for lineN, line in enumerate(lines):
-                if oldName in line: 
+                if oldName in line:
                     lines[lineN] = line.replace(oldName, newName)
                     needSave=True
             if needSave:
@@ -440,7 +440,7 @@ class InstallUpdateDialog(wx.Dialog):
                     f.writelines(lines)
                     f.close()
                     nUpdates+=1
-                    log.info('Updated PsychoPy path in %s' %filename)                    
+                    log.info('Updated PsychoPy path in %s' %filename)
                 except:
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
@@ -495,7 +495,7 @@ def sendUsageStats(proxy=None):
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
 
 def getAutoProxyURL():
-    """Return a list of possible auto proxy .pac files being used, 
+    """Return a list of possible auto proxy .pac files being used,
     based on the system registry (win32) or system preferences (OSX).
     """
     pacFiles=[]
@@ -526,4 +526,8 @@ def getAutoProxyURL():
             if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
     return pacFiles
-        
+
+def getAutoProxy():
+    """Attempt to locate the proxy server using
+    """
+    pacFiles = getAutoProxyURL()

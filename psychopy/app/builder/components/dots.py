@@ -78,7 +78,7 @@ class DotsComponent(VisualComponent):
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
-        buff.writeIndented("%(name)s=visual.DotStim(win=win, name='%s',%s\n" %(inits['name'],unitsStr))
+        buff.writeIndented("%s=visual.DotStim(win=win, name='%s',%s\n" %(inits['name'], inits['name'],unitsStr))
         buff.writeIndented("    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" %(inits))
         buff.writeIndented("    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" %(inits))
         buff.writeIndented("    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" %(inits))

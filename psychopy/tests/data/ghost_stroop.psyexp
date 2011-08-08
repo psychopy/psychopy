@@ -1,0 +1,131 @@
+<PsychoPy2experiment version="1.70.00" encoding="utf-8">
+  <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="color" val="black" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[400,300]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{'participant':'ghost'}" valType="code" updates="None"/>
+    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="logging level" val="debug" valType="code" updates="None"/>
+    <Param name="Units" val="norm" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="tmp" valType="code" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <TextComponent name="word">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="word" valType="code" updates="constant"/>
+        <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
+        <Param name="text" val="$text" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="set every frame"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.3" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="resp">
+        <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
+        <Param name="name" val="resp" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="False" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="[&quot;left&quot;,&quot;down&quot;,&quot;right&quot;]" valType="str" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="instruct">
+      <TextComponent name="instrText">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="instrText" valType="code" updates="constant"/>
+        <Param name="color" val="$[1, 1, 1]" valType="str" updates="constant"/>
+        <Param name="text" val="ghost&#10;stroop" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.3" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="ready">
+        <Param name="correctAns" val="thisTrial.corrAns" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="ready" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="False" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0" valType="code" updates="None"/>
+        <Param name="store" val="nothing" valType="str" updates="constant"/>
+      </KeyboardComponent>
+      <CodeComponent name="respEmulator">
+        <Param name="Begin Experiment" val="#FAIL #uncomment to test the test&#10;code=None # else error&#10;from psychopy.hardware.emulator import ResponseEmulator&#10;resp = [(.2,'return'), (.3,'l'), (.4,'d'), (.5,'d'), (.6,'d'), (.7,'r'), (.8,'l')]&#10;ghost = ResponseEmulator(simResponses=resp)&#10;ghost.start()&#10;core.runningThreads.append(ghost)" valType="code" updates="constant"/>
+        <Param name="name" val="respEmulator" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="thanks">
+      <TextComponent name="fast">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="fast" valType="code" updates="None"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="fast!" valType="str" updates="constant"/>
+        <Param name="stopVal" val=".2" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.3" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="instruct"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="conditionsFile" val="/Users/jgray/code/psychopy/psychopy/tests/data/ghost_trialTypes.xlsx" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'text': u'red', u'congruent': 1, u'corrAns': u'left', u'letterColor': u'red'}, {u'text': u'red', u'congruent': 0, u'corrAns': u'down', u'letterColor': u'green'}, {u'text': u'green', u'congruent': 1, u'corrAns': u'down', u'letterColor': u'green'}, {u'text': u'green', u'congruent': 0, u'corrAns': u'right', u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 1, u'corrAns': u'right', u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 0, u'corrAns': u'left', u'letterColor': u'red'}]" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+    <Routine name="thanks"/>
+  </Flow>
+</PsychoPy2experiment>

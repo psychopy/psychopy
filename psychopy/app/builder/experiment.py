@@ -248,7 +248,8 @@ class Experiment:
         parser = etree.XMLParser(remove_blank_text=True)
         f=open(filename)
         folder = os.path.split(filename)[0]
-        os.chdir(folder)
+        if folder: #might be ''
+            os.chdir(folder)
         self._doc=etree.XML(f.read(),parser)
         f.close()
         root=self._doc#.getroot()
@@ -440,7 +441,7 @@ class Param:
                     tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
                     tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
                     tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
-                    return str(tmp) # return code
+                    return "%s" %tmp # return code; %s --> str or unicode
                 else: # str wanted
                     return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
             return repr(self.val)
@@ -837,7 +838,8 @@ class Routine(list):
         buff.writeIndented('#keep track of which have finished\n')
         buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
         for thisCompon in self:
-            buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
+            if thisCompon.params.has_key('startType'):
+                buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
         buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
         buff.writeIndented("    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED\n")
 
