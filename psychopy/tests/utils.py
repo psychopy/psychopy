@@ -10,6 +10,7 @@ from psychopy import log
 # so tests could be ran from any location
 TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
+TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
 
 def compareScreenshot(fileName, win, crit=5.0):
     """Compare the current back buffer of the given window with the file
