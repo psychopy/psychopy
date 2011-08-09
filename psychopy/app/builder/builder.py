@@ -1836,12 +1836,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditionsFile=None
 
         #create a valid new name; save old name in case we need to revert
-        default_name = 'trials'
-        old_name = default_name
+        defaultName = 'trials'
+        oldLoopName = defaultName
         if loop:
-            old_name = loop.params['name'].val
+            oldLoopName = loop.params['name'].val
         namespace = frame.exp.namespace
-        new_name = namespace.makeValid(old_name)
+        new_name = namespace.makeValid(oldLoopName)
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
             loopType='random',nReps=5,conditions=[]) #for 'random','sequential', 'fullRandom'
@@ -1884,12 +1884,17 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-            if loop:
-                namespace.remove(old_name)
+            if loop: # editing an existing loop
+                namespace.remove(oldLoopName)
             namespace.add(self.params['name'].val)
+            # don't always have a conditionsFile
+            if hasattr(self, 'condNamesInFile'):
+                namespace.add(self.condNamesInFile)
+            if hasattr(self, 'duplCondNames'):
+                namespace.remove(self.duplCondNames)
         else:
             if loop!=None:#if we had a loop during init then revert to its old name
-                loop.params['name'].val = old_name
+                loop.params['name'].val = oldLoopName
 
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a conditions
@@ -2006,7 +2011,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.staircaseCtrls[fieldName] = ctrls
-    def getAbbriev(self, longStr, n=30):
+    def getAbbrev(self, longStr, n=30):
         """for a filename (or any string actually), give the first
         5 characters, an ellipsis and then n of the final characters"""
         if len(longStr)>20:
@@ -2062,43 +2067,55 @@ class DlgLoopProperties(_BaseParamsDlg):
             return
         self.setCtrls(newType)
     def onBrowseTrialsFile(self, event):
+        self.conditionsFileOrig = self.conditionsFile
         expFolder,expName = os.path.split(self.frame.filename)
-        dlg = wx.FileDialog(
-            self, message="Open file ...", style=wx.OPEN, defaultDir=expFolder,
-            )
+        dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+                            defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = _relpath(dlg.GetPath(), expFolder)
+            newFullPath = dlg.GetPath()
+            if self.conditionsFile:
+                oldFullPath = os.path.abspath(os.path.join(expFolder, self.conditionsFile))
+                isSameFilePathAndName = (newFullPath==oldFullPath)
+            else:
+                isSameFilePathAndName = False
+            newPath = _relpath(newFullPath, expFolder)
             self.conditionsFile = newPath
             try:
-                self.conditions, fieldNames = data.importConditions(dlg.GetPath(), returnFieldNames=True)
+                self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
+                                                        returnFieldNames=True)
             except ImportError, msg:
                 self.constantsCtrls['conditions'].setValue(
-                    'Bad condition name(s) in file:\n'+str(msg).replace(':','\n')+
-                    '.\n[Edit in the file, try again.]')
-                self.conditionsFile = self.conditions = ''
+                    'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
+                    '.\nNeed to be legal as var name; edit file, try again.')
+                self.conditionsFile = self.conditionsFileOrig
+                self.conditions = ''
                 log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
                 return
 
-            badNames = ''
-            if len(fieldNames):
-                for fname in fieldNames:
-                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.isValid(fname):
-                        badNames += fname+' '
-            if badNames:
-                self.constantsCtrls['conditions'].setValue(
-                    'Bad condition name(s) in file:\n'+badNames[:-1]+
-                    '\n[Duplicate name(s). Edit file, try again.]')
-                log.error('Rejected bad condition names in conditions file: %s' % badNames[:-1])
-                self.conditionsFile = self.conditions = ''
-                return
-            self.exp.namespace.add(fieldNames)
+            duplCondNames = []
+            if len(self.condNamesInFile):
+                for condName in self.condNamesInFile:
+                    if self.exp.namespace.exists(condName):
+                        duplCondNames.append(condName)
+            duplCondNamesStr = ' '.join(duplCondNames)[:42]
+            if len(duplCondNamesStr)==42:
+                duplCondNamesStr = duplCondNamesStr[:39]+'...'
+            if len(duplCondNames):
+                if isSameFilePathAndName:
+                    log.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
+                else:
+                    self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
+                    self.constantsCtrls['conditions'].setValue(
+                        'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
+                        ']\nProceed anyway? (= safe if these are in old file)')
+                    log.warning('Duplicate condition names, different conditions file: %s' % duplCondNamesStr)
+            # stash condition names but don't add to namespace yet, user can still cancel
+            self.duplCondNames = duplCondNames # add after self.show() in __init__
 
-            if 'conditionsFile' in self.currentCtrls.keys():
-                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
+            if 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
+                self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-            else:
-                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
-                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+                
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -2106,7 +2123,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in self.currentHandler.params.keys():
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
-            if fieldName in ['conditionsFile', 'conditionsFile']:
+            if fieldName in ['conditionsFile']:
                 param.val=self.conditionsFile#not the value from ctrl - that was abbrieviated
             else:#most other fields
                 ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param

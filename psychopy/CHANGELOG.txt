@@ -25,7 +25,13 @@ PsychoPy 1.70.00
     - `forceEndTrialOnPress` in Mouse Component is now `forceEndRoutineOnPress`
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
+
+* CHANGED numpy imports in Builder scripts:
     
+    - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
+    - all items in the numpy namespace are available as np.*
+    - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
+
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
