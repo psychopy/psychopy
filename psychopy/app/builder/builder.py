@@ -2593,16 +2593,14 @@ class BuilderFrame(wx.Frame):
         """Open a FileDialog, then load the file if possible.
         """
         if filename==None:
-            dlg = wx.FileDialog(
-                self, message="Open file ...", style=wx.OPEN,
-                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
-                )
-
+            dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
         if closeCurrent:
-            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
+            if not self.fileClose(updateViews=False):
+                return False #close the existing (and prompt for save if necess)
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         try:
             self.exp.loadFromXML(filename)
@@ -2613,10 +2611,7 @@ class BuilderFrame(wx.Frame):
         self.resetUndoStack()
         self.setIsModified(False)
         self.filename = filename
-        #load routines
-        for thisRoutineName in self.exp.routines.keys():
-            routine = self.exp.routines[thisRoutineName]
-            self.routinePanel.addRoutinePage(thisRoutineName, routine)
+        #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
         #update the views
         self.updateAllViews()
     def fileSave(self,event=None, filename=None):
@@ -2689,8 +2684,8 @@ class BuilderFrame(wx.Frame):
                 if not self.fileSave(): return False #user might cancel during save
             elif resp == wx.ID_NO: pass #don't save just quit
         return 1
-    def fileClose(self, event=None, checkSave=True):
-        """Not currently used? Frame is closed rather than file"""
+    def fileClose(self, event=None, checkSave=True, updateViews=True):
+        """user closes the Frame, not the file; fileOpen() calls fileClose()"""
         if checkSave:
             ok = self.checkSave()
             if not ok: return False#user cancelled
@@ -2698,7 +2693,8 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.removePages()
         self.filename = 'untitled.psyexp'
         self.resetUndoStack()#will add the current exp as the start point for undo
-        self.updateAllViews()
+        if updateViews:
+            self.updateAllViews()
         return 1
     def updateAllViews(self):
         self.flowPanel.draw()
