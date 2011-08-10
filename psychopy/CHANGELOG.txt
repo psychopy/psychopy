@@ -44,14 +44,14 @@ PsychoPy 1.70.00
 * ADDED option for full randomization of repeated lists (loop type 'fullRandom') (Jeremy)
 * ADDED builder icons can now be small or large (in prefs)
 * ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
-* ADDED emulate sync pulses and user key presses for fMRI or other scanners (for testing); see hardware/launchScan  
-        API reference, and Coder demo > experimental control > fMRI_launchScan.py) (thanks Jeremy)
+* ADDED emulate sync pulses and user key presses for fMRI or other scanners (for testing); see hardware/launchScan in the API reference, and Coder `demos > experimental control > fMRI_launchScan.py` (Jeremy)
 * ADDED right-clicking the expInfo in Experiment Settings tests & previews the dialog box (Jeremy)
 * ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
 * IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
-* IMPROVED Flow view in the Builder, with zooming (thanks Jeremy)
-* FIXED demos now unpack to an empty folder (thanks Jeremy)
+* IMPROVED Flow view in the Builder, with zooming (Jeremy)
+* IMPROVED Neater (and slightly faster) changing of Builder Routines on file open/close
+* FIXED demos now unpack to an empty folder (Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
 
 PsychoPy 1.65
