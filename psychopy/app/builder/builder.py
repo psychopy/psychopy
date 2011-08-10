@@ -774,7 +774,7 @@ class RoutineCanvas(wx.ScrolledWindow):
     def onResize(self, event):
         self.sizePix=event.GetSize()
         self.timeXposStart = (150,150,200)[self.drawSize]
-        self.timeXposEnd = self.sizePix[0]-100
+        self.timeXposEnd = self.sizePix[0]-(60,80,100)[self.drawSize]
         self.redrawRoutine()#then redraw visible
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
