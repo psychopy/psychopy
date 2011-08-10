@@ -731,17 +731,22 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.x = self.y = 0
         self.curLine = []
         self.drawing = False
+        self.drawSize = self.app.prefs.appData['routineSize']
+        # auto-rescale based on number of components and window size looks jumpy
+        # when switch between routines of diff drawing sizes
+        self.iconSize = (24,24,48)[self.drawSize] # only 24, 48 so far
+        self.fontBaseSize = (800,900,1000)[self.drawSize] # depends on OS?
 
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi/4,self.dpi/4)
 
         self.routine=routine
         self.yPositions=None
-        self.yPosTop=60
-        self.componentStep=50#the step in Y between each component
-        self.iconXpos = 100 #the left hand edge of the icons
-        self.timeXposStart = 200
-        self.timeXposEnd = 600
+        self.yPosTop=(25,40,60)[self.drawSize]
+        self.componentStep=(25,32,50)[self.drawSize]#the step in Y between each component
+        self.timeXposStart = (150,150,200)[self.drawSize]
+        self.iconXpos = self.timeXposStart - self.iconSize*(1.3,1.5,1.5)[self.drawSize] #the left hand edge of the icons
+        self.timeXposEnd = self.timeXposStart + 400 # onResize() overrides
 
         # create a PseudoDC to record our drawing
         self.pdc = wx.PseudoDC()
@@ -768,7 +773,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 
     def onResize(self, event):
         self.sizePix=event.GetSize()
-        self.timeXposStart = 200
+        self.timeXposStart = (150,150,200)[self.drawSize]
         self.timeXposEnd = self.sizePix[0]-100
         self.redrawRoutine()#then redraw visible
     def ConvertEventCoords(self, event):
@@ -861,15 +866,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.BeginDrawing()
 
         #work out where the component names and icons should be from name lengths
-        self.setFontSize(1000/self.dpi, self.pdc)
+        self.setFontSize(self.fontBaseSize/self.dpi, self.pdc)
         longest=0; w=50
         for comp in self.routine:
             name = comp.params['name'].val
             if len(name)>longest:
                 longest=len(name)
                 w = self.GetFullTextExtent(name)[0]
-        self.iconXpos = w+50
-        self.timeXpos = w+90
+        self.timeXpos = w+(50,50,90)[self.drawSize]
 
         #draw timeline at bottom of page
         yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
@@ -908,8 +912,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
                 dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosBottom+10)#label below
         #add a label
-        self.setFontSize(1000/self.dpi, dc)
+        self.setFontSize(self.fontBaseSize/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+        # or draw bottom labels only if scrolling is turned on, virtual size > available size?
         if yPosBottom>300:#if bottom of grid is far away then draw labels here too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
     def setFontSize(self, size, dc):
@@ -930,18 +935,19 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.componentFromID[id]=component
         dc.SetId(id)
 
-        thisIcon = components.icons[component.getType()]['48']#index 0 is main icon
-        dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
+        iconYOffset = (6,6,0)[self.drawSize]
+        thisIcon = components.icons[component.getType()][str(self.iconSize)]#getType index 0 is main icon
+        dc.DrawBitmap(thisIcon, self.iconXpos,yPos+iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
 
-        self.setFontSize(1000/self.dpi, dc)
+        self.setFontSize(self.fontBaseSize/self.dpi, dc)
 
         name = component.params['name'].val
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
         #draw text
-        x = self.iconXpos-self.dpi/10-w
-        y = yPos+thisIcon.GetHeight()/2-h/2
+        x = self.iconXpos-self.dpi/10-w + (self.iconSize,self.iconSize,10)[self.drawSize]
+        y = yPos+thisIcon.GetHeight()/2-h/2 + (5,5,-2)[self.drawSize]
         dc.DrawText(name, x-20, y)
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
@@ -972,15 +978,17 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
-                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
+                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), wx.ALPHA_TRANSPARENT))
                 dc.SetBrush(wx.Brush(routineTimeColor))
-                h = self.componentStep/2
+                hSize = (3.5,2.75,2)[self.drawSize]
+                yOffset = (3,3,0)[self.drawSize]
+                h = self.componentStep/hSize
                 xSt = self.timeXposStart + startTime/xScale
                 w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
                 if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
-                dc.DrawRectangle(xSt, y, w,h )
-                fullRect.Union(wx.Rect(xSt, y, w,h ))#update bounds to include time bar
+                dc.DrawRectangle(xSt, y+yOffset, w,h )
+                fullRect.Union(wx.Rect(xSt, y+yOffset, w,h ))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
@@ -1052,7 +1060,8 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
     def __init__(self, frame, id=-1):
         self.frame=frame
         self.app=frame.app
-        self.dpi=self.app.dpi
+        self.routineMaxSize = 2
+        self.appData = self.app.prefs.appData
         wx.aui.AuiNotebook.__init__(self, frame, id)
 
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
@@ -1113,6 +1122,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
         self.frame.addToUndoStack("remove routine %s" %(name))
+    def increaseSize(self, event=None):
+        self.appData['routineSize'] = min(self.routineMaxSize, self.appData['routineSize'] + 1)
+        self.frame.Freeze()
+        self.redrawRoutines()
+        self.frame.Thaw()
+    def decreaseSize(self, event=None):
+        self.appData['routineSize'] = max(0, self.appData['routineSize'] - 1)
+        self.frame.Freeze()
+        self.redrawRoutines()
+        self.frame.Thaw()
     def redrawRoutines(self):
         """Removes all the routines, adds them back and sets current back to orig
         """
@@ -2488,10 +2507,15 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
-        self.viewMenu.Append(self.IDs.tbIncreaseSize, "&Larger Flow\t%s" %self.app.keys['largerSize'], "Larger flow items")
-        wx.EVT_MENU(self, self.IDs.tbIncreaseSize, self.flowPanel.increaseSize)
-        self.viewMenu.Append(self.IDs.tbDecreaseSize, "&Smaller Flow\t%s" %self.app.keys['smallerSize'], "Smaller flow items")
-        wx.EVT_MENU(self, self.IDs.tbDecreaseSize, self.flowPanel.decreaseSize)
+        self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Larger Flow\t%s" %self.app.keys['largerFlow'], "Larger flow items")
+        wx.EVT_MENU(self, self.IDs.tbIncrFlowSize, self.flowPanel.increaseSize)
+        self.viewMenu.Append(self.IDs.tbDecrFlowSize, "&Smaller Flow\t%s" %self.app.keys['smallerFlow'], "Smaller flow items")
+        wx.EVT_MENU(self, self.IDs.tbDecrFlowSize, self.flowPanel.decreaseSize)
+        self.viewMenu.Append(self.IDs.tbIncrRoutineSize, "&Larger Routine\t%s" %self.app.keys['largerRoutine'], "Larger routine items")
+        wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize, self.routinePanel.increaseSize)
+        self.viewMenu.Append(self.IDs.tbDecrRoutineSize, "&Smaller Routine\t%s" %self.app.keys['smallerRoutine'], "Smaller routine items")
+        wx.EVT_MENU(self, self.IDs.tbDecrRoutineSize, self.routinePanel.decreaseSize)
+
 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()

@@ -49,7 +49,7 @@ PsychoPy 1.70.00
 * ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
 * IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
-* IMPROVED Flow view in the Builder, with zooming (Jeremy)
+* IMPROVED Flow and Routine displays in the Builder, with zooming; see the View menu for key-board shortcuts (Jeremy)
 * IMPROVED Neater (and slightly faster) changing of Builder Routines on file open/close
 * FIXED demos now unpack to an empty folder (Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)

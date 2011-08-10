@@ -175,3 +175,7 @@
     largerSize = string(default='Ctrl+=')
     # decrease display size in Flow
     smallerSize = string(default='Ctrl+-')
+    # increase display size of Routines
+    largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
+    # decrease display size of Routines
+    smallerRoutine = string(default='Ctrl+Shift+-')
