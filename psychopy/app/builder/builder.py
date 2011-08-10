@@ -667,8 +667,8 @@ class FlowPanel(wx.ScrolledWindow):
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
-            abbrev = ['', {'random': 'rnd.', 'sequential': 'seq.', 'fullRandom':'fRn.',
-                      'staircase': 'str.', 'interleaved staircases': "in.st."},
+            abbrev = ['', {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom':'f-ran.',
+                      'staircase': 'stair.', 'interleaved staircases': "int-str."},
                       {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
                       'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
             name += ' '+abbrev[self.appData['flowSize']][loop.params['loopType'].val]+')'
@@ -2507,13 +2507,13 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
-        self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Larger Flow\t%s" %self.app.keys['largerFlow'], "Larger flow items")
+        self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Flow Larger\t%s" %self.app.keys['largerFlow'], "Larger flow items")
         wx.EVT_MENU(self, self.IDs.tbIncrFlowSize, self.flowPanel.increaseSize)
-        self.viewMenu.Append(self.IDs.tbDecrFlowSize, "&Smaller Flow\t%s" %self.app.keys['smallerFlow'], "Smaller flow items")
+        self.viewMenu.Append(self.IDs.tbDecrFlowSize, "&Flow Smaller\t%s" %self.app.keys['smallerFlow'], "Smaller flow items")
         wx.EVT_MENU(self, self.IDs.tbDecrFlowSize, self.flowPanel.decreaseSize)
-        self.viewMenu.Append(self.IDs.tbIncrRoutineSize, "&Larger Routine\t%s" %self.app.keys['largerRoutine'], "Larger routine items")
+        self.viewMenu.Append(self.IDs.tbIncrRoutineSize, "&Routine Larger\t%s" %self.app.keys['largerRoutine'], "Larger routine items")
         wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize, self.routinePanel.increaseSize)
-        self.viewMenu.Append(self.IDs.tbDecrRoutineSize, "&Smaller Routine\t%s" %self.app.keys['smallerRoutine'], "Smaller routine items")
+        self.viewMenu.Append(self.IDs.tbDecrRoutineSize, "&Routine Smaller\t%s" %self.app.keys['smallerRoutine'], "Smaller routine items")
         wx.EVT_MENU(self, self.IDs.tbDecrRoutineSize, self.routinePanel.decreaseSize)
 
 
