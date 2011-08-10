@@ -1979,7 +1979,7 @@ class PatchStim(_BaseVisualStim):
             mask :
                 The alpha mask (forming the shape of the image)
 
-                + **None**, 'circle', 'gauss'
+                + **None**, 'circle', 'gauss', 'raisedCos' 
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
 
@@ -2157,17 +2157,21 @@ class PatchStim(_BaseVisualStim):
         self._set('sf', value, operation)
         self.needUpdate = 1
         self._calcCyclesPerStim()
+
     def setPhase(self,value, operation=''):
         self._set('phase', value, operation)
         self.needUpdate = 1
+
     def setContrast(self,value,operation=''):
         self._set('contrast', value, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setTex(self._texName)
+
     def setTex(self,value):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+
     def setMask(self,value):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
@@ -6017,7 +6021,48 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
+        
+    elif tex == "raisedCos": # A raised cosine
+        hamming_len = 1000 # This affects the 'granularity' of the raised cos
+        fringe_proportion = 0.2 # This one affects the proportion of the
+                                # stimulus diameter that is devoted to the
+                                # raised cosine. XXX Consider
+                                # making this a user input. 
+        
+        rad = makeRadialMatrix(res)
+        intensity = numpy.zeros_like(rad)
+        intensity[numpy.where(rad < 1)] = 1
+        raised_cos_idx = numpy.where(
+            [numpy.logical_and(rad <= 1, rad >= 1-fringe_proportion)])[1:]
+
+        # Make a raised_cos (half a hamming window):
+        raised_cos = numpy.hamming(hamming_len)[:hamming_len/2]
+        raised_cos -= numpy.min(raised_cos)
+        raised_cos /= numpy.max(raised_cos)
+
+        # Measure the distance from the edge - this is your index into the hamming window: 
+        d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
+        d_from_edge /= numpy.max(d_from_edge)
+        d_from_edge *= numpy.round(hamming_len/2)
+
+        # This is the indices into the hamming (larger for small distances from the edge!):
+        portion_idx = (-1 * d_from_edge).astype(int)
+
+        # Apply the raised cos to this portion:
+        intensity[raised_cos_idx] = raised_cos[portion_idx]
+
+        # Scale it into the interval -1:1: 
+        intensity = intensity - 0.5
+        intensity = intensity / numpy.max(intensity)
+
+        #Sometimes there are some remaining artifacts from this process, get rid of them:
+        artifact_idx = numpy.where(numpy.logical_and(intensity == -1, rad < 1))
+        intensity[artifact_idx] = 1
+        artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad > 1))
+        intensity[artifact_idx] = 0
+        
     else:#might be an image, or a filename of an image
+
         """if os.path.isfile(tex):
             im = Image.open(tex)
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
@@ -6025,6 +6070,7 @@ def createTexture(tex, id, pixFormat, stim, res=128):
             log.error("couldn't find tex...%s" %(tex))
             core.quit()
             raise #so thatensure we quit"""
+            
         itsaFile = True # just a guess at this point
         try:
             os.path.isfile(tex)
