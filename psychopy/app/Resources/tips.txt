@@ -13,7 +13,7 @@ The mailing list is a great place to ask questions and receive updates, at http:
 If you do write to the mailing list, make it clear whether you're using Builder or Coder interfaces and which version/platform you use.
 Coder: Did you try typing python commands in the Shell window yet?
 Builder: Documentation on possible code/variables to include in your scripts is available online at; Documentation>Builder>Components>Code
-If you buy a computer, avoid "Intel integrated graphics" cards (or make sure you can upgrade to an nVidia/ATI replacement)
+For windows machines, avoid "Intel integrated graphics (GMA)" solutions for running experiments; the drivers are really not very good. (On Mac, e.g. Macbook Air these seem fine though)
 Degrees of visual angle are 'device independent'. Normalised units mean that your stimulus will be different on each different computer. Do you really want that?
 Builder: you can often right click on things to bring up a menu, e.g., to remove a trial.
 Coder: you can click the color-picker icon on the toolbar. The rgb color triplet will be saved to the clipboard (in PsychoPy's rgb color units, -1..+1 not 0..255), which you can then paste into a script.

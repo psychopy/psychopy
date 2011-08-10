@@ -1547,7 +1547,7 @@ class _BaseParamsDlg(wx.Dialog):
         elif fieldName in self.codeParamNames:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
-            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab 
+            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
             id = wx.NewId()
             self.codeFieldNameFromID[id] = fieldName
             self.codeIDFromFieldName[fieldName] = id
@@ -1643,7 +1643,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_RIGHT)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-        
+
         #add buttons for OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         buttons = wx.StdDialogButtonSizer()
@@ -1684,14 +1684,14 @@ class _BaseParamsDlg(wx.Dialog):
     def onNavigationCode(self, event):
         #print event.GetId(),event.GetCurrentFocus() # 0 None
         return
-        
+
         fieldName = self.codeFieldNameFromID[event.GetId()] #fails
         pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
         val = self.paramCtrls[fieldName].getValue()
         newVal = val[:pos] + '    ' + val[pos:]
         self.paramCtrls[fieldName].valueCtrl.ChangeValue(newVal)
         self.paramCtrls[fieldName].valueCtrl.SendTextUpdatedEvent()
-        
+
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
         """
@@ -1705,8 +1705,8 @@ class _BaseParamsDlg(wx.Dialog):
             self._setNameColor(self._testCompile(fieldName))
     def _testCompile(self, fieldName):
         """checks code.val for legal python syntax, sets field bg color, returns status
-        
-        method: writes code to a file, try to py_compile it. not intended for 
+
+        method: writes code to a file, try to py_compile it. not intended for
         high-freq repeated checking, ok for CPU but hits the disk every time.
         """
         # better to use a StringIO.StringIO() than a tmp file, but couldnt work it out
@@ -1730,7 +1730,7 @@ class _BaseParamsDlg(wx.Dialog):
             #self.nameOKlabel.SetLabel(str(msg))
         # clean up tmp files:
         shutil.rmtree(tmpDir, ignore_errors=True)
-        
+
         return syntaxCheck
 
     def checkCodeSyntax(self, event=None):
@@ -1752,7 +1752,7 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # name white
             self.nameOKlabel.SetLabel('syntax error')
-    
+
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
         (populated during the __init__ function)
@@ -2115,7 +2115,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             if 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
                 self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-                
+
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -2598,8 +2598,10 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
+        self.Freeze()
         if closeCurrent:
             if not self.fileClose(updateViews=False):
+                self.Thaw()#the user cancelled so allow GUI to change again
                 return False #close the existing (and prompt for save if necess)
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         try:
@@ -2608,12 +2610,14 @@ class BuilderFrame(wx.Frame):
             print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
             traceback.print_exc()
             log.flush()
+            self.Thaw()#failed to load exp, so allow GUI to change again
         self.resetUndoStack()
         self.setIsModified(False)
         self.filename = filename
         #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
         #update the views
-        self.updateAllViews()
+        self.updateAllViews()#we're still Frozen so the effect won't be visible
+        self.Thaw()#all frames are updated so reveal the changes
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """

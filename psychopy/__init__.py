@@ -28,9 +28,3 @@ if __git_sha__=='n/a':
         __git_sha__=repo_commit.strip()#remove final linefeed
 
 __all__ = ["gui", "misc", "visual", "core", "event", "data", "filters", "sound"]
-
-from preferences import Preferences
-import sys
-prefs = Preferences()
-for pathName in prefs.general['paths']:
-    sys.path.append(pathName)
