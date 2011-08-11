@@ -1575,10 +1575,23 @@ class _BaseParamsDlg(wx.Dialog):
             self.codeIDFromFieldName[fieldName] = id
             ctrls.valueCtrl.SetId(id)
             #print id, fieldName
+        elif fieldName=='Monitor':
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+
+    def openMonitorCenter(self,event):
+        self.app.openMonitorCenter(event)
+        self.paramCtrls['Monitor'].valueCtrl.SetFocus()
+        # need to delay until the user closes the monitor center
+        #self.paramCtrls['Monitor'].valueCtrl.Clear()
+        #if wx.TheClipboard.Open():
+        #    dataObject = wx.TextDataObject()
+        #    if wx.TheClipboard.GetData(dataObject):
+        #        self.paramCtrls['Monitor'].valueCtrl.WriteText(dataObject.GetText())
+        #    wx.TheClipboard.Close()
 
     def previewExpInfo(self, event):
         thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
