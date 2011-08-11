@@ -32,7 +32,10 @@ class FileDropTarget(wx.FileDropTarget):
     def OnDropFiles(self, x, y, filenames):
         log.debug('PsychoPyBuilder: received dropped files: filenames')
         for filename in filenames:
-            self.builder.fileOpen(filename=filename)
+            if filename.endswith('.psyexp'):
+                self.builder.fileOpen(filename=filename)
+            else:
+                log.warning('dropped file ignored: did not end in .psyexp')
 
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
@@ -769,7 +772,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_SIZE, self.onResize)
-        self.SetDropTarget(FileDropTarget(builder = self.frame))
+        #self.SetDropTarget(FileDropTarget(builder = self.frame)) # crashes if drop on OSX
 
     def onResize(self, event):
         self.sizePix=event.GetSize()
