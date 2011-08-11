@@ -5,14 +5,12 @@
 and writes out an executable file, replaceCopyright<year>, with commands that could be used to update last-year to the current year.
 
 usage steps:
-- 'svn update'
-- 'svn commit any pending changes'
-- 'python psychopy/tests/run.py'
-- './searchCopyrightYear.py'
+- run tests
+- ./searchCopyrightYear.py
 - review the new file, replaceCopyright<Year>.sh, edit as needed
-- './replaceCopyrightYear.py' -- this does the replacing
-- 'python psychopy/tests/run.py' -- make sure we didn't break anything
-- 'svn commit -m "updated copyright year"'
+- ./replaceCopyrightYear.sh -- this does the replacing
+- run tests again -- make sure we didn't break anything
+- commit
 
 currently will handle:
 Copyright (C) 2009 Jonathan Peirce
@@ -33,9 +31,15 @@ __author__ = 'Jeremy Gray'
 
 import os,sys,time
 
+print "\n\nsearch for copyright year is BROKEN. please fix.\n\n"
+sys.exit()
+
+from psychopy import core
+
 assert sys.platform == 'darwin' or sys.platform.startswith('linux')
-perl = os.popen('perl -V | head -1').read()
-assert perl.find('perl5') > -1 # not completely sure what will happen with other perl versions...
+#perl = os.popen('perl -V | head -1').read()
+perlVersion = core.shellCall('perl -V').splitlines()[0]
+assert perlVersion.find('perl5') > -1 # not completely sure what will happen with other perl versions...
 
 newYear = str(time.localtime()[0]) # current year
 oldYear = str(int(newYear)-1) # last year; will need to set manually if you miss a year
@@ -43,8 +47,9 @@ oldYear = str(int(newYear)-1) # last year; will need to set manually if you miss
 print "Checking all lines of all files for copyright <year> info..."
 
 #get paths and names of eligible files (in or below current directory)
-files = os.popen(r"find . | sed -e 's/ /\\ /g'" + ' | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
-files = [f.strip() for f in files]
+#files = os.popen(r"find . | sed -e 's/ /\\ /g'" + ' | egrep -v ".pyc|/.hg|/.svn|/.git|.pdf|.dll|.wav|.mp4|.mpg|.ico|.jpg|.gif|.png|.DS_Store"').readlines()
+files = core.shellCall('sh ./find_pp.sh')
+files = [f.strip() for f in files.splitlines() if not os.path.isdir(f)]
 print len(files), 'files found, screening each'
 
 badLines = 0 #  ['$/] will mess with perl search-replace; other characters might too
@@ -53,11 +58,13 @@ tmpFile = './replaceCopyright'+oldYear+'_'+newYear+'.sh'
 try: del files[files.index(tmpFile)]
 except: pass
 tmp = open(tmpFile, 'w')
-tmp.write('#!/bin/sh \n echo Updating...\n')
+tmp.write('#!/bin/sh \necho Updating...\n')
 
 # check each line of each file:
-for file in files: 
-    lines = os.popen('grep '+oldYear+' "'+file+'" | grep Peirce | egrep -i "\(c\)|copyright"').readlines()
+for file in files:
+    contents = open(r''+file+'', 'r').readlines()
+    lines = [line for line in contents if line.find("Peirce") > -1 and \
+             (line.lower().find("(c)") or line.lower().find("copyright"))]
     for line in lines: #allow multiple lines per file, each gets its own replace command; directories -> ignored
         line = line.strip()
         anchor = '^' # start-of-line anchor makes search-replace more efficient
@@ -65,13 +72,13 @@ for file in files:
             line = line[line.find("'")+1:]
             line = line[:line.find("'")]
             if line.find(oldYear) == -1:
-                badLines += 1
-                print file+": expected <last-year> somewhere between single-quotes:", line
-                continue
+            #    badLines += 1
+            #    print file+": expected <last-year> somewhere between single-quotes:", line
+                continue # skip the line
             anchor = '' # will not match at the start of the line anymore
         if line.find('$') > -1 or line.find('/') > -1:
-            badLines += 1
-            print file+": cannot handle '$' or '/' in line:", line
+            #badLines += 1
+            #print file+": cannot handle '$' or '/' in line:", line
             continue
         newLine = line.replace(oldYear, newYear) # should not contain characters that will mess with perl 's/oldLine/newLine/'
         cmd = "echo "+file+"\n" # helps with debugging, if the perl s/// flails due to a bad character -> you know what file to look at
@@ -80,9 +87,10 @@ for file in files:
         targetFiles += 1
 tmp.write('echo Updated %d files.\n' % targetFiles)
 tmp.close()
+#os.unlink(tmpFile)
 
-print os.popen('cat '+tmpFile+" | grep 'perl -pi -e'").read() # merely display, do not actually do, all of the replacement commands
-os.popen('chmod u+x '+tmpFile) # make executable
+core.shellCall('cat '+tmpFile)
+core.shellCall('chmod u+x '+tmpFile) # make executable
 if targetFiles:
     print 'If all of the above changes look correct, to make all changes type:\n  '+tmpFile
     print 'If something looks amiss, you can manually edit '+tmpFile+', and then run it.'

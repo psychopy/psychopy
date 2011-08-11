@@ -15,6 +15,8 @@ from psychopy.app import stdOutRich, dialogs
 from psychopy import data, log, misc, gui
 import re
 from psychopy.constants import *
+from tempfile import mkdtemp # to check code syntax
+import py_compile
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
@@ -681,13 +683,11 @@ class FlowPanel(wx.ScrolledWindow):
         font = self.GetFont()
         if sys.platform=='darwin':
             basePtSize = (650,750,900)[self.appData['flowSize']]
-            font.SetPointSize(basePtSize/self.dpi)
         elif sys.platform.startswith('linux'):
             basePtSize = (750,850,1000)[self.appData['flowSize']]
-            font.SetPointSize(1400/self.dpi-fontSizeDelta)
         else:
             basePtSize = (700,750,800)[self.appData['flowSize']]
-            font.SetPointSize(basePtSize/self.dpi)
+        font.SetPointSize(basePtSize/self.dpi)
         self.SetFont(font)
         dc.SetFont(font)
 
@@ -906,7 +906,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                     xSt+lineN*unitSize/xScale, yPosBottom+4)
             dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosTop-20)#label above
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
-                dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale,yPosBottom+10)#label below
+                dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosBottom+10)#label below
         #add a label
         self.setFontSize(1000/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
@@ -1254,7 +1254,7 @@ class ParamCtrls:
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
 
-        elif label in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+        elif label in components.code.codeParamNames[:]:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
@@ -1384,7 +1384,9 @@ class _BaseParamsDlg(wx.Dialog):
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
-        self.suppressTitles = suppressTitles
+        self.codeParamNames = components.code.codeParamNames[:] # want a copy
+        self.codeFieldNameFromID = {}
+        self.codeIDFromFieldName = {}
 
         #create a header row of titles
         if not suppressTitles:
@@ -1542,6 +1544,16 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif fieldName=='Experiment info':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
+        elif fieldName in self.codeParamNames:
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
+            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
+            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
+            id = wx.NewId()
+            self.codeFieldNameFromID[id] = fieldName
+            self.codeIDFromFieldName[fieldName] = id
+            ctrls.valueCtrl.SetId(id)
+            #print id, fieldName
+
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
@@ -1631,18 +1643,20 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_RIGHT)
             self.nameOKlabel.SetForegroundColour(wx.RED)
+
         #add buttons for OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP)
-            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         self.OKbtn.SetDefault()
-        self.checkName()
+        self.checkName() # disables OKbtn if bad name
+
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
@@ -1654,11 +1668,90 @@ class _BaseParamsDlg(wx.Dialog):
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
+
+        # run syntax check for a code component dialog:
+        if hasattr(self, 'codeParamNames'):
+            valTypes = [self.params[param].valType for param in self.params.keys()
+                        if param in self.codeParamNames] # not configured to properly handle code fields except in code components
+            if 'code' in valTypes:
+                self.checkCodeSyntax()
+
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+    def onNavigationCode(self, event):
+        #print event.GetId(),event.GetCurrentFocus() # 0 None
+        return
+
+        fieldName = self.codeFieldNameFromID[event.GetId()] #fails
+        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
+        val = self.paramCtrls[fieldName].getValue()
+        newVal = val[:pos] + '    ' + val[pos:]
+        self.paramCtrls[fieldName].valueCtrl.ChangeValue(newVal)
+        self.paramCtrls[fieldName].valueCtrl.SendTextUpdatedEvent()
+
+    def onTextEventCode(self, event=None):
+        """process text events for code components: change color to grey
+        """
+        #print event.GetId()
+        fieldName = self.codeFieldNameFromID[event.GetId()]
+        val = self.paramCtrls[fieldName].getValue()
+        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
+        if pos >= 1 and val[pos-1] != "\n": # only do syntax check at end of line
+            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
+        elif pos >= 2 and val[pos-2] != ":": # ... but skip the check if end of line is colon
+            self._setNameColor(self._testCompile(fieldName))
+    def _testCompile(self, fieldName):
+        """checks code.val for legal python syntax, sets field bg color, returns status
+
+        method: writes code to a file, try to py_compile it. not intended for
+        high-freq repeated checking, ok for CPU but hits the disk every time.
+        """
+        # better to use a StringIO.StringIO() than a tmp file, but couldnt work it out
+        # definitely don't want eval() or exec()
+        tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
+        tmpFile = os.path.join(tmpDir, 'tmp')
+        val = self.paramCtrls[fieldName].getValue() # better than getParams(), which sets them, messes with cancel
+        f = codecs.open(tmpFile, 'w', 'utf-8')
+        f.write(val)
+        f.close()
+        #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
+        try:
+            py_compile.compile(tmpFile, doraise=True)
+            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white, ok
+            syntaxCheck = True # syntax fine
+        except: # hopefully SyntaxError, but can't check for it; checking messes with things
+            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+            syntaxCheck = False # syntax error
+            # need to capture stderr to get the msg, which has line number etc
+            #msg = py_compile.compile(tmpFile)
+            #self.nameOKlabel.SetLabel(str(msg))
+        # clean up tmp files:
+        shutil.rmtree(tmpDir, ignore_errors=True)
+
+        return syntaxCheck
+
+    def checkCodeSyntax(self, event=None):
+        """Checks syntax for whole code component by code box, sets box bg-color.
+        """
+        goodSyntax = True
+        for fieldName in self.codeParamNames:
+            if self.params[fieldName].valType != 'code':
+                continue
+            if not self.paramCtrls[fieldName].getValue().strip(): # if basically empty
+                self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+                continue # skip test
+            goodSyntax = goodSyntax and self._testCompile(fieldName) # test syntax
+        self._setNameColor(goodSyntax)
+    def _setNameColor(self, goodSyntax):
+        if goodSyntax:
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(220,250,220, 255)) # name green, good
+            self.nameOKlabel.SetLabel("")
+        else:
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # name white
+            self.nameOKlabel.SetLabel('syntax error')
 
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
@@ -1743,12 +1836,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditionsFile=None
 
         #create a valid new name; save old name in case we need to revert
-        default_name = 'trials'
-        old_name = default_name
+        defaultName = 'trials'
+        oldLoopName = defaultName
         if loop:
-            old_name = loop.params['name'].val
+            oldLoopName = loop.params['name'].val
         namespace = frame.exp.namespace
-        new_name = namespace.makeValid(old_name)
+        new_name = namespace.makeValid(oldLoopName)
         #create default instances of the diff loop types
         self.trialHandler=experiment.TrialHandler(exp=self.exp, name=new_name,
             loopType='random',nReps=5,conditions=[]) #for 'random','sequential', 'fullRandom'
@@ -1791,12 +1884,17 @@ class DlgLoopProperties(_BaseParamsDlg):
             exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
-            if loop:
-                namespace.remove(old_name)
+            if loop: # editing an existing loop
+                namespace.remove(oldLoopName)
             namespace.add(self.params['name'].val)
+            # don't always have a conditionsFile
+            if hasattr(self, 'condNamesInFile'):
+                namespace.add(self.condNamesInFile)
+            if hasattr(self, 'duplCondNames'):
+                namespace.remove(self.duplCondNames)
         else:
             if loop!=None:#if we had a loop during init then revert to its old name
-                loop.params['name'].val = old_name
+                loop.params['name'].val = oldLoopName
 
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a conditions
@@ -1913,7 +2011,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.staircaseCtrls[fieldName] = ctrls
-    def getAbbriev(self, longStr, n=30):
+    def getAbbrev(self, longStr, n=30):
         """for a filename (or any string actually), give the first
         5 characters, an ellipsis and then n of the final characters"""
         if len(longStr)>20:
@@ -1969,43 +2067,55 @@ class DlgLoopProperties(_BaseParamsDlg):
             return
         self.setCtrls(newType)
     def onBrowseTrialsFile(self, event):
+        self.conditionsFileOrig = self.conditionsFile
         expFolder,expName = os.path.split(self.frame.filename)
-        dlg = wx.FileDialog(
-            self, message="Open file ...", style=wx.OPEN, defaultDir=expFolder,
-            )
+        dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+                            defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = _relpath(dlg.GetPath(), expFolder)
+            newFullPath = dlg.GetPath()
+            if self.conditionsFile:
+                oldFullPath = os.path.abspath(os.path.join(expFolder, self.conditionsFile))
+                isSameFilePathAndName = (newFullPath==oldFullPath)
+            else:
+                isSameFilePathAndName = False
+            newPath = _relpath(newFullPath, expFolder)
             self.conditionsFile = newPath
             try:
-                self.conditions, fieldNames = data.importConditions(dlg.GetPath(), returnFieldNames=True)
+                self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
+                                                        returnFieldNames=True)
             except ImportError, msg:
                 self.constantsCtrls['conditions'].setValue(
-                    'Bad condition name(s) in file:\n'+str(msg).replace(':','\n')+
-                    '.\n[Edit in the file, try again.]')
-                self.conditionsFile = self.conditions = ''
+                    'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
+                    '.\nNeed to be legal as var name; edit file, try again.')
+                self.conditionsFile = self.conditionsFileOrig
+                self.conditions = ''
                 log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
                 return
 
-            badNames = ''
-            if len(fieldNames):
-                for fname in fieldNames:
-                    if self.exp.namespace.exists(fname): # or not self.exp.namespace.isValid(fname):
-                        badNames += fname+' '
-            if badNames:
-                self.constantsCtrls['conditions'].setValue(
-                    'Bad condition name(s) in file:\n'+badNames[:-1]+
-                    '\n[Duplicate name(s). Edit file, try again.]')
-                log.error('Rejected bad condition names in conditions file: %s' % badNames[:-1])
-                self.conditionsFile = self.conditions = ''
-                return
-            self.exp.namespace.add(fieldNames)
+            duplCondNames = []
+            if len(self.condNamesInFile):
+                for condName in self.condNamesInFile:
+                    if self.exp.namespace.exists(condName):
+                        duplCondNames.append(condName)
+            duplCondNamesStr = ' '.join(duplCondNames)[:42]
+            if len(duplCondNamesStr)==42:
+                duplCondNamesStr = duplCondNamesStr[:39]+'...'
+            if len(duplCondNames):
+                if isSameFilePathAndName:
+                    log.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
+                else:
+                    self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
+                    self.constantsCtrls['conditions'].setValue(
+                        'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
+                        ']\nProceed anyway? (= safe if these are in old file)')
+                    log.warning('Duplicate condition names, different conditions file: %s' % duplCondNamesStr)
+            # stash condition names but don't add to namespace yet, user can still cancel
+            self.duplCondNames = duplCondNames # add after self.show() in __init__
 
-            if 'conditionsFile' in self.currentCtrls.keys():
-                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
+            if 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
+                self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-            else:
-                self.constantsCtrls['conditionsFile'].setValue(self.getAbbriev(newPath))
-                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
         """
@@ -2013,7 +2123,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in self.currentHandler.params.keys():
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
-            if fieldName in ['conditionsFile', 'conditionsFile']:
+            if fieldName in ['conditionsFile']:
                 param.val=self.conditionsFile#not the value from ctrl - that was abbrieviated
             else:#most other fields
                 ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param
@@ -2483,16 +2593,16 @@ class BuilderFrame(wx.Frame):
         """Open a FileDialog, then load the file if possible.
         """
         if filename==None:
-            dlg = wx.FileDialog(
-                self, message="Open file ...", style=wx.OPEN,
-                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*",
-                )
-
+            dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
+        self.Freeze()
         if closeCurrent:
-            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
+            if not self.fileClose(updateViews=False):
+                self.Thaw()#the user cancelled so allow GUI to change again
+                return False #close the existing (and prompt for save if necess)
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         try:
             self.exp.loadFromXML(filename)
@@ -2500,15 +2610,14 @@ class BuilderFrame(wx.Frame):
             print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
             traceback.print_exc()
             log.flush()
+            self.Thaw()#failed to load exp, so allow GUI to change again
         self.resetUndoStack()
         self.setIsModified(False)
         self.filename = filename
-        #load routines
-        for thisRoutineName in self.exp.routines.keys():
-            routine = self.exp.routines[thisRoutineName]
-            self.routinePanel.addRoutinePage(thisRoutineName, routine)
+        #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
         #update the views
-        self.updateAllViews()
+        self.updateAllViews()#we're still Frozen so the effect won't be visible
+        self.Thaw()#all frames are updated so reveal the changes
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
@@ -2579,8 +2688,8 @@ class BuilderFrame(wx.Frame):
                 if not self.fileSave(): return False #user might cancel during save
             elif resp == wx.ID_NO: pass #don't save just quit
         return 1
-    def fileClose(self, event=None, checkSave=True):
-        """Not currently used? Frame is closed rather than file"""
+    def fileClose(self, event=None, checkSave=True, updateViews=True):
+        """user closes the Frame, not the file; fileOpen() calls fileClose()"""
         if checkSave:
             ok = self.checkSave()
             if not ok: return False#user cancelled
@@ -2588,7 +2697,8 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.removePages()
         self.filename = 'untitled.psyexp'
         self.resetUndoStack()#will add the current exp as the start point for undo
-        self.updateAllViews()
+        if updateViews:
+            self.updateAllViews()
         return 1
     def updateAllViews(self):
         self.flowPanel.draw()

@@ -5,14 +5,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, threading
-import os # only needed for temporary shellCall()
-
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.platform_specific import rush
 from psychopy import log
-
-# for shellCall: (May 2010: commented out due to v1.61 build issues for mac, even though shellCall() works fine on mac)
-#import subprocess, shlex
+import subprocess, shlex
 
 runningThreads=[]
 
@@ -97,36 +93,14 @@ def wait(secs, hogCPUperiod=0.2):
 
 def shellCall(shellCmd, stderr=False):
     """Call a single system command with arguments, return its stdout. 
-    Returns (stdout,stderr) if requested (by stderr==True). Does not handle multiple commands connected by pipes ("|").
+    Returns stdout,stderr if stderr is True. Does not handle pipes ("|").
     """
-    
-    stdout = os.popen(shellCmd).read()
+    shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, pipes fail
+    proc = subprocess.Popen(shellCmdList, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdoutData, stderrData = proc.communicate()
+    del proc
     if stderr:
-        return stdout,''
+        return stdoutData.strip(), stderrData.strip()
     else:
-        return stdout
-    
-    # this shows promise as a way to capture stderr as well, but then elsewhere shellCall().split() seems to fail
-    import popen2
-    stdO,stdI,stdE = popen2.popen3(shellCmd)
-    stdOData = stdO.read().strip()
-    stdEData = stdE.read().strip()
-    stdO.close()
-    stdI.close()
-    stdE.close()
-    if stderr:
-        return stdOData,stdEData
-    else:
-        return stdOData
-    
-# subprocess is the recommended way to do things, but had build problems on Mac:
-#    import subprocess, shlex
-#    shellCmdList = shlex.split(shellCmd) # safely split into command + list-of-args; pipes don't work here
-#    stdoutData, stderrData = subprocess.Popen(shellCmdList,
-#        stdout=subprocess.PIPE, stderr=subprocess.PIPE ).communicate()
-        
-#    if stderr:
-#        return stdoutData.strip(), stderrData.strip()
-#    else:
-#        return stdoutData.strip()
+        return stdoutData.strip()
 

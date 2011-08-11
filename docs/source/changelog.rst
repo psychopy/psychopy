@@ -25,21 +25,33 @@ PsychoPy 1.70.00
     - `forceEndTrialOnPress` in Mouse Component is now `forceEndRoutineOnPress`
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
+
+* CHANGED numpy imports in Builder scripts:
     
+    - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
+    - all items in the numpy namespace are available as np.*
+    - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
+
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
     - number of frames, rather than time (s), for greater precision
     - an arbitrary condition (e.g. otherStim.status==STOPPED )
-    
+
+* ADDED a preference setting for adding custom path locations to Standalone PsychoPy
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
+* ADDED option for full randomization of repeated lists (loop type 'fullRandom') (Jeremy)
+* ADDED builder icons can now be small or large (in prefs)
 * ADDED checking of conditions files for parameter name conflicts (thanks Jeremy)
-* ADDED hardware/scanEmulator (see API reference) to emulate fMRI or other scanners for testing (thanks Jeremy)
-* ADDED if you right-click the expInfo in Experiment Settings you'll get a test of the dialog box
+* ADDED emulate sync pulses and user key presses for fMRI or other scanners (for testing); see hardware/launchScan in the API reference, and Coder `demos > experimental control > fMRI_launchScan.py` (Jeremy)
+* ADDED right-clicking the expInfo in Experiment Settings tests & previews the dialog box (Jeremy)
+* ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
-* IMPROVED Flow view in the Builder, with zooming (thanks Jeremy)
-* FIXED demos now unpack to an empty folder (thanks Jeremy)
+* IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
+* IMPROVED Flow view in the Builder, with zooming (Jeremy)
+* IMPROVED Neater (and slightly faster) changing of Builder Routines on file open/close
+* FIXED demos now unpack to an empty folder (Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
 
 PsychoPy 1.65

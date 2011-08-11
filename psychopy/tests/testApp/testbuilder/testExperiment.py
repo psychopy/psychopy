@@ -5,6 +5,9 @@ import py_compile
 import difflib
 import nose
 from tempfile import mkdtemp
+import codecs
+from psychopy.core import shellCall
+from psychopy.tests import utils
 
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
@@ -149,8 +152,8 @@ class TestExpt():
                     and not f.startswith('bart'):
                         shutil.copyfile(path.join(root, f), path.join(self.tmp_dir, f))
         # also copy any psyexp in 'here' (testExperiment dir)
-        for f in glob.glob(path.join(self.here, '*.psyexp')):
-            shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
+        #for f in glob.glob(path.join(self.here, '*.psyexp')):
+        #    shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
         test_psyexp = list(glob.glob(path.join(self.tmp_dir, '*.psyexp')))
         if len(test_psyexp) == 0:
             raise nose.plugins.skip.SkipTest, "No test .psyexp files found (no Builder demos??)"
@@ -178,6 +181,43 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
+    def testRun_FastStroopPsyExp(self):
+        # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
+        
+        os.chdir(self.tmp_dir)
+        
+        file = path.join(exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
+        f = codecs.open(file, 'r', 'utf-8')
+        text = f.read()
+        f.close()
+        
+        # replace hardcoded full path with this-machine's path, do in the XML else script won't open (if moved)
+        text = text.replace('/Users/jgray/code/psychopy/psychopy/tests/data/ghost_trialTypes.xlsx',
+                            path.join(exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'))
+        # use a consistent font:
+        text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
+        #text = text.replace("Arial",utils.TESTS_FONT) # fails
+        
+        file = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
+        f = codecs.open(file, 'w', 'utf-8')
+        f.write(text)
+        f.close()
+        
+        exp.loadFromXML(file) #reload the modifed file
+        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
+        script = exp.writeScript(expPath=lastrun)
+        # reposition its window out from under splashscreen (can't do easily from .syexp):
+        text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
+        f = codecs.open(lastrun, 'w', 'utf-8')
+        f.write(text)
+        f.close()
+        
+        # run:
+        stdout, stderr = shellCall('python '+lastrun, stderr=True)
+        if len(stderr):
+            print stderr
+            assert not len(stderr) # NB: "captured stdout" is the stderr from subprocess
+            
     def testExp_AddRoutine(self):
         exp = self.exp
         exp.addRoutine('instructions')
