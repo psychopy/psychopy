@@ -47,9 +47,9 @@
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # best leave this mysterious setting as 'process'
     runScripts = option('process', 'thread', 'inline', default='process')
-    # will reset site & key prefs to defaults immediately
-    resetSitePrefs = boolean(default='False')
-    # save any unsaved prefences before closing the window
+    # reset preferences to defaults on next restart of PsychoPy
+    resetPrefs = boolean(default='False') # default must be False!
+    # save any unsaved preferences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
