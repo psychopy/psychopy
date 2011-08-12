@@ -2639,10 +2639,10 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
-        self.Freeze()
+        if sys.platform!='win32':self.Freeze()
         if closeCurrent:
             if not self.fileClose(updateViews=False):
-                self.Thaw()#the user cancelled so allow GUI to change again
+                if sys.platform!='win32': self.Thaw()#the user cancelled so allow GUI to change again
                 return False #close the existing (and prompt for save if necess)
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         try:
@@ -2651,14 +2651,14 @@ class BuilderFrame(wx.Frame):
             print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
             traceback.print_exc()
             log.flush()
-            self.Thaw()#failed to load exp, so allow GUI to change again
+            if sys.platform!='win32': self.Thaw()#failed to load exp, so allow GUI to change again
         self.resetUndoStack()
         self.setIsModified(False)
         self.filename = filename
         #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
         #update the views
         self.updateAllViews()#we're still Frozen so the effect won't be visible
-        self.Thaw()#all frames are updated so reveal the changes
+        if sys.platform!='win32': self.Thaw()#all frames are updated so reveal the changes
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
