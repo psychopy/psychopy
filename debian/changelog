@@ -1,6 +1,6 @@
-psychopy (1.70.00~rc4.dfsg-1) unstable; urgency=low
+psychopy (1.70.00~rc4+git10-gf081945.dfsg-1) unstable; urgency=low
 
-  * New upstream release
+  * New upstream release candidate snapshot
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 08 Aug 2011 17:11:45 -0400
 
