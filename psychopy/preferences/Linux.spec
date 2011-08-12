@@ -45,7 +45,7 @@
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
-    # will reset site & key prefs to defaults immediately
+    # reset preferences to defaults on next restart of PsychoPy
     resetSitePrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
