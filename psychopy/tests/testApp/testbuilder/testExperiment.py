@@ -192,7 +192,7 @@ class TestExpt():
         f.close()
         
         # replace hardcoded full path with this-machine's path, do in the XML else script won't open (if moved)
-        text = text.replace('/Users/jgray/code/psychopy/psychopy/tests/data/ghost_trialTypes.xlsx',
+        text = text.replace('ghost_trialTypes.xlsx',
                             path.join(exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'))
         # use a consistent font:
         text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")

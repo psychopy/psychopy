@@ -117,7 +117,7 @@
   <Flow>
     <Routine name="instruct"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="conditionsFile" val="/Users/jgray/code/psychopy/psychopy/tests/data/ghost_trialTypes.xlsx" valType="str" updates="None"/>
+      <Param name="conditionsFile" val="ghost_trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>
