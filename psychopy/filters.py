@@ -106,7 +106,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
             outArray=numpy.where(numpy.greater(rad,1.0),0.0,1.0)
     elif shape=='gauss':
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
-    elif shape=='raisedCosine'
+    elif shape=='raisedCosine':
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
         fringe_proportion = 0.2 # This one affects the proportion of the
                                 # stimulus diameter that is devoted to the
