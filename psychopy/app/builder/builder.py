@@ -475,7 +475,6 @@ class FlowPanel(wx.ScrolledWindow):
             thisNest = maxNestLevel-self.loops[thisLoop]['nest']-1
             thisId = self.loops[thisLoop]['id']
             height = self.linePos[1]+dLoopToBaseLine + thisNest*dBetweenLoops
-            print self.loops[thisLoop], height
             self.drawLoop(pdc,thisLoop,id=thisId,
                         startX=thisInit, endX=thisTerm,
                         base=self.linePos[1],height=height)
