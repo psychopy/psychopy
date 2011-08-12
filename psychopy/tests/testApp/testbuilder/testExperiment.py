@@ -1,6 +1,6 @@
 import psychopy.app.builder.experiment
 from os import path
-import os, shutil, glob
+import os, shutil, glob, sys
 import py_compile
 import difflib
 import nose
@@ -184,6 +184,9 @@ class TestExpt():
     def testRun_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
         
+        #if sys.platform.startswith('linux'):
+        #    assert False # this test is broken on linux, depends on response emulation, which is not reliable enough yet
+        
         os.chdir(self.tmp_dir)
         
         file = path.join(exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
@@ -191,9 +194,9 @@ class TestExpt():
         text = f.read()
         f.close()
         
-        # replace hardcoded full path with this-machine's path, do in the XML else script won't open (if moved)
-        text = text.replace('ghost_trialTypes.xlsx',
-                            path.join(exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'))
+        # copy conditions file to tmp_dir
+        shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
+                        os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx')) 
         # use a consistent font:
         text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
         #text = text.replace("Arial",utils.TESTS_FONT) # fails
