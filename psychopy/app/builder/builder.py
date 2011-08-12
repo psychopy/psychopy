@@ -446,12 +446,13 @@ class FlowPanel(wx.ScrolledWindow):
         lineId=wx.NewId()
         pdc.DrawLine(x1=self.linePos[0]-gap,y1=self.linePos[1],x2=self.linePos[0],y2=self.linePos[1])
         self.loops={}#NB the loop is itself the key!? and the value is further info about it
-        nestLevel=0
+        nestLevel=0; maxNestLevel=0
         self.gapMidPoints=[currX-gap/2]
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
                 self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
                 nestLevel+=1#start of loop so increment level of nesting
+                maxNestLevel = max(nestLevel, maxNestLevel)
             elif entry.getType()=='LoopTerminator':
                 self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
                 nestLevel-=1#end of loop so decrement level of nesting
@@ -471,7 +472,7 @@ class FlowPanel(wx.ScrolledWindow):
         for thisLoop in self.loops:
             thisInit = self.loops[thisLoop]['init']
             thisTerm = self.loops[thisLoop]['term']
-            thisNest = len(self.loops.keys())-1-self.loops[thisLoop]['nest']
+            thisNest = maxNestLevel-self.loops[thisLoop]['nest']-1
             thisId = self.loops[thisLoop]['id']
             height = self.linePos[1]+dLoopToBaseLine + thisNest*dBetweenLoops
             self.drawLoop(pdc,thisLoop,id=thisId,

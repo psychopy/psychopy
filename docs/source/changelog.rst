@@ -32,12 +32,15 @@ PsychoPy 1.70.00
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
+* CHANGED Builder use of $. To display a '$' character now requires '\$' in a text field (to prevent interpretation of normal text as being code). $ can now appear anywhere in the field (previously only the start).
+    
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline
     - number of frames, rather than time (s), for greater precision
     - an arbitrary condition (e.g. otherStim.status==STOPPED )
 
+* ADDED the option to use a raised cosine as a PatchStim mask (thanks Ariel Rokem)
 * ADDED a preference setting for adding custom path locations to Standalone PsychoPy
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
@@ -49,9 +52,10 @@ PsychoPy 1.70.00
 * ADDED syntax checking in code component dialog, right-click (Jeremy)
 * IMPROVED documentation (thanks Becky Sharman)
 * IMPROVED syntax for using $ in code snippets (e.g., "[$xPos, $yPos]" works) (Jeremy)
-* IMPROVED Flow view in the Builder, with zooming (Jeremy)
+* IMPROVED Flow and Routine displays in the Builder, with zooming; see the View menu for key-board shortcuts (Jeremy)
 * IMPROVED Neater (and slightly faster) changing of Builder Routines on file open/close
 * FIXED demos now unpack to an empty folder (Jeremy)
+* FIXED deleting an empty loop from the flow now works (Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
 
 PsychoPy 1.65

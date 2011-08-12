@@ -32,7 +32,7 @@ PsychoPy 1.70.00
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder $: To display a '$' character now requires '\$' in a text field (to prevent interpretation of normal text as being code). $ can now appear anywhere in the field (previously only the start).
+* CHANGED Builder use of $. To display a '$' character now requires '\$' in a text field (to prevent interpretation of normal text as being code). $ can now appear anywhere in the field (previously only the start).
     
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
@@ -40,6 +40,7 @@ PsychoPy 1.70.00
     - number of frames, rather than time (s), for greater precision
     - an arbitrary condition (e.g. otherStim.status==STOPPED )
 
+* ADDED the option to use a raised cosine as a PatchStim mask (thanks Ariel Rokem)
 * ADDED a preference setting for adding custom path locations to Standalone PsychoPy
 * ADDED Dots Component to Builder interface for random dot kinematograms
 * ADDED wide-format data files (saveAsWideText()) (thanks Michael MacAskill)
