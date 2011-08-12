@@ -18,24 +18,25 @@ def makeGrating(res,
             gratType="sin",
             contr=1.0):
     """Make an array containing a luminance grating of the specified params
-    
-        :Parameters:
-            res: integer
-                the size of the resulting matrix on both dimensions (e.g 256)
-            ori: float or int (default=0.0)
-                the orientation of the grating in degrees
-            cycles:float or int (default=1.0)
-                the number of grating cycles within the array 
-            phase: float or int (default=0.0)
-                the phase of the grating in degrees (NB this differs to most PsychoPy phase arguments which use units of fraction of a cycle) 
-            gratType: 'sin', 'sqr', 'ramp' or 'sinXsin' (default="sin")
-                the type of grating to be 'drawn'
-            contr: float (default=1.0)
-                contrast of the grating
-                
-        :Returns:
-            a square numpy array of size resXres
-            
+
+    :Parameters:
+        res: integer
+            the size of the resulting matrix on both dimensions (e.g 256)
+        ori: float or int (default=0.0)
+            the orientation of the grating in degrees
+        cycles:float or int (default=1.0)
+            the number of grating cycles within the array
+        phase: float or int (default=0.0)
+            the phase of the grating in degrees (NB this differs to most
+            PsychoPy phase arguments which use units of fraction of a cycle)
+        gratType: 'sin', 'sqr', 'ramp' or 'sinXsin' (default="sin")
+            the type of grating to be 'drawn'
+        contr: float (default=1.0)
+            contrast of the grating
+
+    :Returns:
+        a square numpy array of size resXres
+
     """
     tiny=0.0000000000001#to prevent the sinusoid ever being exactly at zero (for sqr wave)
     ori *= (-numpy.pi/180)
@@ -64,17 +65,19 @@ def makeGrating(res,
 
 def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0,0.0)):
     """Make and apply a mask to an input matrix (e.g. a grating)
-    
-       :Parameters:
 
-            matrix:  a square numpy array 
-                array to which the mask should be applied
-            shape:  'circle','gauss','ramp' (linear gradient from center)
-                shape of the mask
-            radius:  float
-                scale factor to be applied to the mask (circle with radius of [1,1] will extend just to the edge of the matrix). Radius can asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
-            center:  2x1 tuple or list (default=[0.0,0.0])
-                the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
+    :Parameters:
+         matrix:  a square numpy array
+             array to which the mask should be applied
+         shape:  'circle','gauss','ramp' (linear gradient from center)
+             shape of the mask
+         radius:  float
+             scale factor to be applied to the mask (circle with radius of
+             [1,1] will extend just to the edge of the matrix). Radius can
+             be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+         center:  2x1 tuple or list (default=[0.0,0.0])
+             the centre of the mask in the matrix ([1,1] is top-right
+             corner, [-1,-1] is bottom-left)
     """
     #NB makeMask now returns a value -1:1
     alphaMask = makeMask(matrix.shape[0],shape,radius, center=(0.0,0.0), range=[0,1])
@@ -84,7 +87,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
              range=[-1,1], fringeWidth=0.2):
     """
     Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
-    
+
     :Parameters:
             matrixSize: integer
                 the size of the resulting matrix on both dimensions (e.g 256)
@@ -92,9 +95,12 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
                     'raisedCosine' (the edges are blurred by a raised cosine)
                 shape of the mask
             radius:  float
-                scale factor to be applied to the mask (circle with radius of [1,1] will extend just to the edge of the matrix). Radius can asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+                scale factor to be applied to the mask (circle with radius of
+                [1,1] will extend just to the edge of the matrix). Radius can
+                asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
             center:  2x1 tuple or list (default=[0.0,0.0])
-                the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
+                the centre of the mask in the matrix ([1,1] is top-right corner,
+                [-1,-1] is bottom-left)
             fringeWidth: float (0-1)
                 The proportion of the raisedCosine that is being blurred.
             """
@@ -111,8 +117,8 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
         fringe_proportion = 0.2 # This one affects the proportion of the
                                 # stimulus diameter that is devoted to the
                                 # raised cosine. XXX Consider
-                                # making this a user input. 
-        
+                                # making this a user input.
+
         rad = makeRadialMatrix(res)
         outArray = numpy.zeros_like(rad)
         outArray[numpy.where(rad < 1)] = 1
@@ -124,7 +130,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
         raised_cos -= numpy.min(raised_cos)
         raised_cos /= numpy.max(raised_cos)
 
-        # Measure the distance from the edge - this is your index into the hamming window: 
+        # Measure the distance from the edge - this is your index into the hamming window:
         d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
         d_from_edge /= numpy.max(d_from_edge)
         d_from_edge *= numpy.round(hamming_len/2)
@@ -135,7 +141,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
         # Apply the raised cos to this portion:
         outArray[raised_cos_idx] = raised_cos[portion_idx]
 
-        # Scale it into the interval -1:1: 
+        # Scale it into the interval -1:1:
         outArray = outArray - 0.5
         outArray = outArray / numpy.max(outArray)
 
@@ -155,14 +161,17 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
 def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
-    
+
     :Parameters:
         matrixSize: integer
             the size of the resulting matrix on both dimensions (e.g 256)
         radius:  float
-            scale factor to be applied to the mask (circle with radius of [1,1] will extend just to the edge of the matrix). Radius can asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+            scale factor to be applied to the mask (circle with radius of
+            [1,1] will extend just to the edge of the matrix). Radius can
+            be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
         center:  2x1 tuple or list (default=[0.0,0.0])
-            the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
+            the centre of the mask in the matrix ([1,1] is top-right
+            corner, [-1,-1] is bottom-left)
     """
     if type(radius) in [int, float]: radius = [radius,radius]
 
@@ -175,7 +184,7 @@ def makeRadialMatrix(matrixSize, center=(0.0,0.0), radius=1.0):
 def makeGauss(x, mean=0.0, sd=1.0, gain=1.0, base=0.0):
     """
     Return the gaussian distribution for a given set of x-vals
-    
+
    :Parameters:
         mean: float
             the centre of the distribution
@@ -185,28 +194,28 @@ def makeGauss(x, mean=0.0, sd=1.0, gain=1.0, base=0.0):
             the height of the distribution
         base: float
             an offset added to the result
-        
+
     """
     simpleGauss = numpy.exp( (-numpy.power(mean-x,2)/(2*sd**2)) )
     return base + gain*( simpleGauss )
-        
+
 def getRMScontrast(matrix):
     """Returns the RMS contrast (the sample standard deviation) of a array"""
     matrix = matrix.flat
     RMScontrast = (sum((matrix-numpy.mean(matrix))**2)/len(matrix))**0.5
     return RMScontrast
-    
+
 def conv2d(smaller, larger):
     """convolve a pair of 2d numpy matrices
     Uses fourier transform method, so faster if larger matrix
     has dimensions of size 2**n
-    
+
     Actually right now the matrices must be the same size (will sort out
     padding issues another day!)
     """
     smallerFFT = fft2(smaller)
     largerFFT = fft2(larger)
-    
+
     invFFT = ifft2(smallerFFT*largerFFT)
     return invFFT.real
 
@@ -257,20 +266,20 @@ def butter2d_lp(size, cutoff, n=3):
 def butter2d_bp(size, cutin, cutoff, n):
     """Bandpass Butterworth filter in two dimensions
 
-       :Parameters:
-           size : tuple
-               size of the filter
-           cutin : float
-               relative cutin  frequency of the filter (0 - 1.0)
-           cutoff : float
-               relative cutoff frequency of the filter (0 - 1.0)
-           n : int, optional
-               order of the filter, the higher n is the sharper
-               the transition is.
+    :Parameters:
+        size : tuple
+            size of the filter
+        cutin : float
+            relative cutin  frequency of the filter (0 - 1.0)
+        cutoff : float
+            relative cutoff frequency of the filter (0 - 1.0)
+        n : int, optional
+            order of the filter, the higher n is the sharper
+            the transition is.
 
-       :Returns:
-           numpy.ndarray
-             filter kernel in 2D centered
+    :Returns:
+        numpy.ndarray
+          filter kernel in 2D centered
 
     """
 
@@ -280,18 +289,18 @@ def butter2d_bp(size, cutin, cutoff, n):
 def butter2d_hp(size, cutoff, n=3):
     """Highpass Butterworth filter in two dimensions
 
-       :Parameters:
-           size : tuple
-               size of the filter
-           cutoff : float
-               relative cutoff frequency of the filter (0 - 1.0)
-           n : int, optional
-               order of the filter, the higher n is the sharper
-               the transition is.
+    :Parameters:
+        size : tuple
+            size of the filter
+        cutoff : float
+            relative cutoff frequency of the filter (0 - 1.0)
+        n : int, optional
+            order of the filter, the higher n is the sharper
+            the transition is.
 
-       :Returns:
-           numpy.ndarray:
-             filter kernel in 2D centered
+    :Returns:
+        numpy.ndarray:
+            filter kernel in 2D centered
 
     """
     return 1.0 - butter2d_lp(size, cutoff, n)
@@ -300,22 +309,22 @@ def butter2d_lp_elliptic(size, cutoff_x, cutoff_y, n=3,
                       alpha=0, offset_x=0, offset_y=0):
     """Butterworth lowpass filter of any elliptical shape.
 
-       :Parameters:
-           size : tuple
-               size of the filter
-           cutoff_x, cutoff_y : float, float
-               relative cutoff frequency of the filter (0 - 1.0) for x and y axes
-           alpha : float, optional
-               rotation angle (in radians)
-           offset_x, offset_y : float
-               offsets for the ellipsoid
-           n : int, optional
-               order of the filter, the higher n is the sharper
-               the transition is.
+    :Parameters:
+        size : tuple
+            size of the filter
+        cutoff_x, cutoff_y : float, float
+            relative cutoff frequency of the filter (0 - 1.0) for x and y axes
+        alpha : float, optional
+            rotation angle (in radians)
+        offset_x, offset_y : float
+            offsets for the ellipsoid
+        n : int, optional
+            order of the filter, the higher n is the sharper
+            the transition is.
 
-       :Returns:
-           numpy.ndarray:
-             filter kernel in 2D centered
+    :Returns:
+        numpy.ndarray:
+            filter kernel in 2D centered
 
     """
 
