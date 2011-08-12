@@ -152,8 +152,8 @@ class TestExpt():
                     and not f.startswith('bart'):
                         shutil.copyfile(path.join(root, f), path.join(self.tmp_dir, f))
         # also copy any psyexp in 'here' (testExperiment dir)
-        for f in glob.glob(path.join(self.here, '*.psyexp')):
-            shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
+        #for f in glob.glob(path.join(self.here, '*.psyexp')):
+        #    shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
         test_psyexp = list(glob.glob(path.join(self.tmp_dir, '*.psyexp')))
         if len(test_psyexp) == 0:
             raise nose.plugins.skip.SkipTest, "No test .psyexp files found (no Builder demos??)"

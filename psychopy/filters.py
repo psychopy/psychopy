@@ -80,19 +80,23 @@ def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0,0.0)):
     alphaMask = makeMask(matrix.shape[0],shape,radius, center=(0.0,0.0), range=[0,1])
     return matrix*alphaMask
 
-def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0), range=[-1,1]):
+def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
+             range=[-1,1], fringeWidth=0.2):
     """
     Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
     
     :Parameters:
             matrixSize: integer
                 the size of the resulting matrix on both dimensions (e.g 256)
-            shape:  'circle','gauss','ramp' (linear gradient from center)
+            shape:  'circle','gauss','ramp' (linear gradient from center),
+                    'raisedCosine' (the edges are blurred by a raised cosine)
                 shape of the mask
             radius:  float
                 scale factor to be applied to the mask (circle with radius of [1,1] will extend just to the edge of the matrix). Radius can asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
             center:  2x1 tuple or list (default=[0.0,0.0])
                 the centre of the mask in the matrix ([1,1] is top-right corner, [-1,-1] is bottom-left)
+            fringeWidth: float (0-1)
+                The proportion of the raisedCosine that is being blurred.
             """
     rad = makeRadialMatrix(matrixSize, center, radius)
     if shape=='ramp':
@@ -102,7 +106,47 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0), range=[-1
             outArray=numpy.where(numpy.greater(rad,1.0),0.0,1.0)
     elif shape=='gauss':
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
+    elif shape=='raisedCosine'
+        hamming_len = 1000 # This affects the 'granularity' of the raised cos
+        fringe_proportion = 0.2 # This one affects the proportion of the
+                                # stimulus diameter that is devoted to the
+                                # raised cosine. XXX Consider
+                                # making this a user input. 
+        
+        rad = makeRadialMatrix(res)
+        outArray = numpy.zeros_like(rad)
+        outArray[numpy.where(rad < 1)] = 1
+        raised_cos_idx = numpy.where(
+            [numpy.logical_and(rad <= 1, rad >= 1-fringe_proportion)])[1:]
+
+        # Make a raised_cos (half a hamming window):
+        raised_cos = numpy.hamming(hamming_len)[:hamming_len/2]
+        raised_cos -= numpy.min(raised_cos)
+        raised_cos /= numpy.max(raised_cos)
+
+        # Measure the distance from the edge - this is your index into the hamming window: 
+        d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
+        d_from_edge /= numpy.max(d_from_edge)
+        d_from_edge *= numpy.round(hamming_len/2)
+
+        # This is the indices into the hamming (larger for small distances from the edge!):
+        portion_idx = (-1 * d_from_edge).astype(int)
+
+        # Apply the raised cos to this portion:
+        outArray[raised_cos_idx] = raised_cos[portion_idx]
+
+        # Scale it into the interval -1:1: 
+        outArray = outArray - 0.5
+        outArray = outArray / numpy.max(outArray)
+
+        #Sometimes there are some remaining artifacts from this process, get rid of them:
+        artifact_idx = numpy.where(numpy.logical_and(outArray == -1, rad < 1))
+        outArray[artifact_idx] = 1
+        artifact_idx = numpy.where(numpy.logical_and(outArray == 1, rad > 1))
+        outArray[artifact_idx] = 0
+
     else:
+
             raise ValueError('Unknown value for shape argument %s' % shape)
     mag=range[1]-range[0]
     offset = range[0]

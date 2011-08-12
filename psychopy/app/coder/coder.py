@@ -127,8 +127,6 @@ class UnitTestFrame(wx.Frame):
             self.good = [0,150,0]
             self.skip = [170,170,170]
             self.png = []
-        def _write_image_3x(self, img):
-            self.WriteImage(img.Rescale(3*img.GetWidth(), 3*img.GetHeight()))
         def write(self,inStr):
             self.MoveEnd()#always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
@@ -154,8 +152,8 @@ class UnitTestFrame(wx.Frame):
                     self.WriteText(thisLine.strip())
                     # show the new image, double size for easier viewing:
                     if thisLine.strip().endswith('.png'):
-                        new_img = thisLine.split()[-1]
-                        img = os.path.join(self.parent.paths['tests'], 'data', new_img)
+                        newImg = thisLine.split()[-1]
+                        img = os.path.join(self.parent.paths['tests'], 'data', newImg)
                         self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
                         self.MoveEnd()
                         self.WriteImage(self.png[-1])
@@ -166,21 +164,21 @@ class UnitTestFrame(wx.Frame):
                     self.WriteText(thisLine)
                 if thisLine.find('Saved copy of actual frame')>-1:
                     # show the new images, double size for easier viewing:
-                    new_img = [f for f in thisLine.split() if f.find('_local.png')>-1]
-                    new_file = new_img[0]
-                    orig_file = new_file.replace('_local.png', '.png')
-                    img = os.path.join(self.parent.paths['tests'], orig_file)
+                    newImg = [f for f in thisLine.split() if f.find('_local.png')>-1]
+                    newFile = newImg[0]
+                    origFile = newFile.replace('_local.png', '.png')
+                    img = os.path.join(self.parent.paths['tests'], origFile)
                     self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
                     self.MoveEnd()
                     self.WriteImage(self.png[-1])
                     self.MoveEnd()
-                    self.WriteText('= '+orig_file+';   ')
-                    img = os.path.join(self.parent.paths['tests'], new_file)
+                    self.WriteText('= '+origFile+';   ')
+                    img = os.path.join(self.parent.paths['tests'], newFile)
                     self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
                     self.MoveEnd()
                     self.WriteImage(self.png[-1])
                     self.MoveEnd()
-                    self.WriteText('= '+new_file+'; ')
+                    self.WriteText('= '+newFile+'; ')
 
             self.MoveEnd()#go to end of stdout so user can see updated text
             self.ShowPosition(self.GetLastPosition() )
@@ -196,7 +194,7 @@ class UnitTestFrame(wx.Frame):
         self.IDs = self.app.IDs
         wx.Frame.__init__(self, parent, ID, title, pos=(450,45)) # to right, so Cancel button is clickable during a long test
         self.scriptProcess=None
-        self.run_all_text = 'all tests'
+        self.runAllText = 'all tests'
         border = 10
         self.status = 0 # outcome of the last test run: -1 fail, 0 not run, +1 ok
 
@@ -229,14 +227,15 @@ class UnitTestFrame(wx.Frame):
             size=wx.Size(750,500), font=self.prefs.coder['outputFont'],
             fontSize=self.prefs.coder['outputFontSize'])
 
-        known_tests = glob.glob(os.path.join(self.paths['tests'], 'test*'))
-        known_test_list = [t.split(os.sep)[-1] for t in known_tests if t.endswith('.py') or os.path.isdir(t)]
-        self.known_test_list = [self.run_all_text] + known_test_list
-        self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.known_test_list)
+        knownTests = glob.glob(os.path.join(self.paths['tests'], 'test*'))
+        knownTestList = [t.split(os.sep)[-1] for t in knownTests if t.endswith('.py') or os.path.isdir(t)]
+        self.knownTestList = [self.runAllText] + knownTestList
+        self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.knownTestList)
         self.testSelect.SetToolTip(wx.ToolTip("Select the test(s) to run, from:\npsychopy/tests/test*"))
+        prefTestSubset = self.prefs.appData['testSubset']
         # preselect the testGroup in the drop-down menu for display:
-        if prefTestSubset in self.known_test_list:
-            self.testSelect.SetStringSelection(pref_testSubset)
+        if prefTestSubset in self.knownTestList:
+            self.testSelect.SetStringSelection(prefTestSubset)
 
         self.btnRun = wx.Button(parent=self,label="Run tests")
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
@@ -279,28 +278,29 @@ class UnitTestFrame(wx.Frame):
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
         #what subset of tests? (all tests == '')
-        tselect = self.known_test_list[self.testSelect.GetCurrentSelection()]
-        if tselect == self.run_all_text: tselect = ''
-        test_subset = tselect
+        tselect = self.knownTestList[self.testSelect.GetCurrentSelection()]
+        if tselect == self.runAllText: tselect = ''
+        testSubset = tselect
+        #self.prefs.appData['testSubset'] = tselect # in onIdle
 
         # launch the tests using wx.Execute():
         self.btnRun.Disable()
         self.btnCancel.Enable()
         if sys.platform=='win32':
-            test_subset = ' '+test_subset
+            testSubset = ' '+testSubset
             command = '"%s" -u "%s" %s%s%s --with-doctest' %(sys.executable, self.runpyPath,
-                coverage, allStdout, test_subset)# the quotes allow file paths with spaces
+                coverage, allStdout, testSubset)# the quotes allow file paths with spaces
             print command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            test_subset = ' '+test_subset.replace(' ','\ ')
+            testSubset = ' '+testSubset.replace(' ','\ ')
             command = '%s -u %s%s%s%s --with-doctest' %(sys.executable, self.runpyPath,
-                coverage, allStdout, test_subset)# the quotes would break a unix system command
+                coverage, allStdout, testSubset)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
-        msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (self.runpyPath, coverage, allStdout, test_subset)
+        msg = "\n##### Testing: %s%s%s%s   #####\n\n" % (self.runpyPath, coverage, allStdout, testSubset)
         self.outputWindow.write(msg)
-        if self.app.prefs.general['units'] != 'norm' and test_subset.find('testVisual') > -1:
+        if self.app.prefs.general['units'] != 'norm' and testSubset.find('testVisual') > -1:
             self.outputWindow.write("Note: default window units = '%s' (in prefs); for visual tests 'norm' is recommended.\n\n" % self.app.prefs.general['units'])
 
     def onCancelTests(self, event=None):
@@ -312,6 +312,8 @@ class UnitTestFrame(wx.Frame):
         self.status = 0
         self.onTestsEnded()
     def onIdle(self, event=None):
+        # auto-save last selected subset:
+        self.prefs.appData['testSubset'] = self.knownTestList[self.testSelect.GetCurrentSelection()]
         if self.scriptProcess!=None:
             if self.scriptProcess.IsInputAvailable():
                 stream = self.scriptProcess.GetInputStream()

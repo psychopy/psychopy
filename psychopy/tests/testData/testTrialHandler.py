@@ -50,7 +50,7 @@ class TestMultiStairs:
         shutil.rmtree(self.temp_dir)
 
     def testSimple(self):
-        conditions = data.importTrialList(
+        conditions = data.importConditions(
             pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
                 method='random', nTrials=20)
@@ -64,7 +64,7 @@ class TestMultiStairs:
         stairs.saveAsPickle(pjoin(self.temp_dir, 'multiStairOut'))#contains more info
 
     def testQuest(self):
-        conditions = data.importTrialList(
+        conditions = data.importConditions(
             pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
                     method='random', nTrials=5)
