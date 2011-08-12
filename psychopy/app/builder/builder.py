@@ -390,7 +390,10 @@ class FlowPanel(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
-        gcdc = wx.GCDC(dc)
+        if sys.platform.startswith('linux'):
+            gcdc = dc
+        else:
+            gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
@@ -845,7 +848,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
-        gcdc = wx.GCDC(dc)
+        if sys.platform.startswith('linux'):
+            gcdc = dc
+        else:
+            gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
@@ -982,7 +988,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
-                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), wx.ALPHA_TRANSPARENT))
+                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
                 dc.SetBrush(wx.Brush(routineTimeColor))
                 hSize = (3.5,2.75,2)[self.drawSize]
                 yOffset = (3,3,0)[self.drawSize]
