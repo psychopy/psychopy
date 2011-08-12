@@ -764,15 +764,24 @@ class Flow(list):
             component=component.loop#and then continue to do the next
         if component.getType() in ['StairHandler', 'TrialHandler']:
             #we need to remove the termination points that correspond to the loop
-            for comp in self:
+            toBeRemoved = []
+            for comp in self: # cant safely change the contents of self when looping through self
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
-                    if comp.loop==component: self.remove(comp)
+                    if comp.loop==component:
+                        #self.remove(comp) --> skips over loop terminator if its an empty loop
+                        toBeRemoved.append(comp)
+            for comp in toBeRemoved:
+                self.remove(comp)
         elif component.getType()=='Routine':
             if id==None:
                 #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
+                toBeRemoved = []
                 for id, compInFlow in enumerate(self):
-                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name: del self[id]
+                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name:
+                        toBeRemoved.append(self[id])
+                for comp in toBeRemoved:
+                    self.remove(comp)
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
     def writeCode(self, script):
         #initialise

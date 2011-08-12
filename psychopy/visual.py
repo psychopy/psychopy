@@ -1963,7 +1963,8 @@ class PatchStim(_BaseVisualStim):
                  depth=0,
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
-                 name='', autoLog=True):
+                 name='', autoLog=True,
+                 maskParams=None):
         """
         :Parameters:
 
@@ -2056,6 +2057,15 @@ class PatchStim(_BaseVisualStim):
             name : string
                 The name of the object to be using during logged messages about
                 this stim
+                
+            maskParams: Various types of input. Default to None.
+                This is used to pass additional parameters to the mask if those
+                are needed.
+                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                where 'fringeWidth' is a parameter (float, 0-1), determining
+                the proportion of the patch that will be blurred by the raised
+                cosine edge.  
+                
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -2068,7 +2078,7 @@ class PatchStim(_BaseVisualStim):
         self.opacity = opacity
         self.interpolate=interpolate
         self.origSize=None#if an image texture is loaded this will be updated
-
+        
         self.colorSpace=colorSpace
         if rgb!=None:
             log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
@@ -2106,6 +2116,10 @@ class PatchStim(_BaseVisualStim):
             self.maskID = GL.GLuint(int(mID))
         else:
             (self.texID, self.maskID) = GL.glGenTextures(2)
+
+        # Set the maskParams (defaults to None):
+        self.maskParams= maskParams
+
         self.setTex(tex)
         self.setMask(mask)
 
@@ -2153,6 +2167,7 @@ class PatchStim(_BaseVisualStim):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
+        
     def setSF(self,value,operation=''):
         self._set('sf', value, operation)
         self.needUpdate = 1
@@ -2170,11 +2185,13 @@ class PatchStim(_BaseVisualStim):
 
     def setTex(self,value):
         self._texName = value
-        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
+        res=self.texRes, maskParams=self.maskParams)
 
     def setMask(self,value):
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        res=self.texRes, maskParams=self.maskParams)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -5938,7 +5955,7 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(tex, id, pixFormat, stim, res=128):
+def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     """
     id is the texture ID
     pixFormat = GL.GL_ALPHA, GL.GL_RGB
@@ -6024,11 +6041,18 @@ def createTexture(tex, id, pixFormat, stim, res=128):
         
     elif tex == "raisedCos": # A raised cosine
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
-        fringe_proportion = 0.2 # This one affects the proportion of the
+
+        # If no user input was provided: 
+        if maskParams is None: 
+            fringe_proportion = 0.2 # This one affects the proportion of the
                                 # stimulus diameter that is devoted to the
-                                # raised cosine. XXX Consider
-                                # making this a user input. 
-        
+                                # raised cosine.
+
+        # Users can provide the fringe proportion through a dict, maskParams
+        # input:
+        else:
+            fringe_proportion = maskParams['fringeWidth']
+            
         rad = makeRadialMatrix(res)
         intensity = numpy.zeros_like(rad)
         intensity[numpy.where(rad < 1)] = 1

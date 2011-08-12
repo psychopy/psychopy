@@ -170,6 +170,10 @@
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
     # increase display size in Flow
-    largerSize = string(default='Ctrl+=')
+    largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow
-    smallerSize = string(default='Ctrl+-')
+    smallerFlow = string(default='Ctrl+-')
+    # increase display size of Routines
+    largerRoutine = string(default='Ctrl++') # on mac book pro this is good
+    # decrease display size of Routines
+    smallerRoutine = string(default='Ctrl+_')

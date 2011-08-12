@@ -173,6 +173,14 @@ class MainFrame(wx.Frame):
         fileMenu.Append(wx.ID_CLOSE,'Close Monitor Center\tCtrl+W', 'Close Monitor Center but (not other PsychoPy windows)')
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, '&File')
+        
+        # Edit
+        editMenu = wx.Menu()
+        id = wx.NewId()
+        editMenu.Append(id, 'Copy\tCtrl+C', "Copy the current monitor's name to clipboard")
+        wx.EVT_MENU(self, id, self.onCopyMon)
+        menuBar.Append(editMenu, '&Edit')
+        
         self.SetMenuBar(menuBar)
 
     def makeAdminBox(self, parent):
@@ -450,6 +458,7 @@ class MainFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass #don't save just quit
             dlg.Destroy()
+        self.onCopyMon() # save current monitor name to clipboard
         self.Destroy()
 
 #admin callbacks
@@ -526,6 +535,13 @@ class MainFrame(wx.Frame):
             self.choiceLinearMethod.Disable()
         else: self.choiceLinearMethod.Enable()
 
+    def onCopyMon(self, event=None):
+        """Copy monitor name to clipboard, to paste elsewhere
+        """
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.Clear()
+            wx.TheClipboard.SetData(wx.TextDataObject(self.currentMon.name))
+            wx.TheClipboard.Close()
     def onSaveMon(self, event):
         """Saves calibration entry to location.
         Note that the calibration date will reflect the save date/time"""

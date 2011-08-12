@@ -45,8 +45,6 @@
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
-    # best leave this mysterious setting as 'process'
-    runScripts = option('process', 'thread', 'inline', default='process')
     # will reset site & key prefs to defaults immediately
     resetSitePrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
@@ -172,6 +170,10 @@
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
     # increase display size in Flow
-    largerSize = string(default='Ctrl+=')
+    largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow
-    smallerSize = string(default='Ctrl+-')
+    smallerFlow = string(default='Ctrl+-')
+    # increase display size of Routines
+    largerRoutine = string(default='Ctrl++') # good in ubuntu virtual machine (on mac book pro...)
+    # decrease display size of Routines
+    smallerRoutine = string(default='Ctrl+_')
