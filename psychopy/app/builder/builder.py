@@ -1267,8 +1267,13 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi/3)#was 8*until v0.91.4
-        self.nameCtrl = wx.StaticText(parent,-1,label,size=labelLength,
+        if param.valType == 'code':
+            displayLabel = label+' $'
+        else:
+            displayLabel = label
+        self.nameCtrl = wx.StaticText(parent,-1,displayLabel,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
+        
 
         if label in ['text', 'customize_everything']:
             #for text input we need a bigger (multiline) box
