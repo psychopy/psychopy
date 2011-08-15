@@ -189,29 +189,42 @@ class Experiment:
         paramNode is the parameter node fetched from the xml file
         """
         name=paramNode.get('name')
+        valType = paramNode.get('valType')
         if name=='storeResponseTime':
             return#deprecated in v1.70.00 because it was redundant
-        elif name=='startTime':#handle this parameter, deprecated in v1.70.00
+        elif name=='startTime':#deprecated in v1.70.00
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(paramNode.get('val'))
             return #times doesn't need to update its type or 'updates' rule
-        elif name=='forceEndTrial':#handle this parameter, deprecated in v1.70.00
+        elif name=='forceEndTrial':#deprecated in v1.70.00
             params['forceEndRoutine'].val = bool(paramNode.get('val'))
             return #forceEndTrial doesn't need to update its type or 'updates' rule
-        elif name=='forceEndTrialOnPress':#handle this parameter, deprecated in v1.70.00
+        elif name=='forceEndTrialOnPress':#deprecated in v1.70.00
             params['forceEndRoutineOnPress'].val = bool(paramNode.get('val'))
             return #forceEndTrial doesn't need to update its type or 'updates' rule
-        elif name=='trialList':#handle this parameter, deprecated in v1.70.00
+        elif name=='trialList':#deprecated in v1.70.00
             params['conditions'].val = eval(paramNode.get('val'))
             return #forceEndTrial doesn't need to update its type or 'updates' rule
-        elif name=='trialListFile':#handle this parameter, deprecated in v1.70.00
+        elif name=='trialListFile':#deprecated in v1.70.00
             params['conditionsFile'].val = unicode(paramNode.get('val'))
             return #forceEndTrial doesn't need to update its type or 'updates' rule
-        elif name=='duration':#handle this parameter, deprecated in v1.70.00
+        elif name=='duration':#deprecated in v1.70.00
             params['stopType'].val =u'duration (s)'
             params['stopVal'].val = unicode(paramNode.get('val'))
             return #times doesn't need to update its type or 'updates' rule
-        elif name=='correctIf':#handle this parameter, deprecated in v1.60.00
+        elif name=='allowedKeys' and valType=='str':#changed in v1.70.00
+            #ynq used to be allowed, now should be 'y','n','q' or ['y','n','q']
+            val=paramNode.get('val')
+            if len(val)==0:
+                newVal=val
+            elif val[0]=='$':
+                newVal=val[1:]#they were using code (which we can resused)
+            elif val.startswith('[') and val.endswith(']'):
+                newVal=val[1:-1]#they were using code (slightly incorectly!)
+            else:
+                newVal=repr(list(val))#convert string to list of keys then represent again as a string!
+            params['allowedKeys'].val = newVal
+        elif name=='correctIf':#deprecated in v1.60.00
             corrIf=paramNode.get('val')
             corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
             params['correctAns'].val=corrAns
@@ -219,7 +232,7 @@ class Experiment:
         elif 'olour' in name:#colour parameter was Americanised in v1.61.00
             name=name.replace('olour','olor')
             params[name].val = paramNode.get('val')
-        elif name=='times':#handle this parameter, deprecated in v1.60.00
+        elif name=='times':#deprecated in v1.60.00
             exec('times=%s' %paramNode.get('val'))
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(times[0])
@@ -235,7 +248,7 @@ class Experiment:
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
             # compatibility checks:
-            if name in ['correctAns','allowedKeys','text'] and paramNode.get('valType')=='code':
+            if name in ['correctAns','text'] and paramNode.get('valType')=='code':
                 params[name].valType='str'# these components were changed in v1.60.01
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
@@ -764,15 +777,24 @@ class Flow(list):
             component=component.loop#and then continue to do the next
         if component.getType() in ['StairHandler', 'TrialHandler']:
             #we need to remove the termination points that correspond to the loop
-            for comp in self:
+            toBeRemoved = []
+            for comp in self: # cant safely change the contents of self when looping through self
                 if comp.getType() in ['LoopInitiator','LoopTerminator']:
-                    if comp.loop==component: self.remove(comp)
+                    if comp.loop==component:
+                        #self.remove(comp) --> skips over loop terminator if its an empty loop
+                        toBeRemoved.append(comp)
+            for comp in toBeRemoved:
+                self.remove(comp)
         elif component.getType()=='Routine':
             if id==None:
                 #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
+                toBeRemoved = []
                 for id, compInFlow in enumerate(self):
-                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name: del self[id]
+                    if hasattr(compInFlow, 'name') and component.name==compInFlow.name:
+                        toBeRemoved.append(self[id])
+                for comp in toBeRemoved:
+                    self.remove(comp)
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
     def writeCode(self, script):
         #initialise

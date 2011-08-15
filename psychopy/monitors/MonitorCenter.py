@@ -41,6 +41,7 @@ import numpy
 
 class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
     def __init__(self, parent, id=-1, rows=[], cols=[], data=None):
+        self.parent=parent
         self.moveTo = None
         self.nRows, self.nCols = len(rows), len(cols)
         grid.Grid.__init__(self, parent, -1, wx.Point( 0, 0 ))#,wx.Size( 300, 150 ))
@@ -59,13 +60,13 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
         self.setData(data)
         #self.SetMargins(-5,-5)
         wx.EVT_IDLE(self, self.OnIdle)
+        self.Bind(grid.EVT_GRID_SELECT_CELL, self.onSelectCell)
 
     def OnIdle(self, evt):
         if self.moveTo != None:
             self.SetGridCursor(self.moveTo[0], self.moveTo[1])
             self.moveTo = None
         evt.Skip()
-
     def setData(self, data=None):
         #update the data for the grid
         for nRow in range(self.nRows):
@@ -74,6 +75,11 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
                     self.SetCellValue(nRow, nCol, '%f' %data[nRow, nCol])
                 else: self.SetCellValue(nRow,nCol,'0.000')
         self.AutoSize()
+    def onSelectCell(self, evt=None):
+        #data might have changed so redo layout
+        self.AutoSize()
+        self.parent.Layout()#expands the containing sizer if needed
+        evt.Skip()#allow grid to handle the rest of the update
 
 class PlotFrame(wx.Dialog):
     def __init__(self, parent, ID, title, plotCanvas=None, pos=wx.DefaultPosition,
@@ -173,6 +179,14 @@ class MainFrame(wx.Frame):
         fileMenu.Append(wx.ID_CLOSE,'Close Monitor Center\tCtrl+W', 'Close Monitor Center but (not other PsychoPy windows)')
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, '&File')
+
+        # Edit
+        editMenu = wx.Menu()
+        id = wx.NewId()
+        editMenu.Append(id, 'Copy\tCtrl+C', "Copy the current monitor's name to clipboard")
+        wx.EVT_MENU(self, id, self.onCopyMon)
+        menuBar.Append(editMenu, '&Edit')
+
         self.SetMenuBar(menuBar)
 
     def makeAdminBox(self, parent):
@@ -450,6 +464,7 @@ class MainFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass #don't save just quit
             dlg.Destroy()
+        self.onCopyMon() # save current monitor name to clipboard
         self.Destroy()
 
 #admin callbacks
@@ -526,6 +541,13 @@ class MainFrame(wx.Frame):
             self.choiceLinearMethod.Disable()
         else: self.choiceLinearMethod.Enable()
 
+    def onCopyMon(self, event=None):
+        """Copy monitor name to clipboard, to paste elsewhere
+        """
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.Clear()
+            wx.TheClipboard.SetData(wx.TextDataObject(self.currentMon.name))
+            wx.TheClipboard.Close()
     def onSaveMon(self, event):
         """Saves calibration entry to location.
         Note that the calibration date will reflect the save date/time"""

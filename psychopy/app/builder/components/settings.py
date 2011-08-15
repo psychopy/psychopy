@@ -30,7 +30,7 @@ class SettingsComponent:
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
             hint="Which physical screen to run on (1 or 2)")  
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
-            hint="Name of the monitor (must match one in Monitor Center)") 
+            hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.") 
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)") 
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
@@ -43,7 +43,7 @@ class SettingsComponent:
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
-            hint="Save data from loops in comma-separated-value (.csv) format for maximu portability")
+            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],

@@ -32,8 +32,35 @@ class FileDropTarget(wx.FileDropTarget):
     def OnDropFiles(self, x, y, filenames):
         log.debug('PsychoPyBuilder: received dropped files: filenames')
         for filename in filenames:
-            self.builder.fileOpen(filename=filename)
+            if filename.endswith('.psyexp'):
+                self.builder.fileOpen(filename=filename)
+            else:
+                log.warning('dropped file ignored: did not end in .psyexp')
 
+class WindowFrozen(object):
+    """
+    Equivalent to wxWindowUpdateLocker.
+
+    Usage::
+
+        with WindowFrozen(wxControl):
+          update multiple things
+        #will automatically thaw here
+
+    """
+    def __init__(self, ctrl):
+        self.ctrl = ctrl
+    def __enter__(self):#started the with... statement
+        if sys.platform!='darwin':#this is only tested on OSX
+            return self.ctrl
+        if self.ctrl is not None:#check it hasn't been deleted
+            self.ctrl.Freeze()
+        return self.ctrl
+    def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
+        if sys.platform!='darwin':#this is only tested on OSX
+            return
+        if self.ctrl is not None:#check it hasn't been deleted
+            self.ctrl.Thaw()
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -387,7 +414,10 @@ class FlowPanel(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
-        gcdc = wx.GCDC(dc)
+        if sys.platform.startswith('linux'):
+            gcdc = dc
+        else:
+            gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
@@ -443,12 +473,13 @@ class FlowPanel(wx.ScrolledWindow):
         lineId=wx.NewId()
         pdc.DrawLine(x1=self.linePos[0]-gap,y1=self.linePos[1],x2=self.linePos[0],y2=self.linePos[1])
         self.loops={}#NB the loop is itself the key!? and the value is further info about it
-        nestLevel=0
+        nestLevel=0; maxNestLevel=0
         self.gapMidPoints=[currX-gap/2]
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
                 self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
                 nestLevel+=1#start of loop so increment level of nesting
+                maxNestLevel = max(nestLevel, maxNestLevel)
             elif entry.getType()=='LoopTerminator':
                 self.loops[entry.loop]['term']=currX #NB the loop is itself the dict key!
                 nestLevel-=1#end of loop so decrement level of nesting
@@ -468,7 +499,7 @@ class FlowPanel(wx.ScrolledWindow):
         for thisLoop in self.loops:
             thisInit = self.loops[thisLoop]['init']
             thisTerm = self.loops[thisLoop]['term']
-            thisNest = len(self.loops.keys())-1-self.loops[thisLoop]['nest']
+            thisNest = maxNestLevel-self.loops[thisLoop]['nest']-1
             thisId = self.loops[thisLoop]['id']
             height = self.linePos[1]+dLoopToBaseLine + thisNest*dBetweenLoops
             self.drawLoop(pdc,thisLoop,id=thisId,
@@ -667,8 +698,8 @@ class FlowPanel(wx.ScrolledWindow):
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
-            abbrev = ['', {'random': 'rnd.', 'sequential': 'seq.', 'fullRandom':'fRn.',
-                      'staircase': 'str.', 'interleaved staircases': "in.st."},
+            abbrev = ['', {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom':'f-ran.',
+                      'staircase': 'stair.', 'interleaved staircases': "int-str."},
                       {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
                       'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
             name += ' '+abbrev[self.appData['flowSize']][loop.params['loopType'].val]+')'
@@ -731,17 +762,22 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.x = self.y = 0
         self.curLine = []
         self.drawing = False
+        self.drawSize = self.app.prefs.appData['routineSize']
+        # auto-rescale based on number of components and window size looks jumpy
+        # when switch between routines of diff drawing sizes
+        self.iconSize = (24,24,48)[self.drawSize] # only 24, 48 so far
+        self.fontBaseSize = (800,900,1000)[self.drawSize] # depends on OS?
 
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi/4,self.dpi/4)
 
         self.routine=routine
         self.yPositions=None
-        self.yPosTop=60
-        self.componentStep=50#the step in Y between each component
-        self.iconXpos = 100 #the left hand edge of the icons
-        self.timeXposStart = 200
-        self.timeXposEnd = 600
+        self.yPosTop=(25,40,60)[self.drawSize]
+        self.componentStep=(25,32,50)[self.drawSize]#the step in Y between each component
+        self.timeXposStart = (150,150,200)[self.drawSize]
+        self.iconXpos = self.timeXposStart - self.iconSize*(1.3,1.5,1.5)[self.drawSize] #the left hand edge of the icons
+        self.timeXposEnd = self.timeXposStart + 400 # onResize() overrides
 
         # create a PseudoDC to record our drawing
         self.pdc = wx.PseudoDC()
@@ -764,12 +800,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_SIZE, self.onResize)
-        self.SetDropTarget(FileDropTarget(builder = self.frame))
+        #self.SetDropTarget(FileDropTarget(builder = self.frame)) # crashes if drop on OSX
 
     def onResize(self, event):
         self.sizePix=event.GetSize()
-        self.timeXposStart = 200
-        self.timeXposEnd = self.sizePix[0]-100
+        self.timeXposStart = (150,150,200)[self.drawSize]
+        self.timeXposEnd = self.sizePix[0]-(60,80,100)[self.drawSize]
         self.redrawRoutine()#then redraw visible
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
@@ -836,7 +872,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
-        gcdc = wx.GCDC(dc)
+        if sys.platform.startswith('linux'):
+            gcdc = dc
+        else:
+            gcdc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
@@ -861,15 +900,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.BeginDrawing()
 
         #work out where the component names and icons should be from name lengths
-        self.setFontSize(1000/self.dpi, self.pdc)
+        self.setFontSize(self.fontBaseSize/self.dpi, self.pdc)
         longest=0; w=50
         for comp in self.routine:
             name = comp.params['name'].val
             if len(name)>longest:
                 longest=len(name)
                 w = self.GetFullTextExtent(name)[0]
-        self.iconXpos = w+50
-        self.timeXpos = w+90
+        self.timeXpos = w+(50,50,90)[self.drawSize]
 
         #draw timeline at bottom of page
         yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
@@ -908,8 +946,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             if yPosBottom>300:#if bottom of grid is far away then draw labels here too
                 dc.DrawText('%.2g' %(lineN*unitSize),xSt+lineN*unitSize/xScale-4,yPosBottom+10)#label below
         #add a label
-        self.setFontSize(1000/self.dpi, dc)
+        self.setFontSize(self.fontBaseSize/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+        # or draw bottom labels only if scrolling is turned on, virtual size > available size?
         if yPosBottom>300:#if bottom of grid is far away then draw labels here too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
     def setFontSize(self, size, dc):
@@ -930,18 +969,19 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.componentFromID[id]=component
         dc.SetId(id)
 
-        thisIcon = components.icons[component.getType()]['48']#index 0 is main icon
-        dc.DrawBitmap(thisIcon, self.iconXpos,yPos, True)
+        iconYOffset = (6,6,0)[self.drawSize]
+        thisIcon = components.icons[component.getType()][str(self.iconSize)]#getType index 0 is main icon
+        dc.DrawBitmap(thisIcon, self.iconXpos,yPos+iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos, thisIcon.GetWidth(),thisIcon.GetHeight())
 
-        self.setFontSize(1000/self.dpi, dc)
+        self.setFontSize(self.fontBaseSize/self.dpi, dc)
 
         name = component.params['name'].val
         #get size based on text
         w,h = self.GetFullTextExtent(name)[0:2]
         #draw text
-        x = self.iconXpos-self.dpi/10-w
-        y = yPos+thisIcon.GetHeight()/2-h/2
+        x = self.iconXpos-self.dpi/10-w + (self.iconSize,self.iconSize,10)[self.drawSize]
+        y = yPos+thisIcon.GetHeight()/2-h/2 + (5,5,-2)[self.drawSize]
         dc.DrawText(name, x-20, y)
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
@@ -972,15 +1012,17 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if startTime!=None and duration!=None:#then we can draw a sensible time bar!
                 xScale = self.getSecsPerPixel()
-                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0)))
+                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
                 dc.SetBrush(wx.Brush(routineTimeColor))
-                h = self.componentStep/2
+                hSize = (3.5,2.75,2)[self.drawSize]
+                yOffset = (3,3,0)[self.drawSize]
+                h = self.componentStep/hSize
                 xSt = self.timeXposStart + startTime/xScale
                 w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
                 if w>10000: w=10000#limit width to 10000 pixels!
                 if w<2: w=2#make sure at least one pixel shows
-                dc.DrawRectangle(xSt, y, w,h )
-                fullRect.Union(wx.Rect(xSt, y, w,h ))#update bounds to include time bar
+                dc.DrawRectangle(xSt, y+yOffset, w,h )
+                fullRect.Union(wx.Rect(xSt, y+yOffset, w,h ))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
@@ -1052,7 +1094,8 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
     def __init__(self, frame, id=-1):
         self.frame=frame
         self.app=frame.app
-        self.dpi=self.app.dpi
+        self.routineMaxSize = 2
+        self.appData = self.app.prefs.appData
         wx.aui.AuiNotebook.__init__(self, frame, id)
 
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
@@ -1113,6 +1156,16 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
         self.frame.addToUndoStack("remove routine %s" %(name))
+    def increaseSize(self, event=None):
+        self.appData['routineSize'] = min(self.routineMaxSize, self.appData['routineSize'] + 1)
+        self.frame.Freeze()
+        self.redrawRoutines()
+        self.frame.Thaw()
+    def decreaseSize(self, event=None):
+        self.appData['routineSize'] = max(0, self.appData['routineSize'] - 1)
+        self.frame.Freeze()
+        self.redrawRoutines()
+        self.frame.Thaw()
     def redrawRoutines(self):
         """Removes all the routines, adds them back and sets current back to orig
         """
@@ -1553,10 +1606,23 @@ class _BaseParamsDlg(wx.Dialog):
             self.codeIDFromFieldName[fieldName] = id
             ctrls.valueCtrl.SetId(id)
             #print id, fieldName
+        elif fieldName=='Monitor':
+            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
+
+    def openMonitorCenter(self,event):
+        self.app.openMonitorCenter(event)
+        self.paramCtrls['Monitor'].valueCtrl.SetFocus()
+        # need to delay until the user closes the monitor center
+        #self.paramCtrls['Monitor'].valueCtrl.Clear()
+        #if wx.TheClipboard.Open():
+        #    dataObject = wx.TextDataObject()
+        #    if wx.TheClipboard.GetData(dataObject):
+        #        self.paramCtrls['Monitor'].valueCtrl.WriteText(dataObject.GetText())
+        #    wx.TheClipboard.Close()
 
     def previewExpInfo(self, event):
         thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
@@ -2488,10 +2554,15 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
-        self.viewMenu.Append(self.IDs.tbIncreaseSize, "&Larger Flow\t%s" %self.app.keys['largerSize'], "Larger flow items")
-        wx.EVT_MENU(self, self.IDs.tbIncreaseSize, self.flowPanel.increaseSize)
-        self.viewMenu.Append(self.IDs.tbDecreaseSize, "&Smaller Flow\t%s" %self.app.keys['smallerSize'], "Smaller flow items")
-        wx.EVT_MENU(self, self.IDs.tbDecreaseSize, self.flowPanel.decreaseSize)
+        self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Flow Larger\t%s" %self.app.keys['largerFlow'], "Larger flow items")
+        wx.EVT_MENU(self, self.IDs.tbIncrFlowSize, self.flowPanel.increaseSize)
+        self.viewMenu.Append(self.IDs.tbDecrFlowSize, "&Flow Smaller\t%s" %self.app.keys['smallerFlow'], "Smaller flow items")
+        wx.EVT_MENU(self, self.IDs.tbDecrFlowSize, self.flowPanel.decreaseSize)
+        self.viewMenu.Append(self.IDs.tbIncrRoutineSize, "&Routine Larger\t%s" %self.app.keys['largerRoutine'], "Larger routine items")
+        wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize, self.routinePanel.increaseSize)
+        self.viewMenu.Append(self.IDs.tbDecrRoutineSize, "&Routine Smaller\t%s" %self.app.keys['smallerRoutine'], "Smaller routine items")
+        wx.EVT_MENU(self, self.IDs.tbDecrRoutineSize, self.routinePanel.decreaseSize)
+
 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()
@@ -2598,26 +2669,23 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
-        self.Freeze()
-        if closeCurrent:
-            if not self.fileClose(updateViews=False):
-                self.Thaw()#the user cancelled so allow GUI to change again
-                return False #close the existing (and prompt for save if necess)
-        self.exp = experiment.Experiment(prefs=self.app.prefs)
-        try:
-            self.exp.loadFromXML(filename)
-        except Exception, err:
-            print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
-            traceback.print_exc()
-            log.flush()
-            self.Thaw()#failed to load exp, so allow GUI to change again
-        self.resetUndoStack()
-        self.setIsModified(False)
-        self.filename = filename
-        #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
-        #update the views
-        self.updateAllViews()#we're still Frozen so the effect won't be visible
-        self.Thaw()#all frames are updated so reveal the changes
+        with WindowFrozen(self):#try to pause rendering until all panels updated
+            if closeCurrent:
+                if not self.fileClose(updateViews=False):
+                    return False #close the existing (and prompt for save if necess)
+            self.exp = experiment.Experiment(prefs=self.app.prefs)
+            try:
+                self.exp.loadFromXML(filename)
+            except Exception, err:
+                print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
+                traceback.print_exc()
+                log.flush()
+            self.resetUndoStack()
+            self.setIsModified(False)
+            self.filename = filename
+            #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
+            #update the views
+            self.updateAllViews()#if frozen effect will be visible on thaw
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """

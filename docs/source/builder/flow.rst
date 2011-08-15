@@ -3,7 +3,7 @@
 Flow
 ----------------
 
-In the Flow panel a number of :doc:`Routines </builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine </builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine </builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel.
+In the Flow panel a number of :doc:`Routines </builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine </builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine </builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel. You can adjust the display size of the Flow panel (see View menu).
 
 Adding Routines
 ~~~~~~~~~~~~~~~~~
