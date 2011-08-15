@@ -58,6 +58,7 @@ PsychoPy 1.70.00
 * FIXED demos now unpack to an empty folder (Jeremy)
 * FIXED deleting an empty loop from the flow now works (Jeremy)
 * FIXED further issue in QUEST (the addition in 1.65.01 was being used too widely)
+* FIXED bug with updating of gamma grid values in Monitor Center
 
 PsychoPy 1.65
 ------------------------------

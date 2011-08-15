@@ -8,7 +8,7 @@ from calibData import *
 from psychopy import __version__, log, hardware
 import time
 
-try: 
+try:
     import serial
     haveSerial=True
 except:
@@ -23,26 +23,26 @@ from scipy import interpolate
 DEBUG= False
 
 #set and create (if necess) the data folder
-#this will be the 
+#this will be the
 #   Linux/Mac:  ~/.PsychoPy/monitors
 #   win32:   <UserDocs>/Application Data/PsychoPy/monitors
 join = os.path.join
 if sys.platform=='win32':
     #we used this for a while (until 0.95.4) but not the proper place for windows app data
-    oldMonitorFolder = join(os.path.expanduser('~'),'.psychopy2', 'monitors') 
+    oldMonitorFolder = join(os.path.expanduser('~'),'.psychopy2', 'monitors')
     monitorFolder = join(os.environ['APPDATA'],'psychopy2', 'monitors')
     if os.path.isdir(oldMonitorFolder) and not os.path.isdir(monitorFolder):
         os.renames(oldMonitorFolder, monitorFolder)
 else:
     monitorFolder = join(os.environ['HOME'], '.psychopy2' , 'monitors')
-    
+
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
-    
+
     #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
     #this only gets done if there was no existing .psychopy folder (and so no calib files)
     import glob, shutil #these are just to copy old calib files across
-    try: 
+    try:
         calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
         for thisFile in calibFiles:
             thisPath, fileName = os.path.split(thisFile)
@@ -59,11 +59,11 @@ pr650code={'OK':'000\r\n',#this is returned after measure
 
 def findPR650(ports=None):
     """DEPRECATED (as of v.1.60.01). Use :func:`psychopy.hardware.findPhotometer()` instead, which
-    finds a wider range of devices   
+    finds a wider range of devices
     """
     log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
     +"finds a wider range of devices")
-    
+
     if ports==None:
         if sys.platform=='darwin':
             ports=[]
@@ -94,17 +94,17 @@ def findPR650(ports=None):
 class Photometer:
     """
     Photometer class is deprecated (as of v.1.60.00):
-    
+
     Import explicit flavour of photometer as needed e.g.::
-        
+
         from psychopy.hardware.pr import PR650
         from psychopy.hardware.minolta import LS100
-        
+
     Or simply::
-        
+
         from psychopy import hardware
         photometer = hardware.findPhotometer()
-        
+
     """
     def __init__(self, port, meterType="PR650", verbose=True):
         log.error(self.__doc__)
@@ -177,14 +177,14 @@ class Monitor:
         if gamma: self.setGamma(gamma)
         if notes: self.setNotes(notes)
         if useBits!=None: self.setUseBits(useBits)
-        
+
     def gammaIsDefault(self):
         if self.getGammaGrid()==None \
             or numpy.alltrue(self.getGammaGrid()==numpy.array([[0,1,1],[0,1,1],[0,1,1],[0,1,1]])):
             return True
         else:
             return False
-        
+
 #functions to set params of current calibration
     def setSizePix(self, pixels):
         self.currentCalib['sizePix']=pixels
@@ -280,7 +280,7 @@ class Monitor:
             if grid.shape!=[4,6]:
                 newGrid = numpy.zeros([4,6],'f')*numpy.nan#start as NaN
                 newGrid[:grid.shape[0],:grid.shape[1]]=grid
-                grid=newGrid
+                grid=self.currentCalib['gammaGrid']=newGrid
             return grid
         else:
             return None
@@ -596,19 +596,19 @@ class GammaCalculator:
             self.inputs = inputs
 
         #set or get gammaVal
-        if len(lums)==0 or gamma!=None:#user is specifying their own gamma value 
+        if len(lums)==0 or gamma!=None:#user is specifying their own gamma value
             self.gamma = gamma
         elif len(lums)>0:
             self.min, self.max, self.gammaModel = self.fitGammaFun(self.inputs, self.lumsInitial)
             if eq==4:
                 self.gamma, self.a, self.k = self.gammaModel
                 self.b = (lums[0]-self.a)**(1.0/self.gamma)
-            else: 
+            else:
                 self.gamma=self.gammaModel[0]
                 self.a = self.b = self.k = None
         else:
             raise AttributeError, "gammaTable needs EITHER a gamma value or some luminance measures"
-    
+
     def fitGammaFun(self, x, y):
         """
         Fits a gamma function to the monitor calibration data.
@@ -698,7 +698,7 @@ def makeLMS2RGB(nm,powerRGB):
     """
     Creates a 3x3 LMS->RGB conversion matrix from the spectral input powers
     """
-    
+
     interpolateCones = interpolate.interp1d(wavelength_5nm, cones_SmithPokorny)
     coneSens = interpolateCones(nm)
     rgb_to_cones = numpy.dot(coneSens,numpy.transpose(powerRGB))
@@ -731,28 +731,28 @@ def getLumSeries(lumLevels=8,
     the luminance with a photometer.
 
     :Parameters:
-    
-        photometer : a photometer object 
+
+        photometer : a photometer object
             e.g. a :class:`~psychopy.hardware.pr.PR65` or
             :class:`~psychopy.hardware.minolta.LS100` from hardware.findPhotometer()
-        
-        lumLevels : (default=8) 
+
+        lumLevels : (default=8)
             array of values to test or single value for n evenly spaced test values
-        
+
         gamma : (default=1.0) the gamma value at which to test
-        
+
         autoMode : 'auto' or 'semi'(='auto')
-            
+
             If 'auto' the program will present the screen
             and automatically take a measurement before moving on.
-            
+
             If set to 'semi' the program will wait for a keypress before
             moving on but will not attempt to make a measurement (use this
-            to make a measurement with your own device). 
-            
+            to make a measurement with your own device).
+
             Any other value will simply move on without pausing on each screen (use this to see
             that the display is performing as expected).
-    
+
     """
     import psychopy.event, psychopy.visual
     from psychopy import core
@@ -780,7 +780,7 @@ def getLumSeries(lumLevels=8,
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,height=0.1,
-        pos=(0,-0.85), rgb=[1,-1,-1])    
+        pos=(0,-0.85), rgb=[1,-1,-1])
     noise = numpy.random.rand(512,512).round()*2-1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
         sf=[winSize[0]/512.0, winSize[1]/512.0])
@@ -789,7 +789,7 @@ def getLumSeries(lumLevels=8,
         size=stimSize,
         rgb=initRGB,
         units='norm')
-   
+
     #stay like this until key press (or 30secs has passed)
     waitClock=core.Clock()
     tRemain=30
@@ -799,22 +799,22 @@ def getLumSeries(lumLevels=8,
         backPatch.draw()
         testPatch.draw()
         message.setText(instructions)
-        message.draw()  
+        message.draw()
         myWin.flip()
         if len(psychopy.event.getKeys()):
             break#we got a keypress so move on
-    
-    
+
+
     message.setText('Q to quit at any time')
     #
     if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
         junk=photometer.getLum()
-    
+
     #what are the test values of luminance
     if (type(lumLevels) is int) or (type(lumLevels) is float):
         toTest= DACrange(lumLevels)
     else: toTest= numpy.asarray(lumLevels)
-    
+
     if allGuns: guns=[0,1,2,3]#gun=0 is the white luminance measure
     else: allGuns=[0]
     lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hoold the measured luminance values
@@ -830,13 +830,13 @@ def getLumSeries(lumLevels=8,
                 rgb[gun-1]=lum
             else:
                 rgb = [lum,lum,lum]
-            
+
             backPatch.draw()
             testPatch.setColor(rgb)
             testPatch.draw()
             message.draw()
             myWin.flip()
-            
+
             time.sleep(0.2)#allowing the screen to settle (no good reason!)
             #check for quit request
             for thisKey in psychopy.event.getKeys():
@@ -872,7 +872,7 @@ def getLumSeriesPR650(lumLevels=8,
     stimSize = 0.3,
     photometer='COM1'):
     """DEPRECATED (since v1.60.01): Use :class:`pscyhopy.monitors.getLumSeries()` instead"""
-    
+
     log.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
     val= getLumSeries(lumLevels,
         winSize,monitor,
@@ -886,12 +886,12 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
         getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1')
 
     :params:
-    
+
         - 'photometer' could be a photometer object or a serial port name on which
         a photometer might be found (not recommended)
     """
     import psychopy.event, psychopy.visual
-    
+
     if hasattr(photometer, 'getLastSpectrum'):
         photom=photometer
     else:
@@ -951,7 +951,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     y = gammaFun(x, minLum, maxLum, gamma)
 
     a and b are calculated directly from minLum, maxLum, gamma
-    
+
     **Parameters:**
 
         - **xx** are the input values (range 0-255 or 0.0-1.0)
@@ -961,7 +961,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
 
 
     """
-    
+
     #scale x to be in range minLum:maxLum
     xx = numpy.array(xx,'d')
     maxXX = max(xx)
@@ -971,7 +971,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     else: #assume data are in range 0:1
         pass
         #xx = xx*maxLum + minLum
-    
+
     #eq1: y = a + (b*xx)**gamma
     #eq2: y = (a+b*xx)**gamma
     #eq4: y = a+(b+k*xx)**gamma #Pelli & Zhang 1991
@@ -994,7 +994,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
             if a==None:
                 a = minLum-b**(1.0/gamma)       #when y=min, x=0
             elif b==None:
-                if a>=minLum: 
+                if a>=minLum:
                     b=0.1**(1.0/gamma)#can't take inv power of -ve
                 else:
                     b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
