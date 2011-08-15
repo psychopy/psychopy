@@ -46,8 +46,8 @@
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # reset preferences to defaults on next restart of PsychoPy
-    resetSitePrefs = boolean(default='False')
-    # save any unsaved prefences before closing the window
+    resetPrefs = boolean(default='False')
+    # save any unsaved preferences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
