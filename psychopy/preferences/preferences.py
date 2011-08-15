@@ -4,10 +4,6 @@ import configobj, validate
 
 #GET PATHS------------------
 join = os.path.join
-if sys.platform=='win32':
-    activeUser = os.environ['USERNAME']
-else:
-    activeUser = os.environ['USER']
 
 class Preferences:
     def __init__(self):
@@ -21,15 +17,25 @@ class Preferences:
         self.connections=None
         self.paths = {}  # this will remain a dictionary
         self.keys = {}  # does not remain a dictionary
-        
+
         self.getPaths()
         self.loadAll()
-        
-        if self.userPrefsCfg['app']['resetSitePrefs']:
-            self.resetSitePrefs()
-            self.loadAll()
-            # ideally now refresh the preferencesDlg display in the main app, if its open
-        
+
+        if self.userPrefsCfg['app']['resetPrefs']:
+            self.resetPrefs()
+
+    def resetPrefs(self):
+        """removes userPrefs.cfg, does not touch appData.cfg
+        """
+        userCfg = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
+        try:
+            os.unlink(userCfg)
+            #log.info('Removed %s (as requested by pref)' % userCfg) # need to import log into prefs for this
+        except:
+            print "Could not remove prefs file '%s'; (try doing it manually?)" % userCfg
+            #log.info('Could not remove %s (as requested by pref)' % userCfg)
+        self.loadAll() # reloads, now getting all from .spec
+
     def getPaths(self):
         #on mac __file__ might be a local path, so make it the full path
         thisFileAbsPath= os.path.abspath(__file__)
@@ -100,9 +106,6 @@ class Preferences:
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=self.prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
-        cfg.initial_comment = ["###", "###     USER PREFERENCES for '" + activeUser + "' (override SITE prefs; see 'help')",
-                                      "###    ---------------------------------------------------------------------", ""]
-        cfg.final_comment = ["", "", "### [this page is stored at %s]" % self.paths['userPrefsFile']]
         # don't cfg.write(), see explanation above
         return cfg
     def saveUserPrefs(self):
@@ -112,17 +115,7 @@ class Preferences:
         if not os.path.isdir(self.paths['userPrefsDir']):
             os.makedirs(self.paths['userPrefsDir'])
         self.userPrefsCfg.write()                
-    def resetUserPrefs(self):
-        """Reset the site preferences to the original defaults
-        """
-        # confirmation probably not necessary: you have to manually type 'True' and then save
-        if os.path.isfile(self.paths['sitePrefsFile']): os.remove(self.paths['sitePrefsFile'])
-        if os.path.isfile(self.paths['keysPrefsFile']): os.remove(self.paths['keysPrefsFile'])
-        mySiteKeys = join(self.paths['prefs'], 'mySiteKeys.py')
-        if os.path.isfile(mySiteKeys):        os.remove(mySiteKeys)
-        if os.path.isfile(mySiteKeys + "c"):  os.remove(mySiteKeys + "c")
-        print "Site prefs and key-bindings RESET to defaults"
-        
+
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False)

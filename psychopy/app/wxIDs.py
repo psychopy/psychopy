@@ -74,5 +74,7 @@ tbExpSettings=140#for the experiment
 tbMonitorCenter=150
 tbColorPicker=160
 
-tbIncreaseSize=170
-tbDecreaseSize=180
+tbIncrFlowSize=170
+tbDecrFlowSize=171
+tbIncrRoutineSize=180
+tbDecrRoutineSize=181

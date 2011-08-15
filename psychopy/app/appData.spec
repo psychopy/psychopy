@@ -3,6 +3,7 @@ lastFrame = string(default='both')
 skipVersion=string(default='')  #skipping any updates of this version
 tipIndex = integer(default=0)
 flowSize = integer(0,2,default=2)
+routineSize = integer(0,2,default=2)
 showLoopInfoInFlow = boolean(default=False)
 testSubset = string(default='all tests')
 

@@ -3,7 +3,9 @@
 Routines
 -------------
 
-An experiment consists of one or more Routines. A Routine might specify the timing of events within a trial or the presentation of instructions or feedback. Multiple Routines can then be combined in the :doc:`Flow </builder/flow>`, which controls the order in which these occur and the way in which they repeat. To create a new Routine use the Experiment menu.
+An experiment consists of one or more Routines. A Routine might specify the timing of events within a trial or the presentation of instructions or feedback. Multiple Routines can then be combined in the :doc:`Flow </builder/flow>`, which controls the order in which these occur and the way in which they repeat.
+
+To create a new Routine, use the Experiment menu. The display size of items within a routine can be adjusted (see the View menu).
 
 Within a Routine there are a number of components. These components determine the occurrence of a stimulus, or the recording of a response. Any number of components can be added to a Routine. Each has its own line in the Routine view that shows when the component starts and finishes in time, and these can overlap.
 

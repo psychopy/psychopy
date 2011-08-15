@@ -46,7 +46,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="False" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="[&quot;left&quot;,&quot;down&quot;,&quot;right&quot;]" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="['l', 'd']" valType="str" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
@@ -80,13 +80,13 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="False" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="['r']" valType="str" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0" valType="code" updates="None"/>
         <Param name="store" val="nothing" valType="str" updates="constant"/>
       </KeyboardComponent>
       <CodeComponent name="respEmulator">
-        <Param name="Begin Experiment" val="#FAIL #uncomment to test the test&#10;code=None # else error&#10;from psychopy.hardware.emulator import ResponseEmulator&#10;resp = [(.2,'return'), (.3,'l'), (.4,'d'), (.5,'d'), (.6,'d'), (.7,'r'), (.8,'l')]&#10;ghost = ResponseEmulator(simResponses=resp)&#10;ghost.start()&#10;core.runningThreads.append(ghost)" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="#FAIL #uncomment to test the test&#10;code=None # else error&#10;from psychopy.hardware.emulator import ResponseEmulator&#10;resp = [(.4,'r'), (.5,'l'), (.6,'d'), (.7,'d'), (.8,'d'), (.9,'r'), (1.,'l'), (1.1,'l')]&#10;ghost = ResponseEmulator(simResponses=resp)&#10;ghost.start()&#10;core.runningThreads.append(ghost)" valType="code" updates="constant"/>
         <Param name="name" val="respEmulator" valType="code" updates="None"/>
         <Param name="Each Frame" val="" valType="code" updates="constant"/>
         <Param name="Begin Routine" val="" valType="code" updates="constant"/>
@@ -117,7 +117,7 @@
   <Flow>
     <Routine name="instruct"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="conditionsFile" val="/Users/jgray/code/psychopy/psychopy/tests/data/ghost_trialTypes.xlsx" valType="str" updates="None"/>
+      <Param name="conditionsFile" val="ghost_trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>

@@ -11,7 +11,7 @@ tooltip = 'Keyboard: check and record keypresses'
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    def __init__(self, exp, parentName, name='key_resp', allowedKeys='["left","right"]',store='last key',
+    def __init__(self, exp, parentName, name='key_resp', allowedKeys="'y','n','left','right','space'",store='last key',
                 forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -27,9 +27,9 @@ class KeyboardComponent(BaseComponent):
             'store','storeCorrect','correctAns',
             ]
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")
-        self.params['allowedKeys']=Param(allowedKeys, valType='str', allowedTypes=[],
+        self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="ynq allows those 3 keys to be used. For keys with complex names use $['left','right']")
+            hint="A comma-separated list of keys (with quotes), such as 'q','right','space','left ")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -97,7 +97,13 @@ class KeyboardComponent(BaseComponent):
         dedentAtEnd=1#keep track of how far to dedent later
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
-        else: keyListStr= "keyList=%(allowedKeys)s" %(self.params)
+        else:
+            keyList = eval(self.params['allowedKeys'].val)
+            if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
+                keyList=list(keyList)
+            elif type(keyList) in [str,unicode]: #a single string value
+                keyList=[keyList]
+            keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
 
