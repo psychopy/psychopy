@@ -10,7 +10,7 @@ from psychopy import log
 import monitors
 
 import os, shutil
-import Image, cPickle
+import Image, cPickle, scipy
 #from random import shuffle #this is core python dist
 
 def toFile(filename, data):
@@ -383,7 +383,7 @@ def rgb2dklCart(picture, conversionMatrix=None):
 
     #this is the inversion of the dkl2rgb conversion matrix
     if conversionMatrix==None:
-        conversionMatrix = np.asarray([\
+        conversionMatrix = numpy.asarray([\
             #LUMIN->%L-M->L+M-S
             [ 0.25145542,  0.64933633,  0.09920825],
             [ 0.78737943, -0.55586618, -0.23151325],
@@ -397,13 +397,13 @@ def rgb2dklCart(picture, conversionMatrix=None):
     green = picture[:,:,1]
     blue = picture[:,:,2]
 
-    dkl = np.asarray([red.reshape([-1]), green.reshape([-1]), blue.reshape([-1])])
+    dkl = numpy.asarray([red.reshape([-1]), green.reshape([-1]), blue.reshape([-1])])
     
     #Multiply the picture by the conversion matrix
-    dkl=np.dot(conversionMatrix, dkl)
+    dkl=numpy.dot(conversionMatrix, dkl)
 
     #Reshape the picture so that it's back to it's original shape
-    dklPicture = np.reshape(np.transpose(dkl), origShape)
+    dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
     return dklPicture
 
 def lms2rgb(lms_Nx3, conversionMatrix=None):
