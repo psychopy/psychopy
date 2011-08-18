@@ -6112,7 +6112,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
                 log.error("Found image file '%s' but it failed to load" %(tex)); log.flush()
-                raise "couldn't find image...%s" %(tex)#ensure we quit
+                raise AttributeError, "Couldn't find image...%s" %(tex)#ensure we quit
         stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
