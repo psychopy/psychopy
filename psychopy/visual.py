@@ -1114,6 +1114,8 @@ class _BaseVisualStim:
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
         self._calcSizeRendered()
+        if hasattr(self, '_calcCyclesPerStim'):
+            self._calcCyclesPerStim()
         self.needUpdate=True
     def setOri(self, newOri, operation=''):
         """Set the stimulus orientation in degrees
