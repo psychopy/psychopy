@@ -5,12 +5,15 @@ Builder
 
 *Building experiments in a GUI*
 
-.. warning::
+.. note::
 
-    As at version v1.61.00, the builder view is very much beta-testing software. Check carefully that the stimuli and response collection are as expected.
-
-NB. PsychoPy users may be interested in the the `NinStim <http://www.nmr.mgh.harvard.edu/Neural_Systems_Group/software.html>`_ package 
-
+    The Builder view is now (at version 1.70) fairly well-developed and should be able to construct a wide variety of studies. But you should still check carefully that the stimuli and response collection are as expected.
+    
+.. image:: ../images/builder_sm.png
+    :width: 100%
+    :target: ../images/builder.png
+    :alt: The Builder view
+   
 
 Contents:
 

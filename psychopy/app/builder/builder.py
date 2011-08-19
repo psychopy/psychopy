@@ -37,6 +37,30 @@ class FileDropTarget(wx.FileDropTarget):
             else:
                 log.warning('dropped file ignored: did not end in .psyexp')
 
+class WindowFrozen(object):
+    """
+    Equivalent to wxWindowUpdateLocker.
+
+    Usage::
+
+        with WindowFrozen(wxControl):
+          update multiple things
+        #will automatically thaw here
+
+    """
+    def __init__(self, ctrl):
+        self.ctrl = ctrl
+    def __enter__(self):#started the with... statement
+        if sys.platform!='darwin':#this is only tested on OSX
+            return self.ctrl
+        if self.ctrl is not None:#check it hasn't been deleted
+            self.ctrl.Freeze()
+        return self.ctrl
+    def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
+        if sys.platform!='darwin':#this is only tested on OSX
+            return
+        if self.ctrl is not None:#check it hasn't been deleted
+            self.ctrl.Thaw()
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -2650,26 +2674,23 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
-        if sys.platform=='darwin':self.Freeze()#we can pause rendering until all panels updated
-        if closeCurrent:
-            if not self.fileClose(updateViews=False):
-                if sys.platform=='darwin': self.Thaw()#the user cancelled so allow GUI to change again
-                return False #close the existing (and prompt for save if necess)
-        self.exp = experiment.Experiment(prefs=self.app.prefs)
-        try:
-            self.exp.loadFromXML(filename)
-        except Exception, err:
-            print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
-            traceback.print_exc()
-            log.flush()
-            if sys.platform=='darwin': self.Thaw()#failed to load exp, so allow GUI to change again
-        self.resetUndoStack()
-        self.setIsModified(False)
-        self.filename = filename
-        #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
-        #update the views
-        self.updateAllViews()#we're still Frozen so the effect won't be visible
-        if sys.platform=='darwin': self.Thaw()#all frames are updated so reveal the changes
+        with WindowFrozen(self):#try to pause rendering until all panels updated
+            if closeCurrent:
+                if not self.fileClose(updateViews=False):
+                    return False #close the existing (and prompt for save if necess)
+            self.exp = experiment.Experiment(prefs=self.app.prefs)
+            try:
+                self.exp.loadFromXML(filename)
+            except Exception, err:
+                print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
+                traceback.print_exc()
+                log.flush()
+            self.resetUndoStack()
+            self.setIsModified(False)
+            self.filename = filename
+            #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
+            #update the views
+            self.updateAllViews()#if frozen effect will be visible on thaw
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
