@@ -1902,11 +1902,7 @@ class SimpleImageStim:
         else:
             self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
             self.internalFormat = GL.GL_RGB
-        if self._useShaders:
-            self.dataType = GL.GL_FLOAT
-        else:
-            self.dataType = GL.GL_UNSIGNED_BYTE
-            self.imArray = psychopy.misc.float_uint8(self.imArray*2-1)
+        self.dataType = GL.GL_FLOAT
         self._needStrUpdate = True
 
 class PatchStim(_BaseVisualStim):
