@@ -1,5 +1,5 @@
-Tutorial 1: Getting your first stimulus
-=========================================
+Tutorial 1: Generating your first stimulus
+=============================================
 
 
 A tutorial to get you going with your first stimulus display.

@@ -32,7 +32,7 @@ PsychoPy 1.70.00
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\$' in a text field (to prevent interpretation of normal text as being code).
+* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a `$` character now requires `\$` in a text field (to prevent interpretation of normal text as being code).
 
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 

@@ -1982,7 +1982,7 @@ class PatchStim(_BaseVisualStim):
             mask :
                 The alpha mask (forming the shape of the image)
 
-                + **None**, 'circle', 'gauss', 'raisedCos' 
+                + **None**, 'circle', 'gauss', 'raisedCos'
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
 
@@ -2059,15 +2059,15 @@ class PatchStim(_BaseVisualStim):
             name : string
                 The name of the object to be using during logged messages about
                 this stim
-                
+
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
                 - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
-                cosine edge.  
-                
+                cosine edge.
+
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -2080,7 +2080,7 @@ class PatchStim(_BaseVisualStim):
         self.opacity = opacity
         self.interpolate=interpolate
         self.origSize=None#if an image texture is loaded this will be updated
-        
+
         self.colorSpace=colorSpace
         if rgb!=None:
             log.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
@@ -2169,7 +2169,7 @@ class PatchStim(_BaseVisualStim):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
-        
+
     def setSF(self,value,operation=''):
         self._set('sf', value, operation)
         self.needUpdate = 1
@@ -4800,9 +4800,9 @@ class RatingScale:
 
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
-    
+
     **Example 3**::
-        
+
         Non-numeric choices (categorical, unordered):
 
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
@@ -4820,7 +4820,7 @@ class RatingScale:
     See Coder Demos -> stimuli -> ratingScale.py for examples.
     The Builder RatingScale component gives a restricted set of options, but also
     allows full control over a RatingScale (via 'customizeEverything').
-    
+
     :Author:
         2010 Jeremy Gray, 2011 updates
     """
@@ -5228,7 +5228,7 @@ class RatingScale:
         is translated to position pos (offsetHoriz=pos[0], offsetVert=pos[1]). pos is the name of the arg, and
         its values appear in the code as offsetHoriz and offsetVert only for historical reasons (should be
         refactored for clarity).
-        
+
         Auto-rescaling reduces the number of tick marks shown on the
         screen by a factor of 10, just for nicer appearance, without affecting the internal representation.
 
@@ -6040,12 +6040,12 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
-        
+
     elif tex == "raisedCos": # A raised cosine
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
 
-        # If no user input was provided: 
-        if maskParams is None: 
+        # If no user input was provided:
+        if maskParams is None:
             fringe_proportion = 0.2 # This one affects the proportion of the
                                 # stimulus diameter that is devoted to the
                                 # raised cosine.
@@ -6054,7 +6054,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         # input:
         else:
             fringe_proportion = maskParams['fringeWidth']
-            
+
         rad = makeRadialMatrix(res)
         intensity = numpy.zeros_like(rad)
         intensity[numpy.where(rad < 1)] = 1
@@ -6066,7 +6066,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         raised_cos -= numpy.min(raised_cos)
         raised_cos /= numpy.max(raised_cos)
 
-        # Measure the distance from the edge - this is your index into the hamming window: 
+        # Measure the distance from the edge - this is your index into the hamming window:
         d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
         d_from_edge /= numpy.max(d_from_edge)
         d_from_edge *= numpy.round(hamming_len/2)
@@ -6077,7 +6077,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         # Apply the raised cos to this portion:
         intensity[raised_cos_idx] = raised_cos[portion_idx]
 
-        # Scale it into the interval -1:1: 
+        # Scale it into the interval -1:1:
         intensity = intensity - 0.5
         intensity = intensity / numpy.max(intensity)
 
@@ -6086,7 +6086,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         intensity[artifact_idx] = 1
         artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad > 1))
         intensity[artifact_idx] = 0
-        
+
     else:#might be an image, or a filename of an image
 
         """if os.path.isfile(tex):
@@ -6096,7 +6096,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
             log.error("couldn't find tex...%s" %(tex))
             core.quit()
             raise #so thatensure we quit"""
-            
+
         itsaFile = True # just a guess at this point
         try:
             os.path.isfile(tex)
