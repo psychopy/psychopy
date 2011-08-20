@@ -1725,6 +1725,7 @@ class _BaseParamsDlg(wx.Dialog):
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         self.checkName() # disables OKbtn if bad name
 
@@ -1752,6 +1753,10 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+    def onOK(self, event=None):
+        # idea: intercept OK in case of user edits to filename, like delete it
+        # here get user edits to file name info on Dlg exit
+        event.Skip() # handle the OK button press
     def onNavigationCode(self, event):
         #print event.GetId(),event.GetCurrentFocus() # 0 None
         return
@@ -2006,6 +2011,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 container=wx.BoxSizer(wx.HORIZONTAL)
                 ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
+                ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
             elif fieldName=='conditions':
@@ -2084,8 +2090,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.staircaseCtrls[fieldName] = ctrls
     def getAbbrev(self, longStr, n=30):
         """for a filename (or any string actually), give the first
-        5 characters, an ellipsis and then n of the final characters"""
-        if len(longStr)>20:
+        10 characters, an ellipsis and then n of the final characters"""
+        if len(longStr)>35:
             return longStr[0:10]+'...'+longStr[(-n+10):]
         else: return longStr
     def getTrialsSummary(self, conditions):
@@ -2100,6 +2106,38 @@ class DlgLoopProperties(_BaseParamsDlg):
                 %(len(conditions),len(conditions[0]), paramStr)
         else:
             return "No parameters set"
+    def viewConditions(self, event):
+        """ display Condition x Parameter values from within a file
+        make new if no self.conditionsFile is set
+        """
+        conditions = self.conditions # list of dict
+        if self.conditionsFile:
+            # get name + dir, like BART/trialTypes.xlsx
+            fileName = os.path.abspath(self.conditionsFile)
+            fileName = fileName.rsplit(os.path.sep,2)[1:]
+            fileName = os.path.join(*fileName)
+            if fileName.endswith('.pkl'):
+                # edit existing .pkl file, loading from file
+                gridGUI = gui.ConditionsDlg(fileName=self.conditionsFile,
+                                            parent=self, title=fileName)
+            else:
+                # preview existing .csv or .xlsx file that has already been loaded -> conditions
+                # better to reload file, get fieldOrder as well
+                gridGUI = gui.ConditionsDlg(conditions, parent=self, 
+                                        title=fileName, fixed=True)
+        else: # edit new empty .pkl file
+            gridGUI = gui.ConditionsDlg(parent=self)
+            if gridGUI.OK:
+                self.conditions = gridGUI.asConditions()
+                if hasattr(gridGUI, 'fileName'):
+                    self.conditionsFile = gridGUI.fileName
+        self.currentHandler.params['conditionsFile'].val = self.conditionsFile
+        if self.conditionsFile:
+            valCtrl = self.constantsCtrls['conditionsFile'].valueCtrl
+            valCtrl.Clear()
+            valCtrl.WriteText(self.getAbbrev(self.conditionsFile))
+        # still need to do namespace and internal updates (see end of onBrowseTrialsFile)
+
     def setCtrls(self, ctrlType):
         #create a list of ctrls to hide
         toHide = self.currentCtrls.values()
