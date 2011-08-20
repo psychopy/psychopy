@@ -8,6 +8,8 @@ from psychopy import log
 import wx
 import numpy
 import string, os
+from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
+import cPickle
 
 OK = wx.ID_OK
 
@@ -197,9 +199,484 @@ class DlgFromDict(Dlg):
             for n,thisKey in enumerate(keys):
                 self.dictionary[thisKey]=self.data[n]
         
+class ConditionsDlg(wx.Dialog):
+    """Given a file or conditions info, present values in a grid; view, edit, save.
+    
+    Accepts file name, list of lists, or list-of-dict
+    Designed around a conditionsFile, but potentially more general.
+    Example usage: see builder.DlgLoopProperties.viewConditions()
+    
+    Maybe this class should be in builder.py, not in gui.py
+    
+    To add columns, this class will instantiate another instance of itself that
+    has another column. Doing so make the return value from the first instance's
+    showModal() meaningless. In order to update things like fileName and conditions,
+    values are set in the parent, and should not be set based on showModal retVal.
+    
+    Author: Jeremy Gray, 2011
+    """
+    def __init__(self, grid=None, fileName=False, parent=None, title='',
+            trim=True, fixed=False, header=True, gui=True, extraRows=0, extraCols=0,
+            clean=True, pos=None, preview=True,
+            _restore=None, size=wx.DefaultSize,
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
+        self.parent = parent # gets the conditionsFile info
+        self.helpUrl = 'http://www.psychopy.org/builder/flow.html#loops'
+        # read data from file, if any:
+        self.defaultFileName = 'conditions.pkl'
+        self.newFile = True
+        if _restore:
+            self.newFile = _restore[0]
+            self.fileName = _restore[1]
+        if fileName: 
+            grid = self.load(fileName)
+            if grid:
+                self.fileName = fileName
+                self.newFile = False
+            if not title:
+                f = os.path.abspath(fileName)
+                f = f.rsplit(os.path.sep,2)[1:]
+                f = os.path.join(*f) # eg, BART/trialTypes.xlsx
+                title = f
+        elif not grid:
+            title = 'New (no file)'
+        elif _restore:
+            if not title:
+                f = os.path.abspath(_restore[1])
+                f = f.rsplit(os.path.sep,2)[1:]
+                f = os.path.join(*f) # eg, BART/trialTypes.xlsx
+                title = f
+        elif not title:
+            title = 'Conditions data (no file)'
+        # if got here via addColumn:
+        # convert from conditions dict format:
+        if grid and type(grid) == list and type(grid[0]) == dict:
+            conditions = grid[:]
+            numCond, numParam = len(conditions), len(conditions[0])
+            grid = [conditions[0].keys()]
+            for i in xrange(numCond):
+                row = conditions[i].values()
+                grid.append(row)
+            header=True # keys of a dict are the header
+        # ensure a sensible grid, or provide a basic default:
+        if not grid or not len(grid) or not len(grid[0]):
+            grid = [[self.colName(0)], [u'']]
+            header = True
+            extraRows += 5
+            extraCols += 3
+        self.grid = grid # grid is list of lists
+        self.fixed = bool(fixed)
+        if self.fixed:
+            extraRows = extraCols = 0
+            trim = clean = confirm = False
+        else:
+            style = style|wx.RESIZE_BORDER
+        self.pos = pos
+        self.title = title
+        try:
+            self.madeApp = False
+            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
+        except: # only needed during development?
+            self.madeApp = True
+            global app
+            app = wx.PySimpleApp()
+            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
+        self.trim = trim
+        self.warning = '' # updated to warn about eg, trailing whitespace
+        if header and not len(grid) > 1 and not self.fixed:
+            self.grid.append([])
+        self.clean = bool(clean)
+        self.typeChoices = ['None', 'str', 'utf-8', 'int', 'long', 'float',
+                            'bool', 'list', 'tuple', 'array']
+        # make all rows have same # cols, extending as needed or requested:
+        longest = max([len(r) for r in self.grid]) + extraCols
+        for row in self.grid:
+            for i in range(len(row),longest):
+                row.append(u'') # None
+        self.hasHeader = bool(header)
+        self.rows = min(len(self.grid), 30) # max 30 rows displayed
+        self.cols = len(self.grid[0])
+        extraRow = int(not self.fixed) # extra row for explicit type drop-down
+        self.sizer = wx.FlexGridSizer(self.rows+extraRow, self.cols+1, # +1 for condition labels
+                                      vgap=0, hgap=0) 
+        # set length of input box as the longest in the column (bounded):
+        self.colSizes = []
+        for x in range(self.cols):
+            self.colSizes.append( max([4] +
+                [len(unicode(self.grid[y][x])) for y in range(self.rows)]) )
+        self.colSizes = map(lambda x: min(20, max(9, x+1)) * 8.5, self.colSizes)
+        self.inputTypes = [] # explicit, as selected by user via type-selector
+        self.inputFields = [] # values in fields
+        self.data = []
+        
+        # make header label, if any:
+        if self.hasHeader:
+            rowLabel = wx.StaticText(self,-1,label='Params:', size=(6*9, 20))
+            rowLabel.SetForegroundColour(wx.Color(30,30,150,255))
+            self.addRow(0, rowLabel=rowLabel)
+        # make type-selector drop-down:
+        if not self.fixed:
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL) # mac only
+            labelBox = wx.BoxSizer(wx.VERTICAL)
+            tx = wx.StaticText(self,-1,label='type:', size=(5*9,20))
+            tx.SetForegroundColour('Gray')
+            labelBox.Add(tx,1,flag=wx.ALIGN_RIGHT)
+            labelBox.AddSpacer(5) # vertical
+            self.sizer.Add(labelBox,1,flag=wx.ALIGN_RIGHT)
+            row = int(self.hasHeader) # row to use for type inference
+            for col in range(self.cols):
+                # make each selector:
+                typeOpt = wx.Choice(self, choices=self.typeChoices)
+                # set it to best guess about the column's type:
+                firstType = str(type(self.grid[row][col])).split("'",2)[1]
+                if firstType=='numpy.ndarray':
+                    firstType = 'array'
+                if firstType=='unicode':
+                    firstType = 'utf-8'
+                typeOpt.SetStringSelection(str(firstType))
+                self.inputTypes.append(typeOpt)
+                self.sizer.Add(typeOpt, 1)
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        # stash implicit types for setType:
+        self.types = [] # implicit types
+        row = int(self.hasHeader) # which row to use for type inference
+        for col in range(self.cols):
+            firstType = str(type(self.grid[row][col])).split("'")[1]
+            self.types.append(firstType)
+        # add normal row:
+        for row in range(int(self.hasHeader), self.rows):
+            self.addRow(row)
+        for r in range(extraRows):
+            self.grid.append([ u'' for i in range(self.cols)])
+            self.rows = len(self.grid)
+            self.addRow(self.rows-1)
+        # show the GUI:
+        if gui:
+            self.show()
+            self.Destroy()
+        if self.madeApp:
+            del(self, app)
+
+    def colName(self, c, prefix='param_'):
+        # generate an excel-style column name, A ... ZZ, with prefix
+        abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # for A, ..., Z
+        aabb = [''] + [ch for ch in abc] # for Ax, ..., Zx
+        return prefix + aabb[c//26] + abc[c%26]
+    def addRow(self, row, rowLabel=None):
+        """Add one row of info, either header (col names) or normal data
+        
+        Adds items sequentially; FlexGridSizer moves to next row automatically
+        """
+        labelBox = wx.BoxSizer(wx.HORIZONTAL)
+        if not rowLabel:
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+            label = 'cond %s:'%str(row+1-int(self.hasHeader)).zfill(2)
+            rowLabel = wx.StaticText(self, -1, label=label)
+            rowLabel.SetForegroundColour('Gray')
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)
+        self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
+        lastRow = []
+        for col in range(self.cols):
+            # get the item, as unicode for display purposes:
+            if len(unicode(self.grid[row][col])): # want 0, for example
+                item = unicode(self.grid[row][col])
+            else:
+                item = u''
+            # make a textbox:
+            field = ExpandoTextCtrl(self, -1, item, size=(self.colSizes[col],20))
+            field.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNeedsResize)
+            if self.hasHeader and row==0:
+                # add a default column name (header) if none provided
+                header = self.grid[0]
+                if item.strip() == '':
+                    c = col
+                    while self.colName(c) in header:
+                        c += 1
+                    field.SetValue(self.colName(c))
+                    header.append(self.colName(c))
+                field.SetForegroundColour((30,30,150)) #dark blue
+                field.SetToolTip(wx.ToolTip('Should be legal as a variable name (alphanumeric)'))
+            elif self.fixed: field.SetForegroundColour('Gray')
+
+            # warn about whitespace unless will be auto-removed. invisible, probably spurious:
+            if (self.fixed or not self.clean) and item != item.lstrip().strip():
+                field.SetForegroundColour('Red')
+                self.warning = 'extra white-space' # also used in _show()
+                field.SetToolTip(wx.ToolTip(self.warning))
+            if self.fixed:
+                field.Disable()
+            lastRow.append(field)
+            self.sizer.Add(field, 1)
+        self.inputFields.append(lastRow)
+
+    def userAddRow(self, event=None):
+        self.grid.append([ u''] * self.cols)
+        self.rows = len(self.grid)
+        self.addRow(self.rows-1)
+        self.tmpMsg.SetLabel('')
+        self.onNeedsResize()
+    def userAddCol(self, event=None):
+        """ adds a column by recreating the Dlg, requesting one more column
+        so lose the retVal from OK, set parent.fileName to signal OK / exit status
+        """
+        self.relaunch(kwargs={'extraCols':1, 'title':self.title})
+    def relaunch(self, kwargs={}):
+        self.trim = False # avoid removing blank rows / cols that user has added
+        self.getData(True)
+        currentData = self.data[:]
+        # launch new Dlg, but only after bail out of current one:
+        if hasattr(self, 'fileName'): fname = self.fileName
+        else: fname = None
+        wx.CallAfter(ConditionsDlg, currentData, _restore=(self.newFile,fname),
+                     parent=self.parent, **kwargs)
+        # bail from current Dlg:
+        self.EndModal(wx.ID_OK) # retVal here, first one goes to Builder, ignore
+        #self.Destroy() # -> PyDeadObjectError, so already handled hopefully
+    def getData(self, typeSelected=False):
+        """gets data from inputFields (unicode), converts to desired type
+        """
+        if self.fixed:
+            self.data = self.grid
+            return
+        elif typeSelected: # get user-selected explicit types of the columns
+            self.types = []
+            for col in range(self.cols):
+                selected = self.inputTypes[col].GetCurrentSelection()
+                self.types.append(self.typeChoices[selected])
+        # mark empty columns for later removal:
+        if self.trim:
+            start = int(self.hasHeader) # name is not empty, so ignore
+            for col in range(self.cols):
+                if not ''.join([self.inputFields[row][col].GetValue()
+                                for row in range(start, self.rows)]):
+                    self.types[col] = 'None' # col will be removed below
+        # get the data:
+        self.data = []
+        for row in range(self.rows):
+            lastRow = []
+            # remove empty rows
+            if self.trim and not ''.join([self.inputFields[row][col].GetValue()
+                                          for col in range(self.cols)]):
+                continue
+            for col in range(self.cols):
+                thisType = self.types[col]
+                # trim 'None' columns, including header name:
+                if self.trim and thisType in ['None']:
+                    continue
+                thisVal = self.inputFields[row][col].GetValue()
+                if self.clean:
+                    thisVal = thisVal.lstrip().strip()
+                if thisVal:# and thisType in ['list', 'tuple', 'array']:
+                    while len(thisVal) and thisVal[-1] in "]), ":
+                        thisVal = thisVal[:-1]
+                    while len(thisVal) and thisVal[0] in "[(, ":
+                        thisVal = thisVal[1:]
+                
+                if thisType not in ['str', 'utf-8']:
+                    thisVal = thisVal.replace('\n', '')
+                else:
+                    thisVal = repr(thisVal) # handles quoting ', ", ''' etc
+                # convert to requested type:
+                try:
+                    if self.hasHeader and row==0:
+                        lastRow.append(str(self.inputFields[row][col].GetValue())) # header always str
+                    elif thisType in ['float','int', 'long']:
+                        exec("lastRow.append("+thisType+'('+thisVal+"))")
+                    elif thisType in ['list']:
+                        thisVal = thisVal.lstrip('[').strip(']')
+                        exec("lastRow.append("+thisType+'(['+thisVal+"]))")
+                    elif thisType in ['tuple']:
+                        thisVal = thisVal.lstrip('(').strip(')')
+                        if thisVal:
+                            exec("lastRow.append(("+thisVal.strip(',')+",))")
+                        else:
+                            lastRow.append(tuple(()))
+                    elif thisType in ['array']:
+                        thisVal = thisVal.lstrip('[').strip(']')
+                        exec("lastRow.append(numpy.array"+'("['+thisVal+']"))')
+                    elif thisType in ['utf-8', 'bool']:
+                        if thisType=='utf-8': thisType='unicode'
+                        exec("lastRow.append("+thisType+'('+thisVal+'))')
+                    elif thisType in ['str']:
+                        exec("lastRow.append(str("+thisVal+"))")
+                    elif thisType in ['file']:
+                        exec("lastRow.append(repr("+thisVal+"))")
+                    else: #if thisType in ['NoneType']:
+                        #assert False, 'programer error, unknown type: '+thisType
+                        exec("lastRow.append("+unicode(thisVal)+')')
+                except ValueError, msg:
+                    print 'ValueError:', msg, '; using unicode'
+                    exec("lastRow.append("+unicode(thisVal)+')')
+                except NameError, msg:
+                    print 'NameError:', msg, '; using unicode'
+                    exec("lastRow.append("+repr(thisVal)+')')
+            self.data.append(lastRow)
+        if self.trim:
+            # the corresponding data have already been removed
+            while 'None' in self.types:
+                self.types.remove('None')
+        return self.data[:]
+    
+    def preview(self,event=None):
+        self.getData(typeSelected=True)
+        previewData = self.data[:] # in theory, self.data is also ok, because fixed is
+            #supposed to never change anything, but bugs would be very subtle
+        ConditionsDlg(previewData, title='PREVIEW', fixed=True)
+    def onNeedsResize(self, event=None):
+        self.SetSizerAndFit(self.border) # do outer-most sizer
+        if self.pos==None: self.Center()
+    def show(self):
+        """called internally; to display, pass gui=True to init
+        """
+        # put things inside a border:
+        self.border = wx.FlexGridSizer(2,1) # data matrix on top, buttons below
+        self.border.Add(self.sizer, proportion=1, flag=wx.ALL|wx.EXPAND, border=8)
+        
+        # add a message area, buttons:
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        # placeholder for possible messages / warnings:
+        self.tmpMsg = wx.StaticText(self, -1, label='')
+        buttons.Add(self.tmpMsg, flag=wx.ALIGN_CENTER)
+        buttons.AddSpacer(8)
+        self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+        if self.warning:
+            self.tmpMsg.SetLabel(self.warning)
+            self.tmpMsg.SetForegroundColour('Red')
+        if not self.fixed:
+            ADDROW = wx.Button(self, -1, "+cond.", size=(55,15)) # good size for mac, SMALL
+            ADDROW.SetToolTip(wx.ToolTip('Add a condition (row); to delete a condition, delete all of its values.'))
+            ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
+            buttons.Add(ADDROW)
+            buttons.AddSpacer(4)
+            ADDCOL = wx.Button(self, -1, "+param", size=(60,15))
+            ADDCOL.SetToolTip(wx.ToolTip('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.'))
+            ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
+            buttons.Add(ADDCOL)
+            buttons.AddSpacer(4)
+            PREVIEW = wx.Button(self, -1, "Preview")
+            PREVIEW.SetToolTip(wx.ToolTip("Show all values as they would appear after saving to a file, without actually saving anything."))
+            PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
+            buttons.Add(PREVIEW)
+            buttons.AddSpacer(4)
+            SAVEAS = wx.Button(self, wx.SAVE, "Save as")
+            SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
+            buttons.Add(SAVEAS)
+            buttons.AddSpacer(8)
+            self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
+            buttons = wx.BoxSizer(wx.HORIZONTAL) # second line
+        self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        #help button if we know the url
+        if self.helpUrl and not self.fixed:
+            helpBtn = wx.Button(self, wx.ID_HELP)
+            helpBtn.SetToolTip(wx.ToolTip("Go to online help"))
+            helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
+            buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL)
+            buttons.AddSpacer(12)
+        OK = wx.Button(self, wx.ID_OK, " OK ")
+        if not self.fixed:
+            OK.SetToolTip(wx.ToolTip('Save and exit'))
+        OK.Bind(wx.EVT_BUTTON, self.onOK)
+        OK.SetDefault()
+        buttons.Add(OK)
+        if not self.fixed:
+            buttons.AddSpacer(4)
+            CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+            CANCEL.SetToolTip(wx.ToolTip('Exit, discard any edits'))
+            buttons.Add(CANCEL)
+        buttons.AddSpacer(8)
+        
+        self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
+        self.SetSizerAndFit(self.border)
+        if self.pos==None: self.Center()
+        
+        # finally, its show time:
+        if self.ShowModal() == wx.ID_OK:
+            self.getData(typeSelected=True) # set self.data and self.types, from fields
+            self.OK = True
+        else: 
+            self.data = self.types = None
+            self.OK = False
+        self.Destroy()
+    def onOK(self, event=None):
+        if not self.fixed:
+            self.save()
+        event.Skip()
+    def saveAs(self, event=None):
+        """save, but allow user to give a new name
+        """
+        self.newFile = True # trigger query for fileName
+        self.save()
+        self.relaunch() # to update fileName in title
+    def save(self, event=None):
+        """save header + row x col data to a pickle file
+        """
+        self.getData(True)
+        if hasattr(self, 'fileName') and self.fileName:
+            fname = self.fileName
+        else:
+            self.newFile = True
+            fname = self.defaultFileName
+        if self.newFile or not os.path.isfile(fname):
+            fullPath = fileSaveDlg(initFilePath=os.path.split(fname)[0],
+                initFileName=os.path.basename(fname),
+                        allowed="Pickle files *.pkl")
+        else:
+            fullPath = fname
+        if fullPath: # None if cancel
+            if not fullPath.endswith('.pkl'):
+                fullPath += '.pkl'
+            f = open(fullPath, 'w')
+            cPickle.dump(self.data, f)
+            f.close()
+            self.fileName = fullPath
+            self.newFile = False
+            # ack, sometimes might want relative path 
+            if self.parent:
+                self.parent.conditionsFile = fullPath
+    def load(self, fileName=''):
+        """read and return header + row x col data from a pickle file
+        """
+        if not fileName:
+            fileName = self.defaultFileName
+        if not os.path.isfile(fileName):
+            fullPathList = fileOpenDlg(tryFileName=os.path.basename(fileName),
+                            allowed="All files (*.*)|*.*")
+            if fullPathList:
+                fileName = fullPathList[0] # wx.MULTIPLE -> list
+        if os.path.isfile(fileName) and fileName.endswith('.pkl'):
+            f = open(fileName)
+            contents = cPickle.load(f)
+            f.close()
+            if self.parent:
+                self.parent.conditionsFile = fileName
+            return contents
+        elif not os.path.isfile(fileName):
+            print 'file %s not found' % fileName
+        else:
+            print 'only .pkl supported at the moment'
+    def asConditions(self):
+        """converts self.data into self.conditions for TrialHandler, returns conditions
+        """
+        if not self.data or not self.hasHeader:
+            if hasattr(self, 'conditions') and self.conditions:
+                return self.conditions
+            return
+        self.conditions = []
+        keyList = self.data[0] # header = keys of dict
+        for row in self.data[1:]:
+            condition = {}
+            for col, key in enumerate(keyList):
+                condition[key] = row[col]
+            self.conditions.append(condition)
+        return self.conditions
+    def onHelp(self, event=None):
+        """similar to self.app.followLink() to self.helpUrl, but only use url
+        """
+        wx.LaunchDefaultBrowser(self.helpUrl)
+        
 def fileSaveDlg(initFilePath="", initFileName="", 
-                prompt="Select file to save",
-                allowed=None):
+                prompt="Select file to save", allowed=None):
     """A simple dialogue allowing access to the file system.
     (Useful in case you collect an hour of data and then try to 
     save to a non-existent directory!!)
@@ -226,8 +703,12 @@ def fileSaveDlg(initFilePath="", initFileName="",
             #"txt (*.txt)|*.txt" \
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
-    tmpApp = wx.PySimpleApp()
-    dlg = wx.FileDialog(None,prompt, 
+    try:
+        dlg = wx.FileDialog(None,prompt, 
+                          initFilePath, initFileName, allowed, wx.SAVE)
+    except:
+        tmpApp = wx.PySimpleApp()
+        dlg = wx.FileDialog(None,prompt, 
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
@@ -270,8 +751,12 @@ def fileOpenDlg(tryFilePath="",
             "pickled files (*.pickle, *.pkl)|*.pickle|" \
             "shelved files (*.shelf)|*.shelf|" \
             "All files (*.*)|*.*"
-    tmpApp = wx.PySimpleApp()
-    dlg = wx.FileDialog(None, prompt,
+    try:
+        dlg = wx.FileDialog(None, prompt,
+                          tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
+    except:
+        tmpApp = wx.PySimpleApp()
+        dlg = wx.FileDialog(None, prompt,
                           tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
