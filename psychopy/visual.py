@@ -6082,35 +6082,29 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         intensity[artifact_idx] = 1
         artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad > 1))
         intensity[artifact_idx] = 0
-
-    else:#might be an image, or a filename of an image
-
-        """if os.path.isfile(tex):
-            im = Image.open(tex)
-            im = im.transpose(Image.FLIP_TOP_BOTTOM)
-        else:
-            log.error("couldn't find tex...%s" %(tex))
-            core.quit()
-            raise #so thatensure we quit"""
-
-        itsaFile = True # just a guess at this point
-        try:
-            os.path.isfile(tex)
-        except TypeError: # it's not a file; maybe an image already?
+        
+    else:
+        if type(tex) in [str, unicode, numpy.string_]:
+            # maybe tex is the name of a file:
+            if not os.path.isfile(tex):
+                log.error("Couldn't find image file '%s'; check path?" %(tex)); log.flush()
+                raise OSError, "Couldn't find image file '%s'; check path? (tried: %s)" \
+                    % (tex, os.path.abspath(tex))#ensure we quit
             try:
-                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)
-                #im = filename.transpose(Image.FLIP_TOP_BOTTOM)
-            except AttributeError: # ...but apparently not
-                log.error("Couldn't find image...%s" %(tex)); log.flush()
-                raise AttributeError, "Couldn't find image...%s" %(tex)#ensure we quit
-            itsaFile = False
-        if itsaFile:
-            if os.path.isfile(tex):
                 im = Image.open(tex)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            else:
-                log.error("Found image file '%s' but it failed to load" %(tex)); log.flush()
-                raise "couldn't find image...%s" %(tex)#ensure we quit
+            except IOError:
+                log.error("Found file '%s' but failed to load as an image" %(tex)); log.flush()
+                raise IOError, "Found file '%s' [= %s] but it failed to load as an image" \
+                    % (tex, os.path.abspath(tex))#ensure we quit
+        else: 
+            # can't be a file; maybe its an image already in memory?
+            try:
+                im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM) # ? need to flip if in mem?
+            except AttributeError: # nope, not an image in memory
+                log.error("Couldn't make sense of requested PatchStim."); log.flush()
+                raise AttributeError, "Couldn't make sense of requested PatchStim."#ensure we quit
+        # at this point we have a valid im
         stim.origSize=im.size
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
