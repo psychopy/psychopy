@@ -2461,7 +2461,7 @@ class DlgConditions(wx.Dialog):
             self.addRow(0, rowLabel=rowLabel)
         # make type-selector drop-down:
         if not self.fixed:
-            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL) # mac only
+            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL) # mac only
             labelBox = wx.BoxSizer(wx.VERTICAL)
             tx = wx.StaticText(self,-1,label='type:', size=(5*9,20))
             tx.SetForegroundColour('Gray')
@@ -2481,7 +2481,7 @@ class DlgConditions(wx.Dialog):
                 typeOpt.SetStringSelection(str(firstType))
                 self.inputTypes.append(typeOpt)
                 self.sizer.Add(typeOpt, 1)
-            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         # stash implicit types for setType:
         self.types = [] # implicit types
         row = int(self.hasHeader) # which row to use for type inference
@@ -2514,11 +2514,11 @@ class DlgConditions(wx.Dialog):
         """
         labelBox = wx.BoxSizer(wx.HORIZONTAL)
         if not rowLabel:
-            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             label = 'cond %s:'%str(row+1-int(self.hasHeader)).zfill(2)
             rowLabel = wx.StaticText(self, -1, label=label)
             rowLabel.SetForegroundColour('Gray')
-            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
         lastRow = []
@@ -2712,7 +2712,7 @@ class DlgConditions(wx.Dialog):
         
         # add a message area, buttons:
         buttons = wx.BoxSizer(wx.HORIZONTAL)
-        self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+        if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
         if not self.fixed:
             # placeholder for possible messages / warnings:
             self.tmpMsg = wx.StaticText(self, -1, label='', size=(350,15), style=wx.ALIGN_RIGHT)
@@ -2744,7 +2744,7 @@ class DlgConditions(wx.Dialog):
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL) # second line
-        self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         buttons = wx.BoxSizer(wx.HORIZONTAL) # another line
         #help button if we know the url
         if self.helpUrl and not self.fixed:
