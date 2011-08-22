@@ -3,19 +3,21 @@ from psychopy import core, visual, event
 
 """There are two options for drawing image-based stimuli in PsychoPy:
     
-    SimpleImageStim is ideal if you don't need to draw a large number of 
+    PatchStim is more versatile and faster - it uses opengl textures which allow for alpha 
+    masks, arbitrary transforms of the image data in space (multiple cycles, 
+    scaling, rotation...). It can also draw mathmatical textures, instead of 
+    bitmaps if you request things like 'sin', 'sqr'...
+    
+    SimpleImageStim is OK if you don't need to draw a large number of 
     stimuli and want them to have exactly the pixels you created (with no scaling).
     Unfortunately it is slower to draw than PatchStim and can lead to dropped frames.
     (to test this on your system try commenting out the beach.draw() command)
     
-    PatchStim is more versatile - it uses opengl textures which allow for alpha 
-    masks, arbitrary transforms of the image data in space (multiple cycles, 
-    scale, rotation...) but for this you must specify the size in each dimension 
-    (or it may well appear stretched).
 """
 
 #create a window to draw in
 myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, color=(-1,-1,-1))
+myWin._haveShaders=False
 
 #INITIALISE SOME STIMULI
 beach = visual.SimpleImageStim(myWin, 'beach.jpg', flipHoriz=True, pos=(0,1.50), units='deg')
