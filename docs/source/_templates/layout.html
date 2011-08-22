@@ -73,10 +73,10 @@ changed: sidebar, rootrellink, header, footer,
           {%- if customsidebar %}
           {% include customsidebar %}
           {%- endif %}
-      
+
 
           {%- block sidebarsearch %}
-      
+
             <h3>Quick links</h3>
             <ul>
             <li><a href="http://code.google.com/p/psychopy/"><strong>Download</strong></a></li>
@@ -84,17 +84,20 @@ changed: sidebar, rootrellink, header, footer,
             <li><a href="http://groups.google.com/group/psychopy-dev">Mailing list (dev)</a></li>
             <li><a href="http://twitter.com/psychopy">Twitter</a></li>
             </ul>
-        
+
+            <div id="fb-root"></div><script src="http://connect.facebook.net/en_US/all.js#appId=122767831154831&amp;xfbml=1"></script>
+            <fb:like href="http://www.facebook.com/pages/PsychoPy/140222406067597" send="false" layout="button_count" width="300" show_faces="false" action="like" font=""></fb:like>
+
           {%- if pagename != "search" %}
-      
-          <div id="searchbox" style="display: none">      
+
+          <div id="searchbox" style="display: none">
             <h3>{{ _('Searches') }}</h3>
             <form action="http://www.google.com/cse" id="cse-search-box">
                 <input type="hidden" name="cx" value="partner-pub-0861691574026297:eyw5n7-ugep" />
                 <input type="hidden" name="ie" value="ISO-8859-1" />
                 <input type="text" name="q" size="20" />
                 <input type="submit" name="sa" value="Go" />
-            </form>    
+            </form>
               <p class="searchtip" style="font-size: 90%">
               {{ _('General') }}
               </p>
@@ -110,8 +113,9 @@ changed: sidebar, rootrellink, header, footer,
               </p>
           </div>
           <script type="text/javascript">$('#searchbox').show(0);</script>
-                
+
           {%- endif %}
+
           {%- endblock %}
         </div>
       </div>
@@ -242,7 +246,7 @@ changed: sidebar, rootrellink, header, footer,
     <a href='http://www.ohloh.net/accounts/24106?ref=Detailed'>
         <img alt='Ohloh profile for Jon Peirce' height='35' src='http://www.ohloh.net/accounts/24106/widgets/account_detailed.gif' width='191' />
     </a>
-    
+
     </div>
 {%- endblock %}
   </body>
