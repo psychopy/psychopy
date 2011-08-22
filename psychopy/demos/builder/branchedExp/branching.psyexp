@@ -69,7 +69,7 @@
         <Param name="correctAns" val="" valType="str" updates="constant"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="ab" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="['a', 'b']" valType="code" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
