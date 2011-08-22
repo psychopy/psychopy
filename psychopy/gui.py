@@ -14,6 +14,7 @@ import cPickle, re
 OK = wx.ID_OK
 
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
+_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 class Dlg(wx.Dialog):
     """A simple dialogue box. You can add text or input boxes 
@@ -406,11 +407,12 @@ class ConditionsDlg(wx.Dialog):
                     while self.colName(c) in header:
                         c += 1
                     field.SetValue(self.colName(c))
-                if not _valid_var_re.match(field.GetValue()) or (self.parent and
-                        self.parent.exp.namespace.exists(field.GetValue()) ):
-                    field.SetForegroundColour("Red")
-                else:
-                    field.SetForegroundColour((30,30,150)) #dark blue
+                field.SetForegroundColour((30,30,150)) #dark blue
+                if not _valid_var_re.match(field.GetValue()): #or (self.parent and
+                            #self.parent.exp.namespace.exists(field.GetValue()) ):
+                            # was always red when preview .xlsx file -- in namespace already is fine
+                    if self.fixed:
+                        field.SetForegroundColour("Red")
                 field.SetToolTip(wx.ToolTip('Should be legal as a variable name (alphanumeric)'))
                 field.Bind(wx.EVT_TEXT, self.checkName)
             elif self.fixed:
@@ -667,7 +669,7 @@ class ConditionsDlg(wx.Dialog):
                     adjustedNames = True
             elif not _valid_var_re.match(paramName):
                 msg, enable = "Name must be alpha-numeric or _, no spaces", False
-                newName = self.parent.exp.namespace.makeValid(paramName)
+                newName = _nonalphanumeric_re.sub('_', newName)
                 adjustedNames = True
             else:
                 msg, enable = "", True
@@ -678,7 +680,7 @@ class ConditionsDlg(wx.Dialog):
             self.data[0][i] = newName
             self.header[i].SetValue(newName) # displayed value
         if adjustedNames:
-            self.tmpMsg.SetLabel('Param name(s) were adjusted. Look ok?')
+            self.tmpMsg.SetLabel('Param name(s) adjusted to be legal. Look ok?')
             return False
         if hasattr(self, 'fileName') and self.fileName:
             fname = self.fileName
