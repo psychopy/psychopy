@@ -9,9 +9,11 @@ import wx
 import numpy
 import string, os
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-import cPickle
+import cPickle, re
 
 OK = wx.ID_OK
+
+_valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 
 class Dlg(wx.Dialog):
     """A simple dialogue box. You can add text or input boxes 
@@ -200,16 +202,25 @@ class DlgFromDict(Dlg):
                 self.dictionary[thisKey]=self.data[n]
         
 class ConditionsDlg(wx.Dialog):
-    """Given a file or conditions info, present values in a grid; view, edit, save.
+    """Given a file or conditions, present values in a grid; view, edit, save.
     
     Accepts file name, list of lists, or list-of-dict
     Designed around a conditionsFile, but potentially more general.
-    Example usage: see builder.DlgLoopProperties.viewConditions()
+    
+    Example usage: from builder.DlgLoopProperties.viewConditions()
+    edit new empty .pkl file:
+        gridGUI = gui.ConditionsDlg(parent=self) # create and present Dlg
+    edit existing .pkl file, loading from file:
+        gridGUI = gui.ConditionsDlg(fileName=self.conditionsFile,
+                                    parent=self, title=fileName)
+    preview existing .csv or .xlsx file that has already been loaded -> conditions:
+        gridGUI = gui.ConditionsDlg(conditions, parent=self, 
+                                    title=fileName, fixed=True)
     
     Maybe this class should be in builder.py, not in gui.py
     
-    To add columns, this class will instantiate another instance of itself that
-    has another column. Doing so make the return value from the first instance's
+    To add columns, an instance of this class will instantiate a new instance
+    having one more column. Doing so makes the return value from the first instance's
     showModal() meaningless. In order to update things like fileName and conditions,
     values are set in the parent, and should not be set based on showModal retVal.
     
@@ -358,7 +369,7 @@ class ConditionsDlg(wx.Dialog):
             del(self, app)
 
     def colName(self, c, prefix='param_'):
-        # generate an excel-style column name, A ... ZZ, with prefix
+        # generates 702 excel-style column names, A ... ZZ, with prefix
         abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # for A, ..., Z
         aabb = [''] + [ch for ch in abc] # for Ax, ..., Zx
         return prefix + aabb[c//26] + abc[c%26]
@@ -386,6 +397,7 @@ class ConditionsDlg(wx.Dialog):
             # make a textbox:
             field = ExpandoTextCtrl(self, -1, item, size=(self.colSizes[col],20))
             field.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNeedsResize)
+            field.SetMaxHeight(100) # ~ 5 lines
             if self.hasHeader and row==0:
                 # add a default column name (header) if none provided
                 header = self.grid[0]
@@ -394,31 +406,61 @@ class ConditionsDlg(wx.Dialog):
                     while self.colName(c) in header:
                         c += 1
                     field.SetValue(self.colName(c))
-                    header.append(self.colName(c))
-                field.SetForegroundColour((30,30,150)) #dark blue
+                if not _valid_var_re.match(field.GetValue()) or (self.parent and
+                        self.parent.exp.namespace.exists(field.GetValue()) ):
+                    field.SetForegroundColour("Red")
+                else:
+                    field.SetForegroundColour((30,30,150)) #dark blue
                 field.SetToolTip(wx.ToolTip('Should be legal as a variable name (alphanumeric)'))
-            elif self.fixed: field.SetForegroundColour('Gray')
+                field.Bind(wx.EVT_TEXT, self.checkName)
+            elif self.fixed:
+                field.SetForegroundColour('Gray')
 
             # warn about whitespace unless will be auto-removed. invisible, probably spurious:
             if (self.fixed or not self.clean) and item != item.lstrip().strip():
                 field.SetForegroundColour('Red')
-                self.warning = 'extra white-space' # also used in _show()
+                self.warning = 'extra white-space' # also used in show()
                 field.SetToolTip(wx.ToolTip(self.warning))
             if self.fixed:
                 field.Disable()
             lastRow.append(field)
             self.sizer.Add(field, 1)
         self.inputFields.append(lastRow)
-
+        if self.hasHeader and row==0:
+            self.header = lastRow
+    def checkName(self, event=None, name=None):
+        """check param name (missing, namespace conflict, legal var name)
+        disable save, save-as if bad name
+        """
+        if self.parent:
+            if event:
+                msg, enable = self.parent._checkName(event=event)
+            else:
+                msg, enable = self.parent._checkName(name=name)
+        else:
+            if (name and not _valid_var_re.match(name)
+                or not _valid_var_re.match(event.GetString()) ):
+                msg, enable = "Name must be alpha-numeric or _, no spaces", False
+            else:
+                msg, enable = "", True
+        self.tmpMsg.SetLabel(msg)
+        if enable:
+            self.OKbtn.Enable()
+            self.SAVEAS.Enable()
+        else:
+            self.OKbtn.Disable()
+            self.SAVEAS.Disable()
     def userAddRow(self, event=None):
+        """handle user request to add another row: just add to the FlexGridSizer
+        """
         self.grid.append([ u''] * self.cols)
         self.rows = len(self.grid)
         self.addRow(self.rows-1)
         self.tmpMsg.SetLabel('')
         self.onNeedsResize()
     def userAddCol(self, event=None):
-        """ adds a column by recreating the Dlg, requesting one more column
-        so lose the retVal from OK, set parent.fileName to signal OK / exit status
+        """adds a column by recreating the Dlg with a wider size one more column
+        relaunch loses the retVal from OK, so use parent.fileName not OK for exit status
         """
         self.relaunch(kwargs={'extraCols':1, 'title':self.title})
     def relaunch(self, kwargs={}):
@@ -520,9 +562,9 @@ class ConditionsDlg(wx.Dialog):
     
     def preview(self,event=None):
         self.getData(typeSelected=True)
-        previewData = self.data[:] # in theory, self.data is also ok, because fixed is
-            #supposed to never change anything, but bugs would be very subtle
-        ConditionsDlg(previewData, title='PREVIEW', fixed=True)
+        previewData = self.data[:] # in theory, self.data is also ok, because fixed
+            # is supposed to never change anything, but bugs would be very subtle
+        ConditionsDlg(previewData, parent=self.parent, title='PREVIEW', fixed=True)
     def onNeedsResize(self, event=None):
         self.SetSizerAndFit(self.border) # do outer-most sizer
         if self.pos==None: self.Center()
@@ -535,15 +577,16 @@ class ConditionsDlg(wx.Dialog):
         
         # add a message area, buttons:
         buttons = wx.BoxSizer(wx.HORIZONTAL)
-        # placeholder for possible messages / warnings:
-        self.tmpMsg = wx.StaticText(self, -1, label='')
-        buttons.Add(self.tmpMsg, flag=wx.ALIGN_CENTER)
-        buttons.AddSpacer(8)
         self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
-        if self.warning:
-            self.tmpMsg.SetLabel(self.warning)
-            self.tmpMsg.SetForegroundColour('Red')
         if not self.fixed:
+            # placeholder for possible messages / warnings:
+            self.tmpMsg = wx.StaticText(self, -1, label='', size=(300,15), style=wx.ALIGN_RIGHT)
+            self.tmpMsg.SetForegroundColour('Red')
+            if self.warning:
+                self.tmpMsg.SetLabel(self.warning)
+            buttons.Add(self.tmpMsg, flag=wx.ALIGN_CENTER)
+            self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_CENTER, border=8)
+            buttons = wx.BoxSizer(wx.HORIZONTAL)
             ADDROW = wx.Button(self, -1, "+cond.", size=(55,15)) # good size for mac, SMALL
             ADDROW.SetToolTip(wx.ToolTip('Add a condition (row); to delete a condition, delete all of its values.'))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
@@ -559,13 +602,14 @@ class ConditionsDlg(wx.Dialog):
             PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
             buttons.Add(PREVIEW)
             buttons.AddSpacer(4)
-            SAVEAS = wx.Button(self, wx.SAVE, "Save as")
-            SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
-            buttons.Add(SAVEAS)
+            self.SAVEAS = wx.Button(self, wx.SAVE, "Save as")
+            self.SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
+            buttons.Add(self.SAVEAS)
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL) # second line
         self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        buttons = wx.BoxSizer(wx.HORIZONTAL) # another line
         #help button if we know the url
         if self.helpUrl and not self.fixed:
             helpBtn = wx.Button(self, wx.ID_HELP)
@@ -573,24 +617,23 @@ class ConditionsDlg(wx.Dialog):
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL)
             buttons.AddSpacer(12)
-        OK = wx.Button(self, wx.ID_OK, " OK ")
+        self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         if not self.fixed:
-            OK.SetToolTip(wx.ToolTip('Save and exit'))
-        OK.Bind(wx.EVT_BUTTON, self.onOK)
-        OK.SetDefault()
-        buttons.Add(OK)
+            self.OKbtn.SetToolTip(wx.ToolTip('Save and exit'))
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
+        self.OKbtn.SetDefault()
+        buttons.Add(self.OKbtn)
         if not self.fixed:
             buttons.AddSpacer(4)
             CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
             CANCEL.SetToolTip(wx.ToolTip('Exit, discard any edits'))
             buttons.Add(CANCEL)
         buttons.AddSpacer(8)
-        
         self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
-        self.SetSizerAndFit(self.border)
-        if self.pos==None: self.Center()
         
         # finally, its show time:
+        self.SetSizerAndFit(self.border)
+        if self.pos==None: self.Center()
         if self.ShowModal() == wx.ID_OK:
             self.getData(typeSelected=True) # set self.data and self.types, from fields
             self.OK = True
@@ -600,8 +643,9 @@ class ConditionsDlg(wx.Dialog):
         self.Destroy()
     def onOK(self, event=None):
         if not self.fixed:
-            self.save()
-        event.Skip()
+            if not self.save():
+                return # disallow OK if bad param names
+        event.Skip() # handle the OK button event
     def saveAs(self, event=None):
         """save, but allow user to give a new name
         """
@@ -611,7 +655,31 @@ class ConditionsDlg(wx.Dialog):
     def save(self, event=None):
         """save header + row x col data to a pickle file
         """
-        self.getData(True)
+        self.getData(True) # update self.data
+        adjustedNames = False
+        for i, paramName in enumerate(self.data[0]):
+            newName = paramName
+            # ensure its legal as a var name, including namespace check:
+            if self.parent:
+                msg, enable = self.parent._checkName(name=paramName)
+                if msg: # msg not empty means a namespace issue
+                    newName = self.parent.exp.namespace.makeValid(paramName, prefix='param')
+                    adjustedNames = True
+            elif not _valid_var_re.match(paramName):
+                msg, enable = "Name must be alpha-numeric or _, no spaces", False
+                newName = self.parent.exp.namespace.makeValid(paramName)
+                adjustedNames = True
+            else:
+                msg, enable = "", True
+            # try to ensure its unique:
+            while newName in self.data[0][:i]:
+                adjustedNames = True
+                newName += 'x' # unlikely to create a namespace conflict, but could happen
+            self.data[0][i] = newName
+            self.header[i].SetValue(newName) # displayed value
+        if adjustedNames:
+            self.tmpMsg.SetLabel('Param name(s) were adjusted. Look ok?')
+            return False
         if hasattr(self, 'fileName') and self.fileName:
             fname = self.fileName
         else:
@@ -623,7 +691,7 @@ class ConditionsDlg(wx.Dialog):
                         allowed="Pickle files *.pkl")
         else:
             fullPath = fname
-        if fullPath: # None if cancel
+        if fullPath: # None if user canceled
             if not fullPath.endswith('.pkl'):
                 fullPath += '.pkl'
             f = open(fullPath, 'w')
@@ -634,6 +702,7 @@ class ConditionsDlg(wx.Dialog):
             # ack, sometimes might want relative path 
             if self.parent:
                 self.parent.conditionsFile = fullPath
+        return True
     def load(self, fileName=''):
         """read and return header + row x col data from a pickle file
         """

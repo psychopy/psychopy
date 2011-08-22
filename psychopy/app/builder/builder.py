@@ -1267,7 +1267,7 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi/3)#was 8*until v0.91.4
-        if param.valType == 'code':
+        if param.valType == 'code' and label != 'name':
             displayLabel = label+' $'
         else:
             displayLabel = label
@@ -1835,29 +1835,34 @@ class _BaseParamsDlg(wx.Dialog):
                 if ctrls.typeCtrl: param.valType = ctrls.getType()
                 if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.params
-    def checkName(self, event=None):
-        if event: newName= event.GetString()
+    def _checkName(self, event=None, name=None):
+        """checks namespace, return error-msg (str), enable (bool)
+        """
+        if event: newName = event.GetString()
+        elif name: newName = name
         elif hasattr(self, 'paramCtrls'): newName=self.paramCtrls['name'].getValue()
         elif hasattr(self, 'globalCtrls'): newName=self.globalCtrls['name'].getValue()
         if newName=='':
-            self.nameOKlabel.SetLabel("Missing name")
-            self.OKbtn.Disable()
+            return "Missing name", False
         else:
             namespace = self.frame.exp.namespace
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                self.nameOKlabel.SetLabel("Name is already used by a %s" % used)
-                self.OKbtn.Disable()
-            elif not namespace.isValid(newName): # as var name:
-                self.nameOKlabel.SetLabel("Name must be alpha-numeric or _, no spaces")
-                self.OKbtn.Disable()
+                return "Name is already used by a %s" % used, False
+            elif not namespace.isValid(newName): # valid as a var name
+                return "Name must be alpha-numeric or _, no spaces", False
             elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
-                self.OKbtn.Enable()
-                self.nameOKlabel.SetLabel(namespace.isPossiblyDerivable(newName))
+                return namespace.isPossiblyDerivable(newName), True
             else:
-                self.OKbtn.Enable()
-                self.nameOKlabel.SetLabel("")
+                return "", True
+    def checkName(self, event=None):
+        """check param name against namespace, legal var name
+        """
+        msg, enable = self._checkName(event=event)
+        self.nameOKlabel.SetLabel(msg)
+        if enable: self.OKbtn.Enable()
+        else: self.OKbtn.Disable()
     def onHelp(self, event=None):
         """Uses self.app.followLink() to self.helpUrl
         """
@@ -2103,6 +2108,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                                         title=fileName, fixed=True)
         else: # edit new empty .pkl file
             gridGUI = gui.ConditionsDlg(parent=self)
+            # should not check return value, its meaningless
             if gridGUI.OK:
                 self.conditions = gridGUI.asConditions()
                 if hasattr(gridGUI, 'fileName'):
