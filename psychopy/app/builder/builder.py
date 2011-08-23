@@ -23,6 +23,9 @@ from psychopy.constants import *
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
 routineFlowColor=wx.Color(200,150,150, 255)
+darkgrey=wx.Color(65,65,65, 255)
+white=wx.Color(255,255,255, 255)
+darkblue=wx.Color(30,30,150, 255)
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -2473,7 +2476,7 @@ class DlgConditions(wx.Dialog):
         for x in range(self.cols):
             self.colSizes.append( max([4] +
                 [len(unicode(self.grid[y][x])) for y in range(self.rows)]) )
-        self.colSizes = map(lambda x: min(20, max(9, x+1)) * 8.5, self.colSizes)
+        self.colSizes = map(lambda x: min(20, max(10, x+1)) * 8 + 30, self.colSizes)
         self.inputTypes = [] # explicit, as selected by user via type-selector
         self.inputFields = [] # values in fields
         self.data = []
@@ -2481,14 +2484,14 @@ class DlgConditions(wx.Dialog):
         # make header label, if any:
         if self.hasHeader:
             rowLabel = wx.StaticText(self,-1,label='Params:', size=(6*9, 20))
-            rowLabel.SetForegroundColour(wx.Color(30,30,150,255))
+            rowLabel.SetForegroundColour(darkblue)
             self.addRow(0, rowLabel=rowLabel)
         # make type-selector drop-down:
         if not self.fixed:
-            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL) # mac only
+            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             labelBox = wx.BoxSizer(wx.VERTICAL)
             tx = wx.StaticText(self,-1,label='type:', size=(5*9,20))
-            tx.SetForegroundColour('Gray')
+            tx.SetForegroundColour(darkgrey)
             labelBox.Add(tx,1,flag=wx.ALIGN_RIGHT)
             labelBox.AddSpacer(5) # vertical
             self.sizer.Add(labelBox,1,flag=wx.ALIGN_RIGHT)
@@ -2541,7 +2544,7 @@ class DlgConditions(wx.Dialog):
             if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             label = 'cond %s:'%str(row+1-int(self.hasHeader)).zfill(2)
             rowLabel = wx.StaticText(self, -1, label=label)
-            rowLabel.SetForegroundColour('Gray')
+            rowLabel.SetForegroundColour(darkgrey)
             if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
@@ -2564,7 +2567,7 @@ class DlgConditions(wx.Dialog):
                     while self.colName(c) in header:
                         c += 1
                     field.SetValue(self.colName(c))
-                field.SetForegroundColour((30,30,150)) #dark blue
+                field.SetForegroundColour(darkblue) #dark blue
                 if not _valid_var_re.match(field.GetValue()): #or (self.parent and
                             #self.parent.exp.namespace.exists(field.GetValue()) ):
                             # was always red when preview .xlsx file -- in namespace already is fine
@@ -2573,7 +2576,8 @@ class DlgConditions(wx.Dialog):
                 field.SetToolTip(wx.ToolTip('Should be legal as a variable name (alphanumeric)'))
                 field.Bind(wx.EVT_TEXT, self.checkName)
             elif self.fixed:
-                field.SetForegroundColour('Gray')
+                field.SetForegroundColour(darkgrey)
+                field.SetBackgroundColour(white)
 
             # warn about whitespace unless will be auto-removed. invisible, probably spurious:
             if (self.fixed or not self.clean) and item != item.lstrip().strip():
@@ -2747,12 +2751,15 @@ class DlgConditions(wx.Dialog):
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_CENTER, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL)
-            ADDROW = wx.Button(self, -1, "+cond.", size=(55,15)) # good size for mac, SMALL
+            size=(60,15)
+            if sys.platform.startswith('linux'):
+                size=(75, 30)
+            ADDROW = wx.Button(self, -1, "+cond.", size=size) # good size for mac, SMALL
             ADDROW.SetToolTip(wx.ToolTip('Add a condition (row); to delete a condition, delete all of its values.'))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
             buttons.Add(ADDROW)
             buttons.AddSpacer(4)
-            ADDCOL = wx.Button(self, -1, "+param", size=(60,15))
+            ADDCOL = wx.Button(self, -1, "+param", size=size)
             ADDCOL.SetToolTip(wx.ToolTip('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.'))
             ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
             buttons.Add(ADDCOL)
