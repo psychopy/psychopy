@@ -1302,7 +1302,6 @@ class ParamCtrls:
             displayLabel = label
         self.nameCtrl = wx.StaticText(parent,-1,displayLabel,size=labelLength,
                                         style=wx.ALIGN_RIGHT)
-        
 
         if label in ['text', 'customize_everything']:
             #for text input we need a bigger (multiline) box
@@ -1316,7 +1315,6 @@ class ParamCtrls:
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
-
         elif label in components.code.codeParamNames[:]:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
@@ -1332,8 +1330,10 @@ class ParamCtrls:
             self.valueCtrl.SetStringSelection(unicode(param.val))
         else:
             #create the full set of ctrls
-            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-                        size=wx.Size(self.valueWidth,-1))
+            val = unicode(param.val)
+            if label == 'conditionsFile':
+                val = getAbbrev(val)
+            self.valueCtrl = wx.TextCtrl(parent,-1,val,size=wx.Size(self.valueWidth,-1))
             if label in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
                 self.valueCtrl.SetFocus()
         self.valueCtrl.SetToolTipString(param.hint)
@@ -1730,7 +1730,9 @@ class _BaseParamsDlg(wx.Dialog):
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
-        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
+        # intercept OK button if a loop dialog, in case file name was edited:
+        if type(self) == DlgLoopProperties: 
+            self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         self.checkName() # disables OKbtn if bad name
 
@@ -1758,10 +1760,6 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-    def onOK(self, event=None):
-        # idea: intercept OK in case of user edits to filename, like delete it
-        # here get user edits to file name info on Dlg exit
-        event.Skip() # handle the OK button press
     def onNavigationCode(self, event):
         #print event.GetId(),event.GetCurrentFocus() # 0 None
         return
@@ -2028,7 +2026,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if handler.params.has_key('conditions'):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
-                    text = """No parameters set (select a file above)"""
+                    text = """No parameters set"""
                 ctrls = ParamCtrls(self, 'conditions',text,noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
@@ -2098,12 +2096,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.ctrlSizer.Add(container)
             #store info about the field
             self.staircaseCtrls[fieldName] = ctrls
-    def getAbbrev(self, longStr, n=30):
-        """for a filename (or any string actually), give the first
-        10 characters, an ellipsis and then n of the final characters"""
-        if len(longStr)>35:
-            return longStr[0:10]+'...'+longStr[(-n+10):]
-        else: return longStr
     def getTrialsSummary(self, conditions):
         if type(conditions)==list and len(conditions)>0:
             #get attr names (conditions[0].keys() inserts u'name' and u' is annoying for novice)
@@ -2115,11 +2107,14 @@ class DlgLoopProperties(_BaseParamsDlg):
             return '%i conditions, with %i parameters\n%s' \
                 %(len(conditions),len(conditions[0]), paramStr)
         else:
+            if not os.path.isfile(self.conditionsFile):
+                return  "No parameters set (conditionsFile not found)"
             return "No parameters set"
     def viewConditions(self, event):
         """ display Condition x Parameter values from within a file
         make new if no self.conditionsFile is set
         """
+        self.refreshConditions()
         conditions = self.conditions # list of dict
         if self.conditionsFile:
             # get name + dir, like BART/trialTypes.xlsx
@@ -2143,10 +2138,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if hasattr(gridGUI, 'fileName'):
                     self.conditionsFile = gridGUI.fileName
         self.currentHandler.params['conditionsFile'].val = self.conditionsFile
-        if self.conditionsFile:
+        if self.conditionsFile: # as set via DlgConditions
             valCtrl = self.constantsCtrls['conditionsFile'].valueCtrl
             valCtrl.Clear()
-            valCtrl.WriteText(self.getAbbrev(self.conditionsFile))
+            valCtrl.WriteText(getAbbrev(self.conditionsFile))
         # still need to do namespace and internal updates (see end of onBrowseTrialsFile)
 
     def setCtrls(self, ctrlType):
@@ -2224,7 +2219,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if isSameFilePathAndName:
                     log.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
                 else:
-                    self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
+                    self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
                     self.constantsCtrls['conditions'].setValue(
                         'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
                         ']\nProceed anyway? (= safe if these are in old file)')
@@ -2233,7 +2228,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.duplCondNames = duplCondNames # add after self.show() in __init__
 
             if 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
-                self.constantsCtrls['conditionsFile'].setValue(self.getAbbrev(newPath))
+                self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
 
     def getParams(self):
@@ -2244,13 +2239,44 @@ class DlgLoopProperties(_BaseParamsDlg):
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
             param=self.currentHandler.params[fieldName]
             if fieldName in ['conditionsFile']:
-                param.val=self.conditionsFile#not the value from ctrl - that was abbrieviated
+                param.val=self.conditionsFile#not the value from ctrl - that was abbreviated
+                # see onOK() for partial handling = check for '...'
             else:#most other fields
                 ctrls = self.currentCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()#from _baseParamsDlg (handles diff control types)
                 if ctrls.typeCtrl: param.valType = ctrls.getType()
                 if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
         return self.currentHandler.params
+    def refreshConditions(self):
+        """user might have manually edited the conditionsFile name, which in turn
+        affects self.conditions and namespace. its harder to detect changes to
+        long names that have been abbrev()'d, so skip names containing '...'. 
+        """
+        val = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
+        if val.find('...')==-1 and self.conditionsFile != val:
+            self.conditionsFile = val
+            if self.conditions:
+                self.exp.namespace.remove(self.conditions[0].keys())
+            if os.path.isfile(self.conditionsFile):
+                try:
+                    self.conditions = data.importConditions(self.conditionsFile)
+                    self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+                except ImportError, msg:
+                    self.constantsCtrls['conditions'].setValue(
+                        'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
+                        '.\nNeed to be legal as var name; edit file, try again.')
+                    self.conditions = ''
+                    log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
+            else:
+                self.conditions = None
+                self.constantsCtrls['conditions'].setValue("No parameters set (conditionsFile not found)")
+        else:
+            log.debug('DlgLoop: could not determine if a condition filename was edited')
+            #self.constantsCtrls['conditions'] could be misleading at this point
+    def onOK(self, event=None):
+        # intercept OK in case user deletes or edits the filename manually
+        self.refreshConditions()
+        event.Skip() # do the OK button press
 
 class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,
@@ -2488,7 +2514,8 @@ class DlgConditions(wx.Dialog):
             self.addRow(0, rowLabel=rowLabel)
         # make type-selector drop-down:
         if not self.fixed:
-            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+            if sys.platform == 'darwin':
+                self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             labelBox = wx.BoxSizer(wx.VERTICAL)
             tx = wx.StaticText(self,-1,label='type:', size=(5*9,20))
             tx.SetForegroundColour(darkgrey)
@@ -2508,7 +2535,8 @@ class DlgConditions(wx.Dialog):
                 typeOpt.SetStringSelection(str(firstType))
                 self.inputTypes.append(typeOpt)
                 self.sizer.Add(typeOpt, 1)
-            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+            if sys.platform == 'darwin':
+                self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         # stash implicit types for setType:
         self.types = [] # implicit types
         row = int(self.hasHeader) # which row to use for type inference
@@ -2541,11 +2569,13 @@ class DlgConditions(wx.Dialog):
         """
         labelBox = wx.BoxSizer(wx.HORIZONTAL)
         if not rowLabel:
-            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+            if sys.platform == 'darwin':
+                self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             label = 'cond %s:'%str(row+1-int(self.hasHeader)).zfill(2)
             rowLabel = wx.StaticText(self, -1, label=label)
             rowLabel.SetForegroundColour(darkgrey)
-            if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+            if sys.platform == 'darwin':
+                self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
         lastRow = []
@@ -2740,7 +2770,8 @@ class DlgConditions(wx.Dialog):
         
         # add a message area, buttons:
         buttons = wx.BoxSizer(wx.HORIZONTAL)
-        if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
+        if sys.platform == 'darwin':
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
         if not self.fixed:
             # placeholder for possible messages / warnings:
             self.tmpMsg = wx.StaticText(self, -1, label='', size=(350,15), style=wx.ALIGN_RIGHT)
@@ -2775,7 +2806,8 @@ class DlgConditions(wx.Dialog):
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL) # second line
-        if sys.platform == 'darwin': self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
+        if sys.platform == 'darwin':
+            self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         buttons = wx.BoxSizer(wx.HORIZONTAL) # another line
         #help button if we know the url
         if self.helpUrl and not self.fixed:
@@ -3643,6 +3675,13 @@ class BuilderFrame(wx.Frame):
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
 
+def getAbbrev(longStr, n=30):
+    """for a filename (or any string actually), give the first
+    10 characters, an ellipsis and then n-10 of the final characters"""
+    if len(longStr)>35:
+        return longStr[0:10]+'...'+longStr[(-n+10):]
+    else:
+        return longStr
 def appDataToFrames(prefs):
     """Takes the standard PsychoPy prefs and returns a list of appData dictionaries, for the Builder frames.
     (Needed because prefs stores a dict of lists, but we need a list of dicts)
