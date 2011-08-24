@@ -9,7 +9,7 @@ News
 
 **PsychoPy workshop**: Thanks to all that participated in the Yale workshop, users and developers, and especially thanks to Jeremy for hosting it. Was great to meet you all and I think we moved the project along a good way too. Happy days!
 
-**Latest version**: 1.70.00 was released Aug 2011. See complete :doc:`changelog`
+**Latest version**: 1.70.01 was released Aug 2011. See complete :doc:`changelog`
 
 
 .. title:: Home

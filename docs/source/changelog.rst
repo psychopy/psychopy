@@ -10,8 +10,19 @@ Changelog
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2011
+
+* FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
+* FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
+* FIXED: buglet with PatchStim. After a call to setSize, SF was scaling with the stimulus (for unit types where that shouldn't happen)
+
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2011
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 

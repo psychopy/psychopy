@@ -10,6 +10,13 @@ Changelog
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
+* FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
+* FIXED: buglet with PatchStim. After a call to setSize, SF was scaling with the stimulus (for unit types where that shouldn't happen)
+
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -17,7 +24,7 @@ PsychoPy 1.70.00
 
 * CHANGED use of allowedKeys in Keyboard Component. You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
-* CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
+* CHANGED `MovieStim.playing` property to be called `MovieStim.status` (in keeping with other stimuli)
 * CHANGED names:
 
     - `data.importTrialTypes` is now `data.importConditions`
