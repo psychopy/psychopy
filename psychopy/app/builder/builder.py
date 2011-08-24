@@ -307,7 +307,10 @@ class FlowPanel(wx.ScrolledWindow):
         self.setDrawPoints('loops')
         self.draw()
 
+        condOrig = loop.params['conditions'].val
+        condFileOrig = loop.params['conditionsFile'].val
         loopDlg = DlgLoopProperties(frame=self.frame,
+            helpUrl = self.app.urls['builder.loops'],
             title=loop.params['name'].val+' Properties', loop=loop)
         if loopDlg.OK:
             if loopDlg.params['loopType'].val=='staircase':
@@ -318,6 +321,9 @@ class FlowPanel(wx.ScrolledWindow):
                 loop=loopDlg.trialHandler #['random','sequential', 'fullRandom', ]
             loop.params=loop.params
             self.frame.addToUndoStack("Edit Loop")
+        else:
+            loop.params['conditions'].val = condOrig
+            loop.params['conditionsFile'].val = condFileOrig
         #remove the points from the timeline
         self.setDrawPoints(None)
         self.draw()
@@ -1729,6 +1735,7 @@ class _BaseParamsDlg(wx.Dialog):
             helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
+            buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties: 
@@ -1746,7 +1753,9 @@ class _BaseParamsDlg(wx.Dialog):
             self.mainSizer.Add(self.advPanel,0,flag=wx.GROW|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
-        self.SetSizerAndFit(self.mainSizer)
+        self.border = wx.BoxSizer(wx.VERTICAL)
+        self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
+        self.SetSizerAndFit(self.border)
 
         # run syntax check for a code component dialog:
         if hasattr(self, 'codeParamNames'):
@@ -2249,8 +2258,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         return self.currentHandler.params
     def refreshConditions(self):
         """user might have manually edited the conditionsFile name, which in turn
-        affects self.conditions and namespace. its harder to detect changes to
-        long names that have been abbrev()'d, so skip names containing '...'. 
+        affects self.conditions and namespace. its harder to handle changes to
+        long names that have been abbrev()'d, so skip them (names containing '...').
         """
         val = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
         if val.find('...')==-1 and self.conditionsFile != val:
@@ -2419,7 +2428,7 @@ class DlgConditions(wx.Dialog):
             _restore=None, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         self.parent = parent # gets the conditionsFile info
-        self.helpUrl = 'http://www.psychopy.org/builder/flow.html#loops'
+        if parent: self.helpUrl = self.parent.app.urls['builder.loops']
         # read data from file, if any:
         self.defaultFileName = 'conditions.pkl'
         self.newFile = True
@@ -2805,10 +2814,9 @@ class DlgConditions(wx.Dialog):
             buttons.Add(self.SAVEAS)
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
-            buttons = wx.BoxSizer(wx.HORIZONTAL) # second line
         if sys.platform == 'darwin':
             self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL) # another line
+        buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl and not self.fixed:
             helpBtn = wx.Button(self, wx.ID_HELP)
@@ -2828,6 +2836,7 @@ class DlgConditions(wx.Dialog):
             CANCEL.SetToolTip(wx.ToolTip('Exit, discard any edits'))
             buttons.Add(CANCEL)
         buttons.AddSpacer(8)
+        buttons.Realize()
         self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
         
         # finally, its show time:
