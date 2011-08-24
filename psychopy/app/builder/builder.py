@@ -2107,7 +2107,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             return '%i conditions, with %i parameters\n%s' \
                 %(len(conditions),len(conditions[0]), paramStr)
         else:
-            if not os.path.isfile(self.conditionsFile):
+            if self.conditionsFile and not os.path.isfile(self.conditionsFile):
                 return  "No parameters set (conditionsFile not found)"
             return "No parameters set"
     def viewConditions(self, event):
