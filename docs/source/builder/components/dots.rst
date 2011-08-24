@@ -3,7 +3,7 @@
 Dots (RDK) Component
 -------------------------------
 
-The Dots Component allows you to present a Radnom Dot Kinematogram (RDK) to the participant of your study. These are fields of dots that drift in different directions and subjects are typically required to identify the 'global motion' of the field. 
+The Dots Component allows you to present a Random Dot Kinematogram (RDK) to the participant of your study. These are fields of dots that drift in different directions and subjects are typically required to identify the 'global motion' of the field. 
 
 There are many ways to define the motion of the signal and noise dots. In PsychoPy the way the dots are configured follows `Scase, Braddick & Raymond (1996) <http://www.sciencedirect.com/science/article/pii/0042698995003258>`_. Although Scase et al (1996) show that the choice of algorithm for your dots actually makes relatively little difference there are some **potential** gotchas. Think carefully about whether each of these will affect your particular case:
 
