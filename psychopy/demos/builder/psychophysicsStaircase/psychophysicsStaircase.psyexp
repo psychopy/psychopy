@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.70.00" encoding="utf-8">
+<PsychoPy2experiment version="1.70.01" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
@@ -73,7 +73,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="['up', 'down']" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="'up', 'down'" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.5" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
@@ -107,7 +107,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>

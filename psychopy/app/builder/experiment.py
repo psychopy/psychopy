@@ -221,9 +221,12 @@ class Experiment:
                 newVal=val[1:]#they were using code (which we can resused)
             elif val.startswith('[') and val.endswith(']'):
                 newVal=val[1:-1]#they were using code (slightly incorectly!)
+            elif val in ['return','space','left','right','escape']:
+                newVal=val#they were using code
             else:
                 newVal=repr(list(val))#convert string to list of keys then represent again as a string!
             params['allowedKeys'].val = newVal
+            params['allowedKeys'].valType='code'
         elif name=='correctIf':#deprecated in v1.60.00
             corrIf=paramNode.get('val')
             corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
@@ -250,6 +253,8 @@ class Experiment:
             # compatibility checks:
             if name in ['correctAns','text'] and paramNode.get('valType')=='code':
                 params[name].valType='str'# these components were changed in v1.60.01
+            elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
+                params[name].valType='code'# these components were changed in v1.70.00
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
