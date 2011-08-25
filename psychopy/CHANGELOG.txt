@@ -10,6 +10,11 @@ Changelog
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: bug in Builder Ratingscale (was always ending routine on response)
+
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
