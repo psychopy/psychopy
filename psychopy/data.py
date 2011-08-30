@@ -1688,10 +1688,13 @@ class MultiStairHandler:
         staircases). Any parameters not specified in the conditions file
         will revert to the default for that individual handler.
 
+        If you need to custom the behaviour further you may want to look at the
+        recipe on :ref:`interleavedStairs`.
+
         :params:
 
             stairType: 'simple' or 'quest'
-                Use a `~psychopy.data.StairHandler`_ or `~psychopy.data.QuestHandler`_
+                Use a :class:`StairHandler` or :class:`QuestHandler`
 
             method: 'random' or 'sequential'
                 The stairs are shuffled in each repeat but not randomised more than
