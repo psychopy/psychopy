@@ -10,15 +10,25 @@ Changelog
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2011
+
+* FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
+* FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
+* FIXED: buglet with PatchStim. After a call to setSize, SF was scaling with the stimulus (for unit types where that shouldn't happen)
+
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2011
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
 * CHANGED use of allowedKeys in Keyboard Component. You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
-* CHANGED MovieStim.playing property to be called MovisStim.status (in keeping
-    with other stimuli)
+* CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
 * CHANGED names:
 
     - `data.importTrialTypes` is now `data.importConditions`
@@ -28,13 +38,13 @@ PsychoPy 1.70.00
     - 'window units' to set Component units is now 'from exp settings' for less confusion
 
 * CHANGED numpy imports in Builder scripts:
-    
+
     - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\$' in a text field (to prevent interpretation of normal text as being code). 
-    
+* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
+
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
     - variable values (using $ symbol). You can also specify an 'expected' time/duration so that something is still drawn on the timeline

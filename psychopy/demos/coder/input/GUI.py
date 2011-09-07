@@ -18,7 +18,7 @@ myDlg.addText('Subject Info', color='Blue')
 myDlg.addField('Name:', tip='or subject code')
 myDlg.addField('Age:', 21)
 myDlg.addText('Experiment Info', color='Blue')
-myDlg.addField('Grating Ori:',45)
+myDlg.addField('',45)
 
 myDlg.show()#you have to call show() for a Dlg (it gets done implicitly by a DlgFromDict)
 if myDlg.OK:
