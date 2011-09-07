@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.70.00" encoding="utf-8">
+<PsychoPy2experiment version="1.70.01" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
@@ -18,6 +18,40 @@
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
+    <Routine name="instrMain">
+      <TextComponent name="instr2">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="instr2" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="OK, ready to start the main experiment?&#10;&#10;Remember, press;&#10; - 'S' if the SMALL letters are S&#10; - 'H' if the SMALL letters are H&#10;&#10;Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.075" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="ok2">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="ok2" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="nothing" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
     <Routine name="trial">
       <TextComponent name="fixate">
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
@@ -90,7 +124,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'s','h'" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="'s', 'h'" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="2.0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
@@ -124,44 +158,10 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
-      </KeyboardComponent>
-    </Routine>
-    <Routine name="instrMain">
-      <TextComponent name="instr2">
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="name" val="instr2" valType="code" updates="constant"/>
-        <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="OK, ready to start the main experiment?&#10;&#10;Remember, press;&#10; - 'S' if the SMALL letters are S&#10; - 'H' if the SMALL letters are H&#10;&#10;Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
-        <Param name="stopVal" val="" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="font" val="Arial" valType="str" updates="constant"/>
-        <Param name="letterHeight" val="0.075" valType="code" updates="constant"/>
-      </TextComponent>
-      <KeyboardComponent name="ok2">
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="ok2" valType="code" updates="None"/>
-        <Param name="stopVal" val="" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="" valType="str" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="nothing" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
     <Routine name="feedback">
@@ -219,7 +219,7 @@
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="num" updates="None"/>
       <Param name="endPoints" val="[1, 2]" valType="num" updates="None"/>
-      <Param name="conditions" val="[{'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'up_right'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'up_left'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'down_right'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'down_left'}]" valType="str" updates="None"/>
+      <Param name="conditions" val="[{'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <Routine name="feedback"/>
@@ -231,7 +231,7 @@
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="4" valType="num" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
-      <Param name="conditions" val="[{'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'up_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'up_right'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'up_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'up_left'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'down_right'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'down_right'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigHsmallH.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigHsmallS.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'corrAns': 's', 'stimFile': 'bigSsmallS.png', 'location': 'down_left'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'corrAns': 'h', 'stimFile': 'bigSsmallH.png', 'location': 'down_left'}]" valType="str" updates="None"/>
+      <Param name="conditions" val="[{'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_right', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': 200.0, 'location': 'up_left', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': 200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_right', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigHsmallH.png', 'corrAns': 'h'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigHsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'conflicting', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigSsmallS.png', 'corrAns': 's'}, {'xPos': -200.0, 'congruence': 'consistent', 'yPos': -200.0, 'location': 'down_left', 'stimFile': 'bigSsmallH.png', 'corrAns': 'h'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <LoopTerminator name="trials"/>

@@ -1,6 +1,10 @@
 Presenting Stimuli
 ----------------------
 
+.. note::
+    
+    Before you start, tell PsychoPy about your monitor(s) using the :ref:`monitorCenter`. That way you get to use units (like degrees of visual angle) that will transfer easily to other computers.
+    
 Stimulus objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 Python is an 'object-oriented' programming language, meaning that Most stimuli in PsychoPy are represented by python objects, with various associated methods and information.
