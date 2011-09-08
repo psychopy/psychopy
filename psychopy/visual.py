@@ -4664,9 +4664,9 @@ class BufferImageStim(PatchStim):
         # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+            if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
                 log.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
+                self.desiredRGB=[0.0,0.0,1.0]
         else:
             self.desiredRGB = (self.rgb * self.contrast)/255.0
 
