@@ -488,7 +488,10 @@ def _getSvnVersion(file):
         return None, None, None
     svnRev, svnLastChangedRev, svnUrl = None, None, None
     if sys.platform in ['darwin', 'linux2', 'freebsd']:
-        svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
+        try:
+            svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
+        except:
+            svninfo = ''
         for line in svninfo.splitlines():
             if line.find('URL:') == 0:
                 svnUrl = line.split()[1]
@@ -497,7 +500,10 @@ def _getSvnVersion(file):
             elif line.find('Last Changed Rev') == 0:
                 svnLastChangedRev = line.split()[3]
     else: # worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
-        stdout,stderr = shellCall('subwcrev "'+file+'"', stderr=True)
+        try:
+            stdout,stderr = shellCall('subwcrev "'+file+'"', stderr=True)
+        except:
+            stdout = ''
         for line in stdout.splitlines():
             if line.find('Last committed at revision') == 0:
                 svnRev = line.split()[4]
@@ -520,7 +526,6 @@ def _getHgVersion(file):
         changeset = hgParentLines.splitlines()[0].split()[-1]
     except:
         changeset = ''
-    #else: changeset = hgParentLines.splitlines()[0].split()[-1]
     try:
         hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
     except:
