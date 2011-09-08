@@ -91,7 +91,8 @@ class RunTimeInfo(dict):
         
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
-        githash = _getHashGitHead(dir=os.path.abspath(os.path.dirname(__file__)))
+        d = os.path.abspath(os.path.dirname(__file__))
+        githash = _getHashGitHead(dir=d) # should be .../psychopy/psychopy/
         if githash: 
             self['psychopyGitHead'] = githash
         
@@ -464,9 +465,16 @@ class RunTimeInfo(dict):
             print k,type(self[k]),self[k]
             
 def _getHashGitHead(dir=''):
-    git_hash = shellCall("cd " + dir + "; git rev-parse --verify HEAD", stderr=True)
-    git_branch = shellCall("cd " + dir + """; git branch | awk '$1=="*" {print $2}' """, stderr=True)
-    return git_branch[0].strip() + ' ' + git_hash[0].strip()
+    os.chdir(dir)
+    try:
+        git_hash = shellCall("git rev-parse --verify HEAD")
+    except OSError:
+        return None
+    except WindowsError: # not defined on mac; OSError should catch lack of git
+        return None
+    git_branches = shellCall("git branch")
+    git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
+    return git_branch[0] + ' ' + git_hash.strip()
     
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
