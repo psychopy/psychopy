@@ -5479,7 +5479,7 @@ class RatingScale:
                 mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
             return True
         return False
-    def _getMarkerPos(self, mouseX):
+    def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low, fractional if precision > 1
         """
         mouseX = min(max(mouseX, self.lineLeftEnd), self.lineRightEnd)
@@ -5488,6 +5488,33 @@ class RatingScale:
         markerPos = (round(markerPos * self.precision * self.autoRescaleFactor) /
                     float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
         return markerPos # 0 .. high-low
+    def _getMarkerFromTick(self, value):
+        """Convert a requested tick value into a position on the internal scale.
+        Accounts for non-zero low end, autoRescale, and precision.
+        The return value is assured to be on the scale.
+        """
+        print 'set tick'
+        # on the line:
+        value = max(min(self.high, value), self.low)
+        # with requested precision:
+        value = (round(value * self.precision * self.autoRescaleFactor) /
+                    float(self.precision * self.autoRescaleFactor) )
+        return (value - self.low) * self.autoRescaleFactor
+    def setMarkerPos(self, value):
+        """Method to allow the experimenter to set the marker's position on the 
+        scale (in units of tick marks). This method can also set the index within
+        a list of choices (which start at 0). No range checking is done.
+        
+        Assuming you have defined rs = RatingScale(...), you can specify a tick
+        position directly::
+            rs.setMarkerPos(2)
+        or do range checking, precision management, and auto-rescaling::
+            rs.setMarkerPos(rs._getMarkerFromTick(2))
+        To work from a screen coordinate, such as the X position of a mouse click::
+            rs.setMarkerPos(rs._getMarkerFromPos(mouseX))
+        """
+        self.markerPlacedAt = value
+        self.markerPlaced = True # only needed first time, which this ensures
     def draw(self):
         """
         Update the visual display, check for response (key, mouse, skip).
@@ -5529,11 +5556,10 @@ class RatingScale:
                     self.marker.setSize(self.markerBaseSize - 0.1 * self.markerExpansion *
                                         (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
-                #else: # markerExpansion == 0:
-                #    self.marker.setSize(self.markerBaseSize/2.)
             # update position:
             if self.singleClick and self._nearLine(mouseX, mouseY):
-                self.markerPlacedAt = self._getMarkerPos(mouseX)
+                #self.markerPlacedAt = self._getMarkerFromPos(mouseX)
+                self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
                 self.markerPlacedAt = False
             # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
@@ -5564,7 +5590,7 @@ class RatingScale:
                     self.noResponse = False
                 if self.enableRespKeys and key in self.respKeys: # place the marker at the corresponding tick
                     self.markerPlaced = True
-                    self.markerPlacedAt = (int(key) - self.low) * self.autoRescaleFactor # 0..tickMarks in tick units, rescaled
+                    self.markerPlacedAt = self._getMarkerFromTick(int(key))
                     self.marker.setPos([self.displaySizeFactor *
                                         (-0.5 + self.markerPlacedAt / self.tickMarks), 0])
                     if self.singleClick and self.myClock.getTime() > self.minimumTime:
@@ -5585,7 +5611,7 @@ class RatingScale:
             #mouseX, mouseY = self.myMouse.getPos() # done above
             if self._nearLine(mouseX, mouseY): # if near the line, place the marker there:
                 self.markerPlaced = True
-                self.markerPlacedAt = self._getMarkerPos(mouseX)
+                self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
             # if in accept box, and a value has been selected, and enough time has elapsed:
