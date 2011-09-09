@@ -66,7 +66,7 @@ except:
 
 global DEBUG; DEBUG=False
 
-_depthIncrements = {'pyglet':+0.001, 'pygame':+0.001, 'glut':-0.001}
+_depthIncrements = {'pyglet':+0.000001, 'pygame':+0.000001, 'glut':-0.000001}
 
 #symbols for MovieStim
 from psychopy.constants import *
@@ -3050,7 +3050,8 @@ class ElementArrayStim:
         self.interpolate=True
         self.fieldDepth=fieldDepth
         if depths==0:
-            self.depths=numpy.arange(0,_depthIncrements[self.win.winType]*self.nElements,_depthIncrements[self.win.winType]).repeat(4).reshape(self.nElements, 4)
+            #depth array that totals one window depth increment
+            self.depths=numpy.linspace(0,_depthIncrements[self.win.winType],self.nElements).repeat(4).reshape(self.nElements, 4)
         else:
             self.depths=depths
         if self.win.winType != 'pyglet':
