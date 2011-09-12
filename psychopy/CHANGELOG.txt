@@ -14,6 +14,9 @@ PsychoPy 1.70.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * FIXED: bug in Builder Ratingscale (was always ending routine on response)
+* FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
+* FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 100,000
+* FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
 
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
