@@ -66,7 +66,7 @@ except:
 
 global DEBUG; DEBUG=False
 
-_depthIncrements = {'pyglet':+0.000001, 'pygame':+0.000001, 'glut':-0.000001}
+_depthIncrements = {'pyglet':+0.00001, 'pygame':+0.00001, 'glut':-0.000001}
 
 #symbols for MovieStim
 from psychopy.constants import *
@@ -955,8 +955,8 @@ class Window:
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()
 
-        GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
-        GL.glDepthFunc(GL.GL_LESS)                      # The Type Of Depth Test To Do
+        #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
+        #GL.glDepthFunc(GL.GL_LESS)                      # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
         GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
 
