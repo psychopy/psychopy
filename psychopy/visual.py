@@ -1113,6 +1113,7 @@ class _BaseVisualStim:
         """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
+        self._requestedSize=newSize#to track whether we're just using a default
         self._calcSizeRendered()
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
@@ -2122,29 +2123,18 @@ class PatchStim(_BaseVisualStim):
         self.setMask(mask)
 
         #size
-        if size==None and self.origSize is None:
-            self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
-        elif size==None and self.origSize is not None:
-            #we have an image - calculate the size in `units` that matches original pixel size
-            if self.units=='pix': self.size=numpy.array(self.origSize)
-            elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
-            elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
-            elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
-            elif self.units=='height': self.size= numpy.array(self.origSize, float)/self.win.size[1]
+        self._requestedSize=size
+        if size==None:
+            self._setSizeToDefault()
         elif type(size) in [tuple,list]:
             self.size = numpy.array(size,float)
         else:
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
 
         #sf
+        self._requestedSf=sf
         if sf==None:
-            if self.units in ['norm','height']:
-                self.sf=numpy.array([1.0,1.0])
-            elif self.units in ['pix', 'pixels'] \
-                or self.origSize is not None and self.units in ['deg','cm']:
-                self.sf=1.0/self.size#default to one cycle
-            else:
-                self.sf=numpy.array([1.0,1.0])
+            self._setSfToDefault()
         elif type(sf) in [float, int] or len(sf)==1:
             self.sf = numpy.array((sf,sf),float)
         else:
@@ -2170,7 +2160,39 @@ class PatchStim(_BaseVisualStim):
         self._set('sf', value, operation)
         self.needUpdate = 1
         self._calcCyclesPerStim()
-
+        self._requestedSf=value#to track whether we're just using a default value
+    def _setSfToDefault(self):
+        """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)
+        """
+        #calculate new sf
+        if self.units in ['norm','height']:
+            self.sf=numpy.array([1.0,1.0])
+        elif self.units in ['pix', 'pixels'] \
+            or self.origSize is not None and self.units in ['deg','cm']:
+            self.sf=1.0/self.size#default to one cycle
+        else:
+            self.sf=numpy.array([1.0,1.0])
+        #set it
+        self._calcCyclesPerStim()
+        self.needUpdate=True
+    def _setSizeToDefault(self):
+        """Set the size to default (e.g. to the size of the loaded image etc)
+        """
+        #calculate new size
+        if self.origSize is None:#not an image from a file
+            self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
+        else:
+            #we have an image - calculate the size in `units` that matches original pixel size
+            if self.units=='pix': self.size=numpy.array(self.origSize)
+            elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
+            elif self.units=='height': self.size= numpy.array(self.origSize, float)/self.win.size[1]
+        #set it
+        self._calcSizeRendered()
+        if hasattr(self, 'sf'):
+            self._calcCyclesPerStim()
+        self.needUpdate=True
     def setPhase(self,value, operation=''):
         self._set('phase', value, operation)
         self.needUpdate = 1
@@ -2184,8 +2206,13 @@ class PatchStim(_BaseVisualStim):
     def setTex(self,value):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
-        res=self.texRes, maskParams=self.maskParams)
-
+            res=self.texRes, maskParams=self.maskParams)
+        #if user requested size=None then update the size for new stim here
+        if hasattr(self, '_requestedSize') and self._requestedSize==None:
+            self._setSizeToDefault()
+        if hasattr(self, '_requestedSf') and self._requestedSf==None:
+            self._setSfToDefault()
+            print self.size, self.sf, self.units
     def setMask(self,value):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
