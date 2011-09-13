@@ -12,15 +12,15 @@ import string, os
 OK = wx.ID_OK
 
 class Dlg(wx.Dialog):
-    """A simple dialogue box. You can add text or input boxes 
+    """A simple dialogue box. You can add text or input boxes
     (sequentially) and then retrieve the values.
-    
+
     see also the function *dlgFromDict* for an **even simpler** version
-    
+
     **Example:**    ::
-        
+
         from psychopy import gui
-        
+
         myDlg = gui.Dlg(title="JWP's experiment")
         myDlg.addText('Subject info')
         myDlg.addField('Name:')
@@ -60,7 +60,7 @@ class Dlg(wx.Dialog):
                                 size=textLength)
         if len(color): myTxt.SetForegroundColour(color)
         self.sizer.Add(myTxt,1,wx.ALIGN_CENTER)
-        
+
     def addField(self, label='', initial='', color='', tip=''):
         """
         Adds a (labelled) input field to the dialogue box, optional text color
@@ -87,13 +87,13 @@ class Dlg(wx.Dialog):
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         if len(color): inputBox.SetForegroundColour(color)
         if len(tip): inputBox.SetToolTip(wx.ToolTip(tip))
-        
+
         container.Add(inputBox,1, wx.ALIGN_CENTER_VERTICAL)
         self.sizer.Add(container, 1, wx.ALIGN_CENTER)
-        
+
         self.inputFields.append(inputBox)#store this to get data back on OK
         return inputBox
-    
+
     def addFixedField(self,label='',value='',tip=''):
         """Adds a field to the dialogue box (like addField) but the field cannot
         be edited. e.g. Display experiment version. tool-tips are disabled (by wx).
@@ -101,25 +101,26 @@ class Dlg(wx.Dialog):
         thisField = self.addField(label,value,color='Gray',tip=tip)
         thisField.Disable() # wx disables tooltips too; we pass them in anyway
         return thisField
-        
+
     def show(self):
         """Presents the dialog and waits for the user to press either OK or CANCEL.
-        
+
         This function returns nothing.
-        
+
         When they do, dlg.OK will be set to True or False (according to which
-        button they pressed. If OK==True then dlg.data will be populated with a 
-        list of values coming from each of the input fields created. 
+        button they pressed. If OK==True then dlg.data will be populated with a
+        list of values coming from each of the input fields created.
         """
         #add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         OK = wx.Button(self, wx.ID_OK, " OK ")
         OK.SetDefault()
+
         buttons.Add(OK)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL)
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
-        
+
         self.SetSizerAndFit(self.sizer)
         if self.ShowModal() == wx.ID_OK:
             self.data=[]
@@ -141,36 +142,36 @@ class Dlg(wx.Dialog):
                     log.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)
             self.OK=True
-        else: 
+        else:
             self.OK=False
         self.Destroy()
         #    global app
         #self.myApp.Exit()
-       
+
 
 
 class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
-    Any values changed by the user are change (in-place) by this 
+    Any values changed by the user are change (in-place) by this
     dialogue box.
-    e.g.: 
-    
+    e.g.:
+
     ::
-    
+
         info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1}
         infoDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
         if infoDlg.OK:
             print info
         else: print 'User Cancelled'
-        
+
     In the code above, the contents of *info* will be updated to the values
-    returned by the dialogue box. 
-    
+    returned by the dialogue box.
+
     If the user cancels (rather than pressing OK),
     then the dictionary remains unchanged. If you want to check whether
     the user hit OK, then check whether DlgFromDict.OK equals
     True or False
-    
+
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
     def __init__(self, dictionary, title='',fixed=[], order=[], tip={}):
@@ -196,14 +197,14 @@ class DlgFromDict(Dlg):
         if self.OK:
             for n,thisKey in enumerate(keys):
                 self.dictionary[thisKey]=self.data[n]
-        
-def fileSaveDlg(initFilePath="", initFileName="", 
+
+def fileSaveDlg(initFilePath="", initFileName="",
                 prompt="Select file to save",
                 allowed=None):
     """A simple dialogue allowing access to the file system.
-    (Useful in case you collect an hour of data and then try to 
+    (Useful in case you collect an hour of data and then try to
     save to a non-existent directory!!)
-    
+
     :parameters:
         initFilePath: string
             default file path on which to open the dialog
@@ -212,13 +213,13 @@ def fileSaveDlg(initFilePath="", initFileName="",
         prompt: string (default "Select file to open")
             can be set to custom prompts
         allowed: string
-            a string to specify file filters. 
+            a string to specify file filters.
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
             See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
-            
+
     If initFilePath or initFileName are empty or invalid then
     current path and empty names are used to start search.
-    
+
     If user cancels the None is returned.
     """
     if allowed==None:
@@ -227,7 +228,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
     tmpApp = wx.PySimpleApp()
-    dlg = wx.FileDialog(None,prompt, 
+    dlg = wx.FileDialog(None,prompt,
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
@@ -244,9 +245,9 @@ def fileOpenDlg(tryFilePath="",
                 prompt="Select file to open",
                 allowed=None):
     """A simple dialogue allowing access to the file system.
-    (Useful in case you collect an hour of data and then try to 
+    (Useful in case you collect an hour of data and then try to
     save to a non-existent directory!!)
-    
+
     :parameters:
         tryFilePath: string
             default file path on which to open the dialog
@@ -255,13 +256,13 @@ def fileOpenDlg(tryFilePath="",
         prompt: string (default "Select file to open")
             can be set to custom prompts
         allowed: string (available since v1.62.01)
-            a string to specify file filters. 
+            a string to specify file filters.
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
             See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
-            
+
     If tryFilePath or tryFileName are empty or invalid then
     current path and empty names are used to start search.
-    
+
     If user cancels, then None is returned.
     """
     if allowed==None:
