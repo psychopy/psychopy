@@ -179,8 +179,14 @@ class Monitor:
         if useBits!=None: self.setUseBits(useBits)
 
     def gammaIsDefault(self):
-        if self.getGammaGrid()==None \
-            or numpy.alltrue(self.getGammaGrid()==numpy.array([[0,1,1],[0,1,1],[0,1,1],[0,1,1]])):
+        """Determine whether we're using the default gamma values
+        """
+        thisGrid = self.getGammaGrid()
+        #the old default (for simple gamma eq)
+        oldGrid = numpy.array([[0,1,1],[0,1,1],[0,1,1],[0,1,1]])
+        #run the test just on this
+        if thisGrid==None \
+            or numpy.alltrue(thisGrid[:4,:3]==oldGrid):
             return True
         else:
             return False
