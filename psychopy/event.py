@@ -290,6 +290,7 @@ class Mouse:
         self.lastPos = None
         self.prevPos = None # used for motion detection and timing
         self.win=win
+        self.status=None#can be set to STARTED, NOT_STARTED etc for builder
         self.mouseClock=psychopy.core.Clock() # used for movement timing
         self.movedistance=0.0
         #if pygame isn't initialised then we must use pyglet
