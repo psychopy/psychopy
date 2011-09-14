@@ -183,7 +183,7 @@ class RatingScaleComponent(BaseComponent):
         buff.writeIndented("#*%(name)s* updates\n" %(self.params))
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
         # if requested, force end of trial when the subject 'accepts' the current rating:
-        if self.params['forceEndRoutine']:
+        if self.params['forceEndRoutine'].val:
             buff.writeIndented("continueRoutine = %s.noResponse\n" % (name))
         # only need to do the following the first time it goes False, here gets set every frame:
         buff.writeIndented("if %s.noResponse == False:\n" % name)

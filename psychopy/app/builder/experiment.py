@@ -515,7 +515,12 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
-        #todo: write code to fetch conditions from file?
+        #no longer needed - initialise the trial handler just before it runs
+        pass
+    def writeLoopStartCode(self,buff):
+        """Write the code to create and run a sequence of trials
+        """
+        ##first create the handler
         #create nice line-separated list of conditions
         if self.params['conditionsFile'].val==None:
             condsStr="[None]"
@@ -535,7 +540,7 @@ class TrialHandler:
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
-    def writeLoopStartCode(self,buff):
+        ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
@@ -617,6 +622,10 @@ class StairHandler:
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
+        #not needed - initialise the staircase only when needed
+        pass
+    def writeLoopStartCode(self,buff):
+        ##create the staircase
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
@@ -629,7 +638,7 @@ class StairHandler:
         buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
         buff.writeIndented("    originPath=%s)\n" %repr(self.exp.expPath))
         buff.writeIndented("level=%s=%s#initialise some vals\n" %(self.thisName, self.params['start value']))
-    def writeLoopStartCode(self,buff):
+        ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))

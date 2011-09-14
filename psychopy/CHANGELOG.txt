@@ -4,14 +4,28 @@ Changelog
 .. note::
   Version numbers
 
-  In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
-  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+  In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
+  Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED: bug in Builder Ratingscale (was always ending routine on response)
+* FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
+* FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
+* FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released Aug 2011)
 
 * FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
 * FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
@@ -19,6 +33,8 @@ PsychoPy 1.70.01
 
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released Aug 2011)
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
@@ -72,7 +88,7 @@ PsychoPy 1.65
 PsychoPy 1.65.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released July 2011
+(Released July 2011)
 
 * FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
 * FIXED Aperture Component in Builder, which was on for an entire Routine. Now supports start/stop times like other components
