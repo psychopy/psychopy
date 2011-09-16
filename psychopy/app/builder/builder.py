@@ -985,44 +985,22 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.DrawText(name, x-20, y)
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
+        #deduce start and stop times if possible
+        startTime, duration = self.getStartAndDuration(component)
         #draw entries on timeline (if they have some time definition)
-        if 'startType' in component.params.keys():
-            startType=component.params['startType'].val
-            stopType=component.params['stopType'].val
-
-            #deduce a start time (s) if possible
-            if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
-                startTime=float(component.params['startVal'].val)
-            #user has given a time estimate
-            elif canBeNumeric(component.params['startEstim'].val):
-                startTime=float(component.params['startEstim'].val)
-            else: startTime=None
-
-            #deduce duration (s) if possible. Duration used because box needs width
-            if component.params['stopVal'].val in ['','-1','None']:
-                duration=FOREVER#infinite duration
-            elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
-                duration=float(component.params['stopVal'].val)-startTime
-            elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
-                duration=float(component.params['stopVal'].val)
-            elif canBeNumeric(component.params['durationEstim'].val):
-                duration=float(component.params['durationEstim'].val)
-            else:
-                duration=None
-
-            if startTime!=None and duration!=None:#then we can draw a sensible time bar!
-                xScale = self.getSecsPerPixel()
-                dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
-                dc.SetBrush(wx.Brush(routineTimeColor))
-                hSize = (3.5,2.75,2)[self.drawSize]
-                yOffset = (3,3,0)[self.drawSize]
-                h = self.componentStep/hSize
-                xSt = self.timeXposStart + startTime/xScale
-                w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
-                if w>10000: w=10000#limit width to 10000 pixels!
-                if w<2: w=2#make sure at least one pixel shows
-                dc.DrawRectangle(xSt, y+yOffset, w,h )
-                fullRect.Union(wx.Rect(xSt, y+yOffset, w,h ))#update bounds to include time bar
+        if startTime!=None and duration!=None:#then we can draw a sensible time bar!
+            xScale = self.getSecsPerPixel()
+            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetBrush(wx.Brush(routineTimeColor))
+            hSize = (3.5,2.75,2)[self.drawSize]
+            yOffset = (3,3,0)[self.drawSize]
+            h = self.componentStep/hSize
+            xSt = self.timeXposStart + startTime/xScale
+            w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
+            if w>10000: w=10000#limit width to 10000 pixels!
+            if w<2: w=2#make sure at least one pixel shows
+            dc.DrawRectangle(xSt, y+yOffset, w,h )
+            fullRect.Union(wx.Rect(xSt, y+yOffset, w,h ))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
 
     def editComponentProperties(self, event=None, component=None):
@@ -1066,24 +1044,30 @@ class RoutineCanvas(wx.ScrolledWindow):
             maxTime=10
         return maxTime
     def getStartAndDuration(self, component):
+        """Determine the start and duration of the stimulus
+        purely for Routine rendering purposes in the app (does not affect
+        actual drawing during the experiment)
+        """
+        if not component.params.has_key('startType'):
+            return None, None#this component does not have any start/stop
         startType=component.params['startType'].val
         stopType=component.params['stopType'].val
         #deduce a start time (s) if possible
-        if startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
-            startTime=float(component.params['startVal'].val)
         #user has given a time estimate
-        elif canBeNumeric(component.params['startEstim'].val):
+        if canBeNumeric(component.params['startEstim'].val):
             startTime=float(component.params['startEstim'].val)
+        elif startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
+            startTime=float(component.params['startVal'].val)
         else: startTime=None
         #deduce duration (s) if possible. Duration used because box needs width
-        if component.params['stopVal'].val in ['','-1','None']:
+        if canBeNumeric(component.params['durationEstim'].val):
+            duration=float(component.params['durationEstim'].val)
+        elif component.params['stopVal'].val in ['','-1','None']:
             duration=FOREVER#infinite duration
         elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
             duration=float(component.params['stopVal'].val)-startTime
         elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
             duration=float(component.params['stopVal'].val)
-        elif canBeNumeric(component.params['durationEstim'].val):
-            duration=float(component.params['durationEstim'].val)
         else:
             duration=None
         return startTime, duration
