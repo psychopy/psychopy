@@ -19,6 +19,9 @@ PsychoPy 1.70.02
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
 * FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
