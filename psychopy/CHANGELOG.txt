@@ -15,6 +15,14 @@ PsychoPy 1.70.02
 
 (https://github.com/psychopy/psychopy)
 
+* ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
+    - create, edit, and save conditions from within PsychoPy; save & load using pickle format
+    - preview .csv or .xlsx conditions files (read-only)
+* ADDED: RatingScale method to allow user to setMarkerPosition()
+* ADDED: Builder dialogs display a '$' for fields that expect code
+* FIXED: can edit or delete filename from loop dialog
+* FIXED: bug in RunTimeInfo (no longer assumes that the user has git installed)
+* FIXED: bug in BufferImageStim
 * FIXED: bug in Builder Ratingscale (was always ending routine on response)
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
