@@ -227,8 +227,12 @@ def fileSaveDlg(initFilePath="", initFileName="",
             #"txt (*.txt)|*.txt" \
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
-    tmpApp = wx.PySimpleApp()
-    dlg = wx.FileDialog(None,prompt,
+    try:
+        dlg = wx.FileDialog(None,prompt, 
+                          initFilePath, initFileName, allowed, wx.SAVE)
+    except:
+        tmpApp = wx.PySimpleApp()
+        dlg = wx.FileDialog(None,prompt, 
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
@@ -271,8 +275,12 @@ def fileOpenDlg(tryFilePath="",
             "pickled files (*.pickle, *.pkl)|*.pickle|" \
             "shelved files (*.shelf)|*.shelf|" \
             "All files (*.*)|*.*"
-    tmpApp = wx.PySimpleApp()
-    dlg = wx.FileDialog(None, prompt,
+    try:
+        dlg = wx.FileDialog(None, prompt,
+                          tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
+    except:
+        tmpApp = wx.PySimpleApp()
+        dlg = wx.FileDialog(None, prompt,
                           tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
