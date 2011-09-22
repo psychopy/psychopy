@@ -1,3 +1,10 @@
+psychopy (1.70.01.dfsg-2) UNRELEASED; urgency=low
+
+  * Moved scipy into Depends from Recommends due to imports of scipy at
+    core modules (also reformatted *Depends into multilines)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 22 Sep 2011 18:31:26 -0400
+
 psychopy (1.70.01.dfsg-1) unstable; urgency=low
 
   * New upstream release

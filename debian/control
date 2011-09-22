@@ -3,7 +3,9 @@ Section: science
 Priority: optional
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
-Build-Depends: cdbs, debhelper (>= 5.0.38), python-support (>= 0.6), python (>= 2.4), python-setuptools (>= 0.6), help2man, imagemagick
+Build-Depends: cdbs, debhelper (>= 5.0.38),
+               python-support (>= 0.6), python (>= 2.4), python-setuptools (>= 0.6),
+               help2man, imagemagick
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
 Standards-Version: 3.9.2
@@ -11,8 +13,17 @@ Homepage: http://www.psychopy.org
 
 Package: psychopy
 Architecture: all
-Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-pyglet | python-pygame, python-opengl, python-numpy, python-matplotlib, python-lxml, python-configobj
-Recommends: python-wxgtk2.8, python-pyglet, python-pygame, python-openpyxl, python-imaging, python-serial, python-scipy,
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
+          python-pyglet | python-pygame,
+          python-opengl,
+          python-numpy, python-scipy, python-matplotlib,
+          python-lxml,
+          python-configobj
+Recommends: python-wxgtk2.8,
+            python-pyglet, python-pygame,
+            python-openpyxl,
+            python-imaging,
+            python-serial,
             libavbin0,
             ipython
 Suggests: python-iolabs, python-pyxid
