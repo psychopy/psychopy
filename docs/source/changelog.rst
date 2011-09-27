@@ -4,14 +4,62 @@ Changelog
 .. note::
   Version numbers
 
-  In general, when a new feature is added the first or the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
-  Changes to the final digit (1.00.05 -> 1.00.06) implies a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+  In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
+  Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+
+PsychoPy 1.71
+------------------------------
+
+PsychoPy 1.71.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
+* ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
+    - create, edit, and save conditions from within PsychoPy; save & load using pickle format
+    - preview .csv or .xlsx conditions files (read-only)
+* ADDED: RatingScale method to allow user to setMarkerPosition()
+* ADDED: Builder dialogs display a '$' to indicate fields that expect code/numeric input
+* FIXED: can edit or delete filename from loop dialog
+* FIXED: bug in RunTimeInfo (no longer assumes that the user has git installed)
+* FIXED: bug in BufferImageStim
+* FIXED: bug in Builder Ratingscale (was always ending routine on response)
+* FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
+* FIXED: rendering of many stimuli was not working beyond 1000 elements (fixed by removal of depth testing)
+* FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
 
 PsychoPy 1.70
 ------------------------------
 
+PsychoPy 1.70.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED: bug in Builder Ratingscale (was always ending routine on response)
+* FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
+* FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
+* FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
+
+PsychoPy 1.70.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released Aug 2011)
+
+* FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
+* FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
+* FIXED: buglet with PatchStim. After a call to setSize, SF was scaling with the stimulus (for unit types where that shouldn't happen)
+
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Released Aug 2011)
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 

@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.65.01" encoding="utf-8">
+<PsychoPy2experiment version="1.70.01" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
@@ -20,58 +20,73 @@
   <Routines>
     <Routine name="A">
       <TextComponent name="msgA">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="msgA" valType="code" updates="constant"/>
         <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
         <Param name="text" val="You chose A (the blue pill?)" valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="1.0" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
     </Routine>
     <Routine name="B">
       <TextComponent name="msgB">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="msgB" valType="code" updates="constant"/>
         <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
         <Param name="text" val="You chose B (the red pill?)" valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="1.0" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
     </Routine>
     <Routine name="instr">
       <TextComponent name="instrText">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="instrText" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="If you press 'a' you'll get 3 trials of Routine A&#10;&#10;If you press 'b' you'll get 3 trials of Routine B" valType="str" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="units" val="window units" valType="str" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
       <KeyboardComponent name="resp">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
         <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
         <Param name="name" val="resp" valType="code" updates="None"/>
-        <Param name="forceEndTrial" val="True" valType="bool" updates="constant"/>
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startTime" val="0.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="ab" valType="str" updates="constant"/>
-        <Param name="duration" val="" valType="code" updates="constant"/>
-        <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="['a', 'b']" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
       <CodeComponent name="chooseBranch">
@@ -87,22 +102,22 @@
   <Flow>
     <Routine name="instr"/>
     <LoopInitiator loopType="TrialHandler" name="repsA">
-      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="repsA" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>
-      <Param name="trialList" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
-      <Param name="trialListFile" val="trialTypes.xlsx" valType="str" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="A"/>
     <LoopTerminator name="repsA"/>
     <LoopInitiator loopType="TrialHandler" name="repsB">
-      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="repsB" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>
-      <Param name="trialList" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
-      <Param name="trialListFile" val="trialTypes.xlsx" valType="str" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="B"/>
     <LoopTerminator name="repsB"/>

@@ -95,8 +95,10 @@ def getInitVals(params):
         if not hasattr(params[name], 'updates') or params[name].updates in ['constant',None,'None']:
             continue #things that are constant don't need handling
         elif name == 'pos': inits[name]=[0,0]
-        elif name in ['ori','sf','size','height','color','phase',
-            'volume']:
+        elif name in ['ori','sf','size','height','color','phase','opacity',
+            'volume', #sounds
+            'coherence','nDots', 'fieldSize','dotSize', 'dotLife' 'dir', 'speed',#dots
+            ]:
             inits[name]="1.0"
         elif name in ['image','mask']:
             inits[name]="'sin'"

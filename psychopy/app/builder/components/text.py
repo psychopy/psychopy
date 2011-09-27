@@ -54,4 +54,4 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    text=%(text)s,\n" %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s,\n" %(inits))
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(inits))
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s)\n" %(inits))
