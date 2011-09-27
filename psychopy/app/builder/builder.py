@@ -1722,7 +1722,7 @@ class _BaseParamsDlg(wx.Dialog):
             buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         # intercept OK button if a loop dialog, in case file name was edited:
-        if type(self) == DlgLoopProperties: 
+        if type(self) == DlgLoopProperties:
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         self.checkName() # disables OKbtn if bad name
@@ -1869,7 +1869,7 @@ class _BaseParamsDlg(wx.Dialog):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                return "Name is already used by a %s" % used, False
+                return "That name is in use (it's a %s). Try another name." % used, False
             elif not namespace.isValid(newName): # valid as a var name
                 return "Name must be alpha-numeric or _, no spaces", False
             elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
@@ -2121,7 +2121,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:
                 # preview existing .csv or .xlsx file that has already been loaded -> conditions
                 # better to reload file, get fieldOrder as well
-                gridGUI = DlgConditions(conditions, parent=self, 
+                gridGUI = DlgConditions(conditions, parent=self,
                                         title=fileName, fixed=True)
         else: # edit new empty .pkl file
             gridGUI = DlgConditions(parent=self)
@@ -2385,10 +2385,10 @@ class DlgExperimentProperties(_BaseParamsDlg):
 
 class DlgConditions(wx.Dialog):
     """Given a file or conditions, present values in a grid; view, edit, save.
-    
+
     Accepts file name, list of lists, or list-of-dict
     Designed around a conditionsFile, but potentially more general.
-    
+
     Example usage: from builder.DlgLoopProperties.viewConditions()
     edit new empty .pkl file:
         gridGUI = builder.DlgConditions(parent=self) # create and present Dlg
@@ -2396,14 +2396,14 @@ class DlgConditions(wx.Dialog):
         gridGUI = builder.DlgConditions(fileName=self.conditionsFile,
                                     parent=self, title=fileName)
     preview existing .csv or .xlsx file that has already been loaded -> conditions:
-        gridGUI = builder.DlgConditions(conditions, parent=self, 
+        gridGUI = builder.DlgConditions(conditions, parent=self,
                                     title=fileName, fixed=True)
-    
+
     To add columns, an instance of this class will instantiate a new instance
     having one more column. Doing so makes the return value from the first instance's
     showModal() meaningless. In order to update things like fileName and conditions,
     values are set in the parent, and should not be set based on showModal retVal.
-    
+
     Author: Jeremy Gray, 2011
     """
     def __init__(self, grid=None, fileName=False, parent=None, title='',
@@ -2419,7 +2419,7 @@ class DlgConditions(wx.Dialog):
         if _restore:
             self.newFile = _restore[0]
             self.fileName = _restore[1]
-        if fileName: 
+        if fileName:
             grid = self.load(fileName)
             if grid:
                 self.fileName = fileName
@@ -2489,7 +2489,7 @@ class DlgConditions(wx.Dialog):
         self.cols = len(self.grid[0])
         extraRow = int(not self.fixed) # extra row for explicit type drop-down
         self.sizer = wx.FlexGridSizer(self.rows+extraRow, self.cols+1, # +1 for condition labels
-                                      vgap=0, hgap=0) 
+                                      vgap=0, hgap=0)
         # set length of input box as the longest in the column (bounded):
         self.colSizes = []
         for x in range(self.cols):
@@ -2499,7 +2499,7 @@ class DlgConditions(wx.Dialog):
         self.inputTypes = [] # explicit, as selected by user via type-selector
         self.inputFields = [] # values in fields
         self.data = []
-        
+
         # make header label, if any:
         if self.hasHeader:
             rowLabel = wx.StaticText(self,-1,label='Params:', size=(6*9, 20))
@@ -2557,7 +2557,7 @@ class DlgConditions(wx.Dialog):
         return prefix + aabb[c//26] + abc[c%26]
     def addRow(self, row, rowLabel=None):
         """Add one row of info, either header (col names) or normal data
-        
+
         Adds items sequentially; FlexGridSizer moves to next row automatically
         """
         labelBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -2700,7 +2700,7 @@ class DlgConditions(wx.Dialog):
                         thisVal = thisVal[:-1]
                     while len(thisVal) and thisVal[0] in "[(, ":
                         thisVal = thisVal[1:]
-                
+
                 if thisType not in ['str', 'utf-8']:
                     thisVal = thisVal.replace('\n', '')
                 else:
@@ -2745,7 +2745,7 @@ class DlgConditions(wx.Dialog):
             while 'None' in self.types:
                 self.types.remove('None')
         return self.data[:]
-    
+
     def preview(self,event=None):
         self.getData(typeSelected=True)
         previewData = self.data[:] # in theory, self.data is also ok, because fixed
@@ -2760,7 +2760,7 @@ class DlgConditions(wx.Dialog):
         # put things inside a border:
         self.border = wx.FlexGridSizer(2,1) # data matrix on top, buttons below
         self.border.Add(self.sizer, proportion=1, flag=wx.ALL|wx.EXPAND, border=8)
-        
+
         # add a message area, buttons:
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         if sys.platform == 'darwin':
@@ -2822,14 +2822,14 @@ class DlgConditions(wx.Dialog):
         buttons.AddSpacer(8)
         buttons.Realize()
         self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
-        
+
         # finally, its show time:
         self.SetSizerAndFit(self.border)
         if self.pos==None: self.Center()
         if self.ShowModal() == wx.ID_OK:
             self.getData(typeSelected=True) # set self.data and self.types, from fields
             self.OK = True
-        else: 
+        else:
             self.data = self.types = None
             self.OK = False
         self.Destroy()
@@ -2891,7 +2891,7 @@ class DlgConditions(wx.Dialog):
             f.close()
             self.fileName = fullPath
             self.newFile = False
-            # ack, sometimes might want relative path 
+            # ack, sometimes might want relative path
             if self.parent:
                 self.parent.conditionsFile = fullPath
         return True
@@ -2935,7 +2935,7 @@ class DlgConditions(wx.Dialog):
         """similar to self.app.followLink() to self.helpUrl, but only use url
         """
         wx.LaunchDefaultBrowser(self.helpUrl)
-        
+
 class BuilderFrame(wx.Frame):
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None,frameData=None,

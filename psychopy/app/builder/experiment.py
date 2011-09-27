@@ -994,7 +994,7 @@ class NameSpace():
 
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui',
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui','sound','misc','log',
             'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
             'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
@@ -1063,7 +1063,7 @@ class NameSpace():
         # check getDerived:
 
         # check in this order:
-        if name in self.user: return "script variable"
+        if name in self.user: return "one of your Components, Routines, or condition parameters"
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"
