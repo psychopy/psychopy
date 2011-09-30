@@ -562,11 +562,12 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="["
-        if self.params['conditions'].val not in [None, [None]]:
-            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-                stimOutStr+= "'%s', " %variable
-        stimOutStr+= "]"
+        stimOutStr="%(name)s.trialList[0].keys()" %self.params
+#        "["
+#        if self.params['conditions'].val not in [None, [None]]:
+#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
+#                stimOutStr+= "'%s', " %variable
+#        stimOutStr+= "]"
         if self.exp.settings.params['Save psydat file'].val:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
         if self.exp.settings.params['Save excel file'].val:
