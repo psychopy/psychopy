@@ -35,6 +35,8 @@ PsychoPy 1.71.00
 * FIXED: putting a number into Builder Sound Component does now produce a sound of that frequency
 * FIXED: added 'sound','misc','log' to the component names that PsychoPy will refuse. Also a slightly more informative warning when the name is already taken
 * FIXED: Opacity parameter was having no effect on TextStim when using shaders
+* FIXED bug with MovieStim not starting at beginning of movie unless a new movie was added each routine
+
 
 PsychoPy 1.70
 ------------------------------
