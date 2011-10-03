@@ -22,6 +22,8 @@ PsychoPy 1.71.00
     - preview .csv or .xlsx conditions files (read-only)
 * ADDED: RatingScale method to allow user to setMarkerPosition()
 * ADDED: Builder dialogs display a '$' to indicate fields that expect code/numeric input
+* ADDED: Text Component now has a wrapWidth parameter to control the bounding box of the text
+* ADDED: Opacity parameter to visual stimulus components in the Builder, so you can now draw plaids etc from the builder
 * FIXED: can edit or delete filename from loop dialog
 * FIXED: bug in RunTimeInfo (no longer assumes that the user has git installed)
 * FIXED: bug in BufferImageStim
@@ -30,6 +32,11 @@ PsychoPy 1.71.00
 * FIXED: rendering of many stimuli was not working beyond 1000 elements (fixed by removal of depth testing)
 * FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
 * FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* FIXED: putting a number into Builder Sound Component does now produce a sound of that frequency
+* FIXED: added 'sound','misc','log' to the component names that PsychoPy will refuse. Also a slightly more informative warning when the name is already taken
+* FIXED: Opacity parameter was having no effect on TextStim when using shaders
+* FIXED bug with MovieStim not starting at beginning of movie unless a new movie was added each routine
+
 
 PsychoPy 1.70
 ------------------------------

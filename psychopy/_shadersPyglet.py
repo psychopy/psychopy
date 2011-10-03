@@ -9,21 +9,21 @@ import sys
 def print_log(shader):
     length = c_int()
     GL.glGetShaderiv(shader, GL.GL_INFO_LOG_LENGTH, byref(length))
-    
+
     if length.value > 0:
         log = create_string_buffer(length.value)
         GL.glGetShaderInfoLog(shader, length, byref(length), log)
         print >> sys.stderr, log.value
-        
-        
+
+
 def compileProgram(vertexSource=None, fragmentSource=None):
         """Create and compile a vertex and fragment shader pair from their sources (strings)
         """
-        
+
         def compileShader( source, shaderType ):
                 """Compile shader source of given type (only needed by compileProgram)"""
                 shader = GL.glCreateShaderObjectARB(shaderType)
-                
+
                 prog = c_char_p(source)
                 length = c_int(-1)
                 GL.glShaderSourceARB(shader,
@@ -40,7 +40,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
                     GL.glDeleteShader(shader)
                     raise ValueError, 'Shader compilation failed'
                 return shader
-        
+
         program = GL.glCreateProgramObjectARB()
 
         if vertexSource:
@@ -68,16 +68,16 @@ fragSignedColor = '''
     // Fragment program
     uniform sampler2D texture;
     void main() {
-        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);     
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
-    ''' 
+    '''
 fragSignedColorTex = '''
     // Fragment program
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;        
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
@@ -89,7 +89,7 @@ fragSignedColorTexFont = '''
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         gl_FragColor.rgb=rgb;
-        gl_FragColor.a = textureFrag.a;
+        gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
 fragSignedColorTexMask = '''
@@ -97,10 +97,10 @@ fragSignedColorTexMask = '''
     uniform sampler2D texture, mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);       
+        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
         gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
         //
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0; 
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
 fragSignedColorTexMask1D = '''
@@ -109,14 +109,14 @@ fragSignedColorTexMask1D = '''
     uniform sampler1D mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);       
+        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
         gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
         //
-        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0; 
+        gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
 vertSimple = """
-    void main() {               
+    void main() {
             gl_FrontColor = gl_Color;
             gl_TexCoord[0] = gl_MultiTexCoord0;
             gl_TexCoord[1] = gl_MultiTexCoord1;
@@ -125,7 +125,7 @@ vertSimple = """
     }
     """
 cartoonVertexSource = '''
-    // Vertex program    
+    // Vertex program
     varying vec3 normal;
     void main() {
         normal = gl_NormalMatrix * gl_Normal;
@@ -133,19 +133,19 @@ cartoonVertexSource = '''
     }
     '''
 cartoonFragSource = '''
-    // Fragment program    
+    // Fragment program
     varying vec3 normal;
     void main() {
         float intensity;
         vec4 color;
         vec3 n = normalize(normal);
         vec3 l = normalize(gl_LightSource[0].position).xyz;
- 
+
         // quantize to 5 steps (0, .25, .5, .75 and 1)
         intensity = (floor(dot(l, n) * 4.0) + 1.0)/4.0;
         color = vec4(intensity*1.0, intensity*0.5, intensity*0.5,
             intensity*1.0);
- 
+
         gl_FragColor = color;
     }
     '''

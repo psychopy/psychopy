@@ -18,7 +18,7 @@ class TextComponent(VisualComponent):
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
-                startEstim='', durationEstim=''):
+                startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, parentName, name=name, units=units,
                     color=color, colorSpace=colorSpace,
@@ -44,14 +44,19 @@ class TextComponent(VisualComponent):
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Specifies the height of the letter (the width is then determined by the font)")
+        self.params['wrapWidth']=Param(wrapWidth, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant'],
+            hint="How wide should the text get when it wraps? (in the specified units)")
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
+        if self.params['wrapWidth'].val in ['','None','none']:
+            inits['wrapWidth']='None'
         buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
         buff.writeIndented("    text=%(text)s,\n" %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
-        buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s,\n" %(inits))
+        buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s,wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s)\n" %(inits))
