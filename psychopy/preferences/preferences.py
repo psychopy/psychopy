@@ -71,6 +71,11 @@ class Preferences:
         self.paths['appDataFile'] = join(self.paths['userPrefsDir'], 'appData.cfg')
         self.paths['userPrefsFile'] = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
         
+        # If PsychoPy is tucked away by Py2exe in library.zip, the preferences file
+        # cannot be found. This hack is an attempt to fix this.
+        if "\\library.zip\\psychopy\\preferences\\" in self.paths["prefsSpecFile"]:
+            self.paths["prefsSpecFile"] = self.paths["prefsSpecFile"].replace("\\library.zip\\psychopy\\preferences\\", "\\resources\\")                
+        
         self.userPrefsCfg = self.loadUserPrefs()
         self.appDataCfg = self.loadAppData()
         self.validate()
