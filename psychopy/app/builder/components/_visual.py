@@ -10,7 +10,7 @@ class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     def __init__(self, parentName, name='', units='from exp settings', color='$[1,1,1]',
-                pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb',
+                pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb', opacity=1,
                 startType='time (s)',startVal='',
                 stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
@@ -39,6 +39,9 @@ class VisualComponent(_base.BaseComponent):
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)")
+        self.params['opacity']=Param(opacity, valType='code', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
+            hint="Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
             hint="Choice of color space for the color (rgb, dkl, lms)")

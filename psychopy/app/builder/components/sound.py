@@ -12,7 +12,7 @@ tooltip = 'Sound: play recorded files or generated sounds'
 
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
-    def __init__(self, exp, parentName, name='sound', sound='A',volume=1,
+    def __init__(self, exp, parentName, name='sound_1', sound='A',volume=1,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):

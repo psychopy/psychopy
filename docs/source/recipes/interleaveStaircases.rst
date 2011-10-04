@@ -1,9 +1,13 @@
+.. _interleavedStairs::
+
 Coder - interleave staircases
 ================================
 
 Often psychophysicists using staircase procedures want to interleave multiple staircases, either with different start points, or for different conditions.
 
-The follow script shows you how that can be done by nesting a pair of loops, one to loop through the number of trials and another to loop across the staircases. The staircases can be shuffled between trials, so that do not simply cycle.
+There is now a class, :class:`psychopy.data.MultiStairHandler` to allow simple access to interleaved staircases of either basic or QUEST types. That can also be used from the :ref:`loops` in the :ref:`builder`. The following method allows the same to be created in your own code, for greater options.
+
+The method works by nesting a pair of loops, one to loop through the number of trials and another to loop across the staircases. The staircases can be shuffled between trials, so that they do not simply alternate.
 
 .. note::
 

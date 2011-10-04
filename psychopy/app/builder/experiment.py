@@ -504,7 +504,7 @@ class TrialHandler:
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the parameters in each condition")
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
-            hint="A comma-separated-value (.csv) file specifying the parameters for each condition")
+            hint="Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
@@ -515,7 +515,12 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
-        #todo: write code to fetch conditions from file?
+        #no longer needed - initialise the trial handler just before it runs
+        pass
+    def writeLoopStartCode(self,buff):
+        """Write the code to create and run a sequence of trials
+        """
+        ##first create the handler
         #create nice line-separated list of conditions
         if self.params['conditionsFile'].val==None:
             condsStr="[None]"
@@ -535,7 +540,7 @@ class TrialHandler:
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
-    def writeLoopStartCode(self,buff):
+        ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
@@ -557,11 +562,12 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="["
-        if self.params['conditions'].val not in [None, [None]]:
-            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-                stimOutStr+= "'%s', " %variable
-        stimOutStr+= "]"
+        stimOutStr="%(name)s.trialList[0].keys()" %self.params
+#        "["
+#        if self.params['conditions'].val not in [None, [None]]:
+#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
+#                stimOutStr+= "'%s', " %variable
+#        stimOutStr+= "]"
         if self.exp.settings.params['Save psydat file'].val:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
         if self.exp.settings.params['Save excel file'].val:
@@ -617,6 +623,10 @@ class StairHandler:
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
     def writeInitCode(self,buff):
+        #not needed - initialise the staircase only when needed
+        pass
+    def writeLoopStartCode(self,buff):
+        ##create the staircase
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         if self.params['N reversals'].val in ["", None, 'None']:
@@ -629,7 +639,7 @@ class StairHandler:
         buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
         buff.writeIndented("    originPath=%s)\n" %repr(self.exp.expPath))
         buff.writeIndented("level=%s=%s#initialise some vals\n" %(self.thisName, self.params['start value']))
-    def writeLoopStartCode(self,buff):
+        ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
         buff.writeIndented("for %s in %s:\n" %(self.thisName, self.params['name']))
@@ -985,7 +995,7 @@ class NameSpace():
 
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui',
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui','sound','misc','log',
             'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
             'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
@@ -1054,7 +1064,7 @@ class NameSpace():
         # check getDerived:
 
         # check in this order:
-        if name in self.user: return "script variable"
+        if name in self.user: return "one of your Components, Routines, or condition parameters"
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"

@@ -76,9 +76,20 @@ class MouseComponent(BaseComponent):
         if self.params['saveMouseState'] not in ['every frame', 'on click'] and not forceEnd:
             return
 
-        self.writeTimeTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.setIndentLevel(1, relative=True)#because of the 'if' statement of the time test
-        self.writeParamUpdates(buff, 'frame')
+        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%(name)s.status=STARTED\n" %(self.params))
+        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        #test for stop (only if there was some setting for duration or stop)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
+            buff.writeIndented("%(name)s.status=STOPPED\n" %(self.params))
+            buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+
+        #if STARTED and not STOPPED!
+        buff.writeIndented("if %(name)s.status==STARTED:#only update if started and not stopped!\n" %(self.params))
+        buff.setIndentLevel(1, relative=True)#to get out of the if statement
+        dedentAtEnd=1#keep track of how far to dedent later
 
         #get a clock for timing
         if self.params['timeRelativeTo'].val=='experiment':clockStr = 'globalClock'
@@ -89,6 +100,8 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
             buff.writeIndented("if sum(buttons)>0:#ie if any button is pressed\n")
             buff.setIndentLevel(1, relative=True)
+            dedentAtEnd+=1
+        #only do this if buttons were pressed
         if self.params['saveMouseState'].val == 'on click':
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
@@ -104,9 +117,8 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("continueRoutine=False\n")
 
         #dedent
-        if self.params['saveMouseState'] == 'on click' or forceEnd:
-            buff.setIndentLevel(-2, relative=True)#'if' statement of the time test and button check
-        else: buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
+        buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the time test and button check
+
     def writeRoutineEndCode(self,buff):
         #some shortcuts
         name = self.params['name']

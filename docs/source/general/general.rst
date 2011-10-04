@@ -9,6 +9,7 @@ General issues
    colours
    prefs
    dataOutputs
+   gamma
 
 .. toctree::
    :maxdepth: 2

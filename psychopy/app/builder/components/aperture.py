@@ -40,9 +40,11 @@ class ApertureComponent(VisualComponent):
         self.params['pos'].hint = "Where is the aperture centred?"
         self.params['startVal'].hint = "When does the aperture come into effect?"
         self.params['stopVal'].hint="When does the aperture stop having an effect?"
+        #inherited from _visual component but not needed
         del self.params['ori']
         del self.params['color']
         del self.params['colorSpace']
+        del self.params['opacity']
 
     def writeInitCode(self, buff):
         inits = components.getInitVals(self.params)
