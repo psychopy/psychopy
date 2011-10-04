@@ -83,4 +83,4 @@ class DotsComponent(VisualComponent):
         buff.writeIndented("    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" %(inits))
         buff.writeIndented("    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" %(inits))
         buff.writeIndented("    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" %(inits))
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s)\n" %(inits))
+        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s)\n" %(inits))

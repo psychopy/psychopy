@@ -731,18 +731,19 @@ def importTrialTypes(fileName, returnFieldNames=False):
     return importConditions(fileName, returnFieldNames)
 
 def importConditions(fileName, returnFieldNames=False):
-        """Imports a list of conditions from an .xlsx or .csv file
+        """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
         The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
         :class:`MultiStairHandler` as a `conditions` list.
 
-        If `fileName` ends .csv then import as a comma-separated-value file will be used.
-        All other filenames will be treated as Excel 2007 (xlsx) files. Sorry no
-        support for older versions of Excel file is planned.
+        If `fileName` ends with:
+            - .csv:  import as a comma-separated-value file (header + row x col)
+            - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
+            - .pkl:  import from a pickle file as list of lists (header + row x col)
 
         The file should contain one row per type of trial needed and one column
         for each parameter that defines the trial type. The first row should give
-        parameter names, which should;
+        parameter names, which should:
 
             - be unique
             - begin with a letter (upper or lower case)
@@ -781,6 +782,23 @@ def importConditions(fileName, returnFieldNames=False):
                     elif type(val)==numpy.string_:#if it looks like a string read it as utf8
                         val=unicode(val.decode('utf-8'))
                     thisTrial[fieldName] = val
+                trialList.append(thisTrial)
+        elif fileName.endswith('.pkl'):
+            f = open(fileName, 'rU') # is U needed?
+            trialsArr = cPickle.load(f)
+            f.close()
+            trialList = []
+            fieldNames = trialsArr[0] # header line first
+            for fieldName in fieldNames:
+                OK, msg = isValidVariableName(fieldName)
+                if not OK:
+                    #provide error message about incorrect header
+                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, '%s: %s' %(fieldName, msg)
+            for row in trialsArr[1:]:
+                thisTrial = {}
+                for fieldN, fieldName in enumerate(fieldNames):
+                    thisTrial[fieldName] = row[fieldN] # type is correct, being .pkl
                 trialList.append(thisTrial)
         else:
             if not haveOpenpyxl:
@@ -1688,10 +1706,13 @@ class MultiStairHandler:
         staircases). Any parameters not specified in the conditions file
         will revert to the default for that individual handler.
 
+        If you need to custom the behaviour further you may want to look at the
+        recipe on :ref:`interleavedStairs`.
+
         :params:
 
             stairType: 'simple' or 'quest'
-                Use a `~psychopy.data.StairHandler`_ or `~psychopy.data.QuestHandler`_
+                Use a :class:`StairHandler` or :class:`QuestHandler`
 
             method: 'random' or 'sequential'
                 The stairs are shuffled in each repeat but not randomised more than

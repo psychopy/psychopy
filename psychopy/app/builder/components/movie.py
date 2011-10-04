@@ -42,37 +42,42 @@ class MovieComponent(VisualComponent):
         #these are normally added but we don't want them for a movie
         del self.params['color']
         del self.params['colorSpace']
+    def _writeCreationCode(self,buff,useInits):
+        #This will be called by either self.writeInitCode() or self.writeRoutineStartCode()
+        #The reason for this is that moviestim is actually created fresh each time the
+        #movie is loaded.
+        #leave units blank if not needed
+        if self.params['units'].val=='from exp settings': unitsStr=""
+        else: unitsStr="units=%(units)s, " %self.params
+        #If we're in writeInitCode then we need to convert params to initVals
+        #because some (variable) params haven't been created yet.
+        if useInits:
+            params = components.getInitVals(self.params)
+        else:
+            params = self.params
+        buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+        buff.writeIndented("    filename=%(movie)s,\n" %(params))
+        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s," %(params))
+        if self.params['size'].val != '':
+            buff.writeIndented("    size=%(size)s,\n"%(params))
+        buff.writeIndented("    )\n")
     def writeInitCode(self,buff):
-        #if the movie is constant then load it once at beginning of script.
-        #if it changes each repeat then we should wait and creat the entire object at
-        #Routine start
-        #do we need units code?
-        if self.params['units'].val=='from exp settings': unitsStr=""
-        else: unitsStr="units=%(units)s, " %self.params
+        #If needed then use _writeCreationCode()
+        #Movie could be created here or in writeRoutineStart()
         if self.params['movie'].updates=='constant':
-            initVals = components.getInitVals(self.params)
-            buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(initVals['name'],initVals['name'],unitsStr))
-            buff.writeIndented("    filename=%(movie)s,\n" %(self.params))
-            buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
-            if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
-            buff.writeIndented(")\n")
+            self._writeCreationCode(buff, useInits=True)#create the code using init vals
     def writeRoutineStartCode(self,buff):
-        #do we need units code?
-        if self.params['units'].val=='from exp settings': unitsStr=""
-        else: unitsStr="units=%(units)s, " %self.params
-        if self.params['movie'].updates!='constant':
-            initVals = components.getInitVals(self.params)
-            buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(initVals['name'],initVals['name'],unitsStr))
-            buff.writeIndented("    filename=%(movie)s,\n" %(self.params))
-            buff.writeIndented("    ori=%(ori)s, pos=%(pos)s" %(self.params))
-            if self.params['size'].val != '': buff.writeIndented(", size=%(size)s"%(self.params))
-            buff.writeIndented(")\n")
+        #If needed then use _writeCreationCode()
+        #Movie could be created here or in writeInitCode()
+        if self.params['movie'].updates!='constant':#
+            self._writeCreationCode(buff, useInits=False)#create the code using params, not vals
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
+        buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" %(self.params['name']))
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         if self.params['stopVal'].val not in ['', None, -1, 'None']:

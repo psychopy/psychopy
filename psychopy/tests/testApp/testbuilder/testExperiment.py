@@ -185,8 +185,8 @@ class TestExpt():
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
         
         if sys.platform.startswith('linux'):
-            assert False # this test is broken on linux, response emulation is not reliable enough yet on linux
-        
+            raise nose.plugins.skip.SkipTest("response emulation thread not working on linux yet")
+
         os.chdir(self.tmp_dir)
         
         file = path.join(exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
