@@ -37,4 +37,40 @@ class MessageDialog(wx.Dialog):
         self.SetSizerAndFit(sizer)
     def onButton(self,event):
         self.EndModal(event.GetId())
-        
+
+class ListWidget:
+    """A widget for handling a list of dicts of identical structure.
+    Has one row per entry and a +/- buttons at end to add/insert/remove from
+    the list
+    """
+    def __init__(self,value=[{}]):
+        self.value=value
+        if type(value)!=list or len(value)<1:
+            raise AttributeError, 'The initial value for a ListWidget needs to be a list of dicts'
+        self.fieldNames = value[0].keys()
+        self.entries=[]
+
+        self.sizer = wx.GridBagSizer(hgap=0,vgap=0)
+    def onAddElement(self, event=None):
+        #find out where the element was in the list (ii)
+        #insert a new entry in the list at ii
+        #insert a new set of variables at ii
+        pass
+    def onRemoveElement(self, event=None):
+        """Called when the minus button is pressed.
+        """
+        pass
+    def createRow(self, entry):
+        pass
+    def findWxID(self, id):
+        """Identify which of the entries has a minus/plus ctrl with the given id.
+
+        usage:
+            index, entry = findWxID(id)
+
+        Returns None, None if the entry couldn't be located
+        """
+        for ii, entry in enumerate(self.entries):
+            if id in [entry.minusCtrl, entry.plusCtrl]:
+                return ii, entry
+        return None, None
