@@ -2969,6 +2969,7 @@ class ElementArrayStim:
                  elementTex='sin',
                  elementMask='gauss',
                  texRes=48,
+                 interpolate=True,
                  name='', autoLog=True):
 
         """
@@ -3073,7 +3074,7 @@ class ElementArrayStim:
         self.needVertexUpdate=True
         self.needColorUpdate=True
         self._useShaders=True
-        self.interpolate=True
+        self.interpolate=interpolate
         self.fieldDepth=fieldDepth
         if depths==0:
             #depth array that totals one window depth increment
