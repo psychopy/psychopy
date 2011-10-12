@@ -5551,6 +5551,9 @@ class RatingScale:
         draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
+        if self.firstDraw:
+            self.firstDraw = False
+            self.myClock.reset()
 
         # draw everything except the marker:
         for visualElement in self.visualDisplayElements:
@@ -5649,9 +5652,6 @@ class RatingScale:
                     self.noResponse = False # accept the currently marked value
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
-        if self.firstDraw:
-            self.firstDraw = False
-            self.myClock.reset()
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.myClock.getTime()
             # only set this once: at the time 'accept' is indicated by subject
@@ -5668,6 +5668,7 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
+        self.markerPlacedAt = False
         #NB markerStart could be 0; during __init__, its forced to be numeric and valid, or None (not boolean)
         if self.markerStart != None:
             self.markerPlaced = True
