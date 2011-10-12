@@ -5693,7 +5693,7 @@ class RatingScale:
             return None # eg, if skipped a response
 
         if self.precision == 1: # set type for the response, based on what was wanted
-            response = int(self.markerPlacedAt) * self.autoRescaleFactor + self.low
+            response = int(self.markerPlacedAt * self.autoRescaleFactor) + self.low
         else:
             response = float(self.markerPlacedAt) * self.autoRescaleFactor + self.low
         if self.choices:
