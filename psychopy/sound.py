@@ -123,13 +123,18 @@ class _SoundBase:
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
         """
+        try:#could be '440' meaning 440
+            value = float(value)
+        except:
+            pass#this is a string that can't be a number
+
         if type(value) in [str, unicode]:
             #try to open the file
             OK = self._fromNoteName(value,secs,octave)
             #or use as a note name
             if not OK: self._fromFile(value)
 
-        elif type(value) in [float,int]:
+        elif type(value)==float:
             #we've been asked for a particular Hz
             self._fromFreq(value, secs)
 

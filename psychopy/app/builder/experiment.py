@@ -562,11 +562,12 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="["
-        if self.params['conditions'].val not in [None, [None]]:
-            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-                stimOutStr+= "'%s', " %variable
-        stimOutStr+= "]"
+        stimOutStr="%(name)s.trialList[0].keys()" %self.params
+#        "["
+#        if self.params['conditions'].val not in [None, [None]]:
+#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
+#                stimOutStr+= "'%s', " %variable
+#        stimOutStr+= "]"
         if self.exp.settings.params['Save psydat file'].val:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
         if self.exp.settings.params['Save excel file'].val:
@@ -994,7 +995,7 @@ class NameSpace():
 
                          '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui',
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui','sound','misc','log',
             'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
         self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
             'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
@@ -1063,7 +1064,7 @@ class NameSpace():
         # check getDerived:
 
         # check in this order:
-        if name in self.user: return "script variable"
+        if name in self.user: return "one of your Components, Routines, or condition parameters"
         if name in self.builder: return "Builder variable"
         if name in self.psychopy: return "Psychopy module"
         if name in self.numpy: return "numpy function"

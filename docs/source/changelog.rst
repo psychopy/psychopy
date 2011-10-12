@@ -7,6 +7,37 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+PsychoPy 1.71
+------------------------------
+
+PsychoPy 1.71.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
+* ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
+    - create, edit, and save conditions from within PsychoPy; save & load using pickle format
+    - preview .csv or .xlsx conditions files (read-only)
+* ADDED: RatingScale method to allow user to setMarkerPosition()
+* ADDED: Builder dialogs display a '$' to indicate fields that expect code/numeric input
+* ADDED: Text Component now has a wrapWidth parameter to control the bounding box of the text
+* ADDED: Opacity parameter to visual stimulus components in the Builder, so you can now draw plaids etc from the builder
+* FIXED: can edit or delete filename from loop dialog
+* FIXED: bug in RunTimeInfo (no longer assumes that the user has git installed)
+* FIXED: bug in BufferImageStim
+* FIXED: bug in Builder Ratingscale (was always ending routine on response)
+* FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
+* FIXED: rendering of many stimuli was not working beyond 1000 elements (fixed by removal of depth testing)
+* FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* FIXED: putting a number into Builder Sound Component does now produce a sound of that frequency
+* FIXED: added 'sound','misc','log' to the component names that PsychoPy will refuse. Also a slightly more informative warning when the name is already taken
+* FIXED: Opacity parameter was having no effect on TextStim when using shaders
+* FIXED bug with MovieStim not starting at beginning of movie unless a new movie was added each routine
+
+
 PsychoPy 1.70
 ------------------------------
 
@@ -19,6 +50,9 @@ PsychoPy 1.70.02
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
 * FIXED: mouse component now using start/duration correctly (broken since 1.70.00)
+* FIXED: when changing the texture (image) of a PatchStim, the stimulus now 'remembers' if it had been created with no size/sf set and updates these for the new image (previously the size/sf got set according to the first texture provided)
+* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

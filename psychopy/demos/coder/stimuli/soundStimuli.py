@@ -16,8 +16,8 @@ from psychopy import sound,core, visual
 
 highA = sound.Sound('A',octave=3, sampleRate=22050, secs=0.8, bits=8)
 highA.setVolume(0.8)
-tick = sound.Sound(800,secs=0.01,sampleRate=44100, bits=8)
-tock = sound.Sound(600,secs=0.01)
+tick = sound.Sound(800,secs=0.01,sampleRate=44100, bits=8)#sample rate ignored because already set
+tock = sound.Sound('600',secs=0.01)
 
 highA.play()
 core.wait(0.8)

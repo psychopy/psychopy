@@ -5529,10 +5529,10 @@ class RatingScale:
                     float(self.precision * self.autoRescaleFactor) )
         return (value - self.low) * self.autoRescaleFactor
     def setMarkerPos(self, value):
-        """Method to allow the experimenter to set the marker's position on the 
+        """Method to allow the experimenter to set the marker's position on the
         scale (in units of tick marks). This method can also set the index within
         a list of choices (which start at 0). No range checking is done.
-        
+
         Assuming you have defined rs = RatingScale(...), you can specify a tick
         position directly::
             rs.setMarkerPos(2)
@@ -6137,7 +6137,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         intensity[artifact_idx] = 1
         artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad > 1))
         intensity[artifact_idx] = 0
-        
+
     else:
         if type(tex) in [str, unicode, numpy.string_]:
             # maybe tex is the name of a file:
@@ -6152,7 +6152,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
                 log.error("Found file '%s' but failed to load as an image" %(tex)); log.flush()
                 raise IOError, "Found file '%s' [= %s] but it failed to load as an image" \
                     % (tex, os.path.abspath(tex))#ensure we quit
-        else: 
+        else:
             # can't be a file; maybe its an image already in memory?
             try:
                 im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM) # ? need to flip if in mem?
