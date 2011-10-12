@@ -3227,8 +3227,8 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.builderHelp, self.app.followLink)
 
         self.helpMenu.AppendSeparator()
-        self.helpMenu.Append(self.IDs.about, "&About...", "About PsychoPy")
-        wx.EVT_MENU(self, self.IDs.about, self.app.showAbout)
+        self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")
+        wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
 
