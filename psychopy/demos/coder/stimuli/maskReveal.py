@@ -8,7 +8,7 @@ efficient way of doing this is to create an element array and alter the
 opacity of each element of the array to reveal what's behind it.
 
 """
-from psychopy import core, visual, event
+from psychopy import core, visual, event, misc
 import numpy
 
 #create a window to draw in
@@ -23,15 +23,9 @@ faceRGB = visual.PatchStim(myWin,tex='sin',
     sf=5)
 
 #create a grid of xy vals
-x=y=numpy.linspace(-0.5,0.5,11)#11 entries from -0.5 to 0.5 
-xs,ys = numpy.meshgrid(x,y)
-#get that grid to be 121x2 in shape (expected by element array)
-xys = numpy.zeros([len(xs.flat), 2])
-xys[:,0]=xs.flat
-xys[:,1]=ys.flat
+xys = misc.createXYs( numpy.linspace(-0.5,0.5,11) )#11 entries from -0.5 to 0.5 
 #create opacity for each square in mask
 opacs = numpy.ones(len(xys))#all opaque to start
-print opacs.shape
 #create mask
 elSize = xys[1,0]-xys[0,0]
 mask = visual.ElementArrayStim(myWin, elementTex=None, elementMask=None,

@@ -32,6 +32,38 @@ def fromFile(filename):
     f.close()
     return contents
 
+def createXYs(x,y=None):
+    """Create an Nx2 array of XY values including all combinations of the
+    x and y values provided.
+
+    >>> createXYs(x=[1,2,3],y=[4,5,6])
+    array([[1, 4],
+       [2, 4],
+       [3, 4],
+       [1, 5],
+       [2, 5],
+       [3, 5],
+       [1, 6],
+       [2, 6],
+       [3, 6]])
+    >>> createXYs(x=[1,2,3])  #assumes y=x
+    array([[1, 1],
+       [2, 1],
+       [3, 1],
+       [1, 2],
+       [2, 2],
+       [3, 2],
+       [1, 3],
+       [2, 3],
+       [3, 3]])
+
+    """
+    if y==None:
+        y=x
+    xs = numpy.resize(x, len(x)*len(y))# [1,2,3,1,2,3,1,2,3]
+    ys = numpy.repeat(y,len(x)) # [1,1,1,2,2,2,3,3,3]
+    return numpy.vstack([xs,ys]).transpose()
+
 def mergeFolder(src, dst, pattern=None):
     """Merge a folder into another.
 
