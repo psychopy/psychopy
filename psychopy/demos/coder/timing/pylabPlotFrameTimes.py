@@ -1,22 +1,28 @@
 #!/usr/bin/env python
-from psychopy import visual, core, log, ext
+from psychopy import visual, core, log
 import pylab
 
 # demo to illustrate some plotting with pylab, with screen refresh times as data
 #   http://matplotlib.sourceforge.net/
 nFrames = 200
-useFullScreen = False # False gives more interesting data for plotting; but try True as well
+useFullScreen = True # False gives more interesting data for plotting; but try True as well
 
 # get some data to plot; same as timeByFrames.py
 myWin = visual.Window([600,600], screen=0, fullscr=useFullScreen, monitor='testMonitor', waitBlanking=True) #make a window
 myWin.setRecordFrameIntervals(True) # myWin.frameIntervals will hold the data to plot
 myStim = visual.PatchStim(myWin, tex='sin', mask='gauss', sf=3.0)
+txt = visual.TextStim(myWin, 'hello world')
 for skipSomeInitialFrames in range(10): 
     myWin.flip()
 myClock = core.Clock()
+frameClock=core.Clock()
 for frameN in range(nFrames):
+    frameClock.reset()
     myStim.setPhase(1.0/nFrames, '+') #advance the phase (add 1.0/nFrames to prev value)
+    txt.setText('frameN = %i' %frameN)
     myStim.draw()
+    txt.draw()
+    print 'time to draw gabor: %.5f' %(frameClock.getTime())
     myWin.flip()
 avg = myClock.getTime()/nFrames
 myWin.close()
@@ -29,9 +35,9 @@ pylab.axhspan(avg*1000, avg*1000, linewidth=1, linestyle='dotted')
 pylab.plot(frameTimes, '-o')
 # vertical line intersects sorted points at the median:
 pylab.axvspan(len(frameTimes)/2, len(frameTimes)/2, .05, .95, linewidth=1, linestyle='dotted') 
-frameTimes.sort() 
+#frameTimes.sort() 
 # plot sorted times on the same graph:
-pylab.plot(frameTimes, '-o')
+#pylab.plot(frameTimes, '-o')
 
 # a faint box based on the refreshThreshold, relative to the measured average: 
 pylab.axhspan(myWin._refreshThreshold*1000, (2*avg - myWin._refreshThreshold)*1000, 
