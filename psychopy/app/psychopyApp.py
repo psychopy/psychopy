@@ -300,6 +300,8 @@ class PsychoPyApp(wx.App):
     def MacOpenFile(self,fileName):
         log.debug('PsychoPyApp: Received Mac file dropped event')
         if fileName.endswith('.py'):
+            if self.coder==None:
+                self.showCoder()
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
             self.newBuilderFrame(fileName=fileName)

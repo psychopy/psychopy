@@ -39,6 +39,8 @@ class FileDropTarget(wx.FileDropTarget):
         for filename in filenames:
             if filename.endswith('.psyexp'):
                 self.builder.fileOpen(filename=filename)
+            elif filename.lower().endswith('.py'):
+                self.app.fileOpen(filename=filename)
             else:
                 log.warning('dropped file ignored: did not end in .psyexp')
 
@@ -3295,6 +3297,11 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
+        #did user try to open a script in Builder?
+        if filename.endswith('.py'):
+            self.app.showCoder(fileList=[filename])
+            return
+        #NB this requires Python 2.5 to work because of with... statement
         with WindowFrozen(self):#try to pause rendering until all panels updated
             if closeCurrent:
                 if not self.fileClose(updateViews=False):
