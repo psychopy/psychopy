@@ -66,7 +66,7 @@ Dependencies
 
 If you want to install each library individually rather than use the simple distributions of packages above then you can download the following. Make sure you get the correct version for your OS and your version of Python.
 
-* `Python <http://www.python.org/download/>`_ (2.4.x or 2.5.x, NOT version 3)
+* `Python <http://www.python.org/download/>`_ (2.4.x-2.7.x, NOT version 3)
 * `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
@@ -77,8 +77,9 @@ If you want to install each library individually rather than use the simple dist
 * `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (easier to install with setuptools/easy_install)
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting stuff)
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port, win32 only)
-* `ctypes <http://python.net/crew/theller/ctypes/>`_ (this is already included in python 2.5)
+* `ctypes <http://python.net/crew/theller/ctypes/>`_ (this is already included in python 2.5 or later)
 * `lxml <http://lxml.de/>`_ (needed for printing saving builder experiment files)
+* `openpyxl <https://bitbucket.org/ericgazoni/openpyxl/downloads>`_ (for loading params from xlsx files)
 
 .. _suggestedPackages:
 

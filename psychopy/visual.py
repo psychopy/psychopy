@@ -2212,7 +2212,6 @@ class PatchStim(_BaseVisualStim):
             self._setSizeToDefault()
         if hasattr(self, '_requestedSf') and self._requestedSf==None:
             self._setSfToDefault()
-            print self.size, self.sf, self.units
     def setMask(self,value):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
@@ -3388,8 +3387,6 @@ class ElementArrayStim:
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        import time
-        t0=time.clock()
         if self.needVertexUpdate:
             self.updateElementVertices()
         if self.needColorUpdate:
