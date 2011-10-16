@@ -955,6 +955,7 @@ class Window:
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()
 
+        GL.glDisable(GL.GL_DEPTH_TEST)
         #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         #GL.glDepthFunc(GL.GL_LESS)                      # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
@@ -4325,7 +4326,7 @@ class TextStim(_BaseVisualStim):
             GL.glCallList(self._listID)
         if self._useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
 
-        GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
+        #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
