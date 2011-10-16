@@ -42,14 +42,14 @@ class TrialHandler:
     will raise a StopIteration error if trials have finished.
 
     See demo_trialHandler.py
-    
+
     The psydat file format is literally just a pickled copy of the TrialHandler object that
     saved it. You can open it with::
-            
+
             from psychopy import misc
             dat = misc.fromFile(path)
-            
-    Then you'll find that `dat` has the following attributes that 
+
+    Then you'll find that `dat` has the following attributes that
     """
     def __init__(self,
                  trialList,
@@ -60,38 +60,38 @@ class TrialHandler:
                  seed=None,
                  originPath=None):
         """
-        
+
         :Parameters:
 
             trialList: a simple list (or flat array) of dictionaries specifying conditions
                 This can be imported from an excel/csv file using :func:`~psychopy.data.importConditions`
-            
+
             nReps: number of repeats for all conditions
-            
+
             method: *'random',* 'sequential', or 'fullRandom'
                 'sequential obviously presents the conditions in the order they appear in the list.
                 'random' will result in a shuffle of the conditions on each repeat, but all conditions
-                occur once before the second repeat etc. 'fullRandom' fully randomises the 
+                occur once before the second repeat etc. 'fullRandom' fully randomises the
                 trials across repeats as well, which means you could potentially run all trials of
                 one condition before any trial of another.
-                
+
             dataTypes: (optional) list of names for data storage. e.g. ['corr','rt','resp']
-                If not provided then these will be created as needed during calls to 
+                If not provided then these will be created as needed during calls to
                 :func:`~psychopy.data.TrialHandler.addData`
-                
-            extraInfo: A dictionary 
+
+            extraInfo: A dictionary
                 This will be stored alongside the data and usually describes the experiment and
                 subject ID, date etc.
-                
+
             seed: an integer
                 If provided then this fixes the random number generator to use the same pattern
                 of trials, by seeding its startpoint
-                
+
             originPath: a string describing the location of the script/experiment file path
                 The psydat file format will store a copy of the experiment if possible. If no file path
-                is provided here then the TrialHandler will still store a copy of the script where it was 
+                is provided here then the TrialHandler will still store a copy of the script where it was
                 created
-                
+
         :Attributes (after creation):
             .data - a dictionary of numpy arrays, one for each data type stored
             .trialList - the original list of dicts, specifying the conditions
@@ -102,7 +102,7 @@ class TrialHandler:
             .finished - True/False for have we finished yet
             .extraInfo - the dictionary of extra info as given at beginning
             .origin - the contents of the script or builder experiment that created the handler
-            
+
         """
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
@@ -302,7 +302,7 @@ class TrialHandler:
             self.data.add('ran',1)
         log.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
-        
+
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future without advancing
         the trials.
@@ -312,7 +312,7 @@ class TrialHandler:
         seqs = numpy.array(self.sequenceIndices).transpose().flat
         condIndex=seqs[self.thisN+n]
         return self.trialList[condIndex]
-        
+
     def _parseDataOutput(self, dataOut):
 
         dataHead=[]#will store list of data headers
@@ -1258,25 +1258,25 @@ class StairHandler:
 
         #write the data
         reversalStr = str(self.reversalIntensities)
-        reversalStr = string.replace( reversalStr, ',', '\t')
+        reversalStr = string.replace( reversalStr, ',', delim)
         reversalStr = string.replace( reversalStr, '[', '')
         reversalStr = string.replace( reversalStr, ']', '')
         f.write('\nreversalIntensities=\t%s\n' %reversalStr)
 
         reversalPts = str(self.reversalPoints)
-        reversalPts = string.replace( reversalPts, ',', '\t')
+        reversalPts = string.replace( reversalPts, ',', delim)
         reversalPts = string.replace( reversalPts, '[', '')
         reversalPts = string.replace( reversalPts, ']', '')
         f.write('reversalIndices=\t%s\n' %reversalPts)
 
         rawIntens = str(self.intensities)
-        rawIntens = string.replace( rawIntens, ',', '\t')
+        rawIntens = string.replace( rawIntens, ',', delim)
         rawIntens = string.replace( rawIntens, '[', '')
         rawIntens = string.replace( rawIntens, ']', '')
         f.write('\nintensities=\t%s\n' %rawIntens)
 
         responses = str(self.data)
-        responses = string.replace( responses, ',', '\t')
+        responses = string.replace( responses, ',', delim)
         responses = string.replace( responses, '[', '')
         responses = string.replace( responses, ']', '')
         f.write('responses=\t%s\n' %responses)
