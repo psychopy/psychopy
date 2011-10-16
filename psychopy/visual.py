@@ -3408,9 +3408,9 @@ class ElementArrayStim:
         else:
             thisDepth=self.fieldDepth
         GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
-
-        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
-        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+        #self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        GL.glColorPointer(4, GL.GL_FLOAT, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
+        GL.glVertexPointer(3, GL.GL_FLOAT, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
 
         #setup the shaderprogram
         GL.glUseProgram(self.win._progSignedTexMask)
@@ -3427,10 +3427,10 @@ class ElementArrayStim:
 
         #setup client texture coordinates first
         GL.glClientActiveTexture (GL.GL_TEXTURE0)
-        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)
+        GL.glTexCoordPointer (2, GL.GL_FLOAT, 0, self._texCoords.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glClientActiveTexture (GL.GL_TEXTURE1)
-        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)
+        GL.glTexCoordPointer (2, GL.GL_FLOAT, 0, self._maskCoords.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
@@ -3476,7 +3476,7 @@ class ElementArrayStim:
     def updateElementVertices(self):
         self._calcXYsRendered()
 
-        self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],'d')
+        self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],dtype=numpy.float32)
         wx = self._sizesRendered[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
         wy = self._sizesRendered[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
         hx = self._sizesRendered[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
@@ -3494,9 +3494,6 @@ class ElementArrayStim:
         self._visXYZvertices[:,2,1] = self._XYsRendered[:,1] +wy - hy
         self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
 
-        #depth
-        self._visXYZvertices[:,:,2] = self.depths
-
         self.needVertexUpdate=False
 
     #----------------------------------------------------------------------
@@ -3504,7 +3501,7 @@ class ElementArrayStim:
         """Create a new array of self._RGBAs"""
 
         N=self.nElements
-        self._RGBAs=numpy.zeros([N,4],'d')
+        self._RGBAs=numpy.zeros([N,4],dtype=numpy.float32)
         self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
         self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
@@ -3513,7 +3510,7 @@ class ElementArrayStim:
         """Create a new array of self._maskCoords"""
 
         N=self.nElements
-        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],'d').reshape([1,4,2])
+        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],dtype=numpy.float32).reshape([1,4,2])
         self._maskCoords = self._maskCoords.repeat(N,0)
 
         #for the main texture
@@ -3530,7 +3527,7 @@ class ElementArrayStim:
 
         #self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
         self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
-            .transpose().reshape([N,4,2]).astype('d')
+            .transpose().reshape([N,4,2]).astype(numpy.float32)
         self.needTexCoordUpdate=False
 
     def setTex(self,value):
@@ -6186,6 +6183,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
         internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        #NB nVidia can't handle GL_RGB32F_ARB with vertex arrays :-(
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
