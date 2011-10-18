@@ -4850,7 +4850,7 @@ class RatingScale:
     """
     def __init__(self,
                 win,
-                scale=None,
+                scale='<default>',
                 choices=None,
                 low=1,
                 high=7,
@@ -4892,8 +4892,9 @@ class RatingScale:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             scale :
-                string, explanation of the numbers to display to the subject;
-                default = None will result in a default scale: <low>=not at all, <high>=extremely
+                string, explanation of the numbers to display to the subject, shown above the line;
+                default = '<low>=not at all, <high>=extremely'
+                to suppress all text above the line, set showScale=False
             choices :
                 a list of items which the subject can choose among;
                 (takes precedence over low, high, lowAnchorText, highAnchorText, showScale)
@@ -4920,7 +4921,8 @@ class RatingScale:
             showValue :
                 show the subject their currently selected number, default = True
             showScale :
-                show the scale text, default = True
+                show the scale text (the text above the line), default = True
+                if False, will not show any text above the line
             showAnchors :
                 show the two end points of the scale (low, high), default = True
             showAccept :
@@ -5417,7 +5419,9 @@ class RatingScale:
             highText = unicode(str(self.high))
         self.lowAnchorText = lowText
         self.highAnchorText = highText
-        if not scale: # set the default
+        if not scale:
+            scale = ' '
+        if scale == '<default>': # set the default
             scale = lowText + unicode(' = not at all . . . extremely = ') + highText
 
         # create the TextStim:
