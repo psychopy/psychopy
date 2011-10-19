@@ -17,7 +17,10 @@ PsychoPy 1.71.01
 
 * FIXED: Builder now allows images to have size of None (or none or just blank) and reverts to using the native size of the image in the file
 * FIXED: occasional glitch with rendering caused by recent removal of depth testing (it was getting turned back on under some rare circumstances)
+* FIXED: opening a builder file from coder window (and vice versa) switches view and opens there
+* FIXED: problem showing the About... item on OS X Builder view
 * ADDED: new function getFutureTrial(n=1) to TrialHandler, allowing users to find out what a trial will be without actually going to that trial
+* ADDED: misc.createXYs() to help creating a regular grid of xy values for ElementArrayStim
 
 PsychoPy 1.71.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
