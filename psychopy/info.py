@@ -474,7 +474,10 @@ def _getHashGitHead(dir=''):
         return None
     git_branches = shellCall("git branch")
     git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
-    return git_branch[0] + ' ' + git_hash.strip()
+    if len(git_branch):
+        return git_branch[0] + ' ' + git_hash.strip()
+    else:
+        return None
     
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
