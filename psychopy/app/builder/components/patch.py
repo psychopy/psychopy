@@ -54,8 +54,10 @@ class PatchComponent(VisualComponent):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
-
         inits = getInitVals(self.params)#replaces variable params with defaults
+        if inits['size'].val in ['','none','None']:
+            inits['size'].val='None'
+            inits['size'].valType='code'
         buff.writeIndented("%s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
         buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
