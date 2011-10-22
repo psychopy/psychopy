@@ -344,12 +344,15 @@ class Experiment:
                 if conditionsFile in ['None', '']:
                     conditionsFile = None
                 if conditionsFile:
-                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
-                    for fname in fieldNames:
-                        if fname != self.namespace.makeValid(fname):
-                            log.error('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
-                        else:
-                            self.namespace.add(fname)
+                    try:
+                        _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                        for fname in fieldNames:
+                            if fname != self.namespace.makeValid(fname):
+                                log.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                            else:
+                                self.namespace.add(fname)
+                    except:
+                        pass#couldn't load the conditions file for now
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
             elif elementNode.tag=="LoopTerminator":
                 self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
