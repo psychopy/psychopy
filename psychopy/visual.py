@@ -4856,7 +4856,7 @@ class RatingScale:
     """
     def __init__(self,
                 win,
-                scale=None,
+                scale='<default>',
                 choices=None,
                 low=1,
                 high=7,
@@ -4898,8 +4898,9 @@ class RatingScale:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             scale :
-                string, explanation of the numbers to display to the subject;
-                default = None will result in a default scale: <low>=not at all, <high>=extremely
+                string, explanation of the numbers to display to the subject, shown above the line;
+                default = '<low>=not at all, <high>=extremely'
+                to suppress all text above the line, set showScale=False
             choices :
                 a list of items which the subject can choose among;
                 (takes precedence over low, high, lowAnchorText, highAnchorText, showScale)
@@ -4926,7 +4927,8 @@ class RatingScale:
             showValue :
                 show the subject their currently selected number, default = True
             showScale :
-                show the scale text, default = True
+                show the scale text (the text above the line), default = True
+                if False, will not show any text above the line
             showAnchors :
                 show the two end points of the scale (low, high), default = True
             showAccept :
@@ -5423,7 +5425,9 @@ class RatingScale:
             highText = unicode(str(self.high))
         self.lowAnchorText = lowText
         self.highAnchorText = highText
-        if not scale: # set the default
+        if not scale:
+            scale = ' '
+        if scale == '<default>': # set the default
             scale = lowText + unicode(' = not at all . . . extremely = ') + highText
 
         # create the TextStim:
@@ -5557,6 +5561,9 @@ class RatingScale:
         draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
+        if self.firstDraw:
+            self.firstDraw = False
+            self.myClock.reset()
 
         # draw everything except the marker:
         for visualElement in self.visualDisplayElements:
@@ -5655,9 +5662,6 @@ class RatingScale:
                     self.noResponse = False # accept the currently marked value
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
-        if self.firstDraw:
-            self.firstDraw = False
-            self.myClock.reset()
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.myClock.getTime()
             # only set this once: at the time 'accept' is indicated by subject
@@ -5674,6 +5678,7 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
+        self.markerPlacedAt = False
         #NB markerStart could be 0; during __init__, its forced to be numeric and valid, or None (not boolean)
         if self.markerStart != None:
             self.markerPlaced = True
@@ -5698,7 +5703,7 @@ class RatingScale:
             return None # eg, if skipped a response
 
         if self.precision == 1: # set type for the response, based on what was wanted
-            response = int(self.markerPlacedAt) * self.autoRescaleFactor + self.low
+            response = int(self.markerPlacedAt * self.autoRescaleFactor) + self.low
         else:
             response = float(self.markerPlacedAt) * self.autoRescaleFactor + self.low
         if self.choices:

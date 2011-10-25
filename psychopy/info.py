@@ -465,16 +465,23 @@ class RunTimeInfo(dict):
             print k,type(self[k]),self[k]
             
 def _getHashGitHead(dir=''):
+    origDir = os.getcwd()
     os.chdir(dir)
     try:
         git_hash = shellCall("git rev-parse --verify HEAD")
     except OSError:
+        os.chdir(origDir)
         return None
     except WindowsError: # not defined on mac; OSError should catch lack of git
+        os.chdir(origDir)
         return None
+    os.chdir(origDir)
     git_branches = shellCall("git branch")
     git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
-    return git_branch[0] + ' ' + git_hash.strip()
+    if len(git_branch):
+        return git_branch[0] + ' ' + git_hash.strip()
+    else: # dir is not a git repo
+        return None
     
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
