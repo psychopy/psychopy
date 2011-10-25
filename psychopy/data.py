@@ -815,13 +815,17 @@ def importConditions(fileName, returnFieldNames=False):
         if fileName in ['None','none',None]:
             return []
         elif not os.path.isfile(fileName):
-            raise ImportError, 'TrialTypes file not found: %s' %os.path.abspath(fileName)
+            raise ImportError, 'Conditions file not found: %s' %os.path.abspath(fileName)
 
         if fileName.endswith('.csv'):
             #use csv import library to fetch the fieldNames
             f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
             #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
-            reader = csv.reader(f)#.split(os.linesep))
+            try:
+                reader = csv.reader(f)#.split(os.linesep))
+            except:
+                raise ImportError, 'Could not open %s as conditions' % fileName
+                return []
             fieldNames = reader.next()
             #use matplotlib to import data and intelligently check for data types
             #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
@@ -847,7 +851,11 @@ def importConditions(fileName, returnFieldNames=False):
                 trialList.append(thisTrial)
         elif fileName.endswith('.pkl'):
             f = open(fileName, 'rU') # is U needed?
-            trialsArr = cPickle.load(f)
+            try:
+                trialsArr = cPickle.load(f)
+            except:
+                raise ImportError, 'Could not open %s as conditions' % fileName
+                return []
             f.close()
             trialList = []
             fieldNames = trialsArr[0] # header line first
@@ -865,8 +873,12 @@ def importConditions(fileName, returnFieldNames=False):
         else:
             if not haveOpenpyxl:
                 raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
-                return -1
-            wb = load_workbook(filename = fileName)
+                return []
+            try:
+                wb = load_workbook(filename = fileName)
+            except: # InvalidFileException(unicode(e)): # this fails
+                raise ImportError, 'Could not open %s as conditions' % fileName
+                return []
             ws = wb.worksheets[0]
             nCols = ws.get_highest_column()
             nRows = ws.get_highest_row()

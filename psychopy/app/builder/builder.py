@@ -2178,6 +2178,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.setCtrls(newType)
     def onBrowseTrialsFile(self, event):
         self.conditionsFileOrig = self.conditionsFile
+        self.conditionsOrig = self.conditions
         expFolder,expName = os.path.split(self.frame.filename)
         dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
                             defaultDir=expFolder)
@@ -2194,12 +2195,16 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
                                                         returnFieldNames=True)
             except ImportError, msg:
-                self.constantsCtrls['conditions'].setValue(
-                    'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
-                    '.\nNeed to be legal as var name; edit file, try again.')
+                msg = str(msg)
+                if msg.startswith('Could not open'):
+                    self.constantsCtrls['conditions'].setValue(msg)
+                    log.error('Could not open as a conditions file.')
+                else:
+                    self.constantsCtrls['conditions'].setValue(
+                        'Badly formed condition name(s) in file:\n'+msg.replace(':','\n'))
+                    log.error('Rejected bad condition name in conditions file: %s' % msg.split(':')[0])
                 self.conditionsFile = self.conditionsFileOrig
-                self.conditions = ''
-                log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
+                self.conditions = self.conditionsOrig
                 return
 
             duplCondNames = []
