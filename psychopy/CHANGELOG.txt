@@ -15,10 +15,12 @@ PsychoPy 1.71.01
 
 (https://github.com/psychopy/psychopy)
 
+* CHANGED: the number of stimulus-resized and frames-dropped warnings is now limited to 5 (could become a preference setting?)
 * FIXED: Builder now allows images to have size of None (or none or just blank) and reverts to using the native size of the image in the file
-* FIXED: occasional glitch with rendering caused by recent removal of depth testing (it was getting turned back on under some rare circumstances)
+* FIXED: occasional glitch with rendering caused by recent removal of depth testing (it was getting turned back on by TextStim.draw())
 * FIXED: opening a builder file from coder window (and vice versa) switches view and opens there
 * FIXED: problem showing the About... item on OS X Builder view
+* FIXED problem with loops not showing up if the conditions file wasn't found
 * ADDED: new function getFutureTrial(n=1) to TrialHandler, allowing users to find out what a trial will be without actually going to that trial
 * ADDED: misc.createXYs() to help creating a regular grid of xy values for ElementArrayStim
 
