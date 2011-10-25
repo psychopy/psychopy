@@ -4688,8 +4688,11 @@ class BufferImageStim(PatchStim):
                 except AttributeError:
                     log.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
-        glversion = float(pyglet.gl.gl_info.get_version().split()[0])
-        if glversion >= 2.1 and not sqPower2:
+        glversion = pyglet.gl.gl_info.get_version().split()[0]
+        if glversion.find('.') > -1: # convert 2.1.1 to 2.1
+            gv = glversion.split('.')
+            glversion = gv[0]+'.'+gv[1]
+        if float(glversion) >= 2.1 and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
         else:
             if not sqPower2:
@@ -4776,20 +4779,14 @@ class BufferImageStim(PatchStim):
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth == 0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
 
         #self.win.setScale(self._winScale) # replaced with:
         GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
 
-        # enable dynamic position, orientation, opacity; depth not working?
+        # enable dynamic position, orientation, opacity
+        thisDepth = 1 # GL depth testing is disabled elsewhere
         GL.glTranslatef(self._posRendered[0], self._posRendered[1], thisDepth)
         GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
         GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
