@@ -20,6 +20,10 @@ from numpy import sin, cos, pi
 from core import rush
 
 prefs = preferences.Preferences()#load the site/user config files
+reportNDroppedFrames=5#stop raising warning after this
+reportNImageResizes=5
+global _nImageResizes
+_nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
@@ -295,6 +299,7 @@ class Window:
         self.movieFrames=[] #list of captured frames (Image objects)
 
         self.recordFrameIntervals=False
+        self.nDroppedFrames=0
         self.frameIntervals=[]
         self._toLog=[]
         self._toDraw=[]
@@ -469,11 +474,16 @@ class Window:
         now = log.defaultClock.getTime()
         if self.recordFrameIntervals:
             self.frames +=1
-            deltaT = now - self.lastFrameT; self.lastFrameT=now
+            deltaT = now - self.lastFrameT
+            self.lastFrameT=now
             self.frameIntervals.append(deltaT)
 
             if deltaT>self._refreshThreshold:
-                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 self.nDroppedFrames+=1
+                 if self.nDroppedFrames<reportNDroppedFrames:
+                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 elif self.nDroppedFrames==reportNDroppedFrames:
+                     log.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
 
         #log events
         for logEntry in self._toLog:
@@ -6015,6 +6025,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     """
     Create an intensity texture, ranging -1:1.0
     """
+    global _nImageResizes
     useShaders = stim._useShaders
     interpolate = stim.interpolate
     if type(tex) == numpy.ndarray:
@@ -6163,7 +6174,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
             maxDim = max(im.size)
             powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                if _nImageResizes<reportNImageResizes:
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                elif _nImageResizes==reportNImageResizes:
+                    log.warning("Multiple images have needed resizing - I'll stop bothering you!")
+                _nImageResizes+=1
                 im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
