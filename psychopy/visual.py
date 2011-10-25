@@ -20,6 +20,10 @@ from numpy import sin, cos, pi
 from core import rush
 
 prefs = preferences.Preferences()#load the site/user config files
+reportNDroppedFrames=5#stop raising warning after this
+reportNImageResizes=5
+global _nImageResizes
+_nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
@@ -295,6 +299,7 @@ class Window:
         self.movieFrames=[] #list of captured frames (Image objects)
 
         self.recordFrameIntervals=False
+        self.nDroppedFrames=0
         self.frameIntervals=[]
         self._toLog=[]
         self._toDraw=[]
@@ -469,11 +474,16 @@ class Window:
         now = log.defaultClock.getTime()
         if self.recordFrameIntervals:
             self.frames +=1
-            deltaT = now - self.lastFrameT; self.lastFrameT=now
+            deltaT = now - self.lastFrameT
+            self.lastFrameT=now
             self.frameIntervals.append(deltaT)
 
             if deltaT>self._refreshThreshold:
-                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 self.nDroppedFrames+=1
+                 if self.nDroppedFrames<reportNDroppedFrames:
+                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 elif self.nDroppedFrames==reportNDroppedFrames:
+                     log.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
 
         #log events
         for logEntry in self._toLog:
@@ -3408,9 +3418,9 @@ class ElementArrayStim:
         else:
             thisDepth=self.fieldDepth
         GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
-        #self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-        GL.glColorPointer(4, GL.GL_FLOAT, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
-        GL.glVertexPointer(3, GL.GL_FLOAT, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
+
+        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
 
         #setup the shaderprogram
         GL.glUseProgram(self.win._progSignedTexMask)
@@ -3427,10 +3437,10 @@ class ElementArrayStim:
 
         #setup client texture coordinates first
         GL.glClientActiveTexture (GL.GL_TEXTURE0)
-        GL.glTexCoordPointer (2, GL.GL_FLOAT, 0, self._texCoords.ctypes)
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._texCoords.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glClientActiveTexture (GL.GL_TEXTURE1)
-        GL.glTexCoordPointer (2, GL.GL_FLOAT, 0, self._maskCoords.ctypes)
+        GL.glTexCoordPointer (2, GL.GL_DOUBLE, 0, self._maskCoords.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
@@ -3476,7 +3486,7 @@ class ElementArrayStim:
     def updateElementVertices(self):
         self._calcXYsRendered()
 
-        self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],dtype=numpy.float32)
+        self._visXYZvertices=numpy.zeros([self.nElements , 4, 3],'d')
         wx = self._sizesRendered[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
         wy = self._sizesRendered[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
         hx = self._sizesRendered[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
@@ -3494,6 +3504,9 @@ class ElementArrayStim:
         self._visXYZvertices[:,2,1] = self._XYsRendered[:,1] +wy - hy
         self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
 
+        #depth
+        self._visXYZvertices[:,:,2] = self.depths
+
         self.needVertexUpdate=False
 
     #----------------------------------------------------------------------
@@ -3501,7 +3514,7 @@ class ElementArrayStim:
         """Create a new array of self._RGBAs"""
 
         N=self.nElements
-        self._RGBAs=numpy.zeros([N,4],dtype=numpy.float32)
+        self._RGBAs=numpy.zeros([N,4],'d')
         self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
         self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
@@ -3510,7 +3523,7 @@ class ElementArrayStim:
         """Create a new array of self._maskCoords"""
 
         N=self.nElements
-        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],dtype=numpy.float32).reshape([1,4,2])
+        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],'d').reshape([1,4,2])
         self._maskCoords = self._maskCoords.repeat(N,0)
 
         #for the main texture
@@ -3527,7 +3540,7 @@ class ElementArrayStim:
 
         #self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
         self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
-            .transpose().reshape([N,4,2]).astype(numpy.float32)
+            .transpose().reshape([N,4,2]).astype('d')
         self.needTexCoordUpdate=False
 
     def setTex(self,value):
@@ -6020,6 +6033,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     """
     Create an intensity texture, ranging -1:1.0
     """
+    global _nImageResizes
     useShaders = stim._useShaders
     interpolate = stim.interpolate
     if type(tex) == numpy.ndarray:
@@ -6168,7 +6182,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
             maxDim = max(im.size)
             powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                if _nImageResizes<reportNImageResizes:
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                elif _nImageResizes==reportNImageResizes:
+                    log.warning("Multiple images have needed resizing - I'll stop bothering you!")
+                _nImageResizes+=1
                 im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
@@ -6188,7 +6206,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
         internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-        #NB nVidia can't handle GL_RGB32F_ARB with vertex arrays :-(
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
