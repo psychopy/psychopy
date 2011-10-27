@@ -293,6 +293,7 @@ class Window:
                 self._haveShaders=False
         else:
             self._haveShaders=False
+
         self._setupGL()
         self.frameClock = core.Clock()#from psycho/core
         self.frames = 0         #frames since last fps calc
@@ -998,6 +999,12 @@ class Window:
 #                self._haveShaders=False
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
+
+        #identify gfx card vendor
+        if self.winType=='pyglet':
+            self.glVendor=GL.gl_info.get_vendor().lower()
+        else:
+            self.glVendor=GL.glGetString(GL.GL_VENDOR).lower()
 
         if sys.platform=='darwin':
             platform_specific.syncSwapBuffers(1)
@@ -6205,7 +6212,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
 
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
-        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
+            #nvidia under win/linux might not support 32bit float
+            internalFormat = GL.GL_RGB16F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        else:#we've got a mac or an ATI card and can handle 32bit float textures
+            internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
