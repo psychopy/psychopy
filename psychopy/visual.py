@@ -30,12 +30,17 @@ try:
     import ctypes
     import pyglet
     pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
-    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
+    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
     import _shadersPyglet
     import gamma
     havePyglet=True
 except:
     havePyglet=False
+try:
+    import  pyglet.media
+    havePygletMedia=True
+except:
+    havePygletMedia=False
 
 #import _shadersPygame
 try:
@@ -3629,6 +3634,10 @@ class MovieStim(_BaseVisualStim):
                 this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+
+        if not havePygletMedia:
+            raise ImportError, 'pyglet.media is needed for MovieStim and could not be imported. ' + \
+                'This might be because you have no audio output enabled (no audio card or no speakers attached)'
 
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
