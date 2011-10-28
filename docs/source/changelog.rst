@@ -7,6 +7,8 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+PsychoPy 1.71
+------------------------------
 
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -14,11 +16,17 @@ PsychoPy 1.71.01
 (https://github.com/psychopy/psychopy)
 
 * CHANGED: the number of stimulus-resized and frames-dropped warnings is now limited to 5 (could become a preference setting?)
-* FIXED: Builder now allows images to have size of None (or none or just blank) and reverts to using the native size of the image in the file
+* FIXED: Builder now allows images to have size of None (or 'none' or just blank) and reverts to using the native size of the image in the file
 * FIXED: occasional glitch with rendering caused by recent removal of depth testing (it was getting turned back on by TextStim.draw())
 * FIXED: opening a builder file from coder window (and vice versa) switches view and opens there
 * FIXED: problem showing the About... item on OS X Builder view
 * FIXED problem with loops not showing up if the conditions file wasn't found
+* FIXED: runTimeInfo: better handling of cwd and git-related info
+* FIXED: rating scale: single click with multiple rating scales,
+auto-scale with precision = 1
+* IMPROVED: rendering speed on slightly older nVidia cards (e.g. GeForce 6000/7000 series) under win32/linux. ElementArrays now render at full speed. Other cards/systems should be unchanged.
+* IMPROVED: rating scale: better handling of default description,
+scale=None more intuitive
 * ADDED: new function getFutureTrial(n=1) to TrialHandler, allowing users to find out what a trial will be without actually going to that trial
 * ADDED: misc.createXYs() to help creating a regular grid of xy values for ElementArrayStim
 
