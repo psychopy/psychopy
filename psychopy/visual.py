@@ -20,18 +20,27 @@ from numpy import sin, cos, pi
 from core import rush
 
 prefs = preferences.Preferences()#load the site/user config files
+reportNDroppedFrames=5#stop raising warning after this
+reportNImageResizes=5
+global _nImageResizes
+_nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 try:
     import ctypes
     import pyglet
     pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
-    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.media, pyglet.event
+    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
     import _shadersPyglet
     import gamma
     havePyglet=True
 except:
     havePyglet=False
+try:
+    import  pyglet.media
+    havePygletMedia=True
+except:
+    havePygletMedia=False
 
 #import _shadersPygame
 try:
@@ -289,12 +298,14 @@ class Window:
                 self._haveShaders=False
         else:
             self._haveShaders=False
+
         self._setupGL()
         self.frameClock = core.Clock()#from psycho/core
         self.frames = 0         #frames since last fps calc
         self.movieFrames=[] #list of captured frames (Image objects)
 
         self.recordFrameIntervals=False
+        self.nDroppedFrames=0
         self.frameIntervals=[]
         self._toLog=[]
         self._toDraw=[]
@@ -469,11 +480,16 @@ class Window:
         now = log.defaultClock.getTime()
         if self.recordFrameIntervals:
             self.frames +=1
-            deltaT = now - self.lastFrameT; self.lastFrameT=now
+            deltaT = now - self.lastFrameT
+            self.lastFrameT=now
             self.frameIntervals.append(deltaT)
 
             if deltaT>self._refreshThreshold:
-                    log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 self.nDroppedFrames+=1
+                 if self.nDroppedFrames<reportNDroppedFrames:
+                     log.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                 elif self.nDroppedFrames==reportNDroppedFrames:
+                     log.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
 
         #log events
         for logEntry in self._toLog:
@@ -955,6 +971,7 @@ class Window:
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()
 
+        GL.glDisable(GL.GL_DEPTH_TEST)
         #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         #GL.glDepthFunc(GL.GL_LESS)                      # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
@@ -987,6 +1004,12 @@ class Window:
 #                self._haveShaders=False
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
+
+        #identify gfx card vendor
+        if self.winType=='pyglet':
+            self.glVendor=GL.gl_info.get_vendor().lower()
+        else:
+            self.glVendor=GL.glGetString(GL.GL_VENDOR).lower()
 
         if sys.platform=='darwin':
             platform_specific.syncSwapBuffers(1)
@@ -2212,7 +2235,6 @@ class PatchStim(_BaseVisualStim):
             self._setSizeToDefault()
         if hasattr(self, '_requestedSf') and self._requestedSf==None:
             self._setSfToDefault()
-            print self.size, self.sf, self.units
     def setMask(self,value):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
@@ -2970,6 +2992,7 @@ class ElementArrayStim:
                  elementTex='sin',
                  elementMask='gauss',
                  texRes=48,
+                 interpolate=True,
                  name='', autoLog=True):
 
         """
@@ -3074,7 +3097,7 @@ class ElementArrayStim:
         self.needVertexUpdate=True
         self.needColorUpdate=True
         self._useShaders=True
-        self.interpolate=True
+        self.interpolate=interpolate
         self.fieldDepth=fieldDepth
         if depths==0:
             #depth array that totals one window depth increment
@@ -3388,8 +3411,6 @@ class ElementArrayStim:
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        import time
-        t0=time.clock()
         if self.needVertexUpdate:
             self.updateElementVertices()
         if self.needColorUpdate:
@@ -3613,6 +3634,10 @@ class MovieStim(_BaseVisualStim):
                 this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+
+        if not havePygletMedia:
+            raise ImportError, 'pyglet.media is needed for MovieStim and could not be imported. ' + \
+                'This might be because you have no audio output enabled (no audio card or no speakers attached)'
 
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
@@ -4327,7 +4352,7 @@ class TextStim(_BaseVisualStim):
             GL.glCallList(self._listID)
         if self._useShaders: GL.glUseProgram(0)#disable shader (but command isn't available pre-OpenGL2.0)
 
-        GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
+        #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
@@ -4850,7 +4875,7 @@ class RatingScale:
     """
     def __init__(self,
                 win,
-                scale=None,
+                scale='<default>',
                 choices=None,
                 low=1,
                 high=7,
@@ -4892,8 +4917,9 @@ class RatingScale:
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             scale :
-                string, explanation of the numbers to display to the subject;
-                default = None will result in a default scale: <low>=not at all, <high>=extremely
+                string, explanation of the numbers to display to the subject, shown above the line;
+                default = '<low>=not at all, <high>=extremely'
+                to suppress all text above the line, set showScale=False
             choices :
                 a list of items which the subject can choose among;
                 (takes precedence over low, high, lowAnchorText, highAnchorText, showScale)
@@ -4920,7 +4946,8 @@ class RatingScale:
             showValue :
                 show the subject their currently selected number, default = True
             showScale :
-                show the scale text, default = True
+                show the scale text (the text above the line), default = True
+                if False, will not show any text above the line
             showAnchors :
                 show the two end points of the scale (low, high), default = True
             showAccept :
@@ -5417,7 +5444,9 @@ class RatingScale:
             highText = unicode(str(self.high))
         self.lowAnchorText = lowText
         self.highAnchorText = highText
-        if not scale: # set the default
+        if not scale:
+            scale = ' '
+        if scale == '<default>': # set the default
             scale = lowText + unicode(' = not at all . . . extremely = ') + highText
 
         # create the TextStim:
@@ -5551,6 +5580,9 @@ class RatingScale:
         draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
+        if self.firstDraw:
+            self.firstDraw = False
+            self.myClock.reset()
 
         # draw everything except the marker:
         for visualElement in self.visualDisplayElements:
@@ -5649,9 +5681,6 @@ class RatingScale:
                     self.noResponse = False # accept the currently marked value
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
-        if self.firstDraw:
-            self.firstDraw = False
-            self.myClock.reset()
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.myClock.getTime()
             # only set this once: at the time 'accept' is indicated by subject
@@ -5668,6 +5697,7 @@ class RatingScale:
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
         self.markerPlaced = False
+        self.markerPlacedAt = False
         #NB markerStart could be 0; during __init__, its forced to be numeric and valid, or None (not boolean)
         if self.markerStart != None:
             self.markerPlaced = True
@@ -5692,7 +5722,7 @@ class RatingScale:
             return None # eg, if skipped a response
 
         if self.precision == 1: # set type for the response, based on what was wanted
-            response = int(self.markerPlacedAt) * self.autoRescaleFactor + self.low
+            response = int(self.markerPlacedAt * self.autoRescaleFactor) + self.low
         else:
             response = float(self.markerPlacedAt) * self.autoRescaleFactor + self.low
         if self.choices:
@@ -6019,6 +6049,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
     """
     Create an intensity texture, ranging -1:1.0
     """
+    global _nImageResizes
     useShaders = stim._useShaders
     interpolate = stim.interpolate
     if type(tex) == numpy.ndarray:
@@ -6167,7 +6198,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
             maxDim = max(im.size)
             powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                if _nImageResizes<reportNImageResizes:
+                    log.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                elif _nImageResizes==reportNImageResizes:
+                    log.warning("Multiple images have needed resizing - I'll stop bothering you!")
+                _nImageResizes+=1
                 im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
@@ -6186,7 +6221,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
 
     if pixFormat==GL.GL_RGB and wasLum and useShaders:
         #keep as float32 -1:1
-        internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
+            #nvidia under win/linux might not support 32bit float
+            internalFormat = GL.GL_RGB16F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
+        else:#we've got a mac or an ATI card and can handle 32bit float textures
+            internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R

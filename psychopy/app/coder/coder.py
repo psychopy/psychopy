@@ -347,8 +347,11 @@ class FileDropTarget(wx.FileDropTarget):
         self.coder = coder
     def OnDropFiles(self, x, y, filenames):
         for filename in filenames:
-            self.coder.setCurrentDoc(filename)
-
+            if os.path.isfile(filename):
+                if filename.lower().endswith('.psyexp'):
+                    self.coder.app.newBuilderFrame(fileName=filename)
+                else:
+                    self.coder.setCurrentDoc(filename)
 
 class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
@@ -1505,7 +1508,11 @@ class CoderFrame(wx.Frame):
         fileList = event.GetFiles()
         for filename in fileList:
             if os.path.isfile(filename):
-                self.setCurrentDoc(filename)
+                if filename.lower().endswith('.psyexp'):
+                    self.app.newBuilderFrame(filename)
+                else:
+                    print filename
+                    self.setCurrentDoc(filename)
     def OnFindOpen(self, event):
         #open the find dialog if not already open
         if self.findDlg is not None:
@@ -1719,8 +1726,12 @@ class CoderFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.SetStatusText('Loading file')
-            self.setCurrentDoc(newPath)
-            self.setFileModified(False)
+            if os.path.isfile(newPath):
+                if newPath.lower().endswith('.psyexp'):
+                    self.app.newBuilderFrame(fileName=newPath)
+                else:
+                    self.setCurrentDoc(newPath)
+                    self.setFileModified(False)
 
         self.SetStatusText('')
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
