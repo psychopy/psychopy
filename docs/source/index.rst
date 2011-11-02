@@ -7,9 +7,7 @@ News
 
 **New Facebook page**: PsychoPy is finally `on Facebook <http://www.facebook.com/pages/PsychoPy/140222406067597>`_ Show your appreciation by 'liking' it
 
-**PsychoPy workshop**: Thanks to all that participated in the Yale workshop, users and developers, and especially thanks to Jeremy for hosting it. Was great to meet you all and I think we moved the project along a good way too. Happy days!
-
-**Latest version**: 1.70.01 was released Aug 2011. See complete :doc:`changelog`
+**Latest version**: 1.71.01 was released Oct 2011. See complete :doc:`changelog`
 
 
 .. title:: Home
