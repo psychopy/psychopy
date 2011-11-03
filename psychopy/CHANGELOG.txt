@@ -10,6 +10,13 @@ Changelog
 PsychoPy 1.71
 ------------------------------
 
+PsychoPy 1.71.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(in github)
+
+* FIXED: conditions files can now have lists of numbers [0,0]
+
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
