@@ -892,9 +892,9 @@ def importConditions(fileName, returnFieldNames=False):
                     fieldName = fieldNames[colN]
                     val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
                     #if it looks like a list, convert it
-                    if type(val)==unicode and val.startswith('[') and val.endswith(']'):
+                    if type(val) in [unicode, str] and val.startswith('[') and val.endswith(']'):
                         val = eval(val)
-                    elif type(val)==unicode and val.startswith('(') and val.endswith(')'):
+                    elif type(val) in [unicode, str] and val.startswith('(') and val.endswith(')'):
                         val = eval(val)
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
