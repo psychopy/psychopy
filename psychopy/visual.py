@@ -4638,6 +4638,169 @@ class ShapeStim(_BaseVisualStim):
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
 
+class Polygon(ShapeStim):
+    """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
+    """    
+    def __init__(self, win, edges=3, radius=.5, **kwargs):
+        """
+        Polygon accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+
+        :Parameters:
+
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+
+            edges : int
+                Number of edges of the polygon
+
+            radius : float, int, tuple, list or 2x1 array
+                Radius of the Polygon (distance from the center to the corners).
+                May be a -2tuple or list to stretch the polygon asymmetrically
+        """
+        self.edges = edges
+        self.radius = numpy.asarray(radius)
+        self._calcVertices()
+        kwargs['closeShape'] = True # Make sure nobody messes around here
+        kwargs['vertices'] = self.vertices
+        ShapeStim.__init__(self, win, **kwargs)
+
+    def _calcVertices(self):
+        d = numpy.pi*2/ self.edges
+        self.vertices = [
+            numpy.asarray(
+                (numpy.sin(e*d), numpy.cos(e*d))
+            ) * self.radius
+            for e in xrange(self.edges)
+        ]
+
+    def setRadius(self, radius):
+        """Changes the radius of the Polygon. Parameter should be
+
+            - float, int, tuple, list or 2x1 array"""
+        self.radius = numpy.asarray(radius)
+        self._calcVertices()
+        self.setVertices(self.vertices)
+
+class Circle(Polygon):
+    """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
+    """    
+    def __init__(self, win, radius=.5, **kwargs):
+        """
+        Circle accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+
+        :Parameters:
+
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+
+            radius : float, int, tuple, list or 2x1 array
+                Radius of the Circle (distance from the center to the corners).
+                If radius is a 2-tuple or list, the values will be interpreted as semi-major and
+                semi-minor radii of an ellipse.
+        """
+        kwargs['edges'] = 32
+        kwargs['radius'] = radius
+        Polygon.__init__(self, win, **kwargs)
+
+
+    def setRadius(self, radius):
+        """Changes the radius of the Polygon. If radius is a 2-tuple or list, the values will be
+        interpreted as semi-major and semi-minor radii of an ellipse."""
+        self.radius = numpy.asarray(radius)
+        self._calcVertices()
+        self.setVertices(self.vertices)
+
+class Rect(ShapeStim):
+    """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
+    """    
+    def __init__(self, win, width=.5, height=.5, **kwargs):
+        """
+        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+
+        :Parameters:
+
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+
+            width : int or float
+                Width of the Rectangle (in its respective units, if specified)
+
+            height : int or float
+                Height of the Rectangle (in its respective units, if specified)
+
+        """
+        self.width = width
+        self.height = height
+        self._calcVertices()
+        kwargs['closeShape'] = True # Make sure nobody messes around here
+        kwargs['vertices'] = self.vertices
+        
+        ShapeStim.__init__(self, win, **kwargs)
+
+    def _calcVertices(self):
+        self.vertices = [
+            (-self.width*.5,  self.height*.5),
+            ( self.width*.5,  self.height*.5),
+            ( self.width*.5, -self.height*.5),
+            (-self.width*.5, -self.height*.5)
+        ]
+
+    def setWidth(self, width):
+        """Changes the width of the Rectangle"""
+        self.width = width
+        self._calcVertices()
+        self.setVertices(self.vertices)
+
+    def setHeight(self, width):
+        """Changes the width of the Rectangle """
+        self.height = height
+        self._calcVertices()
+        self.setVertices(self.vertices)
+
+class Line(ShapeStim):
+    """Creates a Line between two points.
+    """    
+    def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
+        """
+        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except 
+        for vertices, closeShape and fillColor.
+
+        :Parameters:
+
+            win :
+                A :class:`~psychopy.visual.Window` object (required)
+
+            start : tuple, list or 2x1 array
+                Specifies the position of the start of the line
+
+            end : tuple, list or 2x1 array
+                Specifies the position of the end of the line
+
+        """
+        self.start = start
+        self.end = end
+        self.vertices = [start, end]
+        kwargs['closeShape'] = False # Make sure nobody messes around here
+        kwargs['vertices'] = self.vertices        
+        kwargs['fillColor'] = None
+        ShapeStim.__init__(self, win, **kwargs)
+
+    def setStart(self, start):
+        """Changes the start point of the line. Argument should be
+
+            - tuple, list or 2x1 array specifying the coordinates of the start point"""
+        self.start = start
+        self.setVertices([self.start, self.end])
+
+    def setEnd(self, end):
+        """Changes the end point of the line. Argument should be
+
+            - tuple, list or 2x1 array specifying the coordinates of the end point"""
+        self.end = end
+        self.setVertices([self.start, self.end])
+
+
+
 class BufferImageStim(PatchStim):
     """
     Obtain a "screen-shot" (fullscreen, or region) from a buffer, save to a PatchStim()-like RBGA image.
