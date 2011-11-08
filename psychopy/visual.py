@@ -4388,6 +4388,7 @@ class ShapeStim(_BaseVisualStim):
                  vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  closeShape=True,
                  pos= (0,0),
+                 size=1,
                  ori=0.0,
                  opacity=1.0,
                  depth  =0,
@@ -4442,6 +4443,11 @@ class ShapeStim(_BaseVisualStim):
             pos : tuple, list or 2x1 array
                 the position of the anchor for the stimulus (relative to which the vertices are drawn)
 
+            size : float, int, tuple, list or 2x1 array
+                Scales the ShapeStim up or down. Size is independent of the units, i.e.
+                setting the size to 1.5 will make the stimulus to be 1.5 times it's original size
+                as defined by the vertices. Use a 2-tuple to scale asymmetrically.
+
             ori : float or int
                 the shape can be rotated around the anchor
 
@@ -4488,6 +4494,8 @@ class ShapeStim(_BaseVisualStim):
         if depth!=0:#deprecated in 1.64.00
             log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
         self.ori = numpy.array(ori,float)
+        self.size = numpy.array([0.0,0.0])
+        self.setSize(size)
         self.setVertices(vertices)
         self._calcVerticesRendered()
     def setColor(self, color, colorSpace=None, operation=''):
@@ -4521,6 +4529,14 @@ class ShapeStim(_BaseVisualStim):
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value
                     colorAttrib='fillColor')#the name for this color
+
+    def setSize(self, value, operation=''):
+        """ Sets the size of the shape.
+        Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
+        Use a tuple or list of two values to scale asymmetrically.
+        """
+        self._set('size', numpy.asarray(value), operation)
+        self.needVertexUpdate=True
 
     def setVertices(self,value=None, operation=''):
         """Set the xy values of the vertices (relative to the centre of the field).
@@ -4620,6 +4636,7 @@ class ShapeStim(_BaseVisualStim):
         elif self.units=='cm':
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+        self._verticesRendered = self._verticesRendered * self.size
 
 class BufferImageStim(PatchStim):
     """
