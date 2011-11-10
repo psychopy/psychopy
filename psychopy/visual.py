@@ -3156,7 +3156,7 @@ class ElementArrayStim:
         by this function (it is used to make elements outside the field invisible.
         """
         if value==None:
-            if self.fieldShape is 'sqr':
+            if self.fieldShape in ['sqr', 'square']:
                 self.xys = numpy.random.rand(self.nElements,2)*self.fieldSize - self.fieldSize/2 #initialise a random array of X,Y
                 #gone outside the square
                 self.xys[:,0] = ((self.xys[:,0]+self.fieldSize[0]/2) % self.fieldSize[0])-self.fieldSize[0]/2
