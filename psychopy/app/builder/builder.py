@@ -427,16 +427,13 @@ class FlowPanel(wx.ScrolledWindow):
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
         dc = wx.BufferedPaintDC(self)
-        if sys.platform.startswith('linux'):
-            gcdc = dc
-        else:
-            gcdc = wx.GCDC(dc)
+        dc = wx.GCDC(dc)
         # use PrepateDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        gcdc.SetBackground(bg)
-        gcdc.Clear()
+        dc.SetBackground(bg)
+        dc.Clear()
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -446,7 +443,7 @@ class FlowPanel(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(gcdc,r)
+        self.pdc.DrawToDCClipped(dc,r)
 
     def draw(self, evt=None):
         """This is the main function for drawing the Flow panel.
