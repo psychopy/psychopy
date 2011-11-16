@@ -294,10 +294,12 @@ class Mouse:
         self.mouseClock=psychopy.core.Clock() # used for movement timing
         self.movedistance=0.0
         #if pygame isn't initialised then we must use pyglet
-        if (havePygame and not pygame.display.get_init()):
-            global usePygame
+        global usePygame
+        if (havePygame and not pygame.display.get_init()):        
             usePygame=False
-
+        if not usePygame:
+            global mouseButtons
+            mouseButtons = [0,0,0]
         if newPos is not None: self.setPos(newPos)
 
     def setPos(self,newPos=(0,0)):
