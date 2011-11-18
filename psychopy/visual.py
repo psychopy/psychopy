@@ -4640,7 +4640,9 @@ class ShapeStim(_BaseVisualStim):
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
-    """    
+
+    (New in version 1.71.02)
+    """
     def __init__(self, win, edges=3, radius=.5, **kwargs):
         """
         Polygon accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
@@ -4683,7 +4685,9 @@ class Polygon(ShapeStim):
 
 class Circle(Polygon):
     """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
-    """    
+
+    (New in version 1.71.02)
+    """
     def __init__(self, win, radius=.5, **kwargs):
         """
         Circle accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
@@ -4692,6 +4696,10 @@ class Circle(Polygon):
 
             win :
                 A :class:`~psychopy.visual.Window` object (required)
+
+            edges : float or int (default=32)
+                Specifies the resolution of the polygon that is approximating the
+                circle.
 
             radius : float, int, tuple, list or 2x1 array
                 Radius of the Circle (distance from the center to the corners).
@@ -4712,7 +4720,9 @@ class Circle(Polygon):
 
 class Rect(ShapeStim):
     """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
-    """    
+
+    (New in version 1.71.02)
+    """
     def __init__(self, win, width=.5, height=.5, **kwargs):
         """
         Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
@@ -4734,7 +4744,7 @@ class Rect(ShapeStim):
         self._calcVertices()
         kwargs['closeShape'] = True # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
-        
+
         ShapeStim.__init__(self, win, **kwargs)
 
     def _calcVertices(self):
@@ -4759,10 +4769,12 @@ class Rect(ShapeStim):
 
 class Line(ShapeStim):
     """Creates a Line between two points.
-    """    
+
+    (New in version 1.71.02)
+    """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
-        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except 
+        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
 
         :Parameters:
@@ -4781,7 +4793,7 @@ class Line(ShapeStim):
         self.end = end
         self.vertices = [start, end]
         kwargs['closeShape'] = False # Make sure nobody messes around here
-        kwargs['vertices'] = self.vertices        
+        kwargs['vertices'] = self.vertices
         kwargs['fillColor'] = None
         ShapeStim.__init__(self, win, **kwargs)
 
