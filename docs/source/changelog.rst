@@ -10,6 +10,17 @@ Changelog
 PsychoPy 1.71
 ------------------------------
 
+PsychoPy 1.71.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(in github)
+
+* ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
+    - ShapeStim now has a size parameter that scales the locations of vertices
+    - new classes; Rect, Line, Circle, Polygon
+* FIXED: conditions files can now have lists of numbers [0,0]
+* FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
+
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
