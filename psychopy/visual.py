@@ -75,8 +75,6 @@ except:
 
 global DEBUG; DEBUG=False
 
-_depthIncrements = {'pyglet':+0.00001, 'pygame':+0.00001, 'glut':-0.000001}
-
 #symbols for MovieStim
 from psychopy.constants import *
 #PLAYING=1
@@ -419,7 +417,7 @@ class Window:
             GL.glEnd()
 
         #update the bits++ LUT
-        if self.bitsMode == 'fast':
+        if self.bitsMode in ['fast','bits++']:
             self.bits._drawLUTtoScreen()
 
         if self.winType == "glut": GLUT.glutSwapBuffers()
@@ -1466,8 +1464,6 @@ class DotStim(_BaseVisualStim):
             self.setColor(color)
 
         self.depth=depth
-        if depth!=0:
-            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
 
         """initialise the dots themselves - give them all random dir and then
         fix the first n in the array to have the direction specified"""
@@ -1571,17 +1567,12 @@ class DotStim(_BaseVisualStim):
         self._update_dotsXY()
 
         GL.glPushMatrix()#push before drawing, pop after
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            win._defDepth += _depthIncrements[win.winType]
-        else:
-            thisDepth=self.depth
 
         #draw the dots
         if self.element==None:
             win.setScale(self._winScale)
             #scale the drawing frame etc...
-            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
+            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0)
             GL.glPointSize(self.dotSize)
 
             #load Null textures into multitexteureARB - they modulate with glColor
@@ -2250,18 +2241,11 @@ class PatchStim(_BaseVisualStim):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            win._defDepth += _depthIncrements[win.winType]
-        else:
-            thisDepth=self.depth
-
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
         win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
@@ -2568,9 +2552,6 @@ class RadialStim(PatchStim):
             self.rgbPedestal = numpy.asarray(rgbPedestal, float)
 
         self.depth=depth
-        if depth!=0:#deprecated in 1.64.00
-            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
-
         #size
         if type(size) in [tuple,list]:
             self.size = numpy.array(size,float)
@@ -2646,19 +2627,12 @@ class RadialStim(PatchStim):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
         #scale the viewport to the appropriate size
         self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
 
         if self._useShaders:
@@ -3099,11 +3073,7 @@ class ElementArrayStim:
         self._useShaders=True
         self.interpolate=interpolate
         self.fieldDepth=fieldDepth
-        if depths==0:
-            #depth array that totals one window depth increment
-            self.depths=numpy.linspace(0,_depthIncrements[self.win.winType],self.nElements).repeat(4).reshape(self.nElements, 4)
-        else:
-            self.depths=depths
+        self.depths=depths
         if self.win.winType != 'pyglet':
             raise TypeError('ElementArrayStim requires a pyglet context')
         if not self.win._haveShaders:
@@ -3424,12 +3394,8 @@ class ElementArrayStim:
 
         #GL.glLoadIdentity()
         self.win.setScale(self._winScale)
-        if self.fieldDepth==0:
-            thisDepth=self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]*self.nElements
-        else:
-            thisDepth=self.fieldDepth
-        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],thisDepth)
+
+        GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0)
 
         GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self._visXYZvertices.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
@@ -3647,7 +3613,6 @@ class MovieStim(_BaseVisualStim):
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
         self.pos=pos
-        self.depth=0
         self.pos = numpy.asarray(pos, float)
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -3750,13 +3715,6 @@ class MovieStim(_BaseVisualStim):
         if win==None: win=self.win
         win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
         #make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -3768,7 +3726,7 @@ class MovieStim(_BaseVisualStim):
         #scale the viewport to the appropriate size
         self.win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         flipBitX = 1-self.flipHoriz*2
         flipBitY = 1-self.flipVert*2
@@ -3777,7 +3735,7 @@ class MovieStim(_BaseVisualStim):
                 -self._sizeRendered[1]/2.0*flipBitY,
                 width=self._sizeRendered[0]*flipBitX,
                 height=self._sizeRendered[1]*flipBitY,
-                z=thisDepth)
+                z=0)
         GL.glPopMatrix()
 
     def _onEos(self):
@@ -3881,8 +3839,6 @@ class TextStim(_BaseVisualStim):
         self.italic=italic
         self.text='' #NB just a placeholder - real value set below
         self.depth=depth
-        if depth!=0:#deprecated in 1.64.00
-            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
         self.ori=ori
         self.wrapWidth=wrapWidth
         self._pygletTextObj=None
@@ -4290,18 +4246,11 @@ class TextStim(_BaseVisualStim):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
         GL.glPushMatrix()
         GL.glLoadIdentity()#for PyOpenGL this is necessary despite pop/PushMatrix, (not for pyglet)
         #scale and rotate
         prevScale = win.setScale(self._winScale)#to units for translations
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)#NB depth is set already
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)#NB depth is set already
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
 
@@ -4569,17 +4518,12 @@ class ShapeStim(_BaseVisualStim):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
-        if self.depth==0:
-            thisDepth = self.win._defDepth
-            win._defDepth += _depthIncrements[win.winType]
-        else:
-            thisDepth=self.depth
         nVerts = self.vertices.shape[0]
 
         #scale the drawing frame etc...
         GL.glPushMatrix()#push before drawing, pop after
         win.setScale(self._winScale)
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],thisDepth)
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -4617,7 +4561,6 @@ class ShapeStim(_BaseVisualStim):
             else:lineRGB = self.lineRGB/255.0
             #then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glTranslatef(0,0,_depthIncrements[win.winType]/2.0)
             GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
             if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
@@ -4984,13 +4927,6 @@ class BufferImageStim(PatchStim):
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
 
-        #work out next default depth
-        if self.depth == 0:
-            thisDepth = self.win._defDepth
-            self.win._defDepth += _depthIncrements[self.win.winType]
-        else:
-            thisDepth=self.depth
-
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
 
@@ -4998,7 +4934,7 @@ class BufferImageStim(PatchStim):
         GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glTranslatef(self._posRendered[0], self._posRendered[1], thisDepth)
+        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
         GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
         GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
         #if self.needUpdate: self._updateList()
