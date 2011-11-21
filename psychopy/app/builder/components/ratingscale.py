@@ -35,6 +35,7 @@ class RatingScaleComponent(BaseComponent):
         self.type='RatingScale'
         self.url="http://www.psychopy.org/builder/components/ratingscale.html"
         self.exp=exp
+        self.parentName=parentName
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         #params

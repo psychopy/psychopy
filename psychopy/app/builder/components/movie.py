@@ -20,7 +20,7 @@ class MovieComponent(VisualComponent):
                 startEstim='', durationEstim='',
                 forceEndRoutine=False):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,parentName,name=name, units=units,
+        VisualComponent.__init__(self,exp,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,

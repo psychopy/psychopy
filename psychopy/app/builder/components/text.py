@@ -20,7 +20,7 @@ class TextComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self, parentName, name=name, units=units,
+        VisualComponent.__init__(self, exp, parentName, name=name, units=units,
                     color=color, colorSpace=colorSpace,
                     pos=pos, ori=ori,
                     startType=startType, startVal=startVal,
@@ -28,9 +28,7 @@ class TextComponent(VisualComponent):
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Text'
         self.url="http://www.psychopy.org/builder/components/text.html"
-        self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
-        self.parentName=parentName
         #params
         self.params['name']=Param(name, valType='code', allowedTypes=[])
         self.params['text']=Param(text, valType='str', allowedTypes=[],

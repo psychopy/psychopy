@@ -25,16 +25,14 @@ class DotsComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,parentName,name=name, units=units,
+        VisualComponent.__init__(self,exp,parentName,name=name, units=units,
                     color=color, colorSpace=colorSpace,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Dots'
         self.url="http://www.psychopy.org/builder/components/dots.html"
-        self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
-        self.parentName=parentName
         #params
         self.params['advancedParams']=['signalDots','noiseDots']
         self.params['name']=Param(name, valType='code', allowedTypes=[])

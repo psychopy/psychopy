@@ -18,6 +18,7 @@ class SoundComponent(BaseComponent):
                 startEstim='', durationEstim=''):
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
+        self.parentName=parentName
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params
