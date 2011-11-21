@@ -739,6 +739,7 @@ class LoopInitiator:
     def __init__(self, loop):
         self.loop=loop
         self.exp=loop.exp
+        loop.initiator=self
     def writeInitCode(self,buff):
         self.loop.writeInitCode(buff)
     def writeMainCode(self,buff):
@@ -754,6 +755,7 @@ class LoopTerminator:
     def __init__(self, loop):
         self.loop=loop
         self.exp=loop.exp
+        loop.terminator=self
     def writeInitCode(self,buff):
         pass
     def writeMainCode(self,buff):
@@ -793,7 +795,7 @@ class Flow(list):
         """
         if component.getType() in ['LoopInitiator', 'LoopTerminator']:
             component=component.loop#and then continue to do the next
-        if component.getType() in ['StairHandler', 'TrialHandler']:
+        if component.getType() in ['StairHandler', 'TrialHandler', 'MultiStairHandler']:
             #we need to remove the termination points that correspond to the loop
             toBeRemoved = []
             for comp in self: # cant safely change the contents of self when looping through self

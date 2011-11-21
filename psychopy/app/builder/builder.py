@@ -308,22 +308,32 @@ class FlowPanel(wx.ScrolledWindow):
         #add routine points to the timeline
         self.setDrawPoints('loops')
         self.draw()
-
-        condOrig = loop.params['conditions'].val
-        condFileOrig = loop.params['conditionsFile'].val
+        if 'conditions' in loop.params.keys():
+            condOrig = loop.params['conditions'].val
+            condFileOrig = loop.params['conditionsFile'].val
         loopDlg = DlgLoopProperties(frame=self.frame,
             helpUrl = self.app.urls['builder.loops'],
             title=loop.params['name'].val+' Properties', loop=loop)
         if loopDlg.OK:
+            prevLoop=loop
             if loopDlg.params['loopType'].val=='staircase':
                 loop= loopDlg.stairHandler
-            if loopDlg.params['loopType'].val=='interleaved stairs':
+            elif loopDlg.params['loopType'].val=='interleaved stairs':
                 loop= loopDlg.multiStairHandler
             else:
                 loop=loopDlg.trialHandler #['random','sequential', 'fullRandom', ]
-            loop.params=loop.params
+            #if the loop is a whole new class then we can't just update the params
+            if loop.getType()!=prevLoop.getType():
+                #get indices for start and stop points of prev loop
+                flow = self.frame.exp.flow
+                startII = flow.index(prevLoop.initiator)#find the index of the initator
+                endII = flow.index(prevLoop.terminator)-1 #minus one because initator will have been deleted
+                #remove old loop completely
+                flow.removeComponent(prevLoop)
+                #finally insert the new loop
+                flow.addLoop(loop, startII, endII)
             self.frame.addToUndoStack("Edit Loop")
-        else:
+        elif 'conditions' in loop.params.keys():
             loop.params['conditions'].val = condOrig
             loop.params['conditionsFile'].val = condFileOrig
         #remove the points from the timeline
@@ -338,7 +348,7 @@ class FlowPanel(wx.ScrolledWindow):
                 for thisIcon in icons:#might intersect several and only one has a callback
                     if thisIcon in self.componentFromID:
                         comp=self.componentFromID[thisIcon]
-                        if comp.getType() in ['StairHandler', 'TrialHandler']:
+                        if comp.getType() in ['StairHandler', 'TrialHandler', 'MultiStairHandler']:
                             self.editLoopProperties(loop=comp)
                         if comp.getType() == 'Routine':
                             self.frame.routinePanel.setCurrentRoutine(routine=comp)
@@ -349,7 +359,7 @@ class FlowPanel(wx.ScrolledWindow):
                     if thisIcon in self.componentFromID:
                         #loop through comps looking for Routine, or a Loop if no routine
                         thisComp=self.componentFromID[thisIcon]
-                        if thisComp.getType() in ['StairHandler', 'TrialHandler']:
+                        if thisComp.getType() in ['StairHandler', 'TrialHandler', 'MultiStairHandler']:
                             comp=thisComp#use this if we don't find a routine
                             icon=thisIcon
                         if thisComp.getType() == 'Routine':
@@ -406,7 +416,7 @@ class FlowPanel(wx.ScrolledWindow):
         flow = self.frame.exp.flow
         if op=='remove':
             # remove name from namespace only if its a loop (which exists only in the flow)
-            if component.type in ['TrialHandler', 'StairHandler']:
+            if 'conditionsFile' in component.params.keys():
                 conditionsFile = component.params['conditionsFile'].val
                 if conditionsFile and conditionsFile not in ['None','']:
                     _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
@@ -1910,7 +1920,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.ctrlSizer= wx.BoxSizer(wx.VERTICAL)
         self.conditions=None
         self.conditionsFile=None
-
         #create a valid new name; save old name in case we need to revert
         defaultName = 'trials'
         oldLoopName = defaultName
@@ -2267,7 +2276,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             #self.constantsCtrls['conditions'] could be misleading at this point
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
-        self.refreshConditions()
+        if 'conditionsFile' in self.currentCtrls.keys():
+            self.refreshConditions()
         event.Skip() # do the OK button press
 
 class DlgComponentProperties(_BaseParamsDlg):
