@@ -107,7 +107,7 @@ def getInitVals(params):
 
         #is changing so work out a reasonable default
         elif name == 'pos':
-            inits[name]='[0,0]'
+            inits[name].val='[0,0]'
             inits[name].valType='code'
         elif name in ['ori','sf','size','height','color','phase','opacity',
             'volume', #sounds
