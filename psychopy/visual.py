@@ -307,6 +307,7 @@ class Window:
         self.frameIntervals=[]
         self._toLog=[]
         self._toDraw=[]
+        self._toDrawDepths=[]
 
         if self.useNativeGamma:
             log.info('Using gamma table of operating system')
@@ -1300,16 +1301,29 @@ class _BaseVisualStim:
             - val: True/False
                 True to add the stimulus to the draw list, False to remove it
         """
-        beingDrawn = (self in self.win._toDraw)
+        toDraw=self.win._toDraw
+        beingDrawn = (self in toDraw)
         if val == beingDrawn:
             return #nothing to do
         elif val:
-            self.win._toDraw.append(self)
+            #work out where to insert the object in the autodraw list
+            depthArray = numpy.array(self.win._toDrawDepths)
+            iis = numpy.where(depthArray>self.depth)[0]#all indices where true
+            if len(iis):#we featured somewhere before the end of the list
+                _toDraw.insert(iis[0], self)
+                self.win._toDrawDepths.insert(iis[0], self.depth)
+            else:
+                _toDraw.append(self)
+                self.win._toDrawDepths.append(self.depth)
+            #update log and status
             if self.autoLog: self.win.logOnFlip(msg=u"Started presenting %s" %self.name,
                 level=log.EXP, obj=self)
             self.status = STARTED
         elif val==False:
-            self.win._toDraw.remove(self)
+            #remove from autodraw lists
+            self.win._toDrawDepths.remove(_toDraw.index(self))#remove from depths
+            self.win._toDraw.remove(self)#remove from draw list
+            #update log and status
             if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name,
                 level=log.EXP, obj=self)
             self.status = STOPPED
