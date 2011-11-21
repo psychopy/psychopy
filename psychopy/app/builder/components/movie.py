@@ -60,6 +60,8 @@ class MovieComponent(VisualComponent):
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s," %(params))
         if self.params['size'].val != '':
             buff.writeIndented("    size=%(size)s,\n"%(params))
+        depth = -self.getPosInRoutine()
+        buff.writeIndented("    depth=%.1f,\n" %depth)
         buff.writeIndented("    )\n")
     def writeInitCode(self,buff):
         #If needed then use _writeCreationCode()

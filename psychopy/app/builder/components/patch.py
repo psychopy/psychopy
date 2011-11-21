@@ -62,5 +62,6 @@ class PatchComponent(VisualComponent):
         if self.params['interpolate']=='linear':
             buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
-        buff.write(")\n")#finish with newline
+        depth = -self.getPosInRoutine()
+        buff.write(", depth=%.1f)\n" %depth)#finish with newline
 
