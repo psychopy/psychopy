@@ -1302,27 +1302,28 @@ class _BaseVisualStim:
                 True to add the stimulus to the draw list, False to remove it
         """
         toDraw=self.win._toDraw
+        toDrawDepths=self.win._toDrawDepths
         beingDrawn = (self in toDraw)
         if val == beingDrawn:
             return #nothing to do
         elif val:
             #work out where to insert the object in the autodraw list
-            depthArray = numpy.array(self.win._toDrawDepths)
-            iis = numpy.where(depthArray>self.depth)[0]#all indices where true
+            depthArray = numpy.array(toDrawDepths)
+            iis = numpy.where(depthArray<self.depth)[0]#all indices where true
             if len(iis):#we featured somewhere before the end of the list
-                _toDraw.insert(iis[0], self)
-                self.win._toDrawDepths.insert(iis[0], self.depth)
+                toDraw.insert(iis[0], self)
+                toDrawDepths.insert(iis[0], self.depth)
             else:
-                _toDraw.append(self)
-                self.win._toDrawDepths.append(self.depth)
+                toDraw.append(self)
+                toDrawDepths.append(self.depth)
             #update log and status
             if self.autoLog: self.win.logOnFlip(msg=u"Started presenting %s" %self.name,
                 level=log.EXP, obj=self)
             self.status = STARTED
         elif val==False:
             #remove from autodraw lists
-            self.win._toDrawDepths.remove(_toDraw.index(self))#remove from depths
-            self.win._toDraw.remove(self)#remove from draw list
+            toDrawDepths.pop(toDraw.index(self))#remove from depths
+            toDraw.remove(self)#remove from draw list
             #update log and status
             if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name,
                 level=log.EXP, obj=self)
@@ -2171,9 +2172,6 @@ class PatchStim(_BaseVisualStim):
         self.pos = numpy.array(pos,float)
 
         self.depth=depth
-        if depth!=0:#deprecated in 1.64.00
-            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
-
         #fix scaling to window coords
         self._calcCyclesPerStim()
         self._calcSizeRendered()
@@ -4454,8 +4452,6 @@ class ShapeStim(_BaseVisualStim):
             self.setFillColor(fillColor, colorSpace=fillColorSpace)
 
         self.depth=depth
-        if depth!=0:#deprecated in 1.64.00
-            log.warning("The depth argument is deprecated and may be removed. Depth is controlled simply by drawing order")
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0,0.0])
         self.setSize(size)
