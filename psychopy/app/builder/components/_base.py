@@ -8,9 +8,10 @@ from psychopy.app.builder.experiment import Param
 
 class BaseComponent:
     """A template for components, defining the methods to be overridden"""
-    def __init__(self, exp, name=''):
+    def __init__(self, exp, parentName, name=''):
         self.type='Base'
         self.exp=exp#so we can access the experiment if necess
+        self.parentName=parentName#to access the routine too if needed
         self.params={}
         self.params['name']=Param(name, valType='code',
             hint="Name of this component")
@@ -114,6 +115,11 @@ class BaseComponent:
             if thisParam.updates==updateType:
                 return True
         return False
+    def getPosInRoutine(self):
+        """Find the index (position) in the parent Routine (0 for top)
+        """
+        routine = self.exp.routines[self.parentName]
+        return routine.index(self)
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):

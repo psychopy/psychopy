@@ -19,6 +19,7 @@ class MouseComponent(BaseComponent):
                 save='final',forceEndRoutineOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
+        self.parentName=parentName
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
         #params

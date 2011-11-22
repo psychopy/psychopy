@@ -23,16 +23,14 @@ class ApertureComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters
-        VisualComponent.__init__(self, parentName, name=name, units=units,
+        VisualComponent.__init__(self, exp, parentName, name=name, units=units,
                     pos=pos,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
-        self.exp = exp #so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
-        self.parentName = parentName
         #params:
         #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
