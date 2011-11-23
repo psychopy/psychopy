@@ -3268,6 +3268,7 @@ class ElementArrayStim:
         else: exec('self.sizes'+operation+'=value')
         self._calcSizesRendered()
         self.needVertexUpdate=True
+        self.needTexCoordUpdate=True
 
     def setPhases(self,value,operation=''):
         """Set the phase for each element.
