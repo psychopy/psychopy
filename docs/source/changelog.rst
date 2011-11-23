@@ -7,19 +7,31 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-PsychoPy 1.71
+PsychoPy 1.72
 ------------------------------
 
-PsychoPy 1.71.02
+PsychoPy 1.72.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(in github)
+(released Nov 2011)
 
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
+	- for :class:`~psychopy.gui.Dlg` the `.addField()` method now has `choices` attribute 
+	- for :class:`~psychopy.gui.DlgFromDict` if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
+	- for info see docs linked above
+	
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
+    
 * FIXED: conditions files can now have lists of numbers [0,0]
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
+* FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
+* FIXED: problem with Patch Component when size was set to be dynamic
+* FIXED: problem with BUilder loops not being able to change type (e.g. change random into staircase)
+    
+PsychoPy 1.71
+------------------------------
 
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

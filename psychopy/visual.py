@@ -4595,7 +4595,7 @@ class ShapeStim(_BaseVisualStim):
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
 
-    (New in version 1.71.02)
+    (New in version 1.72.00)
     """
     def __init__(self, win, edges=3, radius=.5, **kwargs):
         """
@@ -4640,7 +4640,7 @@ class Polygon(ShapeStim):
 class Circle(Polygon):
     """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
 
-    (New in version 1.71.02)
+    (New in version 1.72.00)
     """
     def __init__(self, win, radius=.5, **kwargs):
         """
@@ -4675,7 +4675,7 @@ class Circle(Polygon):
 class Rect(ShapeStim):
     """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
 
-    (New in version 1.71.02)
+    (New in version 1.72.00)
     """
     def __init__(self, win, width=.5, height=.5, **kwargs):
         """
@@ -4724,7 +4724,7 @@ class Rect(ShapeStim):
 class Line(ShapeStim):
     """Creates a Line between two points.
 
-    (New in version 1.71.02)
+    (New in version 1.72.00)
     """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
