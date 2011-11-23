@@ -66,9 +66,7 @@ class Dlg(wx.Dialog):
         """
         Adds a (labelled) input field to the dialogue box, optional text color
         and tooltip. Returns a handle to the field (but not to the label).
-        If choices is a list of strings, it will create a dropdown selector and
-        save the index of the selected item - intial should specify the index
-        of the default element in this case.
+        If choices is a list or tuple, it will create a dropdown selector.
         """
         self.inputFieldNames.append(label)
         if choices:
@@ -93,12 +91,12 @@ class Dlg(wx.Dialog):
             inputLength = wx.Size(max(50, 5*len(unicode(initial))+16), 25)
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         else:
-            inputBox = wx.Choice(self, -1, choices=list(choices))
+            inputBox = wx.Choice(self, -1, choices=[str(option) for option in list(choices)])
             # Somewhat dirty hack that allows us to treat the choice just like
             # an input box when retrieving the data
-            inputBox.GetValue = inputBox.GetCurrentSelection
-            if type(initial) == int:
-                inputBox.SetSelection(initial)
+            inputBox.GetValue = inputBox.GetStringSelection
+            initial = choices.index(initial) if initial in choices else 0
+            inputBox.SetSelection(initial)
         if len(color): inputBox.SetForegroundColour(color)
         if len(tip): inputBox.SetToolTip(wx.ToolTip(tip))
 
