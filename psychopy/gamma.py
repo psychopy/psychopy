@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy, sys, platform, ctypes, ctypes.util
-from pyglet.gl import gl_info
+import pyglet
 from psychopy import log
 
 #import platform specific C++ libs for controlling gamma
@@ -116,7 +116,7 @@ def createLinearRamp(win, rampType=None):
     if rampType==None:
         #try to determine rampType from heuristics
         #get sys info
-        driver = gl_info.get_renderer()
+        driver = pyglet.gl.gl_info.get_renderer()
         if sys.platform=='darwin':
             isOSX=True
             osxVer=platform.mac_ver()[0]

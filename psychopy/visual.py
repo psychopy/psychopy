@@ -3,7 +3,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, log, preferences, monitors, event
 import colors
@@ -30,14 +29,14 @@ try:
     import ctypes
     import pyglet
     pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
-    import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
+    #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
     import _shadersPyglet
     import gamma
     havePyglet=True
 except:
     havePyglet=False
 try:
-    import  pyglet.media
+    from pyglet import media
     havePygletMedia=True
 except:
     havePygletMedia=False
