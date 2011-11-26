@@ -212,6 +212,8 @@ class _baseVisualTest:
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def testRefreshRate(self):
+        if self.win.winType=='pygame':
+            raise nose.plugins.skip.SkipTest("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
         nose.tools.ok_(1000/150.0 < msPFavg < 1000/40.0, "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg)

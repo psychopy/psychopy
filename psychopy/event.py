@@ -24,7 +24,7 @@ except:
     havePygame = False
 
 try:
-    import pyglet.window
+    import pyglet
     havePyglet = True
 except:
     havePyglet = False
@@ -295,7 +295,7 @@ class Mouse:
         self.movedistance=0.0
         #if pygame isn't initialised then we must use pyglet
         global usePygame
-        if (havePygame and not pygame.display.get_init()):        
+        if (havePygame and not pygame.display.get_init()):
             usePygame=False
         if not usePygame:
             global mouseButtons

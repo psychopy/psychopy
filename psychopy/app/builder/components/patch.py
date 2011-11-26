@@ -19,7 +19,7 @@ class PatchComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,parentName,name=name, units=units,
+        VisualComponent.__init__(self,exp,parentName,name=name, units=units,
                     color=color, colorSpace=colorSpace,
                     pos=pos, size=size, ori=ori,
                     startType=startType, startVal=startVal,
@@ -27,7 +27,6 @@ class PatchComponent(VisualComponent):
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Patch'
         self.url="http://www.psychopy.org/builder/components/patch.html"
-        self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual'])
         #params
         self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
@@ -55,9 +54,6 @@ class PatchComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
-        if inits['size'].val in ['','none','None']:
-            inits['size'].val='None'
-            inits['size'].valType='code'
         buff.writeIndented("%s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
         buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
@@ -66,5 +62,6 @@ class PatchComponent(VisualComponent):
         if self.params['interpolate']=='linear':
             buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
-        buff.write(")\n")#finish with newline
+        depth = -self.getPosInRoutine()
+        buff.write(", depth=%.1f)\n" %depth)#finish with newline
 
