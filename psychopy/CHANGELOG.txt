@@ -28,7 +28,8 @@ PsychoPy 1.72.00
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
 * FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
 * FIXED: problem with Patch Component when size was set to be dynamic
-* FIXED: problem with BUilder loops not being able to change type (e.g. change random into staircase)
+* FIXED: problem with Builder loops not being able to change type (e.g. change 'random' into 'staircase')
+* FIXED: data form TrialHandler can be output with unicode contents
     
 PsychoPy 1.71
 ------------------------------

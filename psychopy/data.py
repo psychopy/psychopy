@@ -12,6 +12,7 @@ from scipy import optimize, special
 from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
+import codecs
 
 try:
     import openpyxl
@@ -434,10 +435,10 @@ class TrialHandler:
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
-            f= file(fileName,writeFormat)
+            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f=file(fileName+'.csv',writeFormat)
-            else: f=file(fileName+'.dlm',writeFormat)
+            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
         if not matrixOnly:
             #write a header line
