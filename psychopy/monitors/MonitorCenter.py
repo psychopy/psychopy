@@ -86,20 +86,18 @@ class PlotFrame(wx.Frame):
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
         wx.Frame.__init__(self, parent, ID, title, pos, size, style)
         panel = wx.Panel(self, -1)
-        wx.EVT_CLOSE(self, self.OnCloseWindow)
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer = wx.GridBagSizer(1,1)
         if not plotCanvas==None:
             self.addCanvas(plotCanvas)
-
+        wx.EVT_SIZE(self, self.OnSize)
     def addCanvas(self, canvas):
         self.canvas=canvas
-        self.sizer.Add(canvas)
+        self.sizer.Add(canvas, pos=(0,0), flag=wx.EXPAND)
         self.SetSizerAndFit(self.sizer)
+        self.SetAutoLayout(True)
         self.Show()
-    def OnCloseWindow(self, event):
-        print 'got here'
-        self.Destroy()
-
+    def OnSize(self,event):
+        self.canvas.SetSize(event.GetSize())
 
 class MainFrame(wx.Frame):
     def __init__(self, parent, title):
@@ -918,7 +916,7 @@ class MainFrame(wx.Frame):
                 plt.plot(levelsPost,lums,'o', markerfacecolor = 'w', markeredgecolor=colors[gun], linewidth=1.5)
         figureCanvas.draw()#update the canvas
         plotWindow.addCanvas(figureCanvas)
-                
+
     def plotSpectra(self, event=None):
         figTitle = '%s %s Spectra' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
