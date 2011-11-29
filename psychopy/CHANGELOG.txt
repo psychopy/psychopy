@@ -24,12 +24,13 @@ PsychoPy 1.72.00
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
     
+* ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
 * FIXED: conditions files can now have lists of numbers [0,0]
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
 * FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
 * FIXED: problem with Patch Component when size was set to be dynamic
 * FIXED: problem with Builder loops not being able to change type (e.g. change 'random' into 'staircase')
-* FIXED: data form TrialHandler can be output with unicode contents
+* FIXED: data form TrialHandler can be output with unicode contents (thanks Henrik Singmann)
     
 PsychoPy 1.71
 ------------------------------

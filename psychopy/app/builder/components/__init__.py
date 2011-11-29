@@ -98,7 +98,7 @@ def getInitVals(params):
 
         #value should be None (as code)
         elif inits[name].val in [None,'None','none','']:
-            inits[name].val=None
+            inits[name].val='None'
             inits[name].valType='code'
 
         #is constant to don't touch the parameter value

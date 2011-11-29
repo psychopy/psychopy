@@ -483,7 +483,7 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1]):
+        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed=''):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -517,6 +517,8 @@ class TrialHandler:
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
+        self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
+            hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -524,18 +526,20 @@ class TrialHandler:
         """Write the code to create and run a sequence of trials
         """
         ##first create the handler
-        #create nice line-separated list of conditions
-        if self.params['conditionsFile'].val==None:
+        #init values
+        inits=getInitVals(self.params)
+        #import conditions from file
+        if self.params['conditionsFile'].val in ['None',None,'none','']:
             condsStr="[None]"
         else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of conditions etc\n")
-        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
-                %(self.params['name'], self.params['nReps'], self.params['loopType']))
+        buff.writeIndented("%(name)s=data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n" %(inits))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
-        buff.writeIndented("    trialList=%s)\n" %(condsStr))
+        buff.writeIndented("    trialList=%s,\n" %(condsStr))
+        buff.writeIndented("    seed=%(random seed)s)\n" %(inits))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
@@ -543,6 +547,7 @@ class TrialHandler:
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
+
         ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
