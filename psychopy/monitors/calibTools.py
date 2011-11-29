@@ -525,7 +525,7 @@ class Monitor:
                 output = self._gammaInterpolator[0](desiredLums)
 
         #use a fitted gamma equation (1 or 2)
-        elif linMethod in [1,2]:
+        elif linMethod in [1,2,4]:
 
             #get the min,max lums
             gammaGrid = self.getGammaGrid()
@@ -533,6 +533,7 @@ class Monitor:
                 #if we have info about min and max luminance then use it
                 minLum = gammaGrid[1,0]
                 maxLum = gammaGrid[1:4,1]
+                b = gammaGrid[1:4,4]
                 if overrideGamma is not None: gamma=overrideGamma
                 else: gamma = gammaGrid[1:4,2]
                 maxLumWhite = gammaGrid[0,1]
@@ -549,12 +550,12 @@ class Monitor:
             if len(desiredLums.shape)>1:
                 for gun in range(3):
                     output[:,gun] = gammaInvFun(desiredLums[:,gun],
-                        minLum, maxLum[gun], gamma[gun],eq=linMethod)
+                        minLum, maxLum[gun], gamma[gun],eq=linMethod, b=b[gun])
                 #print gamma
             else:
                 output = gammaInvFun(desiredLums,
                     minLum, maxLumWhite, gammaWhite,eq=linMethod)
-
+            
         else:
             log.error("Don't know how to linearise with method %i" %linMethod)
             output = desiredLums
@@ -781,7 +782,7 @@ def getLumSeries(lumLevels=8,
         initRGB= 0.5**(1/2.0)*2-1
     else: initRGB=0.8
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 1, size=winSize,
+    myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
         gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
         bitsMode=bitsMode)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
@@ -907,7 +908,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     else:       havephotom = 0
 
     #setup screen and "stimuli"
-    myWin = psychopy.visual.Window(fullscr = 1, rgb=0.0, size=winSize,
+    myWin = psychopy.visual.Window(fullscr = 0, rgb=0.0, size=winSize,
         units='norm')
 
     instructions="Point the photometer at the central square. Hit a key when ready"
@@ -1033,6 +1034,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 
     #eq1: y = a + (b*xx)**gamma
     #eq2: y = (a+b*xx)**gamma
+    #eq4: y = a+(b+kxx)**gamma
     if max(yy)==255:
         yy=numpy.asarray(yy)/255.0
     elif min(yy)<0 or max(yy)>1:
@@ -1060,7 +1062,10 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         #see http://www.psychopy.org/general/gamma.html for derivation
         a = minLum-b**gamma
         k = (maxLum-a)**(1./gamma) - b
+        xx = ((yy-a)**(1/gamma) - b)/k
         yy = (((1-xx)*b**gamma + xx*(b+k)**gamma)**(1/gamma)-b)/k
+        maxLUT = ((maxLum-a)**(1/gamma) - b)/k
+        minLUT = ((minLum-a)**(1/gamma) - b)/k
         #print "we are linearising with the special wichmann style equation"
 
     #then return to range (0:1)
