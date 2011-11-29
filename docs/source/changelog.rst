@@ -25,6 +25,7 @@ PsychoPy 1.72.00
     - new classes; Rect, Line, Circle, Polygon
     
 * ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
+* FIXED: calibration plots in Monitor Center now resize and quit as expected
 * FIXED: conditions files can now have lists of numbers [0,0]
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
 * FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
