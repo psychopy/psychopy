@@ -81,22 +81,24 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
         self.parent.Layout()#expands the containing sizer if needed
         evt.Skip()#allow grid to handle the rest of the update
 
-class PlotFrame(wx.Dialog):
+class PlotFrame(wx.Frame):
     def __init__(self, parent, ID, title, plotCanvas=None, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
-        wx.Dialog.__init__(self, parent, ID, title, pos, size, style)
+        wx.Frame.__init__(self, parent, ID, title, pos, size, style)
         panel = wx.Panel(self, -1)
-        #wx.EVT_CLOSE(self, self.OnCloseWindow)
+        wx.EVT_CLOSE(self, self.OnCloseWindow)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         if not plotCanvas==None:
             self.addCanvas(plotCanvas)
 
     def addCanvas(self, canvas):
+        self.canvas=canvas
         self.sizer.Add(canvas)
         self.SetSizerAndFit(self.sizer)
-        self.ShowModal()
-    #def OnCloseWindow(self, event):
-        #self.Destroy()
+        self.Show()
+    def OnCloseWindow(self, event):
+        print 'got here'
+        self.Destroy()
 
 
 class MainFrame(wx.Frame):
@@ -915,9 +917,8 @@ class MainFrame(wx.Frame):
                 #plot POINTS
                 plt.plot(levelsPost,lums,'o', markerfacecolor = 'w', markeredgecolor=colors[gun], linewidth=1.5)
         figureCanvas.draw()#update the canvas
-
         plotWindow.addCanvas(figureCanvas)
-
+                
     def plotSpectra(self, event=None):
         figTitle = '%s %s Spectra' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
@@ -935,6 +936,8 @@ class MainFrame(wx.Frame):
         figureCanvas.draw()#update the canvas
         plotWindow.addCanvas(figureCanvas)
 
+    def onClosePlotWindow(self, event):
+        print event
 
 class GammaLumValsDlg(wx.Dialog):
     #a dialogue to get the luminance values recorded for each level
