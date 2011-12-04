@@ -3979,7 +3979,8 @@ class TextStim(_BaseVisualStim):
                               Font names should be written as concatenated names all in lower case.\n \
                               e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." %(font, self.fontname))
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
-        self.needUpdate = True
+        #re-render text after a font change
+        self.setText()
 
     def setText(self,value=None):
         """Set the text to be rendered using the current font
