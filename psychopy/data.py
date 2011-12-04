@@ -59,7 +59,8 @@ class TrialHandler:
                  dataTypes=None,
                  extraInfo=None,
                  seed=None,
-                 originPath=None):
+                 originPath=None,
+                 name=''):
         """
 
         :Parameters:
@@ -105,6 +106,7 @@ class TrialHandler:
             .origin - the contents of the script or builder experiment that created the handler
 
         """
+        self.name=name
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
         else:
@@ -972,7 +974,8 @@ class StairHandler:
                  stepType='db',
                  minVal=None,
                  maxVal=None,
-                 originPath=None):
+                 originPath=None,
+                 name=''):
         """
         :Parameters:
 
@@ -1029,6 +1032,7 @@ class StairHandler:
         trialList: a simple list (or flat array) of trials.
 
             """
+        self.name=name
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -1498,7 +1502,8 @@ class QuestHandler(StairHandler):
                  extraInfo=None,
                  minVal=None,
                  maxVal=None,
-                 staircase=None):
+                 staircase=None,
+                 name=''):
         """
         Typical values for pThreshold are:
             * 0.82 which is equivalent to a 3 up 1 down standard staircase
@@ -1579,7 +1584,7 @@ class QuestHandler(StairHandler):
 
         # Initialize using parent class first
         StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method,
-                                stepType=stepType, minVal=minVal, maxVal=maxVal)
+                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name)
 
         # Setup additional values
         self.stopInterval = stopInterval
@@ -1758,7 +1763,7 @@ class QuestHandler(StairHandler):
 
 class MultiStairHandler:
     def __init__(self, stairType='simple', method='random',
-            conditions=None, nTrials=50):
+            conditions=None, nTrials=50, name=''):
         """A Handler to allow easy interleaved staircase procedures (simple or
         QUEST).
 
@@ -1817,7 +1822,7 @@ class MultiStairHandler:
             stairs.saveAsPickle(fileName)#contains more info
 
         """
-
+        self.name=name
         self.type=stairType
         self.method=method #'random' or 'sequential'
         self.conditions=conditions
