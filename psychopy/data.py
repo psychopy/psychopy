@@ -142,7 +142,7 @@ class TrialHandler:
             self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
             log.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
-        self.origin = open(self.originPath).read().decode('utf8')
+        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
 
     def __iter__(self):
         return self
@@ -1065,7 +1065,7 @@ class StairHandler:
             self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
             log.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
-        self.origin = open(self.originPath).read().decode('utf8')
+        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
 
     def __iter__(self):
         return self
