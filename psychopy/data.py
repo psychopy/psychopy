@@ -22,6 +22,115 @@ try:
 except:
     haveOpenpyxl=False
 
+class ExperimentHandler:
+    """A container class for keeping track of multiple loops/handlers
+
+    Useful for generating a single data file from an experiment with many
+    different loops (e.g. interleaved staircases or loops within loops
+
+    :usage:
+
+        exp = data.ExperimentHandler(name="Face Preference",version='0.1.0')
+
+    """
+    def __init__(self,
+                name='',
+                version='',
+                extraInfo=None,
+                runtimeInfo=None,
+                originPath=None,
+                savePickle=True,
+                saveWideText=True,
+                dataFileName=''):
+        """
+        :parameters:
+
+            name : a string or unicode
+                As a useful identifier later
+
+            version : usually a string (e.g. '1.1.0')
+                To keep track of which version of the experiment was run
+
+            extraInfo : a dictionary
+                Containing useful information about this run
+                (e.g. {'participant':'jwp','gender':'m','orientation':90} )
+
+            runtimeInfo : :class:`psychopy.info.RunTimeInfo`
+                Containining information about the system as detected at runtime
+
+            originPath : string or unicode
+                The path and filename of the originating script/experiment
+                If not provided this will be determined as the path of the
+                calling script.
+
+            dataFilename :
+
+        """
+        self.loops=[]
+        self.name=name
+        self.version=version
+        self.runtimeInfo=runtimeInfo
+        self.extraInfo=extraInfo
+        self.originPath=originPath
+        self.savePickle=savePickle
+        self.saveWideText=saveWideText
+        self.dataFileName=dataFileName
+    def addLoop(self, loopHandler):
+        """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
+        Data from this loop will be included in the resulting data files.
+        """
+        self.loops.append(loopHandler)
+    def getAllDataNames(self):
+        """Returns the attributes of all data types and stimulus types
+        that the current set of loops contain, ready to build a wide-format
+        data file.
+        """
+        #ToDo: keep track of the available column names
+        names = []
+        #get names (or identifiers) for all contained loops
+        for thisLoop in self.loops:
+            name = thisLoop.name
+    def addData(self, name, data):
+        pass
+    def nextEntry(self):
+        """Call this for each entry (e.g. trial) to be stored, but only
+        after all the forms of data have been added to the individual handlers
+        """
+        #ToDo: retrieve state of each loop
+        for thisLoop in self.loops:
+            name = thisLoop.name
+
+    def saveAsWideText(self, fileName):
+        #ToDo
+        self.saveWideText=False
+    def saveAsPickle(self,fileName):
+        """Basically just saves a copy of self (with data) to a pickle file.
+
+        This can be reloaded if necess and further analyses carried out.
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
+            return -1
+        #otherwise use default location
+        if not fileName.endswith('.psydat'):
+            fileName+='.psydat'
+        f = open(fileName, "wb")
+        cPickle.dump(self, f)
+        f.close()
+        #no need to save again
+        self.savePickle=False
+    def __del__(self):
+        if self.savePickle==True:
+            self.saveAsPickle()
+        if self.saveWideText==True:
+            self.saveAsWideText()
+
+    def abort(self):
+        """Abort the experiment (prevents data files being saved)
+        """
+        self.savePickle=False
+        self.saveWideText=False
+
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
     """
