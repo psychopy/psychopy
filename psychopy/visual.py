@@ -3985,7 +3985,8 @@ class TextStim(_BaseVisualStim):
     def setText(self,value=None):
         """Set the text to be rendered using the current font
         """
-        value = unicode(value)
+        if value!=None:
+            value = unicode(value)
         if self._useShaders:
             self._setTextShaders(value)
         else:
