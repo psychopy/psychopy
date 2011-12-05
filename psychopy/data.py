@@ -75,6 +75,8 @@ class ExperimentHandler:
         self.savePickle=savePickle
         self.saveWideText=saveWideText
         self.dataFileName=dataFileName
+        self.thisEntry = {}
+        self.entries=[]
     def addLoop(self, loopHandler):
         """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
@@ -89,7 +91,23 @@ class ExperimentHandler:
         names = []
         #get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
-            name = thisLoop.name
+            names, vals = self._getLoopData(thisLoop)
+        return names
+    def _getLoopData(self, loop):
+        names=[]
+        vals=[]
+        name = loop.name
+        #attribute about the loop we want to find
+        for attr in ['thisRepN', 'thisTrialN', 'thisN','thisIndex', 'stepSizeCurrent']:
+            if hasattr(loop, attr):
+                if attr=='stepSizeCurrent':
+                    attrName=name+'.stepSize'
+                else:
+                    attrName = name+'.'+attr
+                #append the attribute name and the current value
+                names.append(attrName)
+                vals.append(getattr(loop,attr))
+        return names, vals
     def addData(self, name, data):
         pass
     def nextEntry(self):
@@ -97,9 +115,12 @@ class ExperimentHandler:
         after all the forms of data have been added to the individual handlers
         """
         #ToDo: retrieve state of each loop
+        this=self.thisEntry
         for thisLoop in self.loops:
             name = thisLoop.name
-
+            this[name+'.repN']
+        #then create new empty entry for n
+        self.thisEntry = {}
     def saveAsWideText(self, fileName):
         #ToDo
         self.saveWideText=False
