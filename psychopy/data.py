@@ -63,7 +63,12 @@ class ExperimentHandler:
                 If not provided this will be determined as the path of the
                 calling script.
 
-            dataFilename :
+            dataFilename : string
+                This is defined in advance and the file will be saved at any
+                point that the handler is removed or discarded (unless .abort()
+                had been called in advance).
+                The handler will attempt to populate the file even in the
+                event of a (not too serious) crash!
 
         """
         self.loops=[]
@@ -76,7 +81,7 @@ class ExperimentHandler:
         self.saveWideText=saveWideText
         self.dataFileName=dataFileName
         self.thisEntry = {}
-        self.entries=[]
+        self.entries=[]#chronological list of entries
     def addLoop(self, loopHandler):
         """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
@@ -108,8 +113,30 @@ class ExperimentHandler:
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
         return names, vals
-    def addData(self, name, data):
-        pass
+    def addData(self, name, value):
+        """Add the data with a given name to the current experiment.
+
+        Typically the user does not need to use this function; if you added
+        your data to the loop and had already added the loop to the
+        experiment then the loop will automatically inform the experiment
+        that it has received data.
+
+        Multiple data name/value pairs can be added to any given entry of
+        the data file and is considered part of the same entry until the
+        nextEntry() call is made.
+
+        e.g.::
+
+            #add some data for this trial
+            exp.addData('rt', 0.8)
+            exp.addData('resp.key', 'k')
+            #end of trial - move to next line in data output
+            exp.nextEntry()
+        """
+        if name in self.names:
+            self.names.append(name)
+        self.thisEntry[name]=value
+
     def nextEntry(self):
         """Call this for each entry (e.g. trial) to be stored, but only
         after all the forms of data have been added to the individual handlers
@@ -117,8 +144,12 @@ class ExperimentHandler:
         #ToDo: retrieve state of each loop
         this=self.thisEntry
         for thisLoop in self.loops:
-            name = thisLoop.name
-            this[name+'.repN']
+            if thisLoop.finished:
+                continue
+            names, vals = self._getLoopData(thisLoop)
+            for n, name in enumerate(names):
+                this[name]=vals[n]
+        self.entries.append(this)
         #then create new empty entry for n
         self.thisEntry = {}
     def saveAsWideText(self, fileName):
@@ -275,6 +306,7 @@ class TrialHandler:
             log.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
         self.origin = open(self.originPath).read().decode('utf8')
+        self.exp = None#the experiment handler that owns me!
 
     def __iter__(self):
         return self
@@ -781,6 +813,8 @@ class TrialHandler:
         """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
+        if self.exp!=None:#update the experiment handler too
+            self.exp.addData(thisType, value)
 
     def saveAsExcel(self,fileName, sheetName='rawData',
                     stimOut=[],
@@ -1200,7 +1234,7 @@ class StairHandler:
             log.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
         self.origin = open(self.originPath).read().decode('utf8')
-
+        self.exp = None#the experiment handler that owns me!
     def __iter__(self):
         return self
 
@@ -1750,6 +1784,8 @@ class QuestHandler(StairHandler):
         self._quest.update(intensity, result)
         # Update other things
         self.data.append(result)
+        if self.exp!=None:
+            self.exp.addData('response', result)
         self.calculateNextIntensity()
 
     def importData(self, intensities, results):
@@ -1970,6 +2006,7 @@ class MultiStairHandler:
         self._startNewPass()
         self.currentStaircase = self.thisPassRemaining[0]#take the first and remove it
         self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
+        self.exp = None#the experiment handler that owns me!
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
@@ -2077,6 +2114,8 @@ class MultiStairHandler:
         This is essential to advance the staircase to a new intensity level!
         """
         self.currentStaircase.addData(result)
+        if self.exp!=None:#update the experiment handler too
+            self.exp.addData('response', result)
         try:
             self.currentStaircase.next()
         except:
