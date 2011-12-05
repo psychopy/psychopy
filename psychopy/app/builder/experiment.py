@@ -608,13 +608,13 @@ class StairHandler:
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in the staircase")
-        self.params['start value']=Param(startVal, valType='num',
+        self.params['start value']=Param(startVal, valType='code',
             hint="The initial value of the parameter")
-        self.params['max value']=Param(maxVal, valType='num',
+        self.params['max value']=Param(maxVal, valType='code',
             hint="The maximum value the parameter can take")
-        self.params['min value']=Param(minVal, valType='num',
+        self.params['min value']=Param(minVal, valType='code',
             hint="The minimum value the parameter can take")
-        self.params['step sizes']=Param(stepSizes, valType='num',
+        self.params['step sizes']=Param(stepSizes, valType='code',
             hint="The size of the jump at each step (can change on each 'reversal')")
         self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
             hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")

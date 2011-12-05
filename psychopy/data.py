@@ -94,14 +94,29 @@ class TrialHandler:
                 created
 
         :Attributes (after creation):
+
             .data - a dictionary of numpy arrays, one for each data type stored
+
             .trialList - the original list of dicts, specifying the conditions
+
+            .thisIndex - the index of the current trial in the original conditions list
+
             .nTotal - the total number of trials that will be run
+
             .nRemaining - the total number of trials remaining
+
+            .thisN - total trials completed so far
+
             .thisRepN - which repeat you are currently on
+
             .thisTrialN - which trial number *within* that repeat
+
+            .thisTrial - a dictionary giving the parameters of the current trial
+
             .finished - True/False for have we finished yet
+
             .extraInfo - the dictionary of extra info as given at beginning
+
             .origin - the contents of the script or builder experiment that created the handler
 
         """
