@@ -1818,7 +1818,7 @@ class MultiStairHandler:
                 {'label':'low', 'startVal': 0.1, 'ori':90},
                 {'label':'high','startVal': 0.8, 'ori':90},
                 ]
-            stairs = MultiStairHandler(conditions=conditions, trials=50)
+            stairs = MultiStairHandler(conditions=conditions, nTrials=50)
 
             for thisIntensity, thisCondition in stairs:
                 thisOri = thisCondition['ori']
