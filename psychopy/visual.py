@@ -4760,9 +4760,8 @@ class Line(ShapeStim):
         self.setVertices([self.start, self.end])
 
     def setEnd(self, end):
-        """Changes the end point of the line. Argument should be
-
-            - tuple, list or 2x1 array specifying the coordinates of the end point"""
+        """Changes the end point of the line. Argument should be a tuple, list
+        or 2x1 array specifying the coordinates of the end point"""
         self.end = end
         self.setVertices([self.start, self.end])
 
@@ -4791,10 +4790,11 @@ class BufferImageStim(PatchStim):
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
     Status: seems to work on Mac, but:
-    - Screen units are not properly sorted out, better if allowed pix as well as norm
-    - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+        - Screen units are not properly sorted out, better if allowed pix as well as norm
+        - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
 
     **Example**::
+
         # build up a composite or large visual background (slow, do once):
         mySimpleImageStim.draw()
         myTextStim.draw()
@@ -4808,7 +4808,7 @@ class BufferImageStim(PatchStim):
             animation.draw()   # dynamic
             myWin.flip()
 
-    See coder Demos / stimuli / bufferImageStim.py for a demo.
+    See coder Demos>stimuli>bufferImageStim.py for a demo.
 
     :Author:
         - 2010 Jeremy Gray
@@ -4817,6 +4817,7 @@ class BufferImageStim(PatchStim):
         stim=[], interpolate=True, name='', autoLog=True):
         """
         :Parameters:
+
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             buffer :
@@ -4830,8 +4831,9 @@ class BufferImageStim(PatchStim):
             interpolate :
                 whether to use interpolation (default = True, generally good, especially if you change the orientation)
             sqPower2 :
-                False (default) = use rect for size if OpenGL = 2.1+
-                True = use square, power-of-two image sizes
+                - False (default) = use rect for size if OpenGL = 2.1+
+                - True = use square, power-of-two image sizes
+
             name : string
                 The name of the object to be using during logged messages about this stim
         """
