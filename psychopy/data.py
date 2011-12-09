@@ -518,8 +518,8 @@ class TrialHandler:
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
-        -- each row comprises information from only a single trial.
-        -- no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - each row comprises information from only a single trial.
+         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
