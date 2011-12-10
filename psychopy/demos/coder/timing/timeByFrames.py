@@ -10,7 +10,7 @@
 
 from psychopy import visual, log, core, event
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')#change this to control the plotting 'back end'
 import pylab
 
 nIntervals=1000
