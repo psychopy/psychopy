@@ -45,4 +45,3 @@ for thisRep in outerLoop:#the outer loop doesn't save any data
 for e in exp.entries:
     print e
 print 'done'
-print training.getExp()

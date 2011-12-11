@@ -86,7 +86,7 @@ class ExperimentHandler(object):
         self.dataFileName=dataFileName
         self.thisEntry = {}
         self.entries=[]#chronological list of entries
-        self.names=[]
+        self.dataNames=[]#names of all the data (eg. resp.keys)
         if dataFileName in ['', None]:
             log.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
     def __del__(self):
@@ -113,8 +113,8 @@ class ExperimentHandler(object):
         """
         if loopHandler in self.loopsUnfinished:
             self.loopsUnfinished.remove(loopHandler)
-    def getAllDataNames(self):
-        """Returns the attributes of all data types and stimulus types
+    def getAllParamNames(self):
+        """Returns the attributes of loop parameters (trialN etc)
         that the current set of loops contain, ready to build a wide-format
         data file.
         """
@@ -122,7 +122,8 @@ class ExperimentHandler(object):
         names = []
         #get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
-            names, vals = self._getLoopData(thisLoop)
+            theseNames, vals = self._getLoopData(thisLoop)
+            names.extend(theseNames)
         return names
     def _getLoopData(self, loop):
         names=[]
@@ -159,8 +160,8 @@ class ExperimentHandler(object):
             #end of trial - move to next line in data output
             exp.nextEntry()
         """
-        if name in self.names:
-            self.names.append(name)
+        if name not in self.dataNames:
+            self.dataNames.append(name)
         self.thisEntry[name]=value
 
     def nextEntry(self):
@@ -175,8 +176,37 @@ class ExperimentHandler(object):
         self.entries.append(this)
         #then create new empty entry for n
         self.thisEntry = {}
-    def saveAsWideText(self, fileName):
-        #ToDo
+    def saveAsWideText(self, fileName, delim=',',
+                   matrixOnly=False,
+                   appendFile=False):
+
+        #create the file or print to stdout
+        if appendFile: writeFormat='a'
+        else: writeFormat='w' #will overwrite a file
+        if fileName=='stdout':
+            f = sys.stdout
+        elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
+            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
+        else:
+            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
+
+        names = self.getAllParamNames()
+        names.extend(self.dataNames)
+        #write a header line
+        if not matrixOnly:
+            for heading in names:
+                f.write(u'%s%s' %(heading,delim))
+            f.write('\n')
+        #write the data for each entry
+        for entry in self.entries:
+            for name in names:
+                if name in entry.keys():
+                    f.write(u'%s%s' %(entry[name],delim))
+                else:
+                    f.write(delim)
+            f.write('\n')
+        f.close()
         self.saveWideText=False
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
