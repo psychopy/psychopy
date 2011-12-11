@@ -13,6 +13,7 @@ from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs
+import weakref
 
 try:
     import openpyxl
@@ -22,7 +23,7 @@ try:
 except:
     haveOpenpyxl=False
 
-class ExperimentHandler:
+class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
 
     Useful for generating a single data file from an experiment with many
@@ -196,7 +197,72 @@ class TrialType(dict):
 #                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class TrialHandler:
+class _BaseTrialHandler(object):
+    def setExp(self, exp):
+        """Sets the ExperimentHandler that this handler is attached to
+
+        Do NOT attempt to set the experiment using::
+
+            trials._exp = myExperiment
+
+        because it needs to be performed using the `weakref` module.
+        """
+        #need to use a weakref to avoid creating a circular reference that
+        #prevents effective object deletion
+        self._exp = weakref.ref(exp)
+    def getExp(self):
+        """Return the ExperimentHandler that this handler is attached to, if any.
+        Returns None if not attached
+        """
+        if self._exp==None:
+            return self._exp
+        else:
+            return self._exp()
+    def _terminate(self):
+        """Remove references to ourself in experiments and terminate the loop
+        """
+        #remove ourself from the list of unfinished loops in the experiment
+        exp=self.getExp()
+        if exp!=None:
+            exp.loopEnded(self)
+        #and halt the loop
+        raise StopIteration
+    def saveAsPickle(self,fileName):
+        """Basically just saves a copy of the handler (with data) to a pickle file.
+
+        This can be reloaded if necess and further analyses carried out.
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            log.info('.saveAsPickle() called but no trials completed. Nothing saved')
+            return -1
+        #otherwise use default location
+        if not fileName.endswith('.psydat'):
+            fileName+='.psydat'
+        f = open(fileName, "wb")
+        cPickle.dump(self, f)
+        f.close()
+    def printAsText(self, stimOut=[],
+                    dataOut=('all_mean', 'all_std', 'all_raw'),
+                    delim='\t',
+                    matrixOnly=False,
+                  ):
+        """Exactly like saveAsText() except that the output goes
+        to the screen instead of a file"""
+        self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
+    def nextTrial(self):
+        """DEPRECATION WARNING: nextTrial() will be deprecated
+        please use next() instead.
+        jwp: 19/6/06
+        """
+        if self._warnUseOfNext:
+            log.warning("""DEPRECATION WARNING: nextTrial() will be deprecated
+        please use next() instead.
+        jwp: 19/6/06
+        """)
+            self._warnUseOfNext=False
+        return self.next()
+
+class TrialHandler(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
 
     Calls to .next() will fetch the next trial object given to this handler,
@@ -458,7 +524,7 @@ class TrialHandler:
             self.finished=True
 
         if self.finished==True:
-            raise StopIteration
+            self._terminate()
 
         #fetch the trial info
         if self.method in ['random','sequential','fullRandom']:
@@ -772,49 +838,12 @@ class TrialHandler:
             f.close()
             log.info('saved wide-format data to %s' %f.name)
 
-    def saveAsPickle(self,fileName):
-        """Basically just saves a copy of self (with data) to a pickle file.
-
-        This can be reloaded if necess and further analyses carried out.
-        """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
-            return -1
-        #otherwise use default location
-        if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
-        f = open(fileName, "wb")
-        cPickle.dump(self, f)
-        f.close()
-
-    def printAsText(self, stimOut=[],
-                    dataOut=('all_mean', 'all_std', 'all_raw'),
-                    delim='\t',
-                    matrixOnly=False,
-                  ):
-        """Exactly like saveAsText except that the output goes
-        to the screen instead of a file"""
-        self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
-
-    def nextTrial(self):
-        """DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
-        please use Trialhandler.next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            log.warning("""DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
-        please use Trialhandler.next() instead.
-        jwp: 19/6/06
-        """)
-            self._warnUseOfNext=False
-        return self.next()
-
     def addData(self, thisType, value, position=None):
         """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
-        if self.exp!=None:#update the experiment handler too
-            self.exp.addData(thisType, value)
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData(thisType, value)
 
     def saveAsExcel(self,fileName, sheetName='rawData',
                     stimOut=[],
@@ -1113,7 +1142,7 @@ def createFactorialTrialList(factors):
 
     return trialList
 
-class StairHandler:
+class StairHandler(_BaseTrialHandler):
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
     Calls to nextTrial() will fetch the next object given to this
@@ -1365,8 +1394,7 @@ class StairHandler:
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
-            raise StopIteration
-
+            self._terminate()
     def _intensityInc(self):
         """increment the current intensity and reset counter"""
         if self.stepType=='db':
@@ -1580,27 +1608,6 @@ class StairHandler:
         f.close()
         log.info('saved data to %s' %f.name)
 
-    def printAsText(self, stimOut=[],
-                    dataOut=('rt_mean','rt_std', 'acc_raw'),
-                    delim='\t',
-                    matrixOnly=False,
-                  ):
-        """Exactly like saveAsText except that the output goes
-        to the screen instead of a file"""
-        self.saveAsText('stdout',  delim, matrixOnly)
-
-    def nextTrial(self):
-        """DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
-        please use StairHandler.next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            log.warning("""DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
-        please use StairHandler.next() instead.
-        jwp: 19/6/06
-        """)
-            self._warnUseOfNext=False
-        return self.next()
 
 class QuestHandler(StairHandler):
     """Class that implements the Quest algorithm using python code from XXX.  f
@@ -1913,7 +1920,7 @@ class QuestHandler(StairHandler):
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
-            raise StopIteration
+            sef._terminate()
 
     def _checkFinished(self):
         """checks if we are finished
