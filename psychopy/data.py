@@ -23,6 +23,8 @@ try:
 except:
     haveOpenpyxl=False
 
+_experiments=weakref.WeakValueDictionary()
+
 class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
 
@@ -85,12 +87,15 @@ class ExperimentHandler(object):
         self.thisEntry = {}
         self.entries=[]#chronological list of entries
         self.names=[]
+        if dataFileName in ['', None]:
+            log.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
     def __del__(self):
-        log.debug('Saving data for %s ExperimentHandler' %self.name)
-        if self.savePickle==True:
-            self.saveAsPickle()
-        if self.saveWideText==True:
-            self.saveAsWideText()
+        if self.dataFileName not in ['', None]:
+            log.debug('Saving data for %s ExperimentHandler' %self.name)
+            if self.savePickle==True:
+                self.saveAsPickle(self.dataFileName)
+            if self.saveWideText==True:
+                self.saveAsWideText(self.dataFileName)
     def addLoop(self, loopHandler):
         """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
@@ -178,9 +183,6 @@ class ExperimentHandler(object):
 
         This can be reloaded if necess and further analyses carried out.
         """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
-            return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
@@ -221,15 +223,17 @@ class _BaseTrialHandler(object):
         """
         #need to use a weakref to avoid creating a circular reference that
         #prevents effective object deletion
-        self._exp = weakref.ref(exp)
+        expId=id(exp)
+        _experiments[expId] = exp
+        self._exp = expId
     def getExp(self):
         """Return the ExperimentHandler that this handler is attached to, if any.
         Returns None if not attached
         """
-        if self._exp==None:
-            return self._exp
+        if self._exp==None or self._exp not in _experiments:
+            return None
         else:
-            return self._exp()
+            return _experiments[self._exp]
     def _terminate(self):
         """Remove references to ourself in experiments and terminate the loop
         """

@@ -44,5 +44,5 @@ for thisRep in outerLoop:#the outer loop doesn't save any data
 #exp should then automatically save the pickle and csv data files
 for e in exp.entries:
     print e
-
 print 'done'
+print training.getExp()
