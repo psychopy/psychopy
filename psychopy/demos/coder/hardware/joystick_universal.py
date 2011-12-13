@@ -67,7 +67,6 @@ while 1:#quits after 20 secs
     
     fixSpot.draw()
     message.draw()
-    
     print joy.getAllAxes()#to see what your axes are doing!
     
     if 'q' in event.getKeys():

@@ -33,13 +33,14 @@ try:
     havePygame=True
 except:
     havePygame=False
+import pyglet_input
 try:
     import pyglet_input
     havePyglet=True
 except:
     havePyglet=False
 
-from psychopy import log
+from psychopy import log, visual
 backend = 'pyglet'#'pyglet' or 'pygame'
 
 def getNumJoysticks():
@@ -75,8 +76,11 @@ class Joystick(object):
                 self._device=joys[id]
                 self._device.open()
                 self.name=self._device.device.name
-                print dir(self._device)
-                print dir(self._device.device)
+            if len(visual.openWindows)==0:
+                log.error("You need to open a window before creating your joystick")
+            else:
+                for win in visual.openWindows:
+                    win._eventDispatchers.append(self._device.device)
         else:
             pygame.joystick.init()
             self._device=pygame.joystick.Joystick(id)

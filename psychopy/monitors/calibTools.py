@@ -864,6 +864,7 @@ def getLumSeries(lumLevels=8,
                 print "At DAC value %i" % DACval
                 psychopy.event.waitKeys()
 
+    myWin.setGamma(2.2)
     myWin.close() #we're done with the visual stimuli
     if havePhotom: return lumsList
     else: return numpy.array([])
@@ -1062,8 +1063,8 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         #see http://www.psychopy.org/general/gamma.html for derivation
         a = minLum-b**gamma
         k = (maxLum-a)**(1./gamma) - b
-        xx = ((yy-a)**(1/gamma) - b)/k
-        yy = (((1-xx)*b**gamma + xx*(b+k)**gamma)**(1/gamma)-b)/k
+        #xx = ((yy-a)**(1/gamma) - b)/k
+        xx = (((1-yy)*b**gamma + yy*(b+k)**gamma)**(1/gamma)-b)/k
         maxLUT = ((maxLum-a)**(1/gamma) - b)/k
         minLUT = ((minLum-a)**(1/gamma) - b)/k
         #print "we are linearising with the special wichmann style equation"

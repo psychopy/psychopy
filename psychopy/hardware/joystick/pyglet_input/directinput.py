@@ -3,11 +3,12 @@
 
 import ctypes
 
+import app
+import base
 import pyglet
-from pyglet.input import base
-from pyglet.libs import win32
-from pyglet.libs.win32 import dinput
-from pyglet.libs.win32 import _kernel32
+from pyglet.window import win32
+import dinput
+from pyglet.window.win32 import _kernel32
 
 # These instance names are not defined anywhere, obtained by experiment.  The
 # GUID names (which seem to be ideally what are needed) are wrong/missing for
@@ -115,7 +116,7 @@ class DirectInputDevice(base.Device):
             # Pick any open window, or the shadow window if no windows
             # have been created yet.
             window = pyglet.gl._shadow_window
-            for window in pyglet.app.windows:
+            for window in app.windows:
                 break
 
         flags = dinput.DISCL_BACKGROUND
@@ -126,7 +127,7 @@ class DirectInputDevice(base.Device):
         
         self._wait_object = _kernel32.CreateEventW(None, False, False, None)
         self._device.SetEventNotification(self._wait_object)
-        pyglet.app.platform_event_loop.add_wait_object(self._wait_object, 
+        app.platform_event_loop.add_wait_object(self._wait_object, 
                                                        self._dispatch_events)
 
         self._device.SetCooperativeLevel(window._hwnd, flags)
@@ -136,7 +137,7 @@ class DirectInputDevice(base.Device):
         if not self.controls:
             return
 
-        pyglet.app.platform_event_loop.remove_wait_object(self._wait_object)
+        app.platform_event_loop.remove_wait_object(self._wait_object)
 
         self._device.Unacquire()
         self._device.SetEventNotification(None)
