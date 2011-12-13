@@ -82,6 +82,9 @@ from psychopy.constants import *
 #NOT_STARTED=0
 #FINISHED=-1
 
+#keep track of windows that have been opened      
+openWindows=[]
+
 class Window:
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
@@ -307,7 +310,7 @@ class Window:
         self._toLog=[]
         self._toDraw=[]
         self._toDrawDepths=[]
-
+        self._eventDispatchers=[]
         if self.useNativeGamma:
             log.info('Using gamma table of operating system')
         else:
@@ -323,7 +326,8 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-
+        
+        openWindows.append(self)
 
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether frames
@@ -428,6 +432,8 @@ class Window:
 
             GL.glTranslatef(0.0,0.0,-5.0)
 
+            for dispatcher in self._eventDispatchers:
+                dispatcher._dispatch_events()
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
             pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
@@ -685,6 +691,7 @@ class Window:
             pygame.display.quit()
         if self.bitsMode!=None:
             self.bits.reset()
+        openWindows.remove(self)
         log.flush()
     def go(self):
         """start the display loop (GLUT only)"""
