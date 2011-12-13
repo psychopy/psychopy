@@ -30,7 +30,7 @@ System Differences:
 Each run below gives the number of dropped frames out of a run of 10,000 (2.7 mins at 100Hz). 
 
 ================  ===============   ==============  ===============  ===============
-_                  Win XP            Win Vista32     Mac OSX 10.6     Ubuntu 11.10
+_                  Win XP            Win Seven      Mac OSX 10.6     Ubuntu 11.10
 _                  (SP3)             Enterprise      Snow Leopard    
 ================  ===============   ==============  ===============  ===============
 Gabor               0                 5              0                   0
