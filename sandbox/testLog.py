@@ -1,16 +1,16 @@
-from psychopy import log
+from psychopy import logging
 
 #create a log that gets replaced every run and stores all the details
-detailedLog =  log.LogFile('complete.log', 
+detailedLog =  logging.LogFile('complete.log',
     'w', #'a' will append to previous file, 'w' will overwrite
-    level=log.INFO)
+    level=logging.INFO)
 
 #set the level of the console log
-log.console.setLevel(log.WARNING)
+logging.console.setLevel(logging.WARNING)
 
 #set the level of the log at site-packages/psychopy/psychopy.log
-log.psychopyLog.setLevel(log.ERROR)
+logging.psychopyLog.setLevel(logging.ERROR)
 
-log.warning('a shot across the bows')
-log.error('just a test error message')
-log.info('this will only get sent to the detailed log file')
+logging.warning('a shot across the bows')
+logging.error('just a test error message')
+logging.info('this will only get sent to the detailed log file')

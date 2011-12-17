@@ -6,15 +6,15 @@
 
 import wx
 from wx import grid
-from psychopy import monitors, hardware, log
+from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
 DEBUG=False
 NOTEBOOKSTYLE = False
 NO_MEASUREMENTS=False
 
-if DEBUG: log.console.setLevel(log.DEBUG)
-else:log.console.setLevel(log.INFO)
+if DEBUG: logging.console.setLevel(logging.DEBUG)
+else:logging.console.setLevel(logging.INFO)
 
 try:
     import matplotlib
@@ -738,13 +738,13 @@ class MainFrame(wx.Frame):
             #do the fits
             self.doGammaFits(lumLevels,lumsPre)
         else:
-            log.warning('No lum values captured/entered')
+            logging.warning('No lum values captured/entered')
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLineariseMethod()
 
         if linMethod==4:
-            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
@@ -756,7 +756,7 @@ class MainFrame(wx.Frame):
                 currentCal[gun,5]=gamCalc.k#gamma
         else:
             currentCal = numpy.ones([4,3],'f')*numpy.nan
-            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min

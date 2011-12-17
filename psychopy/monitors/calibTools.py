@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from calibData import *
-from psychopy import __version__, log, hardware
+from psychopy import __version__, logging, hardware
 import time
 
 try:
@@ -61,7 +61,7 @@ def findPR650(ports=None):
     """DEPRECATED (as of v.1.60.01). Use :func:`psychopy.hardware.findPhotometer()` instead, which
     finds a wider range of devices
     """
-    log.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
+    logging.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
     +"finds a wider range of devices")
 
     if ports==None:
@@ -71,24 +71,24 @@ def findPR650(ports=None):
             ports.extend(glob.glob('/dev/tty.USA*'))#keyspan twin adapter is usually USA28X13P1.1
             ports.extend(glob.glob('/dev/tty.Key*'))#some are Keyspan.1 or Keyserial.1
             ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
-            if len(ports)==0: log.error("couldn't find likely serial port in /dev/tty.* Check for \
+            if len(ports)==0: logging.error("couldn't find likely serial port in /dev/tty.* Check for \
                 serial port name manually, check drivers installed etc...")
         elif sys.platform=='win32':
             ports = range(11)
     elif type(ports) in [int,float]:
         ports=[ports] #so that we can iterate
     pr650=None
-    log.info('scanning serial ports...\n\t')
-    log.console.flush()
+    logging.info('scanning serial ports...\n\t')
+    logging.console.flush()
     for thisPort in ports:
-        log.info(str(thisPort)); log.console.flush()
+        logging.info(str(thisPort)); logging.console.flush()
         pr650 = Photometer(port=thisPort, meterType="PR650", verbose=False)
         if pr650.OK:
-            log.info(' ...OK\n'); log.console.flush()
+            logging.info(' ...OK\n'); logging.console.flush()
             break
         else:
             pr650=None
-            log.info('...Nope!\n\t'); log.console.flush()
+            logging.info('...Nope!\n\t'); logging.console.flush()
     return pr650
 
 class Photometer:
@@ -107,7 +107,7 @@ class Photometer:
 
     """
     def __init__(self, port, meterType="PR650", verbose=True):
-        log.error(self.__doc__)
+        logging.error(self.__doc__)
         sys.exit()
 
 class Monitor:
@@ -169,7 +169,7 @@ class Monitor:
         else:
             self.newCalib()
 
-        log.info(self.calibNames)
+        logging.info(self.calibNames)
 
         #overide current monitor settings with the vals given
         if width: self.setWidth(width)
@@ -384,7 +384,7 @@ class Monitor:
             self.name+".calib")     #the name of the actual file
 
         if not os.path.exists(thisFileName):
-            log.warning("Creating new monitor...")
+            logging.warning("Creating new monitor...")
             self.calibNames = []
         else:
             thisFile = open(thisFileName,'r')
@@ -451,7 +451,7 @@ class Monitor:
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
-        log.info("Loaded calibration from:%s" %self.currentCalibName)
+        logging.info("Loaded calibration from:%s" %self.currentCalibName)
 
         return self.currentCalibName
 
@@ -496,7 +496,7 @@ class Monitor:
             if self._gammaInterpolator!=None and not newInterpolators:
                 pass #we already have an interpolator
             elif lumsPre != None:
-                log.info('Creating linear interpolation for gamma')
+                logging.info('Creating linear interpolation for gamma')
                 #we can make an interpolator
                 self._gammaInterpolator, self._gammaInterpolator2 =[],[]
                 #each of these interpolators is a function!
@@ -513,7 +513,7 @@ class Monitor:
                     #self._gammaInterpolator2.append( [polyFunc.coeff])
             else:
                 #no way to do this! Calibrate the monitor
-                log.error("Can't do a gamma interpolation on your monitor without calibrating!")
+                logging.error("Can't do a gamma interpolation on your monitor without calibrating!")
                 return desiredLums
 
             #then do the actual interpolations
@@ -538,7 +538,7 @@ class Monitor:
                 else: gamma = gammaGrid[1:4,2]
                 maxLumWhite = gammaGrid[0,1]
                 gammaWhite = gammaGrid[0,2]
-                log.debug('using gamma grid'+str(gammaGrid))
+                logging.debug('using gamma grid'+str(gammaGrid))
             else:
                 #just do the calculation using gamma
                 minLum=0
@@ -557,7 +557,7 @@ class Monitor:
                     minLum, maxLumWhite, gammaWhite,eq=linMethod)
             
         else:
-            log.error("Don't know how to linearise with method %i" %linMethod)
+            logging.error("Don't know how to linearise with method %i" %linMethod)
             output = desiredLums
 
         #if DEBUG: print 'LUT:', output[0:10,1], '...'
@@ -767,7 +767,7 @@ def getLumSeries(lumLevels=8,
     if photometer==None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
-        log.error("photometer argument to monitors.getLumSeries should be a type of photometer "+\
+        logging.error("photometer argument to monitors.getLumSeries should be a type of photometer "+\
             "object, not a %s" %type(photometer))
         return None
     else: havePhotom = True
@@ -881,7 +881,7 @@ def getLumSeriesPR650(lumLevels=8,
     photometer='COM1'):
     """DEPRECATED (since v1.60.01): Use :class:`pscyhopy.monitors.getLumSeries()` instead"""
 
-    log.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
+    logging.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
     val= getLumSeries(lumLevels,
         winSize,monitor,
         gamma,allGuns, useBits,
@@ -1039,7 +1039,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     if max(yy)==255:
         yy=numpy.asarray(yy)/255.0
     elif min(yy)<0 or max(yy)>1:
-        log.warning('User supplied values outside the expected range (0:1)')
+        logging.warning('User supplied values outside the expected range (0:1)')
 
     #get into range minLum:maxLum
     yy = numpy.asarray(yy)*(maxLum - minLum) + minLum

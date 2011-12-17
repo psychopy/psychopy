@@ -1,7 +1,7 @@
 from os import path
 from _base import *
 import os
-from psychopy import log
+from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -68,7 +68,7 @@ class SettingsComponent:
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
         except SyntaxError, err:
-            log.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
+            logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
             raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
         buff.writeIndented("expInfo=%s\n" % expInfo)
         if self.params['Show info dlg'].val:

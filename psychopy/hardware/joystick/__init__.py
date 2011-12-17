@@ -40,7 +40,7 @@ try:
 except:
     havePyglet=False
 
-from psychopy import log, visual
+from psychopy import logging, visual
 backend = 'pyglet'#'pyglet' or 'pygame'
 
 def getNumJoysticks():
@@ -71,13 +71,13 @@ class Joystick(object):
         if backend=='pyglet':
             joys=pyglet_input.get_joysticks()
             if id>=len(joys):
-                log.error("You don't have that many joysticks attached (remember that the first joystick has id=0 etc...)")
+                logging.error("You don't have that many joysticks attached (remember that the first joystick has id=0 etc...)")
             else:
                 self._device=joys[id]
                 self._device.open()
                 self.name=self._device.device.name
             if len(visual.openWindows)==0:
-                log.error("You need to open a window before creating your joystick")
+                logging.error("You need to open a window before creating your joystick")
             else:
                 for win in visual.openWindows:
                     win._eventDispatchers.append(self._device.device)

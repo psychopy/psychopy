@@ -9,14 +9,14 @@ the Standalone distributions of PsychoPy).
 
 __author__ = 'Jonathan Roberts'
 
-from psychopy import log
+from psychopy import logging
 #log.console.setLevel(log.CRITICAL)
 
 from psychopy import core, visual, event
 try:
    import ioLabs
 except RuntimeError, errMsg:
-    log.error('Is an ioLabs button-box connected and turned on? (import failed: "'+str(errMsg)+'")')
+    logging.error('Is an ioLabs button-box connected and turned on? (import failed: "'+str(errMsg)+'")')
     core.quit()
 
 import random

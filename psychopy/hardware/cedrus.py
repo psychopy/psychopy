@@ -12,7 +12,7 @@ pyxid package instead (bundled with Standalone PsychoPy)::
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import core, log
+from psychopy import core, logging
 import struct, sys
 
 try: import serial

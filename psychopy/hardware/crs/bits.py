@@ -9,7 +9,7 @@ These may one day get built into psychopy.visual
 import numpy
 from sys import platform
 from copy import copy
-from psychopy import misc, log, monitors
+from psychopy import misc, logging, monitors
 from OpenGL import GL
 import OpenGL.GL.ARB.multitexture as GL_multitexture
 try:
@@ -56,10 +56,10 @@ class BitsBox:
         if init(): 
             setVideoMode(NOGAMMACORRECT|VIDEOENCODEDCOMMS)
             self.initialised=True
-            log.debug('found and initialised bits++')
+            logging.debug('found and initialised bits++')
         else: 
             self.initialised=False
-            log.warning("couldn't initialise bits++")
+            logging.warning("couldn't initialise bits++")
 
         #do the processing
         self._HEADandLUT = numpy.zeros((524,1,3),numpy.uint8)
@@ -126,7 +126,7 @@ class BitsBox:
             #replicate LUT to other channels
             #check range is 0:1
             if newLUT>1.0:
-                log.warning('newLUT should be float in range 0.0:1.0')
+                logging.warning('newLUT should be float in range 0.0:1.0')
             self.LUT[startII:endII,0]= copy(newLUT.flat)
             self.LUT[startII:endII,1]= copy(newLUT.flat)
             self.LUT[startII:endII,2]= copy(newLUT.flat)
@@ -139,7 +139,7 @@ class BitsBox:
             self.LUT[startII:endII,:]= newLUT
             
         else:
-            log.warning('newLUT can be None, nx1 or nx3')
+            logging.warning('newLUT can be None, nx1 or nx3')
             
         #do gamma correction if necessary
         if gammaCorrect==True:
@@ -243,7 +243,7 @@ def init():
         try:
             retVal = _bits.bitsInit() #returns null if fails?
         except:
-            log.error('bits.init() barfed!')
+            logging.error('bits.init() barfed!')
             return 0
     return 1
 

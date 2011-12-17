@@ -4,7 +4,7 @@
 """
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core, log
+from psychopy import visual, event, core, logging
 import os
 
 # create a window before creating your rating scale, whatever units you like:

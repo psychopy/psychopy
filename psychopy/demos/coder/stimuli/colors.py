@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import visual, event, core, log
+from psychopy import visual, event, core, logging
 
 #demo color spaces
 

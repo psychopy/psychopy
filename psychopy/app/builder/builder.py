@@ -12,7 +12,7 @@ import py_compile, codecs
 import csv, numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, log, misc, gui
+from psychopy import data, logging, misc, gui
 import re
 from tempfile import mkdtemp # to check code syntax
 import cPickle
@@ -35,14 +35,14 @@ class FileDropTarget(wx.FileDropTarget):
         wx.FileDropTarget.__init__(self)
         self.builder = builder
     def OnDropFiles(self, x, y, filenames):
-        log.debug('PsychoPyBuilder: received dropped files: filenames')
+        logging.debug('PsychoPyBuilder: received dropped files: filenames')
         for filename in filenames:
             if filename.endswith('.psyexp'):
                 self.builder.fileOpen(filename=filename)
             elif filename.lower().endswith('.py'):
                 self.app.fileOpen(filename=filename)
             else:
-                log.warning('dropped file ignored: did not end in .psyexp')
+                logging.warning('dropped file ignored: did not end in .psyexp')
 
 class WindowFrozen(object):
     """
@@ -2205,7 +2205,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     '.\nNeed to be legal as var name; edit file, try again.')
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = ''
-                log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
+                logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
                 return
 
             duplCondNames = []
@@ -2218,13 +2218,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                 duplCondNamesStr = duplCondNamesStr[:39]+'...'
             if len(duplCondNames):
                 if isSameFilePathAndName:
-                    log.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
+                    logging.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
                 else:
                     self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
                     self.constantsCtrls['conditions'].setValue(
                         'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
                         ']\nProceed anyway? (= safe if these are in old file)')
-                    log.warning('Duplicate condition names, different conditions file: %s' % duplCondNamesStr)
+                    logging.warning('Duplicate condition names, different conditions file: %s' % duplCondNamesStr)
             # stash condition names but don't add to namespace yet, user can still cancel
             self.duplCondNames = duplCondNames # add after self.show() in __init__
 
@@ -2267,12 +2267,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                         'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
                         '.\nNeed to be legal as var name; edit file, try again.')
                     self.conditions = ''
-                    log.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
+                    logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
             else:
                 self.conditions = None
                 self.constantsCtrls['conditions'].setValue("No parameters set (conditionsFile not found)")
         else:
-            log.debug('DlgLoop: could not determine if a condition filename was edited')
+            logging.debug('DlgLoop: could not determine if a condition filename was edited')
             #self.constantsCtrls['conditions'] could be misleading at this point
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
@@ -2348,7 +2348,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             #get screen size for requested display
             num_displays = wx.Display.GetCount()
             if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
-                log.error("User requested non-existent screen")
+                logging.error("User requested non-existent screen")
             else:
                 screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
@@ -3319,7 +3319,7 @@ class BuilderFrame(wx.Frame):
             except Exception, err:
                 print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
                 traceback.print_exc()
-                log.flush()
+                logging.flush()
             self.resetUndoStack()
             self.setIsModified(False)
             self.filename = filename

@@ -12,7 +12,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.hyperlink as wxhl
 import psychopy
 from psychopy.app import dialogs
-from psychopy import log
+from psychopy import logging
 socket.setdefaulttimeout(10)
 
 """The Updater class checks for updates and suggests that an update is carried
@@ -332,7 +332,7 @@ class InstallUpdateDialog(wx.Dialog):
                 searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
                 if searchName!=None:
                     v=searchName.group(0)[:-1]
-                else:log.warning("Couldn't deduce version from zip file: %s" %zFilename)
+                else:logging.warning("Couldn't deduce version from zip file: %s" %zFilename)
             f=open(zfile, 'rb')
             zfile=zipfile.ZipFile(f)
         else:#assume here that zfile is a ZipFile
@@ -440,7 +440,7 @@ class InstallUpdateDialog(wx.Dialog):
                     f.writelines(lines)
                     f.close()
                     nUpdates+=1
-                    log.info('Updated PsychoPy path in %s' %filename)
+                    logging.info('Updated PsychoPy path in %s' %filename)
                 except:
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
@@ -491,7 +491,7 @@ def sendUsageStats(proxy=None):
         req = urllib2.Request(URL)
         page = urllib2.urlopen(req)#proxies
     except:
-        log.warning("Couldn't connect to psychopy.org\n"+\
+        logging.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
 
 def getAutoProxyURL():

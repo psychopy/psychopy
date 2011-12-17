@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__, log
+from psychopy import data, preferences, __version__, logging
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -275,13 +275,13 @@ class Experiment:
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
-            log.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
+            logging.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
-            log.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
+            logging.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
 
         #Parse document nodes
         #first make sure we're empty
@@ -348,7 +348,7 @@ class Experiment:
                         _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                log.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                                logging.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
                             else:
                                 self.namespace.add(fname)
                     except:
@@ -360,7 +360,7 @@ class Experiment:
                 self.flow.append(self.routines[elementNode.get('name')])
 
         if modified_names:
-            log.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
+            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
 
     def setExpName(self, name):
         self.name=name
@@ -456,7 +456,7 @@ class Param:
             # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
             if type(self.val) in [str, unicode]:
                 if re.search(r"/\$", self.val):
-                    log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
+                    logging.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
                 nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
                 if nonEscapedSomewhere: # code wanted, clean-up first
                     tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any

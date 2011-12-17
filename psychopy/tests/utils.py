@@ -4,7 +4,7 @@ from os.path import abspath, basename, dirname, isfile, join as pjoin
 import numpy as np
 import OpenGL
 
-from psychopy import log
+from psychopy import logging
 
 # define the path where to find testing data
 # so tests could be ran from any location
@@ -34,12 +34,12 @@ def compareScreenshot(fileName, win, crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
-        log.debug('PsychoPyTests: RMS=%.3g at threshold=%3.g'
+        logging.debug('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if rms>=crit:
             filenameLocal = fileName.replace('.png','_local.png')
             frame.save(filenameLocal, optimize=1)
-            log.debug('PsychoPyTests: Saving local copy into %s' % filenameLocal)
+            logging.debug('PsychoPyTests: Saving local copy into %s' % filenameLocal)
             raise AssertionError("RMS=%.3g at threshold=%.3g. Local copy in %s"
                                  % (rms, crit, filenameLocal))
         assert rms<crit         # must never fail here

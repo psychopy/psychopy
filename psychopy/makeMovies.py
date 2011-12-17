@@ -9,7 +9,7 @@ Many thanks to Ray Pascor (pascor at hotpop.com) for the public domain code on
 building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette are
 very heavily based on his code).
 """
-from psychopy import log
+from psychopy import logging
 import string, time, tempfile, os, glob
 import Image, ImageChops
 from GifImagePlugin import getheader, getdata #part of PIL
@@ -243,7 +243,7 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
 
 def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=False):
     if not havePyMedia:
-        log.error('pymedia (www.pymedia.org) needed to make mpeg movies')
+        logging.error('pymedia (www.pymedia.org) needed to make mpeg movies')
         return 0
 
     fw= open( filename, 'wb' )
@@ -269,7 +269,7 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
             'bitrate': bitrate,
             'id': vcodec.getCodecID( codec )
             }
-        log.info('Setting codec to ' + str(codecParams))
+        logging.info('Setting codec to ' + str(codecParams))
     encoder= vcodec.Encoder( codecParams )
 
     for im in images:
@@ -283,7 +283,7 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
         except:
             fw.write( d )#this is what pymedia demo recommends
     else:
-        log.info('%d frames written in %.2f secs' % ( len(images), time.time()- t))
+        logging.info('%d frames written in %.2f secs' % ( len(images), time.time()- t))
         i= 0
     fw.close()
 

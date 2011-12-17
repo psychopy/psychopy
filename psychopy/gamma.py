@@ -7,7 +7,7 @@
 
 import numpy, sys, platform, ctypes, ctypes.util
 import pyglet
-from psychopy import log
+from psychopy import logging
 
 #import platform specific C++ libs for controlling gamma
 if sys.platform=='win32':
@@ -146,7 +146,7 @@ def createLinearRamp(win, rampType=None):
     elif rampType==3:
         ramp = numpy.linspace(0, 1023.0/1024,num=1024)
         ramp[512:] = ramp[512:]-1/256.0
-    log.info('Using gamma ramp type: %i' %rampType)
+    logging.info('Using gamma ramp type: %i' %rampType)
     return ramp
 
 
