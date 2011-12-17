@@ -14,6 +14,7 @@ import time
 try:
     #try to load previous info
     info = misc.fromFile('info_gamma.pickle')
+    print info
 except:
     #if no file use some defaults
     info={}
@@ -21,7 +22,8 @@ except:
     info['lumModLum']=0.1
     info['contrastModNoise']=1.0
     info['observer']=''
-    info['startGamma']=[3.0, 0.8]
+    info['highGamma']=3.0
+    info['lowGamma']=0.8
     info['nTrials']=50
 dlg = gui.DlgFromDict(info)
 #save to a file for future use (ie storing as defaults)
@@ -29,7 +31,8 @@ if dlg.OK:
     misc.toFile('info_gamma.pickle',info)
 else:
     core.quit() #user cancelled. quit
-   
+print info
+
 info['timeStr']=time.strftime("%b_%d_%H%M", time.localtime())
 nFrames=3
 cyclesTime=2
@@ -73,10 +76,10 @@ stimFrames.append(visual.PatchStim(myWin, texRes=pixels, mask='circle',
 
 stairCases=[]
 #two staircases - one from the top, one from below - to average
-stairCases.append(data.StairHandler(startVal=info['startGamma'][0], nTrials=info['nTrials'], 
+stairCases.append(data.StairHandler(startVal=info['highGamma'], nTrials=info['nTrials'], 
         stepSizes=[0.5,0.5,0.1,0.1,0.1,0.1,0.05,0.05],stepType='lin',
         nUp=1, nDown=1))
-stairCases.append(data.StairHandler(startVal=info['startGamma'][1], nTrials=info['nTrials'], 
+stairCases.append(data.StairHandler(startVal=info['lowGamma'], nTrials=info['nTrials'], 
         stepSizes=[0.5,0.5,0.1,0.1,0.1,0.1,0.05,0.05],stepType='lin',
         nUp=1, nDown=1))
 def getResponse(direction):

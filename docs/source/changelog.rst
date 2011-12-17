@@ -15,15 +15,20 @@ PsychoPy 1.72.00
 
 (released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
-	- for :class:`~psychopy.gui.Dlg` the `.addField()` method now has `choices` attribute 
-	- for :class:`~psychopy.gui.DlgFromDict` if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
-	- for info see docs linked above
-	
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
+to a choice control if this is used (thanks Manuel Ebert)
+    - for gui.Dlg the `.addField()` method now has `choices` attribute
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be
+    interpreted as a set of choices (NB this potentially breaks old code)
+    - for info see API docs for psychopy.gui
+
+* CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion).
+You'll now get a deprecation warning for using psychopy.log but it will still for a while
+
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
-    
+
 * ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
 * FIXED: calibration plots in Monitor Center now resize and quit as expected
 * FIXED: conditions files can now have lists of numbers [0,0]
@@ -33,7 +38,7 @@ PsychoPy 1.72.00
 * FIXED: problem with Builder loops not being able to change type (e.g. change 'random' into 'staircase')
 * FIXED: data form TrialHandler can be output with unicode contents (thanks Henrik Singmann)
 
-    
+
 PsychoPy 1.71
 ------------------------------
 
@@ -663,7 +668,7 @@ PsychoPy 0.97.01:
 * FIXED bug with IDE not closing properly (when current file was not right-most)
 * ADDED parallel.readPin(pinN) so that parallel port can be used for input as well as output
 * FIXED bug in parallel.setPortAddress(addr)
-* ADDED check for floats as arguments to ElementArrayStim set___ methods
+* ADDED check for floats as arguments to ElementArrayStim set methods
 * CHANGED: frame time recording to be *off* by default (for plotting, for Window.fps() and for warnings). To turn it on use Window.setRecordFrameIntervals(True), preferably after first few frames have elapsed
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
