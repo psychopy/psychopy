@@ -1398,7 +1398,7 @@ class DotStim(_BaseVisualStim):
                 number of dots to be generated
             fieldPos : (x,y) or [x,y]
                 specifying the location of the centre of the stimulus.
-            fieldSize : a single value, specifying the diameter of the field
+            fieldSize : (x,y) or [x,y] or single value (applied to both dimensions)
                 Sizes can be negative and can extend beyond the window.
             fieldShape : *'sqr'* or 'circle'
                 Defines the envelope used to present the dots
@@ -1456,7 +1456,10 @@ class DotStim(_BaseVisualStim):
         else: self.fieldPos=fieldPos
         if type(fieldSize) in [tuple,list]:
             self.fieldSize = numpy.array(fieldSize)
-        else:self.fieldSize=fieldSize
+        elif type(fieldSize) in [float,int]:
+            self.fieldSize=numpy.array([fieldSize,fieldSize])
+        else:
+            self.fieldSize=fieldSize
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:self.dotSize=dotSize
@@ -1687,7 +1690,9 @@ class DotStim(_BaseVisualStim):
 
         #handle boundaries of the field
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize/2.0))+(numpy.abs(self._dotsXY[:,1])>(self.fieldSize/2.0))
+            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
+                                                                                  (self
+                                                                                   ._dotsXY[:,1])>(self.fieldSize[1]/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)

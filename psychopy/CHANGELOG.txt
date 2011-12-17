@@ -28,7 +28,8 @@ You'll now get a deprecation warning for using psychopy.log but it will still fo
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
-    
+
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
 * ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
 * FIXED: calibration plots in Monitor Center now resize and quit as expected
 * FIXED: conditions files can now have lists of numbers [0,0]
