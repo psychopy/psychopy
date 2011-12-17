@@ -29,7 +29,7 @@ messages, (which PsychoPy doesn't use) using the commands::
 #of log entries for later writing (don't want files written while drawing)
 
 from os import path
-import sys, types, time, codecs
+import sys, time, codecs, weakref
 
 _packagePath = path.split(__file__)[0]
 
@@ -120,6 +120,7 @@ class _LogEntry:
         self.level=level
         self.levelname = getLevel(level)
         self.message=message
+        self.obj=obj
 
 class LogFile:
     """A text stream to receive inputs from the logging system
@@ -150,17 +151,18 @@ class LogFile:
         elif type(f) in [unicode, str]:
             self.stream=codecs.open(f, filemode, encoding)
         self.level=level
-        #add to the appropriate Logger
-        if logger==None: self.logger = root
-        else: self.logger=logger
+        #keep a weakref to the appropriate Logger (don't want to
+        if logger is None:
+            logger = root
+        self.logger=weakref.ref(logger)
 
-        self.logger.addTarget(self)
+        self.logger().addTarget(self)
 
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
         self.level = level
-        self.logger._calcLowestTarget()
+        self.logger()._calcLowestTarget()
     def write(self,txt):
         """Write directy to the log file (without using logging functions).
         Useful to send messages that only this file receives
@@ -212,7 +214,7 @@ class _Logger:
         #check for at least one relevant logger
         if level<self.lowestTarget: return
         #check time
-        if t==None:
+        if t is None:
             global defaultClock
             t=defaultClock.getTime()
         #add message to list

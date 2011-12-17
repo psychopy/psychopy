@@ -46,4 +46,3 @@ for n in range(5):
 #messages using write() will be sent immediately, and are often not
 #in correct chronological order with logged messages
 logDat.write("Testing\n\n")
-log.flush()
