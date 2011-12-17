@@ -3897,10 +3897,6 @@ class TextStim(_BaseVisualStim):
         elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
 
-        for thisFont in fontFiles:
-            pyglet.font.add_file(thisFont)
-        self.setFont(font)
-
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet":
@@ -3915,8 +3911,10 @@ class TextStim(_BaseVisualStim):
             self.setColor(color)
 
         self._calcPosRendered()
+        for thisFont in fontFiles:
+            pyglet.font.add_file(thisFont)
+        self.setFont(font)
         self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
-
         self.needUpdate=True
     def setHeight(self,height):
         """Set the height of the letters (including the entire box that surrounds the letters
@@ -3945,7 +3943,6 @@ class TextStim(_BaseVisualStim):
             self.heightPix = self.height
         #need to update the font to reflect the change
         self.setFont(self.fontname)
-        self.setText(self.text)
     def setFont(self, font):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -3987,21 +3984,22 @@ class TextStim(_BaseVisualStim):
                               e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." %(font, self.fontname))
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
-        self.setText()
+        self._needSetText=True
 
     def setText(self,value=None):
         """Set the text to be rendered using the current font
         """
-        if value!=None:
+        if value!=None:#make sure we have unicode object to render
             value = unicode(value)
         if self._useShaders:
             self._setTextShaders(value)
         else:
             self._setTextNoShaders(value)
+        self._needSetText=False
     def setRGB(self,value, operation=''):
         self._set('rgb', value, operation)
         if not self._useShaders:
-            self.setText(self.text)#need to render the text again to a texture
+            self._needSetText=True
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
@@ -4054,7 +4052,7 @@ class TextStim(_BaseVisualStim):
         _BaseVisualStim.setColor(self, color, colorSpace=colorSpace, operation=operation)
         #but then update text objects if necess
         if not self._useShaders:
-            self.setText(self.text)#need to render the text again to a texture
+            self._needSetText=True
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
@@ -4089,12 +4087,15 @@ class TextStim(_BaseVisualStim):
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
 
+        self._needSetText=False
         self.needUpdate = True
 
     def _updateListShaders(self):
         """
         This is only used with pygame text - pyglet handles all from the draw()
         """
+        if self._needSetText:
+            self.setText()
         GL.glNewList(self._listID, GL.GL_COMPILE)
         #GL.glPushMatrix()
 
@@ -4193,7 +4194,6 @@ class TextStim(_BaseVisualStim):
                             GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
-
         self.needUpdate = True
 
     def _updateListNoShaders(self):
@@ -4204,6 +4204,8 @@ class TextStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
+        if self._needSetText:
+            self.setText()
         GL.glNewList(self._listID, GL.GL_COMPILE)
         #coords:
         if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
@@ -4331,7 +4333,7 @@ class TextStim(_BaseVisualStim):
             logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            self.setText(self.text)
+            self._needSetText=True
             self.needUpdate=True
 
 class ShapeStim(_BaseVisualStim):

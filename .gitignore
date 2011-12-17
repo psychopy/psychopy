@@ -14,3 +14,4 @@ psychopy1
 psychopy/demos/coder/misc/frame*
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+.idea
