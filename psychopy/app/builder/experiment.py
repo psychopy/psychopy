@@ -77,7 +77,7 @@ class Experiment:
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data', 'event']
+        self.psychopyLibs=['core','data','event','logging']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
@@ -118,7 +118,6 @@ class Experiment:
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
-                    "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
                     "from psychopy.constants import *\n\n")
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window

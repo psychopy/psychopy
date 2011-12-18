@@ -99,9 +99,9 @@ class SettingsComponent:
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
             if self.params['Save log file']:
-                buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
+                buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
 
-        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.WARNING)#this outputs to the screen, not a file\n")
+        buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
 
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
