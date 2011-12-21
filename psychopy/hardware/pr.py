@@ -7,7 +7,7 @@ See http://www.photoresearch.com/
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
+from psychopy import logging
 import struct, sys, time, numpy
 
 try: import serial
@@ -88,7 +88,7 @@ class PR650:
                 self._error("Opened serial port %s, but couldn't connect to PR650" %self.portString)
         
         if self.OK:
-            log.info("Successfully opened %s" %self.portString)
+            logging.info("Successfully opened %s" %self.portString)
             time.sleep(0.1) #wait while establish connection
             reply = self.sendMessage('b1\n')        #turn on the backlight as feedback            
             if reply != self.codes['OK']:
@@ -99,7 +99,7 @@ class PR650:
     
     def _error(self, msg):
         self.OK=False
-        log.error(msg)
+        logging.error(msg)
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
         """Send a command to the photometer and wait an alloted
         timeout for a response (Timeout should be long for low
@@ -117,7 +117,7 @@ class PR650:
 
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
-        log.debug(message)#send complete message
+        logging.debug(message)#send complete message
         if message in ['d5', 'd5\n']: #we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
@@ -141,7 +141,7 @@ class PR650:
                 self.lastLum = float(xyz[3])
             else: self.lastLum = 0.0
         else:
-            log.warning("Didn't collect any data (extend timeout?)")
+            logging.warning("Didn't collect any data (extend timeout?)")
 
     def getLum(self):
         """Makes a measurement and returns the luminance value
@@ -292,7 +292,7 @@ class PR655(PR650):
             self.startRemoteMode()
             self.type = self.getDeviceType()
             if self.type:
-                log.info("Successfully opened %s on %s" %(self.type,self.portString))
+                logging.info("Successfully opened %s on %s" %(self.type,self.portString))
             else:
                 self._error("PR655/PR670 isn't communicating")
     def __del__(self):
@@ -300,7 +300,7 @@ class PR655(PR650):
             self.endRemoteMode()
             time.sleep(0.1)
             self.com.close()
-            log.debug('Closed PR655 port')
+            logging.debug('Closed PR655 port')
         except:
             pass
     def startRemoteMode( self ):
@@ -323,7 +323,7 @@ class PR655(PR650):
         timeout for a response (Timeout should be long for low
         light measurements)
         """
-        log.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
+        logging.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
         if message[-1]!='\n': message+='\n'     #append a newline if necess
 
         #flush the read buffer first

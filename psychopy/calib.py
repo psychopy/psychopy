@@ -4,6 +4,6 @@
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
-log.warning("psychopy.calib is deprecated - use monitors package instead")
+from psychopy import logging
+logging.warning("psychopy.calib is deprecated - use monitors package instead")
 from monitors import *

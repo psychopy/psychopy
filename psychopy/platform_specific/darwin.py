@@ -3,13 +3,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time
-from psychopy import log
+from psychopy import logging
 try:
     import ctypes, ctypes.util
     importCtypesFailed = False
 except:
     importCtypesFailed = True
-    log.debug("rush() not available because import ctypes failed in contrib/darwin.py")
+    logging.debug("rush() not available because import ctypes failed in contrib/darwin.py")
 
 #constants
 KERN_SUCCESS=0;
@@ -108,9 +108,9 @@ def rush(value=True):
             ctypes.byref(extendedPolicy), #send the address of the struct
             THREAD_TIME_CONSTRAINT_POLICY_COUNT)
         if err!=KERN_SUCCESS:
-            log.error('Failed to set darwin thread policy, with thread_policy_set')
+            logging.error('Failed to set darwin thread policy, with thread_policy_set')
         else:
-            log.info('Successfully set darwin thread to realtime')
+            logging.info('Successfully set darwin thread to realtime')
     else:
         #revert to default policy
         extendedPolicy=getThreadPolicy(getDefault=True, flavour=THREAD_STANDARD_POLICY)
@@ -215,7 +215,7 @@ def waitForVBL(screen=0,nFrames=1):
         mainFramePeriod = 1.0/getRefreshRate(0) 
         if mainFramePeriod!=framePeriod:
             #CGDisplayBeamPosition is unpredictable in this case - usually synced to the first monitor, but maybe better if 2 gfx cards?
-            log.warning("You are trying to wait for blanking on a secondary monitor that has a different \
+            logging.warning("You are trying to wait for blanking on a secondary monitor that has a different \
 refresh rate to your primary monitor. This is not recommended (likely to reduce your frame rate to the primary monitor).")
     #when we're in a VBL the current beam position is greater than the screen height (for up to ~30 lines)
     top=getScreenSizePix(screen)[0]

@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy, random #this is imported by psychopy.core
-from psychopy import log
+from psychopy import logging
 import monitors
 
 import os, shutil
@@ -382,7 +382,7 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
             [1.0000, 1.0000, -0.1462],#R
             [1.0000, -0.3900, 0.2094],#G
             [1.0000, 0.0180, -1.0000]])#B
-        log.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
+        logging.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
 
     rgb = numpy.dot(conversionMatrix, dkl_cartesian)
 
@@ -420,7 +420,7 @@ def rgb2dklCart(picture, conversionMatrix=None):
             [ 0.25145542,  0.64933633,  0.09920825],
             [ 0.78737943, -0.55586618, -0.23151325],
             [ 0.26562825,  0.63933074, -0.90495899]])
-        log.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
+        logging.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
     else:
         conversionMatrix = numpy.linalg.inv(conversionMatrix)
 
@@ -458,7 +458,7 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
             [-0.90913894, 2.15671326, -0.24757432],#G
             [-0.03976551, -0.14253782, 1.18230333]#B
             ])
-        log.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
+        logging.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
     else: cones_to_rgb=conversionMatrix
 
     rgb_to_cones = numpy.linalg.pinv(cones_to_rgb)#get inverse

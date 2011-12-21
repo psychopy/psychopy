@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #this is win32 only - I have no idea how to use parallel ports on a Mac! jwp
-from psychopy import visual, core, log
+from psychopy import visual, core, logging
 from psychopy import parallel 
 
 nFramesOn = 5

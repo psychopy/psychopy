@@ -3,7 +3,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-from psychopy import log
+from psychopy import logging
 #from wxPython import wx
 import wx
 import numpy
@@ -142,7 +142,7 @@ class Dlg(wx.Dialog):
                 thisVal = self.inputFields[n].GetValue()
                 thisType= self.inputFieldTypes[n]
                 #try to handle different types of input from strings
-                log.debug("%s: %s" %(self.inputFieldNames[n], unicode(thisVal)))
+                logging.debug("%s: %s" %(self.inputFieldNames[n], unicode(thisVal)))
                 if thisType in [tuple,list,float,int]:
                     #probably a tuple or list
                     exec("self.data.append("+thisVal+")")#evaluate it
@@ -151,7 +151,7 @@ class Dlg(wx.Dialog):
                 elif thisType in [str,unicode,bool]:
                     self.data.append(thisVal)
                 else:
-                    log.warning('unknown type:'+self.inputFieldNames[n])
+                    logging.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)
             self.OK=True
         else:

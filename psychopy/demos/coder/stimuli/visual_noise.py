@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 #demo arbitrary numpy array
 
-from psychopy import visual, core, event, log
+from psychopy import visual, core, event, logging
 import scipy
 
-log.console.setLevel(log.DEBUG)
+logging.console.setLevel(logging.DEBUG)
 
 myWin = visual.Window([600,600], allowGUI=False)
 

@@ -24,15 +24,21 @@ PsychoPy 1.72.00
 
 (rc1 released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
-	- for gui.Dlg the `.addField()` method now has `choices` attribute 
-	- for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
-	- for info see API docs for psychopy.gui
-	
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
+to a choice control if this is used (thanks Manuel Ebert)
+    - for gui.Dlg the `.addField()` method now has `choices` attribute
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be
+    interpreted as a set of choices (NB this potentially breaks old code)
+    - for info see API docs for psychopy.gui
+
+* CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion).
+You'll now get a deprecation warning for using psychopy.log but it will still for a while
+
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
-    
+
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
 * ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
 * FIXED: problem with dropdown 'Choice' controls after importing pyglet.media
 * FIXED: calibration plots in Monitor Center now resize and quit as expected

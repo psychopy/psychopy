@@ -9,7 +9,7 @@ Various useful functions for creating filters and textures (e.g. for PatchStim)
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
 import Image
-from psychopy import log
+from psychopy import logging
 
 def makeGrating(res,
             ori=0.0,    #in degrees
@@ -59,7 +59,7 @@ def makeGrating(res,
             try:
                     im = Image.open(gratType)
             except:
-                    log.error( "couldn't find tex...",gratType)
+                    logging.error( "couldn't find tex...",gratType)
                     return
     return intensity
 

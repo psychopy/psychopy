@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-from psychopy import visual, log, event, core
+from psychopy import visual, logging, event, core
 
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False)
-log.console.setLevel(log.DEBUG)
+logging.console.setLevel(logging.DEBUG)
 
 #INITIALISE SOME STIMULI
 grating1 = visual.PatchStim(myWin,mask="gauss",

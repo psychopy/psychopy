@@ -7,7 +7,7 @@ See http://www.konicaminolta.com/instruments
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
+from psychopy import logging
 import struct, sys, time
 
 try: import serial
@@ -133,7 +133,7 @@ class LS100:
                     else:
                         self.OK=False #false so far but keep trying
         if self.OK:# we have successfully sent and read a command
-            log.info("Successfully opened %s" %self.portString)
+            logging.info("Successfully opened %s" %self.portString)
     def setMode(self, mode='04'):
         """Set the mode for measurements. Returns True (success) or False 
         
@@ -170,8 +170,8 @@ class LS100:
         """        
         #also check that the reply is what was expected
         if msg[0:2] != 'OK':
-            if msg=='': log.error('No reply from LS100'); sys.stdout.flush()
-            else: log.error('Error message from LS100:' + self.codes[msg]); sys.stdout.flush()
+            if msg=='': logging.error('No reply from LS100'); sys.stdout.flush()
+            else: logging.error('Error message from LS100:' + self.codes[msg]); sys.stdout.flush()
             return False
         else: 
             return True
@@ -193,7 +193,7 @@ class LS100:
             time.sleep(0.1)            
             #get reply (within timeout limit)
             self.com.setTimeout(timeout)
-            log.debug('Sent command:'+message[:-2])#send complete message
+            logging.debug('Sent command:'+message[:-2])#send complete message
             retVal= self.com.readline()
             if len(retVal)>0:break#we got a reply so can stop trying
             
@@ -201,7 +201,7 @@ class LS100:
 
     def _error(self, msg):
         self.OK=False
-        log.error(msg)
+        logging.error(msg)
     def setMaxAttempts(self, maxAttempts):
         """Changes the number of attempts to send a message and read the output
         Typically this should be low initially, if you aren't sure that the device

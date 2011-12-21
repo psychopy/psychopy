@@ -8,7 +8,7 @@
 #Shut down as many applications as possible, especially those that 
 #might try to update
 
-from psychopy import visual, log, core, event
+from psychopy import visual, logging, core, event
 import matplotlib
 #matplotlib.use('WXAgg')#change this to control the plotting 'back end'
 import pylab
@@ -32,7 +32,7 @@ for frameN in range(nIntervals+1):
     if event.getKeys():
         print 'stopped early'
         break
-    win.logOnFlip(msg='frame=%i' %frameN, level=log.EXP)
+    win.logOnFlip(msg='frame=%i' %frameN, level=logging.EXP)
     win.flip()
 win.close()
 

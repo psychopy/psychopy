@@ -7,7 +7,7 @@
 import sys, time, threading
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.platform_specific import rush
-from psychopy import log
+from psychopy import logging
 import subprocess, shlex
 
 runningThreads=[]
@@ -22,7 +22,7 @@ def quit():
     """Close everything and exit nicely (ending the experiment)
     """
     #pygame.quit() #safe even if pygame was never initialised
-    log.flush()
+    logging.flush()
     for thisThread in threading.enumerate():
         if hasattr(thisThread,'stop') and hasattr(thisThread,'running'):
             #this is one of our event threads - kill it and wait for success
