@@ -365,8 +365,8 @@ class MainFrame(wx.Frame):
         self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
         if self.currentMon.getLineariseMethod()==4:
-            self.choiceLinearMethod.SetSelection(2)
-        else: self.choiceLinearMethod.SetSelection(1)
+            self.choiceLinearMethod.SetSelection(1)
+        else: self.choiceLinearMethod.SetSelection(0)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
 
@@ -520,8 +520,8 @@ class MainFrame(wx.Frame):
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
         if self.currentMon.getLineariseMethod()==4:
-            self.choiceLinearMethod.SetSelection(2)
-        else: self.choiceLinearMethod.SetSelection(1)
+            self.choiceLinearMethod.SetSelection(1)
+        else: self.choiceLinearMethod.SetSelection(0)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
         self.DKLgrid.setData(self.currentMon.getDKL_RGB())
 
