@@ -763,7 +763,6 @@ def getLumSeries(lumLevels=8,
     """
     import psychopy.event, psychopy.visual
     from psychopy import core
-
     if photometer==None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
@@ -864,7 +863,8 @@ def getLumSeries(lumLevels=8,
                 print "At DAC value %i" % DACval
                 psychopy.event.waitKeys()
 
-    myWin.setGamma(2.2)
+    if myWin.origGammaRamp is not None:
+       myWin.setGammaRamp(myWin.origGammaRamp)
     myWin.close() #we're done with the visual stimuli
     if havePhotom: return lumsList
     else: return numpy.array([])

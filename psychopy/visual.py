@@ -241,7 +241,7 @@ class Window:
         else:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
-
+            
         #load color conversion matrices
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
@@ -311,6 +311,10 @@ class Window:
         self._toDraw=[]
         self._toDrawDepths=[]
         self._eventDispatchers=[]
+        try:
+            self.origGammaRamp=self.getGammaRamp()
+        except:
+            self.origGammaRamp=None
         if self.useNativeGamma:
             logging.info('Using gamma table of operating system')
         else:
