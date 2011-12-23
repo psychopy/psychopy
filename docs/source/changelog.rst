@@ -7,13 +7,22 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-PsychoPy 1.72
+PsychoPy 1.73
 ------------------------------
+
+PsychoPy 1.73.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+* ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Not tested on Linux yet
+* ADDED: data.ExpHandler to combine data for multiple separate loopsin one study, including output of a single wide csv file
+* FIXED: bug when passing variables to Staircase loops in Builder
 
 PsychoPy 1.72.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Nov 2011)
+(rc1 released Nov 2011)
 
 * CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
 to a choice control if this is used (thanks Manuel Ebert)
