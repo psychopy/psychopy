@@ -315,7 +315,6 @@ class Mouse:
         if usePygame:
             newPosPix[1] = self.win.size[1]/2-newPosPix[1]
             newPosPix[0] = self.win.size[0]/2+newPosPix[0]
-            print newPosPix
             mouse.set_pos(newPosPix)
         else: print "pyglet does not support setting the mouse position yet"
 
