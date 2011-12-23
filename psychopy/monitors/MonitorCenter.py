@@ -322,7 +322,7 @@ class MainFrame(wx.Frame):
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #photometer button
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
-            choices=["PR655/PR670", "PR650", "LS100/LS110"])
+            choices=["PR655/PR670", "PR650", "Minolta LS100/LS110", "CRS ColorCAL"])
         #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
@@ -729,7 +729,7 @@ class MainFrame(wx.Frame):
                 inputDlg.Destroy()
 
         #fit the gamma curves
-        if len(lumsPre)>1:
+        if lumsPre is None or len(lumsPre)>1:
             self.onCopyCalib(1)#create a new dated calibration
             self.currentMon.setLumsPre(lumsPre)#save for future
             self.currentMon.setLevelsPre(lumLevels)#save for future
@@ -847,7 +847,8 @@ class MainFrame(wx.Frame):
             self.photom = hardware.findPhotometer(device='PR650')
         elif 'LS100' in photName:
             self.photom = hardware.findPhotometer(device='LS100')
-
+        elif 'ColorCAL' in photName:
+            self.photom = hardware.findPhotometer(device='ColorCAL')
         if self.photom!=None and self.photom.OK:
             self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
@@ -856,9 +857,29 @@ class MainFrame(wx.Frame):
                 self.btnCalibrateColor.Enable(True)
             self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
         else:
-            self.comPortLabel.SetLabel('None found (for LS100 try again)')
+            self.comPortLabel.SetLabel('No photometers found')
             self.photom=None
 
+        #does this device need a dark calibration?
+        if hasattr(self.photom, 'getNeedsCalibrateZero') and self.photom.getNeedsCalibrateZero():
+            #prompt user if we need a dark calibration for the device
+            if self.photom.getNeedsCalibrateZero():
+                dlg = wx.Dialog(self,title='Dark calibration of ColorCAL')
+                msg='Your ColorCAL needs to be calibrated first. ' +\
+                    'Please block all light from getting into the lens and press OK.'
+                while self.photom.getNeedsCalibrateZero():
+                    dlg = dialogs.MessageDialog(self,message=msg, 
+                                                title='Dark calibration of ColorCAL',
+                                                type='Info')#info dlg has only an OK button
+                    resp=dlg.ShowModal()
+                    if resp== wx.ID_CANCEL:
+                        self.photom=None
+                        self.comPortLabel.SetLabel('')
+                        return 0
+                    elif resp == wx.ID_OK:
+                        self.photom.calibrateZero()
+                    #this failed at least once. Try again.
+                    msg = 'Try again. Cover the lens fully and press OK'
     def plotGamma(self, event=None):
         figTitle = '%s %s Gamma Functions' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
