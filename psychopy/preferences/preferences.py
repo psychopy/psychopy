@@ -91,9 +91,6 @@ class Preferences:
         
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
-        
-        # connections:
-        if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so will
@@ -149,12 +146,5 @@ class Preferences:
                 cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
             else:
                 print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
-        
-    def getAutoProxy(self):
-        """Fetch the proxy from the the system environment variables
-        """
-        if urllib.getproxies().has_key('http'):
-            return urllib.getproxies()['http']
-        else:
-            return ""
+
 

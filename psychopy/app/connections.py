@@ -4,6 +4,7 @@
 
 import urllib2, socket, re, glob
 import time, platform, sys, zipfile, os, cStringIO
+import threading
 import wx
 import  wx.lib.filebrowsebutton
 try:
@@ -13,15 +14,57 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 import psychopy
 from psychopy.app import dialogs
 from psychopy import logging
-socket.setdefaulttimeout(10)
+from psychopy import preferences
+prefs=preferences.Preferences()
+
+socket.setdefaulttimeout(2)
+
+global proxies
+proxies=None #if this is populated then it has been set up already
+
+versionURL = "http://www.psychopy.org/version.txt"
 
 """The Updater class checks for updates and suggests that an update is carried
 out if a new version is found. The actual updating is handled by InstallUpdateDialog
 (via Updater.doUpdate() ).
 """
 
+def makeConnections(app):
+    """A helper function to be launched from a thread. Will setup proxies and check for updates.
+    Should be run from a thread while the program continues to load.
+    """
+    if proxies is None:
+        setupProxy()
+    if proxies==0:
+        return
+    if app.prefs.connections['allowUsageStats']:
+        sendUsageStats()
+    if app.prefs.connections['checkForUpdates']:
+        app._latestAvailableVersion = getLatestVersionInfo()
+
+def getLatestVersionInfo():
+    """
+    Fetch info about the latest availiable version.
+    Returns -1 if fails to make a connection
+    """
+    try:
+        page = urllib2.urlopen(versionURL)
+    except urllib2.URLError:
+        return -1
+    #parse update file as a dictionary
+    latest={}
+    for line in page.readlines():
+        #in some odd circumstances (wifi hotspots) you might successfully fetch a
+        #page that is not the correct URL but a redirect
+        if line.find(':')==-1:
+            return -1
+            #this will succeed if every line has a key
+        key, keyInfo = line.split(':')
+        latest[key]=keyInfo.replace('\n', '').replace('\r', '')
+    return latest
+
 class Updater:
-    def __init__(self,app=None, proxy=None, runningVersion=None):
+    def __init__(self,app=None, runningVersion=None):
         """The updater will check for updates and download/install them if necess.
         Several dialogs may be created as needed during the process.
 
@@ -31,61 +74,24 @@ class Updater:
                 app.updates=Updater(app, proxy)
                 app.updater.checkForUpdates()#if updates are found further dialogs will prompt
         """
+        global proxies
         self.app=app
-        if proxy==None: proxy=self.app.prefs.connections['proxy']
         if runningVersion==None:  self.runningVersion=psychopy.__version__
         else:  self.runningVersion=runningVersion
 
         self.headers = {'User-Agent' : 'Mozilla/5.0'}
         self.latest=None
-        self.setupProxies(proxy)
+        if proxies==None:
+            setupProxy()
 
-    def showModal(self):
-        #setup output window for info
-        origStdOut = sys.stdout
-        origStdErr = sys.stderr
-#        sys.stdout = self.outStream
-#        sys.stderr = self.outStream
-        #show dlg
-        retVal = self.ShowModal()
-        #return output to original
-        sys.stdout = origStdOut
-        sys.stderr = origStdErr
-        self.Destroy()
-
-    def setupProxies(self, proxy=None):
-        """Get proxies and insert into url opener"""
-        #try to get a proxy
-        if proxy is None: proxies = urllib2.getproxies()
-        else: proxies=urllib2.ProxyHandler({'http':proxy})
-        #if we got one install it
-        if len(proxies.proxies['http'])>0:
-            opener  = urllib2.build_opener(proxies)
-            urllib2.install_opener(opener)#this will now be used globally for ALL urllib2 opening
-        else:
-            pass#no proxy could be found so use none
     def getLatestInfo(self, warnMsg=False):
         #open page
-        URL = "http://www.psychopy.org/version.txt"
-        try:
-            page = urllib2.urlopen(URL)#proxies
-        except:
-            if warnMsg:
-                msg="Couldn't connect to psychopy.org to check for updates. \n"+\
-                    "Check internet settings (and proxy setting in PsychoPy Preferences)."
-                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
-                confirmDlg.ShowModal()
-            return -1
-        #parse update file as a dictionary
-        latest={}
-        for line in page.readlines():
-            #in some odd circumstances (wifi hotspots) you might successfully fetch a
-            #page that is not the correct URL but a redirect
-            if line.find(':')==-1:
-                return -1
-            #this will succeed if every line has a key
-            key, keyInfo = line.split(':')
-            latest[key]=keyInfo.replace('\n', '').replace('\r', '')
+        latest=getLatestVersionInfo()
+        if latest==-1:
+            msg="Couldn't connect to psychopy.org to check for updates. \n"+\
+                "Check internet settings (and proxy setting in PsychoPy Preferences)."
+            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
+            confirmDlg.ShowModal()
         return latest
     def suggestUpdate(self, confirmationDlg=False):
         """Query user about whether to update (if it's possible to do the update)
@@ -351,9 +357,9 @@ class InstallUpdateDialog(wx.Dialog):
                 undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
             except:
                 if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
-                    msg = "Right-click the app and 'Run as admin' to upgrade)"
+                    msg = "To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')"
                 else:
-                    msg = "Could not move existing PsychoPy installation (permissions error?)"
+                    msg="Could not move existing PsychoPy installation (permissions error?)"
                 return msg
         else:#setuptools-style installation
             #generate new target path
@@ -397,8 +403,8 @@ class InstallUpdateDialog(wx.Dialog):
                     outfile.close()
             except:
                 exec(undoString)#undo previous changes
-                print 'failed to unzip file:', name
-                print sys.exc_info()[0]
+                logging.error('failed to unzip file: '+name)
+                logging.error(sys.exc_info()[0])
         info += 'Success. \nChanges to PsychoPy will be completed when the application is next run'
         self.cancelBtn.SetDefault()
         self.installBtn.Disable()
@@ -445,7 +451,7 @@ class InstallUpdateDialog(wx.Dialog):
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
         return nUpdates, info
-def sendUsageStats(proxy=None):
+def sendUsageStats():
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
       the system used (platform and version)
@@ -454,19 +460,15 @@ def sendUsageStats(proxy=None):
     If http_proxy is set in the system environment variables these will be used automatically,
     but additional proxies can be provided here as the argument proxies.
     """
+
     v=psychopy.__version__
     dateNow = time.strftime("%Y-%m-%d_%H:%M")
     miscInfo = ''
 
     #urllib.install_opener(opener)
     #check for proxies
-    if proxy in [None,""]:
-        pass#use default opener (no proxies)
-    else:
-        #build the url opener with proxy and cookie handling
-        opener = urllib2.build_opener(
-            urllib2.ProxyHandler({'http':proxy}))
-        urllib2.install_opener(opener)
+    if proxies is None:
+        setupProxy()
 
     #get platform-specific info
     if sys.platform=='darwin':
@@ -494,7 +496,31 @@ def sendUsageStats(proxy=None):
         logging.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
 
-def getAutoProxyURL():
+
+def testProxy(handler, URL=None):
+    """
+    Test whether we can connect to a URL with the current proxy settings.
+
+    :Returns:
+
+        - True (success)
+        - a urllib2.URLError (which can be interrogated with .reason)
+        - a urllib2.HTTPError (which can be interrogated with .code)
+
+    """
+    if URL is None:
+        URL='http://www.google.com'#hopefully google isn't down!
+    req = urllib2.Request(URL)
+    opener = urllib2.build_opener(handler)
+    try:
+        page = opener.open(req).read(5)#open and read a few characters
+        return True
+    except urllib2.URLError, err:
+        return err
+    except urllib2.HTTPError, err:
+        return err
+
+def getPacFiles():
     """Return a list of possible auto proxy .pac files being used,
     based on the system registry (win32) or system preferences (OSX).
     """
@@ -507,7 +533,7 @@ def getAutoProxyURL():
         net = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
-            )
+        )
         nSubs, nVals, lastMod = winreg.QueryInfoKey(net)
         subkeys={}
         for i in range(nVals):
@@ -519,7 +545,6 @@ def getAutoProxyURL():
         import plistlib
         sysPrefs = plistlib.readPlist('/Library/Preferences/SystemConfiguration/preferences.plist')
         networks=sysPrefs['NetworkServices']
-        pacFiles = []
         #loop through each possible network (e.g. Ethernet, Airport...)
         for network in networks.items():
             netKey, network=network#the first part is a long identifier
@@ -527,7 +552,129 @@ def getAutoProxyURL():
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
     return pacFiles
 
-def getAutoProxy():
-    """Attempt to locate the proxy server using
+def getWpadFiles():
     """
-    pacFiles = getAutoProxyURL()
+    Return possible pac file locations from the standard set of .wpad locations
+
+    NB this method only uses the DNS method to search, not DHCP queries, and
+    so may not find all possible .pac locations.
+
+    See http://en.wikipedia.org/wiki/Web_Proxy_Autodiscovery_Protocol
+    """
+    domainParts = socket.gethostname().split('.')
+    pacURLs=[]
+    for ii in range(len(domainParts)):
+        domain = '.'.join(domainParts[ii:])
+        pacURLs.append("http://wpad."+domain+"/wpad.dat")
+    return pacURLs
+
+def proxyFromPacFiles(pacURLs=[],URL=None):
+    """Attempts to locate and setup a valid proxy server from pac file URLs
+
+    :Parameters:
+
+        - pacURLs : list
+
+            List of locations (URLs) to look for a pac file. This might come from
+            :func:`~psychopy.connections.getPacFiles` or
+            :func:`~psychopy.connections.getWpadFiles`.
+
+        - URL : string
+
+            The URL to use when testing the potential proxies within the files
+
+    :Returns:
+
+        - A urllib2.ProxyHandler if successful (and this will have been added as
+        an opener to the urllib2.
+        - -1 if no proxy was found in the files that allowed successful connection
+    """
+
+    if pacURLs==[]:#if given none try to find some
+        pacURLs = getPacFiles()
+    if pacURLs==[]:#if still empty search for wpad files
+        pacURLs = getWpadFiles()
+        #for each file search for valid urls and test them as proxies
+    for thisPacURL in pacURLs:
+        logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
+        try:
+            response = urllib2.urlopen(thisPacURL, timeout=5.0)
+        except urllib2.URLError:
+            logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
+            continue
+        pacStr = response.read()
+        #find the candidate PROXY strings (valid URLS)
+        possProxies = re.findall(r"PROXY [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{4}", pacStr)
+        for thisPoss in possProxies:
+            proxUrl = 'http://'+thisPoss[6:]
+            handler=urllib2.ProxyHandler({'http':proxUrl})
+            if testProxy(handler)==True:
+                logging.debug('successfully loaded: %s' %proxUrl)
+                urllib2.install_opener(urllib2.build_opener(handler))
+                return handler
+    return False
+
+def setupProxy():
+    """Set up the urllib proxy if possible.
+
+     The function will use the following methods in order to try and determine proxies:
+        #. standard urllib2.urlopen (which will use any statically-defined http-proxy settings)
+        #. previous stored proxy address (in prefs)
+        #. proxy.pac files if these have been added to system settings
+        #. auto-detect proxy settings (WPAD technology)
+
+     .. note:
+        This can take time, as each failed attempt to set up a proxy involves trying to load a URL and timing out. Best
+        to do in a separate thread.
+
+    :Returns:
+
+        True (success) or False (failure)
+    """
+    global proxies
+    #try doing nothing
+    proxies=urllib2.ProxyHandler(urllib2.getproxies())
+    if testProxy(proxies) is True:
+        logging.debug("Using standard urllib2 (static proxy or no proxy required)")
+        urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+        return 1
+
+    #try doing what we did last time
+    if len(prefs.connections['proxy'])>0:
+        proxies=urllib2.ProxyHandler({'http': prefs.connections['proxy']})
+        if testProxy(proxies) is True:
+            logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
+            urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+            return 1
+        else:
+            logging.debug("Found a previous proxy but it didn't work")
+
+    #try finding/using a proxy.pac file
+    pacURLs=getPacFiles()
+    logging.debug("found pac files: %s" %pacURLs)
+    proxies=proxyFromPacFiles(pacURLs)
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
+        #save that proxy for future
+        prefs.connections['proxy']=proxies.proxies['http']
+        prefs.saveUserPrefs()
+        logging.debug('Using %s (from proxy PAC file)' %(prefs.connections['proxy']))
+        return 1
+
+    #try finding/using 'auto-detect proxy'
+    pacURLs=getWpadFiles()
+    proxies=proxyFromPacFiles(pacURLs)
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
+        #save that proxy for future
+        prefs.connections['proxy']=proxies.proxies['http']
+        prefs.saveUserPrefs()
+        logging.debug('Using %s (from proxy auto-detect)' %(prefs.connections['proxy']))
+        return 1
+
+    proxies=0
+    return 0
+
+if __name__=='__main__':
+    logging.console.setLevel(logging.DEBUG)
+    t0=time.time()
+    print setupProxy()
+    print 'that took %.2fs' %(time.time()-t0)

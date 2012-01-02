@@ -40,6 +40,7 @@ import wx
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
+import connections
 import sys, os, threading, time, platform
 
 """
@@ -126,7 +127,7 @@ class PsychoPyApp(wx.App):
         #but then that they end up being local so keep track in self
         splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, wxIDs, connections, urls
+        from psychopy.app import coder, builder, wxIDs, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
@@ -136,7 +137,6 @@ class PsychoPyApp(wx.App):
         self.IDs=wxIDs
         self.urls=urls.urls
         self.quitting=False
-        self.updater=None#create an updater when it's needed
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -194,13 +194,11 @@ class PsychoPyApp(wx.App):
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
-        if self.prefs.connections['allowUsageStats']:
-            statsThread = threading.Thread(target=connections.sendUsageStats, args=(self.prefs.connections['proxy'],))
-            statsThread.start()
-        if self.prefs.connections['checkForUpdates']:
-            self.updater=connections.Updater(app=self, proxy=self.prefs.connections['proxy'])
-            self.updater.suggestUpdate(confirmationDlg=False)#check for updates (silently)
-        else: self.updater=False
+        self._latestAvailableVersion=None
+        self.updater=None
+        if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
+            connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
+            connectThread.start()
 
         if self.prefs.app['showStartupTips']:
             tipIndex = self.prefs.appData['tipIndex']
@@ -210,8 +208,19 @@ class PsychoPyApp(wx.App):
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
-
+        self.Bind
+        wx.EVT_IDLE(self, self.onIdle)
         return True
+    def onIdle(self, evt):
+        #if we have internet and haven't yet checked for updates then do so
+        if self._latestAvailableVersion not in [-1, None] and \
+          self.prefs.connections['checkForUpdates'] and \
+          self.updater==None:#we have a network connection but not yet tried an update
+            self.updater=connections.Updater(app=self)
+            #check for updates
+            self.updater.suggestUpdate(confirmationDlg=False)
+        evt.Skip()
+
     def getPrimaryDisplaySize(self):
         """Get the size of the primary display (whose coords start (0,0))
         """
