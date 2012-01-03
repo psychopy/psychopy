@@ -862,7 +862,7 @@ def getLumSeries(lumLevels=8,
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
                 psychopy.event.waitKeys()
-
+    print 'origRamp:', myWin.origGammaRamp
     if myWin.origGammaRamp is not None:
        myWin.setGammaRamp(myWin.origGammaRamp)
     myWin.close() #we're done with the visual stimuli
@@ -1037,25 +1037,22 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     #eq2: y = (a+b*xx)**gamma
     #eq4: y = a+(b+kxx)**gamma
     if max(yy)==255:
-        yy=numpy.asarray(yy)/255.0
+        yy=numpy.asarray(yy,'d')/255.0
     elif min(yy)<0 or max(yy)>1:
         logging.warning('User supplied values outside the expected range (0:1)')
-
-    #get into range minLum:maxLum
-    yy = numpy.asarray(yy)*(maxLum - minLum) + minLum
+    else:
+        yy=numpy.asarray(yy,'d')
 
     if eq==1:
-        a = minLum
-        b = (maxLum-a)**(1/gamma)
-        xx = ((yy-a)**(1/gamma))/b
-        minLUT = ((minLum-a)**(1/gamma))/b
-        maxLUT = ((maxLum-a)**(1/gamma))/b
+        xx=numpy.asarray(yy)**(1.0/gamma)
     elif eq==2:
+        yy = numpy.asarray(yy)*(maxLum - minLum) + minLum
         a = minLum**(1/gamma)
         b = maxLum**(1/gamma)-a
         xx = (yy**(1/gamma)-a)/b
         maxLUT = (maxLum**(1/gamma)-a)/b
         minLUT = (minLum**(1/gamma)-a)/b
+        xx = xx/(maxLUT-minLUT) - minLUT
     elif eq==3:#NB method 3 was an interpolation method that didn't work well
         pass
     elif eq==4:
@@ -1063,14 +1060,10 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         #see http://www.psychopy.org/general/gamma.html for derivation
         a = minLum-b**gamma
         k = (maxLum-a)**(1./gamma) - b
-        #xx = ((yy-a)**(1/gamma) - b)/k
         xx = (((1-yy)*b**gamma + yy*(b+k)**gamma)**(1/gamma)-b)/k
-        maxLUT = ((maxLum-a)**(1/gamma) - b)/k
-        minLUT = ((minLum-a)**(1/gamma) - b)/k
-        #print "we are linearising with the special wichmann style equation"
 
     #then return to range (0:1)
-    xx = xx/(maxLUT-minLUT) - minLUT
+    #xx = xx/(maxLUT-minLUT) - minLUT
     return xx
 
 def strFromDate(date):
