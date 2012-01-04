@@ -250,7 +250,7 @@ class TestPygletPix(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
             units='pix')
         self.contextName='pix'
@@ -261,7 +261,7 @@ class TestPygletCm(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=False,
             units='cm')
         self.contextName='cm'
@@ -272,7 +272,7 @@ class TestPygletDeg(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
             units='deg')
         self.contextName='deg'
@@ -289,7 +289,7 @@ class TestPygamePix(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
             units='pix')
         self.contextName='pix'
@@ -300,7 +300,7 @@ class TestPygameCm(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=False,
             units='cm')
         self.contextName='cm'
@@ -311,7 +311,7 @@ class TestPygameDeg(_baseVisualTest):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
-        mon.setSizePix([1680,1050])
+        mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
             units='deg')
         self.contextName='deg'
