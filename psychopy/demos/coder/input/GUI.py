@@ -2,7 +2,7 @@
 from psychopy import gui
 
 # create a DlgFromDict
-info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1, 'Debug Mode': True}
+info = {'Observer':'jwp','gender':['male','female'], 'GratingOri':45, 'ExpVersion': 1.1, 'Debug Mode': True}
 infoDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', 
     order=['ExpVersion', 'Observer'], 
     tip={'Observer': 'trained visual observer, initials'},
