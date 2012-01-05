@@ -1,4 +1,4 @@
-from psychopy import calibTools
+from psychopy.monitors import calibTools
 import numpy
 
 yy=[0,0.2,0.4,0.8,1.0]
@@ -11,5 +11,5 @@ def testGammaInverse_Eq1():
     xx= calibTools.gammaInvFun(yy, minLum, maxLum, gamma, b=0, eq=1)
     assert numpy.allclose(xx,xxTest,0.0001)
 def testGammaInverse_Eq4():
-    xx= calibTools.gammaInvFun(yy, minLum, maxLum, gamma, b=0.5, eq=4)
+    xx= calibTools.gammaInvFun(yy, minLum, maxLum, gamma, b=0, eq=4)
     assert numpy.allclose(xx,xxTest,0.0001)
