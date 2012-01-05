@@ -11,7 +11,7 @@ rm psychopy/prefSite.cfg
 sudo rm -r build
 sudo rm -r dist/PsychoPy2.app
 sudo rm -r ../dist/PsychoPy2.app
-python setupApp.py py2app #don't run this as sudo
+python setupApp.py py2app --arch=intel #don't run this as sudo
 sudo chmod -R g+w dist/PsychoPy2.app
 
 mv dist/* ../dist/

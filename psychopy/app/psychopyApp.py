@@ -40,7 +40,7 @@ import wx
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
-import connections
+from psychopy.app import connections
 import sys, os, threading, time, platform
 
 """
