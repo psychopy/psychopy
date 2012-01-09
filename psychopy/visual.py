@@ -3,6 +3,12 @@
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+import sys, os, platform, time, glob, copy
+#on windows try to load avbin now (other libs can interfere)
+if sys.platform=='win32':
+    from pyglet.media import avbin
+    
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, logging, preferences, monitors, event
 import colors
@@ -10,7 +16,6 @@ import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
 import Image
-import sys, os, platform, time, glob, copy
 import makeMovies
 
 import numpy
