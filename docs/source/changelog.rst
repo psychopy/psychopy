@@ -15,6 +15,7 @@ PsychoPy 1.73.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (released Jan 2012)
+
 * CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)
 * ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
 * ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
@@ -23,7 +24,7 @@ PsychoPy 1.73.00
 * ADDED: auto-update (and usage stats) can now detect proxies in proxy.pac files. Also this now runs in a low-priority background thread to prevent any slowing at startup time.
 * FIXED: bug when passing variables to Staircase loops in Builder
 * FIXED: mouse in Builder now ignores button presses that began before the 'start' of the mouse
-
+* FIXED: can now use pygame or pyaudio instead of pygame for sounds, although it still isn't recommended (thanks Ariel Rokem for patch)
 
 PsychoPy 1.72.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
