@@ -3603,7 +3603,9 @@ class MovieStim(_BaseVisualStim):
                  flipVert = False,
                  flipHoriz = False,
                  opacity=1.0,
-                 name='', autoLog=True):
+                 name='',
+                 loop=False,
+                 autoLog=True):
         """
         :Parameters:
 
@@ -3631,6 +3633,10 @@ class MovieStim(_BaseVisualStim):
             name : string
                 The name of the object to be using during logged messages about
                 this stim
+            loop : bool, optional
+                Whether to start the movie over from the beginning if draw is
+                called and the movie is done.
+
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -3650,6 +3656,7 @@ class MovieStim(_BaseVisualStim):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
+        self.loop = loop
         self.status=NOT_STARTED
 
         #size
@@ -3738,10 +3745,12 @@ class MovieStim(_BaseVisualStim):
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current position in the
-        movie will be determined automatically.
+        default win for this object if not specified). The current position in
+        the movie will be determined automatically.
 
-        This method should be called on every frame that the movie is meant to appear"""
+        This method should be called on every frame that the movie is meant to
+        appear"""
+
         if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
         #set the window to draw to
@@ -3772,7 +3781,13 @@ class MovieStim(_BaseVisualStim):
         GL.glPopMatrix()
 
     def _onEos(self):
-        self.status=FINISHED
+        if self.loop:
+            self.loadMovie(self.filename)
+            self.play()
+            self.status=PLAYING
+        else:
+            self.status=FINISHED
+
     def setAutoDraw(self, val):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
@@ -3781,8 +3796,9 @@ class MovieStim(_BaseVisualStim):
             - val: True/False
                 True to add the stimulus to the draw list, False to remove it
         """
-        self.play()#set to play in case stoped
+        self.play()  # set to play in case stopped
         _BaseVisualStim.setAutoDraw(self, val)
+
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
