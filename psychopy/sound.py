@@ -66,7 +66,7 @@ try:
     import pyaudio
     pa = pyaudio.PyAudio()
     havePyaudio=True
-except importError:
+except ImportError:
     havePyaudio=False
 
 class _SoundBase:
