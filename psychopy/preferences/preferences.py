@@ -106,7 +106,7 @@ class Preferences:
             except:
                 print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir']
         #then get the configuration file
-        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=self.prefsSpec)
+        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], encoding='UTF8', configspec=self.prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         # don't cfg.write(), see explanation above
         return cfg
@@ -121,7 +121,7 @@ class Preferences:
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
+        cfg = configobj.ConfigObj(self.paths['appDataFile'], encoding='UTF8', configspec=appDataSpec)
         resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
         return cfg
