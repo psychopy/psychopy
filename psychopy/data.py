@@ -529,7 +529,7 @@ class TrialHandler(_BaseTrialHandler):
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
-            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed).tolist()
+            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
@@ -858,8 +858,18 @@ class TrialHandler(_BaseTrialHandler):
         dataOut = []
         trialCount = 0
         # total number of trials = number of trialtypes * number of repetitions:
+
+        repsPerType={}
         for rep in range(self.nReps):
-            for trialType in range(len(self.trialList)):
+            for trialN in range(len(self.trialList)):
+                #find out what trial type was on this trial
+                trialTypeIndex = self.sequenceIndices[trialN, rep]
+                #determine which repeat it is for this trial
+                if trialTypeIndex not in repsPerType.keys():
+                    repsPerType[trialTypeIndex]=0
+                else:
+                    repsPerType[trialTypeIndex]+=1
+                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
 
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
@@ -875,11 +885,10 @@ class TrialHandler(_BaseTrialHandler):
                 # now collect the value from each trial of the variables named in the header:
                 for parameterName in header:
                     # the header includes both trial and data variables, so need to check before accessing:
-                    trialTypeIndex = self.sequenceIndices[trialType, rep]
                     if self.trialList[trialTypeIndex].has_key(parameterName):
                         nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
                     elif self.data.has_key(parameterName):
-                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][rep]
+                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
                     else: # allow a null value if this parameter wasn't explicitly stored on this trial:
                         nextEntry[parameterName] = ''
 
@@ -2374,9 +2383,14 @@ class DataHandler(dict):
         if not self.has_key(thisType):
             self.addDataType(thisType)
         if position==None:
+            #'ran' is always the first thing to update
+            if thisType=='ran':
+                repN = sum(self['ran'][self.trials.thisIndex])
+            else:
+                repN = sum(self['ran'][self.trials.thisIndex])-1#because it has already been updated
             #make a list where 1st digit is trial number
             position= [self.trials.thisIndex]
-            position.append(self.trials.thisRepN)
+            position.append(repN)
 
         #check whether data falls within bounds
         posArr = numpy.asarray(position)
