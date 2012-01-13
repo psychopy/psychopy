@@ -447,6 +447,7 @@ class Mouse:
         global mouseClick
         for c in buttons:
             mouseClick[c].reset()
+            mouseTimes[c]=0.0
 
     def getPressed(self, getTime=False):
         """Returns a 3-item list indicating whether or not buttons 1,2,3 are currently pressed

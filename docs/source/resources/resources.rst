@@ -10,14 +10,19 @@ Maybe VSS 2012?
 
 .. _lectureMaterials:
 
-Lecture materials
-----------------------------
+Lecture materials (Builder)
+-------------------------------
 
 At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version!
 
-    `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
-    
+        `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
+
 If you also use PsychoPy for your lectures then please let us know so that we can link to your materials/course from here too!
+
+Lecture materials (Coder)
+-------------------------------
+
+`Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
 
 ---------------------------------
 

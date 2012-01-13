@@ -11,13 +11,16 @@ Changelog
 PsychoPy 1.73
 ------------------------------
 
-PsychoPy 1.73.01
+PsychoPy 1.73.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: loop property to MovieStim for coder only so far (thanks Ariel Rokem)
+* ADDED: loop property to :class:`~psychopy.visual.MovieStim` for coder only so far (thanks Ariel Rokem)
 * FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
 * FIXED: problem with avbin (win32)
 * FIXED: problem with unicode characters in filenames preventing startup
+* FIXED: bug with 'fullRandom' method of :class:`~psychopy.data.TrialHandler` missing some trials during data save
+* FIXED: :func:`Mouse.clickReset()` now resets the click timers
+* FIXED(?): problem with avbin.dll not being found under 64-bit windows
 
 PsychoPy 1.73.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
