@@ -7,6 +7,9 @@
 import sys, os, platform, time, glob, copy
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
+    #make sure we also check in SysWOW64 if on 64-bit windows
+    if 'C:\\Windows\\SysWOW64' not in sys.environ['PATH']:
+        sys.environ['PATH'].append('C:\\Windows\\SysWOW64')
     from pyglet.media import avbin
 
 import psychopy #so we can get the __path__
