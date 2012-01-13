@@ -10,7 +10,10 @@ if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in sys.environ['PATH']:
         sys.environ['PATH'].append('C:\\Windows\\SysWOW64')
-    from pyglet.media import avbin
+    try:
+        from pyglet.media import avbin
+    except:
+        pass#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
 
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, logging, preferences, monitors, event
