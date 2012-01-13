@@ -114,12 +114,11 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
     elif shape=='raisedCosine':
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
-        fringe_proportion = 0.2 # This one affects the proportion of the
-                                # stimulus diameter that is devoted to the
-                                # raised cosine. XXX Consider
-                                # making this a user input.
+        fringe_proportion = fringeWidth # This one affects the proportion of the
+                                        # stimulus diameter that is devoted to the
+                                        # raised cosine.
 
-        rad = makeRadialMatrix(matrixSize)
+        rad = makeRadialMatrix(matrixSize, center, radius)
         outArray = numpy.zeros_like(rad)
         outArray[numpy.where(rad < 1)] = 1
         raised_cos_idx = numpy.where(
