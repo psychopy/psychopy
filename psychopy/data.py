@@ -279,7 +279,7 @@ class _BaseTrialHandler(object):
         This can be reloaded if necess and further analyses carried out.
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('.saveAsPickle() called but no trials completed. Nothing saved')
+            logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
             return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
@@ -301,7 +301,7 @@ class _BaseTrialHandler(object):
         jwp: 19/6/06
         """
         if self._warnUseOfNext:
-            log.warning("""DEPRECATION WARNING: nextTrial() will be deprecated
+            logging.warning("""DEPRECATION WARNING: nextTrial() will be deprecated
         please use next() instead.
         jwp: 19/6/06
         """)

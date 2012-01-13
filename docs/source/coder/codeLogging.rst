@@ -12,12 +12,12 @@ Log messages have various levels of severity:
 
 Multiple `targets` can also be created to receive log messages. Each target has a particular critical level and receives all logged messages greater than that. For example, you could set the console (visual output) to receive only warnings and errors, have a central log file that you use to store warning messages across studies (with file mode `append`), and another to create a detailed log of data and events within a single study with `level=INFO`::
 
-    from psychopy import log
-    log.console.setLevel(log.WARNING)
+    from psychopy import logging
+    logging.console.setLevel(logging.WARNING)
     #overwrite (mode='w') a detailed log of the last run in this dir
-    lastLog=log.LogFile("lastRun.log", level=log.INFO, mode='w')
+    lastLog=logging.LogFile("lastRun.log", level=logging.INFO, mode='w')
     #also append warnings to a central log file
-    centralLog=log.LogFile("c:/psychopyExps.log", level=log.WARNING, mode='a')
+    centralLog=logging.LogFile("c:/psychopyExps.log", level=logging.WARNING, mode='a')
 
 Updating the logs
 ~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +27,7 @@ For performance purposes log files are not actually written when the log command
     
     ...
     
-    log.flush()#write messages out to all targets
+    logging.flush()#write messages out to all targets
 
 This should only be necessary if you want to see the logged information as the experiment progresses.
 
@@ -42,21 +42,21 @@ Manual methods
 ~~~~~~~~~~~~~~~~~~~~
 In addition to a variety of automatic logging messages, you can create your own, of various levels. These can be timestamped immediately::
 
-    from psychopy import log
-    log.log(level=log.WARN, msg='something important')
-    log.log(level=log.EXP, msg='something about the conditions')
-    log.log(level=log.DATA, msg='something about a response')
-    log.log(level=log.INFO, msg='something less important')
+    from psychopy import logging
+    logging.log(level=logging.WARN, msg='something important')
+    logging.log(level=logging.EXP, msg='something about the conditions')
+    logging.log(level=logging.DATA, msg='something about a response')
+    logging.log(level=logging.INFO, msg='something less important')
 
-There are additional convenience functions for the above: log.warn('a warning') etc.
+There are additional convenience functions for the above: logging.warn('a warning') etc.
 
 For stimulus changes you probably want the log message to be timestamped based on the frame flip (when the stimulus is next presented) rather than the time that the log message is sent::
 
-    from psychopy import log, visual
+    from psychopy import logging, visual
     win = visual.Window([400,400])
     win.flip()
-    log.log(level=log.EXP, msg='sent immediately')
-    log.logNextFlip(level=log.EXP, msg='sent on actual flip')
+    logging.log(level=logging.EXP, msg='sent immediately')
+    logging.logNextFlip(level=logging.EXP, msg='sent on actual flip')
     win.flip()
     
 Using a custom clock for logs
@@ -66,6 +66,6 @@ Using a custom clock for logs
 
 By default times for log files are reported as seconds after the very beginning of the script (often it takes a few seconds to initialise and import all modules too). You can set the logging system to use any given :class:`core.Clock` object (actually, anything with a `getTime()` method)::
 
-    from psychopy import core, log
+    from psychopy import core, logging
     globalClock=core.Clock()
-    log.setDefaultClock(globalClock)
+    logging.setDefaultClock(globalClock)

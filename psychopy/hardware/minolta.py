@@ -15,63 +15,63 @@ except: serial=False
 
 class LS100:
     """A class to define a Minolta LS100 (or LS110?) photometer
-    
-    You need to connect a LS100 to the serial (RS232) port and 
-    **when you turn it on press the F key** on the device. This will put it into 
+
+    You need to connect a LS100 to the serial (RS232) port and
+    **when you turn it on press the F key** on the device. This will put it into
     the correct mode to communicate with the serial port.
-    
+
     usage::
-        
+
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
         if phot.OK:#then we successfully made a connection and can send/receive
             print phot.getLum()
-    
+
     :parameters:
-        
+
         port: string
-        
+
             the serial port that should be checked
-        
-        maxAttempts: int 
+
+        maxAttempts: int
             If the device doesn't respond first time how many attempts should be made?
             If you're certain that this is the correct port and the device is on
-            and correctly configured then this could be set high. If not then set 
+            and correctly configured then this could be set high. If not then set
             this low.
-    
+
     :troubleshooting:
-        
-        Various messages are printed to the log regarding the function of this device, 
+
+        Various messages are printed to the log regarding the function of this device,
         but to see them you need to set the printing of the log to the correct level::
-        
+
             from psychopy import log
-            log.console.setLevel(log.ERROR)#error messages only
-            log.console.setLevel(log.INFO)#will give a little more info
-            log.console.setLevel(log.DEBUG)#will export a log of all communications
-            
-        If you're using a keyspan adapter (at least on OS X) be aware that it needs 
+            logging.console.setLevel(logging.ERROR)#error messages only
+            logging.console.setLevel(logging.INFO)#will give a little more info
+            logging.console.setLevel(logging.DEBUG)#will export a log of all communications
+
+        If you're using a keyspan adapter (at least on OS X) be aware that it needs
         a driver installed. Otherwise no ports wil be found.
-            
+
         Error messages:
-        
+
         ``ERROR: Couldn't connect to Minolta LS100/110 on ____``:
-            This likely means that the device is not connected to that port 
+            This likely means that the device is not connected to that port
             (although the port has been found and opened). Check that the device
-            has the `[` in the bottom right of the display; if not turn off 
+            has the `[` in the bottom right of the display; if not turn off
             and on again holding the `F` key.
-        
+
         ``ERROR: No reply from LS100``:
             The port was found, the connection was made and an initial command worked,
-            but then the device stopped communating. If the first measurement taken with 
-            the device after connecting does not yield a reasonble intensity the device can 
+            but then the device stopped communating. If the first measurement taken with
+            the device after connecting does not yield a reasonble intensity the device can
             sulk (not a technical term!). The "[" on the display will disappear and you can no
             longer communicate with the device. Turn it off and on again (with F depressed)
             and use a reasonably bright screen for your first measurement. Subsequent
             measurements can be dark (or we really would be in trouble!!).
-            
+
     """
     def __init__(self, port, maxAttempts=1):
-        
+
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
                 "On most systems this can be installed with\n\t easy_install pyserial")
@@ -89,7 +89,7 @@ class LS100:
         self.com=False
         self.OK=True#until we fail
         self.maxAttempts=maxAttempts
-        
+
         self.codes={
             'ER00\r\n':'Unknown command',
             'ER01\r\n':'Setting error',
@@ -98,9 +98,9 @@ class LS100:
             'ER19\r\n':'Display range over',
             'ER20\r\n':'EEPROM error (the photometer needs repair)',
             'ER30\r\n':'Photometer battery exhausted',}
-        
+
         #try to open the port
-        if sys.platform in ['darwin', 'win32']: 
+        if sys.platform in ['darwin', 'win32']:
             try:self.com = serial.Serial(self.portString)
             except:
                 self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
@@ -118,16 +118,16 @@ class LS100:
                 self.isOpen=1
             except:
                 self._error("Opened serial port %s, but couldn't connect to LS100" %self.portString)
-                
+
         if self.OK:#we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
                 time.sleep(0.2)
                 for n in range(10):
                     reply = self.sendMessage('MDS,04')#set to use absolute measurements
-                    if reply[0:2] == 'OK': 
+                    if reply[0:2] == 'OK':
                         self.OK=True
                         break
-                    elif reply not in self.codes.keys(): 
+                    elif reply not in self.codes.keys():
                         self.OK=False
                         break#wasn't valid
                     else:
@@ -135,12 +135,12 @@ class LS100:
         if self.OK:# we have successfully sent and read a command
             logging.info("Successfully opened %s" %self.portString)
     def setMode(self, mode='04'):
-        """Set the mode for measurements. Returns True (success) or False 
-        
-        '04' means absolute measurements.        
+        """Set the mode for measurements. Returns True (success) or False
+
+        '04' means absolute measurements.
         '08' = peak
         '09' = cont
-        
+
         See user manual for other modes
         """
         reply = self.sendMessage('MDS,%s' %mode)
@@ -163,19 +163,19 @@ class LS100:
         ok = self.checkOK(reply)
         return ok
     def checkOK(self,msg):
-        """Check that the message from the photometer is OK. 
+        """Check that the message from the photometer is OK.
         If there's an error print it.
-        
+
         Then return True (OK) or False.
-        """        
+        """
         #also check that the reply is what was expected
         if msg[0:2] != 'OK':
             if msg=='': logging.error('No reply from LS100'); sys.stdout.flush()
             else: logging.error('Error message from LS100:' + self.codes[msg]); sys.stdout.flush()
             return False
-        else: 
+        else:
             return True
-        
+
     def sendMessage(self, message, timeout=5.0):
         """Send a command to the photometer and wait an alloted
         timeout for a response.
@@ -190,13 +190,13 @@ class LS100:
             time.sleep(0.1)
             self.com.write(message)
             self.com.flush()
-            time.sleep(0.1)            
+            time.sleep(0.1)
             #get reply (within timeout limit)
             self.com.setTimeout(timeout)
             logging.debug('Sent command:'+message[:-2])#send complete message
             retVal= self.com.readline()
             if len(retVal)>0:break#we got a reply so can stop trying
-            
+
         return retVal
 
     def _error(self, msg):

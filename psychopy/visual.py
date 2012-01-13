@@ -8,7 +8,7 @@ import sys, os, platform, time, glob, copy
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     from pyglet.media import avbin
-    
+
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, logging, preferences, monitors, event
 import colors
@@ -87,7 +87,7 @@ from psychopy.constants import *
 #NOT_STARTED=0
 #FINISHED=-1
 
-#keep track of windows that have been opened      
+#keep track of windows that have been opened
 openWindows=[]
 
 class Window:
@@ -246,7 +246,7 @@ class Window:
         else:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
-            
+
         #load color conversion matrices
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
@@ -335,7 +335,7 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-        
+
         openWindows.append(self)
 
     def setRecordFrameIntervals(self, value=True):
@@ -5369,7 +5369,6 @@ class RatingScale:
         # Screen position (translation) of the rating scale as a whole:
         #avoiding_offset = True # flag / hack for backwards compatibility
         #if type(offsetVert) in [float,int] or type(offsetHoriz) in [float,int]:
-        #    log.warning("RatingScale: offsetHoriz, offsetVert are deprecated; pos=[x,y] is supported")
         #    avoiding_offset = False
         if pos:
             if len(list(pos)) == 2:

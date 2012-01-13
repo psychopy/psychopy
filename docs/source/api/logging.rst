@@ -1,13 +1,13 @@
-:mod:`psychopy.log` - control what gets logged
+:mod:`psychopy.logging` - control what gets logged
 ======================================================================
 
-.. automodule:: psychopy.log
+.. automodule:: psychopy.logging
     :members:
     
 :func:`flush`
 ----------------------------------
-.. autofunction:: psychopy.log.flush
+.. autofunction:: psychopy.logging.flush
 
 :func:`setDefaultClock`
 ----------------------------------
-.. autofunction:: psychopy.log.setDefaultClock
+.. autofunction:: psychopy.logging.setDefaultClock
