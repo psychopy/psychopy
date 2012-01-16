@@ -8,12 +8,13 @@ import sys, os, platform, time, glob, copy
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
-    if 'C:\\Windows\\SysWOW64' not in sys.environ['PATH']:
-        sys.environ['PATH'].append('C:\\Windows\\SysWOW64')
+    if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
+        os.environ['PATH']+=';C:\\Windows\\SysWOW64'
     try:
         from pyglet.media import avbin
-    except:
-        pass#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
+        haveAvbin=True
+    except ImportError:
+        haveAvbin=False#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
 
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, logging, preferences, monitors, event
@@ -23,6 +24,10 @@ import psychopy.event
 import psychopy.misc
 import Image
 import makeMovies
+
+if sys.platform=='win32' and not haveAvbin:
+    logging.error("""avbin.dll failed to load. Try importing psychopy.visual as the first
+    library (before anything that uses scipy) and make sure that avbin is installed.""")
 
 import numpy
 from numpy import sin, cos, pi
@@ -3647,9 +3652,12 @@ class MovieStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
         if not havePygletMedia:
-            raise ImportError, 'pyglet.media is needed for MovieStim and could not be imported. ' + \
-                'This might be because you have no audio output enabled (no audio card or no speakers attached)'
-
+            raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
+                This can occur for various reasons;
+                    - psychopy.visual was imported too late (after a lib that uses scipy)
+                    - no audio output is enabled (no audio card or no speakers attached)
+                    - avbin is not installed
+            """
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player._on_eos=self._onEos
