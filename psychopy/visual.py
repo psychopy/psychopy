@@ -1453,20 +1453,26 @@ class DotStim(_BaseVisualStim):
                 See :ref:`colorspaces`
 
             colorSpace:
-                the color space controlling the interpretation of the `color`
+
+                The color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
+
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth:
+
                 The depth argument is deprecated and may be removed in future versions.
                 Depth is controlled simply by drawing order.
+
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
+
             name : string
                 The name of the object to be using during logged messages about
-                this stim
+                this stimulus
+
             """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
@@ -1509,8 +1515,8 @@ class DotStim(_BaseVisualStim):
 
         self.depth=depth
 
-        """initialise the dots themselves - give them all random dir and then
-        fix the first n in the array to have the direction specified"""
+        #initialise the dots themselves - give them all random dir and then
+        #fix the first n in the array to have the direction specified
 
         self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
@@ -1562,13 +1568,13 @@ class DotStim(_BaseVisualStim):
 
 
     def set(self, attrib, val, op=''):
-        """DotStim.set() is obselete and may not be supported in future
+        """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
     def setPos(self, newPos=None, operation='', units=None):
-        """Obselete - users should use setFieldPos or instead of setPos
+        """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
     def setFieldPos(self,val, op=''):

@@ -1,12 +1,20 @@
 Changelog
 ====================
 
+
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+.. role:: red
+
 .. note::
   Version numbers
 
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+:red:`Changes in red typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
 
 PsychoPy 1.73
 ------------------------------
@@ -27,7 +35,7 @@ PsychoPy 1.73.00
 
 (released Jan 2012)
 
-* CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)
+* :red:`CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)`
 * ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
 * ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
 * ADDED: data.ExpHandler to combine data for multiple separate loops in one study, including output of a single wide csv file. See demos>experimental control>experimentHandler. Support from Builder should now be easy to add
@@ -42,11 +50,9 @@ PsychoPy 1.72.00
 
 (rc1 released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
-to a choice control if this is used (thanks Manuel Ebert)
+* :red:`CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)`
     - for gui.Dlg the `.addField()` method now has `choices` attribute
-    - for gui.dlgFromDict if one of the values in the dict is a list it will be
-    interpreted as a set of choices (NB this potentially breaks old code)
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
     - for info see API docs for psychopy.gui
 
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
@@ -89,7 +95,7 @@ PsychoPy 1.71.00
 
 (released Sept 2011)
 
-* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* :red:`CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that`
 * CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 * ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
     - create, edit, and save conditions from within PsychoPy; save & load using pickle format
@@ -118,8 +124,6 @@ PsychoPy 1.70
 PsychoPy 1.70.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
-
 * FIXED: bug in Builder Ratingscale (was always ending routine on response)
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
@@ -144,7 +148,7 @@ PsychoPy 1.70.00
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
-* CHANGED use of allowedKeys in Keyboard Component. You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
+* :red:`CHANGED use of allowedKeys in Keyboard Component.` You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
 * CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
 * CHANGED names:
@@ -155,13 +159,13 @@ PsychoPy 1.70.00
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
 
-* CHANGED numpy imports in Builder scripts:
+* :red:`CHANGED numpy imports in Builder scripts:`
 
     - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
+* :red:`CHANGED: Builder use of $.` $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
 
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
