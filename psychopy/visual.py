@@ -4758,8 +4758,8 @@ class Rect(ShapeStim):
         self._calcVertices()
         self.setVertices(self.vertices)
 
-    def setHeight(self, width):
-        """Changes the width of the Rectangle """
+    def setHeight(self, height):
+        """Changes the height of the Rectangle """
         self.height = height
         self._calcVertices()
         self.setVertices(self.vertices)
