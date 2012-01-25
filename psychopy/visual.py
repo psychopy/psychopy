@@ -3622,7 +3622,8 @@ class MovieStim(_BaseVisualStim):
                  opacity=1.0,
                  name='',
                  loop=False,
-                 autoLog=True):
+                 autoLog=True,
+                 depth=0.0,):
         """
         :Parameters:
 
@@ -3673,6 +3674,7 @@ class MovieStim(_BaseVisualStim):
         self.format=self._movie.video_format
         self.pos=pos
         self.pos = numpy.asarray(pos, float)
+        self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity

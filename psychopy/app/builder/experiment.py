@@ -77,7 +77,7 @@ class Experiment:
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data','event','logging']
+        self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
@@ -113,12 +113,13 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+        script.write(
+                    "\nfrom psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "from psychopy.constants import * #things like STARTED, FINISHED\n" +
+                    "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
-                    "import os #handy system and path functions\n" +
-                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
-                    "from psychopy.constants import *\n\n")
+                    "import os #handy system and path functions\n\n")
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
