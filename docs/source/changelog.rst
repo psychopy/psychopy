@@ -23,6 +23,7 @@ PsychoPy 1.73.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
+* FIXED: bugs in Builder setting Dots coherence and direction parameters
 
 PsychoPy 1.73.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

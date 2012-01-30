@@ -92,6 +92,8 @@ class VisualComponent(_base.BaseComponent):
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
                 paramCaps='SF' #setSF, not SetSf
+            elif thisParamName=='coherence':
+                paramCaps='FieldCoherence' #setSF, not SetSf
             else:
                 paramCaps = thisParamName.capitalize()
             #color is slightly special
