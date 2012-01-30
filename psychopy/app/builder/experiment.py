@@ -570,21 +570,26 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="%(name)s.trialList[0].keys()" %self.params
-#        "["
-#        if self.params['conditions'].val not in [None, [None]]:
-#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-#                stimOutStr+= "'%s', " %variable
-#        stimOutStr+= "]"
-        if self.exp.settings.params['Save psydat file'].val:
+        saveExcel=self.exp.settings.params['Save excel file'].val
+        saveCSV = self.exp.settings.params['Save csv file'].val
+        savePsydat = self.exp.settings.params['Save psydat file'].val
+        #get parameter names
+        if saveExcel or saveCSV:
+            buff.writeIndented("#get names of stimulus parameters\n" %self.params)
+            buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params=[]\n" %self.params)
+            buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
+        #write out each type of file
+        if saveExcel or savePsydat or saveCSV:
+            buff.writeIndented("#save data for this loop\n")
+        if savePsydat:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
-        if self.exp.settings.params['Save excel file'].val:
+        if saveExcel:
             buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        if self.exp.settings.params['Save csv file'].val:
+        if saveCSV:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'

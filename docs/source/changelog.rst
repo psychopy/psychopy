@@ -19,8 +19,15 @@ Changelog
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
+
 PsychoPy 1.73.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
 
 * ADDED: loop property to :class:`~psychopy.visual.MovieStim` for coder only so far (thanks Ariel Rokem)
 * FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
