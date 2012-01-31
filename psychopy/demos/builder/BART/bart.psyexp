@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.70.01" encoding="utf-8">
+<PsychoPy2experiment version="1.72.00" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
@@ -36,6 +36,7 @@
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
       <PatchComponent name="balloonBody">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="balloonBody" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
@@ -58,8 +59,10 @@
         <Param name="size" val="$balloonSize" valType="code" updates="set every frame"/>
       </PatchComponent>
       <TextComponent name="reminderMsg">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="reminderMsg" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="Press SPACE to pump the balloon&#10;Press RETURN to bank this sum" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -75,8 +78,10 @@
         <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
       </TextComponent>
       <TextComponent name="balloonValMsg">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="balloonValMsg" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$u&quot;This balloon value:\n£%.2f&quot; %thisBalloonEarnings" valType="str" updates="set every frame"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -92,8 +97,10 @@
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
       <TextComponent name="bankedMsg">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="bankedMsg" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$u&quot;You have banked:\n£%.2f&quot; %bankedEarnings" valType="str" updates="set every frame"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -134,8 +141,10 @@
     </Routine>
     <Routine name="finalScore">
       <TextComponent name="finalScore_2">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="finalScore_2" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$u&quot;Well done! You banked a total of\n£%2.f&quot; %bankedEarnings" valType="str" updates="set every repeat"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -176,8 +185,10 @@
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
       <TextComponent name="feedbackMsg">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="feedbackMsg" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$feedbackText" valType="str" updates="set every repeat"/>
         <Param name="stopVal" val="1.5" valType="code" updates="constant"/>
@@ -195,8 +206,10 @@
     </Routine>
     <Routine name="instructions">
       <TextComponent name="instrMessage">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="instrMessage" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="This is a game where you have to optimise your earnings in a balloon pumping competition.&#10;&#10;You get prize money for each balloon you pump up, according to its size. But if you pump it too far it will pop and you'll get nothing for that balloon.&#10;&#10;Balloons differ in their maximum size - they can occasionally reach to almost the size of the screen but most will pop well before that.&#10;&#10;Press;&#10;    SPACE to pump the balloon&#10;    RETURN to bank the cash for this balloon and move onto the next&#10;" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -233,6 +246,7 @@
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="random seed" val="1832" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="num" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>

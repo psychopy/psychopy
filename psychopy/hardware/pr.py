@@ -7,7 +7,7 @@ See http://www.photoresearch.com/
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
+from psychopy import logging
 import struct, sys, time, numpy
 
 try: import serial
@@ -15,40 +15,40 @@ except: serial=False
 
 class PR650:
     """An interface to the PR650 via the serial port.
-    
+
     (Added in version 1.63.02)
-    
+
     example usage::
-    
+
         from psychopy.hardware.pr import PR650
         myPR650 = PR650(port)
         myPR650.getLum()#make a measurement
         nm, power = myPR650.getLastSpectrum()#get a power spectrum for the last measurement
-    
-    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported 
+
+    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported
     device for you so you can also do::
-    
+
         from psychopy import hardware
         phot = hardware.findPhotometer()
         print phot.getLum()
-        
+
     :troubleshooting:
-        
-        Various messages are printed to the log regarding the function of this device, 
+
+        Various messages are printed to the log regarding the function of this device,
         but to see them you need to set the printing of the log to the correct level::
-        
+
             from psychopy import log
-            log.console.setLevel(log.ERROR)#error messages only
-            log.console.setLevel(log.INFO)#will give a little more info
-            log.console.setLevel(log.DEBUG)#will export a log of all communications
-            
-        If you're using a keyspan adapter (at least on OS X) be aware that it needs 
+            logging.console.setLevel(logging.ERROR)#error messages only
+            logging.console.setLevel(logging.INFO)#will give a little more info
+            logging.console.setLevel(logging.DEBUG)#will export a log of all communications
+
+        If you're using a keyspan adapter (at least on OS X) be aware that it needs
         a driver installed. Otherwise no ports wil be found.
-        
+
         Also note that the attempt to connect to the PR650 must occur within the first
         few seconds after turning it on.
-        
-        
+
+
     """
     def __init__(self, port, verbose=None):
         if type(port) in [int, float]:
@@ -62,15 +62,15 @@ class PR650:
         self.type='PR650'
         self.com=False
         self.OK=True#until we fail
-        
+
         self.codes={'OK':'000\r\n',#this is returned after measure
             '18':'Light Low',#these is returned at beginning of data
             '10':'Light Low',
             '00':'OK'
             }
-            
+
         #try to open the port
-        if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'): 
+        if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'):
             try:self.com = serial.Serial(self.portString)
             except:
                 self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
@@ -86,20 +86,20 @@ class PR650:
                 self.isOpen=1
             except:
                 self._error("Opened serial port %s, but couldn't connect to PR650" %self.portString)
-        
+
         if self.OK:
-            log.info("Successfully opened %s" %self.portString)
+            logging.info("Successfully opened %s" %self.portString)
             time.sleep(0.1) #wait while establish connection
-            reply = self.sendMessage('b1\n')        #turn on the backlight as feedback            
+            reply = self.sendMessage('b1\n')        #turn on the backlight as feedback
             if reply != self.codes['OK']:
                 self._error("PR650 isn't communicating")
-                
+
         if self.OK:
             reply = self.sendMessage('s01,,,,,,01,1')#set command to make sure using right units etc...
-    
+
     def _error(self, msg):
         self.OK=False
-        log.error(msg)
+        logging.error(msg)
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
         """Send a command to the photometer and wait an alloted
         timeout for a response (Timeout should be long for low
@@ -117,15 +117,15 @@ class PR650:
 
         #get feedback (within timeout limit)
         self.com.setTimeout(timeout)
-        log.debug(message)#send complete message
+        logging.debug(message)#send complete message
         if message in ['d5', 'd5\n']: #we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
             return self.com.readline()
 
     def measure(self, timeOut=30.0):
-        """Make a measurement with the device. For a PR650 the device is instructed 
-        to make a measurement and then subsequent commands are issued to retrieve 
+        """Make a measurement with the device. For a PR650 the device is instructed
+        to make a measurement and then subsequent commands are issued to retrieve
         info about that measurement
         """
         t1 = time.clock()
@@ -141,7 +141,7 @@ class PR650:
                 self.lastLum = float(xyz[3])
             else: self.lastLum = 0.0
         else:
-            log.warning("Didn't collect any data (extend timeout?)")
+            logging.warning("Didn't collect any data (extend timeout?)")
 
     def getLum(self):
         """Makes a measurement and returns the luminance value
@@ -150,7 +150,7 @@ class PR650:
         return self.getLastLum()
     def getSpectrum(self, parse=True):
         """Makes a measurement and returns the current power spectrum
-        
+
         If ``parse=True`` (default):
             The format is a num array with 100 rows [nm, power]
 
@@ -233,27 +233,27 @@ class PR650:
 
 class PR655(PR650):
     '''An interface to the PR655/PR670 via the serial port.
-    
+
     example usage::
-    
+
         from psychopy.hardware.pr import PR655
         myPR655 = PR655(port)
         myPR655.getLum()#make a measurement
         nm, power = myPR655.getLastSpectrum()#get a power spectrum for the last measurement
-    
-    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported 
+
+    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported
     device for you so you can also do::
-    
+
         from psychopy import hardware
         phot = hardware.findPhotometer()
         print phot.getLum()
-        
+
     :troubleshooting:
-        
+
         If the device isn't responding try turning it off and turning it on again,
         and/or disconnecting/reconnecting the USB cable. It may be that the port
         has become controlled by some other program.
-        
+
     '''
     def __init__(self, port):
         self.type = None#get this from the device later
@@ -265,13 +265,13 @@ class PR655(PR650):
         else:
             self.portString = port
             self.portNumber=None
-            
+
         self.codes={'OK':'000\r\n',#this is returned after measure
             '18':'Light Low',#these is returned at beginning of data
             '10':'Light Low',
             '00':'OK'
             }
-        
+
         #try to open the port
         try:
             self.com = serial.Serial(self.portString)
@@ -292,7 +292,7 @@ class PR655(PR650):
             self.startRemoteMode()
             self.type = self.getDeviceType()
             if self.type:
-                log.info("Successfully opened %s on %s" %(self.type,self.portString))
+                logging.info("Successfully opened %s on %s" %(self.type,self.portString))
             else:
                 self._error("PR655/PR670 isn't communicating")
     def __del__(self):
@@ -300,7 +300,7 @@ class PR655(PR650):
             self.endRemoteMode()
             time.sleep(0.1)
             self.com.close()
-            log.debug('Closed PR655 port')
+            logging.debug('Closed PR655 port')
         except:
             pass
     def startRemoteMode( self ):
@@ -323,19 +323,19 @@ class PR655(PR650):
         timeout for a response (Timeout should be long for low
         light measurements)
         """
-        log.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
+        logging.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
         if message[-1]!='\n': message+='\n'     #append a newline if necess
 
         #flush the read buffer first
         self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
-        
+
         #send the message
         for letter in message:
             self.com.write(letter)#for PR655 have to send individual chars ! :-/
             self.com.flush()
-            
+
         time.sleep(0.2)#PR655 can get cranky if rushed
-        
+
         #get feedback (within timeout)
         self.com.setTimeout(timeout)
         if message in ['d5\n', 'D5\n']: #we need a spectrum which will have multiple lines
@@ -349,10 +349,10 @@ class PR655(PR650):
         self.com.write( 'Q' )
     def getLastTristim( self ):
         '''Fetches (from the device) the last CIE 1931 Tristimulus values
-        
+
         :returns:
             list: status, units, Tristimulus Values
-            
+
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastTristim with just the tristimulus
             coordinates
@@ -361,10 +361,10 @@ class PR655(PR650):
         return result.split(',')
     def getLastUV( self ):
         '''Fetches (from the device) the last CIE 1976 u,v coords
-        
+
         :returns:
             list: status, units, Photometric brightness, u, v
-            
+
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastUV with [u,v]
         '''
@@ -372,11 +372,11 @@ class PR655(PR650):
         return result.split(',')
     def getLastXY( self ):
         '''Fetches (from the device) the last CIE 1931 x,y coords
-        
-        
+
+
         :returns:
             list: status, units, Photometric brightness, x,y
-            
+
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastXY with [x,y]
         '''
@@ -386,11 +386,11 @@ class PR655(PR650):
         """This retrieves the spectrum from the last call to :func:`~PR655.measure`
 
         If `parse=True` (default):
-            
+
             The format is a num array with 100 rows [nm, power]
 
         otherwise:
-        
+
             The output will be the raw string from the PR650 and should then
             be passed to :func:`~PR655.parseSpectrumOutput`. It's more
             efficient to parse R,G,B strings at once than each individually.
@@ -402,10 +402,10 @@ class PR655(PR650):
             return raw
     def getLastColorTemp( self ):
         '''Fetches (from the device) the color temperature (K) of the last measurement
-        
+
         :returns:
             list: status, units, exponent, correlated color temp (Kelvins), CIE 1960 deviation
-            
+
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastColorTemp with the color temp in Kelvins
         '''
@@ -413,9 +413,9 @@ class PR655(PR650):
         return result.split(',')
     def measure( self, timeOut=30.0 ):
         """Make a measurement with the device.
-        
+
         This automatically populates:
-        
+
             - ``.lastLum``
             - ``.lastSpectrum`
             - `.lastCIExy`

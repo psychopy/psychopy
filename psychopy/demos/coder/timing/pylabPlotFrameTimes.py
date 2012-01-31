@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import visual, core, log
+from psychopy import visual, core, logging
 import pylab
 
 # demo to illustrate some plotting with pylab, with screen refresh times as data

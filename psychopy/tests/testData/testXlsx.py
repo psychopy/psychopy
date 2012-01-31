@@ -7,25 +7,29 @@ from openpyxl.reader.excel import load_workbook
 from psychopy import data, misc
 
 thisDir,filename = os.path.split(os.path.abspath(__file__))
-name = 'psychopy_testXlsx'
-fullName = name+'.xlsx'
+
 class TestXLSX:
     def setUp(self):
-        pass
+        self.name = 'testXlsx'
+        self.fullName = self.name+'.xlsx'
         
     def tearDown(self):
-        os.remove(fullName)
+        os.remove(self.fullName)
         
-    def testReadWriteData(self):
-        dat = misc.fromFile(os.path.join(thisDir, 'data.psydat'))
-        dat.saveAsExcel(name,
-            stimOut=['text', 'congruent', 'corrAns', 'letterColor', ],
-            dataOut=['n','all_mean','all_std', 'all_raw'])
+    def testTrialHandlerAndXLSX(self):
+        conds = data.importConditions(os.path.join(thisDir, 'trialTypes.xlsx'))
+        trials = data.TrialHandler(trialList=conds, seed=100, nReps=2)
+        responses=[1,1,2,3,2,3, 1,3,2,2,1,1]
+        rts=numpy.array(responses)/10.0
+        for trialN, trial in enumerate(trials):
+            trials.addData('resp', responses[trialN])
+            trials.addData('rt',rts[trialN])
+        trials.saveAsExcel(self.name)
         
         # Make sure the file is there
-        assert os.path.isfile(fullName)
-        expBook = load_workbook(os.path.join(thisDir,'data.xlsx'))
-        actBook = load_workbook(fullName)
+        assert os.path.isfile(self.fullName)
+        expBook = load_workbook(os.path.join(thisDir,'corrXlsx.xlsx'))
+        actBook = load_workbook(self.fullName)
         
         for wsN, expWS in enumerate(expBook.worksheets):
             actWS = actBook.worksheets[wsN]

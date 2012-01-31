@@ -3,7 +3,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from ctypes import *
-import pyglet.gl as GL
+import pyglet
+GL=pyglet.gl
 import sys
 
 def print_log(shader):

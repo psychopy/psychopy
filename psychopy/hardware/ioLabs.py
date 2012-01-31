@@ -20,7 +20,7 @@ for examples see the demos menu of the PsychoPy Coder or go to the URL above.
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
+from psychopy import logging
 try:
     from ioLabs import *
 except:
@@ -29,4 +29,4 @@ python (not the Standalone distribution of PsychoPy) then try installing it with
     > easy_install ioLabs
     
 """
-    log.error(msg)
+    logging.error(msg)

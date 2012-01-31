@@ -19,6 +19,7 @@ class MouseComponent(BaseComponent):
                 save='final',forceEndRoutineOnPress=True, timeRelativeTo='routine'):
         self.type='Mouse'
         self.url="http://www.psychopy.org/builder/components/mouse.html"
+        self.parentName=parentName
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
         #params
@@ -79,6 +80,7 @@ class MouseComponent(BaseComponent):
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.status=STARTED\n" %(self.params))
+        buff.writeIndented("event.mouseButtons=[0,0,0] #reset mouse buttons to be 'up'")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:

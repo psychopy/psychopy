@@ -4,11 +4,11 @@ Glossary
 .. glossary::
     :sorted:
     
-    csv : comma-separated value files
-        Type of basic text file with 'comma-separated values'. This type of file can be opened with most spreadsheet packages (e.g. MS Excel) for easy reading and manipulation.
-    
-    VBI : Vertical Blank Interval
-        (aka the Vertical Retrace, or Vertical Blank, VBL).
+    csv
+        **Comma-Separated Value files** Type of basic text file with 'comma-separated values'. This type of file can be opened with most spreadsheet packages (e.g. MS Excel) for easy reading and manipulation.
+
+    VBI
+        (**Vertical Blank Interval**, aka the Vertical Retrace, or Vertical Blank, VBL).
         The period in-between video frames and can be used for synchronising purposes. On a CRT display the screen is black during the VBI and the display beam is returned to the top of the display.
     
     VBI blocking
@@ -24,9 +24,10 @@ Glossary
     Adaptive staircase
         An experimental method whereby the choice of stimulus parameters is not pre-determined but based on previous responses. For example, the difficulty of a task might be varied trial-to-trial based on the participant's responses. These are often used to find psychophysical thresholds. Contrast this with the :term:`method of constants`.
 
-    CRT : Cathode Ray Tube
+    CRT
+        **Cathode Ray Tube**
         'Traditional' computer monitor (rather than an LCD or plasma flat screen).
 
-    xlsx : Excel OpenXML file format
-        A spreadsheet data format developed by Microsoft but with an open (published format). This is the native file format for Excel (2007 or later) and can be opened by most modern spreadsheet applications including OpenOffice (3.0+), google docs, Apple iWork 08.
-	
+    xlsx
+        **Excel OpenXML file format**. A spreadsheet data format developed by Microsoft but with an open (published format). This is the native file format for Excel (2007 or later) and can be opened by most modern spreadsheet applications including OpenOffice (3.0+), google docs, Apple iWork 08.
+

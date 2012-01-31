@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.71.00"
+!define PRODUCT_VERSION "1.73.02"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -14,6 +14,7 @@
 !include "MUI.nsh"
 !include "fileassoc.nsh"
 !include "EnvVarUpdate.nsh"
+!include "Library.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -71,7 +72,6 @@ Function .onInit
 ;Run the uninstaller
 uninst:
   ClearErrors
-  ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
   Exec $INSTDIR\uninst.exe ; instead of the ExecWait line
 done:
 FunctionEnd
@@ -87,8 +87,9 @@ Section "PsychoPy" SEC01
 
   File /r "C:\python26\*.*"
   File /r "windlls\*.dll"
-  File "c:\WINDOWS\system32\avbin.dll"
-
+; avbin to system32
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+  
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
@@ -103,6 +104,7 @@ Section "PsychoPy" SEC01
 ; Update Windows Path
   ;add to path variable
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\DLLs"
 
 SectionEnd
 
@@ -134,9 +136,10 @@ Section Uninstall
 
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
-  Delete "$INSTDIR\avbin.dll"
   RMDir /r "$INSTDIR"
-
+  ; NB we don't uninstall avbin - it might be used by another python installation
+  
+  ;shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\PsychoPy2.lnk"
@@ -145,6 +148,7 @@ Section Uninstall
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\DLLs"
 
   SetAutoClose true
 SectionEnd

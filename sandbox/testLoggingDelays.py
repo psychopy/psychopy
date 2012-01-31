@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from psychopy import visual, event, core, log
-logFile = log.LogFile('test.log', level=log.INFO, filemode='w')
-logFile2 = log.LogFile('test2.log', level=log.INFO, filemode='w')
+from psychopy import visual, event, core, logging
+logFile = logging.LogFile('test.log', level=logging.INFO, filemode='w')
+logFile2 = logging.LogFile('test2.log', level=logging.INFO, filemode='w')
 #create a window to draw in
 myWin =visual.Window((600,600), allowGUI=False,
     bitsMode=None, units='norm', winType='pyglet')
@@ -24,11 +24,11 @@ while True:#quits after 20 secs
     message.draw()
     myWin.flip()#redraw the buffer
     for n in range(10):
-        log.info('%i info' %n)
+        logging.info('%i info' %n)
     #handle key presses each frame
     for key in event.getKeys():
         if key in ['escape','q']:
-            log.data('final fps = %.3f' % myWin.fps())
+            logging.data('final fps = %.3f' % myWin.fps())
             myWin.close()
             core.quit()
     event.clearEvents()#keep the event buffer from overflowing

@@ -1,8 +1,8 @@
-import pyglet.media
+import pyglet
 import time, threading
 
 evtDispatchLock = threading.Lock()
-class _EventDispatchThread(threading.Thread):    
+class _EventDispatchThread(threading.Thread):
     """a thread that will periodically call dispatch_events
     """
     def __init__(self, pollingPeriod):
@@ -16,9 +16,9 @@ class _EventDispatchThread(threading.Thread):
                 try:
                     pyglet.media.dispatch_events()
                 finally:
-                    evtDispatchLock.release()            
-            time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping   
-        
+                    evtDispatchLock.release()
+            time.sleep(self.pollingPeriod)#yeilds to other processes while sleeping
+
 _eventThread = _EventDispatchThread(pollingPeriod=0.00001)
 _eventThread.start()
 

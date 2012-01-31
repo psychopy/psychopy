@@ -18,7 +18,10 @@ Commonly, the problem is that a preferences file is somehow corrupt. To fix that
 
 If resetting the preferences files doesn't help then we need to get to an error message in order to work out why the application isn't starting. The way to get that message depends on the platform (see below).
 
-*Windows users* (starting from the Command Prompt):    
+*Windows users* (starting from the Command Prompt):
+    
+    #. Did you get an error message that "This application failed to start because the application configuration is incorrect. Reinstalling the application may fix the problem"? If so that indicates you need to `update your .NET installation to SP1 <http://www.microsoft.com/download/en/details.aspx?id=33>`_ .
+
     #. open a DOS Command Prompt (terminal): 
         #. go to the Windows Start menu
         #. select Run... and type in cmd <Return>

@@ -1,1 +1,0 @@
-from psychopy import visual

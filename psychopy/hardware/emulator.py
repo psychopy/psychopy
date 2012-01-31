@@ -8,7 +8,7 @@ pulses and user responses. Limitations: pyglet only; keyboard events only.
 
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core, log
+from psychopy import visual, event, core, logging
 import threading
 
 #import sound # for playing EPI noise in SyncGenerator
@@ -44,7 +44,7 @@ class ResponseEmulator(threading.Thread):
             if type(key) == str:
                 event._keyBuffer.append(key)
             else:
-                log.error('ResponseEmulator: only keyboard events are supported')
+                logging.error('ResponseEmulator: only keyboard events are supported')
             last_onset = onset
             if self.stopflag: break
         self.running = False

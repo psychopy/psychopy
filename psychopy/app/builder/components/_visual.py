@@ -9,7 +9,7 @@ from psychopy.app.builder.experiment import Param
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
-    def __init__(self, parentName, name='', units='from exp settings', color='$[1,1,1]',
+    def __init__(self, exp, parentName, name='', units='from exp settings', color='$[1,1,1]',
                 pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb', opacity=1,
                 startType='time (s)',startVal='',
                 stopType='duration (s)', stopVal='',
@@ -17,6 +17,8 @@ class VisualComponent(_base.BaseComponent):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
         self.order=[]#make sure these are at top (after name and time params)
         self.params={}
+        self.exp=exp
+        self.parentName=parentName
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -90,6 +92,8 @@ class VisualComponent(_base.BaseComponent):
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
                 paramCaps='SF' #setSF, not SetSf
+            elif thisParamName=='coherence':
+                paramCaps='FieldCoherence' #setSF, not SetSf
             else:
                 paramCaps = thisParamName.capitalize()
             #color is slightly special
