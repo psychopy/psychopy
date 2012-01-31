@@ -5,7 +5,8 @@ Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: cdbs, debhelper (>= 5.0.38),
                python-support (>= 0.6), python (>= 2.4), python-setuptools (>= 0.6),
-               help2man, imagemagick
+               help2man, imagemagick,
+               python-configobj,
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
 Standards-Version: 3.9.2
