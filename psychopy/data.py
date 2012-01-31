@@ -241,7 +241,7 @@ class TrialType(dict):
 #                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class _BaseTrialHandler(object):
+class _BaseTrialHandler:
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
