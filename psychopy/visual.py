@@ -496,7 +496,10 @@ class Window:
         if self.waitBlanking:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0,0,0,0)
-            GL.glVertex2i(10,10)
+            if sys.platform=='win32' and self.glVendor.startswith('ati'):
+                pass
+            else:
+                GL.glVertex2i(10,10)#this corrupts text rendering on win with some ATI cards :-(
             GL.glEnd()
             GL.glFinish()
 
