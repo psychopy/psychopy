@@ -31,7 +31,7 @@ import numpy, threading, time
 from os import path
 from string import capitalize
 from sys import platform, exit, stdout
-from psychopy import event, core, log
+from psychopy import event, core, logging
 from psychopy.constants import *
 
 if platform=='win32':
@@ -46,27 +46,27 @@ audioAPI=None
 
 try:
     import pyglet
+    import pyglet.media.procedural
     pyglet.options['audio'] = ('silent')
     pyglet.options['debug_gl'] = False
-    import pyglet.media.procedural
     import pyglet.media#, pyglet.resource
     import ctypes, math
     havePyglet=True
-except:
+except ImportError:
     havePyglet=False
 
 try:
     import pygame
     from pygame import mixer, sndarray
     havePygame=True
-except:
+except ImportError:
     havePygame=False
 
 try:
     import pyaudio
     pa = pyaudio.PyAudio()
     havePyaudio=True
-except:
+except ImportError:
     havePyaudio=False
 
 class _SoundBase:
@@ -499,7 +499,7 @@ class SoundPyaudio(_SoundBase):
         """
         global mediaLocation
 
-        if not havePyglet or not havePyAudio:
+        if not havePyglet or not havePyaudio:
             raise ImportError, "pyglet and pyaudio are both needed for this type of sound"
         self.offsetSamples = -1
         self.bits = bits
@@ -812,11 +812,11 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     sndarray.use_arraytype("numpy")
     setRate, setBits, setStereo = mixer.get_init()
     if setRate!=rate:
-        log.warn('Requested sound sample rate was not poossible')
+        logging.warn('Requested sound sample rate was not poossible')
     if setBits!=bits:
-        log.warn('Requested sound depth (bits) was not possible')
+        logging.warn('Requested sound depth (bits) was not possible')
     if setStereo!=2 and stereo==True:
-        log.warn('Requested stereo setting was not possible')
+        logging.warn('Requested stereo setting was not possible')
 
 
 def setAudioAPI(api):
@@ -844,5 +844,5 @@ for API in preferredAPI:
         audioAPI=API
         break#we found one so stop looking
 if audioAPI is None:
-    log.error('No audio API found. Try installing pygame 1.8+')
+    logging.error('No audio API found. Try installing pygame 1.8+')
 

@@ -22,7 +22,7 @@ For further documentation see the pynetstation website
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import log
+from psychopy import logging
 try:
     from egi import *
 except:
@@ -32,4 +32,4 @@ See:
     http://code.google.com/p/pynetstation/wiki/Installation
     
 """
-    log.error(msg)
+    logging.error(msg)

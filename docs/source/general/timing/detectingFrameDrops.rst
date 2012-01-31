@@ -30,12 +30,12 @@ Warn me if I drop a frame
 
 The simplest way to check if a frame has been dropped is to get PsychoPy to report a warning if it thinks a frame was dropped::
 
-    from psychopy import visual, log
+    from psychopy import visual, logging
     win = visual.Window([800,600])
     win.setRecordFrameIntervals(True)
     win._refreshThreshold=1/85.0+0.004 #i've got 85Hz monitor and want to allow 4ms tolerance
     #set the log module to report warnings to the std output window (default is errors only)
-    log.console.setLevel(log.WARNING)
+    logging.console.setLevel(logging.WARNING)
 
 Show me all the frame times that I recorded
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,7 +53,7 @@ Or you could save them to disk. A convenience function is provided for this::
 
 The above will save the currently stored frame intervals (using the default filename, 'lastFrameIntervals.log') and then clears the data. The saved file is a simple text file.
 
-At any time you can also retrieve the time of the /last/ frame flip using win.lastFrameT (the time is synchronised with log.defaultClock so it will match any logging commands that your script uses).
+At any time you can also retrieve the time of the /last/ frame flip using win.lastFrameT (the time is synchronised with logging.defaultClock so it will match any logging commands that your script uses).
 
 .. _blockingOnVBI:
 

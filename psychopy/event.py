@@ -10,7 +10,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 import sys, time, copy
 import psychopy.core, psychopy.misc
-from psychopy import log
+from psychopy import logging
 from psychopy.constants import *
 import string, numpy
 
@@ -24,7 +24,7 @@ except:
     havePygame = False
 
 try:
-    import pyglet.window
+    import pyglet
     havePyglet = True
 except:
     havePyglet = False
@@ -59,7 +59,7 @@ def _onPygletKey(symbol, modifiers):
     #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
     thisKey = (thisKey.lstrip('_').lstrip('NUM_'),keyTime) # modified to capture time of keypress so key=(keyname,keytime)
     _keyBuffer.append(thisKey)
-    log.data("Keypress: %s" %thisKey[0])
+    logging.data("Keypress: %s" %thisKey[0])
 
 def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons, mouseClick, mouseTimes
@@ -75,7 +75,7 @@ def _onPygletMousePress(x,y, button, modifiers):
         mouseButtons[2]=1
         mouseTimes[2]= psychopy.core.getTime()-mouseClick[2].timeAtLastReset
         label='Right'
-    log.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
+    logging.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 
 def _onPygletMouseRelease(x,y, button, modifiers):
     global mouseButtons
@@ -88,12 +88,12 @@ def _onPygletMouseRelease(x,y, button, modifiers):
     if button == pyglet.window.mouse.RIGHT:
         mouseButtons[2]=0
         label='Right'
-    log.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
+    logging.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
 
 def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
     global mouseWheelRel
     mouseWheelRel = mouseWheelRel+numpy.array([scroll_x, scroll_y])
-    log.data("Mouse: wheel shift=(%i,%i), pos=(%i,%i)" %(scroll_x, scroll_y,x,y))
+    logging.data("Mouse: wheel shift=(%i,%i), pos=(%i,%i)" %(scroll_x, scroll_y,x,y))
 
 def _onPygletMouseMotion(x, y, dx, dy): # will this work? how are pyglet event handlers defined?
     global mouseMove
@@ -256,7 +256,7 @@ def waitKeys(maxWait = None, keyList=None):
 
     #after the wait period or received a valid keypress
     if key:
-        log.data("Key pressed: %s" %key)
+        logging.data("Key pressed: %s" %key)
         return [key]#need to convert back to a list
     else:
         return None #no keypress in period
@@ -294,10 +294,12 @@ class Mouse:
         self.mouseClock=psychopy.core.Clock() # used for movement timing
         self.movedistance=0.0
         #if pygame isn't initialised then we must use pyglet
+        global usePygame
         if (havePygame and not pygame.display.get_init()):
-            global usePygame
             usePygame=False
-
+        if not usePygame:
+            global mouseButtons
+            mouseButtons = [0,0,0]
         if newPos is not None: self.setPos(newPos)
 
     def setPos(self,newPos=(0,0)):
@@ -313,7 +315,6 @@ class Mouse:
         if usePygame:
             newPosPix[1] = self.win.size[1]/2-newPosPix[1]
             newPosPix[0] = self.win.size[0]/2+newPosPix[0]
-            print newPosPix
             mouse.set_pos(newPosPix)
         else: print "pyglet does not support setting the mouse position yet"
 
@@ -446,6 +447,7 @@ class Mouse:
         global mouseClick
         for c in buttons:
             mouseClick[c].reset()
+            mouseTimes[c]=0.0
 
     def getPressed(self, getTime=False):
         """Returns a 3-item list indicating whether or not buttons 1,2,3 are currently pressed

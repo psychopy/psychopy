@@ -7,13 +7,76 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+
+PsychoPy 1.73
+------------------------------
+
+PsychoPy 1.73.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
+* FIXED: bugs in Builder setting Dots coherence and direction parameters
+
+PsychoPy 1.73.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* ADDED: loop property to MovieStim for coder only so far (thanks Ariel Rokem)
+* FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
+* FIXED: problem with avbin (win32)
+* FIXED: problem with unicode characters in filenames preventing startup
+* FIXED: bug with 'fullRandom' method of TrialHandler missing some trials during data save
+* FIXED: Mouse.clickReset() now resets the click timers
+* FIXED(?): problem with avbin.dll not being found under 64-bit windows
+
+PsychoPy 1.73.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)
+* ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
+* ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
+* ADDED: data.ExpHandler to combine data for multiple separate loops in one study, including output of a single wide csv file. See demos>experimental control>experimentHandler. Support from Builder should now be easy to add
+* ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
+* ADDED: auto-update (and usage stats) can now detect proxies in proxy.pac files. Also this now runs in a low-priority background thread to prevent any slowing at startup time.
+* FIXED: bug when passing variables to Staircase loops in Builder
+* FIXED: mouse in Builder now ignores button presses that began before the 'start' of the mouse
+* FIXED: can now use pygame or pyaudio instead of pygame for sounds, although it still isn't recommended (thanks Ariel Rokem for patch)
+
+PsychoPy 1.72.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(rc1 released Nov 2011)
+
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
+to a choice control if this is used (thanks Manuel Ebert)
+    - for gui.Dlg the `.addField()` method now has `choices` attribute
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be
+    interpreted as a set of choices (NB this potentially breaks old code)
+    - for info see API docs for psychopy.gui
+
+* ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
+    - ShapeStim now has a size parameter that scales the locations of vertices
+    - new classes; Rect, Line, Circle, Polygon
+
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
+* FIXED: calibration plots in Monitor Center now resize and quit as expected
+* FIXED: conditions files can now have lists of numbers [0,0]
+* FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
+* FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
+* FIXED: problem with Patch Component when size was set to be dynamic
+* FIXED: problem with Builder loops not being able to change type (e.g. change 'random' into 'staircase')
+* FIXED: data from TrialHandler can be output with unicode contents (thanks Henrik Singmann)
+    
 PsychoPy 1.71
 ------------------------------
 
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
+(released Oct 2011)
 
 * CHANGED: the number of stimulus-resized and frames-dropped warnings is now limited to 5 (could become a preference setting?)
 * FIXED: Builder now allows images to have size of None (or 'none' or just blank) and reverts to using the native size of the image in the file
@@ -22,11 +85,9 @@ PsychoPy 1.71.01
 * FIXED: problem showing the About... item on OS X Builder view
 * FIXED problem with loops not showing up if the conditions file wasn't found
 * FIXED: runTimeInfo: better handling of cwd and git-related info
-* FIXED: rating scale: single click with multiple rating scales,
-auto-scale with precision = 1
+* FIXED: rating scale: single click with multiple rating scales, auto-scale with precision = 1
 * IMPROVED: rendering speed on slightly older nVidia cards (e.g. GeForce 6000/7000 series) under win32/linux. ElementArrays now render at full speed. Other cards/systems should be unchanged.
-* IMPROVED: rating scale: better handling of default description,
-scale=None more intuitive
+* IMPROVED: rating scale: better handling of default description, scale=None more intuitive
 * ADDED: new function getFutureTrial(n=1) to TrialHandler, allowing users to find out what a trial will be without actually going to that trial
 * ADDED: misc.createXYs() to help creating a regular grid of xy values for ElementArrayStim
 

@@ -9,7 +9,7 @@ Various useful functions for creating filters and textures (e.g. for PatchStim)
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
 import Image
-from psychopy import log
+from psychopy import logging
 
 def makeGrating(res,
             ori=0.0,    #in degrees
@@ -59,7 +59,7 @@ def makeGrating(res,
             try:
                     im = Image.open(gratType)
             except:
-                    log.error( "couldn't find tex...",gratType)
+                    logging.error( "couldn't find tex...",gratType)
                     return
     return intensity
 
@@ -114,12 +114,11 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
             outArray=makeGauss(rad,mean=0.0,sd=0.33333)
     elif shape=='raisedCosine':
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
-        fringe_proportion = 0.2 # This one affects the proportion of the
-                                # stimulus diameter that is devoted to the
-                                # raised cosine. XXX Consider
-                                # making this a user input.
+        fringe_proportion = fringeWidth # This one affects the proportion of the
+                                        # stimulus diameter that is devoted to the
+                                        # raised cosine.
 
-        rad = makeRadialMatrix(res)
+        rad = makeRadialMatrix(matrixSize, center, radius)
         outArray = numpy.zeros_like(rad)
         outArray[numpy.where(rad < 1)] = 1
         raised_cos_idx = numpy.where(

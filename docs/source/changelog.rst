@@ -1,11 +1,81 @@
 Changelog
 ====================
 
+
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+.. role:: red
+
 .. note::
   Version numbers
 
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+
+:red:`Changes in red typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
+
+PsychoPy 1.73
+------------------------------
+
+PsychoPy 1.73.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
+* FIXED: bugs in Builder setting Dots coherence and direction parameters
+
+PsychoPy 1.73.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* ADDED: loop property to :class:`~psychopy.visual.MovieStim` for coder only so far (thanks Ariel Rokem)
+* FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
+* FIXED: problem with avbin (win32)
+* FIXED: problem with unicode characters in filenames preventing startup
+* FIXED: bug with 'fullRandom' method of :class:`~psychopy.data.TrialHandler` missing some trials during data save
+* FIXED: :func:`Mouse.clickReset()` now resets the click timers
+* FIXED(?): problem with avbin.dll not being found under 64-bit windows
+
+PsychoPy 1.73.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* :red:`CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)`
+* ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
+* ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
+* ADDED: data.ExpHandler to combine data for multiple separate loops in one study, including output of a single wide csv file. See demos>experimental control>experimentHandler. Support from Builder should now be easy to add
+* ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
+* ADDED: auto-update (and usage stats) can now detect proxies in proxy.pac files. Also this now runs in a low-priority background thread to prevent any slowing at startup time.
+* FIXED: bug when passing variables to Staircase loops in Builder
+* FIXED: mouse in Builder now ignores button presses that began before the 'start' of the mouse
+* FIXED: can now use pygame or pyaudio instead of pygame for sounds, although it still isn't recommended (thanks Ariel Rokem for patch)
+
+PsychoPy 1.72.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(rc1 released Nov 2011)
+
+* :red:`CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)`
+    - for gui.Dlg the `.addField()` method now has `choices` attribute
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
+    - for info see API docs for psychopy.gui
+
+* ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
+    - ShapeStim now has a size parameter that scales the locations of vertices
+    - new classes; Rect, Line, Circle, Polygon
+
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
+* FIXED: calibration plots in Monitor Center now resize and quit as expected
+* FIXED: conditions files can now have lists of numbers [0,0]
+* FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
+* FIXED: Builder components now draw in order, from top to bottom, so lower items obscure higher ones
+* FIXED: problem with Patch Component when size was set to be dynamic
+* FIXED: problem with Builder loops not being able to change type (e.g. change 'random' into 'staircase')
+* FIXED: data from TrialHandler can be output with unicode contents (thanks Henrik Singmann)
+
 
 PsychoPy 1.71
 ------------------------------
@@ -13,7 +83,7 @@ PsychoPy 1.71
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
+(released Oct 2011)
 
 * CHANGED: the number of stimulus-resized and frames-dropped warnings is now limited to 5 (could become a preference setting?)
 * FIXED: Builder now allows images to have size of None (or 'none' or just blank) and reverts to using the native size of the image in the file
@@ -22,11 +92,9 @@ PsychoPy 1.71.01
 * FIXED: problem showing the About... item on OS X Builder view
 * FIXED problem with loops not showing up if the conditions file wasn't found
 * FIXED: runTimeInfo: better handling of cwd and git-related info
-* FIXED: rating scale: single click with multiple rating scales,
-auto-scale with precision = 1
+* FIXED: rating scale: single click with multiple rating scales, auto-scale with precision = 1
 * IMPROVED: rendering speed on slightly older nVidia cards (e.g. GeForce 6000/7000 series) under win32/linux. ElementArrays now render at full speed. Other cards/systems should be unchanged.
-* IMPROVED: rating scale: better handling of default description,
-scale=None more intuitive
+* IMPROVED: rating scale: better handling of default description, scale=None more intuitive
 * ADDED: new function getFutureTrial(n=1) to TrialHandler, allowing users to find out what a trial will be without actually going to that trial
 * ADDED: misc.createXYs() to help creating a regular grid of xy values for ElementArrayStim
 
@@ -35,7 +103,7 @@ PsychoPy 1.71.00
 
 (released Sept 2011)
 
-* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* :red:`CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that`
 * CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 * ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
     - create, edit, and save conditions from within PsychoPy; save & load using pickle format
@@ -64,8 +132,6 @@ PsychoPy 1.70
 PsychoPy 1.70.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
-
 * FIXED: bug in Builder Ratingscale (was always ending routine on response)
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
@@ -90,7 +156,7 @@ PsychoPy 1.70.00
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
-* CHANGED use of allowedKeys in Keyboard Component. You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
+* :red:`CHANGED use of allowedKeys in Keyboard Component.` You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
 * CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
 * CHANGED names:
@@ -101,13 +167,13 @@ PsychoPy 1.70.00
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
 
-* CHANGED numpy imports in Builder scripts:
+* :red:`CHANGED numpy imports in Builder scripts:`
 
     - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
+* :red:`CHANGED: Builder use of $.` $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
 
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 
@@ -638,7 +704,7 @@ PsychoPy 0.97.01:
 * FIXED bug with IDE not closing properly (when current file was not right-most)
 * ADDED parallel.readPin(pinN) so that parallel port can be used for input as well as output
 * FIXED bug in parallel.setPortAddress(addr)
-* ADDED check for floats as arguments to ElementArrayStim set___ methods
+* ADDED check for floats as arguments to ElementArrayStim set methods
 * CHANGED: frame time recording to be *off* by default (for plotting, for Window.fps() and for warnings). To turn it on use Window.setRecordFrameIntervals(True), preferably after first few frames have elapsed
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)

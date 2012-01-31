@@ -36,7 +36,7 @@ if platform=='win32':
 elif platform=='darwin':
     import bdist_mpkg, py2app
     resources = glob.glob('psychopy/app/Resources/*')
-    resources.append('/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5/pyconfig.h')
+    resources.append('/Library/Frameworks/Python.framework/Versions/2.6/include/python2.6/pyconfig.h')
 elif platform=='posix':
     pass
 
@@ -50,7 +50,7 @@ if platform == 'win32':
                 'py2exe': {
                     'packages' : ['monitors','psychopy','psychopy.demos',
                         'matplotlib', 'numpy', 'scipy', 'wx',
-                        'pyglet','pygame','OpenGL',],
+                        'pyglet','pygame','OpenGL','pycrsltd',],
                     #"skip_archive":1,
                     }
             },
@@ -73,7 +73,7 @@ else:
                                         'nose','coverage',#for unit testing
                                         'serial','IPython',
                                         'egi','labjack','pylink',#handy external science interfaces
-                                        'pyxid',
+                                        'pyxid','pycrsltd',
                                         ],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(
@@ -94,7 +94,7 @@ if writeNewInit:
     createInitFile.createInitFile(dist=None)
 
 #running testApp from within the app raises wx errors
-shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testApp")
+shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")
 
 """
 I struggled getting the app to build properly. These were some of the problems:
@@ -130,5 +130,5 @@ to make avbin work from the mac standalone:
 """
 
 # on Mac use:
-#python2.5 setup.py bdist_mpkg --readme=psychopy/README.txt
-#python2.5 setupApp.py py2app
+#python2.6 setup.py bdist_mpkg --readme=psychopy/README.txt
+#python2.6 setupApp.py py2app

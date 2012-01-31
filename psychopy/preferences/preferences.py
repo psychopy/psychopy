@@ -30,10 +30,8 @@ class Preferences:
         userCfg = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
         try:
             os.unlink(userCfg)
-            #log.info('Removed %s (as requested by pref)' % userCfg) # need to import log into prefs for this
         except:
             print "Could not remove prefs file '%s'; (try doing it manually?)" % userCfg
-            #log.info('Could not remove %s (as requested by pref)' % userCfg)
         self.loadAll() # reloads, now getting all from .spec
 
     def getPaths(self):
@@ -41,45 +39,45 @@ class Preferences:
         thisFileAbsPath= os.path.abspath(__file__)
         prefSpecDir = os.path.split(thisFileAbsPath)[0]
         dirPsychoPy = os.path.split(prefSpecDir)[0]
-        
+
         #path to Resources (icons etc)
         dirApp = join(dirPsychoPy, 'app')
         if os.path.isdir(join(dirApp, 'Resources')):
             dirResources = join(dirApp, 'Resources')
         else:dirResources = dirApp
-        
+
         self.paths['psychopy']=dirPsychoPy
         self.paths['appDir']=dirApp
         self.paths['appFile']=join(dirApp, 'PsychoPy.py')
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources']=dirResources
         self.paths['tests'] = join(dirPsychoPy, 'tests')
-        
+
         if sys.platform=='win32':
             self.paths['prefsSpecFile']= join(prefSpecDir,'Windows.spec')
             self.paths['userPrefsDir']= join(os.environ['APPDATA'],'psychopy2')
         else:#platform.system gives nicer names, but no good on standalone vista/win7
             self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
-        
+
     def loadAll(self):
         """Load the user prefs and the application data
         """
         self._validator=validate.Validator()
-        
+
         # note: self.paths['userPrefsDir'] gets set in loadSitePrefs()
         self.paths['appDataFile'] = join(self.paths['userPrefsDir'], 'appData.cfg')
         self.paths['userPrefsFile'] = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
-        
+
         # If PsychoPy is tucked away by Py2exe in library.zip, the preferences file
         # cannot be found. This hack is an attempt to fix this.
         if "\\library.zip\\psychopy\\preferences\\" in self.paths["prefsSpecFile"]:
-            self.paths["prefsSpecFile"] = self.paths["prefsSpecFile"].replace("\\library.zip\\psychopy\\preferences\\", "\\resources\\")                
-        
+            self.paths["prefsSpecFile"] = self.paths["prefsSpecFile"].replace("\\library.zip\\psychopy\\preferences\\", "\\resources\\")
+
         self.userPrefsCfg = self.loadUserPrefs()
         self.appDataCfg = self.loadAppData()
         self.validate()
-        
+
         #simplify namespace
         self.general=self.userPrefsCfg['general']
         self.app = self.userPrefsCfg['app']
@@ -88,12 +86,9 @@ class Preferences:
         self.connections=self.userPrefsCfg['connections']
         self.keys=self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg
-        
+
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
-        
-        # connections:
-        if self.connections['autoProxy']: self.connections['proxy'] = self.getAutoProxy()
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so will
@@ -102,14 +97,14 @@ class Preferences:
         by easy_install (security risk)
         """
         self.prefsSpec = configobj.ConfigObj(self.paths['prefsSpecFile'], encoding='UTF8', list_values=False)
-        
+
         #check/create path for user prefs
         if not os.path.isdir(self.paths['userPrefsDir']):
             try: os.makedirs(self.paths['userPrefsDir'])
             except:
                 print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir']
         #then get the configuration file
-        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], configspec=self.prefsSpec)
+        cfg = configobj.ConfigObj(self.paths['userPrefsFile'], encoding='UTF8', configspec=self.prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
         # don't cfg.write(), see explanation above
         return cfg
@@ -119,12 +114,12 @@ class Preferences:
         self.validate()
         if not os.path.isdir(self.paths['userPrefsDir']):
             os.makedirs(self.paths['userPrefsDir'])
-        self.userPrefsCfg.write()                
+        self.userPrefsCfg.write()
 
     def loadAppData(self):
         #fetch appData too against a config spec
         appDataSpec = configobj.ConfigObj(join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False)
-        cfg = configobj.ConfigObj(self.paths['appDataFile'], configspec=appDataSpec)
+        cfg = configobj.ConfigObj(self.paths['appDataFile'], encoding='UTF8', configspec=appDataSpec)
         resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
         return cfg
@@ -149,12 +144,5 @@ class Preferences:
                 cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
             else:
                 print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
-        
-    def getAutoProxy(self):
-        """Fetch the proxy from the the system environment variables
-        """
-        if urllib.getproxies().has_key('http'):
-            return urllib.getproxies()['http']
-        else:
-            return ""
+
 

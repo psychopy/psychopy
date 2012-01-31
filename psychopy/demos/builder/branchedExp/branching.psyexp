@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.70.01" encoding="utf-8">
+<PsychoPy2experiment version="1.71.01" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
@@ -20,8 +20,10 @@
   <Routines>
     <Routine name="A">
       <TextComponent name="msgA">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="msgA" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
         <Param name="text" val="You chose A (the blue pill?)" valType="str" updates="constant"/>
         <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
@@ -39,8 +41,10 @@
     </Routine>
     <Routine name="B">
       <TextComponent name="msgB">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="msgB" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="$letterColor" valType="str" updates="set every repeat"/>
         <Param name="text" val="You chose B (the red pill?)" valType="str" updates="constant"/>
         <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
@@ -58,8 +62,10 @@
     </Routine>
     <Routine name="instr">
       <TextComponent name="instrText">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="instrText" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="If you press 'a' you'll get 3 trials of Routine A&#10;&#10;If you press 'b' you'll get 3 trials of Routine B" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
@@ -94,7 +100,7 @@
         <Param name="name" val="chooseBranch" valType="code" updates="None"/>
         <Param name="Each Frame" val="" valType="code" updates="constant"/>
         <Param name="Begin Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Routine" val="if resp.keys=='a':&#10;    repsB.finished=True&#10;else:&#10;    repsA.finished=True&#10;" valType="code" updates="constant"/>
+        <Param name="End Routine" val="if resp.keys=='a':&#10;    nRepsA=1&#10;    nRepsB=0&#10;else:&#10;    nRepsA=0&#10;    nRepsB=1&#10;" valType="code" updates="constant"/>
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
     </Routine>
@@ -105,7 +111,7 @@
       <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="repsA" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
-      <Param name="nReps" val="1" valType="code" updates="None"/>
+      <Param name="nReps" val="nRepsA" valType="code" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
       <Param name="conditions" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
     </LoopInitiator>
@@ -115,7 +121,7 @@
       <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="repsB" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
-      <Param name="nReps" val="1" valType="code" updates="None"/>
+      <Param name="nReps" val="nRepsB" valType="code" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
       <Param name="conditions" val="[{u'letterColor': u'red'}, {u'letterColor': u'green'}, {u'letterColor': u'blue'}]" valType="str" updates="None"/>
     </LoopInitiator>

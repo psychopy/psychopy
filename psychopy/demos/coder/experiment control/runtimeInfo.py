@@ -7,13 +7,13 @@ psychopy.info.RunTimeInfo calls visual.getMsPerFrame() to characterize the curre
 __author__ = """Jeremy "R." Gray""" ## double-quotes will be silently removed, single quotes will be left, eg, O'Connor
 __version__ = "v1.0.a#'''" ## in-line comments are ignored, but comment characters within strings are retained
 
-from psychopy import visual, log
+from psychopy import visual, logging
 import psychopy.info
 
 # When creating an experiment, first define your window (& monitor):
 myWin = visual.Window(fullscr=False,size=[200,200], monitor='testMonitor')
 myWin.setRecordFrameIntervals(True)
-log.console.setLevel(log.DEBUG)
+logging.console.setLevel(logging.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
 runInfo = psychopy.info.RunTimeInfo(

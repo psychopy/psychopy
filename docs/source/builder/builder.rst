@@ -19,16 +19,18 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
    concepts
    routines
    flow
    components
    settings
-   duration
+   startStop
    outputs
    gotchas
    compileScript
+   *
 
 Future developments
 -----------------------

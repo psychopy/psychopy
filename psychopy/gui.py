@@ -3,7 +3,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-from psychopy import log
+from psychopy import logging
 #from wxPython import wx
 import wx
 import numpy
@@ -27,6 +27,7 @@ class Dlg(wx.Dialog):
         myDlg.addField('Age:', 21)
         myDlg.addText('Experiment Info')
         myDlg.addField('Grating Ori:',45)
+        myDlg.addField('Group:', choices=["Test", "Control"])
         myDlg.show()#show dialog and wait for OK or Cancel
         if gui.OK:#then the user pressed OK
             thisInfo = myDlg.data
@@ -61,13 +62,17 @@ class Dlg(wx.Dialog):
         if len(color): myTxt.SetForegroundColour(color)
         self.sizer.Add(myTxt,1,wx.ALIGN_CENTER)
 
-    def addField(self, label='', initial='', color='', tip=''):
+    def addField(self, label='', initial='', color='', choices=None, tip=''):
         """
         Adds a (labelled) input field to the dialogue box, optional text color
         and tooltip. Returns a handle to the field (but not to the label).
+        If choices is a list or tuple, it will create a dropdown selector.
         """
         self.inputFieldNames.append(label)
-        self.inputFieldTypes.append(type(initial))
+        if choices:
+            self.inputFieldTypes.append(str)
+        else:
+            self.inputFieldTypes.append(type(initial))
         if type(initial)==numpy.ndarray:
             initial=initial.tolist() #convert numpy arrays to lists
         container=wx.GridSizer(cols=2, hgap=10)
@@ -82,9 +87,16 @@ class Dlg(wx.Dialog):
         if type(initial)==bool:
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
-        else:
+        elif not choices:
             inputLength = wx.Size(max(50, 5*len(unicode(initial))+16), 25)
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
+        else:
+            inputBox = wx.Choice(self, -1, choices=[str(option) for option in list(choices)])
+            # Somewhat dirty hack that allows us to treat the choice just like
+            # an input box when retrieving the data
+            inputBox.GetValue = inputBox.GetStringSelection
+            initial = choices.index(initial) if initial in choices else 0
+            inputBox.SetSelection(initial)
         if len(color): inputBox.SetForegroundColour(color)
         if len(tip): inputBox.SetToolTip(wx.ToolTip(tip))
 
@@ -130,7 +142,7 @@ class Dlg(wx.Dialog):
                 thisVal = self.inputFields[n].GetValue()
                 thisType= self.inputFieldTypes[n]
                 #try to handle different types of input from strings
-                log.debug("%s: %s" %(self.inputFieldNames[n], unicode(thisVal)))
+                logging.debug("%s: %s" %(self.inputFieldNames[n], unicode(thisVal)))
                 if thisType in [tuple,list,float,int]:
                     #probably a tuple or list
                     exec("self.data.append("+thisVal+")")#evaluate it
@@ -139,7 +151,7 @@ class Dlg(wx.Dialog):
                 elif thisType in [str,unicode,bool]:
                     self.data.append(thisVal)
                 else:
-                    log.warning('unknown type:'+self.inputFieldNames[n])
+                    logging.warning('unknown type:'+self.inputFieldNames[n])
                     self.data.append(thisVal)
             self.OK=True
         else:
@@ -158,7 +170,7 @@ class DlgFromDict(Dlg):
 
     ::
 
-        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1}
+        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
         infoDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
         if infoDlg.OK:
             print info
@@ -189,6 +201,8 @@ class DlgFromDict(Dlg):
             if field in tip.keys(): tooltip = tip[field]
             if field in fixed:
                 self.addFixedField(field,self.dictionary[field], tip=tooltip)
+            elif type(self.dictionary[field]) in [list, tuple]:
+                self.addField(field,choices=self.dictionary[field], tip=tooltip)
             else:
                 self.addField(field,self.dictionary[field], tip=tooltip)
         #show it and collect data

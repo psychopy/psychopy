@@ -1,7 +1,7 @@
 from os import path
 from _base import *
 import os
-from psychopy import log
+from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -24,22 +24,22 @@ class SettingsComponent:
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
-            hint="Run the experiment full-screen (recommended)") 
+            hint="Run the experiment full-screen (recommended)")
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
-            hint="Size of window (if not fullscreen)") 
+            hint="Size of window (if not fullscreen)")
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
-            hint="Which physical screen to run on (1 or 2)")  
+            hint="Which physical screen to run on (1 or 2)")
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
-            hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.") 
+            hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
-            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)") 
+            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
-            hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)") 
+            hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
-            hint="Should the mouse be visible on screen?") 
+            hint="Should the mouse be visible on screen?")
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
@@ -51,10 +51,10 @@ class SettingsComponent:
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
-            hint="Start the experiment with a dialog to set info (e.g.participant or condition)")  
+            hint="Start the experiment with a dialog to set info (e.g.participant or condition)")
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
-            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.") 
-        self.params['logging level']=Param(logging, valType='code', 
+            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.")
+        self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")
     def getType(self):
@@ -68,45 +68,51 @@ class SettingsComponent:
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
         except SyntaxError, err:
-            log.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
+            logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
             raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
         buff.writeIndented("expInfo=%s\n" % expInfo)
-        if self.params['Show info dlg'].val:            
+        if self.params['Show info dlg'].val:
             buff.writeIndented("dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)\n")
-            buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")            
-        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")          
+            buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")
+        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
         buff.writeIndented("expInfo['expName']=expName\n")
-        
+
         saveToDir = self.params['Saved data folder'].val.strip()
         if not saveToDir:
             saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
             if not saveToDir:
                 saveToDir = 'data'
-        
+
+        level=self.params['logging level'].val.upper()
         if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
             buff.writeIndented("#setup files for saving\n")
             buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
             buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
             if 'participant' in self.params['Experiment info'].val:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+            elif 'Participant' in self.params['Experiment info'].val:
+                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
+            elif 'Subject' in self.params['Experiment info'].val:
+                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
+            elif 'Observer' in self.params['Experiment info'].val:
+                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
-        #handle logging
-        level=self.params['logging level'].val.upper()
-        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.WARNING)#this outputs to the screen, not a file\n")
-        if self.params['Save log file']:
-            buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
-        
+            if self.params['Save log file']:
+                buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+
+        buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
+
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window'].val
         allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val) #if fullscreen then hide the mouse, unless its requested explicitly
-        allowStencil = False 
+        allowStencil = False
         for thisRoutine in self.exp.routines.values(): #NB routines is a dict
            for thisComp in thisRoutine: #a single routine is a list of components
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
-        
+
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
@@ -115,15 +121,15 @@ class SettingsComponent:
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
         buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
-        
+
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         buff.write(unitsCode+")\n")
-        
+
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("\n#Shutting down:\n")
-        
+
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

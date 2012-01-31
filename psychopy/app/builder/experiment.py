@@ -4,7 +4,7 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__, log
+from psychopy import data, preferences, __version__, logging
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -77,7 +77,7 @@ class Experiment:
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data', 'event']
+        self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
@@ -113,13 +113,13 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+        script.write(
+                    "\nfrom psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "from psychopy.constants import * #things like STARTED, FINISHED\n" +
+                    "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
-                    "import os #handy system and path functions\n" +
-                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
-                    "import psychopy.log #import like this so it doesn't interfere with numpy.log\n" +
-                    "from psychopy.constants import *\n\n")
+                    "import os #handy system and path functions\n\n")
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -275,13 +275,13 @@ class Experiment:
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
-            log.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
+            logging.error('%s is not a valid .psyexp file, "%s"' % (filename_base, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
         version_f = float(self.psychopyVersion.rsplit('.',1)[0]) # drop bugfix
         if version_f < 1.63:
-            log.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
+            logging.warning('note: v%s was used to create %s ("%s")' % (self.psychopyVersion, filename_base, root.tag))
 
         #Parse document nodes
         #first make sure we're empty
@@ -348,7 +348,7 @@ class Experiment:
                         _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                log.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                                logging.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
                             else:
                                 self.namespace.add(fname)
                     except:
@@ -360,7 +360,7 @@ class Experiment:
                 self.flow.append(self.routines[elementNode.get('name')])
 
         if modified_names:
-            log.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
+            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
 
     def setExpName(self, name):
         self.name=name
@@ -456,7 +456,7 @@ class Param:
             # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
             if type(self.val) in [str, unicode]:
                 if re.search(r"/\$", self.val):
-                    log.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
+                    logging.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
                 nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
                 if nonEscapedSomewhere: # code wanted, clean-up first
                     tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
@@ -483,7 +483,7 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1]):
+        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed=''):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -517,6 +517,8 @@ class TrialHandler:
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
+        self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
+            hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -524,18 +526,20 @@ class TrialHandler:
         """Write the code to create and run a sequence of trials
         """
         ##first create the handler
-        #create nice line-separated list of conditions
-        if self.params['conditionsFile'].val==None:
+        #init values
+        inits=getInitVals(self.params)
+        #import conditions from file
+        if self.params['conditionsFile'].val in ['None',None,'none','']:
             condsStr="[None]"
         else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
         buff.writeIndentedLines("\n#set up handler to look after randomisation of conditions etc\n")
-        buff.writeIndented("%s=data.TrialHandler(nReps=%s, method=%s, \n" \
-                %(self.params['name'], self.params['nReps'], self.params['loopType']))
+        buff.writeIndented("%(name)s=data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n" %(inits))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
-        buff.writeIndented("    trialList=%s)\n" %(condsStr))
+        buff.writeIndented("    trialList=%s,\n" %(condsStr))
+        buff.writeIndented("    seed=%(random seed)s)\n" %(inits))
         buff.writeIndented("%s=%s.trialList[0]#so we can initialise stimuli with some values\n" %(self.thisName, self.params['name']))
         #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
@@ -543,6 +547,7 @@ class TrialHandler:
             buff.writeIndented("if %s!=None:\n" %self.thisName)
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName+'=%s.'+paramName)\n" %self.thisName)
+
         ##then run the trials
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
@@ -565,21 +570,26 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="%(name)s.trialList[0].keys()" %self.params
-#        "["
-#        if self.params['conditions'].val not in [None, [None]]:
-#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-#                stimOutStr+= "'%s', " %variable
-#        stimOutStr+= "]"
-        if self.exp.settings.params['Save psydat file'].val:
+        saveExcel=self.exp.settings.params['Save excel file'].val
+        saveCSV = self.exp.settings.params['Save csv file'].val
+        savePsydat = self.exp.settings.params['Save psydat file'].val
+        #get parameter names
+        if saveExcel or saveCSV:
+            buff.writeIndented("#get names of stimulus parameters\n" %self.params)
+            buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params=[]\n" %self.params)
+            buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
+        #write out each type of file
+        if saveExcel or savePsydat or saveCSV:
+            buff.writeIndented("#save data for this loop\n")
+        if savePsydat:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
-        if self.exp.settings.params['Save excel file'].val:
+        if saveExcel:
             buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        if self.exp.settings.params['Save csv file'].val:
+        if saveCSV:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'
@@ -603,13 +613,13 @@ class StairHandler:
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in the staircase")
-        self.params['start value']=Param(startVal, valType='num',
+        self.params['start value']=Param(startVal, valType='code',
             hint="The initial value of the parameter")
-        self.params['max value']=Param(maxVal, valType='num',
+        self.params['max value']=Param(maxVal, valType='code',
             hint="The maximum value the parameter can take")
-        self.params['min value']=Param(minVal, valType='num',
+        self.params['min value']=Param(minVal, valType='code',
             hint="The minimum value the parameter can take")
-        self.params['step sizes']=Param(stepSizes, valType='num',
+        self.params['step sizes']=Param(stepSizes, valType='code',
             hint="The size of the jump at each step (can change on each 'reversal')")
         self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
             hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")
@@ -739,6 +749,7 @@ class LoopInitiator:
     def __init__(self, loop):
         self.loop=loop
         self.exp=loop.exp
+        loop.initiator=self
     def writeInitCode(self,buff):
         self.loop.writeInitCode(buff)
     def writeMainCode(self,buff):
@@ -754,6 +765,7 @@ class LoopTerminator:
     def __init__(self, loop):
         self.loop=loop
         self.exp=loop.exp
+        loop.terminator=self
     def writeInitCode(self,buff):
         pass
     def writeMainCode(self,buff):
@@ -793,7 +805,7 @@ class Flow(list):
         """
         if component.getType() in ['LoopInitiator', 'LoopTerminator']:
             component=component.loop#and then continue to do the next
-        if component.getType() in ['StairHandler', 'TrialHandler']:
+        if component.getType() in ['StairHandler', 'TrialHandler', 'MultiStairHandler']:
             #we need to remove the termination points that correspond to the loop
             toBeRemoved = []
             for comp in self: # cant safely change the contents of self when looping through self

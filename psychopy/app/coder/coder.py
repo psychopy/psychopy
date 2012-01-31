@@ -9,7 +9,7 @@ import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
-from psychopy import log
+from psychopy import logging
 
 #advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -636,7 +636,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             if newIndent<0:newIndent=0
             self.SetLineIndentation(lineN, newIndent)
     def MacOpenFile(self, evt):
-        log.debug('PsychoPyCoder: got MacOpenFile event')
+        logging.debug('PsychoPyCoder: got MacOpenFile event')
 
     def OnUpdateUI(self, evt):
         # check for matching braces

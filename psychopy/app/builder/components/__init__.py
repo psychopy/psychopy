@@ -90,26 +90,54 @@ def getInitVals(params):
     """Works out a suitable initial value for a parameter (e.g. to go into the
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
-    inits = copy.copy(params)
+    inits = copy.deepcopy(params)
     for name in params.keys():
-        if not hasattr(params[name], 'updates') or params[name].updates in ['constant',None,'None']:
+
+        if not hasattr(inits[name], 'updates'):#might be settings parameter instead
+            continue
+
+        #value should be None (as code)
+        elif inits[name].val in [None,'None','none','']:
+            inits[name].val='None'
+            inits[name].valType='code'
+
+        #is constant to don't touch the parameter value
+        elif inits[name].updates in ['constant',None,'None']:
             continue #things that are constant don't need handling
-        elif name == 'pos': inits[name]=[0,0]
+
+        #is changing so work out a reasonable default
+        elif name == 'pos':
+            inits[name].val='[0,0]'
+            inits[name].valType='code'
         elif name in ['ori','sf','size','height','color','phase','opacity',
             'volume', #sounds
-            'coherence','nDots', 'fieldSize','dotSize', 'dotLife' 'dir', 'speed',#dots
+            'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
             ]:
-            inits[name]="1.0"
+            inits[name].val="1.0"
+            inits[name].valType='code'
         elif name in ['image','mask']:
-            inits[name]="'sin'"
-        elif name=='texture resolution': inits[name]="128"
-        elif name == 'colorSpace': inits[name]="'rgb'"
-        elif name == 'font': inits[name]="'Arial'"
-        elif name == 'units': inits[name]="'norm'"
-        elif name == 'text': inits[name]="'nonsense'"
-        elif name == 'sound': inits[name]="'A'"
+            inits[name].val="sin"
+            inits[name].valType='str'
+        elif name=='texture resolution':
+            inits[name].val="128"
+            inits[name].valType='code'
+        elif name == 'colorSpace':
+            inits[name].val="rgb"
+            inits[name].valType='str'
+        elif name == 'font':
+            inits[name].val="Arial"
+            inits[name].valType='str'
+        elif name == 'units':
+            inits[name].val="norm"
+            inits[name].valType='str'
+        elif name == 'text':
+            inits[name].val="nonsense"
+            inits[name].valType='str'
+        elif name == 'sound':
+            inits[name].val="A"
+            inits[name].valType='str'
         else:
-            print "I don't know the appropriate default value for a '%s' parameter" %name
+            print "I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" %name
     return inits
 tooltips = {}
 icons={}
