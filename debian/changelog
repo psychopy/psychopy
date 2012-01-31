@@ -1,3 +1,9 @@
+psychopy (1.73.03+git2-g04717ae.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 31 Jan 2012 13:26:29 -0500
+
 psychopy (1.71.01.dfsg-1) unstable; urgency=low
 
   * New upstream release
