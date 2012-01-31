@@ -27,7 +27,7 @@ PsychoPy for Debian Packaging
  DFSG
  ++++
 
-  Upstream SVN and releases contain some non-DFSG compliant material,
+  Upstream GIT and releases contain some non-DFSG compliant material,
   which was removed from Debian packages (source and binary).
 
   dfsg rule in debian/rules would help to infiltrate the tree whenever fresh

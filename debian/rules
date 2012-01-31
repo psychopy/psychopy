@@ -45,6 +45,7 @@ dfsg-%:
 	git rm -f --ignore-unmatch PsychoPyBuilder/*bak \
 	  psychopy/demos/*.ttf psychopy/demos/*.mpg \
 	  psychopy/ext/*bits*.* \
+	  docs/source/resources/*zip \
 	  buildExeInstaller.nsi buildWinDistributions.bat \
 	  googlecode_upload.py; \
 	git rm -rf --ignore-unmatch psychopy/serial windlls; \
