@@ -61,6 +61,9 @@ DEB_INSTALL_CHANGELOGS_ALL := psychopy/CHANGELOG.txt
 DEB_INSTALL_DOCS_psychopy := psychopy/README.txt debian/README.Debian-source
 DEB_INSTALL_MANPAGES_psychopy := debian/psychopy.1
 
+test::
+	LC_ALL=C.UTF-8 PYTHONPATH=$PWD xvfb-run -s "-screen 0 1280x1024x24 -noreset" nosetests -s -v psychopy/tests 2>&1
+
 clean::
 	rm -f debian/psychopy.1
 	rm -rf build dist PsychoPy.egg-info
