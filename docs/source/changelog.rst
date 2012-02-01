@@ -19,11 +19,21 @@ Changelog
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(on github)
+
+* FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
+
 PsychoPy 1.73.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(released Jan 2012)
+
 * FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
 * FIXED: bugs in Builder setting Dots coherence and direction parameters
+* FIXED: problem with strange text and image rendering on some combinations of ATI graphics on Windows machines
 
 PsychoPy 1.73.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
