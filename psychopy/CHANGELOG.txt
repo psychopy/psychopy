@@ -14,9 +14,11 @@ PsychoPy 1.73
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(on github)
+(released Feb 2012)
 
+* CHANGED: Builder scripts now silently convert division from integers to float where necessary. That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
 * FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
+* FIXED: issue on OSX with updating from 1.70 binaries to 1.73 patch release
 
 PsychoPy 1.73.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
