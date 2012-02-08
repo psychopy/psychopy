@@ -114,7 +114,8 @@ class Experiment:
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
         script.write(
-                    "\nfrom psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "\nfrom __future__ import division #so that 1/3=0.333 instead of 1/3=0\n" +
+                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import * #things like STARTED, FINISHED\n" +
                     "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
