@@ -11,6 +11,13 @@ Changelog
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.05
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED: Joystick error when calling .getHat() or .getHats() (thanks Gary Lupyan)
+
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
