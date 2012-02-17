@@ -27,3 +27,6 @@ psychopy/demos/*/*/*.txt
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+
+.DS_Store
+
