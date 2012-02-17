@@ -4917,12 +4917,12 @@ class BufferImageStim(PatchStim):
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
-        glversion = float(pyglet.gl.gl_info.get_version().split()[0])
-        if glversion >= 2.1 and not sqPower2:
+        glversion = pyglet.gl.gl_info.get_version()
+        if glversion >= '2.1' and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
         else:
             if not sqPower2:
-                logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % pyglet.gl.gl_info.get_version() )
+                logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
