@@ -5,7 +5,7 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**New Facebook page**: PsychoPy is finally `on Facebook <http://www.facebook.com/pages/PsychoPy/140222406067597>`_ Show your appreciation by 'liking' it
+**Updated prac class materials**: The PsychoPy practical class materials have been updated. The first half of the 10-class course have now been run twice and are getting more polished. Some of the second half (in which less actual PsychoPy teaching is done) are not so battle-tested but should still provide a good starting point for your own pracs. See :ref:`lectureMaterials`
 
 **Latest version**: 1.71.01 was released Oct 2011. See complete :doc:`changelog`
 

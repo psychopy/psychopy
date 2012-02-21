@@ -4,7 +4,7 @@
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, log
+from psychopy import misc, gui, logging
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -12,6 +12,7 @@ from scipy import optimize, special
 from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
+import codecs
 
 try:
     import openpyxl
@@ -93,14 +94,29 @@ class TrialHandler:
                 created
 
         :Attributes (after creation):
+
             .data - a dictionary of numpy arrays, one for each data type stored
+
             .trialList - the original list of dicts, specifying the conditions
+
+            .thisIndex - the index of the current trial in the original conditions list
+
             .nTotal - the total number of trials that will be run
+
             .nRemaining - the total number of trials remaining
+
+            .thisN - total trials completed so far
+
             .thisRepN - which repeat you are currently on
+
             .thisTrialN - which trial number *within* that repeat
+
+            .thisTrial - a dictionary giving the parameters of the current trial
+
             .finished - True/False for have we finished yet
+
             .extraInfo - the dictionary of extra info as given at beginning
+
             .origin - the contents of the script or builder experiment that created the handler
 
         """
@@ -139,9 +155,9 @@ class TrialHandler:
         #self.originPath and self.origin (the contents of the origin file)
         if originPath==None or not os.path.isfile(originPath):
             self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-            log.debug("Using %s as origin file" %self.originPath)
+            logging.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
-        self.origin = open(self.originPath).read().decode('utf8')
+        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
 
     def __iter__(self):
         return self
@@ -227,7 +243,7 @@ class TrialHandler:
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
             randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed).tolist()
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
-        log.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
+        logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
         return sequenceIndices
 
@@ -300,7 +316,7 @@ class TrialHandler:
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
-        log.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+        logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
 
     def getFutureTrial(self, n=1):
@@ -423,7 +439,7 @@ class TrialHandler:
 
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+            logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
         dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
@@ -434,10 +450,10 @@ class TrialHandler:
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
-            f= file(fileName,writeFormat)
+            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f=file(fileName+'.csv',writeFormat)
-            else: f=file(fileName+'.dlm',writeFormat)
+            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
         if not matrixOnly:
             #write a header line
@@ -491,7 +507,7 @@ class TrialHandler:
         f.write("\n")
         if f != sys.stdout:
             f.close()
-            log.info('saved data to %s' %f.name)
+            logging.info('saved data to %s' %f.name)
 
     def saveAsWideText(self,fileName,
                    delim='\t',
@@ -502,8 +518,8 @@ class TrialHandler:
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
-        -- each row comprises information from only a single trial.
-        -- no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - each row comprises information from only a single trial.
+         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
@@ -530,7 +546,7 @@ class TrialHandler:
 
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
         #create the file or print to stdout
@@ -605,7 +621,7 @@ class TrialHandler:
 
         if f != sys.stdout:
             f.close()
-            log.info('saved wide-format data to %s' %f.name)
+            logging.info('saved wide-format data to %s' %f.name)
 
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
@@ -613,7 +629,7 @@ class TrialHandler:
         This can be reloaded if necess and further analyses carried out.
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
+            logging.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
@@ -637,7 +653,7 @@ class TrialHandler:
         jwp: 19/6/06
         """
         if self._warnUseOfNext:
-            log.warning("""DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
+            logging.warning("""DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
         please use Trialhandler.next() instead.
         jwp: 19/6/06
         """)
@@ -696,7 +712,7 @@ class TrialHandler:
 
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            log.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+            logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
 
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
@@ -717,7 +733,7 @@ class TrialHandler:
             newWorkbook=False
         else:
             if not appendFile: #the file exists but we're not appending, so will be overwritten
-                log.warning('Data file, %s, will be overwritten' %fileName)
+                logging.warning('Data file, %s, will be overwritten' %fileName)
             wb = Workbook()#create new workbook
             wb.properties.creator='PsychoPy'+psychopy.__version__
             newWorkbook=True
@@ -789,7 +805,7 @@ def importTrialTypes(fileName, returnFieldNames=False):
     """importTrialTypes is DEPRECATED (as of v1.70.00)
     Please use `importConditions` for identical functionality.
     """
-    log.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
+    logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
 def importConditions(fileName, returnFieldNames=False):
@@ -1074,9 +1090,9 @@ class StairHandler:
         #self.originPath and self.origin (the contents of the origin file)
         if originPath==None or not os.path.isfile(originPath):
             self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-            log.debug("Using %s as origin file" %self.originPath)
+            logging.debug("Using %s as origin file" %self.originPath)
         else: self.originPath = originPath
-        self.origin = open(self.originPath).read().decode('utf8')
+        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
 
     def __iter__(self):
         return self
@@ -1258,7 +1274,7 @@ class StairHandler:
         """
 
         if self.thisTrialN<1:
-            log.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
         #create the file or print to stdout
@@ -1310,7 +1326,7 @@ class StairHandler:
         f.write("\n")
         if f != sys.stdout:
             f.close()
-            log.info('saved data to %s' %f.name)
+            logging.info('saved data to %s' %f.name)
 
     def saveAsExcel(self,fileName, sheetName='data',
                    matrixOnly=False, appendFile=True,
@@ -1349,7 +1365,7 @@ class StairHandler:
         """
 
         if self.thisTrialN<1:
-            log.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
         if not haveOpenpyxl:
@@ -1368,7 +1384,7 @@ class StairHandler:
             newWorkbook=False
         else:
             if not appendFile: #the file exists but we're not appending, so will be overwritten
-                log.warning('Data file, %s, will be overwritten' %fileName)
+                logging.warning('Data file, %s, will be overwritten' %fileName)
             wb = Workbook()#create new workbook
             wb.properties.creator='PsychoPy'+psychopy.__version__
             newWorkbook=True
@@ -1407,7 +1423,7 @@ class StairHandler:
                 rowN+=1
 
         ew.save(filename = fileName)
-        log.info('saved data to %s' %fileName)
+        logging.info('saved data to %s' %fileName)
 
     def saveAsPickle(self,fileName):
         """Basically just saves a copy of self (with data) to a pickle file.
@@ -1415,13 +1431,13 @@ class StairHandler:
         This can be reloaded if necess and further analyses carried out.
         """
         if self.thisTrialN<1:
-            log.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
         #otherwise use default location
         f = open(fileName+'.psydat', "wb")
         cPickle.dump(self, f)
         f.close()
-        log.info('saved data to %s' %f.name)
+        logging.info('saved data to %s' %f.name)
 
     def printAsText(self, stimOut=[],
                     dataOut=('rt_mean','rt_std', 'acc_raw'),
@@ -1438,7 +1454,7 @@ class StairHandler:
         jwp: 19/6/06
         """
         if self._warnUseOfNext:
-            log.warning("""DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
+            logging.warning("""DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
         please use StairHandler.next() instead.
         jwp: 19/6/06
         """)
@@ -1814,7 +1830,7 @@ class MultiStairHandler:
                 {'label':'low', 'startVal': 0.1, 'ori':90},
                 {'label':'high','startVal': 0.8, 'ori':90},
                 ]
-            stairs = MultiStairHandler(conditions=conditions, trials=50)
+            stairs = MultiStairHandler(conditions=conditions, nTrials=50)
 
             for thisIntensity, thisCondition in stairs:
                 thisOri = thisCondition['ori']
@@ -1964,13 +1980,13 @@ class MultiStairHandler:
         This can be reloaded later and further analyses carried out.
         """
         if self.totalTrials<1:
-            log.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
         #otherwise use default location
         f = open(fileName+'.psydat', "wb")
         cPickle.dump(self, f)
         f.close()
-        log.info('saved data to %s' %f.name)
+        logging.info('saved data to %s' %f.name)
     def saveAsExcel(self, fileName, matrixOnly=False, appendFile=False):
         """
         Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing
@@ -2002,7 +2018,7 @@ class MultiStairHandler:
 
         """
         if self.totalTrials<1:
-            log.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
         for stairN, thisStair in enumerate(self.staircases):
             if stairN==0: append=appendFile
@@ -2035,7 +2051,7 @@ class MultiStairHandler:
                 If True, prevents the output of the `extraInfo` provided at initialisation.
         """
         if self.totalTrials<1:
-            log.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+            logging.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
         for stairN, thisStair in enumerate(self.staircases):
             #make a filename
@@ -2136,7 +2152,7 @@ class DataHandler(dict):
         shapeArr = numpy.asarray(self.dataShape)
         if not numpy.alltrue(posArr<shapeArr):
             #array isn't big enough
-            log.warning('need a bigger array for:'+thisType)
+            logging.warning('need a bigger array for:'+thisType)
             self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \

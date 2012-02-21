@@ -6,15 +6,15 @@
 
 import wx
 from wx import grid
-from psychopy import monitors, hardware, log
+from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
 DEBUG=False
 NOTEBOOKSTYLE = False
 NO_MEASUREMENTS=False
 
-if DEBUG: log.console.setLevel(log.DEBUG)
-else:log.console.setLevel(log.INFO)
+if DEBUG: logging.console.setLevel(logging.DEBUG)
+else:logging.console.setLevel(logging.INFO)
 
 try:
     import matplotlib
@@ -81,23 +81,23 @@ class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
         self.parent.Layout()#expands the containing sizer if needed
         evt.Skip()#allow grid to handle the rest of the update
 
-class PlotFrame(wx.Dialog):
+class PlotFrame(wx.Frame):
     def __init__(self, parent, ID, title, plotCanvas=None, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
-        wx.Dialog.__init__(self, parent, ID, title, pos, size, style)
+        wx.Frame.__init__(self, parent, ID, title, pos, size, style)
         panel = wx.Panel(self, -1)
-        #wx.EVT_CLOSE(self, self.OnCloseWindow)
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer = wx.GridBagSizer(1,1)
         if not plotCanvas==None:
             self.addCanvas(plotCanvas)
-
+        wx.EVT_SIZE(self, self.OnSize)
     def addCanvas(self, canvas):
-        self.sizer.Add(canvas)
+        self.canvas=canvas
+        self.sizer.Add(canvas, pos=(0,0), flag=wx.EXPAND)
         self.SetSizerAndFit(self.sizer)
-        self.ShowModal()
-    #def OnCloseWindow(self, event):
-        #self.Destroy()
-
+        self.SetAutoLayout(True)
+        self.Show()
+    def OnSize(self,event):
+        self.canvas.SetSize(event.GetSize())
 
 class MainFrame(wx.Frame):
     def __init__(self, parent, title):
@@ -322,7 +322,7 @@ class MainFrame(wx.Frame):
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #photometer button
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
-            choices=["PR655/PR670", "PR650", "LS100/LS110"])
+            choices=["PR655/PR670", "PR650", "Minolta LS100/LS110", "CRS ColorCAL"])
         #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
@@ -365,8 +365,8 @@ class MainFrame(wx.Frame):
         self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
         if self.currentMon.getLineariseMethod()==4:
-            self.choiceLinearMethod.SetSelection(2)
-        else: self.choiceLinearMethod.SetSelection(1)
+            self.choiceLinearMethod.SetSelection(1)
+        else: self.choiceLinearMethod.SetSelection(0)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
 
@@ -520,8 +520,8 @@ class MainFrame(wx.Frame):
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
         if self.currentMon.getLineariseMethod()==4:
-            self.choiceLinearMethod.SetSelection(2)
-        else: self.choiceLinearMethod.SetSelection(1)
+            self.choiceLinearMethod.SetSelection(1)
+        else: self.choiceLinearMethod.SetSelection(0)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
         self.DKLgrid.setData(self.currentMon.getDKL_RGB())
 
@@ -729,7 +729,7 @@ class MainFrame(wx.Frame):
                 inputDlg.Destroy()
 
         #fit the gamma curves
-        if len(lumsPre)>1:
+        if lumsPre is None or len(lumsPre)>1:
             self.onCopyCalib(1)#create a new dated calibration
             self.currentMon.setLumsPre(lumsPre)#save for future
             self.currentMon.setLevelsPre(lumLevels)#save for future
@@ -738,13 +738,13 @@ class MainFrame(wx.Frame):
             #do the fits
             self.doGammaFits(lumLevels,lumsPre)
         else:
-            log.warning('No lum values captured/entered')
+            logging.warning('No lum values captured/entered')
 
     def doGammaFits(self, levels, lums):
         linMethod = self.currentMon.getLineariseMethod()
 
         if linMethod==4:
-            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
@@ -756,7 +756,7 @@ class MainFrame(wx.Frame):
                 currentCal[gun,5]=gamCalc.k#gamma
         else:
             currentCal = numpy.ones([4,3],'f')*numpy.nan
-            log.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min
@@ -847,7 +847,8 @@ class MainFrame(wx.Frame):
             self.photom = hardware.findPhotometer(device='PR650')
         elif 'LS100' in photName:
             self.photom = hardware.findPhotometer(device='LS100')
-
+        elif 'ColorCAL' in photName:
+            self.photom = hardware.findPhotometer(device='ColorCAL')
         if self.photom!=None and self.photom.OK:
             self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
@@ -856,9 +857,29 @@ class MainFrame(wx.Frame):
                 self.btnCalibrateColor.Enable(True)
             self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
         else:
-            self.comPortLabel.SetLabel('None found (for LS100 try again)')
+            self.comPortLabel.SetLabel('No photometers found')
             self.photom=None
 
+        #does this device need a dark calibration?
+        if hasattr(self.photom, 'getNeedsCalibrateZero') and self.photom.getNeedsCalibrateZero():
+            #prompt user if we need a dark calibration for the device
+            if self.photom.getNeedsCalibrateZero():
+                dlg = wx.Dialog(self,title='Dark calibration of ColorCAL')
+                msg='Your ColorCAL needs to be calibrated first. ' +\
+                    'Please block all light from getting into the lens and press OK.'
+                while self.photom.getNeedsCalibrateZero():
+                    dlg = dialogs.MessageDialog(self,message=msg, 
+                                                title='Dark calibration of ColorCAL',
+                                                type='Info')#info dlg has only an OK button
+                    resp=dlg.ShowModal()
+                    if resp== wx.ID_CANCEL:
+                        self.photom=None
+                        self.comPortLabel.SetLabel('')
+                        return 0
+                    elif resp == wx.ID_OK:
+                        self.photom.calibrateZero()
+                    #this failed at least once. Try again.
+                    msg = 'Try again. Cover the lens fully and press OK'
     def plotGamma(self, event=None):
         figTitle = '%s %s Gamma Functions' %(self.currentMonName, self.currentCalibName)
         plotWindow = PlotFrame(self,1003,figTitle)
@@ -915,7 +936,6 @@ class MainFrame(wx.Frame):
                 #plot POINTS
                 plt.plot(levelsPost,lums,'o', markerfacecolor = 'w', markeredgecolor=colors[gun], linewidth=1.5)
         figureCanvas.draw()#update the canvas
-
         plotWindow.addCanvas(figureCanvas)
 
     def plotSpectra(self, event=None):
@@ -935,6 +955,8 @@ class MainFrame(wx.Frame):
         figureCanvas.draw()#update the canvas
         plotWindow.addCanvas(figureCanvas)
 
+    def onClosePlotWindow(self, event):
+        print event
 
 class GammaLumValsDlg(wx.Dialog):
     #a dialogue to get the luminance values recorded for each level

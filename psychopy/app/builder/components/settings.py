@@ -1,7 +1,7 @@
 from os import path
 from _base import *
 import os
-from psychopy import log
+from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
@@ -68,7 +68,7 @@ class SettingsComponent:
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
         except SyntaxError, err:
-            log.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
+            logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
             raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
         buff.writeIndented("expInfo=%s\n" % expInfo)
         if self.params['Show info dlg'].val:
@@ -99,9 +99,9 @@ class SettingsComponent:
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
             if self.params['Save log file']:
-                buff.writeIndented("logFile=psychopy.log.LogFile(filename+'.log', level=psychopy.log.%s)\n" %(level))
+                buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
 
-        buff.writeIndented("psychopy.log.console.setLevel(psychopy.log.WARNING)#this outputs to the screen, not a file\n")
+        buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
 
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window

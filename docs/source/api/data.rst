@@ -61,7 +61,7 @@
     
 :func:`importTrialList`
 ----------------------------------
-.. autofunction:: psychopy.data.importTrialList
+.. autofunction:: psychopy.data.importConditions
 
 :func:`functionFromStaircase`
 ----------------------------------

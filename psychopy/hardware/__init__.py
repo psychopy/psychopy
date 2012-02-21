@@ -1,5 +1,5 @@
 import sys, glob
-from psychopy import log
+from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
 
@@ -36,15 +36,17 @@ def findPhotometer(ports=None, device=None):
             print photom.getSpectrum()
         
     """
-    import minolta, pr
+    import minolta, pr, crs
     if device.lower() in ['pr650']:
         photometers=[pr.PR650]
     elif device.lower() in ['pr655', 'pr670']:
         photometers=[pr.PR655]
     elif device.lower() in ['ls110', 'ls100']:
         photometers=[minolta.LS100]
+    elif device.lower() in ['colorcal']:
+        photometers=[crs.ColorCAL]
     else:#try them all
-        photometers=[pr.PR650, pr.PR655, minolta.LS100]#a list of photometer objects to test for
+        photometers=[pr.PR650, pr.PR655, minolta.LS100, crs.ColorCAL]#a list of photometer objects to test for
     
     #determine candidate ports
     if ports==None:
@@ -56,7 +58,7 @@ def findPhotometer(ports=None, device=None):
             ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
             ports.extend(glob.glob('/dev/cu.usbmodem*'))#for PR650
             if len(ports)==0:
-                log.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
+                logging.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
                     +"serial port name manually, check drivers installed etc...")
                 return None
         elif sys.platform.startswith('linux'):
@@ -69,24 +71,24 @@ def findPhotometer(ports=None, device=None):
         
     #go through each port in turn
     photom=None
-    log.info('scanning serial ports...')
-    log.flush()
+    logging.info('scanning serial ports...')
+    logging.flush()
     for thisPort in ports:
-        log.info('...'+str(thisPort)); log.flush()
+        logging.info('...'+str(thisPort)); logging.flush()
         for Photometer in photometers:
             photom = Photometer(port=thisPort)
             if photom.OK: 
-                log.info(' ...found a %s\n' %(photom.type)); log.flush()
+                logging.info(' ...found a %s\n' %(photom.type)); logging.flush()
                 #we're now sure that this is the correct device and that it's configured
                 #now increase the number of attempts made to communicate for temperamental devices!
                 if hasattr(photom,'setMaxAttempts'):photom.setMaxAttempts(10)
                 return photom#we found one so stop looking
             else:
                 if photom.com and photom.com.isOpen: 
-                    log.info('closing port')
+                    logging.info('closing port')
                     photom.com.close()
 
         #If we got here we didn't find one
-        log.info('...nope!\n\t'); log.flush()
+        logging.info('...nope!\n\t'); logging.flush()
             
     return None

@@ -2,9 +2,9 @@
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import log
+import logging
 #deprecated warning present since 1.60.00
-log.error("""
+logging.error("""
 DEPRECATED: In future versions of PsychoPy you will need to call:
     from psychopy.hardware.crs import bits
 rather than:
