@@ -321,6 +321,7 @@ class Window:
         self.movieFrames=[] #list of captured frames (Image objects)
 
         self.recordFrameIntervals=False
+        self.recordFrameIntervalsJustTurnedOn=False # Allows us to omit the long timegap that follows each time turn it off
         self.nDroppedFrames=0
         self.frameIntervals=[]
         self._toLog=[]
@@ -357,7 +358,13 @@ class Window:
         see also:
             Window.saveFrameIntervals()
         """
+        
+        if self.recordFrameIntervals != True and value==True: #was off, and now turning it on
+            self.recordFrameIntervalsJustTurnedOn = True
+        else:
+            self.recordFrameIntervalsJustTurnedOn = False
         self.recordFrameIntervals=value
+        
         self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
@@ -509,14 +516,16 @@ class Window:
             self.frames +=1
             deltaT = now - self.lastFrameT
             self.lastFrameT=now
-            self.frameIntervals.append(deltaT)
-
-            if deltaT>self._refreshThreshold:
-                 self.nDroppedFrames+=1
-                 if self.nDroppedFrames<reportNDroppedFrames:
-                     logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
-                 elif self.nDroppedFrames==reportNDroppedFrames:
-                     logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
+            if self.recordFrameIntervalsJustTurnedOn: #don't do anything
+                self.recordFrameIntervalsJustTurnedOn = False
+            else: #past the first frame since turned on
+              self.frameIntervals.append(deltaT)
+              if deltaT > self._refreshThreshold:
+                   self.nDroppedFrames+=1
+                   if self.nDroppedFrames<reportNDroppedFrames:
+                       logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                   elif self.nDroppedFrames==reportNDroppedFrames:
+                       logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
 
         #log events
         for logEntry in self._toLog:
