@@ -59,7 +59,7 @@
     :undoc-members:
     :inherited-members:
     
-:func:`importTrialList`
+:func:`importConditions`
 ----------------------------------
 .. autofunction:: psychopy.data.importConditions
 

@@ -46,27 +46,27 @@ audioAPI=None
 
 try:
     import pyglet
+    import pyglet.media.procedural
     pyglet.options['audio'] = ('silent')
     pyglet.options['debug_gl'] = False
-    import pyglet.media.procedural
     import pyglet.media#, pyglet.resource
     import ctypes, math
     havePyglet=True
-except:
+except ImportError:
     havePyglet=False
 
 try:
     import pygame
     from pygame import mixer, sndarray
     havePygame=True
-except:
+except ImportError:
     havePygame=False
 
 try:
     import pyaudio
     pa = pyaudio.PyAudio()
     havePyaudio=True
-except:
+except ImportError:
     havePyaudio=False
 
 class _SoundBase:
@@ -499,7 +499,7 @@ class SoundPyaudio(_SoundBase):
         """
         global mediaLocation
 
-        if not havePyglet or not havePyAudio:
+        if not havePyglet or not havePyaudio:
             raise ImportError, "pyglet and pyaudio are both needed for this type of sound"
         self.offsetSamples = -1
         self.bits = bits

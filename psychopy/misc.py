@@ -194,14 +194,13 @@ def makeImageAuto(inarray):
     return image2array(float_uint8(inarray))
 
 def image2array(im):
-    """Takes an image object (PIL) and returns an array
-
-     fredrik lundh, october 1998
-
-     fredrik@pythonware.com
-     http://www.pythonware.com
-
+    """Takes an image object (PIL) and returns a numpy array
     """
+#     fredrik lundh, october 1998
+#
+#     fredrik@pythonware.com
+#     http://www.pythonware.com
+
     if im.mode not in ("L", "F"):
             raise ValueError, "can only convert single-layer images"
     if im.mode == "L":
@@ -255,14 +254,14 @@ def float_uint16(inarray):
     return retVal.astype(numpy.UnsignedInt16)
 
 def sph2cart(*args):
-    #convert from spherical coordinates (elevation, azimuth, radius)
-    #to cartesian (x,y,z)
+    """Convert from spherical coordinates (elevation, azimuth, radius)
+    to cartesian (x,y,z)
 
-    #usage:
-        #array3xN[x,y,z] = sph2cart(array3xN[el,az,rad])
-        #OR
-        #x,y,z = sph2cart(elev, azim, radius)
-
+    usage:
+        array3xN[x,y,z] = sph2cart(array3xN[el,az,rad])
+        OR
+        x,y,z = sph2cart(elev, azim, radius)
+    """
     if len(args)==1:    #received an Nx3 array
         elev = args[0][0,:]
         azim = args[0][1,:]
@@ -358,16 +357,19 @@ def cm2pix(cm, monitor):
 
 #---color conversions---#000000#FFFFFF------------------------------------------
 def dkl2rgb(dkl_Nx3, conversionMatrix=None):
-    #Convert from DKL color space (cone-opponent space from Derrington,
-    #Krauskopf & Lennie) to RGB.
+    """Convert from DKL color space (cone-opponent space from Derrington,
+    Krauskopf & Lennie) to RGB.
 
-    #Requires a conversion matrix, which will be generated from generic
-    #Sony Trinitron phosphors if not supplied (note that this will not be
-    #an accurate representation of the color space unless you supply a
-    #conversion matrix
-    #
-    #usage:
-        #rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+    Requires a conversion matrix, which will be generated from generic
+    Sony Trinitron phosphors if not supplied (note that this will not be
+    an accurate representation of the color space unless you supply a
+    conversion matrix).
+
+    usage::
+
+        rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+
+    """
 
     dkl_3xN = numpy.transpose(dkl_Nx3)#its easier to use in the other orientation!
     if numpy.size(dkl_3xN)==3:
@@ -389,9 +391,10 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     return numpy.transpose(rgb)#return in the shape we received it
 
 def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
-    """Like dkl2rgb2D except that it uses cartesian coords (LM,S,LUM) rather than
+    """Like dkl2rgb except that it uses cartesian coords (LM,S,LUM) rather than
     spherical coords for DKL (elev, azim, contr)
-    NB: Due to the matrix multiplication, this may return rgb values >1 or <-1
+
+    NB: this may return rgb values >1 or <-1
     """
     NxNx3=list(LUM.shape)
     NxNx3.append(3)
@@ -407,7 +410,7 @@ def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
     return numpy.reshape(numpy.transpose(rgb), NxNx3)
 
 def rgb2dklCart(picture, conversionMatrix=None):
-    """convert an RGB image into Cartesian DKL space"""
+    """Convert an RGB image into Cartesian DKL space"""
     #Turn the picture into an array so we can do maths
     picture=numpy.array(picture)
     #Find the original dimensions of the picture
@@ -439,15 +442,18 @@ def rgb2dklCart(picture, conversionMatrix=None):
     return dklPicture
 
 def lms2rgb(lms_Nx3, conversionMatrix=None):
-    #Convert from cone space (Long, Medium, Short) to RGB.
+    """Convert from cone space (Long, Medium, Short) to RGB.
 
-    #Requires a conversion matrix, which will be generated from generic
-    #Sony Trinitron phosphors if not supplied (note that you will not get
-    #an accurate representation of the color space unless you supply a
-    #conversion matrix)
-    #
-    #usage:
-        #rgb(Nx3) = lms2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+    Requires a conversion matrix, which will be generated from generic
+    Sony Trinitron phosphors if not supplied (note that you will not get
+    an accurate representation of the color space unless you supply a
+    conversion matrix)
+
+    usage::
+
+        rgb(Nx3) = lms2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+
+    """
 
     lms_3xN = numpy.transpose(lms_Nx3)#its easier to use in the other orientation!
 
@@ -468,8 +474,10 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
 def pol2cart(theta, radius, units='deg'):
     """Convert from polar to cartesian coordinates
 
-    **usage**:
+    usage::
+
         x,y = pol2cart(theta, radius, units='deg')
+
     """
     if units in ['deg', 'degs']:
         theta = theta*numpy.pi/180.0
@@ -481,10 +489,12 @@ def pol2cart(theta, radius, units='deg'):
 def  cart2pol(x,y, units='deg'):
     """Convert from cartesian to polar coordinates
 
-    **usage**:
+    :usage:
+
         theta, radius = pol2cart(x, y, units='deg')
 
-    units refers to the units (rad or deg) for theta that should be returned"""
+    units refers to the units (rad or deg) for theta that should be returned
+    """
     radius= numpy.hypot(x,y)
     theta= numpy.arctan2(y,x)
     if units in ['deg', 'degs']:
@@ -494,15 +504,15 @@ def  cart2pol(x,y, units='deg'):
 def plotFrameIntervals(intervals):
     """Plot a histogram of the frame intervals.
 
-    Arguments:
-        - intervals: Either a filename to a log file, saved by Window.saveFrameIntervals
-            or simply a list (or array of frame intervals)
+    Where `intervals` is either a filename to a file, saved by Window.saveFrameIntervals
+    or simply a list (or array) of frame intervals
+
     """
     from pylab import hist, show, plot
 
     if type(intervals)==str:
         f = open(intervals, 'r')
         exec("intervals = [%s]" %(f.readline()))
-#    hist(intervals, int(len(intervals)/10))
+    #    hist(intervals, int(len(intervals)/10))
     plot(intervals)
     show()

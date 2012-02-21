@@ -13,6 +13,7 @@ from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs
+import weakref
 
 try:
     import openpyxl
@@ -21,6 +22,211 @@ try:
     haveOpenpyxl=True
 except:
     haveOpenpyxl=False
+
+_experiments=weakref.WeakValueDictionary()
+
+class ExperimentHandler(object):
+    """A container class for keeping track of multiple loops/handlers
+
+    Useful for generating a single data file from an experiment with many
+    different loops (e.g. interleaved staircases or loops within loops
+
+    :usage:
+
+        exp = data.ExperimentHandler(name="Face Preference",version='0.1.0')
+
+    """
+    def __init__(self,
+                name='',
+                version='',
+                extraInfo=None,
+                runtimeInfo=None,
+                originPath=None,
+                savePickle=True,
+                saveWideText=True,
+                dataFileName=''):
+        """
+        :parameters:
+
+            name : a string or unicode
+                As a useful identifier later
+
+            version : usually a string (e.g. '1.1.0')
+                To keep track of which version of the experiment was run
+
+            extraInfo : a dictionary
+                Containing useful information about this run
+                (e.g. {'participant':'jwp','gender':'m','orientation':90} )
+
+            runtimeInfo : :class:`psychopy.info.RunTimeInfo`
+                Containining information about the system as detected at runtime
+
+            originPath : string or unicode
+                The path and filename of the originating script/experiment
+                If not provided this will be determined as the path of the
+                calling script.
+
+            dataFilename : string
+                This is defined in advance and the file will be saved at any
+                point that the handler is removed or discarded (unless .abort()
+                had been called in advance).
+                The handler will attempt to populate the file even in the
+                event of a (not too serious) crash!
+
+        """
+        self.loops=[]
+        self.loopsUnfinished=[]
+        self.name=name
+        self.version=version
+        self.runtimeInfo=runtimeInfo
+        self.extraInfo=extraInfo
+        self.originPath=originPath
+        self.savePickle=savePickle
+        self.saveWideText=saveWideText
+        self.dataFileName=dataFileName
+        self.thisEntry = {}
+        self.entries=[]#chronological list of entries
+        self.dataNames=[]#names of all the data (eg. resp.keys)
+        if dataFileName in ['', None]:
+            logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
+    def __del__(self):
+        if self.dataFileName not in ['', None]:
+            logging.debug('Saving data for %s ExperimentHandler' %self.name)
+            if self.savePickle==True:
+                self.saveAsPickle(self.dataFileName)
+            if self.saveWideText==True:
+                self.saveAsWideText(self.dataFileName)
+    def addLoop(self, loopHandler):
+        """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
+        Data from this loop will be included in the resulting data files.
+        """
+        self.loops.append(loopHandler)
+        self.loopsUnfinished.append(loopHandler)
+        #keep the loop updated that is now owned
+        loopHandler.setExp(self)
+    def loopEnded(self, loopHandler):
+        """Informs the experiment handler that the loop is finished and not to
+        include its values in further entries of the experiment.
+
+        This method is called by the loop itself if it ends its iterations,
+        so is not typically needed by the user.
+        """
+        if loopHandler in self.loopsUnfinished:
+            self.loopsUnfinished.remove(loopHandler)
+    def getAllParamNames(self):
+        """Returns the attributes of loop parameters (trialN etc)
+        that the current set of loops contain, ready to build a wide-format
+        data file.
+        """
+        #ToDo: keep track of the available column names
+        names = []
+        #get names (or identifiers) for all contained loops
+        for thisLoop in self.loops:
+            theseNames, vals = self._getLoopData(thisLoop)
+            names.extend(theseNames)
+        return names
+    def _getLoopData(self, loop):
+        names=[]
+        vals=[]
+        name = loop.name
+        #attribute about the loop we want to find
+        for attr in ['thisRepN', 'thisTrialN', 'thisN','thisIndex', 'stepSizeCurrent']:
+            if hasattr(loop, attr):
+                if attr=='stepSizeCurrent':
+                    attrName=name+'.stepSize'
+                else:
+                    attrName = name+'.'+attr
+                #append the attribute name and the current value
+                names.append(attrName)
+                vals.append(getattr(loop,attr))
+        return names, vals
+    def addData(self, name, value):
+        """Add the data with a given name to the current experiment.
+
+        Typically the user does not need to use this function; if you added
+        your data to the loop and had already added the loop to the
+        experiment then the loop will automatically inform the experiment
+        that it has received data.
+
+        Multiple data name/value pairs can be added to any given entry of
+        the data file and is considered part of the same entry until the
+        nextEntry() call is made.
+
+        e.g.::
+
+            #add some data for this trial
+            exp.addData('rt', 0.8)
+            exp.addData('resp.key', 'k')
+            #end of trial - move to next line in data output
+            exp.nextEntry()
+        """
+        if name not in self.dataNames:
+            self.dataNames.append(name)
+        self.thisEntry[name]=value
+
+    def nextEntry(self):
+        """Call this for each entry (e.g. trial) to be stored, but only
+        after all the forms of data have been added to the individual handlers
+        """
+        this=self.thisEntry
+        for thisLoop in self.loopsUnfinished:
+            names, vals = self._getLoopData(thisLoop)
+            for n, name in enumerate(names):
+                this[name]=vals[n]
+        self.entries.append(this)
+        #then create new empty entry for n
+        self.thisEntry = {}
+    def saveAsWideText(self, fileName, delim=',',
+                   matrixOnly=False,
+                   appendFile=False):
+
+        #create the file or print to stdout
+        if appendFile: writeFormat='a'
+        else: writeFormat='w' #will overwrite a file
+        if fileName=='stdout':
+            f = sys.stdout
+        elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
+            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
+        else:
+            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
+
+        names = self.getAllParamNames()
+        names.extend(self.dataNames)
+        #write a header line
+        if not matrixOnly:
+            for heading in names:
+                f.write(u'%s%s' %(heading,delim))
+            f.write('\n')
+        #write the data for each entry
+        for entry in self.entries:
+            for name in names:
+                if name in entry.keys():
+                    f.write(u'%s%s' %(entry[name],delim))
+                else:
+                    f.write(delim)
+            f.write('\n')
+        f.close()
+        self.saveWideText=False
+    def saveAsPickle(self,fileName):
+        """Basically just saves a copy of self (with data) to a pickle file.
+
+        This can be reloaded if necess and further analyses carried out.
+        """
+        #otherwise use default location
+        if not fileName.endswith('.psydat'):
+            fileName+='.psydat'
+        f = open(fileName, "wb")
+        cPickle.dump(self, f)
+        f.close()
+        #no need to save again
+        self.savePickle=False
+
+    def abort(self):
+        """Abort the experiment (prevents data files being saved)
+        """
+        self.savePickle=False
+        self.saveWideText=False
 
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
@@ -35,7 +241,91 @@ class TrialType(dict):
 #                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class TrialHandler:
+class _BaseTrialHandler:
+    def setExp(self, exp):
+        """Sets the ExperimentHandler that this handler is attached to
+
+        Do NOT attempt to set the experiment using::
+
+            trials._exp = myExperiment
+
+        because it needs to be performed using the `weakref` module.
+        """
+        #need to use a weakref to avoid creating a circular reference that
+        #prevents effective object deletion
+        expId=id(exp)
+        _experiments[expId] = exp
+        self._exp = expId
+    def getExp(self):
+        """Return the ExperimentHandler that this handler is attached to, if any.
+        Returns None if not attached
+        """
+        if self._exp==None or self._exp not in _experiments:
+            return None
+        else:
+            return _experiments[self._exp]
+    def _terminate(self):
+        """Remove references to ourself in experiments and terminate the loop
+        """
+        #remove ourself from the list of unfinished loops in the experiment
+        exp=self.getExp()
+        if exp!=None:
+            exp.loopEnded(self)
+        #and halt the loop
+        raise StopIteration
+    def saveAsPickle(self,fileName):
+        """Basically just saves a copy of the handler (with data) to a pickle file.
+
+        This can be reloaded if necess and further analyses carried out.
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
+            return -1
+        #otherwise use default location
+        if not fileName.endswith('.psydat'):
+            fileName+='.psydat'
+        f = open(fileName, "wb")
+        cPickle.dump(self, f)
+        f.close()
+    def printAsText(self, stimOut=[],
+                    dataOut=('all_mean', 'all_std', 'all_raw'),
+                    delim='\t',
+                    matrixOnly=False,
+                  ):
+        """Exactly like saveAsText() except that the output goes
+        to the screen instead of a file"""
+        self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
+    def nextTrial(self):
+        """DEPRECATION WARNING: nextTrial() will be deprecated
+        please use next() instead.
+        jwp: 19/6/06
+        """
+        if self._warnUseOfNext:
+            logging.warning("""DEPRECATION WARNING: nextTrial() will be deprecated
+        please use next() instead.
+        jwp: 19/6/06
+        """)
+            self._warnUseOfNext=False
+        return self.next()
+    def getOriginPathAndFile(self, originPath=None):
+        """Attempts to determine the path of the script that created this data file
+        and returns both the path to that script and it's contents.
+        Useful to store the entire experiment with the data.
+
+        If originPath is provided (e.g. from Builder) then this is used otherwise
+        the calling script is the originPath (fine from a standard python script).
+        """
+        #self.originPath and self.origin (the contents of the origin file)
+        if originPath==None or not os.path.isfile(originPath):
+            originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+            logging.debug("Using %s as origin file" %originPath)
+        if os.path.isfile(originPath):#do we NOW have a path?
+            origin = codecs.open(originPath,"r", encoding = "utf-8").read()
+        else:
+            origin=None
+        return originPath, origin
+
+class TrialHandler(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
 
     Calls to .next() will fetch the next trial object given to this handler,
@@ -59,7 +349,8 @@ class TrialHandler:
                  dataTypes=None,
                  extraInfo=None,
                  seed=None,
-                 originPath=None):
+                 originPath=None,
+                 name=''):
         """
 
         :Parameters:
@@ -120,6 +411,7 @@ class TrialHandler:
             .origin - the contents of the script or builder experiment that created the handler
 
         """
+        self.name=name
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
         else:
@@ -152,12 +444,8 @@ class TrialHandler:
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
 
-        #self.originPath and self.origin (the contents of the origin file)
-        if originPath==None or not os.path.isfile(originPath):
-            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-            logging.debug("Using %s as origin file" %self.originPath)
-        else: self.originPath = originPath
-        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp = None#the experiment handler that owns me!
 
     def __iter__(self):
         return self
@@ -241,7 +529,7 @@ class TrialHandler:
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
-            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed).tolist()
+            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
@@ -309,7 +597,7 @@ class TrialHandler:
             self.finished=True
 
         if self.finished==True:
-            raise StopIteration
+            self._terminate()
 
         #fetch the trial info
         if self.method in ['random','sequential','fullRandom']:
@@ -570,8 +858,18 @@ class TrialHandler:
         dataOut = []
         trialCount = 0
         # total number of trials = number of trialtypes * number of repetitions:
+
+        repsPerType={}
         for rep in range(self.nReps):
-            for trialType in range(len(self.trialList)):
+            for trialN in range(len(self.trialList)):
+                #find out what trial type was on this trial
+                trialTypeIndex = self.sequenceIndices[trialN, rep]
+                #determine which repeat it is for this trial
+                if trialTypeIndex not in repsPerType.keys():
+                    repsPerType[trialTypeIndex]=0
+                else:
+                    repsPerType[trialTypeIndex]+=1
+                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
 
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
@@ -587,11 +885,10 @@ class TrialHandler:
                 # now collect the value from each trial of the variables named in the header:
                 for parameterName in header:
                     # the header includes both trial and data variables, so need to check before accessing:
-                    trialTypeIndex = self.sequenceIndices[trialType, rep]
                     if self.trialList[trialTypeIndex].has_key(parameterName):
                         nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
                     elif self.data.has_key(parameterName):
-                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][rep]
+                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
                     else: # allow a null value if this parameter wasn't explicitly stored on this trial:
                         nextEntry[parameterName] = ''
 
@@ -623,47 +920,12 @@ class TrialHandler:
             f.close()
             logging.info('saved wide-format data to %s' %f.name)
 
-    def saveAsPickle(self,fileName):
-        """Basically just saves a copy of self (with data) to a pickle file.
-
-        This can be reloaded if necess and further analyses carried out.
-        """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsPickle called but no trials completed. Nothing saved')
-            return -1
-        #otherwise use default location
-        if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
-        f = open(fileName, "wb")
-        cPickle.dump(self, f)
-        f.close()
-
-    def printAsText(self, stimOut=[],
-                    dataOut=('all_mean', 'all_std', 'all_raw'),
-                    delim='\t',
-                    matrixOnly=False,
-                  ):
-        """Exactly like saveAsText except that the output goes
-        to the screen instead of a file"""
-        self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
-
-    def nextTrial(self):
-        """DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
-        please use Trialhandler.next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            logging.warning("""DEPRECATION WARNING: TrialHandler.nextTrial() will be deprecated
-        please use Trialhandler.next() instead.
-        jwp: 19/6/06
-        """)
-            self._warnUseOfNext=False
-        return self.next()
-
     def addData(self, thisType, value, position=None):
         """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData(thisType, value)
 
     def saveAsExcel(self,fileName, sheetName='rawData',
                     stimOut=[],
@@ -974,7 +1236,7 @@ def createFactorialTrialList(factors):
 
     return trialList
 
-class StairHandler:
+class StairHandler(_BaseTrialHandler):
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
     Calls to nextTrial() will fetch the next object given to this
@@ -999,7 +1261,8 @@ class StairHandler:
                  stepType='db',
                  minVal=None,
                  maxVal=None,
-                 originPath=None):
+                 originPath=None,
+                 name=''):
         """
         :Parameters:
 
@@ -1056,6 +1319,7 @@ class StairHandler:
         trialList: a simple list (or flat array) of trials.
 
             """
+        self.name=name
         self.startVal=startVal
         self.nReversals=nReversals
         self.nUp=nUp
@@ -1088,12 +1352,8 @@ class StairHandler:
         self.maxVal = maxVal
 
         #self.originPath and self.origin (the contents of the origin file)
-        if originPath==None or not os.path.isfile(originPath):
-            self.originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-            logging.debug("Using %s as origin file" %self.originPath)
-        else: self.originPath = originPath
-        self.origin = codecs.open(self.originPath,"r", encoding = "utf-8").read()
-
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp = None#the experiment handler that owns me!
     def __iter__(self):
         return self
 
@@ -1130,6 +1390,8 @@ class StairHandler:
                 #or reset
                 self.correctCounter = -1
 
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData("%s.result" %(self.name), result)
         self.calculateNextIntensity()
 
     def calculateNextIntensity(self):
@@ -1224,8 +1486,7 @@ class StairHandler:
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
-            raise StopIteration
-
+            self._terminate()
     def _intensityInc(self):
         """increment the current intensity and reset counter"""
         if self.stepType=='db':
@@ -1439,27 +1700,6 @@ class StairHandler:
         f.close()
         logging.info('saved data to %s' %f.name)
 
-    def printAsText(self, stimOut=[],
-                    dataOut=('rt_mean','rt_std', 'acc_raw'),
-                    delim='\t',
-                    matrixOnly=False,
-                  ):
-        """Exactly like saveAsText except that the output goes
-        to the screen instead of a file"""
-        self.saveAsText('stdout',  delim, matrixOnly)
-
-    def nextTrial(self):
-        """DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
-        please use StairHandler.next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            logging.warning("""DEPRECATION WARNING: StairHandler.nextTrial() will be deprecated
-        please use StairHandler.next() instead.
-        jwp: 19/6/06
-        """)
-            self._warnUseOfNext=False
-        return self.next()
 
 class QuestHandler(StairHandler):
     """Class that implements the Quest algorithm using python code from XXX.  f
@@ -1525,7 +1765,9 @@ class QuestHandler(StairHandler):
                  extraInfo=None,
                  minVal=None,
                  maxVal=None,
-                 staircase=None):
+                 staircase=None,
+                 originPath=None,
+                 name=''):
         """
         Typical values for pThreshold are:
             * 0.82 which is equivalent to a 3 up 1 down standard staircase
@@ -1606,7 +1848,7 @@ class QuestHandler(StairHandler):
 
         # Initialize using parent class first
         StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method,
-                                stepType=stepType, minVal=minVal, maxVal=maxVal)
+                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name)
 
         # Setup additional values
         self.stopInterval = stopInterval
@@ -1622,6 +1864,9 @@ class QuestHandler(StairHandler):
         # Import any old staircase data
         if staircase is not None:
             self.importData(staircase.intensities, staircase.data)
+        #store the origin file and its path
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp=None
 
     def addData(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
@@ -1642,6 +1887,8 @@ class QuestHandler(StairHandler):
         self._quest.update(intensity, result)
         # Update other things
         self.data.append(result)
+        if self.getExp()!=None:
+            self.getExp().addData('response', result)
         self.calculateNextIntensity()
 
     def importData(self, intensities, results):
@@ -1769,7 +2016,7 @@ class QuestHandler(StairHandler):
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
-            raise StopIteration
+            sef._terminate()
 
     def _checkFinished(self):
         """checks if we are finished
@@ -1783,9 +2030,9 @@ class QuestHandler(StairHandler):
             self.finished = False
 
 
-class MultiStairHandler:
+class MultiStairHandler(_BaseTrialHandler):
     def __init__(self, stairType='simple', method='random',
-            conditions=None, nTrials=50):
+            conditions=None, nTrials=50, originPath=None, name=''):
         """A Handler to allow easy interleaved staircase procedures (simple or
         QUEST).
 
@@ -1844,7 +2091,7 @@ class MultiStairHandler:
             stairs.saveAsPickle(fileName)#contains more info
 
         """
-
+        self.name=name
         self.type=stairType
         self.method=method #'random' or 'sequential'
         self.conditions=conditions
@@ -1862,6 +2109,9 @@ class MultiStairHandler:
         self._startNewPass()
         self.currentStaircase = self.thisPassRemaining[0]#take the first and remove it
         self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
+        #store the origin file and its path
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp = None#the experiment handler that owns me!
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
@@ -1969,6 +2219,8 @@ class MultiStairHandler:
         This is essential to advance the staircase to a new intensity level!
         """
         self.currentStaircase.addData(result)
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData('response', result)
         try:
             self.currentStaircase.next()
         except:
@@ -2143,9 +2395,14 @@ class DataHandler(dict):
         if not self.has_key(thisType):
             self.addDataType(thisType)
         if position==None:
+            #'ran' is always the first thing to update
+            if thisType=='ran':
+                repN = sum(self['ran'][self.trials.thisIndex])
+            else:
+                repN = sum(self['ran'][self.trials.thisIndex])-1#because it has already been updated
             #make a list where 1st digit is trial number
             position= [self.trials.thisIndex]
-            position.append(self.trials.thisRepN)
+            position.append(repN)
 
         #check whether data falls within bounds
         posArr = numpy.asarray(position)

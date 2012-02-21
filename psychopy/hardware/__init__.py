@@ -44,6 +44,8 @@ def findPhotometer(ports=None, device=None):
     elif device.lower() in ['ls110', 'ls100']:
         photometers=[minolta.LS100]
     elif device.lower() in ['colorcal']:
+        if not hasattr(crs, 'ColorCAL'):
+            logging.error('ColorCAL support requires the pycrsltd library, version 0.1 or higher')
         photometers=[crs.ColorCAL]
     else:#try them all
         photometers=[pr.PR650, pr.PR655, minolta.LS100, crs.ColorCAL]#a list of photometer objects to test for

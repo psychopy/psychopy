@@ -77,7 +77,7 @@ class Experiment:
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
-        self.psychopyLibs=['core','data','event','logging']
+        self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
@@ -113,12 +113,14 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+        script.write(
+                    "\nfrom __future__ import division #so that 1/3=0.333 instead of 1/3=0\n" +
+                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "from psychopy.constants import * #things like STARTED, FINISHED\n" +
+                    "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
-                    "import os #handy system and path functions\n" +
-                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
-                    "from psychopy.constants import *\n\n")
+                    "import os #handy system and path functions\n\n")
 
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
@@ -569,21 +571,26 @@ class TrialHandler:
 
         #save data
         ##a string to show all the available variables (if the conditions isn't just None or [None])
-        stimOutStr="%(name)s.trialList[0].keys()" %self.params
-#        "["
-#        if self.params['conditions'].val not in [None, [None]]:
-#            for variable in sorted(self.params['conditions'].val[0].keys()):#get the keys for the first trial type
-#                stimOutStr+= "'%s', " %variable
-#        stimOutStr+= "]"
-        if self.exp.settings.params['Save psydat file'].val:
+        saveExcel=self.exp.settings.params['Save excel file'].val
+        saveCSV = self.exp.settings.params['Save csv file'].val
+        savePsydat = self.exp.settings.params['Save psydat file'].val
+        #get parameter names
+        if saveExcel or saveCSV:
+            buff.writeIndented("#get names of stimulus parameters\n" %self.params)
+            buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params=[]\n" %self.params)
+            buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
+        #write out each type of file
+        if saveExcel or savePsydat or saveCSV:
+            buff.writeIndented("#save data for this loop\n")
+        if savePsydat:
             buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
-        if self.exp.settings.params['Save excel file'].val:
+        if saveExcel:
             buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        if self.exp.settings.params['Save csv file'].val:
+        if saveCSV:
             buff.writeIndented("%(name)s.saveAsText(filename+'%(name)s.csv', delim=',',\n" %self.params)
-            buff.writeIndented("    stimOut=%s,\n" %stimOutStr)
+            buff.writeIndented("    stimOut=params,\n")
             buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'

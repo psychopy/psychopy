@@ -3,6 +3,19 @@
 # Part of the PsychoPy library
 # Copyright (C) 2011 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+import sys, os, platform, time, glob, copy
+#on windows try to load avbin now (other libs can interfere)
+if sys.platform=='win32':
+    #make sure we also check in SysWOW64 if on 64-bit windows
+    if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
+        os.environ['PATH']+=';C:\\Windows\\SysWOW64'
+    try:
+        from pyglet.media import avbin
+        haveAvbin=True
+    except ImportError:
+        haveAvbin=False#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
+
 import psychopy #so we can get the __path__
 from psychopy import core, platform_specific, logging, preferences, monitors, event
 import colors
@@ -10,8 +23,11 @@ import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
 import Image
-import sys, os, platform, time, glob, copy
 import makeMovies
+
+if sys.platform=='win32' and not haveAvbin:
+    logging.error("""avbin.dll failed to load. Try importing psychopy.visual as the first
+    library (before anything that uses scipy) and make sure that avbin is installed.""")
 
 import numpy
 from numpy import sin, cos, pi
@@ -82,7 +98,7 @@ from psychopy.constants import *
 #NOT_STARTED=0
 #FINISHED=-1
 
-#keep track of windows that have been opened      
+#keep track of windows that have been opened
 openWindows=[]
 
 class Window:
@@ -241,7 +257,7 @@ class Window:
         else:
             self.gamma = None #gamma wasn't set anywhere
             self.useNativeGamma=True
-            
+
         #load color conversion matrices
         dkl_rgb = self.monitor.getDKL_RGB()
         if dkl_rgb!=None:
@@ -305,6 +321,7 @@ class Window:
         self.movieFrames=[] #list of captured frames (Image objects)
 
         self.recordFrameIntervals=False
+        self.recordFrameIntervalsJustTurnedOn=False # Allows us to omit the long timegap that follows each time turn it off
         self.nDroppedFrames=0
         self.frameIntervals=[]
         self._toLog=[]
@@ -330,7 +347,7 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-        
+
         openWindows.append(self)
 
     def setRecordFrameIntervals(self, value=True):
@@ -341,7 +358,13 @@ class Window:
         see also:
             Window.saveFrameIntervals()
         """
+        
+        if self.recordFrameIntervals != True and value==True: #was off, and now turning it on
+            self.recordFrameIntervalsJustTurnedOn = True
+        else:
+            self.recordFrameIntervalsJustTurnedOn = False
         self.recordFrameIntervals=value
+        
         self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
@@ -480,7 +503,10 @@ class Window:
         if self.waitBlanking:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0,0,0,0)
-            GL.glVertex2i(10,10)
+            if sys.platform=='win32' and self.glVendor.startswith('ati'):
+                pass
+            else:
+                GL.glVertex2i(10,10)#this corrupts text rendering on win with some ATI cards :-(
             GL.glEnd()
             GL.glFinish()
 
@@ -490,14 +516,16 @@ class Window:
             self.frames +=1
             deltaT = now - self.lastFrameT
             self.lastFrameT=now
-            self.frameIntervals.append(deltaT)
-
-            if deltaT>self._refreshThreshold:
-                 self.nDroppedFrames+=1
-                 if self.nDroppedFrames<reportNDroppedFrames:
-                     logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
-                 elif self.nDroppedFrames==reportNDroppedFrames:
-                     logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
+            if self.recordFrameIntervalsJustTurnedOn: #don't do anything
+                self.recordFrameIntervalsJustTurnedOn = False
+            else: #past the first frame since turned on
+              self.frameIntervals.append(deltaT)
+              if deltaT > self._refreshThreshold:
+                   self.nDroppedFrames+=1
+                   if self.nDroppedFrames<reportNDroppedFrames:
+                       logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
+                   elif self.nDroppedFrames==reportNDroppedFrames:
+                       logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
 
         #log events
         for logEntry in self._toLog:
@@ -1437,20 +1465,26 @@ class DotStim(_BaseVisualStim):
                 See :ref:`colorspaces`
 
             colorSpace:
-                the color space controlling the interpretation of the `color`
+
+                The color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
+
             opacity : float
                 1.0 is opaque, 0.0 is transparent
             depth:
+
                 The depth argument is deprecated and may be removed in future versions.
                 Depth is controlled simply by drawing order.
+
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
+
             name : string
                 The name of the object to be using during logged messages about
-                this stim
+                this stimulus
+
             """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
@@ -1493,8 +1527,8 @@ class DotStim(_BaseVisualStim):
 
         self.depth=depth
 
-        """initialise the dots themselves - give them all random dir and then
-        fix the first n in the array to have the direction specified"""
+        #initialise the dots themselves - give them all random dir and then
+        #fix the first n in the array to have the direction specified
 
         self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
@@ -1546,13 +1580,13 @@ class DotStim(_BaseVisualStim):
 
 
     def set(self, attrib, val, op=''):
-        """DotStim.set() is obselete and may not be supported in future
+        """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op)
     def setPos(self, newPos=None, operation='', units=None):
-        """Obselete - users should use setFieldPos or instead of setPos
+        """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
     def setFieldPos(self,val, op=''):
@@ -3598,7 +3632,10 @@ class MovieStim(_BaseVisualStim):
                  flipVert = False,
                  flipHoriz = False,
                  opacity=1.0,
-                 name='', autoLog=True):
+                 name='',
+                 loop=False,
+                 autoLog=True,
+                 depth=0.0,):
         """
         :Parameters:
 
@@ -3626,13 +3663,20 @@ class MovieStim(_BaseVisualStim):
             name : string
                 The name of the object to be using during logged messages about
                 this stim
+            loop : bool, optional
+                Whether to start the movie over from the beginning if draw is
+                called and the movie is done.
+
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
         if not havePygletMedia:
-            raise ImportError, 'pyglet.media is needed for MovieStim and could not be imported. ' + \
-                'This might be because you have no audio output enabled (no audio card or no speakers attached)'
-
+            raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
+                This can occur for various reasons;
+                    - psychopy.visual was imported too late (after a lib that uses scipy)
+                    - no audio output is enabled (no audio card or no speakers attached)
+                    - avbin is not installed
+            """
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player._on_eos=self._onEos
@@ -3642,9 +3686,11 @@ class MovieStim(_BaseVisualStim):
         self.format=self._movie.video_format
         self.pos=pos
         self.pos = numpy.asarray(pos, float)
+        self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
+        self.loop = loop
         self.status=NOT_STARTED
 
         #size
@@ -3733,10 +3779,12 @@ class MovieStim(_BaseVisualStim):
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current position in the
-        movie will be determined automatically.
+        default win for this object if not specified). The current position in
+        the movie will be determined automatically.
 
-        This method should be called on every frame that the movie is meant to appear"""
+        This method should be called on every frame that the movie is meant to
+        appear"""
+
         if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
         #set the window to draw to
@@ -3767,7 +3815,13 @@ class MovieStim(_BaseVisualStim):
         GL.glPopMatrix()
 
     def _onEos(self):
-        self.status=FINISHED
+        if self.loop:
+            self.loadMovie(self.filename)
+            self.play()
+            self.status=PLAYING
+        else:
+            self.status=FINISHED
+
     def setAutoDraw(self, val):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
@@ -3776,8 +3830,9 @@ class MovieStim(_BaseVisualStim):
             - val: True/False
                 True to add the stimulus to the draw list, False to remove it
         """
-        self.play()#set to play in case stoped
+        self.play()  # set to play in case stopped
         _BaseVisualStim.setAutoDraw(self, val)
+
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
@@ -4734,8 +4789,8 @@ class Rect(ShapeStim):
         self._calcVertices()
         self.setVertices(self.vertices)
 
-    def setHeight(self, width):
-        """Changes the width of the Rectangle """
+    def setHeight(self, height):
+        """Changes the height of the Rectangle """
         self.height = height
         self._calcVertices()
         self.setVertices(self.vertices)
@@ -4871,15 +4926,12 @@ class BufferImageStim(PatchStim):
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
-        glversion = pyglet.gl.gl_info.get_version().split()[0]
-        if glversion.find('.') > -1: # convert 2.1.1 to 2.1
-            gv = glversion.split('.')
-            glversion = gv[0]+'.'+gv[1]
-        if float(glversion) >= 2.1 and not sqPower2:
+        glversion = pyglet.gl.gl_info.get_version()
+        if glversion >= '2.1' and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
         else:
             if not sqPower2:
-                logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % pyglet.gl.gl_info.get_version() )
+                logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
@@ -5351,7 +5403,6 @@ class RatingScale:
         # Screen position (translation) of the rating scale as a whole:
         #avoiding_offset = True # flag / hack for backwards compatibility
         #if type(offsetVert) in [float,int] or type(offsetHoriz) in [float,int]:
-        #    log.warning("RatingScale: offsetHoriz, offsetVert are deprecated; pos=[x,y] is supported")
         #    avoiding_offset = False
         if pos:
             if len(list(pos)) == 2:

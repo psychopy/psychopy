@@ -111,7 +111,7 @@ def getInitVals(params):
             inits[name].valType='code'
         elif name in ['ori','sf','size','height','color','phase','opacity',
             'volume', #sounds
-            'coherence','nDots', 'fieldSize','dotSize', 'dotLife' 'dir', 'speed',#dots
+            'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
             ]:
             inits[name].val="1.0"
             inits[name].valType='code'

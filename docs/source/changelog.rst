@@ -1,46 +1,85 @@
 Changelog
 ====================
 
+
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+.. role:: red
+
 .. note::
   Version numbers
 
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-
-
-Known Issues
-------------------------------
-
-At the moment the 'full' version of the gamma correction equation (y=a+(b+kx)**gamma) seems to be fitting rather poorly.
-I recommend you stick to using the 'easy' version (y=kx+b) for now.
+:red:`Changes in red typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
 
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.05
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* FIXED: Joystick error when calling `~psychopy.hardware.Joystick.getHat()` or `~psychopy.hardware.Joystick.getHats()` (thanks Gary Lupyan)
+
+PsychoPy 1.73.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Feb 2012)
+
+* CHANGED: Builder scripts now silently convert division from integers to float where necessary. That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
+* FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
+* FIXED: issue on OSX with updating from 1.70 binaries to 1.73 patch release
+
+PsychoPy 1.73.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
+* FIXED: bugs in Builder setting Dots coherence and direction parameters
+* FIXED: problem with strange text and image rendering on some combinations of ATI graphics on Windows machines
+
+PsychoPy 1.73.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Jan 2012)
+
+* ADDED: loop property to :class:`~psychopy.visual.MovieStim` for coder only so far (thanks Ariel Rokem)
+* FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
+* FIXED: problem with avbin (win32)
+* FIXED: problem with unicode characters in filenames preventing startup
+* FIXED: bug with 'fullRandom' method of :class:`~psychopy.data.TrialHandler` missing some trials during data save
+* FIXED: :func:`Mouse.clickReset()` now resets the click timers
+* FIXED(?): problem with avbin.dll not being found under 64-bit windows
+
 PsychoPy 1.73.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still for a while
-* ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Not working on Linux yet
-* ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center
-* ADDED: data.ExpHandler to combine data for multiple separate loopsin one study, including output of a single wide csv file
+(released Jan 2012)
+
+* :red:`CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)`
+* ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
+* ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
+* ADDED: data.ExpHandler to combine data for multiple separate loops in one study, including output of a single wide csv file. See demos>experimental control>experimentHandler. Support from Builder should now be easy to add
 * ADDED: ability to fix (seed) the pseudorandom order of trials in Builder random/full-random loops
-* ADDED: auto-update (and usage stats) now use better proxy detection. Also this now runs in a low-priority background thread to prevent any slowing of startup time.
+* ADDED: auto-update (and usage stats) can now detect proxies in proxy.pac files. Also this now runs in a low-priority background thread to prevent any slowing at startup time.
 * FIXED: bug when passing variables to Staircase loops in Builder
 * FIXED: mouse in Builder now ignores button presses that began before the 'start' of the mouse
-
+* FIXED: can now use pygame or pyaudio instead of pygame for sounds, although it still isn't recommended (thanks Ariel Rokem for patch)
 
 PsychoPy 1.72.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (rc1 released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
-to a choice control if this is used (thanks Manuel Ebert)
+* :red:`CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)`
     - for gui.Dlg the `.addField()` method now has `choices` attribute
-    - for gui.dlgFromDict if one of the values in the dict is a list it will be
-    interpreted as a set of choices (NB this potentially breaks old code)
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
     - for info see API docs for psychopy.gui
 
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
@@ -83,7 +122,7 @@ PsychoPy 1.71.00
 
 (released Sept 2011)
 
-* CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
+* :red:`CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that`
 * CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 * ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
     - create, edit, and save conditions from within PsychoPy; save & load using pickle format
@@ -112,8 +151,6 @@ PsychoPy 1.70
 PsychoPy 1.70.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
-
 * FIXED: bug in Builder Ratingscale (was always ending routine on response)
 * FIXED: problem with nested loops in Builder. Inner loop was not being repeated. Loops are now only created as they are needed in the code, not at the beginning of the script
 * FIXED: rendering of many stimuli was not working beyond 1000 stimuli (now limit is 1,000,000)
@@ -138,7 +175,7 @@ PsychoPy 1.70.00
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
-* CHANGED use of allowedKeys in Keyboard Component. You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
+* :red:`CHANGED use of allowedKeys in Keyboard Component.` You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
 * CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
 * CHANGED names:
@@ -149,13 +186,13 @@ PsychoPy 1.70.00
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
 
-* CHANGED numpy imports in Builder scripts:
+* :red:`CHANGED numpy imports in Builder scripts:`
 
     - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* CHANGED Builder use of $. $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
+* :red:`CHANGED: Builder use of $.` $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
 
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 

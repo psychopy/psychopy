@@ -104,12 +104,6 @@ class SyncGenerator(threading.Thread):
             event._keyBuffer.append(self.sync)
             # wait for start of next volume, doing our own hogCPU for tighter sync:
             core.wait(self.timesleep - self.hogCPU, hogCPUperiod=0)
-            while self.clock.getTime() < vol * self.TR:
-                pass #?? no need to pump pyglet window events because threaded (see core wait)
-                if core.havePyglet:
-                    pyglet.media.dispatch_events() #events for sounds/video should run independently of wait()
-                    wins = pyglet.window.get_platform().get_default_display().get_windows()
-                    for win in wins: win.dispatch_events() #pump events on pyglet windows              
         self.running = False
     def stop(self):
         self.stopflag = True
