@@ -101,7 +101,7 @@ class SyncGenerator(threading.Thread):
             if self.stopflag:
                 break
             # "emit" a sync pulse by placing a key in the buffer:
-            event._keyBuffer.append(self.sync)
+            event._keyBuffer.append((self.sync, core.getTime()))
             # wait for start of next volume, doing our own hogCPU for tighter sync:
             core.wait(self.timesleep - self.hogCPU, hogCPUperiod=0)
         self.running = False
