@@ -24,7 +24,10 @@ PsychoPy 1.73.05
 
 (https://github.com/psychopy/psychopy)
 
-* FIXED: Joystick error when calling `~psychopy.hardware.Joystick.getHat()` or `~psychopy.hardware.Joystick.getHats()` (thanks Gary Lupyan)
+* FIXED: Joystick error when calling `~psychopy.hardware.Joystick.getHat()` or `~psychopy.hardware.Joystick.getHats()` (fixed by Gary Lupyan)
+* FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
+* FIXED: fMRI emulator class was providing old-format key events (fixed by Erik Kastman)
+* FIXED: Win.setRecordFrameIntervals(True) was including as a frame interval the time since it was turned off (fixed by Alex Holcombe)
 
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
