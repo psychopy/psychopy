@@ -9,6 +9,7 @@ pulses and user responses. Limitations: pyglet only; keyboard events only.
 __author__ = 'Jeremy Gray'
 
 from psychopy import visual, event, core, logging
+from psychopy.errors import TimeoutError
 import threading
 
 #import sound # for playing EPI noise in SyncGenerator
@@ -111,7 +112,8 @@ class SyncGenerator(threading.Thread):
 def launchScan(win, settings, globalClock=None, simResponses=None, 
                mode='None', esc_key='escape',
                instr='select Scan or Test, press enter',
-               wait_msg="waiting for scanner..."):
+               wait_msg="waiting for scanner...",
+               wait_timeout=300):
     """
     Accepts up to four fMRI scan parameters (TR, volumes, sync-key, skip), and
     launches an experiment in one of two modes: Scan, or Test.
@@ -195,12 +197,19 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
             message to be displayed to the subject while waiting for the scan to 
             start (i.e., after operator indicates start but before the first
             scan pulse is received).
+            
+        wait_timeout :
+            time in seconds that launchScan will wait before assuming something went
+            wrong and exiting. Defaults to 300sec (5 minutes). Raises a TimeoutError
+            if no sync pulse is received in the allowable time.
     """
     
     if not 'sync' in settings:
         settings.update({'sync': '5'})
     if not 'skip' in settings:
         settings.update({'skip': 0})
+    try: wait_timeout = int(wait_timeout)
+    except ValueError: raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
     instr = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4)
     parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4)
@@ -219,7 +228,8 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         doSimulation = (run_type.getRating() == 'Test')
     else:
         doSimulation = (mode == 'Test')
-        
+    
+    abort_time = globalClock.getTime() + wait_timeout # Set time to assume an error and quit.
     win.setMouseVisible(False)
     msg = visual.TextStim(win, color='DarkBlue', text=wait_msg)
     msg.draw()
@@ -239,6 +249,8 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys: 
             core.quit()
+        if globalClock.getTime() > abort_time:
+            raise TimeoutError('Waiting for scanner has timed out in %i seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
     win.flip() # blank the screen on first sync pulse received
