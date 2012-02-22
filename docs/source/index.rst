@@ -5,9 +5,17 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Updated prac class materials**: The PsychoPy practical class materials have been updated. The first half of the 10-class course have now been run twice and are getting more polished. Some of the second half (in which less actual PsychoPy teaching is done) are not so battle-tested but should still provide a good starting point for your own pracs. See :ref:`lectureMaterials`
+**Latest version**: 1.73.04 was released Feb 2012. See complete :doc:`changelog`
 
-**Latest version**: 1.71.01 was released Oct 2011. See complete :doc:`changelog`
+**VSS Workshop**: I'm going to run a small-group workshop (probably limit to 30 people) for PsychoPy as a satellite at VSS on the Thursday before the main conference starts.
+
+    - when: Thurs 10th May, 1-5pm(?)
+    - where: Naples Grand in the Cyber Cafe
+    - cost: $75 (probably)
+    - target audience: novice
+    - material will cover Builder and simple coding
+
+Email me personally (jon at peirce.org.uk) if you're interested in attending.
 
 
 .. title:: Home
