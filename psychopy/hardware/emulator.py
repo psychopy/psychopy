@@ -104,6 +104,8 @@ class SyncGenerator(threading.Thread):
             event._keyBuffer.append(self.sync)
             # wait for start of next volume, doing our own hogCPU for tighter sync:
             core.wait(self.timesleep - self.hogCPU, hogCPUperiod=0)
+            while self.clock.getTime() < vol * self.TR:
+                pass # hogs the CPU for tighter sync
         self.running = False
     def stop(self):
         self.stopflag = True
