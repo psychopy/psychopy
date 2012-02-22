@@ -4842,71 +4842,77 @@ class Line(ShapeStim):
 
 class BufferImageStim(PatchStim):
     """
-    Obtain a "screen-shot" (fullscreen, or region) from a buffer, save to a PatchStim()-like RBGA image.
-    Why? to speed up the rendering of one or more slow visual elements.
+    Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
+    
+    The class returns a screen-shot, i.e., a single collage image composed of static
+    elements, ones that you want to treat as effectively a single stimulus. The
+    screen-shot can be of the visible screen (front buffer) or hidden (back buffer).
+    
+    BufferImageStim aims to provide fast rendering, while still allowing dynamic
+    orientation, position, and opacity. Its fast to draw but slow to init: ~75ms for
+    a 1024 x 512 capture; init time is proportional to image size (as for PatchStim).
+    There is no support for dynamic depth or color. 
 
-    You first make a "collage" image from your static elements, ones that you could treat
-    as a being single stim. BufferImageStim optimizes it for speed of rendering in a loop.
-    I get ~0.11ms per .draw() on my hardware, regardless of size. But its slow to init:
-    ~75ms for a 1024 x 512 capture, in proportion to image size. There is no support for
-    depth, opacity, or color. The idea is to capture
-    static parts of a display at init() to speed up rendering them.
-
-    You specify the part of the screen to capture (in norm units currently), and optionally
-    the stimuli themselves (as a list of items to be drawn). You
-    get a screenshot of those pixels. If your OpenGL does not support arbitrary sizes,
-    the image will be larger, using square powers of two if needed or requested,
-    with the excess image being invisible (using alpha). The aim is to preserve buffer
-    contents as rendered, and not "improve" upon them, e.g., through interpolation.
-    Conceptually, taking a screenshot records whatever has been drawn to the buffer.
+    You specify the part of the screen to capture (in norm units), and optionally
+    the stimuli themselves (as a list of items to be drawn). You get a screenshot 
+    of those pixels. If your OpenGL does not support arbitrary sizes, the image 
+    will be larger, using square powers of two if needed, with the excess image 
+    being invisible (using alpha). The aim is to preserve the buffer contents as
+    rendered.
 
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
-    Status: seems to work on Mac, but:
-        - Screen units are not properly sorted out, better if allowed pix as well as norm
-        - Only rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+    Status: seems to work on Mac, but limitations:
+        - Screen units are not properly sorted out, better to allow pix too
+        - Rudimentary testing on pygame; none on Windows, Linux, FreeBSD
 
     **Example**::
 
-        # build up a composite or large visual background (slow, do once):
-        mySimpleImageStim.draw()
-        myTextStim.draw()
-        ...
-        # capture everything (one time):
-        screenshot = visual.BufferImageStim(myWin)
-        ...
-        # render to screen (fast, do many times):
+        # define lots of stimuli, make a list:
+        mySimpleImageStim = ...
+        myTextStim = ...
+        stimList = [mySimpleImageStim, myTextStim]
+        
+        # draw stim list items & capture everything (slow):
+        screenshot = visual.BufferImageStim(myWin, stim=stimList)
+        
+        # render to screen (fast):
         while <conditions>:
-            screenshot.draw()  # fast; can change orientation (.ori) or x,y location (._position)
-            animation.draw()   # dynamic
+            screenshot.draw()  # fast; can vary .ori, ._position, .opacity
+            other_stuff.draw() # dynamic
             myWin.flip()
 
-    See coder Demos>stimuli>bufferImageStim.py for a demo.
+    See coder Demos > stimuli > bufferImageStim.py for a demo.
 
     :Author:
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=[], interpolate=True, name='', autoLog=True):
+        stim=[], interpolate=True, vertMirror=False, name='', autoLog=True):
         """
         :Parameters:
 
             win :
                 A :class:`~psychopy.visual.Window` object (required)
             buffer :
-                screen buffer to capture from, default is 'back' (hidden), 'front' (in view after win.flip() )
+                the screen buffer to capture from, default is 'back' (hidden).
+                'front' is the buffer in view after win.flip()
             rect :
-                a list of [left, top, right, bottom] coordinates of a rectangle to capture from the screen.
-                currently, these should be given in norm units.
+                a list of edges [left, top, right, bottom] defining a screen rectangle
+                which is the area to capture from the screen, given in norm units.
                 default is fullscreen: [-1, 1, 1, -1]
             stim :
                 all item(s) in the list will be drawn and recaptured as a single stim.
+                each of these needs to have its own .draw() method, and be in the
+                same window as win
             interpolate :
-                whether to use interpolation (default = True, generally good, especially if you change the orientation)
+                whether to use interpolation (default = True, generally good,
+                especially if you change the orientation)
             sqPower2 :
                 - False (default) = use rect for size if OpenGL = 2.1+
                 - True = use square, power-of-two image sizes
-
+            vertMirror :
+                whether to vertically flip (mirror) the captured image; default = False
             name : string
                 The name of the object to be using during logged messages about this stim
         """
@@ -4926,6 +4932,7 @@ class BufferImageStim(PatchStim):
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
+        self.vertMirror = vertMirror
         glversion = pyglet.gl.gl_info.get_version()
         if glversion >= '2.1' and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
@@ -4954,7 +4961,10 @@ class BufferImageStim(PatchStim):
         useShaders = self._useShaders
         self.interpolate = interpolate
 
-        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
+        if self.vertMirror:
+            im = tex # looks backwards, but is correct
+        else:
+            im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self.origSize=im.size
 
         #im = im.convert("RGBA") # should be RGBA because win._getRegionOfFrame() returns RGBA
@@ -5003,13 +5013,14 @@ class BufferImageStim(PatchStim):
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
 
-        #GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-
     def draw(self):
         """
-        streamlined draw. not sure what happens with shaders & self._updateList()
-        can reduce draw time to ~.13ms if eliminate everything except glScalef and glCallList
+        streamlined version of :class:`~psychopy.visual.PatchStim.draw`. 
+        limitations / bugs: not sure what happens with shaders & self._updateList()
         """
+        # this is copy & pasted from PatchStim, then had stuff taken out for speed
+        # if you need even faster draw times, can reduce by commenting out
+        # GL.glTranslatef(), GL.glRotatef(), GL.glColor4f()
 
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
@@ -5017,20 +5028,18 @@ class BufferImageStim(PatchStim):
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
 
-        #self.win.setScale(self._winScale) # replaced with:
         GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
         GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
         GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
         GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
-        #if self.needUpdate: self._updateList()
 
         GL.glCallList(self._listID) # make it happen
         GL.glPopMatrix() #return the view to previous state
 
 class RatingScale:
-    """A class for getting numeric subjective ratings, e.g., on a 1-to-7 scale.
+    """A class for getting numeric or categorical ratings, e.g., on a 1-to-7 scale.
 
     Returns a re-usable rating-scale object having a .draw() method, with a customizable visual appearance.
     Tries to provide useful default values.
@@ -5081,7 +5090,10 @@ class RatingScale:
         So if you give boolean values and the subject chooses False,
         getResponse() will return False (bool) and not 'False' (str).
 
-    See Coder Demos -> stimuli -> ratingScale.py for examples.
+    See Coder Demos -> stimuli -> ratingScale.py for examples. As another example,
+    fMRI_launchScan.py uses a rating scale for the experimenter to choose between
+    two modes (and not for subjects giving ratings).
+
     The Builder RatingScale component gives a restricted set of options, but also
     allows full control over a RatingScale (via 'customizeEverything').
 
