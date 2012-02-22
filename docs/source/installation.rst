@@ -73,7 +73,7 @@ If you want to install each library individually rather than use the simple dist
 * `pyglet <http://www.pyglet.org>`_ (version 1.1 or greater)
 * `pygame <http://www.pygame.org>`_ (for playing sounds and/or as an alternative to pyglet. Must be version 1.8 or greater)
 * `pywin32 <https://sourceforge.net/projects/pywin32/>`_ (only needed for *Windows*)
-* `wxPython <http://www.wxpython.org>`_ (version 2.8 or greater)
+* `wxPython <http://www.wxpython.org>`_ (version 2.8, not 2.9)
 * `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (easier to install with setuptools/easy_install)
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting stuff)
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port, win32 only)
