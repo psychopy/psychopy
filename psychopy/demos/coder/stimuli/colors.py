@@ -9,6 +9,10 @@ from psychopy import visual, event, core, logging
 #have a PR60 then you can do this automatically using MonitorCenter.py
 #in the monitors package
 
+#Note for each stimulus that the color refers to the central bar on the grating
+#If there are multiple lobes (a high enough SF) then the other color is simply the
+#complement of the one specified (passing through neutral gray)
+
 myWin = visual.Window((600,600), monitor='testMonitor')
 
 stims = []
@@ -23,9 +27,15 @@ stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0,1), colorSpace='dk
 stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,90,1), colorSpace='dkl',pos=[0,-0.5],sf=2))# S
 
 #cone-isolating stimuli
-stims.append( visual.PatchStim(myWin, mask='gauss',color=(0.2,0,0), colorSpace='lms', pos=[0.5,0.5],sf=2))
-stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0.2,0), colorSpace='lms', pos=[0.5,0],sf=2))
-stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0,0.5), colorSpace='lms', pos=[0.5,-0.5],sf=2))
+#stims.append( visual.PatchStim(myWin, mask='gauss',color=(0.2,0,0), colorSpace='lms', pos=[0.5,0.5],sf=2))
+#stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0.2,0), colorSpace='lms', pos=[0.5,0],sf=2))
+#stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,0,0.5), colorSpace='lms', pos=[0.5,-0.5],sf=2))
+
+#HSV. This is a device-dependent space
+#(i.e. it will differ on each monitor but needs no calibration)
+stims.append( visual.PatchStim(myWin, mask='gauss',color=(0,1,1), colorSpace='hsv', pos=[0.5,0.5],sf=0))
+stims.append( visual.PatchStim(myWin, mask='gauss',color=(45,1,1), colorSpace='hsv', pos=[0.5,0],sf=0))
+stims.append( visual.PatchStim(myWin, mask='gauss',color=(90,1,1), colorSpace='hsv', pos=[0.5,-0.5],sf=0))
 
 for thisStim in stims:
     thisStim.draw()

@@ -358,13 +358,13 @@ class Window:
         see also:
             Window.saveFrameIntervals()
         """
-        
+
         if self.recordFrameIntervals != True and value==True: #was off, and now turning it on
             self.recordFrameIntervalsJustTurnedOn = True
         else:
             self.recordFrameIntervalsJustTurnedOn = False
         self.recordFrameIntervals=value
-        
+
         self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
@@ -992,7 +992,7 @@ class Window:
 #        else: _shaders=_shadersPygame
 
         #setup screen color
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
         else:
             desiredRGB = self.rgb/255.0
@@ -1649,7 +1649,7 @@ class DotStim(_BaseVisualStim):
                 GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
-            if self.colorSpace in ['rgb','dkl','lms']:
+            if self.colorSpace in ['rgb','dkl','lms','hsv']:
                 GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
             else:
                 GL.glColor4f(self.rgb[0]/255.0, self.rgb[1]/255.0, self.rgb[2]/255.0, 1.0)
@@ -2310,13 +2310,14 @@ class PatchStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
                 desiredRGB=[0.0,0.0,1.0]
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
+        print desiredRGB
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -4227,7 +4228,7 @@ class TextStim(_BaseVisualStim):
         """
         self.text = value
 
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -4343,7 +4344,7 @@ class TextStim(_BaseVisualStim):
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
-            if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                 desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
                 if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                     logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -4633,7 +4634,7 @@ class ShapeStim(_BaseVisualStim):
         if nVerts>2: #draw a filled polygon first
             if self.fillRGB!=None:
                 #convert according to colorSpace
-                if self.fillColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+                if self.fillColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                     fillRGB = (self.fillRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
                 else:fillRGB = self.fillRGB/255.0
                 #then draw
@@ -4641,7 +4642,7 @@ class ShapeStim(_BaseVisualStim):
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
         if self.lineRGB!=None:
                 #convert according to colorSpace
-            if self.lineColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            if self.lineColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                 lineRGB = (self.lineRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
             else:lineRGB = self.lineRGB/255.0
             #then draw
@@ -4937,7 +4938,7 @@ class BufferImageStim(PatchStim):
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
             if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -6449,7 +6450,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
-        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
+        if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
             rgb=stim.rgb
         else:
             rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
@@ -6523,7 +6524,9 @@ def _setTexIfNoShaders(obj):
 
 def _setColor(self, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
-                colorAttrib='color'):#or 'fillColor' etc
+                colorAttrib='color', #or 'fillColor' etc
+                colorSpaceAttrib=None #e.g. 'colorSpace' or 'fillColorSpace'
+                ):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc)
     """
@@ -6541,18 +6544,21 @@ def _setColor(self, color, colorSpace=None, operation='',
     except:
         isScalar=False
 
+    if colorSpaceAttrib==None:
+        colorSpaceAttrib = colorAttrib+'Space'
+
     if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
+            setattr(self,colorSpaceAttrib,'named')#e.g. self.colorSpace='named'
             setattr(self,colorAttrib,color) #e.g. self.color='red'
             _setTexIfNoShaders(self)
             return
         elif color[0]=='#' or color[0:2]=='0x':
             setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
             setattr(self,colorAttrib,color) #e.g. self.color='#000000'
-            setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
+            setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
             _setTexIfNoShaders(self)
             return
 #                except:
@@ -6568,19 +6574,19 @@ def _setColor(self, color, colorSpace=None, operation='',
     elif color==None:
         setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
         setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-        setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
+        setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
         _setTexIfNoShaders(self)
     else:
         raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
+    if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-    if getattr(self,colorAttrib+'Space') in ['named','hex']:
+    if getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
                 %(operation))
-    if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
+    if operation!='' and colorSpace!=getattr(self,colorSpaceAttrib) :
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
@@ -6604,8 +6610,10 @@ def _setColor(self, color, colorSpace=None, operation='',
         if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
         else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
+    elif colorSpace=='hsv':
+        setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor).transpose()) )
     else: logging.error('Unknown colorSpace: %s' %colorSpace)
-    setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
+    setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
