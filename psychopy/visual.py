@@ -3017,7 +3017,9 @@ class ElementArrayStim:
                  nElements = 100,
                  sizes = 2.0,
                  xys = None,
-                 rgbs = (1.0,1.0,1.0),
+                 rgbs = None,
+                 colors=(1.0,1.0,1.0),
+                 colorSpace='rgb',
                  opacities = 1.0,
                  depths = 0,
                  fieldDepth = 0,
@@ -3061,10 +3063,16 @@ class ElementArrayStim:
                 the xy positions of the elements, relative to the field centre
                 (fieldPos)
 
-            rgbs :
+            colors :
                 specifying the color(s) of the elements.
-                Should be Nx1 (different greys), Nx3 (different colors) or 1x3
-                (for a single color)
+                Should be Nx1 (different intensities), Nx3 (different colors) or 1x3
+                (for a single color).
+
+            colorSpace :
+                The type of color specified is the same as
+                those in other stimuli ('rgb','dkl','lms'...) but note that for
+                this stimulus you cannot currently use text-based colors (e.g. names
+                or hex values)
 
             opacities :
                 the opacity of each element (Nx1 or a single value)
@@ -3124,7 +3132,6 @@ class ElementArrayStim:
         self.nElements = nElements
         #info for each element
         self.sizes = sizes
-        self.rgbs=rgbs
         self.xys= xys
         self.opacities = opacities
         self.oris = oris
@@ -3140,6 +3147,13 @@ class ElementArrayStim:
             raise TypeError('ElementArrayStim requires a pyglet context')
         if not self.win._haveShaders:
             raise Exception("ElementArrayStim requires shaders support and floating point textures")
+
+        self.colorSpace=colorSpace
+        if rgbs!=None:
+            logging.warning("Use of the rgb argument to ElementArrayStim is deprecated. Please use colors and colorSpace args instead")
+            self.setColors(rgbs, colorSpace='rgb')
+        else:
+            self.setColors(colors, colorSpace=colorSpace)
 
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
@@ -3163,7 +3177,6 @@ class ElementArrayStim:
         self.setTex(elementTex)
 
         self.setContrs(contrs)
-        self.setRgbs(rgbs)
         self.setOpacities(opacities)#opacities is used by setRgbs, so this needs to be early
         self.setXYs(xys)
         self.setOris(oris)
@@ -3349,31 +3362,66 @@ class ElementArrayStim:
         self.needTexCoordUpdate=True
 
     def setRgbs(self,value,operation=''):
-        """Set the rgb for each element.
-        Should either be:
-
-          - a single value
-          - an Nx1 array/list
-          - an Nx3 array/list
+        """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
-        #make into an array
-        if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value, dtype=float)
+        self.setColors(value,operation)
+    def setColors(self, color, colorSpace=None, operation=''):
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
+        about the various ways to specify colors and their various implications.
+
+        :Parameters:
+
+        color :
+            Can be specified in one of many ways.
+
+            You must provide a triplet of values, which refer to the coordinates
+            in one of the :ref:`colorspaces`. If no color space is specified then the color
+            space most recently used for this stimulus is used again.
+
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
+                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
+                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
+
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x].
+
+                myStim.setColor(255, 'rgb255') #all guns o max
+
+        colorSpace : string or None
+
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation).
+
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+
+            for colors specified as a triplet of values (or single intensity value)
+            the new value will perform this operation on the previous color
+
+                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
+                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+        """
+        _setColor(self,color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='rgbs', #or 'fillRGB' etc
+                    colorAttrib='colors',
+                    colorSpaceAttrib='colorSpace')
+
         #check shape
-        if value.shape in [(), (1,),(3,)]:
-            value = numpy.resize(value, [self.nElements,3])
-        elif value.shape in [(self.nElements,), (self.nElements,1)]:
-            value.shape=(self.nElements,1)#set to be 2D
-            value = value.repeat(3,1) #repeat once on dim 1
-        elif value.shape == (self.nElements,3):
+        if self.rgbs.shape in [(), (1,),(3,)]:
+            self.rgbs = numpy.resize(self.rgbs, [self.nElements,3])
+        elif self.rgbs.shape in [(self.nElements,), (self.nElements,1)]:
+            self.rgbs.shape=(self.nElements,1)#set to be 2D
+            self.rgbs = self.rgbs.repeat(3,1) #repeat once on dim 1
+        elif self.rgbs.shape == (self.nElements,3):
             pass#all is good
         else:
             raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
-        if operation=='':
-            self.rgbs=value
-        else: exec('self.rgbs'+operation+'=value')
 
         self.needColorUpdate=True
+        if self.autoLog:
+            self.win.logOnFlip("Set %s colors=%s colorSpace=%s" %(self.name, self.colors, self.colorSpace),
+                level=logging.EXP,obj=self)
     def setContrs(self,value,operation=''):
         """Set the contrast for each element.
         Should either be:
@@ -3447,9 +3495,9 @@ class ElementArrayStim:
         if self.needVertexUpdate:
             self.updateElementVertices()
         if self.needColorUpdate:
-            self.updataElementColors()
+            self.updateElementColors()
         if self.needTexCoordUpdate:
-            self.updataTextureCoords()
+            self.updateTextureCoords()
 
         #scale the drawing frame and get to centre of field
         GL.glPushMatrix()#push before drawing, pop after
@@ -3551,16 +3599,25 @@ class ElementArrayStim:
         self.needVertexUpdate=False
 
     #----------------------------------------------------------------------
-    def updataElementColors(self):
-        """Create a new array of self._RGBAs"""
+    def updateElementColors(self):
+        """Create a new array of self._RGBAs based on self.rgbs. Not needed by the
+        user (simple call setColors())
 
+        For element arrays the self.rgbs values correspond to one element so
+        this function also converts them to be one for each vertex of each element
+        """
         N=self.nElements
         self._RGBAs=numpy.zeros([N,4],'d')
-        self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
+            self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
+        else:
+            self._RGBAs[:,0:3] = self.rgbs * self.contrs[:].reshape([N,1]).repeat(3,1)/255.0
         self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
+
         self.needColorUpdate=False
-    def updataTextureCoords(self):
+
+    def updateTextureCoords(self):
         """Create a new array of self._maskCoords"""
 
         N=self.nElements
