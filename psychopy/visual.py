@@ -4888,7 +4888,7 @@ class BufferImageStim(PatchStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=[], interpolate=True, vertMirror=False, name='', autoLog=True):
+        stim=(), interpolate=True, vertMirror=False, name='', autoLog=True):
         """
         :Parameters:
 
@@ -4902,9 +4902,9 @@ class BufferImageStim(PatchStim):
                 which is the area to capture from the screen, given in norm units.
                 default is fullscreen: [-1, 1, 1, -1]
             stim :
-                all item(s) in the list will be drawn and recaptured as a single stim.
-                each of these needs to have its own .draw() method, and be in the
-                same window as win
+                a list of item(s) to be drawn to the buffer in order, then captured.
+                each item needs to have its own .draw() method, and have the same
+                window as win
             interpolate :
                 whether to use interpolation (default = True, generally good,
                 especially if you change the orientation)
@@ -4916,7 +4916,6 @@ class BufferImageStim(PatchStim):
             name : string
                 The name of the object to be using during logged messages about this stim
         """
-
         # depends on: window._getRegionOfFrame
 
         if len(list(stim)) > 0: # draw all stim to the back buffer
@@ -4932,7 +4931,9 @@ class BufferImageStim(PatchStim):
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
-        self.vertMirror = vertMirror
+        self.vertMirror = vertMirror # used in .draw()
+        
+        # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
         if glversion >= '2.1' and not sqPower2:
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
@@ -4941,6 +4942,7 @@ class BufferImageStim(PatchStim):
                 logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
+        # turn the RGBA region into a PatchStim()-like object:
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
@@ -4955,6 +4957,7 @@ class BufferImageStim(PatchStim):
         self.thisScale = 2.0/numpy.array(self.win.size)
 
     def setTex(self, tex, interpolate=True):
+        # setTex is called only once
         self._texName = tex
         id = self.texID
         pixFormat = GL.GL_RGB
@@ -5019,8 +5022,6 @@ class BufferImageStim(PatchStim):
         limitations / bugs: not sure what happens with shaders & self._updateList()
         """
         # this is copy & pasted from PatchStim, then had stuff taken out for speed
-        # if you need even faster draw times, can reduce by commenting out
-        # GL.glTranslatef(), GL.glRotatef(), GL.glColor4f()
 
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
