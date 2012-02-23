@@ -451,7 +451,7 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
 
     usage::
 
-        rgb(Nx3) = lms2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+        rgb_Nx3 = lms2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
 
     """
 
@@ -470,6 +470,46 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
     rgb_to_cones = numpy.linalg.pinv(cones_to_rgb)#get inverse
     rgb = numpy.dot(cones_to_rgb, lms_3xN)
     return numpy.transpose(rgb)#return in the shape we received it
+
+def hsv2rgb(hsv_Nx3):
+    """Convert from HSV color space to RGB gun values
+
+    usage::
+
+        rgb_Nx3 = hsv2rgb(hsv_Nx3)
+
+    Note that in some uses of HSV space the Hue component is given in radians or
+    cycles (range 0:1]). In this version H is given in degrees (0:360).
+    """
+    #based on method in http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
+    hsv_Nx3 = numpy.asarray(hsv_Nx3, dtype=float)
+    H_ = (hsv_Nx3[:,0]%360)/60.0 #this is H' in the wikipedia version
+    C = hsv_Nx3[:,1]*hsv_Nx3[:,2] #multiply H and V to give chroma (color intensity)
+    X = C*(1-abs(H_%2-1))
+
+    #rgb starts
+    rgb=hsv_Nx3*0#only need to change things that are no longer zero
+    II = (0<=H_)*(H_<1)
+    rgb[II,0]=C[II]
+    rgb[II,1]=X[II]
+    II = (1<=H_)*(H_<2)
+    rgb[II,0]=X[II]
+    rgb[II,1]=C[II]
+    II = (2<=H_)*(H_<3)
+    rgb[II,1]=C[II]
+    rgb[II,2]=X[II]
+    II = (3<=H_)*(H_<4)
+    rgb[II,1]=X[II]
+    rgb[II,2]=C[II]
+    II = (4<=H_)*(H_<5)
+    rgb[II,0]=X[II]
+    rgb[II,2]=C[II]
+    II = (5<=H_)*(H_<6)
+    rgb[II,0]=C[II]
+    rgb[II,2]=X[II]
+    m=(hsv_Nx3[:,2] - C)
+    rgb +=  m.reshape([len(m),1])# V-C is sometimes called m
+    return rgb
 
 def pol2cart(theta, radius, units='deg'):
     """Convert from polar to cartesian coordinates
