@@ -1168,13 +1168,18 @@ class CoderFrame(wx.Frame):
         self.shelf.AddPage(self.outputWindow, 'Output')
 
         if haveCode:
+            useDefaultShell = True
             if self.prefs['preferredShell'].lower()=='ipython':
-                import IPython.gui.wx.ipython_view
-                #IPython shell is nice, but crashes if you draw stimuli
-                self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self,
-                    background_color='WHITE',
-                    )
-            else:
+                try:
+                    import IPython.gui.wx.ipython_view
+                    #IPython shell is nice, but crashes if you draw stimuli
+                    self.shell = IPython.gui.wx.ipython_view.IPShellWidget(parent=self,
+                        background_color='WHITE',
+                        )
+                    useDefaultShell = False
+                except:
+                    logging.warn('IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)')
+            if useDefaultShell:
                 from wx import py
                 self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
             self.shelf.AddPage(self.shell, 'Shell')
