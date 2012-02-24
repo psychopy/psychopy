@@ -4716,7 +4716,7 @@ class Circle(Polygon):
 
     (New in version 1.72.00)
     """
-    def __init__(self, win, radius=.5, **kwargs):
+    def __init__(self, win, radius=.5, edges=32, **kwargs):
         """
         Circle accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
 
@@ -4734,7 +4734,7 @@ class Circle(Polygon):
                 If radius is a 2-tuple or list, the values will be interpreted as semi-major and
                 semi-minor radii of an ellipse.
         """
-        kwargs['edges'] = 32
+        kwargs['edges'] = edges
         kwargs['radius'] = radius
         Polygon.__init__(self, win, **kwargs)
 

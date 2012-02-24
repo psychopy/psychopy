@@ -70,7 +70,7 @@ If you want to install each library individually rather than use the simple dist
 * `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
-* `pyglet <http://www.pyglet.org>`_ (version 1.1 or greater)
+* `pyglet <http://www.pyglet.org>`_ (version 1.1.4, not version 1.2?)
 * `pygame <http://www.pygame.org>`_ (for playing sounds and/or as an alternative to pyglet. Must be version 1.8 or greater)
 * `pywin32 <https://sourceforge.net/projects/pywin32/>`_ (only needed for *Windows*)
 * `wxPython <http://www.wxpython.org>`_ (version 2.8, not 2.9)

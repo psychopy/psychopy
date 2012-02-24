@@ -1,16 +1,16 @@
-from psychopy.misc import dkl2rgb, lms2rgb
+from psychopy.misc import dkl2rgb, lms2rgb, hsv2rgb
 
 def hex2rgb255(hexColor):
-    """Convert a hex color string (e.g. "#05ff66") into an rgb triplet 
+    """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
     ranging from 0:255
     """
     if hexColor[0] == '#': hexColor = hexColor[1:]
     elif hexColor[0:2].lower() == '0x': hexColor = hexColor[2:]
-    if len(hexColor)==3: hexColor = hexColor[0]+'0'+hexColor[1]+'0'+hexColor[2]+'0'    
+    if len(hexColor)==3: hexColor = hexColor[0]+'0'+hexColor[1]+'0'+hexColor[2]+'0'
     return int(hexColor[0:2], 16), int(hexColor[2:4], 16), int(hexColor[4:6], 16)
-    
+
 """140 colors defined by most modern browsers (originally the standard colors of X11).
-Google for 140 web colors for further info""" 
+Google for 140 web colors for further info"""
 colors={
     "aliceblue":(0.882352941176471,0.945098039215686,1),
     "antiquewhite":(0.96078431372549,0.843137254901961,0.686274509803922),
