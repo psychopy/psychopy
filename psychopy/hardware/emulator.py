@@ -210,8 +210,9 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         settings.update({'sync': '5'})
     if not 'skip' in settings:
         settings.update({'skip': 0})
-    try: wait_timeout = int(wait_timeout)
-    except ValueError: raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
+    try: wait_timeout = max(0.01, float(wait_timeout))
+    except ValueError:
+        raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
     instr = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4)
     parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4)
@@ -231,7 +232,6 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     else:
         doSimulation = (mode == 'Test')
     
-    abort_time = globalClock.getTime() + wait_timeout # Set time to assume an error and quit.
     win.setMouseVisible(False)
     msg = visual.TextStim(win, color='DarkBlue', text=wait_msg)
     msg.draw()
@@ -246,13 +246,14 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         core.runningThreads.append(roboResponses)
         
     # wait for first sync pulse:
+    timeoutClock = core.Clock() # zeroed now
     allKeys = []
     while not settings['sync'] in allKeys:
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys: 
             core.quit()
-        if globalClock.getTime() > abort_time:
-            raise TimeoutError('Waiting for scanner has timed out in %i seconds.' % wait_timeout)
+        if timeoutClock.getTime() > wait_timeout:
+            raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
     win.flip() # blank the screen on first sync pulse received
