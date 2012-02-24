@@ -26,8 +26,10 @@ PsychoPy 1.73.05
 
 * FIXED: Joystick error when calling :class:`~psychopy.hardware.joystick.Joystick.getHat()` or :class:`~psychopy.hardware.joystick.Joystick.getHats()` (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
-* FIXED: fMRI emulator class was providing old-format key events (fixed by Erik Kastman)
-* FIXED: Win.setRecordFrameIntervals(True) was including as a frame interval the time since it was turned off (fixed by Alex Holcombe)
+* FIXED: fMRI emulator class was providing old-format key events (fixed by Erik Kastman and Jeremy)
+* FIXED: Win.setRecordFrameIntervals(True) was including the time since it was turned off as a frame interval (fixed by Alex Holcombe)
+* FIXED: using forceEndtrial from a mouse component in Builder wasn't working (thanks Esteban for the heads-up)
+* FIXED: visual.Circle now respects the edges parameter (fixed by Jonas Lindelov)
 
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

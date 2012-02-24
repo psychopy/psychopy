@@ -7,16 +7,18 @@ News
 
 **Latest version**: 1.73.04 was released Feb 2012. See complete :doc:`changelog`
 
-**VSS Workshop**: I'm going to run a small-group workshop (probably limit to 30 people) for PsychoPy as a satellite at VSS on the Thursday before the main conference starts.
+.. raw:: html
 
-    - when: Thurs 10th May, 1-5pm(?)
-    - where: Naples Grand in the Cyber Cafe
-    - cost: $75 (probably)
-    - target audience: novice
-    - material will cover Builder and simple coding
+    <font color="red">
 
-Email me personally (jon at peirce.org.uk) if you're interested in attending.
+VSS Workshop
+=================
 
+.. raw:: html
+
+    </font>
+
+We will be running a small-group workshop (probably limit to 30 people) for PsychoPy as a satellite at VSS on the Thursday before the main conference starts. Registration is required. See :ref:`VSS` for further details
 
 .. title:: Home
 
