@@ -30,7 +30,9 @@ PsychoPy 1.73.05
 * FIXED: Win.setRecordFrameIntervals(True) was including the time since it was turned off as a frame interval (fixed by Alex Holcombe)
 * FIXED: using forceEndtrial from a mouse component in Builder wasn't working (thanks Esteban for the heads-up)
 * FIXED: visual.Circle now respects the edges parameter (fixed by Jonas Lindelov)
+* FIXED: having IPython v0.12 should no longer crash psychopy on startup (Jeremy)
 * ADDED: support for usb->serial devices under linux (William Hogman)
+* ADDED: option to vertically flip a BufferImageStim upon capture (esp for fMRI-related presentation of text) (Jeremy)
 
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
