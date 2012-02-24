@@ -80,7 +80,7 @@ class MouseComponent(BaseComponent):
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.status=STARTED\n" %(self.params))
-        buff.writeIndented("event.mouseButtons=[0,0,0] #reset mouse buttons to be 'up'")
+        buff.writeIndented("event.mouseButtons=[0,0,0] #reset mouse buttons to be 'up'\n")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
