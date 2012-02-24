@@ -65,6 +65,7 @@ def findPhotometer(ports=None, device=None):
                 return None
         elif sys.platform.startswith('linux'):
             ports = glob.glob('/dev/ttyACM?')#USB CDC devices (virtual serial ports)
+            ports.extend(glob.glob("/dev/ttyUSB?")) # USB to serial adapters using the usb-serial kernel module
             ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
             ports = range(11)
