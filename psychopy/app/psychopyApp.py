@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # Part of the PsychoPy library
-# Copyright (C) 2011 Jonathan Peirce
+# Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
 import StringIO, copy
 if sys.argv[-1] in ['-v', '--version']:
-    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2011, GNU GPL license' %psychopy.__version__
+    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2012, GNU GPL license' %psychopy.__version__
     sys.exit()
 if sys.argv[-1] in ['-h', '--help']:
     print """Starts the PsychoPy2 application.
@@ -369,7 +369,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2011 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2012 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
