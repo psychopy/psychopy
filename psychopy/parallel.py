@@ -13,6 +13,7 @@ An alternative (e.g. on Linux) might be to install pyParallel and call that dire
 """
 
 from contrib import parallel #this is Dincer Aydin's module
+from psychopy import core
 
 def setPortAddress(address=0x0378):
     """Set the memory address of your parallel port, to be used in subsequent commands
@@ -28,17 +29,23 @@ def setPortAddress(address=0x0378):
     parallel.statusRegAdrs = address + 1                     # status register address
     parallel.ctrlRegAdrs = address + 2                       # control register address
 
-def setData(data):
+def setData(data, duration=False):
     """Set the data to be presented on the parallel port (one ubyte).
     Alternatively you can set the value of each pin (data pins are pins
     2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+    
+    :Parameters:
+
+        data : the new state of pins.
+
+        duration : the duration of the state (in seconds). When duration is not False, the state is set to 0 after this duration (equivalent of parallel.setData(0)). OBS: everything halts in this period.
     
     examples::
     
         parallel.setData(0) #sets all pins low
         parallel.setData(255) #sets all pins high
         parallel.setData(2) #sets just pin 3 high (remember that pin2=bit0)
-        parallel.setData(3) #sets just pins 2 and 3 high
+        parallel.setData(3, 0.010) #sets just pins 2 and 3 high for 10 milliseconds
         
     you can also convert base 2 to int v easily in python::
      
@@ -47,6 +54,9 @@ def setData(data):
         
     """
     parallel.pportOut(data)
+    if duration:
+        core.wait(duration)
+        parallel.pportOut(0)
     
 def setPin(pinNumber, state):
     """Set a desired pin to be high(1) or low(0).
