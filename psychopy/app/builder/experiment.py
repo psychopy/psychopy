@@ -106,10 +106,15 @@ class Experiment:
         """
         self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
+        
+        locDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
+        locDateTime = ''.join([c for c in locDateTime if ord(c) < 128]) # filter out 8-bit, eg locale 'ja_JP'
+            # see http://docs.python.org/release/2.7.2/library/stringio.html
+
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
-                        self.psychopyVersion, data.getDateStr(format="%B %d, %Y, at %H:%M") ) +
+                        self.psychopyVersion, locDateTime ) +
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
