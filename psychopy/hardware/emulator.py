@@ -12,7 +12,7 @@ from psychopy import visual, event, core, logging
 from psychopy.errors import TimeoutError
 import threading
 
-#import sound # for playing EPI noise in SyncGenerator
+from psychopy.sound import Sound # for SyncGenerator tone
 
 class ResponseEmulator(threading.Thread):
     def __init__(self, simResponses=None):
@@ -54,15 +54,14 @@ class ResponseEmulator(threading.Thread):
         self.stopflag = True
     
 class SyncGenerator(threading.Thread):
-    def __init__(self, TR=1.0, volumes=10, sync='5', skip=0): #, soundfile=None):
+    def __init__(self, TR=1.0, volumes=10, sync='5', skip=0, sound=False):
         """Class for a character-emitting metronome thread (emulate MR sync pulse).
             
             Aim: Allow testing of temporal robustness of fMRI scripts by emulating 
             a hardware sync pulse. Adds an arbitrary 'sync' character to the key 
             buffer, with sub-millisecond precision (less precise if CPU is maxed). 
             Recommend: TR=1.000 or higher and less than 100% CPU. Shorter TR
-            --> higher CPU load. Might work ok at TR=0.100 if main task is not
-            CPU-intensive (not tested).
+            --> higher CPU load. 
             
             Parameters:
                 TR:      seconds per whole-brain volume
@@ -71,16 +70,20 @@ class SyncGenerator(threading.Thread):
                 skip:    how many frames to silently omit initially during T1 
                          stabilization, no sync pulse. Not needed to test script
                          timing, but will give more accurate feel to start of run
+                sound:   play a tone, slightly shorter duration than TR
         """
-        self.TR = TR
         if TR < 0.1: 
             raise ValueError, 'SyncGenerator:  whole-brain TR < 0.1 not supported'
+        self.TR = TR
         self.hogCPU = 0.035
-        self.timesleep = max(self.TR, self.hogCPU + 0.001)
+        self.timesleep = self.TR
         self.volumes = int(volumes)
         self.sync = sync
         self.skip = skip
-        #self.soundfile = soundfile
+        self.playSound = sound
+        if self.playSound:
+            self.sound = Sound(secs=self.TR-.08, octave=6, autoLog=False)
+            self.sound.setVolume(0.15)
         
         self.clock = core.Clock()
         self.stopflag = False
@@ -88,17 +91,14 @@ class SyncGenerator(threading.Thread):
         self.running = False
     def run(self):
         self.running = True
-        #epi = sound.Sound(self.soundfile)
         if self.skip:
-            #if self.soundfile:
-                #epi.play()
+            if self.playSound:
+                self.sound.play()
             core.wait(self.TR * self.skip) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
-            #if self.sound:
-                #epi.stop()
-                #epi.play()
-                #epi.fadeOut(int(1500*self.TR))
+            if self.playSound:
+                self.sound.play()
             if self.stopflag:
                 break
             # "emit" a sync pulse by placing a key in the buffer:
@@ -233,9 +233,12 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         doSimulation = (mode == 'Test')
     
     win.setMouseVisible(False)
-    msg = visual.TextStim(win, color='DarkBlue', text=wait_msg)
+    msg = visual.TextStim(win, color='DarkGray', text=wait_msg)
     msg.draw()
     win.flip()
+    if wait_timeout is None or wait_timeout > 10:
+        core.wait(1.2) # show msg for a bit, wait for scanner start
+
     event.clearEvents() # do before starting the threads
     if doSimulation:
         syncPulse = SyncGenerator(**settings)

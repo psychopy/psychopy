@@ -2,7 +2,7 @@
 import os, sys
 import nose
 
-from psychopy import visual
+from psychopy import visual, core
 from psychopy.hardware.emulator import *
 
 BASE_MR_SETTINGS = { 
