@@ -544,7 +544,7 @@ class Window:
 
         :Parameters:
         
-            frames: number of monitor frames to flip image. Window.multiFlip(flips=1) is equivalent to Window.flip().
+            flips: number of monitor frames to flip image. Window.multiFlip(flips=1) is equivalent to Window.flip().
 
             clearBuffer: as in Window.flip(). This is applied to the last flip.
 
@@ -558,10 +558,10 @@ class Window:
         """
         
         #Sanity checking
-        if flips != abs(int(flips)):
-            logging.error("flips argument for multiFlip was not positive ingeter")
+        if flips >= 1 and abs(flips) == flips:
+            logging.error("flips argument for multiFlip was not positive integer")
         if flips > 1 and self.waitBlanking: 
-            logging.warning("Call to Window.multiFlip() with frames > 1 has no effect on timing because Window.waitBlanking=False")
+            logging.warning("Call to Window.multiFlip() with flips > 1 is unnecessary because Window.waitBlanking=False")
         
         #Do the flipping with last flip as special case
         for frame in range(flips-1): 
