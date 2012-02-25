@@ -23,6 +23,7 @@ PsychoPy 1.73.05
 * FIXED: using forceEndtrial from a mouse component in Builder wasn't working (thanks Esteban for the heads-up)
 * FIXED: visual.Circle now respects the edges parameter (fixed by Jonas Lindelov)
 * FIXED: having IPython v0.12 should no longer crash psychopy on startup (Jeremy)
+* FIXED: non-ascii month-name (eg Japanese) from %B is now filtered out to avoid crash when compile a psyexp script (Jeremy)
 * ADDED: support for usb->serial devices under linux (William Hogman)
 * ADDED: option to vertically flip a BufferImageStim upon capture (esp for fMRI-related presentation of text) (Jeremy)
 * ADDED: option to play a sound (simple tone) during fMRI launchScan simulation (Jeremy)
