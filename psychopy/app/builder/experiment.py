@@ -926,7 +926,7 @@ class Routine(list):
         buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
         #allow subject to quit via Esc key?
-        if not self.exp.settings.params['Disable Escape'].val:
+        if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines('\n#check for quit (the [Esc] key)')
             buff.writeIndentedLines('if event.getKeys(["escape"]):\n    core.quit()')
         #update screen

@@ -9,7 +9,7 @@ class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
-                 logging='exp', color='$[0,0,0]', colorSpace='rgb', disableEscape=False,
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True,
                  savedDataFolder=''):
         self.type='Settings'
@@ -52,8 +52,8 @@ class SettingsComponent:
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")
-        self.params['Disable Escape']=Param(disableEscape, valType='bool', allowedTypes=[],
-            hint="Disable the <esc> key, so that subjects cannot break out of the experiment")
+        self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
+            hint="Enable the <esc> key, to allow subjects to quit / break out of the experiment")
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.")
         self.params['logging level']=Param(logging, valType='code',
