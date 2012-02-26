@@ -107,9 +107,9 @@ class Experiment:
         self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
         
+        #better to use locale than a specific format string for date:
         locDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
-        locDateTime = ''.join([c for c in locDateTime if ord(c) < 128]) # filter out 8-bit, eg locale 'ja_JP'
-            # see http://docs.python.org/release/2.7.2/library/stringio.html
+        locDateTime = codecs.utf_8_decode(locDateTime)[0]
 
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
