@@ -925,10 +925,12 @@ class Routine(list):
         buff.writeIndentedLines('    if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:\n')
         buff.writeIndentedLines('        continueRoutine=True; break#at least one component has not yet finished\n')
 
+        #allow subject to quit via Esc key?
+        if not self.exp.settings.params['Disable Escape'].val:
+            buff.writeIndentedLines('\n#check for quit (the [Esc] key)')
+            buff.writeIndentedLines('if event.getKeys(["escape"]):\n    core.quit()')
         #update screen
-        buff.writeIndentedLines('\n#check for quit (the [Esc] key)\n')
-        buff.writeIndented('if event.getKeys(["escape"]): core.quit()\n')
-        buff.writeIndented('#refresh the screen\n')
+        buff.writeIndentedLines('\n#refresh the screen\n')
         buff.writeIndented("if continueRoutine:#don't flip if this routine is over or we'll get a blank screen\n")
         buff.writeIndented('    win.flip()\n')
 
