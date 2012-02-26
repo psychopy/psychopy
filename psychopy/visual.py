@@ -558,8 +558,8 @@ class Window:
         """
         
         #Sanity checking
-        if flips >= 1 and abs(flips) == flips:
-            logging.error("flips argument for multiFlip was not positive integer")
+        if flips >= 1 and int(flips) == flips:
+            logging.error("flips argument for multiFlip should be a positive integer")
         if flips > 1 and self.waitBlanking: 
             logging.warning("Call to Window.multiFlip() with flips > 1 is unnecessary because Window.waitBlanking=False")
         
