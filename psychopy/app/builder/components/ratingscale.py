@@ -46,7 +46,8 @@ class RatingScaleComponent(BaseComponent):
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint="A rating scale only collects the response; it does not display the stimulus to be rated.")
+            hint="A rating scale only collects the response; it does not display the stimulus to be rated.",
+            label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -64,17 +65,22 @@ class RatingScaleComponent(BaseComponent):
             hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices")
+            hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices",
+            label="Visual analog scale")
         self.params['categoryChoices'] = Param(categoryChoices, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale")
+            hint="A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale",
+            label="Category choices")
         self.params['scaleDescription'] = Param(scaleDescription, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Brief instructions, such as a description of the scale numbers as seen by the subject.")
+            hint="Brief instructions, such as a description of the scale numbers as seen by the subject.",
+            label="Scale description")
         self.params['low'] = Param(low, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Lowest rating (low end of the scale); not used for categories.")
+            updates='constant', allowedUpdates=[], hint="Lowest rating (low end of the scale); not used for categories.",
+            label="Low")
         self.params['high'] = Param(high, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.")
+            updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.",
+            label="High")
 
         # advanced params:
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],

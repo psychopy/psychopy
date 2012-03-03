@@ -35,10 +35,12 @@ class MovieComponent(VisualComponent):
         self.params['stopVal'].hint="Leave blank simply to play the movie for its full duration"
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A filename for the movie (including path)")
+            hint="A filename for the movie (including path)",
+            label="Movie file")
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should the end of the movie cause the end of the routine (e.g. trial)?")
+            hint="Should the end of the movie cause the end of the routine (e.g. trial)?",
+            label="Force end of Routine")
         #these are normally added but we don't want them for a movie
         del self.params['color']
         del self.params['colorSpace']

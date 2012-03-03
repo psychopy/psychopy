@@ -14,7 +14,8 @@ class BaseComponent:
         self.parentName=parentName#to access the routine too if needed
         self.params={}
         self.params['name']=Param(name, valType='code',
-            hint="Name of this component")
+            hint="Name of this component",
+            label="Name")
         self.order=['name']#make name come first (others don't matter)
     def writeInitCode(self,buff):
         pass

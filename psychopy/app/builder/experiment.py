@@ -426,7 +426,7 @@ class Param:
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None):
+    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", label="", updates=None, allowedUpdates=None):
         """
         @param val: the value for this parameter
         @type val: any
@@ -443,6 +443,7 @@ class Param:
         @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
         @type allowedUpdates: list
         """
+        self.label=label
         self.val=val
         self.valType=valType
         self.allowedTypes=allowedTypes

@@ -1267,6 +1267,7 @@ class ParamCtrls:
         by the calling dlg.
 
         e.g.::
+
             param = experiment.Param(val='boo', valType='str')
             ctrls=ParamCtrls(dlg=self, label=fieldName,param=param)
             self.paramCtrls[fieldName] = ctrls #keep track of them in the dlg
@@ -1511,8 +1512,8 @@ class _BaseParamsDlg(wx.Dialog):
         startTypeParam = self.params['startType']
         startValParam = self.params['startVal']
         #create label
-        label = wx.StaticText(self,-1,'start', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'expected start (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(self,-1,'Start', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
@@ -1545,8 +1546,8 @@ class _BaseParamsDlg(wx.Dialog):
         stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
         #create label
-        label = wx.StaticText(self,-1,'stop', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'expected duration (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(self,-1,'Stop', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(self,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
@@ -1588,7 +1589,11 @@ class _BaseParamsDlg(wx.Dialog):
             parent=self
             currRow = self.currRow
         param=self.params[fieldName]
-        ctrls=ParamCtrls(dlg=self, label=fieldName,param=param, advanced=advanced)
+        if param.label not in [None, '']:
+            label=param.label
+        else:
+            label=fieldName
+        ctrls=ParamCtrls(dlg=self, label=label,param=param, advanced=advanced)
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)

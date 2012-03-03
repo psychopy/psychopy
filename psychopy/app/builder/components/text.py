@@ -30,21 +30,26 @@ class TextComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['name']=Param(name, valType='code', allowedTypes=[])
+        self.params['name']=Param(name, valType='code', allowedTypes=[],
+            label="Name")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The text to be displayed")
+            hint="The text to be displayed",
+            label="Text")
         self.params['font']=Param(font, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The font name (e.g. Comic Sans)")
+            hint="The font name (e.g. Comic Sans)",
+            label="Font")
         #change the hint for size
         del self.params['size']#because you can't specify width for text
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Specifies the height of the letter (the width is then determined by the font)")
+            hint="Specifies the height of the letter (the width is then determined by the font)",
+            label="Letter height")
         self.params['wrapWidth']=Param(wrapWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant'],
-            hint="How wide should the text get when it wraps? (in the specified units)")
+            hint="How wide should the text get when it wraps? (in the specified units)",
+            label="Wrap width")
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""

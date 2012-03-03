@@ -26,13 +26,16 @@ class KeyboardComponent(BaseComponent):
         self.order=['forceEndRoutine','allowedKeys',#NB name and timing params always come 1st
             'store','storeCorrect','correctAns',
             ]
-        self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)")
+        self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)",
+            label="Name")
         self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A comma-separated list of keys (with quotes), such as 'q','right','space','left ")
+            hint="A comma-separated list of keys (with quotes), such as 'q','right','space','left' ",
+            label="Allowed keys")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
+            hint="How do you want to define your start point?",
+            label="")
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
             hint="How do you want to define your end point?")
@@ -47,19 +50,24 @@ class KeyboardComponent(BaseComponent):
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['discard previous']=Param(discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to discard any keypresses occuring before the onset of this component?")
+            hint="Do you want to discard any keypresses occuring before the onset of this component?",
+            label="Discard previous")
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
-            hint="Choose which (if any) keys to store at end of trial")
+            hint="Choose which (if any) keys to store at end of trial",
+            label="Store")
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should the keypress force the end of the routine (e.g end the trial)?")
+            hint="Should the keypress force the end of the routine (e.g end the trial)?",
+            label="Force end of Routine")
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect?")
+            hint="Do you want to save the response as correct/incorrect?",
+            label="Store correct")
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+            hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns",
+            label="Correct answer")
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse() #create an object of type KeyResponse\n" %self.params)
         buff.writeIndented("%(name)s.status=NOT_STARTED\n" %self.params)

@@ -10,7 +10,7 @@ class SettingsComponent:
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb',
-                 saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True,
+                 saveXLSXFile=True, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder=''):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
@@ -20,7 +20,7 @@ class SettingsComponent:
         #params
         self.params={}
         self.order=['Show info dlg','Experiment info',
-            'Save excel file','Save csv file','Save psydat file','Save log file','logging level',
+            'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
@@ -32,7 +32,8 @@ class SettingsComponent:
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
-            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)")
+            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)",
+            label="Color")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
@@ -42,8 +43,12 @@ class SettingsComponent:
             hint="Should the mouse be visible on screen?")
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
+        self.params['Save wide csv file']=Param(saveWideCSVFile, valType='bool', allowedTypes=[],
+            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
+            label="Save csv file (trial-by-trial)")
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
-            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability")
+            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
+            label="Save csv file (summaries)")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
@@ -56,7 +61,8 @@ class SettingsComponent:
             hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.")
         self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
-            hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")
+            hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
+            label="Logging level")
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):

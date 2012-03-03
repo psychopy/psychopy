@@ -35,27 +35,35 @@ class VisualComponent(_base.BaseComponent):
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
             hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['name']=Param(name,  valType='code', updates='constant',
-            hint="Name of this stimulus")
+            hint="Name of this stimulus",
+            label="Name")
         self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
-            hint="Units of dimensions for this stimulus")
+            hint="Units of dimensions for this stimulus",
+            label="Units")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)")
+            hint="Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)",
+            label="Color")
         self.params['opacity']=Param(opacity, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)")
+            hint="Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)",
+            label="Opacity")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
-            hint="Choice of color space for the color (rgb, dkl, lms)")
+            hint="Choice of color space for the color (rgb, dkl, lms)",
+            label="Color space")
         self.params['pos']=Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Position of this stimulus (e.g. [1,2] ")
+            hint="Position of this stimulus (e.g. [1,2] )",
+            label="Position [x,y]")
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ")
+            hint="Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ",
+            label="Size [w,h]")
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Orientation of this stimulus (in deg)")
+            hint="Orientation of this stimulus (in deg)",
+            label="Orientation")
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """

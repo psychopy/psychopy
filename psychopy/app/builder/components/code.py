@@ -23,7 +23,8 @@ class CodeComponent(BaseComponent):
         self.order = ['name'] + codeParamNames[:] # want a copy, else codeParamNames list gets mutated
         self.params={}
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="") #This name does not actually need to be independent of the others.
+            hint="",
+            label="Name") #This name does not actually need to be independent of the others.
         self.params['Begin Experiment']=Param(beginExp, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Code at the start of the experiment (initialization); right-click checks syntax")

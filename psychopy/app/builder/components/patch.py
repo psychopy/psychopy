@@ -32,22 +32,28 @@ class PatchComponent(VisualComponent):
         self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)")
+            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)",
+            label="Image")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)")
+            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)",
+            label="Mask")
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]")
+            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]",
+            label="SF")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)")
+            hint="Spatial positioning of the image on the patch (in range 0-1.0)",
+            label="Phase")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)")
+            hint="Spatial positioning of the image on the patch (in range 0-1.0)",
+            label="Texture resolution")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint="How should the image be interpolated if/when rescaled")
+            hint="How should the image be interpolated if/when rescaled",
+            label="Interpolate")
 
     def writeInitCode(self,buff):
         #do we need units code?
