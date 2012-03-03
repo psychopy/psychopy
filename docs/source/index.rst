@@ -5,7 +5,9 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.73.04 was released Feb 2012. See complete :doc:`changelog`
+**Latest version**: 1.73.05 was released March 2012. See complete :doc:`changelog`
+
+Work has now begun on 1.74.00 which wil bring new data file formats, HSV color space and more detailed info about key presses.
 
 .. raw:: html
 

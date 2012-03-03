@@ -376,6 +376,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Jeremy Gray')
         info.AddDocWriter('Jonathan Peirce')
+        info.AddDocWriter('Rebecca Sharman')
 
         wx.AboutBox(info)
 

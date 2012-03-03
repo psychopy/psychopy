@@ -25,7 +25,7 @@ The use of git and the following workflow allows people to contribute changes th
         - when finished run unit tests
         - when the unit tests pass merge changes back into the `master` branch
         - submit a pull request to the central repository
-        - 
+
 .. createClone:
 
 Create your own fork of the central repository
@@ -67,6 +67,17 @@ From the GUI you can select (or `stage` in git terminology) the files that you w
 If you have internet access then you could also push your changes back up to your fork (which is called your `origin` by default), either by pressing the `push` button in the GUI or by closing that and typing::
 
     $ git push
+    
+Commit messages
+~~~~~~~~~~~~~~~~~~~~~
+Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following to help us spot easily if this is a bug fix (which might need pulling into other development branches) or new feature (which we might want to avoid pulling in if it might disrupt existing code).
+
+  * *BF* : bug fix
+  * *RF* : refactoring
+  * *NF* : new feature
+  * *OPT* : optimization
+  * *DOC*: for all kinds of documentation related commits
+  * *TEST*: for adding or changing tests
 
 .. _pullRequest:
 
