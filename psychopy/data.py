@@ -165,8 +165,9 @@ class ExperimentHandler(object):
         self.thisEntry[name]=value
 
     def nextEntry(self):
-        """Call this for each entry (e.g. trial) to be stored, but only
-        after all the forms of data have been added to the individual handlers
+        """Calling nextEntry indicates to the ExperimentHandler that the
+        current trial has ended and so further
+        addData() calls correspond to the next trial.
         """
         this=self.thisEntry
         for thisLoop in self.loopsUnfinished:

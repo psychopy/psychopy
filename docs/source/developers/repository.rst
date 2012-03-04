@@ -75,7 +75,7 @@ Informative commit messages are really useful when we have to go back through th
   * *BF* : bug fix
   * *RF* : refactoring
   * *NF* : new feature
-  * *OPT* : optimization
+  * *ENH* : enhancement (improvement to existing code)
   * *DOC*: for all kinds of documentation related commits
   * *TEST*: for adding or changing tests
 
