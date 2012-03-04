@@ -113,7 +113,7 @@ class ExperimentHandler(object):
         """
         if loopHandler in self.loopsUnfinished:
             self.loopsUnfinished.remove(loopHandler)
-    def getAllParamNames(self):
+    def _getAllParamNames(self):
         """Returns the attributes of loop parameters (trialN etc)
         that the current set of loops contain, ready to build a wide-format
         data file.
@@ -191,7 +191,7 @@ class ExperimentHandler(object):
             if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
             else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
-        names = self.getAllParamNames()
+        names = self._getAllParamNames()
         names.extend(self.dataNames)
         #write a header line
         if not matrixOnly:
