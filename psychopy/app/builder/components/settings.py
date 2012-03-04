@@ -51,7 +51,7 @@ class SettingsComponent:
             label="Save csv file (summaries)")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
-        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
+        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
@@ -89,6 +89,7 @@ class SettingsComponent:
             if not saveToDir:
                 saveToDir = 'data'
 
+
         level=self.params['logging level'].val.upper()
         if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
             buff.writeIndented("#setup files for saving\n")
@@ -104,10 +105,18 @@ class SettingsComponent:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+
             if self.params['Save log file']:
                 buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
-
         buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
+
+        #set up the ExperimentHandler
+        buff.writeIndented("\n#an ExperimentHandler isn't essential but helps with data saving\n")
+        buff.writeIndented("thisExp = data.ExperimentHandler(name=expName, version='',\n")
+        buff.writeIndented("    extraInfo=expInfo, runtimeInfo=None,\n")
+        buff.writeIndented("    originPath=%s,\n" %repr(self.exp.expPath))
+        buff.writeIndented("    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n" %self.params)
+        buff.writeIndented("    dataFileName=filename)\n")
 
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
