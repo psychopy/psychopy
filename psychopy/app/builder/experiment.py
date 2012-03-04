@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2011 Jonathan Peirce
+# Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
@@ -106,15 +106,21 @@ class Experiment:
         """
         self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
+        
+        #better to use locale than a specific format string for date:
+        locDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
+        locDateTime = codecs.utf_8_decode(locDateTime)[0]
+
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
-                        self.psychopyVersion, data.getDateStr(format="%B %d, %Y, at %H:%M") ) +
+                        self.psychopyVersion, locDateTime ) +
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
         script.write(
-                    "\nfrom psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+                    "\nfrom __future__ import division #so that 1/3=0.333 instead of 1/3=0\n" +
+                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import * #things like STARTED, FINISHED\n" +
                     "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +

@@ -28,9 +28,9 @@ imageStim.draw()
 imageStim2 = visual.SimpleImageStim(myWin, imageList[1], pos=(300,20))
 imageStim2.draw()
 wordStim = visual.TextStim(myWin,
-            text='This is a text stim that is kinda verbose and long, so if it ' +
+            text='Press any key to quit.\n\nThis is a text stim that is kinda verbose and long, so if it ' +
             'were actually really long it would take a while to render completely.',
-            pos=(0,-.5))
+            pos=(0,-.3))
 wordStim.draw()
 
 rect = [-1,1,1,-1] 
@@ -50,17 +50,10 @@ t0 = myClock.getTime()
 # and take a screen shot, from the back buffer by default:
 screenshot = visual.BufferImageStim(myWin, rect=rect)
 t1 = myClock.getTime() - t0 # record set-up time
-    
-# set up to display the screen-shot, img, plus moving text
-wordsAnim = visual.TextStim(myWin,
-              text='''everything static is a single .draw()  %s\n\npress any key to quit.''' %
-              (str(screenshot.size)))
-wordsAnim.pos[0] = -.25
 
 drawTimeSingle = [] # accumulate draw times of the BufferImageStim
 drawTimeMulti  = [] # draw times of the pieces, as drawn separately (slowly)
 frameCounter = 0
-step = .002
 event.clearEvents()
 while True:
     if len(event.getKeys()): break
@@ -70,22 +63,17 @@ while True:
     
     # just for timing: alternate what is drawn to see timing differences
     if frameCounter % 2 == 0: 
-        t3 = myClock.getTime()        
+        t3 = myClock.getTime()
         screenshot.draw() # actually draw the BufferImageStim
         drawTimeSingle.append(myClock.getTime() - t3)
-    else: # just for timing
+    else:
         t3 = myClock.getTime()
-        imageStim.draw()
+        imageStim.draw() # draw the three separate stimuli
         imageStim2.draw()
         wordStim.draw()
         drawTimeMulti.append(myClock.getTime() - t3)
     frameCounter += 1
     
-    # its more interesting to show something dynamic on the top:
-    wordsAnim.draw()
-    wordsAnim.pos[1] += step
-    if wordsAnim.pos[1] > 0.2 or wordsAnim.pos[1] < -0.05:
-        step *= -1
     myWin.flip()
     
 # report timing in ms:

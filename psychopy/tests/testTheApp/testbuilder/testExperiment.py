@@ -232,7 +232,7 @@ class TestExpt():
         assert namespace.exists('psychopy') == "Psychopy module"
 
         namespace.add('foo')
-        assert namespace.exists('foo') == "script variable"
+        assert namespace.exists('foo') == "one of your Components, Routines, or condition parameters"
         namespace.add('foo')
         assert namespace.getCollisions() == ['foo']
 

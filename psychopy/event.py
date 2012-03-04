@@ -3,7 +3,7 @@
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2011 Jonathan Peirce
+# Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -49,17 +49,30 @@ if havePyglet:
     #eventThread = _EventDispatchThread()
     #eventThread.start()
 
-def _onPygletKey(symbol, modifiers):
-    """handler for on_key_press events from pyglet
-    Adds a key event to global _keyBuffer which can then be accessed as normal
-    using event.getKeys(), .waitKeys(), clearBuffer() etc...
-    Appends a tuple with (keyname, timepressed) into the _keyBuffer"""
+def _onPygletKey(symbol, modifiers, emulated=False):
+    """handler for on_key_press pyglet events, or call directly to emulate a key press
+    
+    Appends a tuple with (keyname, timepressed) into the global _keyBuffer. The
+    _keyBuffer can then be accessed as normal using event.getKeys(), .waitKeys(),
+    clearBuffer(), etc.
+    
+    J Gray 2012: Emulated means add a key (symbol) to the buffer virtually.
+    This is useful for fMRI_launchScan, and for unit testing (in testTheApp)
+    Logging distinguished EmulatedKey events from real Keypress events.
+    For emulation, the key added to the buffer is unicode(symbol), instead of
+    pyglet.window.key.symbol_string(symbol)
+    """
     keyTime=psychopy.core.getTime() #capture when the key was pressed
-    thisKey = pyglet.window.key.symbol_string(symbol).lower()#convert symbol into key string
-    #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
-    thisKey = (thisKey.lstrip('_').lstrip('NUM_'),keyTime) # modified to capture time of keypress so key=(keyname,keytime)
-    _keyBuffer.append(thisKey)
-    logging.data("Keypress: %s" %thisKey[0])
+    if emulated:
+        thisKey = unicode(symbol)
+        keySource = 'EmulatedKey'
+    else:
+        thisKey = pyglet.window.key.symbol_string(symbol).lower() #convert symbol into key string
+        #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
+        thisKey = thisKey.lstrip('_').lstrip('NUM_')
+        keySource = 'Keypress'
+    _keyBuffer.append( (thisKey,keyTime) ) # tuple
+    logging.data("%s: %s" % (keySource, thisKey))
 
 def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons, mouseClick, mouseTimes

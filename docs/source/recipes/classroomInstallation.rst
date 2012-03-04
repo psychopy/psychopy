@@ -33,7 +33,7 @@ You need a network location that is going to be available, with read-only access
 
     `C:\\Program Files\\PsychoPy2\\Lib\\site-packages\\PsychoPy-1.70.00-py2.6.egg`
 
-Move that entire folder to your network location and call it psychopyLib (or similar, getting rid of the version-specific nature of the folder). Now the following should be a valid path:
+Move that entire folder to your network location and call it psychopyLib (or similar, getting rid of the version-specific part of the name). Now the following should be a valid path:
 
     `<NETWORK_LOC>\\psychopyLib\\psychopy`
 
@@ -44,11 +44,11 @@ The Python installation (in C:\\Program Files\\PsychoPy2) needs to know about th
 
     `<NETWORK_LOC>\\psychopyLib`
 
-You can test if this has worked. Go to `C:\Program Files\PsychoPy2` and double-click on python.exe. You should get a Python terminal window come up. Now try:
+You can test if this has worked. Go to `C:\\Program Files\\PsychoPy2` and double-click on python.exe. You should get a Python terminal window come up. Now try:
 
     >>> import psychopy
 
-If psychopy is not found on the path then there will be no error. Try adjusting the file appropriately, restarting python.exe and importing again.
+If psychopy is not found on the path then there will be an import error. Try adjusting the .pth file, restarting python.exe and importing again.
 
 4. Update the Start Menu
 -----------------------------------------

@@ -26,10 +26,7 @@ Allowed keys
     A list of allowed keys can be inserted e.g. ['m','z','1','2']. If this box is left blank then any keys will be read. Only allowed keys count as having been pressed; any other key will not be stored and will not force the end of the Routine. Note that key names (even for number keys) should be given in inverted commas, as with text parameters. Cursor keys can be accessed with 'up', 'down', etc. To use the space bar insert 'space' If you leave this empty any key will be allowed.
 
 Store
-    Which key press, if any, should be stored; the first to be pressed, the last to be pressed or all that have been pressed. If the key press is to force the end of the trial then this setting is unlikely to be necessary, unless two keys happen to be pressed in the same video frame.
-
-Store response time
-    If checked then the response time will also be stored. This time will be taken from the start of keyboard checking.
+    Which key press, if any, should be stored; the first to be pressed, the last to be pressed or all that have been pressed. If the key press is to force the end of the trial then this setting is unlikely to be necessary, unless two keys happen to be pressed in the same video frame. The response time will also be stored if a keypress is recorded. This time will be taken from the start of keyboard checking (e.g. if the keyboard was initiated 2 seconds into the trial and a key was pressed 3.2s into the trials the response time will be recorded as 1.2s).
 
 Store correct
     Check this box if you wish to store whether or not this key press was correct. If so then fill in the next box that defines what would consitute a correct answer e.g. left, 1 or `$corrAns` (note this should not be in inverted commas). This is given as Python code that should return True (1) or False (0). Often this correct answer will be defined in the settings of the :ref:`Loops`.
