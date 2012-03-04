@@ -1,0 +1,18 @@
+--- a/psychopy/__init__.py
++++ b/psychopy/__init__.py
+@@ -7,7 +7,7 @@
+ #--------------------------------------------------------------------------
+ 
+ #version info for PsychoPy
+-__version__='1.73.04'
++__version__='1.73.05'
+ __license__='GNU GPLv3 (or more recent equivalent)'
+ __author__='Jonathan Peirce'
+ __author_email__='jon@peirce.org.uk'
+--- a/version
++++ b/version
+@@ -1 +1 @@
+-1.73.04
+\ No newline at end of file
++1.73.05
+\ No newline at end of file
