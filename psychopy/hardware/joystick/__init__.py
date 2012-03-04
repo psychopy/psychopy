@@ -121,7 +121,7 @@ class Joystick(object):
         if backend=='pyglet':
             for ctrl in self._device.device.get_controls():
                 if ctrl.name!=None and 'hat' in ctrl.name:
-                    hats.append(ctrl.value)
+                    hats.append((self._device.hat_x,self._device.hat_y))
         else:
             for n in range(self._device.get_numhats()):
                 hats.append(self._device.get_hat(n))
@@ -137,8 +137,8 @@ class Joystick(object):
         The position returned is an (x,y) tuple where x and y can be -1,0 or +1
         """
         if backend=='pyglet':
-            if hatNum==0:return self._device.hat
-            else: return self.getAllHats()[hatNum]
+            if hatId==0:return self._device.hat
+            else: return self.getAllHats()[hatId]
         else: return self._device.get_hat(hatId)
     def getX(self):
         """Returns the value on the X axis (equivalent to joystick.getAxis(0))

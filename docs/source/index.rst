@@ -5,10 +5,20 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Updated prac class materials**: The PsychoPy practical class materials have been updated. The first half of the 10-class course have now been run twice and are getting more polished. Some of the second half (in which less actual PsychoPy teaching is done) are not so battle-tested but should still provide a good starting point for your own pracs. See :ref:`lectureMaterials`
+**Latest version**: 1.73.04 was released Feb 2012. See complete :doc:`changelog`
 
-**Latest version**: 1.71.01 was released Oct 2011. See complete :doc:`changelog`
+.. raw:: html
 
+    <font color="red">
+
+VSS Workshop
+=================
+
+.. raw:: html
+
+    </font>
+
+We will be running a small-group workshop (probably limit to 30 people) for PsychoPy as a satellite at VSS on the Thursday before the main conference starts. Registration is required. See :ref:`VSS` for further details
 
 .. title:: Home
 

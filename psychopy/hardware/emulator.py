@@ -3,15 +3,16 @@ both testing and online data acquisition. To debug timing, you can emulate sync
 pulses and user responses. Limitations: pyglet only; keyboard events only.
 """ 
 # Part of the PsychoPy library
-# Copyright (C) 2011 Jonathan Peirce
+# Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __author__ = 'Jeremy Gray'
 
 from psychopy import visual, event, core, logging
+from psychopy.errors import TimeoutError
 import threading
 
-#import sound # for playing EPI noise in SyncGenerator
+from psychopy.sound import Sound # for SyncGenerator tone
 
 class ResponseEmulator(threading.Thread):
     def __init__(self, simResponses=None):
@@ -42,7 +43,7 @@ class ResponseEmulator(threading.Thread):
                 #log.warning('ResponseEmulator: int converted to str')
                 key = str(key)[0]  # avoid cryptic error if int
             if type(key) == str:
-                event._keyBuffer.append(key)
+                event._onPygletKey(symbol=key, modifiers=None, emulated=True)
             else:
                 logging.error('ResponseEmulator: only keyboard events are supported')
             last_onset = onset
@@ -53,15 +54,14 @@ class ResponseEmulator(threading.Thread):
         self.stopflag = True
     
 class SyncGenerator(threading.Thread):
-    def __init__(self, TR=1.0, volumes=10, sync='5', skip=0): #, soundfile=None):
+    def __init__(self, TR=1.0, volumes=10, sync='5', skip=0, sound=False):
         """Class for a character-emitting metronome thread (emulate MR sync pulse).
             
             Aim: Allow testing of temporal robustness of fMRI scripts by emulating 
             a hardware sync pulse. Adds an arbitrary 'sync' character to the key 
             buffer, with sub-millisecond precision (less precise if CPU is maxed). 
             Recommend: TR=1.000 or higher and less than 100% CPU. Shorter TR
-            --> higher CPU load. Might work ok at TR=0.100 if main task is not
-            CPU-intensive (not tested).
+            --> higher CPU load. 
             
             Parameters:
                 TR:      seconds per whole-brain volume
@@ -70,16 +70,20 @@ class SyncGenerator(threading.Thread):
                 skip:    how many frames to silently omit initially during T1 
                          stabilization, no sync pulse. Not needed to test script
                          timing, but will give more accurate feel to start of run
+                sound:   play a tone, slightly shorter duration than TR
         """
-        self.TR = TR
         if TR < 0.1: 
             raise ValueError, 'SyncGenerator:  whole-brain TR < 0.1 not supported'
+        self.TR = TR
         self.hogCPU = 0.035
-        self.timesleep = max(self.TR, self.hogCPU + 0.001)
+        self.timesleep = self.TR
         self.volumes = int(volumes)
         self.sync = sync
         self.skip = skip
-        #self.soundfile = soundfile
+        self.playSound = sound
+        if self.playSound:
+            self.sound = Sound(secs=self.TR-.08, octave=6, autoLog=False)
+            self.sound.setVolume(0.15)
         
         self.clock = core.Clock()
         self.stopflag = False
@@ -87,29 +91,22 @@ class SyncGenerator(threading.Thread):
         self.running = False
     def run(self):
         self.running = True
-        #epi = sound.Sound(self.soundfile)
         if self.skip:
-            #if self.soundfile:
-                #epi.play()
+            if self.playSound:
+                self.sound.play()
             core.wait(self.TR * self.skip) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
-            #if self.sound:
-                #epi.stop()
-                #epi.play()
-                #epi.fadeOut(int(1500*self.TR))
+            if self.playSound:
+                self.sound.play()
             if self.stopflag:
                 break
             # "emit" a sync pulse by placing a key in the buffer:
-            event._keyBuffer.append(self.sync)
+            event._onPygletKey(symbol=self.sync, modifiers=None, emulated=True)
             # wait for start of next volume, doing our own hogCPU for tighter sync:
             core.wait(self.timesleep - self.hogCPU, hogCPUperiod=0)
             while self.clock.getTime() < vol * self.TR:
-                pass #?? no need to pump pyglet window events because threaded (see core wait)
-                if core.havePyglet:
-                    pyglet.media.dispatch_events() #events for sounds/video should run independently of wait()
-                    wins = pyglet.window.get_platform().get_default_display().get_windows()
-                    for win in wins: win.dispatch_events() #pump events on pyglet windows              
+                pass # hogs the CPU for tighter sync
         self.running = False
     def stop(self):
         self.stopflag = True
@@ -117,7 +114,8 @@ class SyncGenerator(threading.Thread):
 def launchScan(win, settings, globalClock=None, simResponses=None, 
                mode='None', esc_key='escape',
                instr='select Scan or Test, press enter',
-               wait_msg="waiting for scanner..."):
+               wait_msg="waiting for scanner...",
+               wait_timeout=300):
     """
     Accepts up to four fMRI scan parameters (TR, volumes, sync-key, skip), and
     launches an experiment in one of two modes: Scan, or Test.
@@ -201,12 +199,20 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
             message to be displayed to the subject while waiting for the scan to 
             start (i.e., after operator indicates start but before the first
             scan pulse is received).
+            
+        wait_timeout :
+            time in seconds that launchScan will wait before assuming something went
+            wrong and exiting. Defaults to 300sec (5 minutes). Raises a TimeoutError
+            if no sync pulse is received in the allowable time.
     """
     
     if not 'sync' in settings:
         settings.update({'sync': '5'})
     if not 'skip' in settings:
         settings.update({'skip': 0})
+    try: wait_timeout = max(0.01, float(wait_timeout))
+    except ValueError:
+        raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
     instr = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4)
     parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4)
@@ -225,11 +231,14 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         doSimulation = (run_type.getRating() == 'Test')
     else:
         doSimulation = (mode == 'Test')
-        
+    
     win.setMouseVisible(False)
-    msg = visual.TextStim(win, color='DarkBlue', text=wait_msg)
+    msg = visual.TextStim(win, color='DarkGray', text=wait_msg)
     msg.draw()
     win.flip()
+    if wait_timeout is None or wait_timeout > 10:
+        core.wait(1.2) # show msg for a bit, wait for scanner start
+
     event.clearEvents() # do before starting the threads
     if doSimulation:
         syncPulse = SyncGenerator(**settings)
@@ -240,11 +249,14 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         core.runningThreads.append(roboResponses)
         
     # wait for first sync pulse:
+    timeoutClock = core.Clock() # zeroed now
     allKeys = []
     while not settings['sync'] in allKeys:
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys: 
             core.quit()
+        if timeoutClock.getTime() > wait_timeout:
+            raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
     win.flip() # blank the screen on first sync pulse received

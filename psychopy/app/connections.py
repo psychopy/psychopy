@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2011 Jonathan Peirce
+# Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import urllib2, socket, re, glob
@@ -64,7 +64,7 @@ def getLatestVersionInfo():
     return latest
 
 class Updater:
-    def __init__(self,app=None, runningVersion=None):
+    def __init__(self,app=None, runningVersion=None, proxy=None):
         """The updater will check for updates and download/install them if necess.
         Several dialogs may be created as needed during the process.
 
@@ -451,7 +451,7 @@ class InstallUpdateDialog(wx.Dialog):
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
         return nUpdates, info
-def sendUsageStats():
+def sendUsageStats(proxy=None):
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
       the system used (platform and version)
