@@ -3,6 +3,7 @@ psychopy (1.73.05.dfsg-1) unstable; urgency=low
   * New upstream release
   * Upgraded policy to 3.9.3
     - debian/copyright updated for DEP-5 compliance
+  * Removed not any longer needed versioning from build-depends
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 04 Mar 2012 16:19:21 -0500
 
