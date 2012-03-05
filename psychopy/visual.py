@@ -538,6 +538,36 @@ class Window:
         """
         self.flip(clearBuffer=True)#clearBuffer was the original behaviour for win.update()
 
+    def multiFlip(self, flips=1, clearBuffer=True):
+        """
+        Flips multiple times while maintaining display constant. Use this method for precise timing.
+
+        :Parameters:
+        
+            flips: number of monitor frames to flip image. Window.multiFlip(flips=1) is equivalent to Window.flip().
+
+            clearBuffer: as in Window.flip(). This is applied to the last flip.
+
+        Example::
+        
+            myStim1.draw()					# Draws myStim1 to buffer
+            myWin.multiFlip(clearBuffer=False, flips=6)	# Show stimulus for 4 frames (90 ms at 60Hz)
+            myStim2.draw()					# Draw myStim2 "on top of" myStim1 (because buffer was not cleared above)
+            myWin.multiFlip(flips=2)		# Show this for 2 frames (30 ms at 60Hz)
+            myWin.multiFlip(flips=3)		# Show blank screen for 3 frames (because buffer was cleared above)
+        """
+        
+        #Sanity checking
+        if flips >= 1 and int(flips) == flips:
+            logging.error("flips argument for multiFlip should be a positive integer")
+        if flips > 1 and self.waitBlanking: 
+            logging.warning("Call to Window.multiFlip() with flips > 1 is unnecessary because Window.waitBlanking=False")
+        
+        #Do the flipping with last flip as special case
+        for frame in range(flips-1): 
+            self.flip(clearBuffer=False)
+        self.flip(clearBuffer=clearBuffer)
+    
     def clearBuffer(self):
         """Clear the back buffer (to which you are currently drawing) without flipping the window.
         Useful if you want to generate movie sequences from the back buffer without actually
