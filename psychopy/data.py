@@ -184,6 +184,9 @@ class ExperimentHandler(object):
         #create the file or print to stdout
         if appendFile: writeFormat='a'
         else: writeFormat='w' #will overwrite a file
+        if os.path.exists(fileName) and writeFormat == 'w':
+            logging.warning('Data file, %s, will be overwritten' %fileName)
+        
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
@@ -209,15 +212,23 @@ class ExperimentHandler(object):
             f.write('\n')
         f.close()
         self.saveWideText=False
-    def saveAsPickle(self,fileName):
+    def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
-        This can be reloaded if necess and further analyses carried out.
+        This can be reloaded if necessary and further analyses carried out.
+        
+        :Parameters:
+
+            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
         """
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
-        f = open(fileName, "wb")
+        if os.path.exists(fileName):
+            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+
+        #create the file or print to stdout
+        f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
         #no need to save again
@@ -274,10 +285,14 @@ class _BaseTrialHandler:
             exp.loopEnded(self)
         #and halt the loop
         raise StopIteration
-    def saveAsPickle(self,fileName):
+    def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of the handler (with data) to a pickle file.
 
-        This can be reloaded if necess and further analyses carried out.
+        This can be reloaded if necessesary and further analyses carried out.
+
+        :Parameters:
+
+            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
@@ -285,7 +300,11 @@ class _BaseTrialHandler:
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
-        f = open(fileName, "wb")
+        if os.path.exists(fileName):
+            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+            
+        #create the file or print to stdout
+        f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
     def printAsText(self, stimOut=[],
@@ -362,7 +381,7 @@ class TrialHandler(_BaseTrialHandler):
             nReps: number of repeats for all conditions
 
             method: *'random',* 'sequential', or 'fullRandom'
-                'sequential obviously presents the conditions in the order they appear in the list.
+                'sequential' obviously presents the conditions in the order they appear in the list.
                 'random' will result in a shuffle of the conditions on each repeat, but all conditions
                 occur once before the second repeat etc. 'fullRandom' fully randomises the
                 trials across repeats as well, which means you could potentially run all trials of
