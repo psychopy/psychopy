@@ -590,7 +590,7 @@ class TrialHandler:
         if saveExcel or savePsydat or saveCSV:
             buff.writeIndented("#save data for this loop\n")
         if savePsydat:
-            buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s')\n" %self.params)
+            buff.writeIndented("%(name)s.saveAsPickle(filename+'%(name)s', fileCollisionMethod='rename')\n" %self.params)
         if saveExcel:
             buff.writeIndented("%(name)s.saveAsExcel(filename+'.xlsx', sheetName='%(name)s',\n" %self.params)
             buff.writeIndented("    stimOut=params,\n")
