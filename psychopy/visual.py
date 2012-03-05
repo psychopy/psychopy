@@ -358,13 +358,13 @@ class Window:
         see also:
             Window.saveFrameIntervals()
         """
-        
+
         if self.recordFrameIntervals != True and value==True: #was off, and now turning it on
             self.recordFrameIntervalsJustTurnedOn = True
         else:
             self.recordFrameIntervalsJustTurnedOn = False
         self.recordFrameIntervals=value
-        
+
         self.frameClock.reset()
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated values.
@@ -992,7 +992,7 @@ class Window:
 #        else: _shaders=_shadersPygame
 
         #setup screen color
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
         else:
             desiredRGB = self.rgb/255.0
@@ -1649,7 +1649,7 @@ class DotStim(_BaseVisualStim):
                 GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             else:
                 GL.glVertexPointerd(self._dotsXYRendered)
-            if self.colorSpace in ['rgb','dkl','lms']:
+            if self.colorSpace in ['rgb','dkl','lms','hsv']:
                 GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
             else:
                 GL.glColor4f(self.rgb[0]/255.0, self.rgb[1]/255.0, self.rgb[2]/255.0, 1.0)
@@ -2310,13 +2310,14 @@ class PatchStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
                 desiredRGB=[0.0,0.0,1.0]
         else:
             desiredRGB = (self.rgb*self.contrast)/255.0
+        print desiredRGB
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -3016,7 +3017,9 @@ class ElementArrayStim:
                  nElements = 100,
                  sizes = 2.0,
                  xys = None,
-                 rgbs = (1.0,1.0,1.0),
+                 rgbs = None,
+                 colors=(1.0,1.0,1.0),
+                 colorSpace='rgb',
                  opacities = 1.0,
                  depths = 0,
                  fieldDepth = 0,
@@ -3060,10 +3063,16 @@ class ElementArrayStim:
                 the xy positions of the elements, relative to the field centre
                 (fieldPos)
 
-            rgbs :
+            colors :
                 specifying the color(s) of the elements.
-                Should be Nx1 (different greys), Nx3 (different colors) or 1x3
-                (for a single color)
+                Should be Nx1 (different intensities), Nx3 (different colors) or 1x3
+                (for a single color).
+
+            colorSpace :
+                The type of color specified is the same as
+                those in other stimuli ('rgb','dkl','lms'...) but note that for
+                this stimulus you cannot currently use text-based colors (e.g. names
+                or hex values)
 
             opacities :
                 the opacity of each element (Nx1 or a single value)
@@ -3123,7 +3132,6 @@ class ElementArrayStim:
         self.nElements = nElements
         #info for each element
         self.sizes = sizes
-        self.rgbs=rgbs
         self.xys= xys
         self.opacities = opacities
         self.oris = oris
@@ -3139,6 +3147,13 @@ class ElementArrayStim:
             raise TypeError('ElementArrayStim requires a pyglet context')
         if not self.win._haveShaders:
             raise Exception("ElementArrayStim requires shaders support and floating point textures")
+
+        self.colorSpace=colorSpace
+        if rgbs!=None:
+            logging.warning("Use of the rgb argument to ElementArrayStim is deprecated. Please use colors and colorSpace args instead")
+            self.setColors(rgbs, colorSpace='rgb')
+        else:
+            self.setColors(colors, colorSpace=colorSpace)
 
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
@@ -3162,7 +3177,6 @@ class ElementArrayStim:
         self.setTex(elementTex)
 
         self.setContrs(contrs)
-        self.setRgbs(rgbs)
         self.setOpacities(opacities)#opacities is used by setRgbs, so this needs to be early
         self.setXYs(xys)
         self.setOris(oris)
@@ -3348,31 +3362,66 @@ class ElementArrayStim:
         self.needTexCoordUpdate=True
 
     def setRgbs(self,value,operation=''):
-        """Set the rgb for each element.
-        Should either be:
-
-          - a single value
-          - an Nx1 array/list
-          - an Nx3 array/list
+        """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
-        #make into an array
-        if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value, dtype=float)
+        self.setColors(value,operation)
+    def setColors(self, color, colorSpace=None, operation=''):
+        """Set the color of the stimulus. See :ref:`colorspaces` for further information
+        about the various ways to specify colors and their various implications.
+
+        :Parameters:
+
+        color :
+            Can be specified in one of many ways.
+
+            You must provide a triplet of values, which refer to the coordinates
+            in one of the :ref:`colorspaces`. If no color space is specified then the color
+            space most recently used for this stimulus is used again.
+
+                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
+                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
+                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
+
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x].
+
+                myStim.setColor(255, 'rgb255') #all guns o max
+
+        colorSpace : string or None
+
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation).
+
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+
+            for colors specified as a triplet of values (or single intensity value)
+            the new value will perform this operation on the previous color
+
+                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
+                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+        """
+        _setColor(self,color, colorSpace=colorSpace, operation=operation,
+                    rgbAttrib='rgbs', #or 'fillRGB' etc
+                    colorAttrib='colors',
+                    colorSpaceAttrib='colorSpace')
+
         #check shape
-        if value.shape in [(), (1,),(3,)]:
-            value = numpy.resize(value, [self.nElements,3])
-        elif value.shape in [(self.nElements,), (self.nElements,1)]:
-            value.shape=(self.nElements,1)#set to be 2D
-            value = value.repeat(3,1) #repeat once on dim 1
-        elif value.shape == (self.nElements,3):
+        if self.rgbs.shape in [(), (1,),(3,)]:
+            self.rgbs = numpy.resize(self.rgbs, [self.nElements,3])
+        elif self.rgbs.shape in [(self.nElements,), (self.nElements,1)]:
+            self.rgbs.shape=(self.nElements,1)#set to be 2D
+            self.rgbs = self.rgbs.repeat(3,1) #repeat once on dim 1
+        elif self.rgbs.shape == (self.nElements,3):
             pass#all is good
         else:
             raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
-        if operation=='':
-            self.rgbs=value
-        else: exec('self.rgbs'+operation+'=value')
 
         self.needColorUpdate=True
+        if self.autoLog:
+            self.win.logOnFlip("Set %s colors=%s colorSpace=%s" %(self.name, self.colors, self.colorSpace),
+                level=logging.EXP,obj=self)
     def setContrs(self,value,operation=''):
         """Set the contrast for each element.
         Should either be:
@@ -3446,9 +3495,9 @@ class ElementArrayStim:
         if self.needVertexUpdate:
             self.updateElementVertices()
         if self.needColorUpdate:
-            self.updataElementColors()
+            self.updateElementColors()
         if self.needTexCoordUpdate:
-            self.updataTextureCoords()
+            self.updateTextureCoords()
 
         #scale the drawing frame and get to centre of field
         GL.glPushMatrix()#push before drawing, pop after
@@ -3550,16 +3599,25 @@ class ElementArrayStim:
         self.needVertexUpdate=False
 
     #----------------------------------------------------------------------
-    def updataElementColors(self):
-        """Create a new array of self._RGBAs"""
+    def updateElementColors(self):
+        """Create a new array of self._RGBAs based on self.rgbs. Not needed by the
+        user (simple call setColors())
 
+        For element arrays the self.rgbs values correspond to one element so
+        this function also converts them to be one for each vertex of each element
+        """
         N=self.nElements
         self._RGBAs=numpy.zeros([N,4],'d')
-        self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
+            self._RGBAs[:,0:3] = self.rgbs[:,:] * self.contrs[:].reshape([N,1]).repeat(3,1)/2+0.5
+        else:
+            self._RGBAs[:,0:3] = self.rgbs * self.contrs[:].reshape([N,1]).repeat(3,1)/255.0
         self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
+
         self.needColorUpdate=False
-    def updataTextureCoords(self):
+
+    def updateTextureCoords(self):
         """Create a new array of self._maskCoords"""
 
         N=self.nElements
@@ -4227,7 +4285,7 @@ class TextStim(_BaseVisualStim):
         """
         self.text = value
 
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -4343,7 +4401,7 @@ class TextStim(_BaseVisualStim):
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
-            if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                 desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
                 if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
                     logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -4633,7 +4691,7 @@ class ShapeStim(_BaseVisualStim):
         if nVerts>2: #draw a filled polygon first
             if self.fillRGB!=None:
                 #convert according to colorSpace
-                if self.fillColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+                if self.fillColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                     fillRGB = (self.fillRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
                 else:fillRGB = self.fillRGB/255.0
                 #then draw
@@ -4641,7 +4699,7 @@ class ShapeStim(_BaseVisualStim):
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
         if self.lineRGB!=None:
                 #convert according to colorSpace
-            if self.lineColorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+            if self.lineColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
                 lineRGB = (self.lineRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
             else:lineRGB = self.lineRGB/255.0
             #then draw
@@ -4946,7 +5004,7 @@ class BufferImageStim(PatchStim):
         PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
-        if self.colorSpace in ['rgb','dkl','lms']: #these spaces are 0-centred
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
             if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
                 logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
@@ -6462,7 +6520,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         dataType = GL.GL_UNSIGNED_BYTE
-        if stim.colorSpace in ['rgb', 'dkl', 'lms']:
+        if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
             rgb=stim.rgb
         else:
             rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
@@ -6536,7 +6594,9 @@ def _setTexIfNoShaders(obj):
 
 def _setColor(self, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
-                colorAttrib='color'):#or 'fillColor' etc
+                colorAttrib='color', #or 'fillColor' etc
+                colorSpaceAttrib=None #e.g. 'colorSpace' or 'fillColorSpace'
+                ):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc)
     """
@@ -6554,18 +6614,21 @@ def _setColor(self, color, colorSpace=None, operation='',
     except:
         isScalar=False
 
+    if colorSpaceAttrib==None:
+        colorSpaceAttrib = colorAttrib+'Space'
+
     if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorAttrib+'Space','named')#e.g. self.colorSpace='named'
+            setattr(self,colorSpaceAttrib,'named')#e.g. self.colorSpace='named'
             setattr(self,colorAttrib,color) #e.g. self.color='red'
             _setTexIfNoShaders(self)
             return
         elif color[0]=='#' or color[0:2]=='0x':
             setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
             setattr(self,colorAttrib,color) #e.g. self.color='#000000'
-            setattr(self,colorAttrib+'Space','hex')#e.g. self.colorSpace='hex'
+            setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
             _setTexIfNoShaders(self)
             return
 #                except:
@@ -6581,19 +6644,19 @@ def _setColor(self, color, colorSpace=None, operation='',
     elif color==None:
         setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
         setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-        setattr(self,colorAttrib+'Space',None)#e.g. self.colorSpace='hex'
+        setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
         _setTexIfNoShaders(self)
     else:
         raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorAttrib+'Space')
+    if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-    if getattr(self,colorAttrib+'Space') in ['named','hex']:
+    if getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
                 %(operation))
-    if operation!='' and colorSpace!=getattr(self,colorAttrib+'Space') :
+    if operation!='' and colorSpace!=getattr(self,colorSpaceAttrib) :
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
@@ -6617,8 +6680,10 @@ def _setColor(self, color, colorSpace=None, operation='',
         if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
         else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
+    elif colorSpace=='hsv':
+        setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor).transpose()) )
     else: logging.error('Unknown colorSpace: %s' %colorSpace)
-    setattr(self,colorAttrib+'Space', colorSpace)#store name of colorSpace for future ref and for drawing
+    setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
