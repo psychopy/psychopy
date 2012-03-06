@@ -7,6 +7,17 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+PsychoPy 1.74
+------------------------------
+
+PsychoPy 1.74.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* ADDED: 'enable escape' option in experiment settings, default is enabled
+* CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
+
 
 PsychoPy 1.73
 ------------------------------

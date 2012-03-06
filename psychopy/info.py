@@ -14,8 +14,7 @@ from pyglet.gl import gl_info
 import numpy, scipy, matplotlib, pyglet
 try: import ctypes
 except: pass
-try: import hashlib # python 2.5
-except: import sha
+import hashlib
 import random
 import wx
 
@@ -573,27 +572,23 @@ def _getSha1hexDigest(thing, file=False):
     return None if a file is requested but no such file exists
     
     :Author:
-        - 2010 Jeremy Gray; updated 2011 to be more explicit
+        - 2010 Jeremy Gray; updated 2011 to be more explicit, 2012 to remove sha.new()
 
     >>> _getSha1hexDigest('1')
     '356a192b7913b04c54574d18c28d46e6395428ab'
     >>> _getSha1hexDigest(1)
     '356a192b7913b04c54574d18c28d46e6395428ab'
     """
-    try:
-        sha1 = hashlib.sha1()
-    except:
-        sha1 = sha.new() # deprecated, here for python 2.4
+    digester = hashlib.sha1()
     if file:
         filename = thing
         if os.path.isfile(filename):
             f = open(filename,'rb')
-            sha1.update(f.read()) # check file size < available RAM first? or update in chunks?
+            digester.update(f.read()) # check file size < available RAM first? or update in chunks?
             f.close()
         else:
             return None
-            #raise IOError, "file '" + filename + "' not found'"
     else:
-        sha1.update(str(thing))
-    return sha1.hexdigest()
+        digester.update(str(thing))
+    return digester.hexdigest()
         
