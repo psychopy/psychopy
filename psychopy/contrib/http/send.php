@@ -10,7 +10,9 @@
 echo '[bytes] __filename__<br>';
 $dl = scandir('/usr/local/psychopy_org/upload',1);
 foreach ($dl as $d) {
-  echo '['.filesize('/usr/local/psychopy_org/upload/'.$d).'] '.$d.'<br>';
+    if (substr($d,0,1) != '.') {
+        echo '   ['.filesize('/usr/local/psychopy_org/upload/'.$d).'] '.$d.'<br>';
+    }
 }
 ?>
 

@@ -8,6 +8,7 @@
     - supports & assumes basic auth (apache)
     - aims to be unicode-compatible; not tested; binary files are fine
     - user, userAgent --> server logs
+    - base64-encoded for transmission (reducing the effective file size limit)
     
     For future:
     - support apache Digest authorization
@@ -19,18 +20,20 @@
     # htpasswd /usr/local/etc/apache/.htpasswd psychopy # add -c option to create / overwrite
     # chown -R apache:apache /usr/local/etc/apache
     # chmod -R 400 /usr/local/etc/apache
-    might need to edit your httpd.conf file to enable basic auth, restart apache
+    might need to edit your httpd.conf file to enable auth (& restart apache)
     
     Jeremy Gray, March 2012; includes post_multipart from activestate.com (PSF license)
 """
 
 import os, sys, random, base64
 from psychopy.core import shellCall
+from psychopy import logging
 import hashlib, base64
 import httplib, mimetypes
 import shutil # for testing
 from tempfile import mkdtemp
 
+### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
                     userAgent='PSYCHOPY_USERAGENT', user='psychopy', cred='open-sourc-ami'):
     """
@@ -39,9 +42,8 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     file is a 1-item sequence of (name, filename, value) elements for data to be uploaded as files
     Return the server's response page.
     """
-    ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
-    # rewritten for HTTPConnection()
-    # rewritten for any encoding http://www.nerdwho.com/blog/57/enviando-arquivos-e-dados-ao-mesmo-tempo-via-http-post-usando-utf-8/
+    # as updated for HTTPConnection()
+    # as rewritten for any encoding http://www.nerdwho.com/blog/57/enviando-arquivos-e-dados-ao-mesmo-tempo-via-http-post-usando-utf-8/
     # JRG: added timeout, userAgent, basic auth
 
     def _encode_multipart_formdata(fields, files, encoding='utf-8'):
@@ -107,7 +109,9 @@ def upload(fields, host, selector, filename):
     This method handshakes with up.php, transfer one local file from psychopy to
     another machine, via http.
     """
-    
+    if not os.path.isfile(filename):
+        logging.error('file not found (%s)' % filename)
+        raise ValueError('file not found (%s)' % filename)
     contents = open(filename).read() # base64 encoded in _encode_multipart_formdata()
     file = [('file_1', filename, contents)]
 
@@ -136,16 +140,20 @@ def upload(fields, host, selector, filename):
     else:
         outcome = str(status) + ' ' + reason
     
+    if status > 299 or type(status) == str:
+        logging.error(outcome[:100])
+    else:
+        logging.exp(outcome[:100])
     return outcome
 
 def _test_post():
-    def _tester(stuff, check=True):
+    def _test_upload(stuff):
         """test assumes a properly configured http server with up.php in your web space
         """
         fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
         host = 'scanlab.psych.yale.edu'
         port = ':80'
-        selector = 'http://'+host+port+'/psychopy_org/up.php'
+        selector = 'http://' + host + port + '/psychopy_org/up.php'
     
         # make a tmp dir just for testing:
         tmp = mkdtemp()
@@ -155,28 +163,47 @@ def _test_post():
         f.write(stuff)
         f.close()
         
-        if check:
-            digest = hashlib.sha256()
-            digest.update(open(tmp_filename).read())
-            dgst = digest.hexdigest()
-        status = upload(fields, host, selector, tmp_filename)
-        shutil.rmtree(tmp) # cleanup
+        # get local sha256 before cleanup:
+        digest = hashlib.sha256()
+        digest.update(open(tmp_filename).read())
+        dgst = digest.hexdigest()
         
-        # test: assert
+        # upload:
+        status = upload(fields, host, selector, tmp_filename)
+        shutil.rmtree(tmp) # cleanup; do before asserts
+        
+        # test
+        good_upload = True
+        disgest_match = False
         if not status.startswith('success'):
-            if __name__ == '__main__': print status
-            assert False # remote server FAILED to report success
-        elif check and status.find(dgst) > -1:
-            if __name__ == '__main__': print 'good_upload: digest match, bytes ' + status.split()[3]
-            
+            good_upload = False
+        elif status.find(dgst) > -1:
+            logging.exp('digests match')
+            digest_match = True
+        else:
+            logging.error('digest mismatch')
+        
+        logging.flush()
+        assert good_upload # remote server FAILED to report success
+        assert digest_match # sha256 mismatch local vs remote file
+        
+        return int(status.split()[3]) # bytes
+        
     # test upload: normal text, binary:
     msg = 'yo!'
-    digest = hashlib.sha256()
+    print 'text:   '
+    bytes = _test_upload(msg) #normal text
+    assert (bytes == len(msg)) # FAILED to report len() bytes
+    
+    print 'binary: '
+    digest = hashlib.sha256()  # to get binary, 256 bits
     digest.update(msg)
-    if __name__ == '__main__': print 'text:   ',
-    _tester(digest.hexdigest()) # hex == base64 == definitely normal text
-    if __name__ == '__main__': print 'binary: ',
-    _tester(digest.digest()) # binary, 256 bits; should see 32 bytes on server
+    bytes = _test_upload(digest.digest())
+    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= odd if digests match)
+    logging.exp('binary-file byte-counts match')
 
 if __name__ == '__main__':
+    """doing a proper unit-test for this module might be problematic (because
+    need a configured server), so I expect it to be run manually from command line"""
+    logging.console.setLevel(logging.DEBUG)
     _test_post()

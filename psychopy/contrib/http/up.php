@@ -13,7 +13,7 @@
 // might want rate-limiting firewall for internet deployment; keep an eye on disk space
 
 $project = 'ppo-'; # for file labels
-$max_file_size = 10 * 1024; // in bytes
+$max_file_size = 10 * 1024; // in bytes; allow room for base64 encoding
 $final_permissions = 0600; // == the apache/http user, might not be what you want
 
 $targetDir = '/usr/local/psychopy_org/upload/'; # outside of webroot, need final /
