@@ -11,6 +11,6 @@ PsychoPy has three main components; the application :doc:`Coder <coder/coder>` v
 
 .. _python : http://www.python.org
 
-The Builder and Coder views are both components of the PsychoPy app. If you've installed the standalone version of PsychoPy on MS Windows then their should be an obvious link to PsychoPy in your >Start>Programs. If you installed the standalone version on OS X then the app is where you dragged it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences.
+The Builder and Coder views are both components of the PsychoPy app. If you've installed the standalone version of PsychoPy on MS Windows then there should be an obvious link to PsychoPy in your >Start>Programs. If you installed the standalone version on OS X then the app is where you dragged it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences.
 
 If the PsychoPy app is created with flags --coder (or -c), or --builder (or -b) e.g. on Linux, then the preferences will be overridden and that view will be created as the app opens.
