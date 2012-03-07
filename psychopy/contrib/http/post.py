@@ -95,20 +95,31 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     try:
         conn.request(u'POST', selector, body, headers)
     except: # ? don't seem to get a proper exception
-        return -1, 'timeout:%ss, or other connection error' % str(timeout), 'timeout or error'
+        return -1, 'connection error; timeout after %ss' % str(timeout), 'timeout or error'
     
-    result = conn.getresponse()
+    try:
+        result = conn.getresponse()
+    except:
+        return -1, 'connection error (can be "socket.error: [Errno 54] Connection reset by peer")'
     return result.status, result.reason, result.read()
 
     ## end of http://code.activestate.com/recipes/146306/ }}}
     
 
-def upload(fields, host, selector, filename):
+def upload(fields=None, host=None, selector=None, filename=None):
     """Method for posting a file to a configured server, passed through base64.
     
     This method handshakes with up.php, transfer one local file from psychopy to
     another machine, via http.
     """
+    if not fields:
+        fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
+    if not host:
+        logging.error('need a host, as DNS name or IP address')
+        raise ValueError('need a host name or IP address')
+    if not selector:
+        logging.error('need a selector, http://<host>/path/to/up.php')
+        raise ValueError('need a selector, http://<host>/path/to/up.php')
     if not os.path.isfile(filename):
         logging.error('file not found (%s)' % filename)
         raise ValueError('file not found (%s)' % filename)
