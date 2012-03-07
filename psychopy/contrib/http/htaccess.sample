@@ -1,0 +1,21 @@
+## contents of a working .htaccess file:
+## make sure nobody gets the .ht* files
+<FilesMatch (^[\._]ht)>
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+# restrict by IP address
+    Order deny,allow
+    Deny from all
+	
+    Allow from 130.132.
+
+# add basic authorization, password in the clear
+# just reduces junk traffic, no real security
+    AuthName "scanlab"
+    AuthType Basic
+    AuthUserFile /usr/local/etc/apache/.htpasswd
+    AuthGroupFile /dev/null
+    require user psychopy
