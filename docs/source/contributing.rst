@@ -13,7 +13,7 @@ It has taken, literally, thousands of hours of programming to get PsychoPy where
 
 How do I contribute changes?
 -----------------------------
-For simple changes, and for users that aren't so confident with things like version control systems then just send your changes to :ref:`the mailing list <http://groups.google.com/group/psychopy-users>`.
+For simple changes, and for users that aren't so confident with things like version control systems then just send your changes to `the mailing list <http://groups.google.com/group/psychopy-users>`_.
 
 If you want to make more substantial changes then its often good to discuss them first on the `developers mailing list <http://groups.google.com/group/psychopy-dev>`_. 
 
