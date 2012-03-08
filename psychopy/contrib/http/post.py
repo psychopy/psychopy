@@ -163,7 +163,7 @@ def _test_post():
         fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
         host = 'scanlab.psych.yale.edu'
         port = ':80'
-        selector = 'http://' + host + port + '/psychopy_org/up.php'
+        selector = 'http://' + host + port + '/upload_test/up_no_save.php'
     
         # make a tmp dir just for testing:
         tmp = mkdtemp()

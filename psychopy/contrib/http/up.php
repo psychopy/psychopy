@@ -13,7 +13,7 @@
 // might want rate-limiting firewall for internet deployment; keep an eye on disk space
 
 $project = 'ppo-'; # for file labels
-$max_file_size = 10 * 1024; // in bytes; allow room for base64 encoding
+$max_file_size = 10 * 1024; // in bytes; allow +30% due to base64; 1300 is ~min for upload demo
 $final_permissions = 0600; // == the apache/http user, might not be what you want
 
 $targetDir = '/usr/local/psychopy_org/upload/'; # outside of webroot, need final /
@@ -31,7 +31,7 @@ $filename = "file_1"; // must match in _POST, else get 'no_file' status
 $fname = preg_replace("/[^A-Za-z0-9._]/", '_', basename($_FILES[$filename]['name']));
 $target = $targetDir.$prefix.$fname.'-'.date('Y.m.d.His'); // u for microseconds in php 5.2.2+
 while (file_exists($target)) {
-    $target = $target.'+';
+    $target = $target.'+'; // ensure unique name
 }
 
 if (basename( $_FILES[$filename]['name']) == '') {
