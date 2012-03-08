@@ -7,13 +7,26 @@
 </form>
 
 <?php // display file size & name for config debugging:
-echo '[bytes] __filename__<br>';
-$dl = scandir('/usr/local/psychopy_org/upload',1);
-foreach ($dl as $d) {
-    if (substr($d,0,1) != '.') {
-        echo '   ['.filesize('/usr/local/psychopy_org/upload/'.$d).'] '.$d.'<br>';
+// fixed version of public domain http://www.jonasjohn.de/snippets/php/listdir-by-date.htm
+$path =	'/usr/local/psychopy_org/upload';
+$dir = opendir($path);
+$dl = array();
+while ($file = readdir($dir)) {
+    if ($file != '.' and $file != '..') {
+        $ctime = filectime($path .'/'. $file) . ',' . $file;
+        $dl[$ctime] = $file;
     }
 }
+closedir($dir);
+krsort($dl);
+// end listdir-by-date
+
+print '<table border="0" cellpadding="3"><tr><td>bytes</td><td>filename</td></tr>';
+foreach ($dl as $d) {
+    echo '<td>'.filesize('/usr/local/psychopy_org/upload/'.$d).'</td><td>'.$d.'</td></tr>';
+}
 ?>
+
+
 
 
