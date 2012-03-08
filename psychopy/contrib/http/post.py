@@ -129,17 +129,16 @@ def upload(fields=None, host=None, selector=None, filename=None):
     try:
         status, reason, result = _post_multipart(host, selector, fields, file)
     except TypeError:
-        status = 'no return value from _post_multipart().'
+        status = 'no return value from _post_multipart(). '
         reason = 'config error?'
+        result = status + reason
     if status == 200:
         result_fields = result.split()
         #result = 'status_msg digest' # if using up.php
         if result_fields[0] == 'good_upload':
             outcome = 'success'+' '+result
-        elif len(result_fields) == 1:
-            outcome = result_fields[0] # failure code
         else:
-            outcome = 'config error?'
+            outcome = result # failure code
     elif status == 404:
         outcome = '404 Not_Found: server config error'
     elif status == 403:
