@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""coder demo for using http upload"""
+"""coder demo for using http upload: uploads this file to my server (which saves then deletes the file)"""
 __author__ = 'Jeremy R. Gray'
 
 from psychopy.contrib.http import post
@@ -8,14 +8,13 @@ from psychopy.contrib.http import post
 # edit info to reflect your set-up:
 info = {
     'host': 'scanlab.psych.yale.edu', # your server; IP address is fine
-    'selector': 'http://scanlab.psych.yale.edu/psychopy_org/up.php', # your path to up.php on server
-    'filename': __file__} # path to file on your local machine to be uploaded; __file__ is this script
+    'selector': 'http://scanlab.psych.yale.edu/upload_test/up.php',
+    #'selector': 'http://your_server_here/your_path_here/up.php',
+    'filename': __file__} # path to file to upload (__file__ is this script--it will upload itself)
 
-status = post.upload(**info) # do the upload
+status = post.upload(**info) # do the upload, get return value
 print status
 
-# several kinds of error are possible. if you just run this demo you'll probably get this one:
-if status.startswith('403'):
-    print '? maybe your local IP address (see http://whatip.com) is blocked by "%s"' % info['host']
-# email me your IP address (jrgray@gmail.com) and I'll enable it for testing purposes
-# also see http://scanlab.psych.yale.edu/psychopy_org/send.php
+if not status.startswith('success'):
+    print '''\n# a good upload will return something like this:
+            success good_upload c5df3bf286b8e3cc9bfccaf1218adf43342b6725c901987bda7989e29c136b45 892'''
