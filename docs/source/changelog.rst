@@ -16,6 +16,17 @@ Changelog
 
 :red:`Changes in red typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.74
+------------------------------
+
+PsychoPy 1.74.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(https://github.com/psychopy/psychopy)
+
+* ADDED: 'enable escape' option in experiment settings, default is enabled
+* CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
+
 PsychoPy 1.73
 ------------------------------
 
@@ -41,7 +52,7 @@ PsychoPy 1.73.04
 
 (released Feb 2012)
 
-* CHANGED: Builder scripts now silently convert division from integers to float where necessary. That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
+* :red:`CHANGED: Builder scripts now silently convert division from integers to float where necessary.` That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
 * FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
 * FIXED: issue on OSX with updating from 1.70 binaries to 1.73 patch release
 

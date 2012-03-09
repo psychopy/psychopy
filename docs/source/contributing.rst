@@ -13,9 +13,9 @@ It has taken, literally, thousands of hours of programming to get PsychoPy where
 
 How do I contribute changes?
 -----------------------------
-For simple changes, and for users that aren't so confident with things like version control systems then just send your changes to the mailing list as described :ref:`here <mailingList>`.
+For simple changes, and for users that aren't so confident with things like version control systems then just send your changes to `the mailing list <http://groups.google.com/group/psychopy-users>`_.
 
-If you want to make more substantial changes then discuss them on the `developers mailing list <http://groups.google.com/group/psychopy-dev>`_. 
+If you want to make more substantial changes then its often good to discuss them first on the `developers mailing list <http://groups.google.com/group/psychopy-dev>`_. 
 
 The ideal model, for :ref:`developers` that know about git and may make more frequent contributions, is to :ref:`create your own clone <createClone>` of the project on github, make changes to that and then send a pull request to have them merged back into the main repository.
 
