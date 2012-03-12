@@ -21,10 +21,11 @@ PsychoPy 1.74
 
 PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 (https://github.com/psychopy/psychopy)
 
 * ADDED: 'enable escape' option in experiment settings, default is enabled
+* ADDED: HSV color space for all stimuli
+* ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
 * CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
 
 PsychoPy 1.73
@@ -33,7 +34,7 @@ PsychoPy 1.73
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
+Released March 2012
 
 * FIXED: Joystick error when calling :class:`~psychopy.hardware.joystick.Joystick.getHat()` or :class:`~psychopy.hardware.joystick.Joystick.getHats()` (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
