@@ -2,6 +2,7 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
 import platform, re
+import locale
 
 dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
 
@@ -78,6 +79,7 @@ class PreferencesDlg(wx.Dialog):
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
         self.app.prefs.pageCurrent = self.nb.GetSelection()
+        locale.setlocale(locale.LC_ALL, str(self.app.prefs.app['locale']))
     def onCancel(self, event=None):
         self.Close()
     def onOK(self, event=None):
