@@ -110,7 +110,10 @@ class Experiment:
         script = IndentingBuffer(u'') #a string buffer object
 
         #get date info, in format preferred by current locale as set by app:
-        localDateTime = data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
+        if hasattr(locale,'nl_langinfo'):
+            localDateTime = data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
+        else:
+            localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
         
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
