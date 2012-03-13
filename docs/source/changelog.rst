@@ -23,6 +23,7 @@ PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (https://github.com/psychopy/psychopy)
 
+* ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy with testing and bugfix by Hiroku Sogo)
 * ADDED: 'enable escape' option in experiment settings, default is enabled
 * ADDED: HSV color space for all stimuli
 * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli

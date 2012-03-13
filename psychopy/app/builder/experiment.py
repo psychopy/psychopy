@@ -8,6 +8,7 @@ from psychopy import data, preferences, __version__, logging
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
+import locale
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
@@ -72,6 +73,7 @@ class Experiment:
         #deepCopy doesn't like the full prefs object to be stored, so store each subset
         self.prefsAppDataCfg=prefs.appDataCfg
         self.prefsGeneral=prefs.general
+        self.prefsApp=prefs.app
         self.prefsCoder=prefs.coder
         self.prefsBuilder=prefs.builder
         self.prefsPaths=prefs.paths
@@ -107,14 +109,16 @@ class Experiment:
         self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
 
-        #better to use locale than a specific format string for date:
-        locDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
-        locDateTime = codecs.utf_8_decode(locDateTime)[0]
-
+        #get date info, in format preferred by current locale as set by app:
+        if hasattr(locale,'nl_langinfo'):
+            localDateTime = data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
+        else:
+            localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
+        
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
-                        self.psychopyVersion, locDateTime ) +
+                        self.psychopyVersion, localDateTime ) +
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
@@ -125,8 +129,13 @@ class Experiment:
                     "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
-                    "import os #handy system and path functions\n\n")
-
+                    "import os #handy system and path functions\n")
+        if self.prefsApp['locale']:
+            # if locale is set explicitly as a pref, add it to the script:
+            localeValue = '.'.join(locale.getlocale())
+            script.write("import locale\n" +
+                     "locale.setlocale(locale.LC_ALL, '%s')\n" % localeValue)
+        script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(script)

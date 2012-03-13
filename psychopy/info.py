@@ -17,6 +17,7 @@ except: pass
 import hashlib
 import random
 import wx
+import locale
 
 
 class RunTimeInfo(dict):
@@ -241,6 +242,11 @@ class RunTimeInfo(dict):
             else: raise
         except:
             self['systemRavailable'] = False
+        
+        # what localization conventions to use?
+        if locale.getlocale() == (None, None):
+            locale.setlocale(locale.LC_ALL, '') # should be set as part of prefs
+        self['systemLocale'] = '.'.join(locale.getlocale()) # eg 'en_US.UTF8'
         
         """try:
             import rpy2
