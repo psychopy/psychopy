@@ -2375,7 +2375,7 @@ class DataHandler(dict):
         during initialisation and as each xtra type is needed.
         """
         if not shape: shape = self.dataShape
-        if type(names) != str:
+        if not isinstance(names,basestring):
             #recursively call this function until we have a string
             for thisName in names: self.addDataType(thisName)
         else:
