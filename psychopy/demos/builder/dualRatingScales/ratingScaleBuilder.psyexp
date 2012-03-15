@@ -37,7 +37,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="lowAnchorText" val="" valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopType" val="time (s)" valType="str" updates="None"/>
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
@@ -62,7 +62,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="lowAnchorText" val="" valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopType" val="time (s)" valType="str" updates="None"/>
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
@@ -71,10 +71,10 @@
         <Param name="singleClick" val="False" valType="bool" updates="constant"/>
         <Param name="highAnchorText" val="" valType="str" updates="constant"/>
       </RatingScaleComponent>
-      <TextComponent name="text">
+      <TextComponent name="stimulus_to_rate">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="name" val="text" valType="code" updates="None"/>
+        <Param name="name" val="stimulus_to_rate" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$thing" valType="str" updates="set every repeat"/>
@@ -90,23 +90,14 @@
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
-    </Routine>
-    <Routine name="blank">
-      <KeyboardComponent name="key_resp">
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="key_resp" valType="code" updates="None"/>
-        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'y','n','left','right','space'" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="last key" valType="str" updates="constant"/>
-      </KeyboardComponent>
+      <CodeComponent name="timeout_after_5s">
+        <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
+        <Param name="name" val="timeout_after_5s" valType="code" updates="None"/>
+        <Param name="Each Frame" val="if trialClock.getTime() &gt; 5:&#10;    continueRoutine = False" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+      </CodeComponent>
     </Routine>
     <Routine name="instr">
       <TextComponent name="text_2">
@@ -142,6 +133,23 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="store" val="nothing" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="blank">
+      <KeyboardComponent name="key_resp">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="key_resp" valType="code" updates="None"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="'y','n','left','right','space'" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
   </Routines>
