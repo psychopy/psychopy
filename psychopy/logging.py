@@ -189,7 +189,11 @@ class _Logger:
         self.format=format
         self.lowestTarget=50
     def __del__(self):
-        self.flush()
+        try:
+            self.flush()
+        except TypeError: # can happen in tests, mildly distracting
+            '''Exception TypeError: "'NoneType' object is not callable" in <bound method _Logger.__del__ of <psychopy.logging._Logger instance at 0x12dc788>> ignored'''
+            pass
     def addTarget(self,target):
         """Add a target, typically a :class:`~log.LogFile` to the logger
         """
