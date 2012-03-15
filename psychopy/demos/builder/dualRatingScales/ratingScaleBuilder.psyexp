@@ -26,6 +26,7 @@
         <Param name="high" val="" valType="code" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="disappear" val="False" valType="bool" updates="constant"/>
         <Param name="size" val="" valType="code" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
         <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
@@ -40,9 +41,9 @@
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = calm . . . 7 = agitated',&#10;mouseOnly=True, &#10;pos=(-0.35,-0.2), &#10;markerStyle='circle', &#10;displaySizeFactor=0.85" valType="str" updates="constant"/>
+        <Param name="customize_everything" val="scale='1 = calm . . . 7 = agitated',&#10;mouseOnly=True, &#10;pos=(-0.35,-0.2), &#10;markerStyle='circle', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True" valType="str" updates="constant"/>
         <Param name="name" val="RS_calm_left" valType="code" updates="None"/>
-        <Param name="singleClick" val="False" valType="bool" updates="constant"/>
+        <Param name="singleClick" val="True" valType="bool" updates="constant"/>
         <Param name="highAnchorText" val="" valType="str" updates="constant"/>
       </RatingScaleComponent>
       <RatingScaleComponent name="RS_deep_right">
@@ -50,6 +51,7 @@
         <Param name="high" val="" valType="code" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="disappear" val="False" valType="bool" updates="constant"/>
         <Param name="size" val="" valType="code" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
         <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
@@ -64,7 +66,7 @@
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = deep . . . 7 = shallow',&#10;mouseOnly=True, &#10;pos=(0.35,-0.2),&#10;markerColor='DarkGreen', &#10;displaySizeFactor=0.85" valType="str" updates="constant"/>
+        <Param name="customize_everything" val="scale='1 = deep . . . 7 = shallow',&#10;mouseOnly=True, &#10;pos=(0.35,-0.2),&#10;markerColor='DarkGreen', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True" valType="str" updates="constant"/>
         <Param name="name" val="RS_deep_right" valType="code" updates="None"/>
         <Param name="singleClick" val="False" valType="bool" updates="constant"/>
         <Param name="highAnchorText" val="" valType="str" updates="constant"/>
@@ -113,7 +115,7 @@
         <Param name="name" val="text_2" valType="code" updates="None"/>
         <Param name="wrapWidth" val=".6" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="This demo will show two rating scales at the same time, one for 'calm' and one for 'deep', using advanced features (customize-all, no force-end-trial). These will be presented for each of two things-to-be-rated, drawn from a list. Hit any key to continue." valType="str" updates="constant"/>
+        <Param name="text" val="This demo will show two rating scales at the same time, one for 'calm' and one for 'deep'. These will be presented for each of two things-to-be-rated, drawn from a list. Hit any key to continue." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>

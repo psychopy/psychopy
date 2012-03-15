@@ -5220,6 +5220,7 @@ class RatingScale:
                 stretchHoriz=1.0,
                 pos=None,
                 minTime=1.0,
+                disappear=False,
                 name='',
                 autoLog=True):
         """
@@ -5330,6 +5331,9 @@ class RatingScale:
                 .. note:: For a max response time (upper limit), record the response
                 only within a desired time window. Or present the ratingScale for as
                 long as you like, and just ignore 'late' responses.
+            disappear :
+                if True, the rating scale will be hidden after a value is accepted; 
+                the default is to remain on-screen. useful when showing multiple scales.
 
             name : string
                 The name of the object to be using during logged messages about
@@ -5363,6 +5367,7 @@ class RatingScale:
         self.win = win
         self.name = name
         self.autoLog = autoLog
+        self.disappear = disappear
 
         # internally work in norm units, restore to orig units at the end of __init__:
         self.savedWinUnits = self.win.units
@@ -5892,6 +5897,11 @@ class RatingScale:
         if self.firstDraw:
             self.firstDraw = False
             self.myClock.reset()
+
+        # 'disappear' == draw nothing if subj is done:
+        if self.noResponse == False and self.disappear:
+            self.win.units = self.savedWinUnits
+            return
 
         # draw everything except the marker:
         for visualElement in self.visualDisplayElements:

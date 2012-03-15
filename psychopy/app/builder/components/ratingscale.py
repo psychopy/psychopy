@@ -28,6 +28,7 @@ class RatingScaleComponent(BaseComponent):
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
+                 disappear=False,
                  storeRating=True, storeRatingTime=True,
                  lowAnchorText='', highAnchorText='',
                  customize_everything=''
@@ -41,7 +42,7 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {}
-        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size',
+        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size', 'disappear',
                         'pos', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
 
         # normal params:
@@ -86,6 +87,9 @@ class RatingScaleComponent(BaseComponent):
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should clicking the line accept that rating (without needing to confirm via 'accept')?")
+        self.params['disappear'] = Param(disappear, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Hide the scale when a rating has been accepted; False to remain on-screen")
         self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
@@ -176,6 +180,8 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ", scale='" + str(scaleDescription) +"'"
             if self.params['singleClick'].val:
                 init_str += ", singleClick=True"
+            if self.params['disappear'].val:
+                init_str += ", disappear=True"
         # write the RatingScale() instantiation code:
         init_str += ")\n"
         buff.writeIndented(init_str)
