@@ -45,27 +45,23 @@ class MicrophoneComponent(BaseComponent):
             label="rate")
 
     def writeInitCode(self,buff):
-        #inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['stopType']=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.params
         else:
             durationSetting=""
     def writeRoutineStartCode(self,buff):
-        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
-        # same as in settings.writeStartCode():
-        saveToDir = self.exp.settings.params['Saved data folder'].val.strip()
+        inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
+        saveToDir = self.exp.settings.getSaveDataDir()
+        '''saveToDir = self.exp.settings.params['Saved data folder'].val.strip()
         if not saveToDir:
             saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
             if not saveToDir:
                 saveToDir = 'data'
+        '''
         buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', rate=%s, saveDir='%s')\n" %(
             inits['name'], inits['name'], inits['rate'], saveToDir))
-        
     def writeFrameCode(self,buff):
-        #def writeFrameCode(self,buff):
-        """Write the code that will be called every frame
-        """
-        
+        """Write the code that will be called every frame"""
         if self.params['stopType'].val == 'duration (s)':
             duration = float(self.params['stopVal'].val)
         else:
