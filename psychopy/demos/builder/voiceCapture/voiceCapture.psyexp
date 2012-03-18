@@ -56,7 +56,7 @@
         <Param name="name" val="show_loudness" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="$&quot;loudness = %.1f\nsaved file = %s\nhit any key to playback, then continue&quot; % (mic.rms, mic.saved)" valType="str" updates="set every frame"/>
+        <Param name="text" val="$&quot;loudness = %d\nsaved file = %s\nhit any key to playback, then continue&quot; % (mic.rms, mic.savedFile)" valType="str" updates="set every frame"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>

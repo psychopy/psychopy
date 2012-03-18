@@ -43,7 +43,7 @@ class MicrophoneComponent(BaseComponent):
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['rate']=Param(rate, valType='str', hint="Sampling rate (Hz)",
             label="rate")
-
+    
     def writeInitCode(self,buff):
         if self.params['stopType']=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.params
@@ -71,3 +71,24 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndented("    %s.record(sec=%.3f) #start the recording (it finishes automatically)\n" %
                             (self.params['name'], duration))
         buff.writeIndented("    %s.status = FINISHED\n" % self.params['name'])
+    def writeRoutineEndCode(self,buff):
+        #some shortcuts
+        name = self.params['name']
+        #store = self.params['store'].val
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]#last (outer-most) loop
+        else: currLoop=None
+
+        #write the actual code
+        if currLoop: #need a loop to do the storing of data!
+            buff.writeIndented("#check responses\n" %self.params)
+            buff.writeIndented("if len(%(name)s.savedFile) == 0:\n"%self.params)
+            buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
+            buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+        
+            #always add saved file name
+            buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))
+            #only add loudness / rms if we have a file
+            buff.writeIndented("if %(name)s.savedFile != None:\n" %(self.params))
+            buff.writeIndented("    %s.addData('%s.rms', %s.rms)\n" \
+                               %(currLoop.params['name'], name, name))

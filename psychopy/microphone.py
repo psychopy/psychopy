@@ -5,9 +5,10 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import division
 import os, sys, shutil
 from tempfile import mkdtemp
-import numpy
+import numpy as np
 import threading, time
 from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
@@ -21,21 +22,32 @@ except:
     logging.error(msg)
     raise ImportError(msg)
 
+def _stats(data):
+    return audioop.rms(data, 2), audioop.cross(data, 2)
+
 
 class SimpleAudioCapture():
     """Basic sound capture to .wav file using pyaudio.
     
     Designed to capture a sample from the default sound input, and save to a file.
     Execution will block until the recording is finished. Recording times are
-    approximate.
+    approximate, but aim to be within half a visual frame. A warning is generated
+    if they go longer, and all are saved into the log file.
     
     Example:
     
         mic = SimpleAudioCapture()  # prepare to record; cannot have more than one
         mic.record(1.23)  # record for 1.23s, save to a file
-        savedFileName = mic.saved
-        loudness = mic.rms
+        
         mic.playback()
+        savedFileName = mic.savedFile
+        loudness = mic.rms
+        
+        # plot all data against time in sec, based on sampling rate:
+        d = np.frombuffer(mic.allData, np.int16)
+        t = np.array([float(i)/mic.RATE for i in range(len(d))])
+        pyplot.plot(t, d, 'k')
+        pyplot.show() # or pyplot.savefig('plot.png')
     
     Also see Builder Demo "voiceCapture"
     
@@ -48,7 +60,7 @@ class SimpleAudioCapture():
     Author:
         Jeremy R. Gray, March 2012
     """
-    def __init__(self, name='mic', saveDir='', rate=22050, chunk=150, warn=0.007):
+    def __init__(self, name='mic', saveDir='', rate=22050, chunk=150, warn=0.008):
         """
             name : stem for output file, used in logging
             saveDir : directory to use for output .wav files (relative); '' name only
@@ -91,7 +103,7 @@ class SimpleAudioCapture():
         self.wavOutFilename = os.path.join(self.saveDir, name + '!ONSET_TIME_HERE!.wav')
         if not saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
-        self.saved = False # becomes self.wavOutFilename if save succeeds
+        self.savedFile = False # becomes saved file name if save succeeds
         
         if warn: warnMsg = '= LONG, warning suppressed'
         else: warnMsg = ''
@@ -108,9 +120,9 @@ class SimpleAudioCapture():
         """clean up, can take 0.3s"""
         self.stream.close()
         self.pa.terminate()
-        try: del(self.stream) # release access to system hardware?
+        try: del self.stream # release access to system hardware?
         except: pass
-        try: del(self.pa)
+        try: del self.pa
         except: pass
     def _rms(self, data):
         """return RMS of data, as a loudness index"""
@@ -119,14 +131,15 @@ class SimpleAudioCapture():
         except:
             pass
     def _stream_read(self, chunk):
-        """sometimes get IOError very quickly, so just try again asap"""
+        """sometimes get IOError very quickly, so just try again asap
+        needs more testing of how much info is lost when there's an IOError"""
         t0 = time.time()
         try:
             data = self.stream.read(chunk)
             self.hitCount += chunk
             return data
         except IOError: # eg: [Errno Input overflowed] -9981
-            if time.time() - t0 < .001:
+            if time.time() - t0 < .001: # should base time on rate & chunk
                 try:
                     data = self.stream.read(chunk)
                     self.hitCount += chunk
@@ -139,13 +152,13 @@ class SimpleAudioCapture():
                      (self.loggingId, time.time(), samples ) )
         self.missCount += samples
         return '\0\0' * samples
-    def record(self, sec):
-        """Capture sound input for sec seconds, save to a file, return the path/name.
+    def record(self, sec, save=True):
+        """Capture sound input for sec as self.allData, optional save to a file.
         
-        Treats onset time (epoch) as a meaningful identifier for filename and log.
+        Default is to save and return the path/name. Uses onset time (epoch) as
+        a meaningful identifier for filename and log.
         """
         t0 = time.time()
-        self.saved = False
         self.RECORD_SECONDS = float(sec)
         self.onset = time.time() # note: report onset time in log, and use in filename
         if self.warn is not False:
@@ -163,31 +176,36 @@ class SimpleAudioCapture():
         self.recordTime = time.time() - t0
         samples = self.missCount + self.hitCount
         
+        self.allData = ''.join(all)
+        
         if self.warn is not False:
             logging.exp('%s: record stop  at %.3f (capture %.3fs, %d samples)' %
                      (self.loggingId, time.time(), self.recordTime, samples) )
-            self.rms = self._rms(''.join(all))
-            logging.data('%s: RMS = %.1f (%d samples, onset=%.3f)' %
+            self.rms = self._rms(self.allData)
+            logging.data('%s: RMS = %d (%d samples, onset=%.3f)' %
                          (self.loggingId, self.rms, samples, self.onset) )
         
-        self._save(all)
+        if save:
+            self._save(all) # set self.savedFile
+        else:
+            self.savedFile = None
         self._close()
-        return self.saved # filename
+        return self.savedFile # filename, or None
         
     def _save(self, all):
         """Write data to .wav, include onset epoch in file name; return the path/name."""
         t0 = time.time()
-        self.wavOutFilename = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
+        filename = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
         try:
-            wf = wave.open(self.wavOutFilename, 'wb')
+            wf = wave.open(filename, 'wb')
             wf.setnchannels(self.CHANNELS)
             wf.setsampwidth(self.pa.get_sample_size(self.FORMAT))
             wf.setframerate(self.RATE)
             wf.writeframes(''.join(all))
             wf.close()
-            self.saved = self.wavOutFilename
+            self.savedFile = filename
         except:
-            logging.error('%s: failed to save file %s' % (self.loggingId, self.wavOutFilename))
+            logging.error('%s: failed to save file %s' % (self.loggingId, filename))
             return None
             
         self.saveTime = time.time() - t0
@@ -196,21 +214,21 @@ class SimpleAudioCapture():
             return
         if self.saveTime > self.warn:
             logging.warning('%s: save to file took %.3f SLOW, file=%s' %
-                            (self.loggingId, self.saveTime, self.wavOutFilename))
+                            (self.loggingId, self.saveTime, filename))
         else:
             logging.exp('%s: save to file took %.3f, file=%s' %
-                        (self.loggingId, self.saveTime, self.wavOutFilename))
-        return self.saved # filename
+                        (self.loggingId, self.saveTime, filename))
+        return filename
 
     def playback(self):
         """Plays the saved .wav file"""
         
-        if not self.saved or not os.path.isfile(self.saved):
+        if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: playback requested but no saved file' % self.loggingId
             logging.error(msg)
             raise ValueError(msg)
         t0 = time.time()
-        wf = wave.open(self.saved, 'rb')
+        wf = wave.open(self.savedFile, 'rb')
         self.pa = pyaudio.PyAudio()
         self.stream = self.pa.open(
                 format=self.pa.get_format_from_width(wf.getsampwidth()),
@@ -238,17 +256,16 @@ try:
     _tmpMic = SimpleAudioCapture(saveDir=_tmp, warn=False)
     _tmpRec = _tmpMic.record(sec=.001)
     _tmpMic.playback() # wake up the output as well
-    del(_tmpMic)
+    del _tmpMic
 finally:
     shutil.rmtree(_tmp)
 
 if __name__ == '__main__':
-    for i in range(2):  # to show timing stats for first and second pass
+    for i in range(1):  # to show timing stats for first and second pass
         mic = SimpleAudioCapture()
         print "say something:"
         sys.stdout.flush()
-        filename = mic.record(1) # record, save, close
-        mic.playback()
-        os.unlink(filename)
+        mic.record(2, save=False) # record, no file but keeps .allData
+        print _stats(mic.allData)
         
     
