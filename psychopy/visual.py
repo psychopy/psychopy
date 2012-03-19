@@ -542,31 +542,31 @@ class Window:
         Flips multiple times while maintaining display constant. Use this method for precise timing.
 
         :Parameters:
-        
+
             flips: number of monitor frames to flip image. Window.multiFlip(flips=1) is equivalent to Window.flip().
 
             clearBuffer: as in Window.flip(). This is applied to the last flip.
 
         Example::
-        
+
             myStim1.draw()					# Draws myStim1 to buffer
             myWin.multiFlip(clearBuffer=False, flips=6)	# Show stimulus for 4 frames (90 ms at 60Hz)
             myStim2.draw()					# Draw myStim2 "on top of" myStim1 (because buffer was not cleared above)
             myWin.multiFlip(flips=2)		# Show this for 2 frames (30 ms at 60Hz)
             myWin.multiFlip(flips=3)		# Show blank screen for 3 frames (because buffer was cleared above)
         """
-        
+
         #Sanity checking
         if flips >= 1 and int(flips) == flips:
             logging.error("flips argument for multiFlip should be a positive integer")
-        if flips > 1 and self.waitBlanking: 
+        if flips > 1 and self.waitBlanking:
             logging.warning("Call to Window.multiFlip() with flips > 1 is unnecessary because Window.waitBlanking=False")
-        
+
         #Do the flipping with last flip as special case
-        for frame in range(flips-1): 
+        for frame in range(flips-1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
-    
+
     def clearBuffer(self):
         """Clear the back buffer (to which you are currently drawing) without flipping the window.
         Useful if you want to generate movie sequences from the back buffer without actually
@@ -772,7 +772,7 @@ class Window:
 
         NB This command sets the color that the blank screen will have on the next
         clear operation. As a result it effectively takes TWO `flip()` operations to become
-        visible (the first uses the color to create the new screen the second presents
+        visible (the first uses the color to create the new screen, the second presents
         that screen to the viewer).
 
         See :ref:`colorspaces` for further information about the ways to specify colors and their various implications.
@@ -4927,20 +4927,20 @@ class Line(ShapeStim):
 class BufferImageStim(PatchStim):
     """
     Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
-    
+
     The class returns a screen-shot, i.e., a single collage image composed of static
     elements, ones that you want to treat as effectively a single stimulus. The
     screen-shot can be of the visible screen (front buffer) or hidden (back buffer).
-    
+
     BufferImageStim aims to provide fast rendering, while still allowing dynamic
     orientation, position, and opacity. Its fast to draw but slow to init: ~75ms for
     a 1024 x 512 capture; init time is proportional to image size (as for PatchStim).
-    There is no support for dynamic depth or color. 
+    There is no support for dynamic depth or color.
 
     You specify the part of the screen to capture (in norm units), and optionally
-    the stimuli themselves (as a list of items to be drawn). You get a screenshot 
-    of those pixels. If your OpenGL does not support arbitrary sizes, the image 
-    will be larger, using square powers of two if needed, with the excess image 
+    the stimuli themselves (as a list of items to be drawn). You get a screenshot
+    of those pixels. If your OpenGL does not support arbitrary sizes, the image
+    will be larger, using square powers of two if needed, with the excess image
     being invisible (using alpha). The aim is to preserve the buffer contents as
     rendered.
 
@@ -4956,10 +4956,10 @@ class BufferImageStim(PatchStim):
         mySimpleImageStim = ...
         myTextStim = ...
         stimList = [mySimpleImageStim, myTextStim]
-        
+
         # draw stim list items & capture everything (slow):
         screenshot = visual.BufferImageStim(myWin, stim=stimList)
-        
+
         # render to screen (fast):
         while <conditions>:
             screenshot.draw()  # fast; can vary .ori, ._position, .opacity
@@ -5016,7 +5016,7 @@ class BufferImageStim(PatchStim):
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
 
         self.vertMirror = vertMirror # used in .draw()
-        
+
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
         if glversion >= '2.1' and not sqPower2:
@@ -5101,7 +5101,7 @@ class BufferImageStim(PatchStim):
 
     def draw(self):
         """
-        streamlined version of :class:`~psychopy.visual.PatchStim.draw`. 
+        streamlined version of :class:`~psychopy.visual.PatchStim.draw`.
         limitations / bugs: not sure what happens with shaders & self._updateList()
         """
         # this is copy & pasted from PatchStim, then had stuff taken out for speed
