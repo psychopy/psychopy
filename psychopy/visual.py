@@ -6681,10 +6681,10 @@ def _setColor(self, color, colorSpace=None, operation='',
     #check if colorSpace is given and use self.colorSpace if not
     if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-    if getattr(self,colorSpaceAttrib) in ['named','hex']:
+    if operation!='' and getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
                 %(operation))
-    if operation!='' and colorSpace!=getattr(self,colorSpaceAttrib) :
+    elif operation!='' and colorSpace!=getattr(self,colorSpaceAttrib) :
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
