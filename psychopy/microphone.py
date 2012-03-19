@@ -14,16 +14,13 @@ from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
 
 try:
-    import pyaudio, wave, audioop
+    import pyaudio, wave
     haveMic = True
 except:
     haveMic = False
-    msg = 'Microphone class(es) not available; need pyaudio, audioop, wave'
+    msg = 'Microphone class(es) not available; need pyaudio, wave'
     logging.error(msg)
     raise ImportError(msg)
-
-def _stats(data):
-    return audioop.rms(data, 2), audioop.cross(data, 2)
 
 
 class SimpleAudioCapture():
@@ -86,6 +83,7 @@ class SimpleAudioCapture():
         self.loggingId = self.__class__.__name__
         self.missCount = 0
         self.hitCount = 0
+        self.allData = None
         self.rms = None
         if self.warn is False: # special value, only used during module import
             name = '_init_' # for logging
@@ -114,22 +112,17 @@ class SimpleAudioCapture():
             logging.exp('%s: init at %.3f, took %.3f' %
                         (self.loggingId, t0, self.initTimeReq) )
     def __del__(self):
+        del self.allData # potentially large?
         try: self._close()
         except: pass
     def _close(self):
-        """clean up, can take 0.3s"""
+        """clean up"""
         self.stream.close()
         self.pa.terminate()
         try: del self.stream # release access to system hardware?
         except: pass
         try: del self.pa
         except: pass
-    def _rms(self, data):
-        """return RMS of data, as a loudness index"""
-        try:
-            return audioop.rms(data, self.width)
-        except:
-            pass
     def _stream_read(self, chunk):
         """sometimes get IOError very quickly, so just try again asap
         needs more testing of how much info is lost when there's an IOError"""
@@ -151,7 +144,7 @@ class SimpleAudioCapture():
         logging.data('%s: stream.read failed at %.3f; using "\\0\\0" * %d' %
                      (self.loggingId, time.time(), samples ) )
         self.missCount += samples
-        return '\0\0' * samples
+        return '\0' * samples * self.width
     def record(self, sec, save=True):
         """Capture sound input for sec as self.allData, optional save to a file.
         
@@ -181,7 +174,7 @@ class SimpleAudioCapture():
         if self.warn is not False:
             logging.exp('%s: record stop  at %.3f (capture %.3fs, %d samples)' %
                      (self.loggingId, time.time(), self.recordTime, samples) )
-            self.rms = self._rms(self.allData)
+            self.rms = audioop_rms(self.allData, self.width)
             logging.data('%s: RMS = %d (%d samples, onset=%.3f)' %
                          (self.loggingId, self.rms, samples, self.onset) )
         
@@ -247,10 +240,34 @@ class SimpleAudioCapture():
         else:
             logging.exp('%s: playback: stream open=%.3f, play=%.3f' % (self.loggingId, t1-t0, t2-t1))
 
+    
+def audioop_rms(data, width):
+    """audioop.rms() using numpy; not as fast but sidesteps audioop as a dependency for app
+    http://hg.python.org/cpython/file/2.7/Modules/audioop.c#l410 """
+    if len(data) == 0: return None
+    _checkWavParams(data, width)
+    d = _wavChunk2np_float(data, width)
+    rms = np.sqrt(np.sum(d*d)/len(d))
+    return int( rms )
+def _checkWavParams(data, width):
+    if width not in [1,2,4]:
+        raise ValueError("width should be 1, 2 or 4")
+    if len(data) % width != 0:
+        raise ValueError("data length needs to be a multiple of width")    
+def _wavChunk2np(data, width):
+    """convert from byte stream to numpy array"""
+    fromType = (np.int8, np.int16, np.int32)[width//2]
+    return np.frombuffer(data, fromType)
+def _wavChunk2np_float(data, width):
+    """convert from byte stream and cast as float"""
+    d = _wavChunk2np(data, width)
+    return d.astype(np.float)
+
 if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     
-# the first pyaudio stream access is very slow, so do it on module import:
+# the first pyaudio stream access can be very slow, so do it on module import:
+# this is unnecessary--but fast--if sound.Sound() is imported
 _tmp = mkdtemp()
 try:
     _tmpMic = SimpleAudioCapture(saveDir=_tmp, warn=False)
@@ -265,7 +282,6 @@ if __name__ == '__main__':
         mic = SimpleAudioCapture()
         print "say something:"
         sys.stdout.flush()
-        mic.record(2, save=False) # record, no file but keeps .allData
-        print _stats(mic.allData)
-        
-    
+        mic.record(1, save=False)
+        #mic.playback()
+        print audioop_rms(mic.allData,2)
