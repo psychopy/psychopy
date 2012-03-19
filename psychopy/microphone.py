@@ -247,7 +247,7 @@ def audioop_rms(data, width):
     if len(data) == 0: return None
     _checkWavParams(data, width)
     d = _wavChunk2np_float(data, width)
-    rms = np.sqrt(np.sum(d*d)/len(d))
+    rms = np.sqrt(np.mean(d**2))
     return int( rms )
 def _checkWavParams(data, width):
     if width not in [1,2,4]:
