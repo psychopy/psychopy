@@ -79,13 +79,17 @@ class ExperimentHandler(object):
         self.name=name
         self.version=version
         self.runtimeInfo=runtimeInfo
-        self.extraInfo=extraInfo
+        if extraInfo==None:
+            self.extraInfo = {}
+        else:
+            self.extraInfo=extraInfo
         self.originPath=originPath
         self.savePickle=savePickle
         self.saveWideText=saveWideText
         self.dataFileName=dataFileName
         self.thisEntry = {}
         self.entries=[]#chronological list of entries
+        self._paramNamesSoFar=[]
         self.dataNames=[]#names of all the data (eg. resp.keys)
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
@@ -114,22 +118,36 @@ class ExperimentHandler(object):
         if loopHandler in self.loopsUnfinished:
             self.loopsUnfinished.remove(loopHandler)
     def _getAllParamNames(self):
-        """Returns the attributes of loop parameters (trialN etc)
+        """Returns the attribute names of loop parameters (trialN etc)
         that the current set of loops contain, ready to build a wide-format
         data file.
         """
-        #ToDo: keep track of the available column names
-        names = []
+        names=copy.deepcopy(self._paramNamesSoFar)
         #get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
-            theseNames, vals = self._getLoopData(thisLoop)
+            theseNames, vals = self._getLoopInfo(thisLoop)
             names.extend(theseNames)
         return names
-    def _getLoopData(self, loop):
+    def _getExtraInfo(self):
+        """
+        Get the names and vals from the extraInfo dict (if it exists)
+        """
+        if type(self.extraInfo) != dict:
+            names=[]
+            vals=[]
+        else:
+            names=self.extraInfo.keys()
+            vals= self.extraInfo.values()
+        return names, vals
+    def _getLoopInfo(self, loop):
+        """Returns the attribute names and values for the current trial of a particular loop.
+        Does not return data inputs from the subject, only info relating to the trial
+        execution.
+        """
         names=[]
         vals=[]
         name = loop.name
-        #attribute about the loop we want to find
+        #standard attributes
         for attr in ['thisRepN', 'thisTrialN', 'thisN','thisIndex', 'stepSizeCurrent']:
             if hasattr(loop, attr):
                 if attr=='stepSizeCurrent':
@@ -139,6 +157,21 @@ class ExperimentHandler(object):
                 #append the attribute name and the current value
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
+
+        trial = loop.thisTrial
+        paramNames=[]
+        if hasattr(trial,'items'):#is a TrialList object or a simple dict
+            for attr,val in trial.items():
+                if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
+                paramNames.append(attr)
+                vals.append(val)
+        elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
+            pass
+        else: #e.g. a staircase has a simple value as its trial object
+            paramNames.append(name+'.thisTrial')
+            vals.append(trial)
+        #keep track of these names
+        names.extend(paramNames)#add param names to loop level info
         return names, vals
     def addData(self, name, value):
         """Add the data with a given name to the current experiment.
@@ -155,7 +188,7 @@ class ExperimentHandler(object):
         e.g.::
 
             #add some data for this trial
-            exp.addData('rt', 0.8)
+            exp.addData('resp.rt', 0.8)
             exp.addData('resp.key', 'k')
             #end of trial - move to next line in data output
             exp.nextEntry()
@@ -170,16 +203,29 @@ class ExperimentHandler(object):
         addData() calls correspond to the next trial.
         """
         this=self.thisEntry
+        #fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
-            names, vals = self._getLoopData(thisLoop)
+            names, vals = self._getLoopInfo(thisLoop)
             for n, name in enumerate(names):
                 this[name]=vals[n]
+        #add the extraInfo dict to the data
+        if type(self.extraInfo)==dict:
+            this.update(self.extraInfo)#NB update() really means mergeFrom()
         self.entries.append(this)
         #then create new empty entry for n
         self.thisEntry = {}
     def saveAsWideText(self, fileName, delim=',',
                    matrixOnly=False,
                    appendFile=False):
+        """Saves a long, wide-format text file, with one line representing the attributes and data
+        for a single trial. Suitable for analysis in R and SPSS.
+
+        If `appendFile=True` then the data will be added to the bottom of an existing file. Otherwise, if the file exists
+        already it will be overwritten
+
+        If `matrixOnly=True` then the file will not contain a header row, which can be handy if you want to append data
+        to an existing file of the same format.
+        """
 
         #create the file or print to stdout
         if appendFile: writeFormat='a'
@@ -197,6 +243,7 @@ class ExperimentHandler(object):
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
+        names.extend(self._getExtraInfo()[0]) #names from the extraInfo dictionary
         #write a header line
         if not matrixOnly:
             for heading in names:
@@ -235,7 +282,11 @@ class ExperimentHandler(object):
         self.savePickle=False
 
     def abort(self):
-        """Abort the experiment (prevents data files being saved)
+        """Inform the ExperimentHandler that the run was aborted.
+
+        Experiment handler will attempt automatically to save data (even in the event of a crash if possible).
+        So if you quit your script early you may want to tell the Handler not to save out the data files for this run.
+        This is the method that allows you to do that.
         """
         self.savePickle=False
         self.saveWideText=False
@@ -250,7 +301,6 @@ class TrialType(dict):
             try:
                 return self[name]
             except KeyError:
-#                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
 class _BaseTrialHandler:
@@ -2395,7 +2445,7 @@ class DataHandler(dict):
         during initialisation and as each xtra type is needed.
         """
         if not shape: shape = self.dataShape
-        if type(names) != str:
+        if not isinstance(names,basestring):
             #recursively call this function until we have a string
             for thisName in names: self.addDataType(thisName)
         else:
