@@ -849,6 +849,11 @@ class Flow(list):
             else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
     def writeCode(self, script):
         #initialise
+        # very few components need writeStartCode:
+        for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
+            self._currentRoutine=entry
+            if hasattr(entry, 'writeStartCode'):
+                entry.writeStartCode(script) # used by microphone comp to create a .wav directory once
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(script)
@@ -886,6 +891,12 @@ class Routine(list):
     def removeComponent(self,component):
         """Remove a component from the end of the routine"""
         self.remove(component)
+    def writeStartCode(self,buff):
+        # few components will have this
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility in _base,py
+            if hasattr(thisCompon, 'writeStartCode'): 
+                thisCompon.writeStartCode(buff)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
         buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))

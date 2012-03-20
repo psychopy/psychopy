@@ -42,13 +42,13 @@
       </TextComponent>
       <MicrophoneComponent name="mic">
         <Param name="name" val="mic" valType="code" updates="None"/>
-        <Param name="stopVal" val="2.5" valType="code" updates="constant"/>
+        <Param name="stopVal" val="2" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="rate" val="22050" valType="str" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val=".1" valType="code" updates="None"/>
+        <Param name="startVal" val=".5" valType="code" updates="None"/>
       </MicrophoneComponent>
       <TextComponent name="show_loudness">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
@@ -138,8 +138,8 @@
       <Param name="conditionsFile" val="" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
-      <Param name="loopType" val="random" valType="str" updates="None"/>
-      <Param name="nReps" val="3" valType="code" updates="None"/>
+      <Param name="loopType" val="sequential" valType="str" updates="None"/>
+      <Param name="nReps" val="2" valType="code" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
       <Param name="conditions" val="None" valType="str" updates="None"/>
     </LoopInitiator>

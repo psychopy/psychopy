@@ -43,23 +43,15 @@ class MicrophoneComponent(BaseComponent):
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['rate']=Param(rate, valType='str', hint="Sampling rate (Hz)",
             label="rate")
-    
-    def writeInitCode(self,buff):
-        if self.params['stopType']=='duration (s)':
-            durationSetting="secs=%(stopVal)s" %self.params
-        else:
-            durationSetting=""
+    def writeStartCode(self,buff):
+        # filename should have date_time, so filename_wav should be unique
+        buff.writeIndented("wavDirName = filename + '_wav'\n") 
+        buff.writeIndented("if not os.path.isdir(wavDirName):\n" +
+                           "    os.makedirs(wavDirName) # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
         inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
-        saveToDir = self.exp.settings.getSaveDataDir()
-        '''saveToDir = self.exp.settings.params['Saved data folder'].val.strip()
-        if not saveToDir:
-            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-            if not saveToDir:
-                saveToDir = 'data'
-        '''
-        buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', rate=%s, saveDir='%s')\n" %(
-            inits['name'], inits['name'], inits['rate'], saveToDir))
+        buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', rate=%s, saveDir=wavDirName)\n" %(
+            inits['name'], inits['name'], inits['rate']))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame"""
         if self.params['stopType'].val == 'duration (s)':
@@ -76,13 +68,13 @@ class MicrophoneComponent(BaseComponent):
         name = self.params['name']
         #store = self.params['store'].val
         if len(self.exp.flow._loopList):
-            currLoop = self.exp.flow._loopList[-1]#last (outer-most) loop
+            currLoop = self.exp.flow._loopList[-1] #last (outer-most) loop
         else: currLoop=None
 
         #write the actual code
         if currLoop: #need a loop to do the storing of data!
             buff.writeIndented("#check responses\n" %self.params)
-            buff.writeIndented("if len(%(name)s.savedFile) == 0:\n"%self.params)
+            buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
             buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
             buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
         
