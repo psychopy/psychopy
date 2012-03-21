@@ -48,7 +48,7 @@ class PatchComponent(VisualComponent):
             label="Phase")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)",
+            hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
             label="Texture resolution")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
