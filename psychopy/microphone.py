@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Audio capture and analysis"""
+"""Audio capture and analysis using pyo"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2012 Jonathan Peirce
@@ -7,289 +7,150 @@
 
 from __future__ import division
 import os, sys, shutil, time
-from tempfile import mkdtemp
-import numpy as np
-from psychopy import core, logging, sound
+from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
-import scipy.io.wavfile as sp_wav
 
 try:
-    import pyaudio
+    from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
     haveMic = True
-except:
+    from pyo import getVersion, pa_get_input_devices, pa_get_output_devices
+except ImportError:
     haveMic = False
-    msg = 'Microphone class(es) not available; need pyaudio'
+    msg = 'Microphone class(es) not available; need pyo, see http://code.google.com/p/pyo/'
     logging.error(msg)
     raise ImportError(msg)
 
-
 class SimpleAudioCapture():
-    """Basic sound capture to .wav file using pyaudio.
+    """Basic sound capture to .wav file using pyo.
     
     Designed to capture a sample from the default sound input, and save to a file.
-    Execution will block until the recording is finished. Recording times are
-    approximate, but aim to be within half a visual frame. A warning is generated
-    if they go longer, and all are saved into the log file.
+    Execution will block until the recording is finished.
     
     Example:
     
         mic = SimpleAudioCapture()  # prepare to record; cannot have more than one
-        mic.record(1.23)  # record for 1.23s, save to a file
-        
+        mic.record(1.)  # record for 1 second, save to a file
         mic.playback()
         savedFileName = mic.savedFile
-        loudness = mic.rms
-        
-        # plot all data against time:
-        s = mic.npData # sound, in numpy array
-        t = np.array([float(i)/mic.RATE for i in range(len(s))]) # time in sec
-        pyplot.plot(t, s, 'k')
-        pyplot.show() # or pyplot.savefig('plot.png')
     
     Also see Builder Demo "voiceCapture"
-    
-    Note:
-    
-        The first stream access is very slow (up to 1.1s read, 0.5s write), so this
-        is automatically done on import. Subsequent access times are ~4 ms (if
-        done immediately, might fall asleep again at some point).
     
     Author:
         Jeremy R. Gray, March 2012
     """
-    def __init__(self, name='mic', saveDir='', rate=22050, chunk=150, warn=0.008):
+    def __init__(self, name='mic', saveDir='', rate=44100):
         """
             name : stem for output file, used in logging
             saveDir : directory to use for output .wav files (relative); '' name only
-            rate : sampling rate (Hz)
-            chunk: sampling size
-            warn : threshold in s at which to warn about a slow init or save
+            rate : sampling rate (Hz) = 44100 (not possible to change, for now)
             return 'savedDir / name + onset-time + .wav' if savedDir was specified
             return abspath(filename) if savedDir is '': 
         """
-        t0 = time.time()
-        self.status = NOT_STARTED # for Builder component
-        self.RATE = int(rate) # also makes Builder component easier
-        self.FORMAT = pyaudio.paInt16
-        self.width = 2 # for pyaudio.paInt16
-        self.CHANNELS = 1 # mono
-        self.chunk = chunk # smaller = more precise offset timing
         self.name = name
-        self.pa = pyaudio.PyAudio()
-        self.stream = self.pa.open(format=self.FORMAT, channels=self.CHANNELS,
-                        rate=self.RATE, input=True, frames_per_buffer=self.chunk)
-        self.initTimeReq = (time.time()-t0)
-        self.warn = warn
-        self.loggingId = self.__class__.__name__
-        self.missCount = 0
-        self.hitCount = 0
-        self.allData = []
-        self.npData = []
-        self.rms = None
-        if self.warn is False: # special value, only used during module import
-            name = '_init_' # for logging
-            logging.debug('%s %s: Wake-up on import took %.3fs' % (
-                            self.loggingId, name, self.initTimeReq) )
-        if name: # add after module import
-            self.loggingId += ' ' + name
-        self.latency = self.stream.get_input_latency()
-        if self.latency and warn:
-            logging.warning('%s: Non-zero input latency %.3f' %
-                            (self.loggingId, self.latency))
-        
-        self.onset = None # becomes onset time, used in filename
         self.saveDir = saveDir
+        self.rate = int(rate) # also makes Builder component easier
+
         self.wavOutFilename = os.path.join(self.saveDir, name + '!ONSET_TIME_HERE!.wav')
-        if not saveDir:
+        if not self.saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
+
+        self.onset = None # becomes onset time, used in filename
         self.savedFile = False # becomes saved file name if save succeeds
+        self.status = NOT_STARTED # for Builder component
         
-        if warn != False:
-            logging.exp('%s: Init at %.3f, took %.3f' %
-                        (self.loggingId, t0, self.initTimeReq) )
-        else:
-            logging.debug('%s: init at %.3f, took %.3f' %
-                            (self.loggingId, t0, self.initTimeReq) )
+        # pyo server good to go? 
+        if not serverCreated():
+            raise AttributeError('pyo server not created')
+        if not serverBooted():
+            raise AttributeError('pyo server not booted')
+        
+        self.loggingId = self.__class__.__name__
+        if self.name:
+            self.loggingId += ' ' + self.name
+
     def __del__(self):
-        try: del self.allData, self.npData # potentially large?
-        except: pass
-        try: self._close()
-        except: pass
-    def _close(self):
-        """clean up"""
-        self.stream.close()
-        self.pa.terminate()
-        try: del self.stream # release access to system hardware?
-        except: pass
-        try: del self.pa
-        except: pass
-        logging.debug('%s: _close or __del__ at %.3f' % (self.loggingId, time.time()))
-    def _stream_read(self, chunk):
-        """try-except wrapper around pyaudio.stream.read because sometimes get
-        IOError very quickly, so just try again asap
-        builder seems to miss *every* first read; coder occasionally misses"""
-        t0 = time.time()
-        try:
-            data = self.stream.read(chunk)
-            self.hitCount += chunk
-            return data
-        except IOError as e: # eg: [Errno Input overflowed] -9981
-            if e[1] != pyaudio.paInputOverflowed: raise
-            if time.time() - t0 < chunk * 0.05 / self.RATE: # < 5% of a chunk
-                try:
-                    data = self.stream.read(chunk)
-                    self.hitCount += chunk
-                    return data
-                except IOError: # eg: [Errno Input overflowed] -9981
-                    pass
-        # count as a miss if second read is also bad, or if first took too long
-        samples = int((time.time() - t0) / self.RATE)
-        logging.data('%s: _stream_read failed at %.3f; using "\\0\\0" * %d' %
-                     (self.loggingId, time.time(), samples ) )
-        self.missCount += samples
-        return '\0' * samples * self.width
+        #try:
+        #    del self.sfplayer, self.sfplayer2
+        #except:
+            pass
     def reset(self):
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, time.time()))
         self.__del__()
-        self.__init__(name=self.name, saveDir=self.saveDir, rate=self.RATE,
-                      chunk=self.chunk, warn=self.warn)
-    def record(self, sec, doSave=True, npInt16=True):
-        """Capture sound input for sec as self.allData, save to a file and numpy int16.
+        self.__init__(name=self.name, saveDir=self.saveDir, rate=self.rate)
+    def record(self, sec):
+        """Capture sound input for duration <sec>, save to a file.
         
-        Default is to save to a file and return the path/name. Uses onset time (epoch) as
-        a meaningful identifier for filename and log. The data string is also converted
-        to a numpy array int16 by default.
+        Return the path/name to the new file. Uses onset time (epoch) as
+        a meaningful identifier for filename and log.
         """
-        t0 = time.time()
-        self.RECORD_SECONDS = float(sec)
+        RECORD_SECONDS = float(sec)
         self.onset = time.time() # note: report onset time in log, and use in filename
-        if self.warn is not False:
-            logging.exp('%s: Record onset %.3f (ask for %.3fs, chunksize %s)' %
-                         (self.loggingId, self.onset, self.RECORD_SECONDS, self.chunk) )
+        logging.data('%s: Record: onset %.3f, ask for %.3fs' %
+                     (self.loggingId, self.onset, RECORD_SECONDS) )
         
-        # record: idea = for loop for speed; while loop to catch the end more precisely:
-        all = []
+        self.savedFile = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
+        inputter = Input(chnl=0, mul=1) # chnl=[0,1] for stereo input
         t0 = time.time()
-        while time.time() <= t0 + self.RECORD_SECONDS: 
-            all.append(self._stream_read(self.chunk))
-        self.recordTime = time.time() - t0
-        samples = self.missCount + self.hitCount
+        # launch the recording, saving to file:
+        recorder = Record(inputter,
+                        self.savedFile,
+                        chnls=2,
+                        fileformat=0, # .wav format
+                        sampletype=0,
+                        buffering=4) # 4 is default
+        # block during recording and clean up:
+        clean = Clean_objects(RECORD_SECONDS, recorder) # set up to stop recording
+        clean.start() # the timer starts now
+        time.sleep(RECORD_SECONDS - 0.0008) # Clean_objects() set-up takes ~0.0008s, for me
+        self.duration = time.time() - t0 # used in playback()
         
-        self.allData = ''.join(all)
-        if npInt16:
-            self.npData = _wavChunk2np(self.allData, self.width)
+        # prepare a player for this file:
+        self.sfplayer = SfPlayer(self.savedFile, speed=1, loop=False)
+        self.sfplayer2 = self.sfplayer.mix(2) # mix(2) -> 2 outputs -> 2 speakers
+        self.sfplayer2.out()
         
-        if self.warn is not False:
-            logging.exp('%s: Record stop. %.3f (capture %.3fs, %d samples)' %
-                     (self.loggingId, time.time(), self.recordTime, samples) )
-            self.rms = audioop_rms(self.allData, self.width)
-            logging.data('%s: record stats: onset=%.3f samples=%d RMS=%d rate=%d channels=%d' %
-                         (self.loggingId, self.onset, samples, self.rms, self.RATE, self.CHANNELS) )
+        logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
+                     (self.loggingId, time.time(), self.duration) )
         
-        if doSave:
-            self.save() # save self.allData into self.savedFile
-        else:
-            self.savedFile = None
-        self._close()
         return self.savedFile # filename, or None
         
-    def save(self):
-        """Write captured data to .wav file, return the path/name."""
-        if not self.allData or not len(self.allData):
-            msg = '%s: Save requested but no data' % self.loggingId
-            logging.error(msg)
-            raise ValueError(msg)
-        t0 = time.time()
-        filename = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
-        
-        #scipy save-as-.wav, using the np version of the data:
-        try:
-            sp_wav.write(filename, self.RATE, self.npData)
-            self.savedFile = filename
-        except:
-            logging.error('%s: Failed to save file %s' % (self.loggingId, filename))
-            return None
-            
-        self.saveTime = time.time() - t0
-        if self.warn is False:
-            logging.debug('%s: Save to file took %.3f' % (self.loggingId, self.saveTime))
-            return
-        if self.saveTime > self.warn:
-            logging.warning('%s: Save to file took %.3f SLOW, file=%s' %
-                            (self.loggingId, self.saveTime, filename))
-        else:
-            logging.exp('%s: Save to file took %.3f, file=%s' %
-                        (self.loggingId, self.saveTime, filename))
-        return filename
     def playback(self):
-        """Plays the saved .wav file"""
-        
+        """Plays the saved .wav file which was just recorded"""
         if not self.savedFile or not os.path.isfile(self.savedFile):
-            msg = '%s: Playback requested but no data or saved file; try .save() first?' % self.loggingId
+            msg = '%s: Playback requested but no saved file' % self.loggingId
             logging.error(msg)
             raise ValueError(msg)
+        
+        # play the file; sfplayer was created during record:
         t0 = time.time()
-        
-        # read then play stream as sound.Sound():
-        rate, alldata = sp_wav.read(self.savedFile) # returns data and sample rate
-        
-        s = sound.Sound(self.savedFile)
+        self.sfplayer.play()
+        time.sleep(self.duration) # set during record()
         t1 = time.time()
-        s.play()
-        core.wait(s.getDuration()) # block for sound duration
-        t2 = time.time()
 
-        if self.warn is False:
-            logging.debug('%s: Playback: stream open=%.3f' % (self.loggingId, t1-t0))
-        else:
-            logging.exp('%s: Playback: stream open=%.3f, play=%.3f' % (self.loggingId, t1-t0, t2-t1))
+        logging.exp('%s: Playback: played=%.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
 
-    
-def audioop_rms(data, width):
-    """audioop.rms() using numpy; not as fast but sidesteps audioop as a dependency for app
-    http://hg.python.org/cpython/file/2.7/Modules/audioop.c#l410 """
-    if len(data) == 0: return None
-    _checkWavParams(data, width)
-    d = _wavChunk2np_float(data, width)
-    rms = np.sqrt(np.mean(d**2))
-    return int( rms )
-def _checkWavParams(data, width):
-    if width not in [1,2,4]:
-        raise ValueError("width should be 1, 2 or 4")
-    if len(data) % width != 0:
-        raise ValueError("data length needs to be a multiple of width")    
-def _wavChunk2np(data, width):
-    """convert from byte stream to numpy array"""
-    fromType = (np.int8, np.int16, np.int32)[width//2]
-    return np.frombuffer(data, fromType)
-def _wavChunk2np_float(data, width):
-    """convert from byte stream and cast as float"""
-    d = _wavChunk2np(data, width)
-    return d.astype(np.float)
-
-if __name__ == '__main__':
+if __name__ == '__main__' and haveMic:
     logging.console.setLevel(logging.DEBUG) # for command-line testing
 
-# the first pyaudio stream access can be very slow, so do it on module import:
-_tmp = mkdtemp()
-try:
-    _tmpMic = SimpleAudioCapture(saveDir=_tmp, warn=False) # warn False is a flag
-    _tmpRec = _tmpMic.record(sec=.001)
-    #_tmpMic.playback() # wake up the output; not needed if use psychopy.sound?
-    del _tmpMic
-finally:
-    shutil.rmtree(_tmp)
-
-
-if __name__ == '__main__':
-    mic = SimpleAudioCapture()
-    print "say something:"
+    # need duplex=1 for input / recording:
+    pyo_server = Server(sr=44100, nchnls=2, duplex=1).boot()
+    pyo_server.start()
+    
+    #pyo_version = '.'.join(map(str, getVersion()))
+    #print pa_get_input_devices()
+    #print pa_get_output_devices()
+    print "\nsay something:",
     sys.stdout.flush()
-    mic.record(1, doSave=False)
-    mic.save()
-    mic.playback()
-    os.unlink(mic.savedFile)
-    mic.reset()
-    print "say something else:"
-    mic.record(1, doSave=False)
+    
+    mic = SimpleAudioCapture()
+    try:
+        mic.record(1) # always saves
+        print
+        mic.playback()
+        os.remove(mic.savedFile)
+        mic.reset()
+    finally:
+        pyo_server.stop()
+        time.sleep(.25)
+        pyo_server.shutdown()    
