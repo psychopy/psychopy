@@ -56,9 +56,9 @@ Periodically it's worth fetching any changes to the central psychopy repository 
 
 Run PsychoPy using your local copy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For a guide on how to permanently run your git version of psychopy instead of the installed version on Windows, Mac and Linux, see http://www.ehow.com/how_8510325_set-python-path.html
+See `this guide <http://www.ehow.com/how_8510325_set-python-path.html>`_ on how to permanently run your git version of psychopy instead of the installed version on Windows, Mac and Linux.
 
-*Linux and Mac: run git version for just one session*
+*Run git version for just one session (linux and mac only)*:
 Open a terminal and set a temporary python path to your psychopy git folder, then start your editor of choice::
 
 	$ export PYTHONPATH=/path/to/local/git/folder/
