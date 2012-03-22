@@ -557,9 +557,9 @@ class Window:
         """
 
         #Sanity checking
-        if flips >= 1 and int(flips) == flips:
+        if flips < 1 and int(flips) == flips:
             logging.error("flips argument for multiFlip should be a positive integer")
-        if flips > 1 and self.waitBlanking:
+        if flips > 1 and not self.waitBlanking:
             logging.warning("Call to Window.multiFlip() with flips > 1 is unnecessary because Window.waitBlanking=False")
 
         #Do the flipping with last flip as special case
