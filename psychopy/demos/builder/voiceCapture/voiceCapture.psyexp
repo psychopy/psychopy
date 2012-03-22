@@ -45,7 +45,7 @@
         <Param name="stopVal" val="2" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="rate" val="22050" valType="str" updates="None"/>
+        <Param name="rate" val="44100" valType="str" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val=".5" valType="code" updates="None"/>
@@ -56,7 +56,7 @@
         <Param name="name" val="show_loudness" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="$&quot;loudness = %d\nsaved file = %s\nhit any key to playback, then continue&quot; % (mic.rms, mic.savedFile)" valType="str" updates="set every frame"/>
+        <Param name="text" val="$&quot;saved file = %s\nhit any key to playback, then continue&quot; % (mic.savedFile)" valType="str" updates="set every frame"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -102,7 +102,7 @@
         <Param name="name" val="instructions" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="$&quot;this is a loudness detector. ready?\n(please turn on your microphone)\npress any key to start&quot;" valType="str" updates="constant"/>
+        <Param name="text" val="$&quot;this is a microphone test. ready?\n(please turn on your microphone)\npress any key to start&quot;" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>

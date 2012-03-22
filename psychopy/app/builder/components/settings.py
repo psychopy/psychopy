@@ -142,11 +142,16 @@ class SettingsComponent:
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         buff.write(unitsCode+")\n")
+        
+        if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
+            buff.writeIndented("\n# Enable sound input/output:\n"+
+                                "microphone.switchOn()\n\n")
 
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("\n#Shutting down:\n")
-
+        if 'microphone' in self.exp.psychopyLibs:
+            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

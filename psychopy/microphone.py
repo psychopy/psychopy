@@ -10,15 +10,36 @@ import os, sys, shutil, time
 from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
 
-try:
-    from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
-    haveMic = True
-    from pyo import getVersion, pa_get_input_devices, pa_get_output_devices
-except ImportError:
+# globals are intended to allow imports within the switchOn/Off functions:
+global pyoServer, haveMic
+global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
+global getVersion, pa_get_input_devices, pa_get_output_devices
+
+def switchOn():
+    global haveMic
     haveMic = False
-    msg = 'Microphone class(es) not available; need pyo, see http://code.google.com/p/pyo/'
-    logging.error(msg)
-    raise ImportError(msg)
+    try:
+        global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
+        from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
+        global getVersion, pa_get_input_devices, pa_get_output_devices
+        from pyo import getVersion, pa_get_input_devices, pa_get_output_devices
+        haveMic = True
+    except ImportError:
+        msg = 'Microphone class not available, needs pyo; see http://code.google.com/p/pyo/'
+        logging.error(msg)
+        raise ImportError(msg)
+    
+    global pyoServer
+    pyoServer = Server(sr=44100, nchnls=2, duplex=1).boot()
+    pyoServer.start()
+
+def switchOff():
+    if serverBooted():
+        pyoServer.stop()
+        time.sleep(.25)
+    if serverCreated():
+        pyoServer.shutdown()
+
 
 class SimpleAudioCapture():
     """Basic sound capture to .wav file using pyo.
@@ -130,12 +151,11 @@ class SimpleAudioCapture():
 
         logging.exp('%s: Playback: played=%.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
 
-if __name__ == '__main__' and haveMic:
+
+if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG) # for command-line testing
 
-    # need duplex=1 for input / recording:
-    pyo_server = Server(sr=44100, nchnls=2, duplex=1).boot()
-    pyo_server.start()
+    switchOn() # import pyo, create a server
     
     #pyo_version = '.'.join(map(str, getVersion()))
     #print pa_get_input_devices()
@@ -149,8 +169,6 @@ if __name__ == '__main__' and haveMic:
         print
         mic.playback()
         os.remove(mic.savedFile)
-        mic.reset()
+        mic.reset() # just to try it out
     finally:
-        pyo_server.stop()
-        time.sleep(.25)
-        pyo_server.shutdown()    
+        switchOff()    
