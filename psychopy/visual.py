@@ -5220,6 +5220,7 @@ class RatingScale:
                 stretchHoriz=1.0,
                 pos=None,
                 minTime=1.0,
+                maxTime=0.0, 
                 disappear=False,
                 name='',
                 autoLog=True):
@@ -5327,13 +5328,13 @@ class RatingScale:
             minTime :
                 number of seconds that must elapse before a reponse can be accepted,
                 default = 1.0s
-
-                .. note:: For a max response time (upper limit), record the response
-                only within a desired time window. Or present the ratingScale for as
-                long as you like, and just ignore 'late' responses.
+            maxTime :
+                number of seconds after which a reponse cannot be made accepted. 
+                set maxTime <= minTime for no time constraint.
+                default = 0.0s (wait forever)
             disappear :
                 if True, the rating scale will be hidden after a value is accepted; 
-                the default is to remain on-screen. useful when showing multiple scales.
+                useful when showing multiple scales. The default is to remain on-screen. 
 
             name : string
                 The name of the object to be using during logged messages about
@@ -5377,7 +5378,7 @@ class RatingScale:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
                         markerStart, low, high, precision, choices,
                         lowAnchorText, highAnchorText, scale, showScale, showAnchors)
-        self._initMisc(minTime)
+        self._initMisc(minTime, maxTime)
 
         # Set scale & position, key-bindings:
         self._initPosScale(pos, displaySizeFactor, stretchHoriz)
@@ -5474,7 +5475,7 @@ class RatingScale:
             self.markerStart = None
             self.markerPlaced = False
 
-    def _initMisc(self, minTime):
+    def _initMisc(self, minTime, maxTime):
         # precision is the fractional parts of a tick mark to be sensitive to, in [1,10,100]:
         if type(self.precision) != int or self.precision < 10:
             self.precision = 1
@@ -5491,6 +5492,12 @@ class RatingScale:
             self.minimumTime = float(minTime)
         except ValueError:
             self.minimumTime = 1.0
+        self.minimumTime = max(self.minimumTime, 0.)
+        try:
+            self.maximumTime = float(maxTime)
+        except ValueError:
+            self.maximumTime = 0.0
+        self.timedOut = False
 
         self.myMouse = event.Mouse(win=self.win, visible=True)
         # Mouse-click-able 'accept' button pulsates (cycles its brightness over frames):
@@ -5548,22 +5555,26 @@ class RatingScale:
         if self.mouseOnly:
             self.acceptKeys = [ ] # no valid keys, so must use mouse
         else:
-            if type(acceptKeys) != list:
+            if type(acceptKeys) not in [list, tuple]:
                 acceptKeys = [acceptKeys]
             self.acceptKeys = acceptKeys
         self.skipKeys = [ ]
         if allowSkip and not self.mouseOnly:
-            if type(acceptKeys) != list:
-                self.skipKeys = [skipKeys]
+            if skipKeys is None:
+                skipKeys = [ ]
+            elif type(skipKeys) not in [list, tuple]:
+                skipKeys = [skipKeys]
             self.skipKeys = list(skipKeys)
-        if type(escapeKeys) != list:
-            if escapeKeys is None: escapeKeys = [ ]
-            else: escapeKeys = [escapeKeys]
+        if type(escapeKeys) not in [list, tuple]:
+            if escapeKeys is None:
+                escapeKeys = [ ]
+            else:
+                escapeKeys = [escapeKeys]
         self.escapeKeys = escapeKeys
-        if type(leftKeys) != list:
+        if type(leftKeys) not in [list, tuple]:
             leftKeys = [leftKeys]
         self.leftKeys = leftKeys
-        if type(rightKeys) != list:
+        if type(rightKeys) not in [list, tuple]:
             rightKeys = [rightKeys]
         self.rightKeys = rightKeys
 
@@ -5890,13 +5901,18 @@ class RatingScale:
         """
         Update the visual display, check for response (key, mouse, skip).
 
-        sets self.noResponse as appropriate.
+        sets response flags as appropriate (self.noResponse, self.timedOut).
         draw() only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
         if self.firstDraw:
             self.firstDraw = False
             self.myClock.reset()
+
+        # timed out?
+        if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
+            self.noResponse = False
+            self.timedOut = True
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
@@ -6052,22 +6068,18 @@ class RatingScale:
 
     def getRT(self):
         """Returns the seconds taken to make the rating (or to indicate skip).
-        Returns None if no rating available.
+        Returns None if no rating available. or maxTime if the response timed out.
         """
         if self.noResponse:
+            if self.timedOut:
+                return self.maxTime
             return None
         return self.decisionTime
 
 class Aperture:
-    """Used to create a shape (circular for now) to restrict a stimulus
-    visibility area.
+    """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)
 
-    .. note::
-
-        This is a new stimulus (1.63.05) and is subject to change. Notably,
-        right now it supports only a circular shape
-
-    When enabled any drawing commands will only operate on pixels within the
+    When enabled, any drawing commands will only operate on pixels within the
     Aperture. Once disabled, subsequent draw operations affect the whole screen
     as usual.
 

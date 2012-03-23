@@ -41,7 +41,7 @@
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = calm . . . 7 = agitated',&#10;mouseOnly=True, &#10;pos=(-0.35,-0.2), &#10;markerStyle='circle', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True" valType="str" updates="constant"/>
+        <Param name="customize_everything" val="scale='1 = calm . . . 7 = agitated',&#10;mouseOnly=True, &#10;pos=(-0.35,-0.2), &#10;markerStyle='circle', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True,  maxTime=5" valType="str" updates="constant"/>
         <Param name="name" val="RS_calm_left" valType="code" updates="None"/>
         <Param name="singleClick" val="True" valType="bool" updates="constant"/>
         <Param name="highAnchorText" val="" valType="str" updates="constant"/>
@@ -66,7 +66,7 @@
         <Param name="scaleDescription" val="" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = deep . . . 7 = shallow',&#10;mouseOnly=True, &#10;pos=(0.35,-0.2),&#10;markerColor='DarkGreen', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True" valType="str" updates="constant"/>
+        <Param name="customize_everything" val="scale='1 = deep . . . 7 = shallow',&#10;mouseOnly=True, &#10;pos=(0.35,-0.2),&#10;markerColor='DarkGreen', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True, maxTime=5" valType="str" updates="constant"/>
         <Param name="name" val="RS_deep_right" valType="code" updates="None"/>
         <Param name="singleClick" val="False" valType="bool" updates="constant"/>
         <Param name="highAnchorText" val="" valType="str" updates="constant"/>
@@ -90,14 +90,23 @@
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
-      <CodeComponent name="timeout_after_5s">
-        <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
-        <Param name="name" val="timeout_after_5s" valType="code" updates="None"/>
-        <Param name="Each Frame" val="if trialClock.getTime() &gt; 5:&#10;    continueRoutine = False" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Experiment" val="" valType="code" updates="constant"/>
-      </CodeComponent>
+    </Routine>
+    <Routine name="blank">
+      <KeyboardComponent name="key_resp">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="key_resp" valType="code" updates="None"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="'y','n','left','right','space'" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
     </Routine>
     <Routine name="instr">
       <TextComponent name="text_2">
@@ -133,23 +142,6 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="store" val="nothing" valType="str" updates="constant"/>
-      </KeyboardComponent>
-    </Routine>
-    <Routine name="blank">
-      <KeyboardComponent name="key_resp">
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="key_resp" valType="code" updates="None"/>
-        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'y','n','left','right','space'" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
   </Routines>

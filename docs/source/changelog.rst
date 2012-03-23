@@ -27,7 +27,8 @@ PsychoPy 1.74.00
 * ADDED: web-docs: how to contribute or fix documentation; two "recipes" from email list (web-cam, scrolling text animation)
 * ADDED: upload a file to a remote server over http (libs: contrib.http.upload) with coder demo, php scripts for server
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
-* ADDED: rating scale option: 'disappear' = vanish after a rating is accepted; useful for dual-rating presentations, see new demo
+* ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
+* FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
 * ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
 * ADDED: 'enable escape' option in experiment settings, default is enabled (= same as before, but can now disable if desired)
 * ADDED: HSV color space for all stimuli
