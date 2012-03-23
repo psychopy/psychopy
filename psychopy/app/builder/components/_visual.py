@@ -102,6 +102,8 @@ class VisualComponent(_base.BaseComponent):
                 paramCaps='SF' #setSF, not SetSf
             elif thisParamName=='coherence':
                 paramCaps='FieldCoherence' #setSF, not SetSf
+            elif thisParamName=='fieldPos':
+                paramCaps='FieldPos'
             else:
                 paramCaps = thisParamName.capitalize()
             #color is slightly special

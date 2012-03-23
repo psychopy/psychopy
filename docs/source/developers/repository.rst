@@ -54,6 +54,17 @@ Periodically it's worth fetching any changes to the central psychopy repository 
     $ git checkout master
     $ git pull upstream master  # here 'master' is the desired branch of psychopy to fetch
 
+Run PsychoPy using your local copy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Now that you've fetched the latest version of psychopy using git, you should run this version in order to try out yours/others latest improvements. See `this guide <http://www.ehow.com/how_8510325_set-python-path.html>`_ on how to permanently run your git version of psychopy instead of the version you previously installed.
+
+*Run git version for just one session (linux and mac only)*:
+If you want to switch between the latest-and-greatest development version from git and the stable version installed on your system, you can choose to only temporarily run the git version. Open a terminal and set a temporary python path to your psychopy git folder, then start your editor of choice::
+
+	$ export PYTHONPATH=/path/to/local/git/folder/
+	$ psychopy
+
+
 Fixing bugs and making minor improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can make minor changes directly in the `master` branch of your fork. After making a change you need to `commit` a set of changes to your files with a message. This enables you to group together changes and you will subsequently be able to go back to any previous `commit`, so your changes are reversible.
