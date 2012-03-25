@@ -9,15 +9,20 @@ from __future__ import division
 import os, sys, shutil, time
 from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
+# import pyo is done within the switchOn/Off to better encapsulate it, can be very slow
 
-# globals are intended to allow imports within the switchOn/Off functions:
-global pyoServer, haveMic
-global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
-global getVersion, pa_get_input_devices, pa_get_output_devices
+__author__ = 'Jeremy R. Gray'
+
 
 def switchOn():
+    """Must explicitly switch on the microphone before it can be used.
+    
+    It can take several seconds to become available.
+    """
     global haveMic
     haveMic = False
+    t0 = time.time()
+    
     try:
         global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
         from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
@@ -33,12 +38,19 @@ def switchOn():
     pyoServer = Server(sr=44100, nchnls=2, duplex=1).boot()
     pyoServer.start()
 
+    logging.exp('%s: switch on took %.3fs' % (__file__.strip('.py'), time.time() - t0))
+    
+
 def switchOff():
+    """Must explicitly switch off the microphone when done.
+    """
+    t0 = time.time()
     if serverBooted():
         pyoServer.stop()
-        time.sleep(.25)
+        time.sleep(.25) # give it a chance to stop before shutdown()
     if serverCreated():
         pyoServer.shutdown()
+    logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), time.time() - t0))
 
 
 class SimpleAudioCapture():
@@ -56,12 +68,15 @@ class SimpleAudioCapture():
     
     Also see Builder Demo "voiceCapture"
     
+    Bugs: Builder demo plays the sound right after recording it; something likely
+    needs fixing here, maybe in record() in relation to SfPlayer[2] and .out()
+    
     Author:
         Jeremy R. Gray, March 2012
     """
     def __init__(self, name='mic', saveDir='', rate=44100):
         """
-            name : stem for output file, used in logging
+            name : stem for output file, also used in logging
             saveDir : directory to use for output .wav files (relative); '' name only
             rate : sampling rate (Hz) = 44100 (not possible to change, for now)
             return 'savedDir / name + onset-time + .wav' if savedDir was specified
@@ -99,7 +114,7 @@ class SimpleAudioCapture():
         logging.exp('%s: resetting at %.3f' % (self.loggingId, time.time()))
         self.__del__()
         self.__init__(name=self.name, saveDir=self.saveDir, rate=self.rate)
-    def record(self, sec):
+    def record(self, sec, block=True):
         """Capture sound input for duration <sec>, save to a file.
         
         Return the path/name to the new file. Uses onset time (epoch) as
@@ -123,14 +138,10 @@ class SimpleAudioCapture():
         # block during recording and clean up:
         clean = Clean_objects(RECORD_SECONDS, recorder) # set up to stop recording
         clean.start() # the timer starts now
-        time.sleep(RECORD_SECONDS - 0.0008) # Clean_objects() set-up takes ~0.0008s, for me
-        self.duration = time.time() - t0 # used in playback()
-        
-        # prepare a player for this file:
-        self.sfplayer = SfPlayer(self.savedFile, speed=1, loop=False)
-        self.sfplayer2 = self.sfplayer.mix(2) # mix(2) -> 2 outputs -> 2 speakers
-        self.sfplayer2.out()
-        
+        if block:
+            time.sleep(RECORD_SECONDS - 0.0008) # Clean_objects() set-up takes ~0.0008s, for me
+        self.duration = RECORD_SECONDS #time.time() - t0 # used in playback()
+
         logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, time.time(), self.duration) )
         
@@ -142,14 +153,21 @@ class SimpleAudioCapture():
             msg = '%s: Playback requested but no saved file' % self.loggingId
             logging.error(msg)
             raise ValueError(msg)
-        
+    
+        # prepare a player for this file:
+        t0 = time.time()
+        self.sfplayer = SfPlayer(self.savedFile, speed=1, loop=False)
+        self.sfplayer2 = self.sfplayer.mix(2) # mix(2) -> 2 outputs -> 2 speakers
+        self.sfplayer2.out()
+        logging.exp('%s: Playback: prep %.3fs' % (self.loggingId, time.time()-t0))
+
         # play the file; sfplayer was created during record:
         t0 = time.time()
         self.sfplayer.play()
         time.sleep(self.duration) # set during record()
         t1 = time.time()
 
-        logging.exp('%s: Playback: played=%.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
+        logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
 
 
 if __name__ == '__main__':
@@ -167,7 +185,14 @@ if __name__ == '__main__':
     try:
         mic.record(1) # always saves
         print
+        time.sleep(1) # reveals whether playback happens as part of record
+        print 'record done; sleep 1s'
+        sys.stdout.flush()
+        time.sleep(1)
+        print 'start playback',
+        sys.stdout.flush()
         mic.playback()
+        print 'end'
         os.remove(mic.savedFile)
         mic.reset() # just to try it out
     finally:

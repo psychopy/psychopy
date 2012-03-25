@@ -50,10 +50,10 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val=".5" valType="code" updates="None"/>
       </MicrophoneComponent>
-      <TextComponent name="show_loudness">
+      <TextComponent name="show_filename">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="name" val="show_loudness" valType="code" updates="None"/>
+        <Param name="name" val="show_filename" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$&quot;saved file = %s\nhit any key to playback, then continue&quot; % (mic.savedFile)" valType="str" updates="set every frame"/>
