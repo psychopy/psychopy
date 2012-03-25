@@ -13,7 +13,7 @@ tooltip = 'Microphone: basic sound capture (fixed onset & duration), okay for sp
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     def __init__(self, exp, parentName, name='mic_1', 
-                 startType='time (s)', startVal=0.0, rate=22050,
+                 startType='time (s)', startVal=0.0, 
                  stopType='duration (s)', stopVal=2.0, startEstim='', durationEstim='',
                 ):
         self.type='Microphone'
@@ -41,8 +41,8 @@ class MicrophoneComponent(BaseComponent):
             hint="(Optional) expected start (s), purely for representing in the timeline")
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
             hint="(Optional) expected duration (s), purely for representing in the timeline")
-        self.params['rate']=Param(rate, valType='str', hint="Sampling rate (Hz)",
-            label="rate")
+        #self.params['rate']=Param(rate, valType='str', hint="Sampling rate (Hz)",
+        #    label="rate")
     def writeStartCode(self,buff):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n") 
@@ -50,8 +50,8 @@ class MicrophoneComponent(BaseComponent):
                            "    os.makedirs(wavDirName) # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
         inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
-        buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', rate=%s, saveDir=wavDirName)\n" %(
-            inits['name'], inits['name'], inits['rate']))
+        buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', saveDir=wavDirName)\n" %(
+            inits['name'], inits['name']))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame"""
         if self.params['stopType'].val == 'duration (s)':

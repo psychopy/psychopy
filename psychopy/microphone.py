@@ -9,16 +9,17 @@ from __future__ import division
 import os, sys, shutil, time
 from psychopy import core, logging
 from psychopy.constants import NOT_STARTED
-# import pyo is done within the switchOn/Off to better encapsulate it, can be very slow
+# import pyo is done within switchOn/Off to better encapsulate it, can be very slow
 
 __author__ = 'Jeremy R. Gray'
 
+ONSET_TIME_HERE = '!ONSET_TIME_HERE!'
 
-def switchOn():
-    """Must explicitly switch on the microphone before it can be used.
-    
-    It can take several seconds to become available.
+def switchOn(sampleRate=44100):
+    """Must explicitly switch on the microphone before use, can take several seconds.
     """
+    # imports from pyo, creates globals including pyoServer and pyoSamplingRate
+
     global haveMic
     haveMic = False
     t0 = time.time()
@@ -34,25 +35,28 @@ def switchOn():
         logging.error(msg)
         raise ImportError(msg)
     
+    global pyoSamplingRate
+    pyoSamplingRate = sampleRate
     global pyoServer
-    pyoServer = Server(sr=44100, nchnls=2, duplex=1).boot()
+    pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
+        # can't change sampling rate once booted, switchOff(), switchOn(newRate) fails
     pyoServer.start()
 
-    logging.exp('%s: switch on took %.3fs' % (__file__.strip('.py'), time.time() - t0))
+    logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, time.time() - t0))
     
-
 def switchOff():
     """Must explicitly switch off the microphone when done.
     """
     t0 = time.time()
+    global pyoServer, pyoSamplingRate
     if serverBooted():
         pyoServer.stop()
         time.sleep(.25) # give it a chance to stop before shutdown()
     if serverCreated():
         pyoServer.shutdown()
+    del pyoServer, pyoSamplingRate
     logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), time.time() - t0))
-
-
+    
 class SimpleAudioCapture():
     """Basic sound capture to .wav file using pyo.
     
@@ -62,7 +66,7 @@ class SimpleAudioCapture():
     Example:
     
         mic = SimpleAudioCapture()  # prepare to record; cannot have more than one
-        mic.record(1.)  # record for 1 second, save to a file
+        mic.record(1)  # record for 1.000 seconds, save to a file
         mic.playback()
         savedFileName = mic.savedFile
     
@@ -71,24 +75,21 @@ class SimpleAudioCapture():
     Author:
         Jeremy R. Gray, March 2012
     """
-    def __init__(self, name='mic', saveDir='', rate=44100):
-        """
-            name : stem for output file, also used in logging
-            saveDir : directory to use for output .wav files (relative); '' name only
-            rate : sampling rate (Hz) = 44100 (not possible to change, for now)
-            return 'savedDir / name + onset-time + .wav' if savedDir was specified
-            return abspath(filename) if savedDir is '': 
+    def __init__(self, name='mic', saveDir=''):
+        """ name : stem for output file, also used in logging
+            saveDir : directory to use for output .wav files (relative)
+            
+            if saveDir is given: return 'saveDir/name-onset-time.wav' 
+            if saveDir == '': return abspath(filename) 
         """
         self.name = name
         self.saveDir = saveDir
-        self.rate = int(rate) # also makes Builder component easier
-
-        self.wavOutFilename = os.path.join(self.saveDir, name + '!ONSET_TIME_HERE!.wav')
+        self.wavOutFilename = os.path.join(self.saveDir, name + ONSET_TIME_HERE +'.wav')
         if not self.saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
 
         self.onset = None # becomes onset time, used in filename
-        self.savedFile = False # becomes saved file name if save succeeds
+        self.savedFile = False # becomes saved file name
         self.status = NOT_STARTED # for Builder component
         
         # pyo server good to go? 
@@ -96,6 +97,9 @@ class SimpleAudioCapture():
             raise AttributeError('pyo server not created')
         if not serverBooted():
             raise AttributeError('pyo server not booted')
+        #if pyoSamplingRate != self.rate: # fails badly
+        #    switchOff()
+        #    switchOn(sampleRate=self.rate)
         
         self.loggingId = self.__class__.__name__
         if self.name:
@@ -110,7 +114,7 @@ class SimpleAudioCapture():
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, time.time()))
         self.__del__()
-        self.__init__(name=self.name, saveDir=self.saveDir, rate=self.rate)
+        self.__init__(name=self.name, saveDir=self.saveDir)
     def record(self, sec, block=True):
         """Capture sound input for duration <sec>, save to a file.
         
@@ -122,7 +126,7 @@ class SimpleAudioCapture():
         logging.data('%s: Record: onset %.3f, capture %.3fs' %
                      (self.loggingId, self.onset, RECORD_SECONDS) )
         
-        self.savedFile = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
+        self.savedFile = self.wavOutFilename.replace(ONSET_TIME_HERE, '-%.3f' % self.onset)
         inputter = Input(chnl=0, mul=1) # chnl=[0,1] for stereo input
         t0 = time.time()
         # launch the recording, saving to file:
@@ -132,7 +136,7 @@ class SimpleAudioCapture():
                         fileformat=0, # .wav format
                         sampletype=0,
                         buffering=4) # 4 is default
-        # block during recording and clean up:
+        # launch recording, block as needed, and clean up:
         clean = Clean_objects(RECORD_SECONDS, recorder) # set up to stop recording
         clean.start() # the timer starts now, ends automatically whether block or not
         if block:
@@ -171,10 +175,11 @@ class SimpleAudioCapture():
         logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
     
 
+
 if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG) # for command-line testing
 
-    switchOn() # import pyo, create a server
+    switchOn(sampleRate=22050) # import pyo, create a server
     try:
         mic = SimpleAudioCapture()
         
@@ -182,22 +187,22 @@ if __name__ == '__main__':
         sys.stdout.flush()
         mic.record(1, block=False) # always saves
         print
-        time.sleep(1) # reveals whether playback happens as part of record
+        time.sleep(1)
         print 'record done; sleep 1s'
         sys.stdout.flush()
         time.sleep(1)
         print 'start playback',
         sys.stdout.flush()
         mic.playback()
-        print 'end', mic.savedFile
+        print 'end.', mic.savedFile
         os.remove(mic.savedFile)
         mic.reset()
         
-        print "\nsay something else:",
+        print "say something else:",
         sys.stdout.flush()
         mic.record(1)
         mic.playback()
         print mic.savedFile
         os.remove(mic.savedFile)
     finally:
-        switchOff() # can get annoying bus errors if not a clean exit
+        switchOff() # can get ugly pyo bus errors if not a clean exit

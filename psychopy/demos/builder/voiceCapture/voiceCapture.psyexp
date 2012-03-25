@@ -5,8 +5,8 @@
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
-    <Param name="Window size (pixels)" val="[1440, 900]" valType="code" updates="None"/>
-    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="Window size (pixels)" val="[800,600]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant':'demo', 'session':'001'}" valType="code" updates="None"/>
@@ -45,7 +45,6 @@
         <Param name="stopVal" val="2" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="rate" val="44100" valType="str" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val=".5" valType="code" updates="None"/>
