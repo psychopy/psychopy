@@ -68,9 +68,6 @@ class SimpleAudioCapture():
     
     Also see Builder Demo "voiceCapture"
     
-    Bugs: Builder demo plays the sound right after recording it; something likely
-    needs fixing here, maybe in record() in relation to SfPlayer[2] and .out()
-    
     Author:
         Jeremy R. Gray, March 2012
     """
@@ -122,7 +119,7 @@ class SimpleAudioCapture():
         """
         RECORD_SECONDS = float(sec)
         self.onset = time.time() # note: report onset time in log, and use in filename
-        logging.data('%s: Record: onset %.3f, ask for %.3fs' %
+        logging.data('%s: Record: onset %.3f, capture %.3fs' %
                      (self.loggingId, self.onset, RECORD_SECONDS) )
         
         self.savedFile = self.wavOutFilename.replace('!ONSET_TIME_HERE!', '-%.3f' % self.onset)
@@ -137,18 +134,22 @@ class SimpleAudioCapture():
                         buffering=4) # 4 is default
         # block during recording and clean up:
         clean = Clean_objects(RECORD_SECONDS, recorder) # set up to stop recording
-        clean.start() # the timer starts now
+        clean.start() # the timer starts now, ends automatically whether block or not
         if block:
             time.sleep(RECORD_SECONDS - 0.0008) # Clean_objects() set-up takes ~0.0008s, for me
-        self.duration = RECORD_SECONDS #time.time() - t0 # used in playback()
-
-        logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
-                     (self.loggingId, time.time(), self.duration) )
+            logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
+                     (self.loggingId, time.time(), time.time() - t0) )
+        else:
+            logging.exp('%s: Record: return immediately, no blocking' %
+                     (self.loggingId) )
         
+        self.duration = RECORD_SECONDS # used in playback()
+
         return self.savedFile # filename, or None
         
     def playback(self):
-        """Plays the saved .wav file which was just recorded"""
+        """Plays the saved .wav file which was just recorded
+        """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
             logging.error(msg)
@@ -168,22 +169,18 @@ class SimpleAudioCapture():
         t1 = time.time()
 
         logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
-
+    
 
 if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG) # for command-line testing
 
     switchOn() # import pyo, create a server
-    
-    #pyo_version = '.'.join(map(str, getVersion()))
-    #print pa_get_input_devices()
-    #print pa_get_output_devices()
-    print "\nsay something:",
-    sys.stdout.flush()
-    
-    mic = SimpleAudioCapture()
     try:
-        mic.record(1) # always saves
+        mic = SimpleAudioCapture()
+        
+        print "\nsay something:",
+        sys.stdout.flush()
+        mic.record(1, block=False) # always saves
         print
         time.sleep(1) # reveals whether playback happens as part of record
         print 'record done; sleep 1s'
@@ -192,8 +189,15 @@ if __name__ == '__main__':
         print 'start playback',
         sys.stdout.flush()
         mic.playback()
-        print 'end'
+        print 'end', mic.savedFile
         os.remove(mic.savedFile)
-        mic.reset() # just to try it out
+        mic.reset()
+        
+        print "\nsay something else:",
+        sys.stdout.flush()
+        mic.record(1)
+        mic.playback()
+        print mic.savedFile
+        os.remove(mic.savedFile)
     finally:
-        switchOff()    
+        switchOff() # can get annoying bus errors if not a clean exit

@@ -69,10 +69,10 @@
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="letterHeight" val="0.07" valType="code" updates="constant"/>
       </TextComponent>
-      <KeyboardComponent name="key_resp">
+      <KeyboardComponent name="any_key_cont">
         <Param name="correctAns" val="" valType="str" updates="constant"/>
         <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="key_resp" valType="code" updates="None"/>
+        <Param name="name" val="any_key_cont" valType="code" updates="None"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
