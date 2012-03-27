@@ -914,10 +914,10 @@ class TrialHandler(_BaseTrialHandler):
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f = codecs.open(fileName, writeFormat, encoding="utf-8")
+            f= file(fileName,writeFormat)
         else:
-            if delim==',': f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
-            else: f=codecs.open(fileName+'.txt',writeFormat, encoding = "utf-8")
+            if delim==',': f=file(fileName+'.csv',writeFormat)
+            else: f=file(fileName+'.txt',writeFormat)
 
         # collect parameter names related to the stimuli:
         header = self.trialList[0].keys()
