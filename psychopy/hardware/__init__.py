@@ -69,7 +69,7 @@ def findPhotometer(ports=None, device=None):
             ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
             ports = range(11)
-    elif type(ports) in [int,float]:
+    elif type(ports) in [int,float] or isinstance(ports,basestring):
         ports=[ports] #so that we can iterate
         
     #go through each port in turn
