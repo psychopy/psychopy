@@ -79,7 +79,11 @@ def findPhotometer(ports=None, device=None):
     for thisPort in ports:
         logging.info('...'+str(thisPort)); logging.flush()
         for Photometer in photometers:
-            photom = Photometer(port=thisPort)
+            try:
+                photom = Photometer(port=thisPort)
+            except Exception as ex:
+                logging.error("Couldn't initialize photometer {0}: {1}".format(Photometer.__class__.__name__,ex))
+                continue # We threw an exception so we should just skip ahead
             if photom.OK: 
                 logging.info(' ...found a %s\n' %(photom.type)); logging.flush()
                 #we're now sure that this is the correct device and that it's configured
