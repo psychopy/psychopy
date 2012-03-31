@@ -1,6 +1,49 @@
-import sys, glob
+import sys, glob, itertools
 from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
+
+
+
+
+def getSerialPorts():
+    """Finds the names of all (virtual) serial ports present on the system
+
+    :returns:
+
+    Returns an iterable with all the serial ports.
+    """
+    if sys.platform == "darwin":
+        ports = [
+            '/dev/tty.USA*', #keyspan twin adapter is usually USA28X13P1.1
+            '/dev/tty.Key*', #some are Keyspan.1 or Keyserial.1
+            '/dev/tty.modem*',
+            '/dev/cu.usbmodem*', #for PR650
+        ]
+    elif sys.platform.startswith("linux"):
+        ports = [
+            "/dev/ttyACM?", # USB CDC devices (virtual serial ports)
+            "/dev/ttyUSB?", # USB to serial adapters using the usb-serial kernel module
+            "/dev/ttyS?",   # genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
+            ]
+    elif sys.platform == "cygwin": # I don't think anyone has actually tried this
+        ports = [
+            "/dev/ttyS?", # Cygwin maps the windows serial ports like this
+        ]
+    elif sys.platform == "win32":
+        # While PsychoPy does support using numeric values to specify
+        # which serial port to use, it is better in this case to
+        # provide a cannoncial name.
+        return itertools.imap("COM{0}".format,xrange(11)) #COM0-10
+    else:
+        logging.error("We don't support serial ports on {0} yet!"
+                      .format(sys.platform))
+        return []
+    
+    # This creates an iterator for each glob expression. The glob
+    # expressions are then chained together. This is more efficient
+    # because it means we don't perform the lookups before we actually
+    # need to.
+    return itertools.chain.from_iterable(itertools.imap(glob.iglob,ports))
 
 
 def findPhotometer(ports=None, device=None):
@@ -51,24 +94,8 @@ def findPhotometer(ports=None, device=None):
         photometers=[pr.PR650, pr.PR655, minolta.LS100, crs.ColorCAL]#a list of photometer objects to test for
     
     #determine candidate ports
-    if ports==None:
-        if sys.platform=='darwin':
-            ports=[]
-            #try some known entries in /dev/tty. used by keyspan
-            ports.extend(glob.glob('/dev/tty.USA*'))#keyspan twin adapter is usually USA28X13P1.1
-            ports.extend(glob.glob('/dev/tty.Key*'))#some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/cu.usbmodem*'))#for PR650
-            if len(ports)==0:
-                logging.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
-                    +"serial port name manually, check drivers installed etc...")
-                return None
-        elif sys.platform.startswith('linux'):
-            ports = glob.glob('/dev/ttyACM?')#USB CDC devices (virtual serial ports)
-            ports.extend(glob.glob("/dev/ttyUSB?")) # USB to serial adapters using the usb-serial kernel module
-            ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
-        elif sys.platform=='win32':
-            ports = range(11)
+    if ports == None: 
+        ports = getSerialPorts()
     elif type(ports) in [int,float] or isinstance(ports,basestring):
         ports=[ports] #so that we can iterate
         
