@@ -323,6 +323,11 @@ class MainFrame(wx.Frame):
         #photometer button
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
             choices=["PR655/PR670", "PR650", "Minolta LS100/LS110", "CRS ColorCAL"])
+        self.ctrlPhotomPort = wx.ComboBox(parent, -1, name="Port:",
+                                          value="Scan all ports",
+                                        choices=["Scan all ports"]+list(hardware.getSerialPorts()),
+                                        size=self.ctrlPhotomType.GetSize()
+                                    )
         #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
         self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
@@ -349,6 +354,7 @@ class MainFrame(wx.Frame):
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
 
         photometerBox.AddMany([self.ctrlPhotomType,self.btnFindPhotometer,
+                               self.ctrlPhotomPort,(0,0),
                                 self.comPortLabel,(0,0),
                                 self.btnCalibrateGamma, (0,0),
                                 self.btnTestGamma, self.btnPlotGamma,
@@ -838,17 +844,22 @@ class MainFrame(wx.Frame):
         pass
     def onBtnFindPhotometer(self, event):
         photName = self.ctrlPhotomType.GetStringSelection()
+        photPort = self.ctrlPhotomPort.GetValue().strip()
+        if not photPort or photPort == "Scan all ports":
+            photPort = None
+        elif photPort.isdigit():
+            photPort = int(photPort)
         #search all ports
         self.comPortLabel.SetLabel('Scanning ports...')
         self.Update()
         if 'PR655' in photName:
-            self.photom = hardware.findPhotometer(device='PR655')
+            self.photom = hardware.findPhotometer(device='PR655',ports=photPort)
         elif 'PR650' in photName:
-            self.photom = hardware.findPhotometer(device='PR650')
+            self.photom = hardware.findPhotometer(device='PR650',ports=photPort)
         elif 'LS100' in photName:
-            self.photom = hardware.findPhotometer(device='LS100')
+            self.photom = hardware.findPhotometer(device='LS100',ports=photPort)
         elif 'ColorCAL' in photName:
-            self.photom = hardware.findPhotometer(device='ColorCAL')
+            self.photom = hardware.findPhotometer(device='ColorCAL',ports=photPort)
         if self.photom!=None and self.photom.OK:
             self.btnFindPhotometer.Disable()
             self.btnCalibrateGamma.Enable(True)
