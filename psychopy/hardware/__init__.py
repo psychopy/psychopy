@@ -26,7 +26,7 @@ def findPhotometer(ports=None, device=None):
     
         * An object representing the first photometer found
         * None if the ports didn't yield a valid response
-        * -1 if there were not even any valid ports (suggesting a driver not being installed)
+        * None if there were not even any valid ports (suggesting a driver not being installed)
         
     e.g.::
     
