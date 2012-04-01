@@ -89,8 +89,8 @@ class PR650:
                 if not self.com.isOpen(): self.com.open()
             except:
                 self._error("Opened serial port %s, but couldn't connect to PR650" %self.portString)
-                
-            self.isOpen=1
+            else:
+                self.isOpen=1
         if self.OK:
             logging.info("Successfully opened %s" %self.portString)
             time.sleep(0.1) #wait while establish connection

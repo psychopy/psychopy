@@ -114,12 +114,12 @@ class LS100:
             self.com.setParity(serial.PARITY_EVEN)#none
             self.com.setStopbits(serial.STOPBITS_TWO)
             try:
-                if self.com.isOpen():
+                if not self.com.isOpen():
                     self.com.open()
             except:
                 self._error("Opened serial port %s, but couldn't connect to LS100" %self.portString)
-
-            self.isOpen=1
+            else:
+                self.isOpen=1
             
         if self.OK:#we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
