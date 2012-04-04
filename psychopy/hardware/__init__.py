@@ -111,7 +111,7 @@ def findPhotometer(ports=None, device=None):
             try:
                 photom = Photometer(port=thisPort)
             except Exception as ex:
-                logging.error("Couldn't initialize photometer {0}: {1}".format(Photometer.__class__.__name__,ex))
+                logging.error("Couldn't initialize photometer {0}: {1}".format(Photometer.__name__,ex))
                 continue # We threw an exception so we should just skip ahead
             if photom.OK: 
                 logging.info(' ...found a %s\n' %(photom.type)); logging.flush()
