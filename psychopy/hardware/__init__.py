@@ -1,4 +1,6 @@
-import sys, glob, itertools
+import sys, glob
+from itertools import imap,chain
+
 from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
@@ -33,7 +35,7 @@ def getSerialPorts():
         # While PsychoPy does support using numeric values to specify
         # which serial port to use, it is better in this case to
         # provide a cannoncial name.
-        return itertools.imap("COM{0}".format,xrange(11)) #COM0-10
+        return imap("COM{0}".format,xrange(11)) #COM0-10
     else:
         logging.error("We don't support serial ports on {0} yet!"
                       .format(sys.platform))
@@ -43,7 +45,7 @@ def getSerialPorts():
     # expressions are then chained together. This is more efficient
     # because it means we don't perform the lookups before we actually
     # need to.
-    return itertools.chain.from_iterable(itertools.imap(glob.iglob,ports))
+    return chain.from_iterable(imap(glob.iglob,ports))
 
 
 def findPhotometer(ports=None, device=None):
