@@ -1,4 +1,4 @@
-import sys, glob
+import sys, glob, collections
 from itertools import imap,chain
 
 from psychopy import logging
@@ -47,6 +47,40 @@ def getSerialPorts():
     # need to.
     return chain.from_iterable(imap(glob.iglob,ports))
 
+def getAllPhotometers():
+    """Gets all available photometers. 
+    The returned photometers may vary depending on which drivers are installed.
+    Standalone PsychoPy ships with libraries for all supported photometers.
+    """
+    import minolta,pr,crs
+    photometers = [pr.PR650,pr.PR655,minolta.LS100]
+    if hasattr(crs,"ColorCAL"):
+        photometers.append(crs.ColorCAL)
+
+    return photometers
+
+def getPhotometerByName(name):
+    """Gets a Photometer class by name. 
+    You can use either short names like pr650 or a long name like
+    Photoresearch PR650.
+    
+    :parameters:
+        name : The name of the device
+    
+    :returns: 
+    Returns the photometer matching the passed in device
+    name or none if we were unable to find it.
+
+    """
+    for photom in getAllPhotometers():
+        # longName is used from the GUI and driverFor is for coders
+        if name.lower() in photom.driverFor or name == photom.longName:
+            return photom
+
+
+        
+
+    
 
 def findPhotometer(ports=None, device=None):
     """Try to find a connected photometer/photospectrometer! 
@@ -81,19 +115,14 @@ def findPhotometer(ports=None, device=None):
             print photom.getSpectrum()
         
     """
-    import minolta, pr, crs
-    if device.lower() in ['pr650']:
-        photometers=[pr.PR650]
-    elif device.lower() in ['pr655', 'pr670']:
-        photometers=[pr.PR655]
-    elif device.lower() in ['ls110', 'ls100']:
-        photometers=[minolta.LS100]
-    elif device.lower() in ['colorcal']:
-        if not hasattr(crs, 'ColorCAL'):
-            logging.error('ColorCAL support requires the pycrsltd library, version 0.1 or higher')
-        photometers=[crs.ColorCAL]
-    else:#try them all
-        photometers=[pr.PR650, pr.PR655, minolta.LS100, crs.ColorCAL]#a list of photometer objects to test for
+    if isinstance(device,basestring):
+        photometers = [getPhotometerByName(device)]
+    elif isinstance(device,collections.Iterable):
+        # if we find a string assume it is a name, otherwise treat it like a photometer
+        photometers = [getPhotometerByName(d) if isinstance(d,basestring) else d for d in device]
+    else:
+        photometers = getAllPhotometers()
+
     
     #determine candidate ports
     if ports == None: 
