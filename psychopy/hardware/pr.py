@@ -51,7 +51,7 @@ class PR650:
 
     """
     longName = "Photoresearch PR650"
-    driver_for = ["pr650"]
+    driverFor = ["pr650"]
 
     def __init__(self, port, verbose=None):
         if type(port) in [int, float]:
