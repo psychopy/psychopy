@@ -45,7 +45,7 @@ def _diff_file(a, b):
     return list(diff)
 
 class TestExpt():
-    def setUp(self):
+    def setup(self):
         # something to test:
         self.exp = exp
 
@@ -55,7 +55,7 @@ class TestExpt():
         self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def tearDown(self):
+    def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def _checkLoadSave(self, file):
@@ -138,7 +138,7 @@ class TestExpt():
                 return diff_py_patch  # --> final assert will fail
         return ''
 
-    def testExp_LoadCompilePsyexp(self):
+    def test_Exp_LoadCompilePsyexp(self):
         #""" for each builder demo .psyexp: load-save-load, compile (syntax check), namespace"""
         exp = self.exp
         self.new_diff_file = self.tmp_diffs_file
@@ -181,31 +181,31 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
-    def testRun_FastStroopPsyExp(self):
+    def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
-        
+
         if sys.platform.startswith('linux'):
             raise nose.plugins.skip.SkipTest("response emulation thread not working on linux yet")
 
         os.chdir(self.tmp_dir)
-        
+
         file = path.join(exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
         f = codecs.open(file, 'r', 'utf-8')
         text = f.read()
         f.close()
-        
+
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
-                        os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx')) 
+                        os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
         # use a consistent font:
         text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
         #text = text.replace("Arial",utils.TESTS_FONT) # fails
-        
+
         file = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
         f = codecs.open(file, 'w', 'utf-8')
         f.write(text)
         f.close()
-        
+
         exp.loadFromXML(file) #reload the modifed file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
         script = exp.writeScript(expPath=lastrun)
@@ -214,20 +214,20 @@ class TestExpt():
         f = codecs.open(lastrun, 'w', 'utf-8')
         f.write(text)
         f.close()
-        
+
         # run:
         stdout, stderr = shellCall('python '+lastrun, stderr=True)
         if len(stderr):
             print stderr
             assert not len(stderr) # NB: "captured stdout" is the stderr from subprocess
-            
-    def testExp_AddRoutine(self):
+
+    def test_Exp_AddRoutine(self):
         exp = self.exp
         exp.addRoutine('instructions')
         #exp.routines['instructions'].AddComponent(
         #exp.Add
 
-    def testExp_NameSpace(self):
+    def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
         assert namespace.exists('psychopy') == "Psychopy module"
 

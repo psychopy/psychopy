@@ -10,14 +10,14 @@ from numpy.random import random, randint
 from psychopy import data
 from psychopy.tests.utils import TESTS_PATH
 
-TESTSDATA_PATH = pjoin(TESTS_PATH, 'testData')
+TESTSDATA_PATH = pjoin(TESTS_PATH, 'test_data')
 
 class TestTrialHandler:
-    def setUp(self):
+    def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
 
-    def tearDown(self):
+    def teardown_class(self):
         shutil.rmtree(self.temp_dir)
 
     def test_underscores_in_datatype_names(self):
@@ -43,47 +43,47 @@ class TestTrialHandler:
             print expected_header,type(expected_header),len(expected_header)
             print header, type(header), len(header)
         assert expected_header == unicode(header)
-        
-    def testPsydatFilenameCollisionRenaming(self):
+
+    def test_psydat_filename_collision_renaming(self):
         for count in range(1,20):
             trials = data.TrialHandler([], 1)
             trials.data.addDataType('trialType')
             for trial in trials:#need to run trials or file won't be saved
                 trials.addData('trialType', 0)
             base_data_filename = pjoin(self.temp_dir, self.rootName)
-        
+
             trials.saveAsPickle(base_data_filename)
-        
+
             # Make sure the file just saved is there
             data_filename = base_data_filename + '.psydat'
             nose.tools.assert_true(os.path.exists(data_filename),
                 msg = "File not found: %s" %os.path.abspath(data_filename))
-            
+
             # Make sure the correct number of files for the loop are there. (No overwriting by default).
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*")))
             nose.tools.assert_equals(matches, count, msg = "Found %d matching files, should be %d" % (matches, count))
-            
-    def testPsydatFilenameCollisionOverwriting(self):
+
+    def test_psydat_filename_collision_overwriting(self):
         for count in range(1,20):
             trials = data.TrialHandler([], 1)
             trials.data.addDataType('trialType')
             for trial in trials:#need to run trials or file won't be saved
                 trials.addData('trialType', 0)
             base_data_filename = pjoin(self.temp_dir, self.rootName)
-        
+
             trials.saveAsPickle(base_data_filename, fileCollisionMethod='overwrite')
-        
+
             # Make sure the file just saved is there
             data_filename = base_data_filename + '.psydat'
             nose.tools.assert_true(os.path.exists(data_filename),
                 msg = "File not found: %s" %os.path.abspath(data_filename))
-            
+
             # Make sure the correct number of files for the loop are there. (No overwriting by default).
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*")))
             nose.tools.assert_equals(matches, 1, msg = "Found %d matching files, should be %d" % (matches, count))
-    
+
     @raises(IOError)
-    def testPsydatFilenameCollisionFailure(self):
+    def test_psydat_filename_collision_failure(self):
         nose.tools.raises(IOError)
         for count in range(1,3):
             trials = data.TrialHandler([], 1)
@@ -94,7 +94,7 @@ class TestTrialHandler:
 
             trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
 
-    def testFullRandomDataOutput(self):
+    def test_psydat_filename_collision_output(self):
         #create conditions
         conditions=[]
         for trialType in range(5):
@@ -118,7 +118,7 @@ class TestTrialHandler:
         txtCorr = open('corrFullRandom.csv', 'r').read()
         assert txtActual==txtCorr
 
-    def testRandomDataOutput(self):
+    def test_random_data_output(self):
         #create conditions
         conditions=[]
         for trialType in range(5):
@@ -142,13 +142,13 @@ class TestTrialHandler:
         assert txtActual==txtCorr
 
 class TestMultiStairs:
-    def setUp(self):
+    def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
 
-    def tearDown(self):
+    def teardown_class(self):
         shutil.rmtree(self.temp_dir)
 
-    def testSimple(self):
+    def test_simple(self):
         conditions = data.importConditions(
             pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
@@ -162,7 +162,7 @@ class TestMultiStairs:
         stairs.saveAsExcel(pjoin(self.temp_dir, 'multiStairOut'))
         stairs.saveAsPickle(pjoin(self.temp_dir, 'multiStairOut'))#contains more info
 
-    def testQuest(self):
+    def test_quest(self):
         conditions = data.importConditions(
             pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,

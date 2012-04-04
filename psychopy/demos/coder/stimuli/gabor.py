@@ -2,7 +2,7 @@
 from psychopy import core, visual, event
 
 #create a window to draw in
-myWin = visual.Window([400,400.0], allowGUI=False)
+myWin = visual.Window([400,400.0], allowGUI=False, winType='pygame')
 
 #INITIALISE SOME STIMULI
 gabor = visual.PatchStim(myWin,tex="sin",mask="gauss",texRes=256,

@@ -9,14 +9,14 @@ from psychopy import data, misc
 thisDir,filename = os.path.split(os.path.abspath(__file__))
 
 class TestXLSX:
-    def setUp(self):
+    def setup_class(self):
         self.name = 'testXlsx'
         self.fullName = self.name+'.xlsx'
-        
-    def tearDown(self):
+
+    def teardown_class(self):
         os.remove(self.fullName)
-        
-    def testTrialHandlerAndXLSX(self):
+
+    def test_TrialHandlerAndXLSX(self):
         conds = data.importConditions(os.path.join(thisDir, 'trialTypes.xlsx'))
         trials = data.TrialHandler(trialList=conds, seed=100, nReps=2)
         responses=[1,1,2,3,2,3, 1,3,2,2,1,1]
@@ -25,12 +25,12 @@ class TestXLSX:
             trials.addData('resp', responses[trialN])
             trials.addData('rt',rts[trialN])
         trials.saveAsExcel(self.name)
-        
+
         # Make sure the file is there
         assert os.path.isfile(self.fullName)
         expBook = load_workbook(os.path.join(thisDir,'corrXlsx.xlsx'))
         actBook = load_workbook(self.fullName)
-        
+
         for wsN, expWS in enumerate(expBook.worksheets):
             actWS = actBook.worksheets[wsN]
             for key, expVal in expWS._cells.items():
@@ -45,10 +45,10 @@ class TestXLSX:
                     # otherwise do precise comparison
                     nose.tools.assert_equal(expVal.value, actVal.value)
 
-def testTrialTypeImport():
+def test_TrialTypeImport():
     fromCSV = data.importConditions(os.path.join(thisDir, 'trialTypes.csv'))
     fromXLSX = data.importConditions(os.path.join(thisDir, 'trialTypes.xlsx'))
-    
+
     for trialN, trialCSV in enumerate(fromCSV):
         trialXLSX = fromXLSX[trialN]
         assert trialXLSX.keys()==trialCSV.keys()

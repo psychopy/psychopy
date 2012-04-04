@@ -4,7 +4,7 @@ import numpy
 #We need more tests of these conversion routines. Feel free to jump in and help! ;-)
 
 
-def testHSV_RGB():
+def test_HSV_RGB():
     HSV=numpy.array([
        [  0,   1,   1],
        [  0,   1, 0.5],#reducing Value reduces intensity of primary gun
@@ -41,4 +41,4 @@ def testHSV_RGB():
     assert numpy.allclose(RGB,expectedRGB,0.0001)
 
 if __name__=='__main__':
-    testHSV_RGB()
+    test_HSV_RGB()
