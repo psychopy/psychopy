@@ -70,6 +70,10 @@ class LS100:
             measurements can be dark (or we really would be in trouble!!).
 
     """
+
+    longName = "Minolta LS100/LS110"
+    driverFor = ["ls110","ls100"]
+
     def __init__(self, port, maxAttempts=1):
 
         if not serial:

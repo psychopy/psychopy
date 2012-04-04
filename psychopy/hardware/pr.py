@@ -50,6 +50,9 @@ class PR650:
 
 
     """
+    longName = "Photoresearch PR650"
+    driver_for = ["pr650"]
+
     def __init__(self, port, verbose=None):
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
@@ -259,6 +262,8 @@ class PR655(PR650):
         has become controlled by some other program.
 
     '''
+    longName = "Photoresearch PR655/PR670"
+    driverFor = ["pr655","pr670"]
     def __init__(self, port):
         self.type = None#get this from the device later
         self.com=False
