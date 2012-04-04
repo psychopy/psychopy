@@ -32,7 +32,8 @@ class ButtonBox:
                 "On most systems this can be installed with\n\t easy_install pyserial")
                 
         self.port = serial.Serial(serialPort-1, baudrate=19200, bytesize=8, parity='N', stopbits=1, timeout=0.001)
-        self.port.open()
+        if not self.port.isOpen():
+            self.port.open()
         self.rawEvts = []
     
     def clearBuffer(self):

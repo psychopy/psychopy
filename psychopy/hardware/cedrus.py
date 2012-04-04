@@ -61,7 +61,8 @@ class RB730:
         self.baudrate = baudrate
         #open the serial port
         self.port = serial.Serial(self.portString, baudrate=baudrate, bytesize=8, parity='N', stopbits=1, timeout=0.0001)
-        self.port.open()
+        if not self.port.isOpen():
+            self.port.open()
         #self.buffer = ''#our own buffer (in addition to the serial port buffer)
         self.clearBuffer()
         

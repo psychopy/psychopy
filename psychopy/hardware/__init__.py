@@ -26,7 +26,7 @@ def findPhotometer(ports=None, device=None):
     
         * An object representing the first photometer found
         * None if the ports didn't yield a valid response
-        * -1 if there were not even any valid ports (suggesting a driver not being installed)
+        * None if there were not even any valid ports (suggesting a driver not being installed)
         
     e.g.::
     
@@ -69,7 +69,7 @@ def findPhotometer(ports=None, device=None):
             ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
         elif sys.platform=='win32':
             ports = range(11)
-    elif type(ports) in [int,float]:
+    elif type(ports) in [int,float] or isinstance(ports,basestring):
         ports=[ports] #so that we can iterate
         
     #go through each port in turn
@@ -79,7 +79,11 @@ def findPhotometer(ports=None, device=None):
     for thisPort in ports:
         logging.info('...'+str(thisPort)); logging.flush()
         for Photometer in photometers:
-            photom = Photometer(port=thisPort)
+            try:
+                photom = Photometer(port=thisPort)
+            except Exception as ex:
+                logging.error("Couldn't initialize photometer {0}: {1}".format(Photometer.__class__.__name__,ex))
+                continue # We threw an exception so we should just skip ahead
             if photom.OK: 
                 logging.info(' ...found a %s\n' %(photom.type)); logging.flush()
                 #we're now sure that this is the correct device and that it's configured
