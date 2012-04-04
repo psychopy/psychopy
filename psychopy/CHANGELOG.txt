@@ -19,7 +19,8 @@ PsychoPy 1.74.00
 * ADDED: HSV color space for all stimuli
 * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
 * CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
-
+* CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
+* FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
 
 PsychoPy 1.73
 ------------------------------
