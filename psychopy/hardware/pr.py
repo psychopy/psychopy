@@ -50,7 +50,7 @@ class PR650:
 
 
     """
-    longName = "Photoresearch PR650"
+    longName = "PR650"
     driverFor = ["pr650"]
 
     def __init__(self, port, verbose=None):
@@ -262,7 +262,7 @@ class PR655(PR650):
         has become controlled by some other program.
 
     '''
-    longName = "Photoresearch PR655/PR670"
+    longName = "PR655/PR670"
     driverFor = ["pr655","pr670"]
     def __init__(self, port):
         self.type = None#get this from the device later
