@@ -58,14 +58,14 @@ def testGetCygwinSerialPorts():
 @require_mock
 def testGetCRSPhotometers():
     with mock.patch.dict("sys.modules",{"psychopy.hardware.crs": object()}):
-        photoms = hw.getAllPhotometers()
+        photoms = list(hw.getAllPhotometers())
         
         for p in photoms:
             assert p.longName != "CRS ColorCAL"
 
         assert isinstance(photoms,collections.Iterable)
         # missing crs shouldn't break it
-        assert len(list(photoms)) > 0
+        assert len(photoms) > 0
 
     
     # This allows us to test our logic even when pycrsltd is missing
