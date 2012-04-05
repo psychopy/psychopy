@@ -39,8 +39,10 @@ def switchOn(sampleRate=44100):
     pyoSamplingRate = sampleRate
     global pyoServer
     if serverCreated():
-        raise AttributeError("Can only switchon() once.")
-    pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
+        pyoServer.setSamplingRate(sampleRate)
+        pyoServer.boot()
+    else:
+        pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
     pyoServer.start()
 
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, time.time() - t0))
@@ -55,7 +57,7 @@ def switchOff():
         time.sleep(.25) # give it a chance to stop before shutdown()
     if serverCreated():
         pyoServer.shutdown()
-    del pyoServer, pyoSamplingRate
+    del pyoSamplingRate
     logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), time.time() - t0))
     
 class SimpleAudioCapture():
@@ -80,7 +82,6 @@ class SimpleAudioCapture():
             
         :Author: Jeremy R. Gray, March 2012
     """ 
-
     def __init__(self, name='mic', file='', saveDir=''):
         """
         :Parameters:
@@ -111,19 +112,13 @@ class SimpleAudioCapture():
             raise AttributeError('pyo server not created')
         if not serverBooted():
             raise AttributeError('pyo server not booted')
-        #if pyoSamplingRate != self.rate: # fails badly
-        #    switchOff()
-        #    switchOn(sampleRate=self.rate)
         
         self.loggingId = self.__class__.__name__
         if self.name:
             self.loggingId += ' ' + self.name
 
     def __del__(self):
-        #try:
-        #    del self.sfplayer, self.sfplayer2
-        #except:
-            pass
+        pass
     def reset(self):
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, time.time()))
