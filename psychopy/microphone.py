@@ -38,8 +38,9 @@ def switchOn(sampleRate=44100):
     global pyoSamplingRate
     pyoSamplingRate = sampleRate
     global pyoServer
+    if serverCreated():
+        raise AttributeError("Can only switchon() once.")
     pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
-        # can't change sampling rate once booted, switchOff(), switchOn(newRate) fails
     pyoServer.start()
 
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, time.time() - t0))
@@ -58,33 +59,46 @@ def switchOff():
     logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), time.time() - t0))
     
 class SimpleAudioCapture():
-    """Basic sound capture to .wav file using pyo.
-    
-    Designed to capture a sample from the default sound input, and save to a file.
-    Execution will block until the recording is finished.
-    
-    Example:
-    
-        mic = SimpleAudioCapture()  # prepare to record; cannot have more than one
-        mic.record(1)  # record for 1.000 seconds, save to a file
-        mic.playback()
-        savedFileName = mic.savedFile
-    
-    Also see Builder Demo "voiceCapture"
-    
-    Author:
-        Jeremy R. Gray, March 2012
-    """
-    def __init__(self, name='mic', saveDir=''):
-        """ name : stem for output file, also used in logging
-            saveDir : directory to use for output .wav files (relative)
+    """Capture a sound sample from the default sound input, and save to a file.
+        
+        Execution will block until the recording is finished.
+        
+        **Example**::
+        
+            from psychopy import microphone
             
-            if saveDir is given: return 'saveDir/name-onset-time.wav' 
-            if saveDir == '': return abspath(filename) 
+            microphone.switchOn(sampleRate=16000) # do once when starting, can take 2-3s
+            
+            mic = microphone.SimpleAudioCapture()  # prepare to record; only one can be active
+            mic.record(1)  # record for 1.000 seconds, save to a file
+            mic.playback()
+            savedFileName = mic.savedFile
+            
+            microphone.switchOff() # do once, at exit 
+        
+        Also see Builder Demo "voiceCapture"
+            
+        :Author: Jeremy R. Gray, March 2012
+    """ 
+
+    def __init__(self, name='mic', file='', saveDir=''):
+        """
+        :Parameters:
+                name :
+                    Stem for the output file, also used in logging.
+                file :
+                    optional file name to use; default = 'name-onsetTimeEpoch.wav'
+                saveDir :
+                    Directory to use for output .wav files.
+                    If a saveDir is given, it will return 'saveDir/file'. 
+                    If no saveDir, then return abspath(file)
         """
         self.name = name
         self.saveDir = saveDir
-        self.wavOutFilename = os.path.join(self.saveDir, name + ONSET_TIME_HERE +'.wav')
+        if file:
+            self.wavOutFilename = file
+        else:
+            self.wavOutFilename = os.path.join(self.saveDir, name + ONSET_TIME_HERE +'.wav')
         if not self.saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
 
