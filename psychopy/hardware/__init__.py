@@ -51,6 +51,9 @@ def getAllPhotometers():
     """Gets all available photometers. 
     The returned photometers may vary depending on which drivers are installed.
     Standalone PsychoPy ships with libraries for all supported photometers.
+
+    :returns:
+    A list of all photometer classes
     """
     import minolta,pr,crs
     photometers = [pr.PR650,pr.PR655,minolta.LS100]
@@ -62,7 +65,7 @@ def getAllPhotometers():
 def getPhotometerByName(name):
     """Gets a Photometer class by name. 
     You can use either short names like pr650 or a long name like
-    Photoresearch PR650.
+    CRS ColorCAL.
     
     :parameters:
         name : The name of the device
