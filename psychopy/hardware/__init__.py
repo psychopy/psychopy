@@ -137,6 +137,9 @@ def findPhotometer(ports=None, device=None):
     for thisPort in ports:
         logging.info('...'+str(thisPort)); logging.flush()
         for Photometer in photometers:
+            # Looks like we got an invalid photometer, carry on
+            if Photometer is None:
+                continue
             try:
                 photom = Photometer(port=thisPort)
             except Exception as ex:
