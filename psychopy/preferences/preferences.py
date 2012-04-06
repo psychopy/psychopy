@@ -1,8 +1,8 @@
 
-import os, sys, urllib, platform, re
+import os, sys, urllib, platform, re, logging
 import configobj, validate
+import locale
 
-#GET PATHS------------------
 join = os.path.join
 
 class Preferences:
@@ -20,6 +20,19 @@ class Preferences:
 
         self.getPaths()
         self.loadAll()
+        # set locale using pref if present, default if not present ''
+        if str(self.app['locale']):
+            locPref = str(self.app['locale'])
+            try:
+                lc = locale.setlocale(locale.LC_ALL, locPref)
+                logging.info('locale set to preference: ' + lc)
+            except locale.Error, e:
+                logging.warning('locale pref: '+ str(e) + " '" +
+                                locPref + "'; using system default")
+                locale.setlocale(locale.LC_ALL, '')
+        else: # handles unset == ''  --> use system default explicitly
+            locale.setlocale(locale.LC_ALL, '')
+            logging.info('locale set to system default: ' + '.'.join(locale.getlocale()))
 
         if self.userPrefsCfg['app']['resetPrefs']:
             self.resetPrefs()

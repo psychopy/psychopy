@@ -90,13 +90,15 @@ def wait(secs, hogCPUperiod=0.2):
         except:
             pass #presumably not pyglet
 
-def shellCall(shellCmd, stderr=False):
+def shellCall(shellCmd, stdin='', stderr=False):
     """Call a single system command with arguments, return its stdout.
-    Returns stdout,stderr if stderr is True. Does not handle pipes ("|").
+    Returns stdout,stderr if stderr is True.
+    Handles simple pipes, passing stdin to shellCmd (pipes are untested on windows)
     """
-    shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, pipes fail
-    proc = subprocess.Popen(shellCmdList, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdoutData, stderrData = proc.communicate()
+    shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, no pipes here
+    proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdoutData, stderrData = proc.communicate(stdin)
     del proc
     if stderr:
         return stdoutData.strip(), stderrData.strip()

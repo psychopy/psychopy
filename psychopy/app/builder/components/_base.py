@@ -17,6 +17,14 @@ class BaseComponent:
             hint="Name of this component",
             label="Name")
         self.order=['name']#make name come first (others don't matter)
+    def writeStartCode(self,buff):
+        """Write any code that a component needs that should only ever be done at
+        start of an experiment (done once only)
+        """
+        # e.g., create a data subdirectory unique to that component type.
+        # Note: settings.writeStartCode() is done first, then Routine.writeStartCode()
+        # will call this method for each component in each routine
+        pass
     def writeInitCode(self,buff):
         pass
     def writeFrameCode(self,buff):
