@@ -13,6 +13,7 @@ from psychopy import data
 from psychopy.tests.utils import TESTS_PATH
 
 TESTSDATA_PATH = pjoin(TESTS_PATH, 'test_data')
+thisPath = os.path.split(__file__)[0]
 
 class TestTrialHandler:
     def setup_class(self):
@@ -108,12 +109,12 @@ class TestTrialHandler:
             #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
         txtActual = open(pjoin(self.temp_dir, 'testFullRandom.dlm'), 'r').read()
-        txtCorr = open('corrFullRandom.dlm', 'r').read()
+        txtCorr = open(pjoin(thisPath,'corrFullRandom.dlm'), 'r').read()
         assert txtActual==txtCorr
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
         txtActual = open(pjoin(self.temp_dir, 'testFullRandom.csv'), 'r').read()
-        txtCorr = open('corrFullRandom.csv', 'r').read()
+        txtCorr = open(pjoin(thisPath,'corrFullRandom.csv'), 'r').read()
         assert txtActual==txtCorr
 
     def test_random_data_output(self):
@@ -131,12 +132,12 @@ class TestTrialHandler:
         #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
         txtActual = open(pjoin(self.temp_dir, 'testRandom.dlm'), 'r').read()
-        txtCorr = open('corrRandom.dlm', 'r').read()
+        txtCorr = open(pjoin(thisPath,'corrRandom.dlm'), 'r').read()
         assert txtActual==txtCorr
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
         txtActual = open(pjoin(self.temp_dir, 'testRandom.csv'), 'r').read()
-        txtCorr = open('corrRandom.csv', 'r').read()
+        txtCorr = open(pjoin(thisPath,'corrRandom.csv'), 'r').read()
         assert txtActual==txtCorr
 
 class TestMultiStairs:
