@@ -14,6 +14,7 @@ from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs
 import weakref
+import __main__ as main
 
 try:
     import openpyxl
@@ -389,7 +390,8 @@ class _BaseTrialHandler:
         if originPath==None or not os.path.isfile(originPath):
             originPath = inspect.getouterframes(inspect.currentframe())[1][1]
             logging.debug("Using %s as origin file" %originPath)
-        if os.path.isfile(originPath):#do we NOW have a path?
+        # Don't set the origin in interactive mode.
+        if hasattr(main, '__file__') and os.path.isfile(originPath):#do we NOW have a path?
             origin = codecs.open(originPath,"r", encoding = "utf-8").read()
         else:
             origin=None
