@@ -2,8 +2,10 @@
 import os, sys, glob
 from os.path import join as pjoin
 import shutil
-import nose
-from nose.tools import raises
+try:
+    from nose.tools import raises
+except:
+    from pytest import raises
 from tempfile import mkdtemp
 from numpy.random import random, randint
 
@@ -31,8 +33,7 @@ class TestTrialHandler:
 
         # Make sure the file is there
         data_filename = base_data_filename + '.csv'
-        nose.tools.assert_true(os.path.exists(data_filename),
-            msg = "File not found: %s" %os.path.abspath(data_filename))
+        assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
         # Make sure the header line is correct
         f = open(data_filename, 'rb')
@@ -56,35 +57,32 @@ class TestTrialHandler:
 
             # Make sure the file just saved is there
             data_filename = base_data_filename + '.psydat'
-            nose.tools.assert_true(os.path.exists(data_filename),
-                msg = "File not found: %s" %os.path.abspath(data_filename))
+            assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
             # Make sure the correct number of files for the loop are there. (No overwriting by default).
-            matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*")))
-            nose.tools.assert_equals(matches, count, msg = "Found %d matching files, should be %d" % (matches, count))
-
+            matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*.psydat")))
+            assert matches==count, "Found %d matching files, should be %d" % (matches, count)
     def test_psydat_filename_collision_overwriting(self):
         for count in range(1,20):
             trials = data.TrialHandler([], 1)
             trials.data.addDataType('trialType')
             for trial in trials:#need to run trials or file won't be saved
                 trials.addData('trialType', 0)
-            base_data_filename = pjoin(self.temp_dir, self.rootName)
+            base_data_filename = pjoin(self.temp_dir, self.rootName+'overwrite')
 
             trials.saveAsPickle(base_data_filename, fileCollisionMethod='overwrite')
 
             # Make sure the file just saved is there
             data_filename = base_data_filename + '.psydat'
-            nose.tools.assert_true(os.path.exists(data_filename),
-                msg = "File not found: %s" %os.path.abspath(data_filename))
+            assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
             # Make sure the correct number of files for the loop are there. (No overwriting by default).
-            matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*")))
-            nose.tools.assert_equals(matches, 1, msg = "Found %d matching files, should be %d" % (matches, count))
+            matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*overwrite.psydat")))
+            assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
     @raises(IOError)
     def test_psydat_filename_collision_failure(self):
-        nose.tools.raises(IOError)
+        raises(IOError)
         for count in range(1,3):
             trials = data.TrialHandler([], 1)
             trials.data.addDataType('trialType')
@@ -176,11 +174,3 @@ class TestMultiStairs:
         stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
         stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))#contains more info
 
-if __name__ == "__main__":
-    argv = sys.argv
-    argv.append('--verbosity=3')
-    if 'cover' in argv:
-        argv.remove('cover')
-        argv.append('--with-coverage')
-        argv.append('--cover-package=psychopy')
-    nose.run(argv=argv)
