@@ -304,7 +304,7 @@ class TrialType(dict):
             except KeyError:
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class _BaseTrialHandler:
+class _BaseTrialHandler(object):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -2838,6 +2838,39 @@ class FitCumNormal(_baseFunctionFit):
         chance = self.expectedMin
         xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
         return xx
+
+class _oldStyleBaseTrialHandler:
+    """Please excuse these ugly kluges, but in order to unpickle
+        psydat pickled trial handlers that were created using the old-style 
+        (pre python 2.2) class, original classes have to be defined.
+    """
+    pass
+
+class _oldStyleTrialHandler:
+    """This class exists both to unpickle old-style python classes
+       and to convert them to new-style classes.
+       
+       Currently there's a really ugly legacy function that will load both new
+       and old-style pickled .psydat files. This will likely change, and 
+       maybe be incorporated into misc.fromFile, but for not it's separate
+       as a proof of concept.
+       
+       The legacy_load method calls this function to convert the 
+       stubbed oldStyleTrialHandler to a new style.
+    """
+    def _convertToNewStyle(self):
+        newHandler = TrialHandler([], 0) #Init a new new-style object
+        for thisAttrib in dir(self):
+            #can handle each attribute differently
+            if 'instancemethod' in str(type(getattr(self,thisAttrib))):
+                #this is a method
+                continue
+            else:
+                value = getattr(self, thisAttrib)
+                setattr(newHandler, thisAttrib, value)
+        return newHandler
+
+########################## End psychopy.data classes ##########################
 
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
