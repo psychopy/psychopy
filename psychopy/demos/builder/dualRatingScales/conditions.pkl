@@ -1,0 +1,11 @@
+(lp1
+(lp2
+S'thing'
+p3
+aa(lp4
+Vthing-1
+p5
+aa(lp6
+Vthing-2
+p7
+aa.

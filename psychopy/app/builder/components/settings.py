@@ -69,6 +69,13 @@ class SettingsComponent:
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
+    def getSaveDataDir(self):
+        saveToDir = self.params['Saved data folder'].val.strip()
+        if not saveToDir:
+            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
+            if not saveToDir:
+                saveToDir = 'data'
+        return saveToDir
     def writeStartCode(self,buff):
         buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
@@ -84,14 +91,7 @@ class SettingsComponent:
             buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")
         buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
         buff.writeIndented("expInfo['expName']=expName\n")
-
-        saveToDir = self.params['Saved data folder'].val.strip()
-        if not saveToDir:
-            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-            if not saveToDir:
-                saveToDir = 'data'
-
-
+        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
         if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
             buff.writeIndented("#setup files for saving\n")
@@ -142,11 +142,16 @@ class SettingsComponent:
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         buff.write(unitsCode+")\n")
+        
+        if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
+            buff.writeIndented("\n# Enable sound input/output:\n"+
+                                "microphone.switchOn()\n\n")
 
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("\n#Shutting down:\n")
-
+        if 'microphone' in self.exp.psychopyLibs:
+            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

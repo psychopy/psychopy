@@ -8,6 +8,7 @@ from tempfile import mkdtemp
 import codecs
 from psychopy.core import shellCall
 from psychopy.tests import utils
+import locale
 
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
@@ -72,10 +73,10 @@ class TestExpt():
         # generate a script, like 'lastrun.py':
         buff = exp.writeScript() # is a StringIO object
         script = buff.getvalue()
-        assert len(str(script)) > 1500 # default empty script is ~2200 chars
+        assert len(script) > 1500 # default empty script is ~2200 chars
 
         # save the script:
-        f = open(py_file, 'wb+')
+        f = codecs.open(py_file, 'w', 'utf-8')
         f.write(script)
         f.close()
         return py_file, psyexp_file
@@ -161,23 +162,31 @@ class TestExpt():
         diff_in_file_py = '' # will later assert that this is empty
         #diff_in_file_psyexp = ''
         #diff_in_file_pyc = ''
+        
+        #savedLocale = '.'.join(locale.getlocale())
+        locale.setlocale(locale.LC_ALL, '') # default
         for file in test_psyexp:
-            file_py, file_psyexp = self._checkLoadSave(file)
-            file_pyc = self._checkCompile(file_py)
-            #sha1_first = sha1hex(file_pyc, file=True)
+            # test for any diffs using various locale's:
+            for loc in ['en_US', 'en_US.UTF-8', 'ru_RU', 'ja_JP']:
+                locale.setlocale(locale.LC_ALL, loc)
+                file_py, file_psyexp = self._checkLoadSave(file)
+                file_pyc = self._checkCompile(file_py)
+                #sha1_first = sha1hex(file_pyc, file=True)
+    
+                file2_py, file2_psyexp = self._checkLoadSave(file_psyexp)
+                file2_pyc = self._checkCompile(file2_py)
+                #sha1_second = sha1hex(file2_pyc, file=True)
+    
+                # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
+                diff_in_file_py += self._checkPyDiff(file_py, file2_py)
+                #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
+                #diff_in_file_psyexp += diff_psyexp
+                #diff_pyc = (sha1_first != sha1_second)
+                #assert not diff_pyc
+        if self.exp.prefsApp['locale']:
+            locale.setlocale(locale.LC_ALL, self.exp.prefsApp['locale'])
 
-            file2_py, file2_psyexp = self._checkLoadSave(file_psyexp)
-            file2_pyc = self._checkCompile(file2_py)
-            #sha1_second = sha1hex(file2_pyc, file=True)
-
-            # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
-            diff_in_file_py += self._checkPyDiff(file_py, file2_py)
-            #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
-            #diff_in_file_psyexp += diff_psyexp
-            #diff_pyc = (sha1_first != sha1_second)
-            #assert not diff_pyc
-
-        assert not diff_in_file_py ### see known_py_diffs.txt for viewing and using the diff ###
+        assert not diff_in_file_py ### see known_py_diffs.txt; potentially a locale issue? ###
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
@@ -197,7 +206,8 @@ class TestExpt():
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
                         os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx')) 
-        # use a consistent font:
+        
+        # edit the file, to have a consistent font:
         text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
         #text = text.replace("Arial",utils.TESTS_FONT) # fails
         
@@ -206,9 +216,10 @@ class TestExpt():
         f.write(text)
         f.close()
         
-        exp.loadFromXML(file) #reload the modifed file
+        exp.loadFromXML(file) # reload the edited file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
         script = exp.writeScript(expPath=lastrun)
+        
         # reposition its window out from under splashscreen (can't do easily from .syexp):
         text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
         f = codecs.open(lastrun, 'w', 'utf-8')
