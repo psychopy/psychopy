@@ -158,20 +158,25 @@ class ExperimentHandler(object):
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
 
-        trial = loop.thisTrial
-        paramNames=[]
-        if hasattr(trial,'items'):#is a TrialList object or a simple dict
-            for attr,val in trial.items():
-                if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
-                paramNames.append(attr)
-                vals.append(val)
-        elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
-            pass
-        else: #e.g. a staircase has a simple value as its trial object
-            paramNames.append(name+'.thisTrial')
-            vals.append(trial)
-        #keep track of these names
-        names.extend(paramNames)#add param names to loop level info
+        if hasattr(loop, 'thisTrial'):
+            trial = loop.thisTrial
+            if hasattr(trial,'items'):#is a TrialList object or a simple dict
+                for attr,val in trial.items():
+                    if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
+                    names.append(attr)
+                    vals.append(val)
+            elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
+                pass
+            else:
+                names.append(name+'.thisTrial')
+                vals.append(trial)
+        elif hasattr(loop, 'intensities'):
+            names.append(name+'.intensity')
+            if len(loop.intensities)>0:
+                vals.append(loop.intensities[-1])
+            else:
+                vals.append(None)
+
         return names, vals
     def addData(self, name, value):
         """Add the data with a given name to the current experiment.
@@ -232,7 +237,7 @@ class ExperimentHandler(object):
         else: writeFormat='w' #will overwrite a file
         if os.path.exists(fileName) and writeFormat == 'w':
             logging.warning('Data file, %s, will be overwritten' %fileName)
-        
+
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
@@ -263,7 +268,7 @@ class ExperimentHandler(object):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
-        
+
         :Parameters:
 
             fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
@@ -352,7 +357,7 @@ class _BaseTrialHandler:
             fileName+='.psydat'
         if os.path.exists(fileName):
             fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
-            
+
         #create the file or print to stdout
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
