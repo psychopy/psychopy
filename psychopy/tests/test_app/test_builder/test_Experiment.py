@@ -3,7 +3,6 @@ from os import path
 import os, shutil, glob, sys
 import py_compile
 import difflib
-import nose
 from tempfile import mkdtemp
 import codecs
 from psychopy.core import shellCall
@@ -157,12 +156,12 @@ class TestExpt():
         #    shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
         test_psyexp = list(glob.glob(path.join(self.tmp_dir, '*.psyexp')))
         if len(test_psyexp) == 0:
-            raise nose.plugins.skip.SkipTest, "No test .psyexp files found (no Builder demos??)"
+            utils.skip("No test .psyexp files found (no Builder demos??)")
 
         diff_in_file_py = '' # will later assert that this is empty
         #diff_in_file_psyexp = ''
         #diff_in_file_pyc = ''
-        
+
         #savedLocale = '.'.join(locale.getlocale())
         locale.setlocale(locale.LC_ALL, '') # default
         for file in test_psyexp:
@@ -172,11 +171,11 @@ class TestExpt():
                 file_py, file_psyexp = self._checkLoadSave(file)
                 file_pyc = self._checkCompile(file_py)
                 #sha1_first = sha1hex(file_pyc, file=True)
-    
+
                 file2_py, file2_psyexp = self._checkLoadSave(file_psyexp)
                 file2_pyc = self._checkCompile(file2_py)
                 #sha1_second = sha1hex(file2_pyc, file=True)
-    
+
                 # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
                 diff_in_file_py += self._checkPyDiff(file_py, file2_py)
                 #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
@@ -194,7 +193,7 @@ class TestExpt():
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
 
         if sys.platform.startswith('linux'):
-            raise nose.plugins.skip.SkipTest("response emulation thread not working on linux yet")
+            utils.skip("response emulation thread not working on linux yet")
 
         os.chdir(self.tmp_dir)
 
@@ -205,8 +204,8 @@ class TestExpt():
 
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
-                        os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx')) 
-        
+                        os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
+
         # edit the file, to have a consistent font:
         text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
         #text = text.replace("Arial",utils.TESTS_FONT) # fails
@@ -215,11 +214,11 @@ class TestExpt():
         f = codecs.open(file, 'w', 'utf-8')
         f.write(text)
         f.close()
-        
+
         exp.loadFromXML(file) # reload the edited file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
         script = exp.writeScript(expPath=lastrun)
-        
+
         # reposition its window out from under splashscreen (can't do easily from .syexp):
         text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
         f = codecs.open(lastrun, 'w', 'utf-8')

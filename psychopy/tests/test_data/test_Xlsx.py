@@ -1,6 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
 import os, shutil, tempfile
-import nose
 import numpy
 
 from openpyxl.reader.excel import load_workbook
@@ -39,11 +38,10 @@ class TestXLSX:
                     # convert to float if possible and compare with a reasonable
                     # (default) precision
                     expVal.value = float(expVal.value)
-                    nose.tools.assert_almost_equals(expVal.value,
-                                                    float(actVal.value))
+                    assert abs(expVal.value-float(actVal.value))<0.0001
                 except:
                     # otherwise do precise comparison
-                    nose.tools.assert_equal(expVal.value, actVal.value)
+                    assert expVal.value==actVal.value
 
 def test_TrialTypeImport():
     fromCSV = data.importConditions(os.path.join(thisDir, 'trialTypes.csv'))

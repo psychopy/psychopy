@@ -1,5 +1,5 @@
-import sys,nose,collections
-from nose.tools import ok_,eq_
+import sys,collections
+from psychopy.tests import utils
 from contextlib import nested
 import psychopy.hardware as hw
 
@@ -8,7 +8,7 @@ try:
 except:
     def require_mock(fn):
         def _inner():
-            raise nose.plugins.skip.SkipTest("Can't test without Mock")
+            utils.skip("Can't test without Mock")
         _inner.__name__ = fn.__name__
         return _inner
 else:
@@ -59,7 +59,7 @@ def testGetCygwinSerialPorts():
 def testGetCRSPhotometers():
     with mock.patch.dict("sys.modules",{"psychopy.hardware.crs": object()}):
         photoms = list(hw.getAllPhotometers())
-        
+
         for p in photoms:
             assert p.longName != "CRS ColorCAL"
 
@@ -67,7 +67,7 @@ def testGetCRSPhotometers():
         # missing crs shouldn't break it
         assert len(photoms) > 0
 
-    
+
     # This allows us to test our logic even when pycrsltd is missing
     faked = type("MockColorCAL",(object,),{})
     with mock.patch("psychopy.hardware.crs.ColorCAL",faked):
@@ -76,12 +76,12 @@ def testGetCRSPhotometers():
 
 def testGetPhotometers():
     photoms = hw.getAllPhotometers()
-    
+
     # Always iterable
     assert isinstance(photoms,collections.Iterable)
-    
+
     photoms = list(photoms)
-    
+
     assert len(photoms) > 0
 
 
@@ -89,28 +89,28 @@ def testGetPhotometers():
 _MockPhotometer = type("MockPhotometer",(object,),{"OK": True,"type": "MockPhotometer"})
 
 _workingPhotometer = lambda port: _MockPhotometer
-    
+
 def _exceptionRaisingPhotometer(port):
     raise Exception("Exceptional quality they said...")
 
 def testFindPhotometer():
     # findPhotometer with no ports should return None
-    eq_(hw.findPhotometer(ports=[]),None)
+    assert (hw.findPhotometer(ports=[])==None)
     # likewise, if an empty device list is used return None
-    eq_(hw.findPhotometer(device=[]),None)
+    assert (hw.findPhotometer(device=[])==None)
     # even when both are empty
-    eq_(hw.findPhotometer(device=[],ports=[]),None)
-    
+    assert (hw.findPhotometer(device=[],ports=[])==None)
+
     # non-existant photometers return None, for now
-    eq_(hw.findPhotometer(device="thisIsNotAPhotometer!"),None)
-    
+    assert (hw.findPhotometer(device="thisIsNotAPhotometer!")==None)
+
     # if the photometer raises an exception don't crash, return None
-    eq_(hw.findPhotometer(device=[_exceptionRaisingPhotometer],ports="foobar"),None)
-    
+    assert (hw.findPhotometer(device=[_exceptionRaisingPhotometer],ports="foobar")==None)
+
     # specifying a photometer should work
     assert hw.findPhotometer(device=[_workingPhotometer],ports="foobar") == _MockPhotometer
-    
-    
+
+
     # one broken, one working
     device = [_exceptionRaisingPhotometer,_workingPhotometer]
     assert hw.findPhotometer(device=device,ports="foobar") == _MockPhotometer

@@ -5,4 +5,4 @@ app=PsychoPyApp()
 
 def teardown_module():
     global app
-    app.quit()#this currently uses sys.exit() which ends nose testing :-(
+    app.quit()#this currently uses sys.exit() which ends testing :-(
