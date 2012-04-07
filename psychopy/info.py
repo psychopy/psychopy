@@ -17,6 +17,7 @@ except: pass
 import hashlib
 import random
 import wx
+import locale
 
 
 class RunTimeInfo(dict):
@@ -240,23 +241,33 @@ class RunTimeInfo(dict):
                 self['systemRavailable'] = Rversion.strip()
             else: raise
         except:
-            self['systemRavailable'] = False
+            pass #self['systemRavailable'] = False
         
         """try:
             import rpy2
             self['systemRpy2'] = rpy2.__version__
         except:
             self['systemRpy2'] = False
-        
-        # openssl version--maybe redundant with python distribution info?
-        # for a sha1 digest, python's hashlib is better than a shell call to openssl
-        try:
-            self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
-            if err:
-                raise
-        except:
-            self['systemOpenSSLVersion'] = None
         """
+        
+        try:
+            vers, se = shellCall('openssl version', stderr=True)
+            if se:
+                vers = str(vers) + se.replace('\n',' ')[:80]
+            if vers:
+                self['systemSecOpenSSLVersion'] = vers
+        except:
+            pass
+        
+        try:
+            so, se = shellCall('gpg --version', stderr=True)
+            if so.find('GnuPG') > -1:
+                self['systemSecGPGVersion'] = so.splitlines()[0]
+                self['systemSecGPGHome'] = ''.join([line.replace('Home:','').lstrip()
+                                                    for line in so.splitlines()
+                                                    if line.startswith('Home:')])
+        except:
+            pass
         
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?

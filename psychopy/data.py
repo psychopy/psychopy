@@ -12,7 +12,7 @@ from scipy import optimize, special
 from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
-import codecs
+import codecs, locale
 import weakref
 
 try:
@@ -919,10 +919,10 @@ class TrialHandler(_BaseTrialHandler):
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f= file(fileName,writeFormat)
+            f = codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f=file(fileName+'.csv',writeFormat)
-            else: f=file(fileName+'.txt',writeFormat)
+            if delim==',': f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            else: f=codecs.open(fileName+'.txt',writeFormat, encoding = "utf-8")
 
         # collect parameter names related to the stimuli:
         header = self.trialList[0].keys()
@@ -2937,11 +2937,17 @@ def functionFromStaircase(intensities, responses, bins = 10):
 
 def getDateStr(format="%Y_%b_%d_%H%M"):
     """Uses ``time.strftime()``_ to generate a string of the form
-    Apr_19_1531 for 19th April 3.31pm.
+    2012_Apr_19_1531 for 19th April 3.31pm, 2012.
     This is often useful appended to data filenames to provide unique names.
     To include the year: getDateStr(format="%Y_%b_%d_%H%M") returns '2011_Mar_16_1307'
+    depending on locale, can have unicode chars in month names, so utf_8_decode them
+    For date in the format of the current localization, do:
+        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT)) 
     """
-    return time.strftime(format, time.localtime())
+    now = time.strftime(format, time.localtime())
+    now_dec = codecs.utf_8_decode(now)[0]
+    
+    return now_dec
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
