@@ -1,5 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
-import os, shutil, tempfile
+import os, shutil
 import numpy
 
 from openpyxl.reader.excel import load_workbook
