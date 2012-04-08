@@ -4,16 +4,18 @@ import numpy
 
 from openpyxl.reader.excel import load_workbook
 from psychopy import data, misc
+from tempfile import mkdtemp
 
 thisDir,filename = os.path.split(os.path.abspath(__file__))
 
 class TestXLSX:
     def setup_class(self):
-        self.name = 'testXlsx'
+        self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+        self.name = os.path.join(self.temp_dir,'testXlsx')
         self.fullName = self.name+'.xlsx'
 
     def teardown_class(self):
-        os.remove(self.fullName)
+        shutil.rmtree(self.temp_dir)
 
     def test_TrialHandlerAndXLSX(self):
         conds = data.importConditions(os.path.join(thisDir, 'trialTypes.xlsx'))
@@ -23,7 +25,7 @@ class TestXLSX:
         for trialN, trial in enumerate(trials):
             trials.addData('resp', responses[trialN])
             trials.addData('rt',rts[trialN])
-        trials.saveAsExcel(self.name)
+        trials.saveAsExcel(self.name)# '.xlsx' should be added automatically to make fullName
 
         # Make sure the file is there
         assert os.path.isfile(self.fullName)
