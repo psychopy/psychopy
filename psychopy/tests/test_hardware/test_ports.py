@@ -29,34 +29,34 @@ def assertPorts(expected,actual):
         assert port in actual
 
 @require_mock
-def testGetWindowsSerialPorts():
+def test_getWindowsSerialPorts():
     should_have = ["COM0","COM5","COM10"]
     with mock.patch("sys.platform","win32"):
         assertPorts(should_have,hw.getSerialPorts())
 
 @require_mock
-def testGetLinuxSerialPorts():
+def test_getLinuxSerialPorts():
     should_have = ["/dev/ttyS1","/dev/ttyACM1","/dev/ttyUSB1"]
     with nested(mock.patch("sys.platform","linux2"),
                 mock.patch("glob.iglob",globMock)):
        assertPorts(should_have,hw.getSerialPorts())
 
 @require_mock
-def testGetDarwinSerialPorts():
+def test_getDarwinSerialPorts():
     should_have = ["/dev/tty.USAMOCK1","/dev/tty.KeyMOCK1","/dev/tty.modemMOCK1","/dev/cu.usbmodemMOCK1"]
     with nested(mock.patch("sys.platform","darwin"),
                 mock.patch("glob.iglob",globMock)):
         assertPorts(should_have,hw.getSerialPorts())
 
 @require_mock
-def testGetCygwinSerialPorts():
+def test_getCygwinSerialPorts():
     should_have = ["/dev/ttyS1"]
     with nested(mock.patch("sys.platform","cygwin"),
                 mock.patch("glob.iglob",globMock)):
         assertPorts(should_have,hw.getSerialPorts())
 
 @require_mock
-def testGetCRSPhotometers():
+def test_getCRSPhotometers():
     with mock.patch.dict("sys.modules",{"psychopy.hardware.crs": object()}):
         photoms = list(hw.getAllPhotometers())
 
@@ -74,7 +74,7 @@ def testGetCRSPhotometers():
         photoms = list(hw.getAllPhotometers())
         assert faked in photoms
 
-def testGetPhotometers():
+def test_getPhotometers():
     photoms = hw.getAllPhotometers()
 
     # Always iterable
@@ -93,7 +93,7 @@ _workingPhotometer = lambda port: _MockPhotometer
 def _exceptionRaisingPhotometer(port):
     raise Exception("Exceptional quality they said...")
 
-def testFindPhotometer():
+def test_findPhotometer():
     # findPhotometer with no ports should return None
     assert (hw.findPhotometer(ports=[])==None)
     # likewise, if an empty device list is used return None
