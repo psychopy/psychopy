@@ -190,6 +190,8 @@ class _baseVisualTest:
         utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
     def test_aperture(self):
         win = self.win
+        if not win.allowStencil:
+            utils.skip("Don't run aperture test when no stencil is available")
         contextName=self.contextName
         grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
