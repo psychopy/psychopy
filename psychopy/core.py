@@ -15,8 +15,10 @@ runningThreads=[]
 try:
     import pyglet
     havePyglet = True
+    checkPygletDuringWait = True # may not want to check, to preserve terminal window focus
 except:
     havePyglet = False
+    checkPygletDuringWait = False
 
 def quit():
     """Close everything and exit nicely (ending the experiment)
@@ -73,6 +75,12 @@ def wait(secs, hogCPUperiod=0.2):
 
     If you want to obtain key-presses during the wait, be sure to use pyglet and
     to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
+    
+    If you want to suppress checking for pyglet events during the wait, do this once:
+        core.checkPygletDuringWait = False
+    and from then on you can do
+        core.wait(sec)
+    This will preserve terminal-window focus during command line usage.
     """
     #initial relaxed period, using sleep (better for system resources etc)
     if secs>hogCPUperiod:
@@ -82,8 +90,11 @@ def wait(secs, hogCPUperiod=0.2):
     #hog the cpu, checking time
     t0=getTime()
     while (getTime()-t0)<secs:
+        if not (havePyglet and checkPygletDuringWait):
+            continue
         #let's see if pyglet collected any event in meantime
         try:
+            # this takes focus away from command line terminal window:
             pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
             wins = pyglet.window.get_platform().get_default_display().get_windows()
             for win in wins: win.dispatch_events()#pump events on pyglet windows
