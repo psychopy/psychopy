@@ -217,7 +217,7 @@ class TestExpt():
 
         exp.loadFromXML(file) # reload the edited file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        script = exp.writeScript(expPath=lastrun)
+        script = exp.writeScript(expPath=file)
 
         # reposition its window out from under splashscreen (can't do easily from .syexp):
         text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
@@ -227,9 +227,7 @@ class TestExpt():
 
         # run:
         stdout, stderr = shellCall('python '+lastrun, stderr=True)
-        if len(stderr):
-            print stderr
-            assert not len(stderr) # NB: "captured stdout" is the stderr from subprocess
+        assert not len(stderr), stderr # print stderr if it's greater than zero
 
     def test_Exp_AddRoutine(self):
         exp = self.exp
