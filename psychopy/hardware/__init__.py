@@ -1,7 +1,89 @@
-import sys, glob
+import sys, glob, collections
+from itertools import imap,chain
+
 from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
+
+
+
+def getSerialPorts():
+    """Finds the names of all (virtual) serial ports present on the system
+
+    :returns:
+
+    Returns an iterable with all the serial ports.
+    """
+    if sys.platform == "darwin":
+        ports = [
+            '/dev/tty.USA*', #keyspan twin adapter is usually USA28X13P1.1
+            '/dev/tty.Key*', #some are Keyspan.1 or Keyserial.1
+            '/dev/tty.modem*',
+            '/dev/cu.usbmodem*', #for PR650
+        ]
+    elif sys.platform.startswith("linux"):
+        ports = [
+            "/dev/ttyACM?", # USB CDC devices (virtual serial ports)
+            "/dev/ttyUSB?", # USB to serial adapters using the usb-serial kernel module
+            "/dev/ttyS?",   # genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
+            ]
+    elif sys.platform == "cygwin": # I don't think anyone has actually tried this
+        ports = [
+            "/dev/ttyS?", # Cygwin maps the windows serial ports like this
+        ]
+    elif sys.platform == "win32":
+        # While PsychoPy does support using numeric values to specify
+        # which serial port to use, it is better in this case to
+        # provide a cannoncial name.
+        return imap("COM{0}".format,xrange(11)) #COM0-10
+    else:
+        logging.error("We don't support serial ports on {0} yet!"
+                      .format(sys.platform))
+        return []
+    
+    # This creates an iterator for each glob expression. The glob
+    # expressions are then chained together. This is more efficient
+    # because it means we don't perform the lookups before we actually
+    # need to.
+    return chain.from_iterable(imap(glob.iglob,ports))
+
+def getAllPhotometers():
+    """Gets all available photometers. 
+    The returned photometers may vary depending on which drivers are installed.
+    Standalone PsychoPy ships with libraries for all supported photometers.
+
+    :returns:
+    A list of all photometer classes
+    """
+    import minolta,pr,crs
+    photometers = [pr.PR650,pr.PR655,minolta.LS100]
+    if hasattr(crs,"ColorCAL"):
+        photometers.append(crs.ColorCAL)
+
+    return photometers
+
+def getPhotometerByName(name):
+    """Gets a Photometer class by name. 
+    You can use either short names like pr650 or a long name like
+    CRS ColorCAL.
+    
+    :parameters:
+        name : The name of the device
+    
+    :returns: 
+    Returns the photometer matching the passed in device
+    name or none if we were unable to find it.
+
+    """
+    for photom in getAllPhotometers():
+        # longName is used from the GUI and driverFor is for coders
+        if name.lower() in photom.driverFor or name == photom.longName:
+            return photom
+
+
+        
+
+    
 
 def findPhotometer(ports=None, device=None):
     """Try to find a connected photometer/photospectrometer! 
@@ -26,7 +108,7 @@ def findPhotometer(ports=None, device=None):
     
         * An object representing the first photometer found
         * None if the ports didn't yield a valid response
-        * -1 if there were not even any valid ports (suggesting a driver not being installed)
+        * None if there were not even any valid ports (suggesting a driver not being installed)
         
     e.g.::
     
@@ -36,40 +118,19 @@ def findPhotometer(ports=None, device=None):
             print photom.getSpectrum()
         
     """
-    import minolta, pr, crs
-    if device.lower() in ['pr650']:
-        photometers=[pr.PR650]
-    elif device.lower() in ['pr655', 'pr670']:
-        photometers=[pr.PR655]
-    elif device.lower() in ['ls110', 'ls100']:
-        photometers=[minolta.LS100]
-    elif device.lower() in ['colorcal']:
-        if not hasattr(crs, 'ColorCAL'):
-            logging.error('ColorCAL support requires the pycrsltd library, version 0.1 or higher')
-        photometers=[crs.ColorCAL]
-    else:#try them all
-        photometers=[pr.PR650, pr.PR655, minolta.LS100, crs.ColorCAL]#a list of photometer objects to test for
+    if isinstance(device,basestring):
+        photometers = [getPhotometerByName(device)]
+    elif isinstance(device,collections.Iterable):
+        # if we find a string assume it is a name, otherwise treat it like a photometer
+        photometers = [getPhotometerByName(d) if isinstance(d,basestring) else d for d in device]
+    else:
+        photometers = getAllPhotometers()
+
     
     #determine candidate ports
-    if ports==None:
-        if sys.platform=='darwin':
-            ports=[]
-            #try some known entries in /dev/tty. used by keyspan
-            ports.extend(glob.glob('/dev/tty.USA*'))#keyspan twin adapter is usually USA28X13P1.1
-            ports.extend(glob.glob('/dev/tty.Key*'))#some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/tty.modem*'))#some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/cu.usbmodem*'))#for PR650
-            if len(ports)==0:
-                logging.error("PsychoPy couldn't find any likely serial port in /dev/tty.* or /dev/cs* Check for " \
-                    +"serial port name manually, check drivers installed etc...")
-                return None
-        elif sys.platform.startswith('linux'):
-            ports = glob.glob('/dev/ttyACM?')#USB CDC devices (virtual serial ports)
-            ports.extend(glob.glob("/dev/ttyUSB?")) # USB to serial adapters using the usb-serial kernel module
-            ports.extend(glob.glob('/dev/ttyS?'))#genuine serial ports usually /dev/ttyS0 or /dev/ttyS1
-        elif sys.platform=='win32':
-            ports = range(11)
-    elif type(ports) in [int,float]:
+    if ports == None: 
+        ports = getSerialPorts()
+    elif type(ports) in [int,float] or isinstance(ports,basestring):
         ports=[ports] #so that we can iterate
         
     #go through each port in turn
@@ -79,7 +140,14 @@ def findPhotometer(ports=None, device=None):
     for thisPort in ports:
         logging.info('...'+str(thisPort)); logging.flush()
         for Photometer in photometers:
-            photom = Photometer(port=thisPort)
+            # Looks like we got an invalid photometer, carry on
+            if Photometer is None:
+                continue
+            try:
+                photom = Photometer(port=thisPort)
+            except Exception as ex:
+                logging.error("Couldn't initialize photometer {0}: {1}".format(Photometer.__name__,ex))
+                continue # We threw an exception so we should just skip ahead
             if photom.OK: 
                 logging.info(' ...found a %s\n' %(photom.type)); logging.flush()
                 #we're now sure that this is the correct device and that it's configured

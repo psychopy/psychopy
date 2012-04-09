@@ -41,52 +41,34 @@ global _nImageResizes
 _nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-try:
-    import ctypes
-    import pyglet
-    pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
-    #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
-    import _shadersPyglet
-    import gamma
-    havePyglet=True
-except:
-    havePyglet=False
+import ctypes
+import pyglet
+pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
+GL = pyglet.gl
+
+import gamma
+#import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
+import _shadersPyglet as _shaders
 try:
     from pyglet import media
     havePygletMedia=True
 except:
     havePygletMedia=False
 
-#import _shadersPygame
 try:
-    import OpenGL.GL, OpenGL.GL.ARB.multitexture, OpenGL.GLU
     import pygame
     havePygame=True
-    if OpenGL.__version__ > '3':
-        cTypesOpenGL = True
-    else:
-        cTypesOpenGL = False
 except:
     havePygame=False
-
-global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
 
 #check for advanced drawing abilities
 #actually FBO isn't working yet so disable
 try:
-    import OpenGL.GL.EXT.framebuffer_object as FB
+    #import OpenGL.GL.EXT.framebuffer_object as FB
+    #for pyglet these functions are under .gl like everything else
     haveFB=False
 except:
     haveFB=False
-
-
-#try to get GLUT
-try:
-    from OpenGL import GLUT
-    haveGLUT=True
-except:
-    logging.warning('GLUT not available - is the GLUT library installed on the path?')
-    haveGLUT=False
 
 global DEBUG; DEBUG=False
 
@@ -294,17 +276,12 @@ class Window:
             self.winType=prefs.general['winType']
         else:
             self.winType = winType
-        if self.winType=='pyglet' and not havePyglet:
-            logging.warning("Requested pyglet backend but pyglet is not installed or not fully working")
-            self.winType='pygame'
         if self.winType=='pygame' and not havePygame:
-            logging.warning("Requested pygame backend but pygame (or PyOpenGL) is not installed or not fully working")
+            logging.warning("Requested pygame backend but pygame is not installed or not fully working")
             self.winType='pyglet'
         #setup the context
-        if self.winType == "glut": self._setupGlut()
-        elif self.winType == "pygame": self._setupPygame()
-        elif self.winType == "pyglet":
-            self._setupPyglet()
+        if self.winType == "pygame": self._setupPygame()
+        elif self.winType == "pyglet": self._setupPyglet()
 
         #check whether shaders are supported
         if self.winType=='pyglet':#we can check using gl_info
@@ -385,10 +362,6 @@ class Window:
         if clear:
             self.frameIntervals=[]
             self.frameClock.reset()
-    def whenIdle(self,func):
-        """Defines the function to use during idling (GLUT only)
-        """
-        GLUT.glutIdleFunc(func)
     def onResize(self, width, height):
         '''A default resize event handler.
 
@@ -451,8 +424,7 @@ class Window:
         if self.bitsMode in ['fast','bits++']:
             self.bits._drawLUTtoScreen()
 
-        if self.winType == "glut": GLUT.glutSwapBuffers()
-        elif self.winType =="pyglet":
+        if self.winType =="pyglet":
             #make sure this is current context
             self.winHandle.switch_to()
 
@@ -600,16 +572,10 @@ class Window:
             GL.glReadBuffer(GL.GL_FRONT)
 
         #fetch the data with glReadPixels
-        if self.winType=='pyglet':
-            #pyglet.gl stores the data in a ctypes buffer
-            bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
-            GL.glReadPixels(0,0,self.size[0],self.size[1], GL.GL_RGBA,GL.GL_UNSIGNED_BYTE,bufferDat)
-            im = Image.fromstring(mode='RGBA',size=self.size, data=bufferDat)
-        else:
-            #pyopengl returns the data
-            im = Image.fromstring(mode='RGBA',size=self.size,
-                              data=GL.glReadPixels(0,0,self.size[0],self.size[1], GL.GL_RGBA,GL.GL_UNSIGNED_BYTE),
-                          )
+        #pyglet.gl stores the data in a ctypes buffer
+        bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
+        GL.glReadPixels(0,0,self.size[0],self.size[1], GL.GL_RGBA,GL.GL_UNSIGNED_BYTE,bufferDat)
+        im = Image.fromstring(mode='RGBA',size=self.size, data=bufferDat)
 
         im=im.transpose(Image.FLIP_TOP_BOTTOM)
         im=im.convert('RGB')
@@ -724,28 +690,10 @@ class Window:
 
         return region
 
-    def fullScr(self):
-        """Toggles fullscreen mode (GLUT only).
-
-        Fullscreen mode for PyGame contexts must be set during initialisation
-        of the :class:`~psychopy.visual.Window`
-        """
-        if self.winType=='glut':
-            if self._isFullScr:
-                GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
-                self._isFullScr=0
-            else:
-                GLUT.glutFullScreen()
-                self._isFullScr=1
-        else:
-            logging.warning('fullscreen toggling is only available to glut contexts')
-
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
         self.setMouseVisible(True)
-        if self.winType=='GLUT':
-            GLUT.glutDestroyWindow(self.handle)
-        elif self.winType=='pyglet':
+        if self.winType=='pyglet':
             self.winHandle.close()
         else:
             #pygame.quit()
@@ -754,10 +702,6 @@ class Window:
             self.bits.reset()
         openWindows.remove(self)
         logging.flush()
-    def go(self):
-        """start the display loop (GLUT only)"""
-        self.frameClock.reset()
-        GLUT.glutMainLoop()
 
     def fps(self):
         """Report the frames per second since the last call to this function
@@ -901,31 +845,8 @@ class Window:
         elif self.winType=='pyglet':
             self.winHandle.setGamma(self.winHandle, self.gamma)
 
-    def _setupGlut(self):
-        self.winType="glut"
-        #initialise a window
-        GLUT.glutInit(sys.argv)
-        iconFile = os.path.join(psychopy.__path__[0], 'psychopy.gif')
-        GLUT.glutSetIconTitle(iconFile)
-
-        options = GLUT.GLUT_RGBA | GLUT.GLUT_DOUBLE | GLUT.GLUT_ALPHA | GLUT.GLUT_DEPTH
-        if self.allowStencil: options = options|GLUT.GLUT_STENCIL
-
-        GLUT.glutInitDisplayMode(options)
-        self.handle = GLUT.glutCreateWindow('PsychoPy')
-
-        if self._isFullScr:      GLUT.glutFullScreen()
-        else:  GLUT.glutReshapeWindow(int(self.size[0]), int(self.size[1]))
-        #set the redisplay callback
-        GLUT.glutDisplayFunc(self.update)
     def _setupPyglet(self):
-        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
         self.winType = "pyglet"
-        #setup the global use of pyglet.gl
-        GL = pyglet.gl
-        GLU = pyglet.gl
-        GL_multitexture = pyglet.gl
-
         if self.allowStencil:
             config = GL.Config(depth_size=8, double_buffer=True, stencil_size=8)
         else:
@@ -982,13 +903,12 @@ class Window:
                 %(requested, actual))
             self.size=numpy.array(actual)
     def _setupPygame(self):
-        self.winType = "pygame"
-        global GL, GLU, GL_multitexture, _shaders#will use these later to assign the pyglet or pyopengl equivs
+        #we have to do an explicit import of pyglet.gl from pyglet (only when using pygem backend)
+        #Not clear why it's needed but otherwise drawing is corrupt. Using a
+        #pyglet Window presumably gets around the problem
+        import pyglet.gl as GL
 
-        #setup the global use of PyOpenGL (rather than pyglet.gl)
-        GL = OpenGL.GL
-        GL_multitexture = OpenGL.GL.ARB.multitexture
-        GLU = OpenGL.GLU
+        self.winType = "pygame"
         #pygame.mixer.pre_init(22050,16,2)#set the values to initialise sound system if it gets used
         pygame.init()
         if self.allowStencil: pygame.display.gl_set_attribute(pygame.locals.GL_STENCIL_SIZE, 8)
@@ -999,7 +919,7 @@ class Window:
             pygame.display.set_icon(icon)
         except: pass#doesn't matter
 
-        winSettings = pygame.OPENGL|pygame.DOUBLEBUF#|pygame.OPENGLBLIT #these are ints stored in pygame.locals
+        winSettings = pygame.OPENGL|pygame.DOUBLEBUF #these are ints stored in pygame.locals
         if self._isFullScr:
             winSettings = winSettings | pygame.FULLSCREEN
             #check screen size if full screen
@@ -1021,8 +941,6 @@ class Window:
         self.winHandle = pygame.display.set_mode(self.size.astype('i'),winSettings)
         pygame.display.set_gamma(1.0) #this will be set appropriately later
     def _setupGL(self):
-        if self.winType=='pyglet': _shaders=_shadersPyglet
-#        else: _shaders=_shadersPygame
 
         #setup screen color
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
@@ -1036,7 +954,7 @@ class Window:
 
         GL.glMatrixMode(GL.GL_PROJECTION) # Reset The Projection Matrix
         GL.glLoadIdentity()
-        GLU.gluOrtho2D(-1,1,-1,1)
+        GL.gluOrtho2D(-1,1,-1,1)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)# Reset The Projection Matrix
         GL.glLoadIdentity()
@@ -1050,13 +968,10 @@ class Window:
         GL.glShadeModel(GL.GL_SMOOTH)                   # Color Shading (FLAT or SMOOTH)
         GL.glEnable(GL.GL_POINT_SMOOTH)
 
-        if self.winType!='pyglet':
-            GL_multitexture.glInitMultitextureARB()
-        else:
-            #check for GL_ARB_texture_float (which is needed for shaders to be useful)
-            #this needs to be done AFTER the context has been created
-            if not pyglet.gl.gl_info.have_extension('GL_ARB_texture_float'):
-                self._haveShaders=False
+        #check for GL_ARB_texture_float (which is needed for shaders to be useful)
+        #this needs to be done AFTER the context has been created
+        if not GL.gl_info.have_extension('GL_ARB_texture_float'):
+            self._haveShaders=False
 
         if self.winType=='pyglet' and self._haveShaders:
             #we should be able to compile shaders (don't just 'try')
@@ -1076,10 +991,7 @@ class Window:
         GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
 
         #identify gfx card vendor
-        if self.winType=='pyglet':
-            self.glVendor=GL.gl_info.get_vendor().lower()
-        else:
-            self.glVendor=GL.glGetString(GL.GL_VENDOR).lower()
+        self.glVendor=GL.gl_info.get_vendor().lower()
 
         if sys.platform=='darwin':
             platform_specific.syncSwapBuffers(1)
@@ -1678,10 +1590,7 @@ class DotStim(_BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-            if self.win.winType == 'pyglet':
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
-            else:
-                GL.glVertexPointerd(self._dotsXYRendered)
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             if self.colorSpace in ['rgb','dkl','lms','hsv']:
                 GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
             else:
@@ -1921,10 +1830,10 @@ class SimpleImageStim:
 
         if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
@@ -2215,17 +2124,10 @@ class PatchStim(_BaseVisualStim):
             self.phase = numpy.array((phase,0),float)
 
         #initialise textures for stimulus
-        if self.win.winType=="pyglet":
-            self.texID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.texID))
-            self.maskID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.maskID))
-        elif cTypesOpenGL:
-            (tID, mID) = GL.glGenTextures(2)
-            self.texID = GL.GLuint(int(tID))#need to convert to GLUint (via ints!!)
-            self.maskID = GL.GLuint(int(mID))
-        else:
-            (self.texID, self.maskID) = GL.glGenTextures(2)
+        self.texID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.texID))
+        self.maskID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.maskID))
 
         # Set the maskParams (defaults to None):
         self.maskParams= maskParams
@@ -2439,12 +2341,12 @@ class PatchStim(_BaseVisualStim):
         GL.glNewList(self._listID,GL.GL_COMPILE)
         GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
         #mask
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
 
         #main texture
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         #calculate coords in advance:
@@ -2461,20 +2363,20 @@ class PatchStim(_BaseVisualStim):
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex, Btex)
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE1_ARB,Rmask,Bmask)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex, Btex)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Rmask,Bmask)
         GL.glVertex2f(R,B)
         # left bottom
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Btex)
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE1_ARB,Lmask,Bmask)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Btex)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Lmask,Bmask)
         GL.glVertex2f(L,B)
         # left top
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Ttex)
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE1_ARB,Lmask,Tmask)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Ttex)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Lmask,Tmask)
         GL.glVertex2f(L,T)
         # right top
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex,Ttex)
-        GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE1_ARB,Rmask,Tmask)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex,Ttex)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Rmask,Tmask)
         GL.glVertex2f(R,T)
         GL.glEnd()
 
@@ -2491,10 +2393,8 @@ class PatchStim(_BaseVisualStim):
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
-        #only needed for pyglet
-        if self.win.winType=='pyglet':
-            GL.glDeleteTextures(1, self.texID)
-            GL.glDeleteTextures(1, self.maskID)
+        GL.glDeleteTextures(1, self.texID)
+        GL.glDeleteTextures(1, self.maskID)
 
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
@@ -2650,13 +2550,10 @@ class RadialStim(PatchStim):
         else:
             self.size = numpy.array((size,size),float)#make a square if only given one dimension
         #initialise textures for stimulus
-        if self.win.winType=="pyglet":
-            self.texID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.texID))
-            self.maskID=GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self.maskID))
-        else:
-            (self.texID, self.maskID) = GL.glGenTextures(2)
+        self.texID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.texID))
+        self.maskID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.maskID))
         self.setTex(tex)
         self.setMask(mask)
 
@@ -2737,10 +2634,7 @@ class RadialStim(PatchStim):
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
             #assign vertex array
-            if self.win.winType=='pyglet':
-                GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
-            else:
-                GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
 
             #then bind main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -2759,18 +2653,12 @@ class RadialStim(PatchStim):
 
             #set pointers to visible textures
             GL.glClientActiveTexture(GL.GL_TEXTURE0)
-            if self.win.winType=='pyglet':
-                GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
-            else:
-                GL.glTexCoordPointerd(self._visibleTexture)
+            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
             #mask
             GL.glClientActiveTexture(GL.GL_TEXTURE1)
-            if self.win.winType=='pyglet':
-                GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
-            else:
-                GL.glTexCoordPointerd(self._visibleMask)
+            GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
             #do the drawing
@@ -2840,11 +2728,8 @@ class RadialStim(PatchStim):
         GL.glNewList(self._listID,GL.GL_COMPILE)
 
         #assign vertex array
-        if self.win.winType=='pyglet':
-            arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-            GL.glVertexPointer(2, GL.GL_FLOAT, 0, arrPointer)
-        else:
-            GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
+        arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        GL.glVertexPointer(2, GL.GL_FLOAT, 0, arrPointer)
 
         #setup the shaderprogram
         GL.glUseProgram(self.win._progSignedTexMask1D)
@@ -2853,11 +2738,8 @@ class RadialStim(PatchStim):
 
         #set pointers to visible textures
         GL.glClientActiveTexture(GL.GL_TEXTURE0)
-        if self.win.winType=='pyglet':
-            arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, arrPointer)
-        else:
-            GL.glTexCoordPointerd(self._visibleTexture)
+        arrPointer = self._visibleTexture.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, arrPointer)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #then bind main texture
         GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -2866,11 +2748,8 @@ class RadialStim(PatchStim):
 
         #mask
         GL.glClientActiveTexture(GL.GL_TEXTURE1)
-        if self.win.winType=='pyglet':
-            arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-            GL.glTexCoordPointer(1, GL.GL_FLOAT, 0, arrPointer)
-        else:
-            GL.glTexCoordPointerd(self._visibleMask)
+        arrPointer = self._visibleMask.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        GL.glTexCoordPointer(1, GL.GL_FLOAT, 0, arrPointer)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #and mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -2903,37 +2782,28 @@ class RadialStim(PatchStim):
         GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
 
         #assign vertex array
-        if self.win.winType=='pyglet':
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
-        else:
-            GL.glVertexPointerd(self._visibleXY)#must be reshaped in to Nx2 coordinates
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
         #bind and enable textures
         #main texture
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
         #mask
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glBindTexture(GL.GL_TEXTURE_1D, self.maskID)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         #set pointers to visible textures
         #mask
-        GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
-        if self.win.winType=='pyglet':
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
-        else:
-            GL.glTexCoordPointerd(self._visibleMask)
+        GL.glClientActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         #texture
-        GL_multitexture.glClientActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
-        if self.win.winType=='pyglet':
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,self._visibleTexture.ctypes)
-        else:
-            GL.glTexCoordPointerd(self._visibleTexture)
+        GL.glClientActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,self._visibleTexture.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         #do the drawing
@@ -2941,9 +2811,9 @@ class RadialStim(PatchStim):
 
         #disable set states
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         GL.glEndList()
@@ -3022,10 +2892,8 @@ class RadialStim(PatchStim):
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
-        #only needed for pyglet
-        if self.win.winType=='pyglet':
-            GL.glDeleteTextures(1, self.texID)
-            GL.glDeleteTextures(1, self.maskID)
+        GL.glDeleteTextures(1, self.texID)
+        GL.glDeleteTextures(1, self.maskID)
 
 
 
@@ -3692,10 +3560,8 @@ class ElementArrayStim:
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
-        #only needed for pyglet
-        if self.win.winType=='pyglet':
-            GL.glDeleteTextures(1, self.texID)
-            GL.glDeleteTextures(1, self.maskID)
+        GL.glDeleteTextures(1, self.texID)
+        GL.glDeleteTextures(1, self.maskID)
 
 class MovieStim(_BaseVisualStim):
     """A stimulus class for playing movies (mpeg, avi, etc...) in
@@ -4051,9 +3917,9 @@ class TextStim(_BaseVisualStim):
 
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
-        if not self.win.winType=="pyglet":
-            self._texID = GL.glGenTextures(1)
-        #render the text surfaces and build drawing list
+        if not self.win.winType=="pyglet":#pygame text needs a surface to render to
+            self._texID=GL.GLuint()
+            GL.glGenTextures(1, ctypes.byref(self._texID))
 
         self.colorSpace=colorSpace
         if rgb!=None:
@@ -4234,7 +4100,7 @@ class TextStim(_BaseVisualStim):
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
-            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
+            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
                                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
@@ -4274,7 +4140,7 @@ class TextStim(_BaseVisualStim):
         if self.win.winType=="pyglet":
             #unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
-#            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+#            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #the texture is specified by pyglet.font.GlyphString.draw()
             GL.glEnable(GL.GL_TEXTURE_2D)
         else:
@@ -4359,6 +4225,7 @@ class TextStim(_BaseVisualStim):
         if self._needSetText:
             self.setText()
         GL.glNewList(self._listID, GL.GL_COMPILE)
+
         #coords:
         if self.alignHoriz in ['center', 'centre']: left = -self.width/2.0;    right = self.width/2.0
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
@@ -4378,11 +4245,11 @@ class TextStim(_BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
         else:
             #bind the appropriate main texture
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
             #unbind the mask texture regardless
-            GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+            GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
@@ -4391,16 +4258,16 @@ class TextStim(_BaseVisualStim):
         else:
             GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
             # right bottom
-            GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex, Btex)
+            GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex, Btex)
             GL.glVertex2f(right,bottom)
             # left bottom
-            GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Btex)
+            GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Btex)
             GL.glVertex2f(left,bottom)
             # left top
-            GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Ltex,Ttex)
+            GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Ttex)
             GL.glVertex2f(left,top)
             # right top
-            GL_multitexture.glMultiTexCoord2fARB(GL_multitexture.GL_TEXTURE0_ARB,Rtex,Ttex)
+            GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex,Ttex)
             GL.glVertex2f(right,top)
             GL.glEnd()
 
@@ -4712,10 +4579,7 @@ class ShapeStim(_BaseVisualStim):
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
             GL.glDisable(GL.GL_POLYGON_SMOOTH)
-        if self.win.winType == 'pyglet':
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._verticesRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
-        else:
-            GL.glVertexPointerd(self._verticesRendered)
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._verticesRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts>2: #draw a filled polygon first
@@ -5094,7 +4958,7 @@ class BufferImageStim(PatchStim):
                     pixFormat, dataType, texture)
             else:#use glu
                 GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
-                GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+                GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
                     data.shape[1], data.shape[0], pixFormat, dataType, texture)
         else:
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
@@ -6114,7 +5978,7 @@ class Aperture:
         self.nVert = 120
         if type(nVert) == int:
             self.nVert = nVert
-        self.quad=GLU.gluNewQuadric() #needed for gluDisk
+        self.quad=GL.gluNewQuadric() #needed for gluDisk
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
         self._reset()#implicitly runs an self.enable()
@@ -6135,7 +5999,7 @@ class Aperture:
         GL.glStencilFunc(GL.GL_NEVER, 0, 0)
         GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
         GL.glColor3f(0,0,0)
-        GLU.gluDisk(self.quad, 0, self._sizeRendered/2.0, self.nVert, 2)
+        GL.gluDisk(self.quad, 0, self._sizeRendered/2.0, self.nVert, 2)
         GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
@@ -6604,10 +6468,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
         if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
 
-    if stim.win.winType=='pygame':
-        texture = data.tostring()#serialise
-    else:#pyglet on linux needs ctypes instead of string object!?
-        texture = data.ctypes#serialise
+    texture = data.ctypes#serialise
 
     #bind the texture in openGL
     GL.glEnable(GL.GL_TEXTURE_2D)
@@ -6625,7 +6486,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
                 pixFormat, dataType, texture)
         else:#use glu
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
-            GLU.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
+            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
                 data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
     else:
         GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)

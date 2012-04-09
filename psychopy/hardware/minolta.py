@@ -70,6 +70,10 @@ class LS100:
             measurements can be dark (or we really would be in trouble!!).
 
     """
+
+    longName = "Minolta LS100/LS110"
+    driverFor = ["ls110","ls100"]
+
     def __init__(self, port, maxAttempts=1):
 
         if not serial:
@@ -114,11 +118,13 @@ class LS100:
             self.com.setParity(serial.PARITY_EVEN)#none
             self.com.setStopbits(serial.STOPBITS_TWO)
             try:
-                self.com.open()
-                self.isOpen=1
+                if not self.com.isOpen():
+                    self.com.open()
             except:
                 self._error("Opened serial port %s, but couldn't connect to LS100" %self.portString)
-
+            else:
+                self.isOpen=1
+            
         if self.OK:#we have an open com port. try to send a command
             for repN in range(self.maxAttempts):
                 time.sleep(0.2)
