@@ -14,17 +14,19 @@ To work well, you should:
 
 import os, sys, time, random
 from psychopy import microphone, core
-from psychopy.speech.google_speech import GoogleSpeech, gsOptions
+from psychopy.speech import GoogleSpeech2Text
 
 __author__ = "Jeremy R. Gray"
 
 core.checkPygletDuringWait = False
 
+options = {}
 # set speech options:
 # on windows, if flac does not install into C:\Program Files\FLAC\flac.exe
 # you have to set its install path explicitly
-# gsOptions.flac = 'c:\\path\\to\\flac.exe'
-# gsOptions.lang = 'en-UK'
+# options['flac_exe'] = 'c:\\path\\to\\flac.exe'
+options['lang'] = 'en-UK'
+
 
 def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
     """Classify an utterance, using sets of words.
@@ -107,7 +109,7 @@ try:
         sys.stdout.flush()
         
         # get google's interpretation:
-        gs = GoogleSpeech(wavFile, gsOptions) # prepare
+        gs = GoogleSpeech2Text(wavFile, **options) # prepare
         guess = gs.getResponse() # query google, wait for response; data appear in guess
         # connection lost if you get: WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>
         

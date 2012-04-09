@@ -1,55 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Convert speech to text using Google's speech recognition API, threaded.
+"""Speech processing and analysis."""
 
-    Drastic overhaul of Lefteris Zafiris' <zaf.000@gmail.com> GPLv2 perl script
-    (from https://github.com/zaf/asterisk-speech-recog), in python as a threaded
-    class. Connection failures are treated as if the request timed-out.
-    
-    Supports:
-    1. Command line usage: see --help
-    
-    2. Python import:
-    a) blocking mode (wait for response from google)
-        >>> from google_speech import GoogleSpeech, gsOptions
-        >>> gs = GoogleSpeech('speech_clip.wav')
-        >>> resp = gs.getResponse() # waits until receive a response, or it times out
-        >>> print resp.word, resp.confidence
-    
-    b) threaded mode (no blocking, no timeout)
-        >>> from google_speech import GoogleSpeech, gsOptions
-        >>> gs = GoogleSpeech('speech_clip.wav')
-        >>> resp = gs.getThread() # returns immediately; no data until .running goes False
-        >>> while resp.running:
-        ...     time.sleep(0.1) # or do something useful
-        >>> print resp.words
-    
-    c) using a different language, such as
-      current default locale setting:
-        >>> import locale
-        >>> locale.setlocale(locale.LC_ALL,'') # current default
-        >>> gsOptions.lang = locale.getlocale()[0]
-        >>> gs = GoogleSpeech('speech_clip.wav', gsOptions)
-    
-      or Japanese:
-        >>> gsOptions.lang = 'ja_JP'
-        >>> gs = GoogleSpeech('speech_clip.wav', gsOptions)
-    
-    Defaults: 5 words, 16kHz, quiet=True, https, userAgent = psychopy, timeout 10s
-    
-    Only tested with: Win XP sp2 (python 2.6), Mac 10.6.8 (python 2.7)
-"""
+# Part of the PsychoPy library
+# Copyright (C) 2012 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 __version__ = "2012.04.08 (threaded)"
 __author__ = 'Jeremy R. Gray'
+# with thanks to Lefteris Zafiris and his GPLv2 command-line perl script at
+# https://github.com/zaf/asterisk-speech-recog
 
 from psychopy import core, logging
 from psychopy.constants import PSYCHOPY_USERAGENT
 import os, sys, time
 import urllib2
 import json
-from optparse import OptionParser
 import threading
 import subprocess
 
@@ -72,63 +39,14 @@ def _shellCall(shellCmdList):
     return stdoutData.strip(), stderrData.strip()
 
 def _message(msg):
-    if not gsOptions.quiet:
-        if msg.endswith(','):
-            print msg.strip(','),
-        else:
-            print msg
-        sys.stdout.flush()
+    pass
 def _warn(msg):
     if haveLogging:
         logging.warn(msg)
 
-def _parse_options():
-    """Parse gsOptions, create version and help options."""
-    parser = OptionParser(
-        version = __version__,
-        usage = """\n\n  Speech recognition using google speech API.
-
-  1. Command line:
-     $ python %s [options] sound-file [sound-file(s)]
-  where sound-files are flac, wav, or speex (with headerbyte) format.
-  wav files need flac to be installed for conversion (e.g., /usr/local/bin/flac)
-    
-  2. As a python import:
-     $ python
-     >>> from %s import GoogleSpeech, gsOptions
-     >>> gsOptions.lang = 'en-UK'
-     >>> gs = GoogleSpeech('speech_clip.wav', gsOptions)
-     >>> resp = gs.getResponse()
-     >>> print resp.words""" % (sys.argv[0], __file__.strip('.py').lstrip(os.sep)) )
-
-    parser.add_option("-l", dest='lang', default='en-US',
-                help="language to expect, e.g., en-US, en-UK, ja-JP")
-    parser.add_option("-r", type='int', dest='samplingrate', default=16000,
-                help="sampling rate in Hz of the sound file [16000, 8000]")
-    parser.add_option("-t", type='float', dest='timeout', default=10,
-                help="time to wait before returning, max seconds")
-    parser.add_option("-p", type='string', dest='flac',
-                default='C:\\Program Files\\FLAC\\flac.exe',
-                help="for Windows: specify the path to flac")
-    parser.add_option("-f", dest="pro_filter", type='int', default=2,
-                help="filter profanity")
-    parser.add_option("-v", action="store_false", dest="quiet", default=True,
-                help="verbose")
-    opt, _ = parser.parse_args()
-    if not opt.samplingrate in [16000, 8000]:
-        opt.samplingrate = 16000
-    opt.timeout = min(opt.timeout, 30)
-    return opt
-
-global gsOptions
-# more trickiness than I'd like, but does default opts for import + command-line
-gsOptions = _parse_options()
-
 if sys.platform != 'win32':
-    FLAC_PATH, _ = _shellCall(['/usr/bin/which', 'flac'])
     _getTime = time.time
 else:
-    FLAC_PATH = gsOptions.flac
     _getTime = time.clock
     
 class SoundFormatNotSupported(StandardError):
@@ -137,7 +55,7 @@ class SoundFileError(StandardError):
     """Class to report sound file failed to load"""
     
 class _GSQueryThread(threading.Thread):
-    """Class thread to send a sound file to google, stash the response.
+    """Internal thread class to send a sound file to google, stash the response.
     """
     def __init__(self, request):
         threading.Thread.__init__(self, None, 'GoogleSpeechQuery', None)
@@ -218,14 +136,96 @@ class _GSQueryThread(threading.Thread):
     def stop(self):
         self.running = False
         
-class GoogleSpeech():
-    """Class to manage a thread for google-speech-recognition of a sound file."""
-    def __init__(self, file, opt=gsOptions):
+class GoogleSpeech2Text():
+    """Class for speech-recognition (voice to text), using google's public API.
+    
+        Google's speech API is currently free to use, and seems to work well.
+        But the big caveat: Google could start charging for usage, and
+        can change the API at any time including in the middle of an experiment.
+        We'll try to patch psychopy in a timely manner, but there could still be some downtime.
+        And there appear to be some other options (through MIT and CMU).
+            
+        :Examples:
+        
+        a) Always import and make an object; no data are available yet:
+        
+            >>> from speech import GoogleSpeech2Text
+            >>> gs = GoogleSpeech2Text('speech_clip.wav') # set-up only
+        
+        b) Initiate a query and wait for response from google, or until the time-out limit is reached ("blocking" mode, easiest):
+        
+            >>> resp = gs.getResponse() # execution blocks here
+            >>> print resp.word, resp.confidence
+        
+        c) Initiate a query but do not wait for a response ("thread" mode: no blocking, no timeout, more control). `running` will change to False when a response is received (or hang indefinitely if something goes wrong--so you might want to implement a time-out as well):
+        
+            >>> resp = gs.getThread() # returns immediately
+            >>> while resp.running:
+            ...     print '.', # displays dots while waiting
+            ...     sys.stdout.flush()
+            ...     time.sleep(0.1)
+            >>> print resp.words
+        
+        d) Set-up with a different language for the same speech clip; you'll get a different response (possibly having UTF-8 characters):
+        
+            >>> gs = GoogleSpeech2Text('speech_clip.wav', lang='ja-JP')
+            >>> resp = gs.getResponse()
+        
+        :Other examples:
+        
+            Coder demo / input / say_rgb -- be sure to read the text at the top of the file.
+            The demo works better when run from the command-line than from the Coder.
+        
+        :Known limitations:
+        
+            a) Subject to the whims of google. b) Only tested with: Win XP-sp2,
+            Mac 10.6.8 (python 2.6, 2.7).
+        
+        :Author: Jeremy R. Gray, with thanks to Lefteris Zafiris for his help
+            and excellent command-line perl script at https://github.com/zaf/asterisk-speech-recog (GPLv2)
+    
+    """
+    def __init__(self, file,
+                 lang='en-US',
+                 timeout=10,
+                 samplingrate=16000,
+                 flac_exe='C:\\Program Files\\FLAC\\flac.exe',
+                 pro_filter=2,
+                 quiet=True):
+        """
+            :Parameters:
+            
+                file : <required>
+                    name of the speech file (.flac, .wav, or .spx) to process. wav files must be
+                    converted to flac, and for this to work you need to have a flac
+                    executable. spx format is speex-with-headerbyte (for google).
+                lang :
+                    presumed language of the speaker, default 'en-US'
+                timeout :
+                    seconds to wait before giving up, default 10
+                samplingrate :
+                    the sampling rate of the speech clip in Hz, either 16000 or 8000
+                flac_exe :
+                    **Windows only**: path to binary for converting wav to flac;
+                    must be a string with **two back-slashes where you want one** to appear
+                    (this does not display correctly in web documentation auto-build, above);
+                    default is 'C:\\\\\\\\Program Files\\\\\\\\FLAC\\\\\\\\flac.exe'
+                pro_filter :
+                    profanity filter level to send to google
+                quiet :
+                    intermediate-process reporting detail; default True (non-verbose)
+                 
+        """
         # set up some key parameters:
-        useragent = PSYCHOPY_USERAGENT
-        opt.results = 5 # how many words wanted
-        self.timeout = opt.timeout
+        results = 5 # how many words wanted
+        self.timeout = timeout
+        useragent = PSYCHOPY_USERAGENT # not an option
         host = "www.google.com/speech-api/v1/recognize"
+        if sys.platform == 'win32':
+            FLAC_PATH = flac_exe
+        else:
+            # best not to do every time
+            FLAC_PATH, _ = _shellCall(['/usr/bin/which', 'flac'])
         
         # determine file type, convert wav to flac if needed:
         ext = os.path.splitext(file)[1]
@@ -240,7 +240,7 @@ class GoogleSpeech():
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
             if not os.path.isfile(FLAC_PATH):
-                sys.exit("failed to find flac; if it is installed, use option -p path-to-flac")
+                sys.exit("failed to find flac")
             filetype = "x-flac"
             tmp = 'tmp_guess%.6f' % time.time()+'.flac'
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
@@ -253,7 +253,7 @@ class GoogleSpeech():
                 _, se = _shellCall(flac_cmd)
                 if se: _message(se)
             file = tmp # note to self: ugly & confusing to switch up like this
-        _message("Loading: %s as %s, audio/%s" % (self.file, opt.lang, filetype))
+        _message("Loading: %s as %s, audio/%s" % (self.file, lang, filetype))
         try:
             c = 0 # occasional error; time.sleep(.1) is not always enough; better slow than fail
             while not os.path.isfile(file) and c < 10:
@@ -271,10 +271,10 @@ class GoogleSpeech():
         # set up the https request:
         url = 'https://' + host + '?xjerr=1&' +\
               'client=psychopy2&' +\
-              'lang=' + opt.lang +'&'\
-              'pfilter=%d' % opt.pro_filter + '&'\
-              'maxresults=%d' % opt.results
-        header = {'Content-Type' : 'audio/%s; rate=%d' % (filetype, opt.samplingrate),
+              'lang=' + lang +'&'\
+              'pfilter=%d' % pro_filter + '&'\
+              'maxresults=%d' % results
+        header = {'Content-Type' : 'audio/%s; rate=%d' % (filetype, samplingrate),
                   'User-Agent': useragent}
         try:
             self.request = urllib2.Request(url, audio, header)
@@ -285,12 +285,16 @@ class GoogleSpeech():
     def _removeThread(self, gsqthread):
         del core.runningThreads[core.runningThreads.index(gsqthread)]
     def getThread(self):
-        """launch query without blocking, no timeout; returns a thread"""
+        """Launches a query to google in its own thread, no blocking no timeout.
+        
+        Returns a thread which will **eventually** (not immediately) have the speech
+        data in its namespace; see getResponse.
+        """
         gsqthread = _GSQueryThread(self.request)
         gsqthread.start()
-        if haveCore:
-            core.runningThreads.append(gsqthread)
-            threading.Timer(self.timeout, self._removeThread, (gsqthread,)).start()
+        core.runningThreads.append(gsqthread)
+        # this is the right idea, but need to .cancel() it when a response has come:
+        #threading.Timer(self.timeout, self._removeThread, (gsqthread,)).start()
         _message("Sending:,")
         gsqthread.file = self.file
         while not gsqthread.running:
@@ -298,7 +302,25 @@ class GoogleSpeech():
         return gsqthread # word and time data will eventually be in the namespace
     
     def getResponse(self):
-        """launch query, execution blocks until response or timeout"""
+        """Calls getThread, and then polls the thread to see if there's been a response.
+        
+        Will time-out if no response within `timeout` seconds. Returns an object
+        having the speech data in its namespace. If there's no
+        match, generally the values will be `None` or `''`.
+        
+        :Namespace:
+        
+            .word :
+                the best word
+            .words :
+                tuple of word-guesses returned by google
+            .confidence :
+                google's confidence about the best word
+            .raw :
+                the raw response from google (string)
+            .json :
+                the interpreted version of raw (from json.load(raw))
+        """
         gsqthread = self.getThread()
         while gsqthread.elapsed() < self.timeout:
             time.sleep(0.1) # don't need precise timing to poll an http connection
@@ -307,19 +329,22 @@ class GoogleSpeech():
         if gsqthread.running: # timed out
             gsqthread.status = 408 # same as http code
         return gsqthread # word and time data are already in the namespace
-    
+
+
 if __name__ == "__main__":
     error = 0
     files = [f for f in sys.argv if f[-4:] in ['flac', '.spx', '.wav']]
     if len(sys.argv) == 1 or not len(files):
-        sys.exit(_shellCall(['python', sys.argv[0], '--help'])[0])
+        sys.exit("Requires some sound file names as parameters: .flac, .wav, or .spx")
     
+    print 'Options are ignored.'
     for file in files:
-        goosp = GoogleSpeech(file, gsOptions)
+        goosp = GoogleSpeech2Text(file)
         #resp = goosp.getResponse() # blocks, will see no ... while resp.running
         resp = goosp.getThread() # non-blocking
-        while resp.running and resp.elapsed() < gsOptions.timeout:
-            _message('.,')
+        while resp.running and resp.elapsed() < 5: # timeout of 5 here
+            print '.',
+            sys.stdout.flush()
             time.sleep(0.1) # don't need precise timing to poll an http connection
         if resp.running: # timed out
             resp.status = 408
