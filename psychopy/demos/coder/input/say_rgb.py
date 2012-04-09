@@ -54,7 +54,7 @@ def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
                 'rated', 'rooted', 'rent', 'ribs', 'ray', 'bed', 'berg', 'first', 'ray'],
             'green': ['green', 'greens', 'greene', 'clean', 'cream', 'greece', 
                 'bring', 'french', 'dream', 'print', 'dreams', 'pranks'], 
-            'blue': ['blue', 'blues', 'ok', 'book', 'glue', 'hulu', 'boo', 'blue blue'
+            'blue': ['blue', 'blues', 'ok', 'book', 'glue', 'hulu', 'boo', 'blue blue', 'bluetooth',
                  'both', 'foot', 'boat', 'wood', 'luke', 'food', 'believe', 'was', 'words',
                  'book', 'look', 'liz', 'voice', 'sports', 'blitz', 'quick', 'bird', 'bert', 'soup',
                  'hey luv', 'hey luke', 'call luke', 'hi luke']}
