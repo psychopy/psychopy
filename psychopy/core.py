@@ -105,8 +105,14 @@ def shellCall(shellCmd, stdin='', stderr=False):
     """Call a single system command with arguments, return its stdout.
     Returns stdout,stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested on windows)
+    can accept string or list as the first argument
     """
-    shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, no pipes here
+    if type(shellCmd) == str:
+        shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, no pipes here
+    elif type(shellCmd) == list: # handles whitespace in filenames
+        shellCmdList = shellCmd
+    else:
+        return None, 'shellCmd requires a list or string'
     proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdoutData, stderrData = proc.communicate(stdin)
