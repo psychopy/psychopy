@@ -45,6 +45,7 @@ __version__ = "2012.04.08 (threaded)"
 __author__ = 'Jeremy R. Gray'
 
 from psychopy import core, logging
+from psychopy.constants import PSYCHOPY_USERAGENT
 import os, sys, time
 import urllib2
 import json
@@ -221,7 +222,7 @@ class GoogleSpeech():
     """Class to manage a thread for google-speech-recognition of a sound file."""
     def __init__(self, file, opt=gsOptions):
         # set up some key parameters:
-        useragent = "PsychoPy: open-source Psychology & Neuroscience tools; www.psychopy.org"
+        useragent = PSYCHOPY_USERAGENT
         opt.results = 5 # how many words wanted
         self.timeout = opt.timeout
         host = "www.google.com/speech-api/v1/recognize"

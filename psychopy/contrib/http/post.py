@@ -27,6 +27,7 @@
 
 import os, sys, random, base64
 from psychopy.core import shellCall
+from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import logging
 import hashlib, base64
 import httplib, mimetypes
@@ -35,7 +36,7 @@ from tempfile import mkdtemp
 
 ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
-                    userAgent='PSYCHOPY_USERAGENT', user='psychopy', cred='open-sourc-ami'):
+                    userAgent=PSYCHOPY_USERAGENT, user='psychopy', cred='open-sourc-ami'):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
