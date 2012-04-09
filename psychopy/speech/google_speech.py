@@ -3,9 +3,9 @@
 
 """Convert speech to text using Google's speech recognition API, threaded.
 
-    Python adaptation of Lefteris Zafiris' <zaf.000@gmail.com> GPLv2 perl script
-    (from https://github.com/zaf/asterisk-speech-recog)
-    as a class, with thread option.
+    Drastic overhaul of Lefteris Zafiris' <zaf.000@gmail.com> GPLv2 perl script
+    (from https://github.com/zaf/asterisk-speech-recog), in python as a threaded
+    class. Connection failures are treated as if the request timed-out.
     
     Supports:
     1. Command line usage: see --help
@@ -36,15 +36,15 @@
         >>> gsOptions.lang = 'ja_JP'
         >>> gs = GoogleSpeech('speech_clip.wav', gsOptions)
     
-    Defaults: 4 words, 16kHz, quiet=True, https, userAgent = psychopy, timeout 10s
+    Defaults: 5 words, 16kHz, quiet=True, https, userAgent = psychopy, timeout 10s
     
     Only tested with: Win XP sp2 (python 2.6), Mac 10.6.8 (python 2.7)
 """
 
-__version__ = "2012.04.06 (threaded)"
+__version__ = "2012.04.08 (threaded)"
 __author__ = 'Jeremy R. Gray'
 
-#from psychopy import core, logging
+from psychopy import core, logging
 import os, sys, time
 import urllib2
 import json
@@ -54,9 +54,10 @@ import subprocess
 
 # helper functions, avoid importing from psychopy:
 haveCore = bool('core' in dir())
+haveLogging = bool('logging' in dir())
 
 def _wait(sec, delay=0.05):
-    t0 = _getTime()
+    t0 = _getTime() # = OS-dependent time.time()
     while _getTime() < t0 + sec:
         time.sleep(delay)
         
@@ -76,6 +77,9 @@ def _message(msg):
         else:
             print msg
         sys.stdout.flush()
+def _warn(msg):
+    if haveLogging:
+        logging.warn(msg)
 
 def _parse_options():
     """Parse gsOptions, create version and help options."""
@@ -100,7 +104,7 @@ def _parse_options():
                 help="language to expect, e.g., en-US, en-UK, ja-JP")
     parser.add_option("-r", type='int', dest='samplingrate', default=16000,
                 help="sampling rate in Hz of the sound file [16000, 8000]")
-    parser.add_option("-t", type='int', dest='timeout', default=10,
+    parser.add_option("-t", type='float', dest='timeout', default=10,
                 help="time to wait before returning, max seconds")
     parser.add_option("-p", type='string', dest='flac',
                 default='C:\\Program Files\\FLAC\\flac.exe',
@@ -136,30 +140,39 @@ class _GSQueryThread(threading.Thread):
     """
     def __init__(self, request):
         threading.Thread.__init__(self, None, 'GoogleSpeechQuery', None)
+        
+        # request is a previously established urllib2.request() obj, namely:
+        # request = urllib2.Request(url, audio, header) at end of GoogleSpeech.__init__
         self.request = request
+        
+        # set vars and flags:
         self.t0 = None
         self.response = None
         self.duration = None
         self.stopflag = False
         self.running = False
+        self.timedout = False
         self._reset()
     def _reset(self):
+        # whether run() has been started, not thread start():
+        self.started = False 
+        # initialize data fields that will be exposed:
         self.confidence = None
         self.json = None
         self.raw = ''
         self.word = ''
         self.detailed = ''
         self.words = []
-        self.started = False # whether run() has been started, not thread start()
     def elapsed(self):
+        # report duration depending on the state of the thread:
         if self.started is False:
             return None
         elif self.running:
             return _getTime() - self.t0
-        else:
+        else: # whether timed-out or not:
             return self.duration
     def _unpackRaw(self):
-        # unpack data from raw
+        # parse raw string response from google, expose via data fields (see _reset):
         self.json = json.load(self.raw)
         self.status = self.json['status']
         report = []
@@ -183,20 +196,37 @@ class _GSQueryThread(threading.Thread):
         self.running = True
         self.started = True
         self.duration = 0
-        self.raw = urllib2.urlopen(self.request)
+        try:
+            self.raw = urllib2.urlopen(self.request)
+        except: # yeah, its the internet, stuff happens
+            # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
+            try:
+                self.raw = urllib2.urlopen(self.request)
+            except StandardError as ex: # or maybe a dropped connection, etc
+                _message(str(ex))
+                _warn(str(ex))
+                self.running = False # proceeds as if "timedout"
         self.duration = _getTime() - self.t0
-        self._unpackRaw()
-        self.running = False
+        # if no one called .stop() in the meantime, unpack the data:
+        if self.running: 
+            self._unpackRaw()
+            self.running = False
+            self.timedout = False
+        else:
+            self.timedout = True
     def stop(self):
         self.running = False
         
 class GoogleSpeech():
     """Class to manage a thread for google-speech-recognition of a sound file."""
     def __init__(self, file, opt=gsOptions):
+        # set up some key parameters:
         useragent = "PsychoPy: open-source Psychology & Neuroscience tools; www.psychopy.org"
         opt.results = 5 # how many words wanted
         self.timeout = opt.timeout
         host = "www.google.com/speech-api/v1/recognize"
+        
+        # determine file type, convert wav to flac if needed:
         ext = os.path.splitext(file)[1]
         if not os.path.isfile(file):
             raise IOError("Cannot find file: %s" % file)
@@ -214,22 +244,30 @@ class GoogleSpeech():
             tmp = 'tmp_guess%.6f' % time.time()+'.flac'
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
             _, se = _shellCall(flac_cmd)
-            if se or not os.path.isfile(tmp):
-                _message("%s failed to encode file; %s" % (opt.flac, se))
-            file = tmp
+            if se: _message(se)
+            while not os.path.isfile(tmp): # just try again
+                # ~2% incidence when recording for 1s, 650+ trials
+                # never got two in a row; time.sleep() does not help
+                _message('Failed to convert to tmp.flac; trying again')
+                _, se = _shellCall(flac_cmd)
+                if se: _message(se)
+            file = tmp # note to self: ugly & confusing to switch up like this
         _message("Loading: %s as %s, audio/%s" % (self.file, opt.lang, filetype))
         try:
+            c = 0 # occasional error; time.sleep(.1) is not always enough; better slow than fail
+            while not os.path.isfile(file) and c < 10:
+                time.sleep(.1)
+                c += 1
             audio = open(file, 'r+b').read()
         except:
-            time.sleep(.1)
-            try: # very occasional error
-                audio = open(file, 'r+b').read()
-            except: 
-                raise SoundFileError("Can't read file %s from %s.\n" % (file, self.file))
+            msg = "Can't read file %s from %s.\n" % (file, self.file)
+            _warn(msg)
+            raise SoundFileError(msg)
         finally:
             try: os.remove(tmp)
             except: pass
-        # set up the request:
+        
+        # set up the https request:
         url = 'https://' + host + '?xjerr=1&' +\
               'client=psychopy2&' +\
               'lang=' + opt.lang +'&'\
@@ -237,20 +275,26 @@ class GoogleSpeech():
               'maxresults=%d' % opt.results
         header = {'Content-Type' : 'audio/%s; rate=%d' % (filetype, opt.samplingrate),
                   'User-Agent': useragent}
-        # this can fail but hope to avoid errors by checking before we do this:
-        self.request = urllib2.Request(url, audio, header)
-    
+        try:
+            self.request = urllib2.Request(url, audio, header)
+        except: # try again before accepting defeat
+            _warn("https request failed. trying again..." % (file, self.file))
+            time.sleep(0.2)
+            self.request = urllib2.Request(url, audio, header)
+    def _removeThread(self, gsqthread):
+        del core.runningThreads[core.runningThreads.index(gsqthread)]
     def getThread(self):
         """launch query without blocking, no timeout; returns a thread"""
         gsqthread = _GSQueryThread(self.request)
         gsqthread.start()
-        if 'core' in dir():
+        if haveCore:
             core.runningThreads.append(gsqthread)
+            threading.Timer(self.timeout, self._removeThread, (gsqthread,)).start()
         _message("Sending:,")
         gsqthread.file = self.file
         while not gsqthread.running:
             _wait(0.001) # can return too quickly if thread is slow to start
-        return gsqthread # word and time data are in the namespace
+        return gsqthread # word and time data will eventually be in the namespace
     
     def getResponse(self):
         """launch query, execution blocks until response or timeout"""
@@ -276,8 +320,9 @@ if __name__ == "__main__":
         while resp.running and resp.elapsed() < gsOptions.timeout:
             _message('.,')
             time.sleep(0.1) # don't need precise timing to poll an http connection
-        if resp.running:
+        if resp.running: # timed out
             resp.status = 408
+            resp.stop()
             _message('\nTimed out: %.3fs' % gsOptions.timeout)
         if resp.status:
             error = 1

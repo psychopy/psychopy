@@ -60,8 +60,8 @@ class _GlobalRecordingThread(threading.Thread):
         core.runningThreads.append(self)
         self.clean.start() # launch the recording; this will record for duration self.sec regardless of blocking
         # don't core.wait() here; manage all blocking outside the thread
-        threading.Timer(self.sec, self.stop, ()).start() # idea: set .running=False after delay; not tested
-        threading.Timer(self.sec, self.remove, ()).start() # not tested
+        threading.Timer(self.sec, self.stop).start() # idea: set .running=False after delay; not tested
+        threading.Timer(self.sec, self.remove).start() # not tested
     def rec(self, file, sec):
         # part of the hack to dodge occasional seg fault from pyo
         self.__init__(file, sec)
