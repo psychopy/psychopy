@@ -8,7 +8,7 @@
 from __future__ import division
 import os, sys, shutil, time
 import threading, urllib2, json
-import tempfile
+import tempfile, glob
 from psychopy import core, logging
 from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
 # import pyo is done within switchOn/Off to better encapsulate it, because it can be very slow
@@ -269,9 +269,14 @@ class _GSQueryThread(threading.Thread):
         self.running = False
         
 class Speech2Text(object):
-    """Class for speech-recognition (voice to text), using google's public API.
+    """Class for speech-recognition (voice to text), using Google's public API.
     
-        Google's speech API is currently free to use, and seems to work well. It is possible (and
+        Google's speech API is currently free to use, and seems to work well.
+        Intended for within-experiment processing (near real-time, 1-2s delayed), in which
+        its often important to skip a slow or failed response, and not wait a long time;
+        `BatchSpeech2Text()` reverses these priorities.
+        
+        It is possible (and
         perhaps even likely) that Google will start charging for usage. In addition, they
         can change the interface at any time, including in the middle of an experiment.
         (If so, please post to the user list and we'll try to develop a fix, but
@@ -282,7 +287,7 @@ class Speech2Text(object):
         
         a) Always import and make an object; no data are available yet::
         
-            from speech import GoogleSpeech2Text
+            from microphone import Speech2Text
             gs = Speech2Text('speech_clip.wav') # set-up only
         
         b) Then, either: Initiate a query and wait for response from google (or until the time-out limit is reached). This is "blocking" mode, and is the easiest to do::
@@ -290,7 +295,7 @@ class Speech2Text(object):
             resp = gs.getResponse() # execution blocks here
             print resp.word, resp.confidence
         
-        c) Or instead (more advanced usage): Initiate a query, but do not wait for a response ("thread" mode: no blocking, no timeout, more control). `running` will change to False when a response is received (or hang indefinitely if something goes wrong--so you might want to implement a time-out as well)::
+        c) Or instead (advanced usage): Initiate a query, but do not wait for a response ("thread" mode: no blocking, no timeout, more control). `running` will change to False when a response is received (or hang indefinitely if something goes wrong--so you might want to implement a time-out as well)::
         
             resp = gs.getThread() # returns immediately
             while resp.running:
@@ -316,11 +321,12 @@ class Speech2Text(object):
             
         :Known limitations:
         
-            a) Availabiity is subject to the whims of google, and any changes google
-            makes along the way could either cause complete failure (which is disruptive),
-            or could cause slightly different results to be obtained. For this reason,
-            its probably a good idea to re-run speech samples through google at the end of
-            a study.
+            a) Availability is subject to the whims of google. Any changes google
+            makes along the way could either cause complete failure (disruptive),
+            or could cause slightly different results to be obtained (without it being
+            readily obvious that something had changed). For this reason,
+            its probably a good idea to re-run speech samples through `Speech2Text` at the end of
+            a study; see `BatchSpeech2Text()`.
             
             b) Only tested with: Win XP-sp2,
             Mac 10.6.8 (python 2.6, 2.7).
@@ -434,7 +440,9 @@ class Speech2Text(object):
         """Send a query to google using a new thread, no blocking or timeout.
         
         Returns a thread which will **eventually** (not immediately) have the speech
-        data in its namespace; see getResponse.
+        data in its namespace; see getResponse. In theory, you could have several
+        threads going simultaneously (almost all the time is spent waiting for a
+        response), rather than doing them sequentially (not tested).
         """
         gsqthread = _GSQueryThread(self.request)
         gsqthread.start()
@@ -446,7 +454,6 @@ class Speech2Text(object):
         while not gsqthread.running:
             core.wait(0.001) # can return too quickly if thread is slow to start
         return gsqthread # word and time data will eventually be in the namespace
-    
     def getResponse(self):
         """Calls getThread, and then polls the thread to until there's a response.
         
@@ -454,17 +461,18 @@ class Speech2Text(object):
         object having the speech data in its namespace. If there's no match, 
         generally the values will be equivalent to `None` (e.g., an empty string).
         
-        :Namespace:
+        If you do `resp = getResponse()`, you'll be able to access the data like
+        in several ways:
         
-            `.word` :
+            `resp.word` :
                 the best match, i.e., the most probably word, or `None`
-            `.confidence` :
+            `resp.confidence` :
                 google's confidence about `.word`, ranging 0 to 1
-            `.words` :
+            `resp.words` :
                 tuple of up to 5 guesses; so `.word` == `.words[0]`
-            `.raw` :
+            `resp.raw` :
                 the raw response from google (just a string)
-            `.json` :
+            `resp.json` :
                 a parsed version of raw, from `json.load(raw)`
         """
         gsqthread = self.getThread()
@@ -476,6 +484,38 @@ class Speech2Text(object):
             gsqthread.status = 408 # same as http code
         return gsqthread # word and time data are already in the namespace
 
+class BatchSpeech2Text(list):
+    def __init__(self, fileList, maxThreads=3):
+        """Like `Speech2Text()`, but takes a list of sound files, and returns a list
+        of (filename, response) tuples. Can use up to 5 concurrent threads. Intended for
+        post-experiment processing of multiple files, in which waiting for a slow response
+        is not a problem (better to get the data).
+        
+        If `fileList` is a string, it will be used as a directory name for glob
+        (matching all `*.wav`, `*.flac`, and `*.spx` files).
+        There's currently no re-try on http error."""
+        list.__init__(self) # [ (file1, resp1), (file2, resp2), ...]
+        maxThreads = min(maxThreads, 5) # can get http error with 6
+        self.timeout = 30
+        if type(fileList) == str:
+            if os.path.isfile(fileList):
+                fileList = [fileList]
+            else:
+                f = glob.glob(os.path.join(fileList, '*.wav'))
+                f += glob.glob(os.path.join(fileList, '*.flac'))
+                f += glob.glob(os.path.join(fileList, '*.spx'))
+                fileList = f
+        for i, file in enumerate(fileList):
+            gs = Speech2Text(file)
+            self.append( (file, gs.getThread()) ) # tuple
+            print i, file, self[-1]
+            while self._activeCount() >= maxThreads:
+                core.wait(.1) # idle at max count
+    def _activeCount(self):
+        # self is a list of tuples; count active threads
+        count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
+        return count
+    
 def switchOn(sampleRate=44100):
     """You need to switch on the microphone before use. Can take several seconds.
     """
