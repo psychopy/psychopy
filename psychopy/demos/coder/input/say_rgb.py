@@ -14,7 +14,6 @@ To work well, you should:
 
 import os, sys, time, random
 from psychopy import microphone, core
-from psychopy.speech import GoogleSpeech2Text
 
 __author__ = "Jeremy R. Gray"
 
@@ -59,7 +58,7 @@ def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
             'blue': ['blue', 'blues', 'ok', 'book', 'glue', 'hulu', 'boo', 'blue blue', 'bluetooth',
                  'both', 'foot', 'boat', 'wood', 'luke', 'food', 'believe', 'was', 'words',
                  'book', 'look', 'liz', 'voice', 'sports', 'blitz', 'quick', 'bird', 'bert', 'soup',
-                 'hey luv', 'hey luke', 'call luke', 'hi luke']}
+                 'hey luv', 'hey luke', 'call luke', 'hi luke', 'balloon', 'loon', 'once', 'bloons']}
             # green or red = bird, brent, rent, sprint, chris, great, grant, ring, friend, friends, free
             # green or blue = please, live
             # red or blue = well
@@ -85,7 +84,7 @@ try:
     # 16000 is a good rate for google speech recognition (16000 or 8000 only)
     # could record faster for archiving, then down-sample to 16K
     
-    mic = microphone.SimpleAudioCapture() # set things up
+    mic = microphone.AudioCapture() # set things up
     captureTime = 2
     
     print "\nVoice capture with google speech recognition, needs a microphone and internet access."
@@ -109,7 +108,7 @@ try:
         sys.stdout.flush()
         
         # get google's interpretation:
-        gs = GoogleSpeech2Text(wavFile, **options) # prepare
+        gs = microphone.Speech2Text(wavFile, **options) # prepare
         guess = gs.getResponse() # query google, wait for response; data appear in guess
         # connection lost if you get: WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>
         
