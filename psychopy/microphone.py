@@ -354,7 +354,9 @@ class Speech2Text(object):
                 timeout :
                     seconds to wait before giving up, default 10
                 samplingrate :
-                    the sampling rate of the speech clip in Hz, either 16000 or 8000
+                    the sampling rate of the speech clip in Hz, either 16000 or 8000. You can
+                    record at a higher rate, and then down-sample to 16000 for speech
+                    recognition. `file` is the down-sampled file, not the original.
                 flac_exe :
                     **Windows only**: path to binary for converting wav to flac;
                     must be a string with **two back-slashes where you want one** to appear
@@ -455,13 +457,13 @@ class Speech2Text(object):
             core.wait(0.001) # can return too quickly if thread is slow to start
         return gsqthread # word and time data will eventually be in the namespace
     def getResponse(self):
-        """Calls getThread, and then polls the thread to until there's a response.
+        """Calls `getThread()`, and then polls the thread until there's a response.
         
         Will time-out if no response comes within `timeout` seconds. Returns an 
         object having the speech data in its namespace. If there's no match, 
         generally the values will be equivalent to `None` (e.g., an empty string).
         
-        If you do `resp = getResponse()`, you'll be able to access the data like
+        If you do `resp = getResponse()`, you'll be able to access the data
         in several ways:
         
             `resp.word` :
@@ -485,47 +487,64 @@ class Speech2Text(object):
         return gsqthread # word and time data are already in the namespace
 
 class BatchSpeech2Text(list):
-    def __init__(self, fileList, maxThreads=3):
-        """Like `Speech2Text()`, but takes a list of sound files, and returns a list
-        of (filename, response) tuples. Can use up to 5 concurrent threads. Intended for
+    def __init__(self, files, threads=3, verbose=False):
+        """Like `Speech2Text()`, but takes a list of sound files or a directory name to search
+        for matching sound files, and returns a list of `(filename, response)` tuples.
+        `response`'s are described in `Speech2Text.getResponse()`.
+        
+        Can use up to 5 concurrent threads. Intended for
         post-experiment processing of multiple files, in which waiting for a slow response
         is not a problem (better to get the data).
         
-        If `fileList` is a string, it will be used as a directory name for glob
+        If `files` is a string, it will be used as a directory name for glob
         (matching all `*.wav`, `*.flac`, and `*.spx` files).
         There's currently no re-try on http error."""
         list.__init__(self) # [ (file1, resp1), (file2, resp2), ...]
-        maxThreads = min(maxThreads, 5) # can get http error with 6
+        maxThreads = min(threads, 5) # I get http errors with 6
         self.timeout = 30
-        if type(fileList) == str:
-            if os.path.isfile(fileList):
-                fileList = [fileList]
-            else:
-                f = glob.glob(os.path.join(fileList, '*.wav'))
-                f += glob.glob(os.path.join(fileList, '*.flac'))
-                f += glob.glob(os.path.join(fileList, '*.spx'))
-                fileList = f
+        if type(files) == str and os.path.isdir(files):
+            f = glob.glob(os.path.join(files, '*.wav'))
+            f += glob.glob(os.path.join(files, '*.flac'))
+            f += glob.glob(os.path.join(files, '*.spx'))
+            fileList = f
+        else:
+            fileList = list(files)
         for i, file in enumerate(fileList):
             gs = Speech2Text(file)
             self.append( (file, gs.getThread()) ) # tuple
-            print i, file, self[-1]
+            if verbose:
+                print i, file
             while self._activeCount() >= maxThreads:
-                core.wait(.1) # idle at max count
+                core.wait(.1, hogCPUPeriod=0) # idle at max count
     def _activeCount(self):
-        # self is a list of tuples; count active threads
+        # self is a list of (name, thread) tuples; count active threads
         count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
         return count
     
-def switchOn(sampleRate=44100):
+def switchOn(sampleRate=48000):
     """You need to switch on the microphone before use. Can take several seconds.
+    The only time you can specify the sample rate (in Hz) is during switchOn().
+    You can switchOff() and switchOn() with a different rate.
+    
+    Considerations on the default sample rate::
+    
+        DVD or video = 48,000
+        CD-quality   = 44,100 / 24 bit
+        human hearing: ~15,000 (adult); children & young adult higher
+        human speech: 100-8,000 (useful for telephone: 100-3,300)
+        google speech API: 16,000 or 8,000 only
+        Nyquist frequency: twice the highest rate, good to oversample a bit
+        
+        pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
+        so: recording at 48kHz will generate high-quality archival data, and permit easy downsampling
     """
     # imports from pyo, creates globals pyoServer
     t0 = core.getTime()
     try:
         global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
         from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
-        global getVersion, pa_get_input_devices, pa_get_output_devices
-        from pyo import getVersion, pa_get_input_devices, pa_get_output_devices
+        global getVersion, pa_get_input_devices, pa_get_output_devices, downsamp
+        from pyo import getVersion, pa_get_input_devices, pa_get_output_devices, downsamp
         global haveMic
         haveMic = True
     except ImportError:
@@ -542,7 +561,8 @@ def switchOn(sampleRate=44100):
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
     
 def switchOff():
-    """Must explicitly switch off the microphone when done (to avoid a seg fault).
+    """Its good to explicitly switch off the microphone when done (in order to avoid
+    a segmentation fault).
     """
     t0 = core.getTime()
     global haveMic
