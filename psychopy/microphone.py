@@ -22,59 +22,11 @@ ONSET_TIME_HERE = '!ONSET_TIME_HERE!'
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo; goes False in switchOff
 
-class _GlobalRecordingThread(threading.Thread):
-    """Class for internal thread to get an audio recording using pyo, with greater stability.
-    
-    Never needed by end-users. Used internally in switchOn():
-        global _theGlobalRecordingThread
-        _theGlobalRecordingThread = _GlobalRecordingThread(None) # instantiate, global
-    Then in SimpleAudioCapture.record(), do:
-        _theGlobalRecordingThread.rec(file, sec)
-    This sets recording parameters, starts recording, arranges for thread signaling
-    The global thread never handles blocking; SimpleAudioCapture has to do that.
-    
-    Motivation: Doing pyo Record from within a function worked most of the time,
-    but failed catastrophically ~1% of time with a bus error. Seemed to be due to
-    a namespace scoping issue, which using globals seemed to fix; see pyo mailing
-    list, 7 April 2012.
-    """
-    def __init__(self, file, sec=0):
-        threading.Thread.__init__(self, None, '_pyoRecordingThread', None)
-        self.running = False
-        # hack to avoid occasional seg fault / bus-error, try 2-step:
-        # 1) pass file=None to create a global thread; no recording or tmp file
-        # 2) call self.rec(file, sec) to reinitialize with actual values to use, then start recording
-        if file: # part of the hack to dodge occasional seg fault from pyo
-            self.sec = sec
-            self.file = file
-            inputter = Input(chnl=0, mul=1)
-            recorder = Record(inputter,
-                            self.file,
-                            chnls=2,
-                            fileformat=0, # .wav
-                            sampletype=0,
-                            buffering=4)
-            self.clean = Clean_objects(self.sec, recorder)
-    def run(self):
-        self.running = True
-        core.runningThreads.append(self)
-        self.clean.start() # launch the recording; this will record for duration self.sec regardless of blocking
-        # don't core.wait() here; manage all blocking outside the thread
-        threading.Timer(self.sec, self.stop).start() # idea: set .running=False after delay; not tested
-        threading.Timer(self.sec, self.remove).start() # not tested
-    def rec(self, file, sec):
-        # part of the hack to dodge occasional seg fault from pyo
-        self.__init__(file, sec)
-        self.start() # calls self.run()
-    def stop(self):
-        self.running = False
-    def remove(self):
-        del core.runningThreads[core.runningThreads.index(self)]
 
-class AudioCapture():
+class AudioCapture(object):
     """Capture a sound sample from the default sound input, and save to a file.
         
-        Execution will block until the recording is finished.
+        Untested whether you can have two recordings going on simultaneously.
         
         **Example**::
         
@@ -92,7 +44,42 @@ class AudioCapture():
         Also see Builder Demo "voiceCapture".
             
         :Author: Jeremy R. Gray, March 2012
-    """ 
+    """
+    
+    class _Recorder(object):
+        """Class for internal object to make an audio recording using pyo.
+        
+        Never needed by end-users; only used internally in __init__:
+            self.recorder = _Recorder(None) # instantiate, global
+        Then in record(), do:
+            self.recorder.run(file, sec)
+        This sets recording parameters, starts recording.
+        This class never handles blocking; SimpleAudioCapture has to do that.
+        
+        Motivation: Doing pyo Record from within a function worked most of the time,
+        but failed catastrophically ~1% of time with a bus error. Seemed to be due to
+        a namespace scoping issue, which using globals seemed to fix; see pyo mailing
+        list, 7 April 2012. This draws heavily on Olivier Belanger's solution.
+        """
+        def __init__(self, file, sec=0):
+            self.running = False
+            if file:
+                inputter = Input(chnl=0, mul=1)
+                recorder = Record(inputter,
+                               file,
+                               chnls=2,
+                               fileformat=0,
+                               sampletype=0,
+                               buffering=4)
+                self.clean = Clean_objects(sec, recorder)
+        def run(self, file, sec):
+            self.__init__(file, sec)
+            self.running = True
+            self.clean.start() # controls recording onset (now) and offset (later)
+            threading.Timer(sec, self.stop).start() # set running flag False
+        def stop(self):
+            self.running = False
+            
     def __init__(self, name='mic', file='', saveDir=''):
         """
         :Parameters:
@@ -113,6 +100,9 @@ class AudioCapture():
             self.wavOutFilename = os.path.join(self.saveDir, name + ONSET_TIME_HERE +'.wav')
         if not self.saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
+        else:
+            if not os.path.isdir(self.saveDir):
+                os.makedirs(self.saveDir, 0770)
 
         self.onset = None # becomes onset time, used in filename
         self.savedFile = False # becomes saved file name
@@ -127,6 +117,9 @@ class AudioCapture():
         self.loggingId = self.__class__.__name__
         if self.name:
             self.loggingId += ' ' + self.name
+        
+        # the recorder object needs to persist, or else get bus errors:
+        self.recorder = self._Recorder(None)
 
     def __del__(self):
         pass
@@ -141,8 +134,8 @@ class AudioCapture():
         Return the path/name to the new file. Uses onset time (epoch) as
         a meaningful identifier for filename and log.
         """
-        while _theGlobalRecordingThread.running:
-            pass # prevents start of recording until previous has finished; bad: get inf loop if previous record was not shut down cleanly!
+        while self.recorder.running:
+            pass
         self.duration = float(sec)
         self.onset = core.getTime() # note: report onset time in log, and use in filename
         logging.data('%s: Record: onset %.3f, capture %.3fs' %
@@ -153,11 +146,11 @@ class AudioCapture():
             self.savedFile = os.path.abspath(file).strip('.wav')+'.wav'
         
         t0 = core.getTime()
-        _theGlobalRecordingThread.rec(self.savedFile, self.duration)
+        self.recorder.run(self.savedFile, self.duration)
         
         if block:
             core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
-                # NOTE: the actual recording time is done by Clean_object in _recordingThread()
+                # actual timing is done by Clean_object in _theGlobalRecordingThread()
             logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, core.getTime(), core.getTime() - t0) )
         else:
@@ -275,7 +268,7 @@ class _GSQueryThread(threading.Thread):
     def stop(self):
         self.running = False
         
-class Speech2Text():
+class Speech2Text(object):
     """Class for speech-recognition (voice to text), using google's public API.
     
         Google's speech API is currently free to use, and seems to work well. It is possible (and
@@ -316,7 +309,7 @@ class Speech2Text():
             See Coder demos / input / say_rgb.py -- be sure to read the text at the top of the file.
             The demo works better when run from the command-line than from the Coder.
         
-        :Errors:
+        :Error handling:
             
             If there is an error during http connection, it is handled as a lack of
             response. The connection was probably lost if you get: `WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>`
@@ -486,8 +479,7 @@ class Speech2Text():
 def switchOn(sampleRate=44100):
     """You need to switch on the microphone before use. Can take several seconds.
     """
-    # imports from pyo, creates globals pyoServer and _theGlobalRecordingThread
-
+    # imports from pyo, creates globals pyoServer
     t0 = core.getTime()
     try:
         global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
@@ -500,7 +492,6 @@ def switchOn(sampleRate=44100):
         msg = 'Microphone class not available, needs pyo; see http://code.google.com/p/pyo/'
         logging.error(msg)
         raise ImportError(msg)
-    
     global pyoServer
     if serverCreated():
         pyoServer.setSamplingRate(sampleRate)
@@ -508,30 +499,20 @@ def switchOn(sampleRate=44100):
     else:
         pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
     pyoServer.start()
-    
-    global _theGlobalRecordingThread  # idea: use a global var for better pyo stability
-    _theGlobalRecordingThread = _GlobalRecordingThread(None) # instantiate, no temp file
-    
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
     
 def switchOff():
     """Must explicitly switch off the microphone when done (to avoid a seg fault).
     """
     t0 = core.getTime()
-    
     global haveMic
     haveMic = False
-    
-    global _theGlobalRecordingThread
-    del _theGlobalRecordingThread
-    
     global pyoServer
     if serverBooted():
         pyoServer.stop()
         core.wait(.25) # give it a chance to stop before shutdown(), avoid seg fault
     if serverCreated():
         pyoServer.shutdown()
-    
     logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), core.getTime() - t0))
 
 if __name__ == '__main__':
