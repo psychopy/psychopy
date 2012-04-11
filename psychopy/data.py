@@ -1057,8 +1057,8 @@ class TrialHandler(_BaseTrialHandler):
         if (self.extraInfo != None) and not matrixOnly:
             ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
             for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+':'
-                ws.cell(_getExcelCellName(1,rowN)).value = (val)
+                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
                 rowN+=1
 
         ew.save(filename = fileName)
