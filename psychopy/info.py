@@ -269,6 +269,12 @@ class RunTimeInfo(dict):
         except:
             pass
         
+        try:
+            import pyo
+            self['systemPyoVersion'] = '.'.join(map(str, pyo.getVersion()))
+        except:
+            pass
+        
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
         profileInfo = ''

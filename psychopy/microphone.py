@@ -61,7 +61,7 @@ class AudioCapture(object):
         a namespace scoping issue, which using globals seemed to fix; see pyo mailing
         list, 7 April 2012. This draws heavily on Olivier Belanger's solution.
         """
-        def __init__(self, file, sec=0):
+        def __init__(self, file, sec=0, sampletype=0):
             self.running = False
             if file:
                 inputter = Input(chnl=0, mul=1)
@@ -69,18 +69,18 @@ class AudioCapture(object):
                                file,
                                chnls=2,
                                fileformat=0,
-                               sampletype=0,
+                               sampletype=sampletype,
                                buffering=4)
                 self.clean = Clean_objects(sec, recorder)
-        def run(self, file, sec):
-            self.__init__(file, sec)
+        def run(self, file, sec, sampletype):
+            self.__init__(file, sec, sampletype)
             self.running = True
             self.clean.start() # controls recording onset (now) and offset (later)
             threading.Timer(sec, self.stop).start() # set running flag False
         def stop(self):
             self.running = False
             
-    def __init__(self, name='mic', file='', saveDir=''):
+    def __init__(self, name='mic', file='', saveDir='', sampletype=0):
         """
         :Parameters:
                 name :
@@ -91,6 +91,8 @@ class AudioCapture(object):
                     Directory to use for output .wav files.
                     If a saveDir is given, it will return 'saveDir/file'. 
                     If no saveDir, then return abspath(file)
+                sampletype : bit depth
+                    pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
         """
         self.name = name
         self.saveDir = saveDir
@@ -120,6 +122,7 @@ class AudioCapture(object):
         
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder(None)
+        self.sampletype = sampletype # pass through .run()
 
     def __del__(self):
         pass
@@ -146,7 +149,7 @@ class AudioCapture(object):
             self.savedFile = os.path.abspath(file).strip('.wav')+'.wav'
         
         t0 = core.getTime()
-        self.recorder.run(self.savedFile, self.duration)
+        self.recorder.run(self.savedFile, self.duration, self.sampletype)
         
         if block:
             core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
