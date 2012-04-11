@@ -1,3 +1,4 @@
+import codecs
 import cPickle
 import psychopy.data
 
