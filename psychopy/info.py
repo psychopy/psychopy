@@ -97,7 +97,7 @@ class RunTimeInfo(dict):
             self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
-        self._setSystemUserInfo()
+        self._setSystemInfo() # current user, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
@@ -194,7 +194,7 @@ class RunTimeInfo(dict):
             self['experimentRandomSeed.string'] = None
             self['experimentRandomSeed.isSet'] = False
             
-    def _setSystemUserInfo(self):
+    def _setSystemInfo(self):
         # machine name
         self['systemHostName'] = platform.node()
         
@@ -233,23 +233,21 @@ class RunTimeInfo(dict):
             lastboot += ['[?]'] # put something in the list just in case
             self['systemRebooted'] = lastboot[0].strip()
         
-        # is R available (for stats)?
+        # R (and r2py) for stats:
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
             if Rversion.startswith('R version'):
                 self['systemRavailable'] = Rversion.strip()
-            else: raise
+            try:
+                import rpy2
+                self['systemRpy2'] = rpy2.__version__
+            except:
+                pass
         except:
-            pass #self['systemRavailable'] = False
+            pass
         
-        """try:
-            import rpy2
-            self['systemRpy2'] = rpy2.__version__
-        except:
-            self['systemRpy2'] = False
-        """
-        
+        # encryption / security tools:
         try:
             vers, se = shellCall('openssl version', stderr=True)
             if se:
@@ -258,7 +256,6 @@ class RunTimeInfo(dict):
                 self['systemSec.OpenSSLVersion'] = vers
         except:
             pass
-        
         try:
             so, se = shellCall('gpg --version', stderr=True)
             if so.find('GnuPG') > -1:
@@ -269,6 +266,7 @@ class RunTimeInfo(dict):
         except:
             pass
         
+        # pyo for sound:
         try:
             import pyo
             self['systemPyoVersion'] = '.'.join(map(str, pyo.getVersion()))
