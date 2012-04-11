@@ -6,7 +6,7 @@
 
 import sys, os, time, platform
 
-from psychopy import visual# imports for RuntimeInfo()
+from psychopy import visual, logging
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
@@ -237,7 +237,7 @@ class RunTimeInfo(dict):
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
-            if Rversion.find('R version') == 0:
+            if Rversion.startswith('R version'):
                 self['systemRavailable'] = Rversion.strip()
             else: raise
         except:
@@ -254,16 +254,16 @@ class RunTimeInfo(dict):
             vers, se = shellCall('openssl version', stderr=True)
             if se:
                 vers = str(vers) + se.replace('\n',' ')[:80]
-            if vers:
-                self['systemSecOpenSSLVersion'] = vers
+            if vers.strip():
+                self['systemSec.OpenSSLVersion'] = vers
         except:
             pass
         
         try:
             so, se = shellCall('gpg --version', stderr=True)
             if so.find('GnuPG') > -1:
-                self['systemSecGPGVersion'] = so.splitlines()[0]
-                self['systemSecGPGHome'] = ''.join([line.replace('Home:','').lstrip()
+                self['systemSec.GPGVersion'] = so.splitlines()[0]
+                self['systemSec.GPGHome'] = ''.join([line.replace('Home:','').lstrip()
                                                     for line in so.splitlines()
                                                     if line.startswith('Home:')])
         except:
@@ -281,7 +281,7 @@ class RunTimeInfo(dict):
         appFlagList = [# flag these apps if active, case-insensitive match:
             'Firefox','Safari','Explorer','Netscape', 'Opera', # web browsers can burn CPU cycles
             'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
-            'mdimport', # can have high CPU
+            'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
             'Parallels', 'Coherence', 'prl_client_app','prl_tools_service',
@@ -292,29 +292,24 @@ class RunTimeInfo(dict):
         # assess concurrently active processes owner by the current user:
         try:
             # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
-            if sys.platform in ['darwin']:
+            if sys.platform not in ['win32']:
                 proc = shellCall("ps -c -U "+os.environ['USER'])
-                cmdStr = 'COMMAND'
-            elif sys.platform in ['linux2']:
-                proc = shellCall("ps -c -U "+os.environ['USER'])
-                cmdStr = 'CMD'
-            elif sys.platform in ['win32']: 
+            else:
                 proc, err = shellCall("tasklist", stderr=True) # "tasklist /m" gives modules as well
                 if err:
-                    print 'tasklist error:', err
-                    raise
-            else: # guess about freebsd based on darwin... 
-                proc,err = shellCall("ps -U "+os.environ['USER'],stderr=True)
-                if err: raise
-                cmdStr = 'COMMAND' # or 'CMD'?
+                    logging.error('tasklist error:', err)
+                    #raise
             systemProcPsu = []
             systemProcPsuFlagged = [] 
             systemUserProcFlaggedPID = []
             procLines = proc.splitlines() 
             headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
-                cmd = headerLine.split().index(cmdStr) # columns and column labels can vary across platforms
-                pid = headerLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
+                try:
+                    cmd = headerLine.upper().split().index('CMD') # columns and column labels can vary across platforms
+                except ValueError:
+                    cmd = headerLine.upper().split().index('COMMAND') 
+                pid = headerLine.upper().split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
             else: # this works for win XP, for output from 'tasklist'
                 procLines.pop(0) # blank
                 procLines.pop(0) # =====
@@ -560,7 +555,10 @@ def _getHgVersion(file):
         return None
 
 def _getUserNameUID():
-    """Return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root; but its >999 on debian
+    """Return user name, UID.
+    
+    UID values can be used to infer admin-level:
+    -1=undefined, 0=full admin/root, >499=assume non-admin/root (>999 on debian-based)
     
     :Author:
         - 2010 written by Jeremy Gray
@@ -572,7 +570,7 @@ def _getUserNameUID():
     uid = '-1' 
     try:
         if sys.platform not in ['win32']:
-            uid = core.shellCall('id -u')
+            uid = shellCall('id -u')
         else:
             try:
                 uid = '1000'
