@@ -24,7 +24,7 @@ options = {}
 # on windows, if flac does not install into C:\Program Files\FLAC\flac.exe
 # you have to set its install path explicitly
 # options['flac_exe'] = 'c:\\path\\to\\flac.exe'
-options['lang'] = 'en-UK'
+#options['lang'] = 'en-UK'
 
 
 def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
