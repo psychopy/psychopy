@@ -282,7 +282,8 @@ class Monitor:
     def getGammaGrid(self):
         """Gets the min,max,gamma values for the each gun"""
         if self.currentCalib.has_key('gammaGrid'):
-            grid = self.currentCalib['gammaGrid']
+            # Make sure it's an array, so you can look at the shape
+            grid = numpy.asarray(self.currentCalib['gammaGrid'])
             if grid.shape!=[4,6]:
                 newGrid = numpy.zeros([4,6],'f')*numpy.nan#start as NaN
                 newGrid[:grid.shape[0],:grid.shape[1]]=grid
