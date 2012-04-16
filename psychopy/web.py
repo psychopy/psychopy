@@ -1,31 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Send a file over the internet via http POST (to a configured server)
-    
-    upload(selector, filename, fields, host, basicAuth)
-    - returns: (status, sha256 hexdigest of file on server, file size in bytes)
-    - supports & assumes basic auth (apache)
-    - aims to be unicode-compatible; not tested; binary files are fine
-    - user, userAgent --> server logs
-    - base64-encoded for transmission (reducing the effective file size limit)
-    
-    For future:
-    - maybe support https? include server certificate instructions (self-signed)
-    
-    apache 2.2 Basic auth (sent in clear text). to set up on server, as root:
-    # mkdir -p /usr/local/etc/apache
-    # htpasswd /usr/local/etc/apache/.htpasswd psychopy # add -c option to create / overwrite
-    # chown -R apache:apache /usr/local/etc/apache
-    # chmod -R 400 /usr/local/etc/apache
-    might need to edit your httpd.conf file to enable auth (& restart apache)
-    need to allow POST'ing to your server (and the up.php directory in particular)
-    
-    Jeremy Gray, March 2012; includes post_multipart from activestate.com (PSF license)
-"""
+"""Library for working with internet connections"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2012 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os, sys
-from psychopy.core import shellCall
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import logging
 import hashlib, base64
