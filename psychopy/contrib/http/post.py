@@ -3,7 +3,7 @@
 
 """Send a file over the internet via http POST (to a configured server)
     
-    upload(fields, host, selector, filename)
+    upload(selector, filename, fields, host, basicAuth)
     - returns: (status, sha256 hexdigest of file on server, file size in bytes)
     - supports & assumes basic auth (apache)
     - aims to be unicode-compatible; not tested; binary files are fine
@@ -11,16 +11,15 @@
     - base64-encoded for transmission (reducing the effective file size limit)
     
     For future:
-    - support apache Digest authorization
-      for auth options see: http://httpd.apache.org/docs/2.2/misc/password_encryptions.html
     - maybe support https? include server certificate instructions (self-signed)
     
-    apache Basic auth (sent in clear text). to set up on server, as root:
+    apache 2.2 Basic auth (sent in clear text). to set up on server, as root:
     # mkdir -p /usr/local/etc/apache
     # htpasswd /usr/local/etc/apache/.htpasswd psychopy # add -c option to create / overwrite
     # chown -R apache:apache /usr/local/etc/apache
     # chmod -R 400 /usr/local/etc/apache
     might need to edit your httpd.conf file to enable auth (& restart apache)
+    need to allow POST'ing to your server (and the up.php directory in particular)
     
     Jeremy Gray, March 2012; includes post_multipart from activestate.com (PSF license)
 """
@@ -30,13 +29,16 @@ from psychopy.core import shellCall
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import logging
 import hashlib, base64
-import httplib, mimetypes
+import httplib, mimetypes, urllib2
 import shutil # for testing
 from tempfile import mkdtemp
 
+# special / magic selector for tests and demos (returns URL to use for actual post):
+SELECTOR_FOR_TESTS = 'http://www.psychopy.org/test_upload/up.php'
+
 ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
-                    userAgent=PSYCHOPY_USERAGENT, user='psychopy', cred='open-sourc-ami'):
+                    userAgent=PSYCHOPY_USERAGENT, basicAuth=None):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
@@ -83,6 +85,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     def _get_content_type(filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
     
+    # start of _post_multipart main code: 
     content_type, body = _encode_multipart_formdata(fields, files)
     conn = httplib.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
@@ -90,8 +93,8 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
                u'Content-Type': content_type,
                }
     # apache basic auth (sent in clear text):
-    user_cred = base64.encodestring('%s:%s' % (user, cred)).replace('\n', '')
-    if len(user):
+    if basicAuth and type(basicAuth) == str:
+        user_cred = base64.encodestring(basicAuth).replace('\n', '')
         headers.update({u"Authorization": u"Basic %s" % user_cred})
     try:
         conn.request(u'POST', selector, body, headers)
@@ -107,32 +110,73 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     ## end of http://code.activestate.com/recipes/146306/ }}}
     
 
-def upload(fields=None, host=None, selector=None, filename=None):
-    """Method for posting a file to a configured server, passed through base64.
+def upload(selector, filename, basicAuth=None, host=None):
+    """Post a file to a configured http server.
     
-    This method handshakes with up.php, transfer one local file from psychopy to
-    another machine, via http.
+    This method handshakes with a php script on a remote server to transfer a local
+    file to another machine via http.
+    
+    .. note::
+        The server that receives the files needs to be configured. The necessary
+        php script (up.php) is provided as part of psychopy distribution, and needs to
+        be copied into the web-space, with appropriate permissions and directories.
+    
+        For testing purposes, a configured server is provided through http://www.psychopy.org/
+        See demo for details.
+    
+    **Parameters:**
+    
+        `selector` : (required)
+            URL, e.g., 'http://<your_server>/path/to/up.php'
+        `filename` : (required)
+            path to local file to be transferred. Any format: text, utf-8, binary
+        `basicAuth` : (optional)
+            apache 'user:password' string for basic authentication. If a basicAuth
+            value is supplied, it will be sent as the auth credentials (in cleartext,
+            not intended to be secure).
+        `host` : (optional)
+            typically embedded in `selector` and so extracted if not provided separately 
+    
+    **Example:**
+    
+        See Coder demo / misc/ http_upload.py
+    
+    Author: Jeremy R. Gray, 2012
     """
-    if not fields:
-        fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
-    if not host:
-        logging.error('need a host, as DNS name or IP address')
-        raise ValueError('need a host name or IP address')
+    fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
     if not selector:
-        logging.error('need a selector, http://<host>/path/to/up.php')
-        raise ValueError('need a selector, http://<host>/path/to/up.php')
+        logging.error('post: need a selector, http://<host>/path/to/up.php')
+        raise ValueError('post: need a selector, http://<host>/path/to/up.php')
+    if not host:
+        host = selector.split('/')[2]
+        logging.exp('post: host extracted from selector')
     if not os.path.isfile(filename):
-        logging.error('file not found (%s)' % filename)
-        raise ValueError('file not found (%s)' % filename)
+        logging.error('post: file not found (%s)' % filename)
+        raise ValueError('post: file not found (%s)' % filename)
     contents = open(filename).read() # base64 encoded in _encode_multipart_formdata()
     file = [('file_1', filename, contents)]
 
+    # handle special case selector: for demo and unit-tests, want to redirect to 
+    # up_no_save.php (which itself calls the real up.php, then deletes the file)
+    if selector == SELECTOR_FOR_TESTS:
+        html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
+        data = html.read()
+        if not(data.find('http://') > -1 and data.find('up_no_save.php') > -1):
+            logging.error('post: TEST bad redirect URL ' + data.replace('\n', ' '))
+        selector = data[data.find('http://'): data.find('up_no_save.php')+14]
+        host = selector.split('/')[2]
+        logging.info('post: TEST special-case redirected to %s' % selector)
+    
+    # initiate the POST:
     try:
-        status, reason, result = _post_multipart(host, selector, fields, file)
+        status, reason, result = _post_multipart(host, selector, fields, file,
+                                                 basicAuth=basicAuth)
     except TypeError:
         status = 'no return value from _post_multipart(). '
         reason = 'config error?'
         result = status + reason
+    
+    # process the result:
     if status == 200:
         result_fields = result.split()
         #result = 'status_msg digest' # if using up.php
@@ -152,20 +196,18 @@ def upload(fields=None, host=None, selector=None, filename=None):
         outcome = str(status) + ' ' + reason
     
     if status > 299 or type(status) == str:
-        logging.error(outcome[:100])
+        logging.error('post: '+outcome[:100])
     else:
-        logging.exp(outcome[:100])
+        logging.exp('post: '+outcome[:100])
     return outcome
 
 def _test_post():
     def _test_upload(stuff):
-        """test assumes a properly configured http server with up.php in your web space
+        """assumes that SELECTOR_FOR_TESTS will return the URL of a configured http server
         """
-        fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
-        host = 'scanlab.psych.yale.edu'
-        port = ':80'
-        selector = 'http://' + host + port + '/upload_test/up_no_save.php'
-    
+        selector = SELECTOR_FOR_TESTS
+        basicAuth = 'psychopy:open-sourc-ami'
+        
         # make a tmp dir just for testing:
         tmp = mkdtemp()
         filename = 'test.txt'
@@ -180,7 +222,7 @@ def _test_post():
         dgst = digest.hexdigest()
         
         # upload:
-        status = upload(fields, host, selector, tmp_filename)
+        status = upload(selector, tmp_filename, basicAuth)
         shutil.rmtree(tmp) # cleanup; do before asserts
         
         # test
@@ -201,7 +243,7 @@ def _test_post():
         return int(status.split()[3]) # bytes
         
     # test upload: normal text, binary:
-    msg = 'yo!'
+    msg = PSYCHOPY_USERAGENT # can be anything
     print 'text:   '
     bytes = _test_upload(msg) #normal text
     assert (bytes == len(msg)) # FAILED to report len() bytes
@@ -214,7 +256,6 @@ def _test_post():
     logging.exp('binary-file byte-counts match')
 
 if __name__ == '__main__':
-    """doing a proper unit-test for this module might be problematic (because
-    need a configured server), so I expect it to be run manually from command line"""
+    """do the unit-test for this module"""
     logging.console.setLevel(logging.DEBUG)
     _test_post()
