@@ -117,17 +117,19 @@ def upload(selector, filename, basicAuth=None, host=None):
     file to another machine via http.
     
     .. note::
-        The server that receives the files needs to be configured. The necessary
-        php script (up.php) is provided as part of psychopy distribution, and needs to
-        be copied into the web-space, with appropriate permissions and directories.
+        The server that receives the files needs to be configured before uploading
+        will work. Notes for a sys-admin are included in psychopy/contrib/http/.
+        In particular, the php script `up.php` needs to be copied to the server's
+        web-space, with appropriate permissions and directories, including apache
+        basic auth (if desired).
     
-        For testing purposes, a configured server is provided through http://www.psychopy.org/
-        See demo for details.
+        A test server is available through http://www.psychopy.org/;
+        see the Coder demo for details. 
     
     **Parameters:**
     
         `selector` : (required)
-            URL, e.g., 'http://<your_server>/path/to/up.php'
+            URL, e.g., 'http://<host>/path/to/up.php'
         `filename` : (required)
             path to local file to be transferred. Any format: text, utf-8, binary
         `basicAuth` : (optional)
@@ -135,11 +137,11 @@ def upload(selector, filename, basicAuth=None, host=None):
             value is supplied, it will be sent as the auth credentials (in cleartext,
             not intended to be secure).
         `host` : (optional)
-            typically embedded in `selector` and so extracted if not provided separately 
+            typically extracted from `selector`; specify explicitly if its something different
     
     **Example:**
     
-        See Coder demo / misc/ http_upload.py
+        See Coder demo / misc / http_upload.py
     
     Author: Jeremy R. Gray, 2012
     """
@@ -149,7 +151,7 @@ def upload(selector, filename, basicAuth=None, host=None):
         raise ValueError('post: need a selector, http://<host>/path/to/up.php')
     if not host:
         host = selector.split('/')[2]
-        logging.exp('post: host extracted from selector')
+        logging.info('post: host extracted from selector = %s' % host)
     if not os.path.isfile(filename):
         logging.error('post: file not found (%s)' % filename)
         raise ValueError('post: file not found (%s)' % filename)
@@ -162,12 +164,14 @@ def upload(selector, filename, basicAuth=None, host=None):
         html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
         data = html.read()
         if not(data.find('http://') > -1 and data.find('up_no_save.php') > -1):
-            logging.error('post: TEST bad redirect URL ' + data.replace('\n', ' '))
+            logging.error('post: TEST / DEMO bad redirect URL ' + data.replace('\n', ' '))
+            raise ValueError('unexpected redirection URL value returned from %s' % host)
         selector = data[data.find('http://'): data.find('up_no_save.php')+14]
         host = selector.split('/')[2]
-        logging.info('post: TEST special-case redirected to %s' % selector)
+        logging.info('post: TEST / DEMO special-case redirected to %s' % selector)
     
     # initiate the POST:
+    logging.exp('post: uploading %s to %s' % (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
                                                  basicAuth=basicAuth)
@@ -189,16 +193,16 @@ def upload(selector, filename, basicAuth=None, host=None):
     elif status == 403:
         outcome = '403 Forbidden: server config error'
     elif status == 401:
-        outcome = '401 Denied: failed auth, or config error'
+        outcome = '401 Denied: failed apache Basic authorization, or config error'
     elif status == 400:
         outcome = '400 Bad request: failed, possible config error'
     else:
         outcome = str(status) + ' ' + reason
     
     if status > 299 or type(status) == str:
-        logging.error('post: '+outcome[:100])
+        logging.error('post: '+outcome[:102])
     else:
-        logging.exp('post: '+outcome[:100])
+        logging.info('post: '+outcome[:102])
     return outcome
 
 def _test_post():
