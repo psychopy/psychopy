@@ -3,15 +3,27 @@
 import os
 from psychopy import compatibility
 
-class testCompatibility(object):
+fixtures_path = '../data/'
+
+class _baseCompatibilityTest(object):
+    def testFromFile(self):
+        dat = compatibility.fromFile(self.test_psydat)
+        assert str(dat.__class__) == self.test_class
+
+class testOldTrialHandler(_baseCompatibilityTest):
+    '''Test Old Trial Handler'''
     def setup(self):
-        self.oldPsydat = os.path.join('../data/oldstyle.psydat')
-        self.newPsydat = os.path.join('../data/newstyle.psydat')
-    
-    def testOldTrialHandler(self):
-        dat = compatibility.fromFile(self.oldPsydat)
-        dat.__class__ == 'psychopy.TrialHandler'
-        
-    def testNewTrialHandler(self):
-        dat = compatibility.fromFile(self.newPsydat)
-        dat.__class__ == 'psychopy.TrialHandler'
+        self.test_psydat = os.path.join(fixtures_path, 'oldstyle.psydat')
+        self.test_class = "<class 'psychopy.data.TrialHandler'>"
+
+class testNewTrialHandler(_baseCompatibilityTest):
+    '''Test New-styel Trial Handler'''
+    def setup(self):
+        self.test_psydat = os.path.join(fixtures_path, 'oldstyle.psydat')
+        self.test_class = "<class 'psychopy.data.TrialHandler'>"
+
+class testOldStairHandler(_baseCompatibilityTest):
+    '''Test Old Trial Handler'''
+    def setup(self):
+        self.test_psydat = os.path.join(fixtures_path, 'oldstyle_stair.psydat')
+        self.test_class = "<class 'psychopy.data.StairHandler'>"
