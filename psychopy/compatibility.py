@@ -2,7 +2,7 @@ import codecs
 import cPickle
 import psychopy.data
 
-def legacy_load(filename):
+def fromFile(filename):
     """In order to switch experiment handler to the new-style (post-python 2.2, 
        circa 2001) classes, this is a proof-of-concept loader based on misc.fromFile
        that will load psydat files created with either new or old style TrialHandlers.
@@ -15,7 +15,7 @@ def legacy_load(filename):
        class with a stubbed version of the old-style class and will then instantiate
        a fresh new-style class with the original attributes.
     """
-    with open(filename, 'rb') as f:
+    with codecs.open(filename, 'rb') as f:
         try:
             contents = cPickle.load(f) # Try to load the psydat file into the new-style class.
         except TypeError:
