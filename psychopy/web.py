@@ -24,12 +24,13 @@
     Jeremy Gray, March 2012; includes post_multipart from activestate.com (PSF license)
 """
 
-import os, sys, random, base64
+import os, sys
 from psychopy.core import shellCall
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import logging
 import hashlib, base64
-import httplib, mimetypes, urllib2
+import httplib, mimetypes
+import urllib2
 import shutil # for testing
 from tempfile import mkdtemp
 
@@ -96,6 +97,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')
         headers.update({u"Authorization": u"Basic %s" % user_cred})
+    
     try:
         conn.request(u'POST', selector, body, headers)
     except: # ? don't seem to get a proper exception
@@ -111,14 +113,14 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     
 
 def upload(selector, filename, basicAuth=None, host=None):
-    """Post a file to a configured http server.
+    """Upload a local file over the internet to a configured http server.
     
     This method handshakes with a php script on a remote server to transfer a local
-    file to another machine via http.
+    file to another machine via http (using POST).
     
     .. note::
         The server that receives the files needs to be configured before uploading
-        will work. Notes for a sys-admin are included in psychopy/contrib/http/.
+        will work. Notes and php files for a sys-admin are included in `psychopy/contrib/http/`.
         In particular, the php script `up.php` needs to be copied to the server's
         web-space, with appropriate permissions and directories, including apache
         basic auth (if desired).
@@ -129,7 +131,7 @@ def upload(selector, filename, basicAuth=None, host=None):
     **Parameters:**
     
         `selector` : (required)
-            URL, e.g., 'http://<host>/path/to/up.php'
+            URL, e.g., 'http://host/path/to/up.php'
         `filename` : (required)
             path to local file to be transferred. Any format: text, utf-8, binary
         `basicAuth` : (optional)
