@@ -83,7 +83,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
     try:
         conn.request(u'POST', selector, body, headers)
     except: # ? don't seem to get a proper exception
-        return -1, 'connection error; timeout after %ss' % str(timeout), 'timeout or error'
+        return -1, 'connection error (possible timeout after %ss)' % str(timeout), 'timeout or error'
     
     try:
         result = conn.getresponse()
@@ -145,14 +145,18 @@ def upload(selector, filename, basicAuth=None, host=None):
     # handle special case selector: for demo and unit-tests, want to redirect to 
     # up_no_save.php (which itself calls the real up.php, then deletes the file)
     if selector == SELECTOR_FOR_TESTS:
-        html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
+        try:
+            html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
+        except urllib2.URLError as ex:
+            logging.error('post: URL Error. (no internet connection?)')
+            raise ex
         data = html.read()
         if not(data.find('http://') > -1 and data.find('up_no_save.php') > -1):
-            logging.error('post: TEST / DEMO bad redirect URL ' + data.replace('\n', ' '))
+            logging.error('post: test / demo bad redirect URL ' + data.replace('\n', ' '))
             raise ValueError('unexpected redirection URL value returned from %s' % host)
         selector = data[data.find('http://'): data.find('up_no_save.php')+14]
         host = selector.split('/')[2]
-        logging.info('post: TEST / DEMO special-case redirected to %s' % selector)
+        logging.info('post: test / demo special-case redirected to %s' % selector)
     
     # initiate the POST:
     logging.exp('post: uploading %s to %s' % (os.path.abspath(filename), selector))
@@ -163,6 +167,9 @@ def upload(selector, filename, basicAuth=None, host=None):
         status = 'no return value from _post_multipart(). '
         reason = 'config error?'
         result = status + reason
+    except urllib2.URLError as ex:
+        logging.error('post: URL Error. (no internet connection?)')
+        raise ex
     
     # process the result:
     if status == 200:
@@ -183,7 +190,7 @@ def upload(selector, filename, basicAuth=None, host=None):
     else:
         outcome = str(status) + ' ' + reason
     
-    if status > 299 or type(status) == str:
+    if status == -1 or status > 299 or type(status) == str:
         logging.error('post: '+outcome[:102])
     else:
         logging.info('post: '+outcome[:102])
