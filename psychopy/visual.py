@@ -1214,7 +1214,8 @@ class _BaseVisualStim:
         self._set('contr', newContr, operation)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
-            self.setTex(self._texName)
+            if hasattr(self,'_texName'): self.setTex(self._texName)
+            elif hasattr(self,'_imName'): self.setIm(self._imName)
     def _set(self, attrib, val, op=''):
         """
         Deprecated. Use methods specific to the parameter you want to set
@@ -1251,7 +1252,8 @@ class _BaseVisualStim:
             logging.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            self.setTex(self._texName)
+            if hasattr(self,'_texName'): self.setTex(self._texName)
+            elif hasattr(self,'_imName'): self.setIm(self._imName)
             self.setMask(self._maskName)
             self.needUpdate=True
 
@@ -1263,7 +1265,8 @@ class _BaseVisualStim:
         """
         if self._useShaders:
             self._updateListShaders()
-        else: self._updateListNoShaders()
+        else:
+            self._updateListNoShaders()
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
@@ -1925,8 +1928,8 @@ class SimpleImageStim:
         self.dataType = GL.GL_FLOAT
         self._needStrUpdate = True
 
-class PatchStim(_BaseVisualStim):
-    """Stimulus object for drawing arbitrary bitmaps, textures and shapes.
+class GratingStim(_BaseVisualStim):
+    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
 
     Formally PatchStim is just a texture behind an optional
@@ -1936,20 +1939,19 @@ class PatchStim(_BaseVisualStim):
 
     **Examples**::
 
-        myGrat = PatchStim(tex='sin',mask='circle') #gives a circular patch of grating
-        myGabor = PatchStim(tex='sin',mask='gauss') #gives a 'Gabor' patchgrating
-        myImage = PatchStim(tex='face.jpg',mask=None) #simply draws the image face.jpg
+        myGrat = GratingStim(tex='sin',mask='circle') #gives a circular patch of grating
+        myGabor = GratingStim(tex='sin',mask='gauss') #gives a 'Gabor' patchgrating
 
-    An PatchStim can be rotated scaled and shifted in position, its texture can
+    An GratingStim can be rotated scaled and shifted in position, its texture can
     be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
     (for an image file that simply draws multiple copies in the patch).
 
     Also since transparency can be controlled two PatchStims can combine e.g.
     to form a plaid.
 
-    **Using Patchstim with images from disk (jpg, tif, png...)**
+    **Using GratingStim with images from disk (jpg, tif, png...)**
 
-    Ideally images to be rendered should be square with 'power-of-2' dimensions
+    Ideally texture images to be rendered should be square with 'power-of-2' dimensions
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
     to the nearest such texture by PsychoPy. The size of the stimulus should be
     specified in the normal way using the appropriate units (deg, pix, cm...). Be
@@ -2399,7 +2401,18 @@ class PatchStim(_BaseVisualStim):
         if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
 
-class RadialStim(PatchStim):
+
+class PatchStim(GratingStim):
+    def __init__(self, *args, **kwargs):
+        """
+        Deprecated (as of version 1.74.00): please use the :class:`GratingStim` or the :class:`ImageStim` classes.
+
+        The GratingStim has identical abilities to the PatchStim (but possibly different initial values)
+        whereas the ImageStim is designed to be use for non-cyclic images (photographs, not gratings).
+        """
+        GratingStim.__init__(self, *args, **kwargs)
+        
+class RadialStim(GratingStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
     a checkerboard etc...
 
@@ -2714,7 +2727,6 @@ class RadialStim(PatchStim):
         self._maskCoords[:,1:] = 1 + self.maskRadialPhase#all outer points have mask value of 1
         self._visibleMask = self._maskCoords[self._visible,:]
 
-
     def _updateListShaders(self):
         """
         The user shouldn't need this method since it gets called
@@ -2893,8 +2905,6 @@ class RadialStim(PatchStim):
         """
         GL.glDeleteTextures(1, self.texID)
         GL.glDeleteTextures(1, self.maskID)
-
-
 
 class ElementArrayStim:
     """
@@ -4801,7 +4811,179 @@ class Line(ShapeStim):
         self.setVertices([self.start, self.end])
 
 
+class ImageStim(_BaseVisualStim):
 
+    def _updateListShaders(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set() Basically it updates the OpenGL
+        representation of your stimulus if some parameter of the
+        stimulus changes. Call it if you change a property manually
+        rather than using the .set() command
+        """
+        self.needUpdate=0
+        GL.glNewList(self._listID,GL.GL_COMPILE)
+        #setup the shaderprogram
+        GL.glUseProgram(self.win._progSignedTexMask)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        #mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
+        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+
+        #main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        #calculate coords in advance:
+        L = -self._sizeRendered[0]/2#vertices
+        R =  self._sizeRendered[0]/2
+        T =  self._sizeRendered[1]/2
+        B = -self._sizeRendered[1]/2
+
+        GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+        # right bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,0)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,0)
+        GL.glVertex2f(R,B)
+        # left bottom
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,0)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,0)
+        GL.glVertex2f(L,B)
+        # left top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,1)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,1)
+        GL.glVertex2f(L,T)
+        # right top
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,1)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,1)
+        GL.glVertex2f(R,T)
+        GL.glEnd()
+
+        #unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        #main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glUseProgram(0)
+
+        GL.glEndList()
+
+    #for the sake of older graphics cards------------------------------------
+    def _updateListNoShaders(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set() Basically it updates the OpenGL
+        representation of your stimulus if some parameter of the
+        stimulus changes. Call it if you change a property manually
+        rather than using the .set() command
+        """
+        self.needUpdate=0
+
+        GL.glNewList(self._listID,GL.GL_COMPILE)
+        GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
+        #mask
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
+
+        #main texture
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+        #calculate vertices
+        L = -self._sizeRendered[0]/2
+        R =  self._sizeRendered[0]/2
+        T =  self._sizeRendered[1]/2
+        B = -self._sizeRendered[1]/2
+
+        GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+        # right bottom
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,0)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,0)
+        GL.glVertex2f(R,B)
+        # left bottom
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,0)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,0)
+        GL.glVertex2f(L,B)
+        # left top
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,1)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,1)
+        GL.glVertex2f(L,T)
+        # right top
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,1)
+        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,1)
+        GL.glVertex2f(R,T)
+        GL.glEnd()
+
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEndList()
+
+
+    def __del__(self):
+        self.clearTextures()#remove textures from graphics card to prevent crash
+
+    def clearTextures(self):
+        """
+        Clear the textures associated with the given stimulus.
+        As of v1.61.00 this is called automatically during garbage collection of
+        your stimulus, so doesn't need calling explicitly by the user.
+        """
+        GL.glDeleteTextures(1, self.texID)
+        GL.glDeleteTextures(1, self.maskID)
+    def draw(self):
+        if win==None: win=self.win
+        if win.winType=='pyglet': win.winHandle.switch_to()
+
+        #do scaling
+        GL.glPushMatrix()#push before the list, pop after
+        win.setScale(self._winScale)
+        #move to centre of stimulus and rotate
+        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
+        GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        #the list just does the texture mapping
+
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
+            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
+            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                desiredRGB=[0.0,0.0,1.0]
+        else:
+            desiredRGB = (self.rgb*self.contrast)/255.0
+        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+
+        if self.needUpdate: self._updateList()
+        GL.glCallList(self._listID)
+
+        #return the view to previous state
+        GL.glPopMatrix()
+    def setContrast(self,value,operation=''):
+        self._set('contrast', value, operation)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._useShaders:
+            self.setIm(self._imName)
+    def setImage(self, value):
+        """Set the image to be used for the stimulus to this new value
+        """
+        self._imName = value
+        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
+            res=self.texRes, maskParams=self.maskParams)
+        #if user requested size=None then update the size for new stim here
+        if hasattr(self, '_requestedSize') and self._requestedSize==None:
+            self._setSizeToDefault()
+    def setTex(self,value):
+        """Deprecated (1.74.00): please use setImage() instead
+        """
+        self.setImage(value)
+    def setMask(self,value):
+        self._maskName = value
+        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
+            res=self.texRes, maskParams=self.maskParams)
 class BufferImageStim(PatchStim):
     """
     Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
