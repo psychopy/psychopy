@@ -131,14 +131,14 @@ def upload(selector, filename, basicAuth=None, host=None):
     """
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
     if not selector:
-        logging.error('post: need a selector, http://<host>/path/to/up.php')
-        raise ValueError('post: need a selector, http://<host>/path/to/up.php')
+        logging.error('upload: need a selector, http://<host>/path/to/up.php')
+        raise ValueError('upload: need a selector, http://<host>/path/to/up.php')
     if not host:
         host = selector.split('/')[2]
-        logging.info('post: host extracted from selector = %s' % host)
+        logging.info('upload: host extracted from selector = %s' % host)
     if not os.path.isfile(filename):
-        logging.error('post: file not found (%s)' % filename)
-        raise ValueError('post: file not found (%s)' % filename)
+        logging.error('upload: file not found (%s)' % filename)
+        raise ValueError('upload: file not found (%s)' % filename)
     contents = open(filename).read() # base64 encoded in _encode_multipart_formdata()
     file = [('file_1', filename, contents)]
 
@@ -148,18 +148,18 @@ def upload(selector, filename, basicAuth=None, host=None):
         try:
             html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
         except urllib2.URLError as ex:
-            logging.error('post: URL Error. (no internet connection?)')
+            logging.error('upload: URL Error. (no internet connection?)')
             raise ex
         data = html.read()
         if not(data.find('http://') > -1 and data.find('up_no_save.php') > -1):
-            logging.error('post: test / demo bad redirect URL ' + data.replace('\n', ' '))
+            logging.error('upload: test / demo bad redirect URL ' + data.replace('\n', ' '))
             raise ValueError('unexpected redirection URL value returned from %s' % host)
         selector = data[data.find('http://'): data.find('up_no_save.php')+14]
         host = selector.split('/')[2]
-        logging.info('post: test / demo special-case redirected to %s' % selector)
+        logging.info('upload: test / demo special-case redirected to %s' % selector)
     
     # initiate the POST:
-    logging.exp('post: uploading %s to %s' % (os.path.abspath(filename), selector))
+    logging.exp('upload: uploading %s to %s' % (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
                                                  basicAuth=basicAuth)
@@ -168,7 +168,7 @@ def upload(selector, filename, basicAuth=None, host=None):
         reason = 'config error?'
         result = status + reason
     except urllib2.URLError as ex:
-        logging.error('post: URL Error. (no internet connection?)')
+        logging.error('upload: URL Error. (no internet connection?)')
         raise ex
     
     # process the result:
@@ -191,9 +191,9 @@ def upload(selector, filename, basicAuth=None, host=None):
         outcome = str(status) + ' ' + reason
     
     if status == -1 or status > 299 or type(status) == str:
-        logging.error('post: '+outcome[:102])
+        logging.error('upload: '+outcome[:102])
     else:
-        logging.info('post: '+outcome[:102])
+        logging.info('upload: '+outcome[:102])
     return outcome
 
 def _test_post():
