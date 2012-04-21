@@ -3564,12 +3564,11 @@ class ElementArrayStim:
         GL.glDeleteTextures(1, self.maskID)
 
 class MovieStim(_BaseVisualStim):
-    """A stimulus class for playing movies (mpeg, avi, etc...) in
-    PsychoPy.
+    """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 
-    **examples**::
+    **Example**::
 
-        mov = visual.MovieStim(myWin, 'testMovie.mp4', fliVert=False)
+        mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
         print mov.duration
         print mov.format.width, mov.format.height #give the original size of the movie in pixels
 
@@ -3665,11 +3664,9 @@ class MovieStim(_BaseVisualStim):
             core.quit()
     def setOpacity(self,newOpacity,operation=''):
         """
-        Sets the opacity of the movie to newOpacity
-
-        Over-rides _BaseVisualStim.setOpacity
-
+        Sets the opacity of the movie to `newOpacity`
         """
+        # Over-rides _BaseVisualStim.setOpacity
         self._set('opacity', newOpacity, operation)
 
     def setMovie(self, filename):
@@ -3681,7 +3678,7 @@ class MovieStim(_BaseVisualStim):
     def loadMovie(self, filename):
         """Load a movie from file
 
-        :parameters:
+        :Parameters:
 
             filename: string
                 The name of the file, including path if necessary
