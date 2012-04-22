@@ -7,14 +7,24 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-
 PsychoPy 1.73
 ------------------------------
+
+PsychoPy 1.73.06
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released April 2012)
+
+* FIXED: xlsx outputs were collapsing raw data from trials with non-response
+* FIXED: monitor gamma grids are now returned as arrays rather than lists (Ariel Rokem)
+* FIXED: bug with Window.setColor being incorrectly scaled for some spaces
+* FIXED: buglet preventing unicode from being used in TrialHandler parameter names (William Hogman) and saving to data files (Becky Sharman)
+* FIXED: StairHandler in Builder now saves the expInfo dictionary (Jeremy)
 
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
+(released March 2012)
 
 * FIXED: Joystick error when calling .getHat() or .getHats() (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
