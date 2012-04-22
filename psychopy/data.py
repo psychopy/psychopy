@@ -1109,6 +1109,7 @@ class TrialHandler(_BaseTrialHandler):
                     (hasattr(tmpData,'shape') and tmpData.shape==()):
                     if hasattr(tmpData,'mask') and tmpData.mask:
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
+                        colN+=1
                     else:
                         try:
                             ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
@@ -1125,7 +1126,7 @@ class TrialHandler(_BaseTrialHandler):
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
                             except:#some thi
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
-                            colN+=1
+                        colN+=1
 
         #add self.extraInfo
         rowN = len(self.trialList)+2
@@ -2942,11 +2943,11 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     To include the year: getDateStr(format="%Y_%b_%d_%H%M") returns '2011_Mar_16_1307'
     depending on locale, can have unicode chars in month names, so utf_8_decode them
     For date in the format of the current localization, do:
-        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT)) 
+        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
     now = time.strftime(format, time.localtime())
     now_dec = codecs.utf_8_decode(now)[0]
-    
+
     return now_dec
 
 def isValidVariableName(name):
