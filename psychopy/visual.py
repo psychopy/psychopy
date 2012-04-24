@@ -3317,8 +3317,10 @@ class ElementArrayStim:
             raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
 
         self.needColorUpdate=True
+        if len(self.colors)>5: colors='array(%ix%i)' %(self.colors.shape[0],self.colors.shape[1])
+        else: colors=self.colors
         if self.autoLog:
-            self.win.logOnFlip("Set %s colors=%s colorSpace=%s" %(self.name, self.colors, self.colorSpace),
+            self.win.logOnFlip("Set %s colors=%s colorSpace=%s" %(self.name, colors, self.colorSpace),
                 level=logging.EXP,obj=self)
     def setContrs(self,value,operation=''):
         """Set the contrast for each element.
@@ -6629,7 +6631,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
-        setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor).transpose()) )
+        setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
     else: logging.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too

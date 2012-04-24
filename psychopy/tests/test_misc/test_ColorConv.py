@@ -4,7 +4,7 @@ import numpy
 #We need more tests of these conversion routines. Feel free to jump in and help! ;-)
 
 
-def testHSV_RGB():
+def test_HSV_RGB():
     HSV=numpy.array([
        [  0,   1,   1],
        [  0,   1, 0.5],#reducing Value reduces intensity of primary gun
@@ -22,23 +22,23 @@ def testHSV_RGB():
        [330,   1,   1],
        [360,   1,   1]])
     expectedRGB=numpy.array([
-       [ 1. ,  0. ,  0. ],
-       [ 0.5,  0. ,  0. ],
-       [ 0.5, 0.25,  0.25],
-       [ 1. ,  0.5,  0. ],
-       [ 1. ,  1. ,  0. ],
-       [ 0.5,  1. ,  0. ],
-       [ 0. ,  1. ,  0. ],
-       [ 0. ,  1. ,  0.5],
-       [ 0. ,  1. ,  1. ],
-       [ 0. ,  0.5,  1. ],
-       [ 0. ,  0. ,  1. ],
-       [ 0.5,  0. ,  1. ],
-       [ 1. ,  0. ,  1. ],
-       [ 1. ,  0. ,  0.5],
-       [ 1. ,  0. ,  0. ]])
+       [ 1. ,  -1. ,  -1. ],
+       [ 0.,  -1. ,  -1. ],
+       [ 0., -0.5,  -0.5],
+       [ 1. ,  0.,  -1. ],
+       [ 1. ,  1. ,  -1. ],
+       [ 0.,  1. ,  -1. ],
+       [ -1. ,  1. ,  -1. ],
+       [ -1. ,  1. ,  0.],
+       [ -1. ,  1. ,  1. ],
+       [ -1. ,  0.,  1. ],
+       [ -1. ,  -1. ,  1. ],
+       [ 0.,  -1. ,  1. ],
+       [ 1. ,  -1. ,  1. ],
+       [ 1. ,  -1. ,  0.],
+       [ 1. ,  -1. ,  -1. ]])
     RGB = misc.hsv2rgb(HSV)
     assert numpy.allclose(RGB,expectedRGB,0.0001)
 
 if __name__=='__main__':
-    testHSV_RGB()
+    test_HSV_RGB()

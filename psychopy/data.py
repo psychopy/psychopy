@@ -158,20 +158,25 @@ class ExperimentHandler(object):
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
 
-        trial = loop.thisTrial
-        paramNames=[]
-        if hasattr(trial,'items'):#is a TrialList object or a simple dict
-            for attr,val in trial.items():
-                if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
-                paramNames.append(attr)
-                vals.append(val)
-        elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
-            pass
-        else: #e.g. a staircase has a simple value as its trial object
-            paramNames.append(name+'.thisTrial')
-            vals.append(trial)
-        #keep track of these names
-        names.extend(paramNames)#add param names to loop level info
+        if hasattr(loop, 'thisTrial'):
+            trial = loop.thisTrial
+            if hasattr(trial,'items'):#is a TrialList object or a simple dict
+                for attr,val in trial.items():
+                    if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
+                    names.append(attr)
+                    vals.append(val)
+            elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
+                pass
+            else:
+                names.append(name+'.thisTrial')
+                vals.append(trial)
+        elif hasattr(loop, 'intensities'):
+            names.append(name+'.intensity')
+            if len(loop.intensities)>0:
+                vals.append(loop.intensities[-1])
+            else:
+                vals.append(None)
+
         return names, vals
     def addData(self, name, value):
         """Add the data with a given name to the current experiment.
@@ -232,7 +237,7 @@ class ExperimentHandler(object):
         else: writeFormat='w' #will overwrite a file
         if os.path.exists(fileName) and writeFormat == 'w':
             logging.warning('Data file, %s, will be overwritten' %fileName)
-        
+
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
@@ -263,7 +268,7 @@ class ExperimentHandler(object):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
-        
+
         :Parameters:
 
             fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
@@ -352,7 +357,7 @@ class _BaseTrialHandler:
             fileName+='.psydat'
         if os.path.exists(fileName):
             fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
-            
+
         #create the file or print to stdout
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
@@ -1104,6 +1109,7 @@ class TrialHandler(_BaseTrialHandler):
                     (hasattr(tmpData,'shape') and tmpData.shape==()):
                     if hasattr(tmpData,'mask') and tmpData.mask:
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
+                        colN+=1
                     else:
                         try:
                             ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
@@ -1120,15 +1126,15 @@ class TrialHandler(_BaseTrialHandler):
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
                             except:#some thi
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
-                            colN+=1
+                        colN+=1
 
         #add self.extraInfo
         rowN = len(self.trialList)+2
         if (self.extraInfo != None) and not matrixOnly:
             ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
             for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+':'
-                ws.cell(_getExcelCellName(1,rowN)).value = (val)
+                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
                 rowN+=1
 
         ew.save(filename = fileName)
@@ -2937,11 +2943,11 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     To include the year: getDateStr(format="%Y_%b_%d_%H%M") returns '2011_Mar_16_1307'
     depending on locale, can have unicode chars in month names, so utf_8_decode them
     For date in the format of the current localization, do:
-        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT)) 
+        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
     now = time.strftime(format, time.localtime())
     now_dec = codecs.utf_8_decode(now)[0]
-    
+
     return now_dec
 
 def isValidVariableName(name):

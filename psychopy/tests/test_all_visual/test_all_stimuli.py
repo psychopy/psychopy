@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import nose, sys, os, copy
+import sys, os, copy
 from psychopy import visual, misc, core, monitors, filters
 from psychopy.tests import utils
 import numpy
@@ -15,17 +15,17 @@ class _baseVisualTest:
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod
-    def setupClass(self):#run once for each test class (window)
+    def setup_class(self):#run once for each test class (window)
         self.win=None
         self.contextName
         raise NotImplementedError
-    #@classmethod
-    #def tearDownClass(self):#run once for each test class (window)
-    #    self.win.close()#shutil.rmtree(self.temp_dir)
+    @classmethod
+    def teardown_class(self):#run once for each test class (window)
+        self.win.close()#shutil.rmtree(self.temp_dir)
     def setup(self):#this is run for each test individually
         #make sure we start with a clean window
         self.win.flip()
-    def testAutoDraw(self):
+    def test_auto_draw(self):
         win = self.win
         stims=[]
         stims.append(visual.PatchStim(win))
@@ -38,7 +38,7 @@ class _baseVisualTest:
             stim.setAutoDraw(False)
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
-    def testGabor(self):
+    def test_gabor(self):
         win = self.win
         contextName=self.contextName
         #using init
@@ -76,7 +76,7 @@ class _baseVisualTest:
     #        interpolate=True)
     #    stim.draw()
     #    utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
-    def testText(self):
+    def test_text(self):
         win = self.win
         contextName=self.contextName
         #set font
@@ -99,10 +99,10 @@ class _baseVisualTest:
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=30)
 
-    def testMov(self):
+    def test_mov(self):
         win = self.win
         if self.win.winType=='pygame':
-            raise nose.plugins.skip.SkipTest("movies only available for pyglet backend")
+            utils.skip("movies only available for pyglet backend")
         win.flip()
         contextName=self.contextName
         #construct full path to the movie file
@@ -116,7 +116,7 @@ class _baseVisualTest:
             mov.draw()
             win.flip()
 
-    def testShape(self):
+    def test_shape(self):
         win = self.win
         contextName=self.contextName
 
@@ -143,7 +143,7 @@ class _baseVisualTest:
         wedge.setAngularPhase(0.1)
         wedge.draw()
         utils.compareScreenshot('wedge2_%s.png' %(contextName), win, crit=10.0)
-    def testDots(self):
+    def test_dots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
         contextName=self.contextName
@@ -166,17 +166,17 @@ class _baseVisualTest:
         dots.setSpeed(0.1*self.scaleFactor)
         dots.draw()
         #check that things changed
-        nose.tools.assert_false((prevDirs-dots._dotsDir).sum()==0,
-            msg="dots._dotsDir failed to change after dots.setDir():")
-        nose.tools.assert_false(prevSignals.sum()==dots._signalDots.sum(),
-            msg="dots._signalDots failed to change after dots.setCoherence()")
-        nose.tools.assert_false(numpy.alltrue(prevPosRend==dots._fieldPosRendered),
-            msg="dots._fieldPosRendered failed to change after dots.setPos()")
-    def testElementArray(self):
+        assert (prevDirs-dots._dotsDir).sum()!=0, \
+            "dots._dotsDir failed to change after dots.setDir()"
+        assert prevSignals.sum()!=dots._signalDots.sum(), \
+            "dots._signalDots failed to change after dots.setCoherence()"
+        assert not numpy.alltrue(prevPosRend==dots._fieldPosRendered), \
+            "dots._fieldPosRendered failed to change after dots.setPos()"
+    def test_element_array(self):
         win = self.win
         contextName=self.contextName
         if not win._haveShaders:
-            raise nose.plugins.skip.SkipTest("ElementArray requires shaders, which aren't available")
+            utils.skip("ElementArray requires shaders, which aren't available")
         win.flip()
         #using init
         thetas = numpy.arange(0,360,10)
@@ -188,8 +188,10 @@ class _baseVisualTest:
             sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
         utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
-    def testAperture(self):
+    def test_aperture(self):
         win = self.win
+        if not win.allowStencil:
+            utils.skip("Don't run aperture test when no stencil is available")
         contextName=self.contextName
         grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
@@ -201,7 +203,7 @@ class _baseVisualTest:
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(contextName), win)
         #aperture should automatically disable on exit
-    def testRatingScale(self):
+    def test_rating_scale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
         win.flip()
@@ -211,42 +213,43 @@ class _baseVisualTest:
         rs.draw()
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
-    def testRefreshRate(self):
+    def test_refresh_rate(self):
         if self.win.winType=='pygame':
-            raise nose.plugins.skip.SkipTest("getMsPerFrame seems to crash the testing of pygame")
+            utils.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        nose.tools.ok_(1000/150.0 < msPFavg < 1000/40.0, "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg)
+        assert (1000/150.0 < msPFavg < 1000/40.0), \
+            "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.win._haveShaders=False
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.contextName='stencil'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletPix(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57)
         mon.setWidth(40.0)
@@ -257,7 +260,7 @@ class TestPygletPix(_baseVisualTest):
         self.scaleFactor=60#applied to size/pos values
 class TestPygletCm(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
@@ -268,7 +271,7 @@ class TestPygletCm(_baseVisualTest):
         self.scaleFactor=2#applied to size/pos values
 class TestPygletDeg(_baseVisualTest):
     @classmethod
-    def setupClass(self):
+    def setup_class(self):
         mon = monitors.Monitor('testMonitor')
         mon.setDistance(57.0)
         mon.setWidth(40.0)
@@ -277,51 +280,43 @@ class TestPygletDeg(_baseVisualTest):
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
-class TestPygameNorm(_baseVisualTest):
-    @classmethod
-    def setupClass(self):
-        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
-        self.contextName='norm'
-        self.scaleFactor=1#applied to size/pos values
-class TestPygamePix(_baseVisualTest):
-    @classmethod
-    def setupClass(self):
-        mon = monitors.Monitor('testMonitor')
-        mon.setDistance(57.0)
-        mon.setWidth(40.0)
-        mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-            units='pix')
-        self.contextName='pix'
-        self.scaleFactor=60#applied to size/pos values
-class TestPygameCm(_baseVisualTest):
-    @classmethod
-    def setupClass(self):
-        mon = monitors.Monitor('testMonitor')
-        mon.setDistance(57.0)
-        mon.setWidth(40.0)
-        mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=False,
-            units='cm')
-        self.contextName='cm'
-        self.scaleFactor=2#applied to size/pos values
-class TestPygameDeg(_baseVisualTest):
-    @classmethod
-    def setupClass(self):
-        mon = monitors.Monitor('testMonitor')
-        mon.setDistance(57.0)
-        mon.setWidth(40.0)
-        mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-            units='deg')
-        self.contextName='deg'
-        self.scaleFactor=2#applied to size/pos values
+#class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
+#class TestPygamePix(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        mon = monitors.Monitor('testMonitor')
+#        mon.setDistance(57.0)
+#        mon.setWidth(40.0)
+#        mon.setSizePix([1024,768])
+#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+#            units='pix')
+#        self.contextName='pix'
+#        self.scaleFactor=60#applied to size/pos values
+#class TestPygameCm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        mon = monitors.Monitor('testMonitor')
+#        mon.setDistance(57.0)
+#        mon.setWidth(40.0)
+#        mon.setSizePix([1024,768])
+#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=False,
+#            units='cm')
+#        self.contextName='cm'
+#        self.scaleFactor=2#applied to size/pos values
+#class TestPygameDeg(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        mon = monitors.Monitor('testMonitor')
+#        mon.setDistance(57.0)
+#        mon.setWidth(40.0)
+#        mon.setSizePix([1024,768])
+#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+#            units='deg')
+#        self.contextName='deg'
+#        self.scaleFactor=2#applied to size/pos values
 
-if __name__ == "__main__":
-    argv = sys.argv
-    argv.append('--verbosity=3')
-    if 'cover' in argv:
-        argv.remove('cover')
-        argv.append('--with-coverage')
-        argv.append('--cover-package=psychopy')
-    nose.run(argv=argv)

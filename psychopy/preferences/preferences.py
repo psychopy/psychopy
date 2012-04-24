@@ -32,7 +32,10 @@ class Preferences:
                 locale.setlocale(locale.LC_ALL, '')
         else: # handles unset == ''  --> use system default explicitly
             locale.setlocale(locale.LC_ALL, '')
-            logging.info('locale set to system default: ' + '.'.join(locale.getlocale()))
+            if locale.getlocale()==(None,None):
+                logging.info('no locale set')
+            else:
+                logging.info('locale set to system default: ' + '.'.join(locale.getlocale()))
 
         if self.userPrefsCfg['app']['resetPrefs']:
             self.resetPrefs()

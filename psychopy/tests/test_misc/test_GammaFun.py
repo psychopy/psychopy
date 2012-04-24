@@ -7,9 +7,9 @@ maxLum=100.0
 gamma=2.2
 
 xxTest=numpy.array([ 0.,          0.48115651,  0.65935329,  0.90354543,  1.        ])
-def testGammaInverse_Eq1():
+def test_GammaInverse_Eq1():
     xx= calibTools.gammaInvFun(yy, minLum, maxLum, gamma, b=0, eq=1)
     assert numpy.allclose(xx,xxTest,0.0001)
-def testGammaInverse_Eq4():
+def test_GammaInverse_Eq4():
     xx= calibTools.gammaInvFun(yy, minLum, maxLum, gamma, b=0, eq=4)
     assert numpy.allclose(xx,xxTest,0.0001)

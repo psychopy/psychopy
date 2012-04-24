@@ -1,6 +1,6 @@
 import sys
 
-def testEssentialImports():
+def test_essential_imports():
     import wx
     import numpy
     import scipy
@@ -9,8 +9,8 @@ def testEssentialImports():
     import pyglet
     import OpenGL
     import openpyxl
-    
-def testExtraImports():
+
+def test_extra_imports():
     import serial
     import pp
     import egi

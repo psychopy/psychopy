@@ -71,5 +71,6 @@ while t<20:#quits after 20 secs
     #in pygame mouse and key events share one buffer. Need to clear them 
     #in case the large number of mouse events fill the buffer preventing keys to be seen
     event.clearEvents('mouse')#only really needed for pygame windows
+    
     myWin.flip()
 
