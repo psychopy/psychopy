@@ -560,6 +560,7 @@ def switchOn(sampleRate=48000):
         pyoServer.boot()
     else:
         pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
+        core.pyoServers.append(pyoServer)
     pyoServer.start()
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
     
@@ -576,6 +577,7 @@ def switchOff():
         core.wait(.25) # give it a chance to stop before shutdown(), avoid seg fault
     if serverCreated():
         pyoServer.shutdown()
+        del core.pyoServers[core.pyoServers.index(pyoServer)]
     logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), core.getTime() - t0))
 
 if __name__ == '__main__':
