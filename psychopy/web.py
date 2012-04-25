@@ -16,8 +16,8 @@ import urllib2
 import shutil # for testing
 from tempfile import mkdtemp
 
-# special / magic selector for tests and demos (returns URL to use for actual post):
-SELECTOR_FOR_TESTS = 'http://www.psychopy.org/test_upload/up.php'
+# selector for tests and demos (no-save version of up.php):
+SELECTOR_FOR_TESTS = 'http://upload.psychopy.org/test/up.php'
 
 ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
@@ -142,24 +142,8 @@ def upload(selector, filename, basicAuth=None, host=None):
     contents = open(filename).read() # base64 encoded in _encode_multipart_formdata()
     file = [('file_1', filename, contents)]
 
-    # handle special case selector: for demo and unit-tests, want to redirect to 
-    # up_no_save.php (which itself calls the real up.php, then deletes the file)
-    if selector == SELECTOR_FOR_TESTS:
-        try:
-            html = urllib2.urlopen('http://www.psychopy.org/test_upload/')
-        except urllib2.URLError as ex:
-            logging.error('upload: URL Error. (no internet connection?)')
-            raise ex
-        data = html.read()
-        if not(data.find('http://') > -1 and data.find('up_no_save.php') > -1):
-            logging.error('upload: test / demo bad redirect URL ' + data.replace('\n', ' '))
-            raise ValueError('unexpected redirection URL value returned from %s' % host)
-        selector = data[data.find('http://'): data.find('up_no_save.php')+14]
-        host = selector.split('/')[2]
-        logging.info('upload: test / demo special-case redirected to %s' % selector)
-    
     # initiate the POST:
-    logging.exp('upload: uploading %s to %s' % (os.path.abspath(filename), selector))
+    logging.exp('upload: uploading file %s to %s' % (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
                                                  basicAuth=basicAuth)
@@ -198,9 +182,7 @@ def upload(selector, filename, basicAuth=None, host=None):
 
 def _test_post():
     def _test_upload(stuff):
-        """assumes that SELECTOR_FOR_TESTS will return the URL of a configured http server
-        """
-        selector = SELECTOR_FOR_TESTS
+        selector = SELECTOR_FOR_TESTS #  the URL of a configured http server
         basicAuth = 'psychopy:open-sourc-ami'
         
         # make a tmp dir just for testing:
@@ -247,7 +229,7 @@ def _test_post():
     digest = hashlib.sha256()  # to get binary, 256 bits
     digest.update(msg)
     bytes = _test_upload(digest.digest())
-    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= odd if digests match)
+    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= weird if digests match)
     logging.exp('binary-file byte-counts match')
 
 if __name__ == '__main__':
