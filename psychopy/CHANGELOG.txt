@@ -15,6 +15,7 @@ PsychoPy 1.74.00
 
 (https://github.com/psychopy/psychopy)
 
+* ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
 * ADDED: Coder demo "what_key": display key codes interactively, e.g., '1', 'num_1', 'escape', 'lshift'
 * ADDED: audio capture (record, save, playback); lib: microphone.py; Builder component microphone, demo voiceCapture; only tested on mac
 * ADDED: speech recognition (by google, implementation subject to change; requires internet); lib: speech.py; see new Coder demo: "say_rgb.py"
