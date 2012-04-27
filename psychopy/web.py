@@ -7,20 +7,210 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import os, sys
-from psychopy.constants import PSYCHOPY_USERAGENT
-from psychopy import logging
+import os, sys, time
 import hashlib, base64
 import httplib, mimetypes
-import urllib2
+import urllib2, socket, re
 import shutil # for testing
 from tempfile import mkdtemp
+from psychopy import logging
+from psychopy.constants import PSYCHOPY_USERAGENT
+from psychopy import preferences
+prefs = preferences.Preferences()
 
-# selector for tests and demos (no-save version of up.php):
-SELECTOR_FOR_TESTS = 'http://upload.psychopy.org/test/up.php'
+TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
+socket.setdefaulttimeout(TIMEOUT)
+
+global proxies
+proxies = None #if this is populated then it has been set up already
+
+# selector for tests and demos:
+SELECTOR_FOR_TEST_UPLOAD = 'http://upload.psychopy.org/test/up.php'
+BASIC_AUTH_CREDENTIALS = 'psychopy:open-sourc-ami'
+    
+def testProxy(handler, URL=None):
+    """
+    Test whether we can connect to a URL with the current proxy settings.
+    
+    `handler` can be typically `web.proxies`, if `web.setupProxy()` has been run.
+
+    :Returns:
+
+        - True (success)
+        - a `urllib2.URLError` (which can be interrogated with `.reason`)
+        - a `urllib2.HTTPError` (which can be interrogated with `.code`)
+
+    """
+    if URL is None:
+        URL='http://www.google.com'#hopefully google isn't down!
+    req = urllib2.Request(URL)
+    opener = urllib2.build_opener(handler)
+    try:
+        opener.open(req, timeout=2).read(5)#open and read a few characters
+        return True
+    except urllib2.URLError, err:
+        return err
+    except urllib2.HTTPError, err:
+        return err
+
+def getPacFiles():
+    """Return a list of possible auto proxy .pac files being used,
+    based on the system registry (win32) or system preferences (OSX).
+    """
+    pacFiles=[]
+    if sys.platform=='win32':
+        try:
+            import _winreg as winreg#used from python 2.0-2.6
+        except:
+            import winreg#used from python 2.7 onwards
+        net = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
+        )
+        nSubs, nVals, lastMod = winreg.QueryInfoKey(net)
+        subkeys={}
+        for i in range(nVals):
+            thisName, thisVal, thisType=winreg.EnumValue(net,i)
+            subkeys[thisName]=thisVal
+        if 'AutoConfigURL' in subkeys.keys() and len(subkeys['AutoConfigURL'])>0:
+            pacFiles.append(subkeys['AutoConfigURL'])
+    elif sys.platform=='darwin':
+        import plistlib
+        sysPrefs = plistlib.readPlist('/Library/Preferences/SystemConfiguration/preferences.plist')
+        networks=sysPrefs['NetworkServices']
+        #loop through each possible network (e.g. Ethernet, Airport...)
+        for network in networks.items():
+            netKey, network=network#the first part is a long identifier
+            if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
+                pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
+    return list(set(pacFiles)) # remove redundant ones
+
+def getWpadFiles():
+    """
+    Return possible pac file locations from the standard set of .wpad locations
+
+    NB this method only uses the DNS method to search, not DHCP queries, and
+    so may not find all possible .pac locations.
+
+    See http://en.wikipedia.org/wiki/Web_Proxy_Autodiscovery_Protocol
+    """
+    #pacURLs.append("http://webproxy."+domain+"/wpad.dat")
+    # for me finds a file that starts: function FindProxyForURL(url,host) { ... }
+    # dynamcially chooses a proxy based on the requested url and host; how to parse?
+
+    domainParts = socket.gethostname().split('.')
+    pacURLs=[]
+    for ii in range(len(domainParts)):
+        domain = '.'.join(domainParts[ii:])
+        pacURLs.append("http://wpad."+domain+"/wpad.dat")
+    return list(set(pacURLs)) # remove redundant ones
+
+def proxyFromPacFiles(pacURLs=[], URL=None):
+    """Attempts to locate and setup a valid proxy server from pac file URLs
+
+    :Parameters:
+
+        - pacURLs : list
+
+            List of locations (URLs) to look for a pac file. This might come from
+            :func:`~psychopy.web.getPacFiles` or :func:`~psychopy.web.getWpadFiles`.
+
+        - URL : string
+
+            The URL to use when testing the potential proxies within the files
+
+    :Returns:
+
+        - A urllib2.ProxyHandler if successful (and this will have been added as
+        an opener to the urllib2.
+        - False if no proxy was found in the files that allowed successful connection
+    """
+
+    if pacURLs==[]:#if given none try to find some
+        pacURLs = getPacFiles()
+    if pacURLs==[]:#if still empty search for wpad files
+        pacURLs = getWpadFiles()
+        #for each file search for valid urls and test them as proxies
+    for thisPacURL in pacURLs:
+        logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
+        try:
+            response = urllib2.urlopen(thisPacURL, timeout=2)
+        except urllib2.URLError:
+            logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
+            continue
+        pacStr = response.read()
+        #find the candidate PROXY strings (valid URLS), numeric and non-numeric:
+        possProxies = re.findall(r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]", pacStr+'\n')
+        for thisPoss in possProxies:
+            proxUrl = 'http://' + thisPoss
+            handler=urllib2.ProxyHandler({'http':proxUrl})
+            if testProxy(handler)==True:
+                logging.debug('successfully loaded: %s' %proxUrl)
+                urllib2.install_opener(urllib2.build_opener(handler))
+                return handler
+    return False
+
+def setupProxy():
+    """Set up the urllib proxy if possible.
+
+     The function will use the following methods in order to try and determine proxies:
+        #. standard urllib2.urlopen (which will use any statically-defined http-proxy settings)
+        #. previous stored proxy address (in prefs)
+        #. proxy.pac files if these have been added to system settings
+        #. auto-detect proxy settings (WPAD technology)
+
+     .. note:
+        This can take time, as each failed attempt to set up a proxy involves trying to load a URL and timing out. Best
+        to do in a separate thread.
+
+    :Returns:
+
+        True (success) or False (failure)
+    """
+    global proxies
+    #try doing nothing
+    proxies=urllib2.ProxyHandler(urllib2.getproxies())
+    if testProxy(proxies) is True:
+        logging.debug("Using standard urllib2 (static proxy or no proxy required)")
+        urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+        return 1
+
+    #try doing what we did last time
+    if len(prefs.connections['proxy'])>0:
+        proxies=urllib2.ProxyHandler({'http': prefs.connections['proxy']})
+        if testProxy(proxies) is True:
+            logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
+            urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+            return 1
+        else:
+            logging.debug("Found a previous proxy but it didn't work")
+
+    #try finding/using a proxy.pac file
+    pacURLs=getPacFiles()
+    logging.debug("Found proxy PAC files: %s" %pacURLs)
+    proxies=proxyFromPacFiles(pacURLs) # installs opener, if successful
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
+        #save that proxy for future
+        prefs.connections['proxy']=proxies.proxies['http']
+        prefs.saveUserPrefs()
+        logging.debug('Using %s (from proxy PAC file)' %(prefs.connections['proxy']))
+        return 1
+
+    #try finding/using 'auto-detect proxy'
+    pacURLs=getWpadFiles()
+    proxies=proxyFromPacFiles(pacURLs) # installs opener, if successful
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
+        #save that proxy for future
+        prefs.connections['proxy']=proxies.proxies['http']
+        prefs.saveUserPrefs()
+        logging.debug('Using %s (from proxy auto-detect)' %(prefs.connections['proxy']))
+        return 1
+
+    proxies=0
+    return 0
 
 ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
-def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
+def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIMEOUT,
                     userAgent=PSYCHOPY_USERAGENT, basicAuth=None):
     """
     Post fields and files to an http host as multipart/form-data.
@@ -93,7 +283,6 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=5,
 
     ## end of http://code.activestate.com/recipes/146306/ }}}
     
-
 def upload(selector, filename, basicAuth=None, host=None):
     """Upload a local file over the internet to a configured http server.
     
@@ -107,8 +296,7 @@ def upload(selector, filename, basicAuth=None, host=None):
         web-space, with appropriate permissions and directories, including apache
         basic auth (if desired).
     
-        A test server is available through http://www.psychopy.org/;
-        see the Coder demo for details. 
+        A configured test-server is available; see the Coder demo for details. 
     
     **Parameters:**
     
@@ -180,10 +368,12 @@ def upload(selector, filename, basicAuth=None, host=None):
         logging.info('upload: '+outcome[:102])
     return outcome
 
-def _test_post():
-    def _test_upload(stuff):
-        selector = SELECTOR_FOR_TESTS #  the URL of a configured http server
-        basicAuth = 'psychopy:open-sourc-ami'
+def _test_upload():
+    def _upload(stuff):
+        """assumes that SELECTOR_FOR_TEST_UPLOAD is a configured http server
+        """
+        selector = SELECTOR_FOR_TEST_UPLOAD
+        basicAuth = BASIC_AUTH_CREDENTIALS
         
         # make a tmp dir just for testing:
         tmp = mkdtemp()
@@ -222,17 +412,22 @@ def _test_post():
     # test upload: normal text, binary:
     msg = PSYCHOPY_USERAGENT # can be anything
     print 'text:   '
-    bytes = _test_upload(msg) #normal text
+    bytes = _upload(msg) #normal text
     assert (bytes == len(msg)) # FAILED to report len() bytes
     
     print 'binary: '
     digest = hashlib.sha256()  # to get binary, 256 bits
     digest.update(msg)
-    bytes = _test_upload(digest.digest())
-    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= weird if digests match)
+    bytes = _upload(digest.digest())
+    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= odd if digests match)
     logging.exp('binary-file byte-counts match')
 
 if __name__ == '__main__':
-    """do the unit-test for this module"""
+    """unit-tests for this module"""
     logging.console.setLevel(logging.DEBUG)
-    _test_post()
+    
+    t0=time.time()
+    print setupProxy()
+    print 'setup proxy took %.2fs' %(time.time()-t0)
+    
+    _test_upload()

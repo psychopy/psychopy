@@ -1,13 +1,11 @@
 :mod:`psychopy.web` - Web methods
 =========================================
 
-File upload over http
----------------------
+Upload a file over http
+-----------------------
 .. autofunction:: psychopy.web.upload
 
-Detect and set proxy
---------------------
-
-Eventually, proxy detection and handling will go in psychopy.web as well
-
-.. autofunction:: psychopy.app.connections.setupProxy
+Proxy set-up and testing
+------------------------
+.. autofunction:: psychopy.web.setupProxy
+.. autofunction:: psychopy.web.testProxy
