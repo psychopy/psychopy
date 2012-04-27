@@ -14,6 +14,7 @@ from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref
+import __main__ as main
 
 try:
     import openpyxl
@@ -279,12 +280,16 @@ class ExperimentHandler(object):
         if os.path.exists(fileName):
             fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
 
-        #create the file or print to stdout
+        #the pickled copy should have its 'need-to-save' settings set to False
+        neededSaveWideText=self.saveWideText
+        self.abort()
+
+        #create the file
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
-        #no need to save again
-        self.savePickle=False
+        #but set back to previous setting for the 'live' copy
+        self.saveWideText=neededSaveWideText
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.
