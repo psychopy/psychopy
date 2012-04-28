@@ -211,7 +211,7 @@ def setupProxy():
 
 ### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIMEOUT,
-                    userAgent=PSYCHOPY_USERAGENT, basicAuth=None):
+                    userAgent=PSYCHOPY_USERAGENT, basicAuth=None, https=False):
     """
     Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
@@ -220,7 +220,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     """
     # as updated for HTTPConnection()
     # as rewritten for any encoding http://www.nerdwho.com/blog/57/enviando-arquivos-e-dados-ao-mesmo-tempo-via-http-post-usando-utf-8/
-    # JRG: added timeout, userAgent, basic auth
+    # JRG: added timeout, userAgent, basic auth, https
 
     def _encode_multipart_formdata(fields, files, encoding='utf-8'):
         """
@@ -260,12 +260,17 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     
     # start of _post_multipart main code: 
     content_type, body = _encode_multipart_formdata(fields, files)
-    conn = httplib.HTTPConnection(host, timeout=timeout)
+    
+    # select https -- note there's NO verification of the server’s certificate
+    if https is True:
+        conn = httplib.HTTPSConnection(host, timeout=timeout)
+    else:
+        conn = httplib.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
                u'Charset': encoding,
                u'Content-Type': content_type,
                }
-    # apache basic auth (sent in clear text):
+    # apache basic auth (sent in clear text, https can help):
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')
         headers.update({u"Authorization": u"Basic %s" % user_cred})
@@ -283,33 +288,57 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
     ## end of http://code.activestate.com/recipes/146306/ }}}
     
-def upload(selector, filename, basicAuth=None, host=None):
+def upload(selector, filename, basicAuth=None, host=None, https=False):
     """Upload a local file over the internet to a configured http server.
     
     This method handshakes with a php script on a remote server to transfer a local
     file to another machine via http (using POST).
+    
+    Returns "success" plus a sha256 digest of the file on the server and a byte count.
+    If the upload was not successful, an error code is returned, eg, "too_large" if the
+    file size exceeds the limit (as enforced by up.php)
     
     .. note::
         The server that receives the files needs to be configured before uploading
         will work. Notes and php files for a sys-admin are included in `psychopy/contrib/http/`.
         In particular, the php script `up.php` needs to be copied to the server's
         web-space, with appropriate permissions and directories, including apache
-        basic auth (if desired).
+        basic auth (if desired). A file-size limit can be set within up.php
     
-        A configured test-server is available; see the Coder demo for details. 
+        A configured test-server is available; see the Coder demo for details. For testing
+        the file upload size is limited to ~1500 characters.
     
     **Parameters:**
     
         `selector` : (required)
-            URL, e.g., 'http://host/path/to/up.php'
+            the URL, e.g., `http://host/path/to/up.php`
+            
+            .. note::
+                https support is experimental (*beta*), for evaluation and testing purposes.
+                For this reason, merely indicating `https` in the selector is not enough,
+                and you have to explicitly set `https=True` (see below).
+            
         `filename` : (required)
             path to local file to be transferred. Any format: text, utf-8, binary
+        
+            .. note::
+                File encryption (*beta*) is available as a separate step.
+                First :mod:`~psychopy.contrib.opensslwrap.encrypt()` the file,
+                then :mod:`~psychopy.web.upload()` the encrypted file as you would any other file.
+        
         `basicAuth` : (optional)
             apache 'user:password' string for basic authentication. If a basicAuth
             value is supplied, it will be sent as the auth credentials (in cleartext,
             not intended to be secure).
         `host` : (optional)
             typically extracted from `selector`; specify explicitly if its something different
+        `https` : (optional)
+            https is not officially supported because its security cannot be assured.
+            (E.g., the authenticity of the cert returned from the server is not checked,
+            and so could be spoofed.) For this reason, trying to use https 
+            results in an error. However, you can use this option to proceed anyway,
+            in effect saying "I know what I am doing and accept the risk".
+            (In some cases this can be more secure than not using https at all.)
     
     **Example:**
     
@@ -324,6 +353,12 @@ def upload(selector, filename, basicAuth=None, host=None):
     if not host:
         host = selector.split('/')[2]
         logging.info('upload: host extracted from selector = %s' % host)
+    if selector.startswith('https'):
+        if https is not True:
+            logging.error('upload: https not explicitly requested. use https=True to proceed anyway (see API for security caveats).')
+            raise ValueError('upload: https not fully supported (see API for caveats), exiting.')
+        else:
+            logging.exp('upload: https (beta) explicitly requested; note that security is not fully assured (see API)')
     if not os.path.isfile(filename):
         logging.error('upload: file not found (%s)' % filename)
         raise ValueError('upload: file not found (%s)' % filename)
@@ -334,7 +369,7 @@ def upload(selector, filename, basicAuth=None, host=None):
     logging.exp('upload: uploading file %s to %s' % (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
-                                                 basicAuth=basicAuth)
+                                                 basicAuth=basicAuth, https=https)
     except TypeError:
         status = 'no return value from _post_multipart(). '
         reason = 'config error?'
@@ -363,9 +398,12 @@ def upload(selector, filename, basicAuth=None, host=None):
         outcome = str(status) + ' ' + reason
     
     if status == -1 or status > 299 or type(status) == str:
-        logging.error('upload: '+outcome[:102])
+        logging.error('upload: ' + outcome[:102])
     else:
-        logging.info('upload: '+outcome[:102])
+        if outcome.startswith('success'):
+            logging.info('upload: ' + outcome[:102])
+        else:
+            logging.error('upload: ' + outcome[:102])
     return outcome
 
 def _test_upload():
