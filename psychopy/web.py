@@ -295,50 +295,55 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
     file to another machine via http (using POST).
     
     Returns "success" plus a sha256 digest of the file on the server and a byte count.
-    If the upload was not successful, an error code is returned, eg, "too_large" if the
-    file size exceeds the limit (as enforced by up.php)
+    If the upload was not successful, an error code is returned (eg, "too_large" if the
+    file size exceeds the limit specified server-side in up.php, or "no_file" if there
+    was no POST attachment).
     
     .. note::
         The server that receives the files needs to be configured before uploading
-        will work. Notes and php files for a sys-admin are included in `psychopy/contrib/http/`.
+        will work. php files and notes for a sys-admin are included in `psychopy/contrib/http/`.
         In particular, the php script `up.php` needs to be copied to the server's
         web-space, with appropriate permissions and directories, including apache
-        basic auth (if desired). A file-size limit can be set within up.php
+        basic auth and https (if desired). The maximum size for an upload can be configured within up.php
     
-        A configured test-server is available; see the Coder demo for details. For testing
-        the file upload size is limited to ~1500 characters.
+        A configured test-server is available; see the Coder demo for details
+        (upload size is limited to ~1500 characters for the demo).
     
     **Parameters:**
     
-        `selector` : (required)
-            the URL, e.g., `http://host/path/to/up.php`
+        `selector` : (required, string)
+            a standard URL of the form `http://host/path/to/up.php`, e.g., `http://upload.psychopy.org/test/up.php`
             
             .. note::
-                https support is experimental (*beta*), for evaluation and testing purposes.
-                For this reason, merely indicating `https` in the selector is not enough,
+                https support is experimental (*beta*, for evaluation and testing purposes).
+                For this reason, merely including `https` in the selector is not enough,
                 and you have to explicitly set `https=True` (see below).
             
-        `filename` : (required)
-            path to local file to be transferred. Any format: text, utf-8, binary
+        `filename` : (required, string)
+            the path to the local file to be transferred. The file can be any format:
+            text, utf-8, binary. All files are hex encoded while in transit (increasing
+            the effective file size).
         
             .. note::
-                File encryption (*beta*) is available as a separate step.
-                First :mod:`~psychopy.contrib.opensslwrap.encrypt()` the file,
-                then :mod:`~psychopy.web.upload()` the encrypted file as you would any other file.
+                Encryption (*beta*) is available as a separate step. That is,
+                first :mod:`~psychopy.contrib.opensslwrap.encrypt()` the file,
+                then :mod:`~psychopy.web.upload()` the encrypted file in the same
+                way that you would any other file.
         
         `basicAuth` : (optional)
             apache 'user:password' string for basic authentication. If a basicAuth
             value is supplied, it will be sent as the auth credentials (in cleartext,
-            not intended to be secure).
+            not intended to be secure; using https can help).
         `host` : (optional)
-            typically extracted from `selector`; specify explicitly if its something different
+            The default process is to extract host information from the `selector`. The `host` option
+            allows you to specify explicitly if its something different than the selector.
         `https` : (optional)
             https is not officially supported because its security cannot be assured.
             (E.g., the authenticity of the cert returned from the server is not checked,
             and so could be spoofed.) For this reason, trying to use https 
-            results in an error. However, you can use this option to proceed anyway,
-            in effect saying "I know what I am doing and accept the risk".
-            (In some cases this can be more secure than not using https at all.)
+            results in an error. However, you can use this explicit option to proceed anyway,
+            in effect saying "I know what I am doing and accept the risks".
+            In some cases this can be more secure than not using https at all.
     
     **Example:**
     
