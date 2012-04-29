@@ -315,9 +315,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
             a standard URL of the form `http://host/path/to/up.php`, e.g., `http://upload.psychopy.org/test/up.php`
             
             .. note::
-                https support is experimental (*beta*, for evaluation and testing purposes).
-                For this reason, merely including `https` in the selector is not enough,
-                and you have to explicitly set `https=True` (see below).
+                Limited https support is provided (see below).
             
         `filename` : (required, string)
             the path to the local file to be transferred. The file can be any format:
@@ -331,19 +329,26 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
                 way that you would any other file.
         
         `basicAuth` : (optional)
-            apache 'user:password' string for basic authentication. If a basicAuth
-            value is supplied, it will be sent as the auth credentials (in cleartext,
-            not intended to be secure; using https can help).
+            apache 'user:password' string for basic authentication. If a `basicAuth`
+            value is supplied, it will be sent as the auth credentials (in cleartext);
+            using https will encrypt the credentials.
         `host` : (optional)
             The default process is to extract host information from the `selector`. The `host` option
-            allows you to specify explicitly if its something different than the selector.
+            allows you to specify a host explicitly (i.e., if it differs from the `selector`).
         `https` : (optional)
-            https is not officially supported because its security cannot be assured.
-            (E.g., the authenticity of the cert returned from the server is not checked,
-            and so could be spoofed.) For this reason, trying to use https 
-            results in an error. However, you can use this explicit option to proceed anyway,
-            in effect saying "I know what I am doing and accept the risks".
-            In some cases this can be more secure than not using https at all.
+            If the remote server is configured to use https, passing the parameter 
+            `https=True` will encrypt the transmission including all data and `basicAuth`
+            credentials. It is approximately as secure as using a self-signed X.509 certificate.
+            
+            An important caveat is that the authenticity of the certificate returned from the
+            server is not checked, and so the certificate could potentially be spoofed
+            (see the warning under HTTPSConnection http://docs.python.org/library/httplib.html).
+            Overall, using https can still be much more secure than not using it.
+            The encryption is good, but that of itself does not eliminate all risk.
+            Importantly, it is not as secure as one might expect, given that all major web browsers
+            do check certificate authenticity. The idea behind this parameter is to require people
+            to explicitly indicate that they want to proceed anyway, in effect saying 
+            "I know what I am doing and accept the risks (of using un-verified certificates)". 
     
     **Example:**
     
