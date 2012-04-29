@@ -265,6 +265,11 @@ class RunTimeInfo(dict):
                                                     if line.startswith('Home:')])
         except:
             pass
+        try:
+            import ssl
+            self['systemSec.pythonSSL'] = True
+        except ImportError:
+            self['systemSec.pythonSSL'] = False
         
         # pyo for sound:
         try:
