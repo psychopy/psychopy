@@ -366,9 +366,13 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
     if selector.startswith('https'):
         if https is not True:
             logging.error('upload: https not explicitly requested. use https=True to proceed anyway (see API for security caveats).')
-            raise ValueError('upload: https not fully supported (see API for caveats), exiting.')
+            raise ValueError('upload: https not fully supported (see API for caveats and usage), exiting.')
         else:
-            logging.exp('upload: https (beta) explicitly requested; note that security is not fully assured (see API)')
+            logging.exp('upload: https requested; note that security is not fully assured (see API)')
+    elif https:
+        msg = 'upload: to use https, the selector URL must start with "https"'
+        logging.error(msg)
+        raise ValueError(msg)
     if not os.path.isfile(filename):
         logging.error('upload: file not found (%s)' % filename)
         raise ValueError('upload: file not found (%s)' % filename)
