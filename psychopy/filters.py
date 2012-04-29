@@ -103,6 +103,8 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
                 [-1,-1] is bottom-left)
             fringeWidth: float (0-1)
                 The proportion of the raisedCosine that is being blurred.
+            range: 2x1 tuple or list (default=[-1,1])
+                The minimum and maximum value in the mask matrix
             """
     rad = makeRadialMatrix(matrixSize, center, radius)
     if shape=='ramp':
@@ -140,14 +142,10 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
         # Apply the raised cos to this portion:
         outArray[raised_cos_idx] = raised_cos[portion_idx]
 
-        # Scale it into the interval -1:1:
-        outArray = outArray - 0.5
-        outArray = outArray / numpy.max(outArray)
-
         #Sometimes there are some remaining artifacts from this process, get rid of them:
-        artifact_idx = numpy.where(numpy.logical_and(outArray == -1, rad < 1))
+        artifact_idx = numpy.where(numpy.logical_and(outArray == 0, rad < 0.99))
         outArray[artifact_idx] = 1
-        artifact_idx = numpy.where(numpy.logical_and(outArray == 1, rad > 1))
+        artifact_idx = numpy.where(numpy.logical_and(outArray == 1, rad > 0.99))
         outArray[artifact_idx] = 0
 
     else:
