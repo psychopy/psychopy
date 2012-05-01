@@ -1,5 +1,4 @@
-"""fORP MR-compatible input devices (by CurrentDesigns)
-See http://www.curdes.com/WebHome.html
+"""fORP fibre optic (MR-compatible) response devices by CurrentDesigns http://www.curdes.com/
 
 ----------
 """
