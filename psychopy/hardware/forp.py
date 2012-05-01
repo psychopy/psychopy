@@ -2,9 +2,12 @@
 
 ----------
 """
+
 # Part of the PsychoPy library
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+# Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
 
 from psychopy import logging, event
 import struct, sys
@@ -15,7 +18,7 @@ except: serial=False
 class ButtonBox:
     """Serial line interface to the fORP MRI response box.
     
-    To use this object class, set the box use setting `serialPort` 0 or 1, and connect
+    To use this object class, select the box use setting `serialPort`, and connect
     the serial line. To emulate key presses with a serial connection, use `getEvents(asKeys=True)`
     (e.g., to be able to use a RatingScale object during scanning).
     Alternatively connect the USB cable and use fORP to emulate a keyboard.
@@ -24,19 +27,20 @@ class ButtonBox:
     Also note that the trigger event numpy the fORP is typically extremely short
     (occurs for a single 800Hz epoch).
     """
-    def __init__(self, serialPort=1):
+    def __init__(self, serialPort=1, baudrate=19200):
         """
         :Parameters:
         
             `serialPort` :
                 should be a number (where 1=COM1, ...)
+            `baud` :
+                the communication rate (baud), eg, 57600
         """
-        
         if not serial:
             raise ImportError('The module serial is needed to connect to fORP. ' +\
                 "On most systems this can be installed with\n\t easy_install pyserial")
                 
-        self.port = serial.Serial(serialPort-1, baudrate=19200, bytesize=8,
+        self.port = serial.Serial(serialPort-1, baudrate=baudrate, bytesize=8,
                                   parity='N', stopbits=1, timeout=0.001)
         if not self.port.isOpen():
             self.port.open()
@@ -55,9 +59,9 @@ class ButtonBox:
             return (not just store) the full event list
             
         `asKeys` :
-            If True, will also emulate pyglet keyboard events, so that button 1 is
-            detectable as a keyboard event with value "1". Such key events are logged
-            as an emulated key presses (rather than keyboard key presses).
+            If True, will also emulate pyglet keyboard events, so that button 1 will
+            register as a keyboard event with value "1", and as such will be detectable
+            using `event.getKeys()`
         """
         nToGet = self.port.inWaiting()
         evtStr = self.port.read(nToGet)
@@ -66,7 +70,9 @@ class ButtonBox:
         for thisChr in evtStr:
             self.rawEvts.append(ord(thisChr))
             if asKeys:
-                event._onPygletKey(symbol=ord(thisChr), modifiers=None, emulated=True)
+                event._onPygletKey(symbol=ord(thisChr), modifiers=None)
+                # better as: emulated='fORP_bbox_asKey', but need to adjust event._onPygletKey
+                # and the symbol conversion pyglet.window.key.symbol_string(symbol).lower()
         #return the abbreviated list if necess
         if returnRaw: 
             return self.rawEvts
