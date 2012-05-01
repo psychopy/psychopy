@@ -57,13 +57,13 @@ def fromFile(filename):
         except TypeError as e:
             f.seek(0)
             name = e.args[1].__name__
-            if name == 'TrialHandler':
+            if 'TrialHandler' in repr(e):
                 currentHandler = psychopy.data.TrialHandler
                 psychopy.data.TrialHandler = _oldStyleTrialHandler # Temporarily replace new-style class
                 old_contents = cPickle.load(f)
                 psychopy.data.TrialHandler = currentHandler
                 contents = _convertToNewStyle(psychopy.data.TrialHandler, old_contents)
-            elif name == 'StairHandler':
+            elif 'StairHandler' in repr(e):
                 currentHandler = psychopy.data.StairHandler
                 psychopy.data.StairHandler = _oldStyleStairHandler # Temporarily replace new-style class
                 old_contents = cPickle.load(f)

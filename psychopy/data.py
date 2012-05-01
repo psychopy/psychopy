@@ -313,7 +313,7 @@ class TrialType(dict):
             except KeyError:
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class _BaseTrialHandler:
+class _BaseTrialHandler(object):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
