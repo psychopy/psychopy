@@ -1193,7 +1193,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.sizer=wx.FlexGridSizer(cols=2)
         # add a button for each type of event that can be added
         self.componentButtons={}; self.componentFromID={}
-        self.components=experiment.getAllComponents()
+        self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             del self.components[hiddenComp]
         del self.components['SettingsComponent']#also remove settings - that's in toolbar not components panel
