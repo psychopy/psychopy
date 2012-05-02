@@ -34,14 +34,28 @@ PsychoPy 1.74.00
 * ADDED: HSV color space for all stimuli
 * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
 * CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
+* CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
+* FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
 
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.06
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released April 2012)
+
+* FIXED: xlsx outputs were collapsing raw data from trials with non-response
+* FIXED: monitor gamma grids are now returned as arrays rather than lists (Ariel Rokem)
+* FIXED: bug with Window.setColor being incorrectly scaled for some spaces
+* FIXED: buglet preventing unicode from being used in TrialHandler parameter names (William Hogman) and saving to data files (Becky Sharman)
+* FIXED: StairHandler in Builder now saves the expInfo dictionary (Jeremy)
+* FIXED: can unpickle from either old-style or new-style data files (using psychopy.compatibility.fromFile()) (Erik Kastman)
+
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released March 2012
+(Released March 2012)
 
 * FIXED: Joystick error when calling :class:`~psychopy.hardware.joystick.Joystick.getHat()` or :class:`~psychopy.hardware.joystick.Joystick.getHats()` (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
