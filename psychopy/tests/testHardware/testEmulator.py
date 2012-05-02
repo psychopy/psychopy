@@ -1,7 +1,6 @@
 """Tests for psychopy.hardware.emulator"""
 import os, sys
 import nose
-from nose.tools import raises
 
 from psychopy import visual, core
 from psychopy.hardware.emulator import *
@@ -43,12 +42,14 @@ class _baseEmulatorTest:
                     onsets.append(key_tuple[1])
         assert vol == MR_settings['volumes'] == len(onsets) 
 
-    @raises(ValueError)
     def testWaitTimeoutType(self):
         '''Ensure that the wait_timeout happily rejects bad values.'''
         win = self.win
         MR_settings = self.MR_settings
-        vol = launchScan(win, MR_settings, wait_timeout = 'cant_coerce_me!', mode='Test')
+        try:
+            vol = launchScan(win, MR_settings, wait_timeout = 'cant_coerce_me!', mode='Test')
+        except StandardError as e: 
+            assert e.__class__ == ValueError
 
 class testWithShortSync(_baseEmulatorTest):
     '''Test MR settings where the sync key is of length 1 (eg '5').'''

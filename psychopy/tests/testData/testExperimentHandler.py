@@ -1,6 +1,6 @@
-from psychopy import data, logging
+from psychopy import data, log
 from numpy import random
-logging.console.setLevel(logging.DEBUG)
+log.console.setLevel(log.DEBUG)
 
 exp = data.ExperimentHandler(name='testExp',
                 version='0.1',
