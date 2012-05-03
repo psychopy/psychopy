@@ -12,6 +12,15 @@
 // only tested with apache 2.2.3 on CentOS 5.7 32-bit, php 5.1.6, selinux enforcing, .htaccess basic auth
 // might want rate-limiting firewall for internet deployment; keep an eye on disk space
 
+//apache 2.2 Basic auth (sent in clear text). to set up on server, as root:
+// # mkdir -p /usr/local/etc/apache
+// # htpasswd /usr/local/etc/apache/.htpasswd psychopy # add -c option to create / overwrite
+// # chown -R apache:apache /usr/local/etc/apache
+// # chmod -R 400 /usr/local/etc/apache
+// might need to edit your httpd.conf file to enable auth (& restart apache)
+// need to allow POST'ing to your server (and the up.php directory in particular)
+
+
 $project = 'ppo-'; # for file labels
 $max_file_size = 10 * 1024; // in bytes; allow +30% due to base64; 1300 is ~min for upload demo
 $final_permissions = 0600; // == the apache/http user, might not be what you want

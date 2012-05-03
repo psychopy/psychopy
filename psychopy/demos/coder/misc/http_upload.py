@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
-"""illustrates using http upload to send a file in clear text to a configured server
-    uploads this file to my server (which saves then deletes the file)
-    NOTE: files are sent "as is"; you have to encrypt beforehand if desired
+"""Illustrates using psychopy.web.upload() to send a file over the internet to a configured server.
+
+- This demo will upload a file to http://upload.psychopy.org/test/up.php.
+- The file 'filename' is sent as is, whether that's cleartext, binary, or encrypted. It's simply uploaded.
+- A configured server saves the file, and returns a status code. "Configured" means that it has the receiving
+    script, up.php, accessible online (in its web space), plus necesssary file permissions. up.php is provided
+    as part of psychopy along with notes for a sys-admin, see psychopy/contrib/http/.
+- This demo will save and then delete the file, and indicate "demo_no_save". 'too_big' means the file was too large
+- basicAuth is optional. The test server uses it with the values given, sent in cleartext (not secure). 
 """
 __author__ = 'Jeremy R. Gray'
 
-from psychopy.contrib.http import post
+from psychopy import web
 
-# edit info to reflect your set-up:
-info = {
-    'host': 'scanlab.psych.yale.edu', # your server; IP address is fine
-    'selector': 'http://scanlab.psych.yale.edu/upload_test/up_no_save.php',
-    #'selector': 'http://your_server_here/your_path_here/up.php',
-    'filename': __file__} # path to file to upload (__file__ is this script--it will upload itself)
+from psychopy import logging
+logging.console.setLevel(logging.DEBUG) # show what's going on
 
-print 'trying %s:' % info['selector']
-status = post.upload(**info) # do the upload, get return value
-print status
+#selector = 'http://host/path/to/up.php'
+selector = 'http://upload.psychopy.org/test/up.php' # specially configured for testing / demo (no saving)
+filename = __file__  # path to file to upload; __file__ is this script--it will upload itself
+basicAuth = 'psychopy:open-sourc-ami'  # optional apache basic auth 'user:password'; required for testing / demo
 
-if not status.startswith('success'): # handle your error conditions, e.g., warn that upload failed
-    print '''\nFAILED.\na good upload will return something like this (different sha256 and byte count):
-success good_upload c5df3bf286b8e3cc9bfccaf1218adf43342b6725c901987bda7989e29c136b45 854'''
+status = web.upload(selector, filename, basicAuth) # do the upload, get return status

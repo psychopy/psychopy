@@ -91,7 +91,7 @@
 
 # Settings for connections
 [connections]
-    # the http proxy for usage stats and auto-updating; format is 000.000.000.000:0000
+    # the http proxy for usage stats and auto-updating; format is host:port
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
@@ -99,6 +99,8 @@
     allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
     checkForUpdates = boolean(default=True)
+    # max time to wait for a connection response
+    timeout = float(default=20)
 
 # KeyBindings; new key bindings only take effect on restart; Ctrl not available on Mac (use Cmd)
 [keyBindings]
