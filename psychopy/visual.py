@@ -3566,12 +3566,11 @@ class ElementArrayStim:
         GL.glDeleteTextures(1, self.maskID)
 
 class MovieStim(_BaseVisualStim):
-    """A stimulus class for playing movies (mpeg, avi, etc...) in
-    PsychoPy.
+    """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 
-    **examples**::
+    **Example**::
 
-        mov = visual.MovieStim(myWin, 'testMovie.mp4', fliVert=False)
+        mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
         print mov.duration
         print mov.format.width, mov.format.height #give the original size of the movie in pixels
 
@@ -3667,11 +3666,9 @@ class MovieStim(_BaseVisualStim):
             core.quit()
     def setOpacity(self,newOpacity,operation=''):
         """
-        Sets the opacity of the movie to newOpacity
-
-        Over-rides _BaseVisualStim.setOpacity
-
+        Sets the opacity of the movie to `newOpacity`
         """
+        # Over-rides _BaseVisualStim.setOpacity
         self._set('opacity', newOpacity, operation)
 
     def setMovie(self, filename):
@@ -3683,7 +3680,7 @@ class MovieStim(_BaseVisualStim):
     def loadMovie(self, filename):
         """Load a movie from file
 
-        :parameters:
+        :Parameters:
 
             filename: string
                 The name of the file, including path if necessary
@@ -5095,120 +5092,125 @@ class RatingScale:
                 name='',
                 autoLog=True):
         """
-        :Parameters:
+    :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-            scale :
-                string, explanation of the numbers to display to the subject, shown above the line;
-                default = '<low>=not at all, <high>=extremely'
-                to suppress all text above the line, set showScale=False
-            choices :
-                a list of items which the subject can choose among;
-                (takes precedence over low, high, lowAnchorText, highAnchorText, showScale)
-            low :
-                lowest numeric rating / low anchor (integer, default = 1)
-            high :
-                highest numeric rating / high anchor (integer, default = 7; at least low+1)
-            lowAnchorText :
-                text to dsiplay for the low end of the scale (default = numeric low value)
-            highAnchorText :
-                text to display for the high end of the scale (default = numeric high value)
-            precision :
-                portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
+        win :
+            A :class:`~psychopy.visual.Window` object (required)
+        scale :
+            string, explanation of the numbers to display to the subject, shown above the line;
+            default = '<low>=not at all, <high>=extremely'
+            to suppress all text above the line, set `showScale=False`
+        choices :
+            a list of items which the subject can choose among;
+            (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`)
+        low :
+            lowest numeric rating / low anchor (integer, default = 1)
+        high :
+            highest numeric rating / high anchor (integer, default = 7; at least low+1)
+        lowAnchorText :
+            text to dsiplay for the low end of the scale (default = numeric low value)
+        highAnchorText :
+            text to display for the high end of the scale (default = numeric high value)
+        precision :
+            portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
 
-                .. note:: left/right keys will move the marker by one portion of a tick.
+            .. note:: left/right keys will move the marker by one portion of a tick.
 
-            textSizeFactor :
-                control the size of text elements of the scale.
-                for larger than default text (expand) set > 1; for smaller, set < 1
-            textColor :
-                color to use for anchor and scale text (assumed to be RGB), default = 'LightGray'
-            textFont :
-                name of the font to use, default = 'Helvetica Bold'
-            showValue :
-                show the subject their currently selected number, default = True
-            showScale :
-                show the scale text (the text above the line), default = True
-                if False, will not show any text above the line
-            showAnchors :
-                show the two end points of the scale (low, high), default = True
-            showAccept :
-                show the button to click to accept the current value by using the mouse, default = True
+        textSizeFactor :
+            control the size of text elements of the scale.
+            for larger than default text (expand) set > 1; for smaller, set < 1
+        textColor :
+            color to use for anchor and scale text (assumed to be RGB), default = 'LightGray'
+        textFont :
+            name of the font to use, default = 'Helvetica Bold'
+        showValue :
+            show the subject their currently selected number, default = True
+        showScale :
+            show the `scale` text (the text above the line), default = True
+            if False, will not show any text above the line
+        showAnchors :
+            show the two end points of the scale (low, high), default = True
+        showAccept :
+            show the button to click to accept the current value by using the mouse, default = True
 
-                .. note::
-                    If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
-                    to give the subject a way to respond.
+            .. note::
+                If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
+                to give the subject a way to respond.
 
-            acceptKeys :
-                list of keys that mean "accept the current response", default = ['return']
-            acceptPreText :
-                text to display before any value has been selected
-            acceptText :
-                text to display in the 'accept' button after a value has been selected
-            leftKeys :
-                list of keys that mean "move leftwards", default = ['left']
-            rightKeys :
-                list of keys that mean "move rightwards", default = ['right']
-            lineColor :
-                color to use for the scale line, default = 'White'
-            markerStyle :
-                *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
-            markerColor :
-                *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
-            markerStart :
-                *False*, or the value in [low..high] to be pre-selected upon initial display
-            markerExpansion :
-                how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
-            escapeKeys :
-                keys that will quit the experiment, calling core.quit(). default = [ ] (none)
-            allowSkip :
-                if True, the subject can skip an item by pressing a key in skipKeys, default = True
-            skipKeys :
-                list of keys the subject can use to skip a response, default = ['tab']
+        acceptKeys :
+            list of keys that mean "accept the current response", default = ['return']
+        acceptPreText :
+            text to display before any value has been selected
+        acceptText :
+            text to display in the 'accept' button after a value has been selected
+        leftKeys :
+            list of keys that mean "move leftwards", default = ['left']
+        rightKeys :
+            list of keys that mean "move rightwards", default = ['right']
+        lineColor :
+            color to use for the scale line, default = 'White'
+        markerStyle :
+            *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
+        markerColor :
+            *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
+        markerStart :
+            *False*, or the value in [low..high] to be pre-selected upon initial display
+        markerExpansion :
+            how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
+        customMarker :
+            allows for a user-defined marker; must have a `.draw()` method, such as a TextStim()
+            or PatchStim()
+        escapeKeys :
+            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none)
+        allowSkip :
+            if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
+        skipKeys :
+            list of keys the subject can use to skip a response, default = ['tab']
 
-                .. note::
-                    to require a response to every item, use allowSkip=False
+            .. note::
+                to require a response to every item, use `allowSkip=False`
 
-            mouseOnly :
-                require the subject use the mouse only (no keyboard), default = False.
-                can be used to avoid competing with other objects for keyboard input.
+        mouseOnly :
+            require the subject use the mouse only (no keyboard), default = False.
+            can be used to avoid competing with other objects for keyboard input.
 
-                .. note::
-                    mouseOnly=True and showAccept=False is a bad combination,
-                    so showAccept wins (mouseOnly is reset to False);
-                    similarly, mouseOnly and allowSkip can conflict, because
-                    skipping an item is done via key press (mouseOnly wins)
-                    mouseOnly=True is helpful if there will be something else
-                    on the screen expecting keyboard input
-            singleClick :
-                enable a mouse click to both indicate and accept the rating, default = False.
-                note that the 'accept' box is visible, but clicking it has no effect,
-                its just to display the value. a legal key press will also count as a singleClick.
-            pos : tuple (x, y)
-                where to position the rating scale (x, y) in terms of the window's units (pix, norm);
-                default (0.0, -0.4) in norm units
-            displaySizeFactor :
-                how much to expand or contract the overall rating scale display
-                (not just the line length)
-            stretchHoriz:
-                multiplicative factor for stretching (or compressing) the scale
-                horizontally (3 -> use the whole window);
-                like displaySizeFactor, but only in the horizontal direction
-            minTime :
-                number of seconds that must elapse before a reponse can be accepted,
-                default = 1.0s
-            maxTime :
-                number of seconds after which a reponse cannot be made accepted. 
-                set maxTime <= minTime for no time constraint.
-                default = 0.0s (wait forever)
-            disappear :
-                if True, the rating scale will be hidden after a value is accepted; 
-                useful when showing multiple scales. The default is to remain on-screen. 
+            .. note::
+                `mouseOnly=True` and `showAccept=False` is a bad combination,
+                so `showAccept` wins (`mouseOnly` is reset to `False`);
+                similarly, `mouseOnly` and `allowSkip` can conflict, because
+                skipping an item is done via key press (`mouseOnly` wins)
+                `mouseOnly=True` is helpful if there will be something else
+                on the screen expecting keyboard input
+        singleClick :
+            enable a mouse click to both indicate and accept the rating, default = False.
+            note that the 'accept' box is visible, but clicking it has no effect,
+            its just to display the value. a legal key press will also count as a singleClick.
+        pos : tuple (x, y)
+            where to position the rating scale (x, y) in terms of the window's units (pix, norm);
+            default (0.0, -0.4) in norm units
+        displaySizeFactor :
+            how much to expand or contract the overall rating scale display
+            (not just the line length)
+        stretchHoriz:
+            multiplicative factor for stretching (or compressing) the scale
+            horizontally (3 -> use the whole window);
+            like displaySizeFactor, but only in the horizontal direction
+        minTime :
+            number of seconds that must elapse before a reponse can be accepted,
+            default = 1.0s
+        maxTime :
+            number of seconds after which a reponse cannot be made accepted. 
+            if `maxTime` <= `minTime`, there's unlimited time.
+            default = 0.0s (wait forever)
+        disappear :
+            if True, the rating scale will be hidden after a value is accepted; 
+            useful when showing multiple scales. The default is to remain on-screen. 
 
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
+        name : string
+            The name of the object to be using during logged messages about
+            this stim
+        autolog :
+            whether logging should be done automatically
         """
 
         ### May June 2011
@@ -5235,6 +5237,7 @@ class RatingScale:
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
 
+        logging.exp('RatingScale %s: init()' % name)
         self.win = win
         self.name = name
         self.autoLog = autoLog
@@ -5270,6 +5273,7 @@ class RatingScale:
         self.visualDisplayElements += [self.line] # last b/c win xp had display issues for me in a VM
 
         # Final touches:
+        self.origScaleDescription = self.scaleDescription.text
         self.reset()
         self.win.units = self.savedWinUnits # restore
 
@@ -5291,10 +5295,10 @@ class RatingScale:
             if len(list(self.acceptKeys)) == 0:
                 # make sure there is in fact a way to respond using a key-press:
                 self.acceptKeys = ['return']
-            if self.mouseOnly:
+            if self.mouseOnly and not self.singleClick:
                 # then there's no way to respond, so deny mouseOnly / enable using keys:
                 self.mouseOnly = False
-                logging.warning("RatingScale: ignoring mouseOnly (because showAccept is False)")
+                logging.warning("RatingScale %s: ignoring mouseOnly (because showAccept and singleClick are False)" % self.name)
 
         # 'choices' is a list of non-numeric (unordered) alternatives:
         self.scale = scale
@@ -5302,7 +5306,7 @@ class RatingScale:
         self.lowAnchorText = lowAnchorText
         self.highAnchorText = highAnchorText
         if choices and len(list(choices)) < 2:
-            logging.warning("RatingScale: ignoring choices=[ ]; it requires 2 or more list elements")
+            logging.warning("RatingScale %s: ignoring choices=[ ]; it requires 2 or more list elements" % self.name)
         if choices and len(list(choices)) >= 2:
             low = 0
             high = len(list(choices)) - 1 # can be modified in anchors; do self.low there
@@ -5377,17 +5381,12 @@ class RatingScale:
     def _initPosScale(self, pos, displaySizeFactor, stretchHoriz):
         """position (x,y) and magnitification (size) of the rating scale
         """
-
         # Screen position (translation) of the rating scale as a whole:
-        #avoiding_offset = True # flag / hack for backwards compatibility
-        #if type(offsetVert) in [float,int] or type(offsetHoriz) in [float,int]:
-        #    avoiding_offset = False
         if pos:
             if len(list(pos)) == 2:
                 offsetHoriz, offsetVert = pos
-        #        avoiding_offset = True
             else:
-                logging.warning("RatingScale: pos expects a tuple (x,y)")
+                logging.warning("RatingScale %s: pos expects a tuple (x,y)" % self.name)
         try:
             self.offsetHoriz = float(offsetHoriz)
         except:
@@ -5403,7 +5402,7 @@ class RatingScale:
             else: # default y in norm units:
                 self.offsetVert = -0.4
         # pos=(x,y) will consider x,y to be in win units, but want norm internally
-        if self.savedWinUnits == 'pix': # and avoiding_offset:
+        if self.savedWinUnits == 'pix':
             self.offsetHoriz = float(self.offsetHoriz) / self.win.size[0] / 0.5
             self.offsetVert = float(self.offsetVert) / self.win.size[1] / 0.5
         self.pos = [self.offsetHoriz, self.offsetVert] # just expose; not used elsewhere yet
@@ -5418,7 +5417,7 @@ class RatingScale:
         except:
             self.displaySizeFactor = 0.6
         if not 0.06 < self.displaySizeFactor < 3:
-            logging.warning("RatingScale: unusual displaySizeFactor")
+            logging.warning("RatingScale %s: unusual displaySizeFactor" % self.name)
 
     def _initKeyBindings(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
         # keys for accepting the currently selected response:
@@ -5534,7 +5533,8 @@ class RatingScale:
 
         # create the line:
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
-                              lineColor=self.lineColor, lineColorSpace=self.lineColorSpace)
+                              lineColor=self.lineColor, lineColorSpace=self.lineColorSpace,
+                              name=self.name+'.line')
 
     def _initMarker(self, customMarker, markerExpansion, markerColor, markerStyle, tickSize):
         """define a PatchStim or ShapeStim to be used as the indicator
@@ -5566,6 +5566,8 @@ class RatingScale:
                 else:
                     customMarker.color = 'DarkBlue'
                 markerColor = customMarker.color
+                if not hasattr(marker, 'name'):
+                    marker.name = 'customMarker'
         elif self.markerStyle == 'triangle': # and sys.platform in ['linux2', 'darwin']):
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
@@ -5573,10 +5575,12 @@ class RatingScale:
                 markerColor = 'DarkBlue'
             try:
                 self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb')
+                                        lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb',
+                                        name=self.name+'.markerTri', autoLog=False)
             except AttributeError: # bad markerColor, presumably
                 self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb')
+                                        lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb',
+                                        name=self.name+'.markerTri', autoLog=False)
                 markerColor = 'DarkBlue'
             self.markerExpansion = 0
         elif self.markerStyle == 'glow':
@@ -5584,10 +5588,12 @@ class RatingScale:
                 markerColor = 'White'
             try:
                 self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
-                                        colorSpace='rgb', opacity = 0.85)
+                                        colorSpace='rgb', opacity = 0.85, autoLog=False,
+                                        name=self.name+'.markerGlow')
             except AttributeError: # bad markerColor, presumably
                 self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
-                                        colorSpace='rgb', opacity = 0.85)
+                                        colorSpace='rgb', opacity = 0.85, autoLog=False,
+                                        name=self.name+'.markerGlow')
                 markerColor = 'White'
             self.markerBaseSize = tickSize * self.markerSize
             self.markerOffsetVert = .02
@@ -5606,10 +5612,12 @@ class RatingScale:
             self.markerOffsetVert = self.markerSizeVert / 2.
             try:
                 self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color=markerColor, colorSpace='rgb')
+                                        mask='circle', color=markerColor, colorSpace='rgb',
+                                        name=self.name+'.markerCir', autoLog=False)
             except AttributeError: # bad markerColor, presumably
                 self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color='DarkRed', colorSpace='rgb')
+                                        mask='circle', color='DarkRed', colorSpace='rgb',
+                                        name=self.name+'.markerCir', autoLog=False)
                 markerColor = 'DarkRed'
             self.markerBaseSize = tickSize
         self.markerColor = markerColor
@@ -5618,7 +5626,6 @@ class RatingScale:
                           textFont, textSizeFactor, showValue):
         """creates TextStim for self.scaleDescription, self.lowAnchor, self.highAnchor
         """
-
         # text appearance (size, color, font, visibility):
         self.showValue = bool(showValue) # hide if False
         self.textColor = textColor
@@ -5648,22 +5655,38 @@ class RatingScale:
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
                                     color=self.textColor, colorSpace=self.textColorSpace,
-                                    pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert])
+                                    pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
+                                    name=self.name+'.scale')
         self.scaleDescription.setFont(textFont)
-        self.scaleDescription.setText(scale)
         self.lowAnchor = TextStim(win=self.win,
                             pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
                             -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
+                            name=self.name+'.lowAnchor')
         self.lowAnchor.setFont(textFont)
         self.lowAnchor.setText(lowText)
         self.highAnchor = TextStim(win=self.win,
                             pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
                             -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
+                            name=self.name+'.highAnchor')
         self.highAnchor.setFont(textFont)
         self.highAnchor.setText(highText)
-
+        self.setDescription(scale) # do after having set the relevant things
+    def setDescription(self, scale):
+        """Method to set the description that appears above the line, (e.g., "1=not at all...extremely=7")
+        The text will not be visible if `showScale` is False. This can be useful
+        if re-using the same RatingScale object to get ratings of different dimentions.
+        While its possible to just assign to rs.scaleDescription.text, its better
+        to do rs.setDescription() which records the appropriate change in the log file.
+        """
+        self.scaleDescription.setText(scale)
+        if self.showScale:
+            logging.exp('RatingScale %s: setting scale="%s"' % (self.name, self.scaleDescription.text))
+        else:
+            logging.exp('RatingScale %s: no scale description; low=%s, high=%s' %
+                        (self.name, self.lowAnchor.text, self.highAnchor.text))
+        
     def _initAcceptBox(self, showAccept, acceptPreText, acceptText,
                        markerColor, textSizeSmall, textSizeFactor, textFont):
         """creates a ShapeStim for self.acceptBox (mouse-click-able 'accept'  button)
@@ -5695,11 +5718,12 @@ class RatingScale:
             [acceptBoxleft+delta2,acceptBoxbot+3*delta2], [acceptBoxleft,acceptBoxbot+delta] ]
         if sys.platform not in ['linux2']:
             self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
-                            fillColor=self.acceptFillColor, lineColor=self.acceptLineColor)
+                            fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
+                            name=self.name+'.accept')
         else: # interpolation looks bad on linux, as of Aug 2010
             self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
                             fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
-                            interpolate=False)
+                            interpolate=False, name=self.name+'.accept')
 
         # text to display inside accept button before a marker has been placed:
         if self.low > 0 and self.high < 10 and not self.mouseOnly:
@@ -5713,7 +5737,8 @@ class RatingScale:
         # create the TextStim:
         self.accept = TextStim(win=self.win, text=self.keyClick, font=self.textFont,
                             pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
-                            italic=True, height=textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace)
+                            italic=True, height=textSizeSmall, color=self.textColor,
+                            colorSpace=self.textColorSpace, autoLog=False)
         self.accept.setFont(textFont)
 
         self.acceptTextColor = markerColor
@@ -5771,8 +5796,8 @@ class RatingScale:
         """
         Update the visual display, check for response (key, mouse, skip).
 
-        sets response flags as appropriate (self.noResponse, self.timedOut).
-        draw() only draws the rating scale, not the item to be rated
+        sets response flags as appropriate (`self.noResponse`, `self.timedOut`).
+        `draw()` only draws the rating scale, not the item to be rated
         """
         self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
         if self.firstDraw:
@@ -5783,6 +5808,9 @@ class RatingScale:
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
             self.noResponse = False
             self.timedOut = True
+            logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
+                         (self.name, str(self.getRating()), self.maximumTime) )
+            logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
@@ -5861,6 +5889,8 @@ class RatingScale:
                     if self.singleClick and self.myClock.getTime() > self.minimumTime:
                         self.noResponse = False
                         self.marker.setPos((0, self.offsetVert), '+')
+                        logging.data('RatingScale %s: (key single-click) rating=%s' %
+                                     (self.name, str(self.getRating())) )
                 if key in self.leftKeys:
                     if self.markerPlaced and self.markerPlacedAt > 0:
                         self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
@@ -5870,6 +5900,8 @@ class RatingScale:
                                                   1. / self.autoRescaleFactor / self.precision)
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
+                    logging.data('RatingScale %s: (key response) rating=%s' %
+                                     (self.name, str(self.getRating())) )
 
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
@@ -5879,15 +5911,20 @@ class RatingScale:
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
+                    logging.data('RatingScale %s: (mouse single-click) rating=%s' %
+                                 (self.name, str(self.getRating())) )
             # if in accept box, and a value has been selected, and enough time has elapsed:
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
                         self._inAcceptBox(mouseX,mouseY)):
                     self.noResponse = False # accept the currently marked value
+                    logging.data('RatingScale %s: (mouse response) rating=%s' %
+                                (self.name, str(self.getRating())) )
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.myClock.getTime()
+            logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
             # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
 
@@ -5916,6 +5953,7 @@ class RatingScale:
             self.acceptBox.setLineColor(self.acceptLineColor, 'rgb')
             self.accept.setColor('#444444','rgb') # greyed out
             self.accept.setText(self.keyClick)
+        logging.exp('RatingScale %s: reset()' % self.name)
 
     def getRating(self):
         """Returns the numerical rating.
@@ -5942,7 +5980,7 @@ class RatingScale:
         """
         if self.noResponse:
             if self.timedOut:
-                return self.maxTime
+                return self.maximumTime
             return None
         return self.decisionTime
 

@@ -50,7 +50,7 @@ class MicrophoneComponent(BaseComponent):
                            "    os.makedirs(wavDirName) # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
         inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
-        buff.writeIndented("%s = microphone.SimpleAudioCapture(name='%s', saveDir=wavDirName)\n" %(
+        buff.writeIndented("%s = microphone.AudioCapture(name='%s', saveDir=wavDirName)\n" %(
             inits['name'], inits['name']))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame"""

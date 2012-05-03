@@ -1056,7 +1056,8 @@ class RoutineCanvas(wx.ScrolledWindow):
             if component.params.has_key('startType'):
                 start, duration = self.getStartAndDuration(component)
                 if duration==FOREVER:
-                    continue#this shouldn't control the end of the time grid
+                    # only the start of an unlimited event should contribute to maxTime
+                    duration = 1 # plus some minimal duration so its visible
                 try:thisT=start+duration#will fail if either value is not defined
                 except:thisT=0
                 maxTime=max(maxTime,thisT)

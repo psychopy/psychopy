@@ -25,7 +25,7 @@ if 'escape' in event.waitKeys():
 
 # Example 1 --------(almost as simple as possible)--------
 # create a default RatingScale object, plus choices[]:
-myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
+#myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
 myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'])
 
 # item to-be-rated:
@@ -57,7 +57,7 @@ if 'escape' in event.waitKeys():
 
 # create a scale for Example 2, using quite a few non-default options:
 myRatingScale = visual.RatingScale(myWin, low=0, high=50, precision=10, 
-        markerStyle='glow', markerExpansion=10, showValue=False, allowSkip=False, pos=[0,-300])
+        markerStyle='glow', markerExpansion=10, showValue=False, allowSkip=False, pos=[0,-300], name='Example2')
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
 imageList = [f for f in os.listdir('.') if len(f) > 4 and f[-4:] in ['.jpg','.png']] # find all .png or .jpg images in the directory
@@ -70,8 +70,8 @@ for image in imageList:
     
     # rate each image on two dimensions
     for dimension in ['0=very negative . . . 50=very positive', '0=very boring . . . 50=very energizing']:
-        myRatingScale.scaleDescription.setText(dimension) # scaleDescription is a TextStim; the subject sees the text
         myRatingScale.reset() # needed between repeated uses of the same rating scale
+        myRatingScale.setDescription(dimension) # reset the instructions for this rating
         event.clearEvents()
         while myRatingScale.noResponse:
             myItem.draw()
@@ -102,9 +102,9 @@ x,y = myRatingScale.win.size # for converting norm units to pix
 leftward = -0.35 * x / 2 # use pix units, because the drawing window's units are pix
 rightward = -1 * leftward
 myRatingScaleLeft = visual.RatingScale(myWin, mouseOnly=True, pos=(leftward,-y/6),
-    markerStyle='circle', displaySizeFactor=0.85)
+    markerStyle='circle', displaySizeFactor=0.85,name='left')
 myRatingScaleRight = visual.RatingScale(myWin, mouseOnly=True, pos=(rightward,-y/6),
-    markerColor='DarkGreen', displaySizeFactor=0.85) 
+    markerColor='DarkGreen', displaySizeFactor=0.85,name='right') # for logging, its useful to give names, esp when there are 2 on-screen
 
 myItemLeft = visual.SimpleImageStim(win=myWin, image=imageList[0], pos=[leftward, y/6.])
 myItemRight = visual.SimpleImageStim(win=myWin, image=imageList[1], pos=[rightward, y/6.])
@@ -113,7 +113,7 @@ event.clearEvents()
 while myRatingScaleLeft.noResponse or myRatingScaleRight.noResponse:
     # you could hide the item if its been rated:
     #if myRatingScaleLeft.noResponse: myItemLeft.draw() 
-    #if myRatingScaleRight.noResponse: myItemRight.draw()
+    # or easier: just initialize it with the disappear=True option
     # but lets just draw it every frame:
     myItemLeft.draw()
     myItemRight.draw()
@@ -131,3 +131,5 @@ core.wait(1)
 
 print 'Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT()
 print '  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT()
+
+core.quit()

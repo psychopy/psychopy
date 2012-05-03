@@ -23,9 +23,13 @@ PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (https://github.com/psychopy/psychopy)
 
-* ADDED: basic audio capture (record several seconds, save to file, playback, get a loudness value); Builder component and demo; only tested on mac
+* ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
+* ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
+* ADDED: Coder demo "what_key": display key codes interactively, e.g., '1', 'num_1', 'escape', 'lshift'
+* ADDED: basic audio capture (record, save, playback); lib: microphone.py, Builder component microphone, demo voiceCapture; only tested on mac
+* ADDED: speech recognition (by google, implementation subject to change; requires internet); lib: speech.py; see new Coder demo: "say_rgb.py"
 * ADDED: web-docs: how to contribute or fix documentation; two "recipes" from email list (web-cam, scrolling text animation)
-* ADDED: upload a file to a remote server over http (libs: contrib.http.upload) with coder demo, php scripts for server
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
