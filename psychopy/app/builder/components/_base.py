@@ -6,7 +6,7 @@ import wx, copy
 from os import path
 from psychopy.app.builder.experiment import Param
 
-class BaseComponent:
+class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
     def __init__(self, exp, parentName, name=''):
         self.type='Base'
