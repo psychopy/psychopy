@@ -35,9 +35,11 @@ class AudioCapture(object):
             microphone.switchOn(sampleRate=16000) # do once when starting, can take 2-3s
             
             mic = microphone.AudioCapture()  # prepare to record; only one can be active
-            mic.record(1)  # record for 1.000 seconds, save to a file
+            mic.record(1)  # record for 1.000 seconds, save to mic.savedFile
             mic.playback()
-            savedFileName = mic.savedFile
+            mic.resample(48000, keep=False) # creates a new file, discards original
+            mic.resample(24000, keep=False) # only int ratios are supported
+            # mic.savedFile is now the name of the re-re-sampled file
             
             microphone.switchOff() # do once, at exit 
         
@@ -83,16 +85,16 @@ class AudioCapture(object):
     def __init__(self, name='mic', file='', saveDir='', sampletype=0):
         """
         :Parameters:
-                name :
-                    Stem for the output file, also used in logging.
-                file :
-                    optional file name to use; default = 'name-onsetTimeEpoch.wav'
-                saveDir :
-                    Directory to use for output .wav files.
-                    If a saveDir is given, it will return 'saveDir/file'. 
-                    If no saveDir, then return abspath(file)
-                sampletype : bit depth
-                    pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+            name :
+                Stem for the output file, also used in logging.
+            file :
+                optional file name to use; default = 'name-onsetTimeEpoch.wav'
+            saveDir :
+                Directory to use for output .wav files.
+                If a saveDir is given, it will return 'saveDir/file'. 
+                If no saveDir, then return abspath(file)
+            sampletype : bit depth
+                pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
         """
         self.name = name
         self.saveDir = saveDir
@@ -150,6 +152,7 @@ class AudioCapture(object):
         
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, self.sampletype)
+        self.rate = pyoServer.getSamplingRate()
         
         if block:
             core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
@@ -163,7 +166,7 @@ class AudioCapture(object):
         return self.savedFile
     
     def playback(self):
-        """Plays the saved .wav file which was just recorded
+        """Plays the saved .wav file, as just recorded or resampled
         """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
@@ -184,6 +187,58 @@ class AudioCapture(object):
         t1 = core.getTime()
 
         logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
+    
+    def resample(self, newRate=16000, keep=True):
+        """Re-sample the saved file to a new rate, return the full path.
+        
+        Can take several visual frames to resample a 2s recording.
+        
+        The default values for resample() are for google-speech, keeping the
+        original (presumably recorded at 48kHz) to archive.
+        A warning is generated if the new rate not an integer factor / multiple of the old rate.
+        
+        To control anti-aliasing, use pyo.downsamp() or upsamp() directly.
+        """
+        if not self.savedFile or not os.path.isfile(self.savedFile):
+            msg = '%s: Re-sample requested but no saved file' % self.loggingId
+            logging.error(msg)
+            raise ValueError(msg)
+        if newRate <= 0 or type(newRate) != int:
+            msg = '%s: Re-sample bad new rate = %s' % (self.loggingId, repr(newRate))
+            logging.error(msg)
+            raise ValueError(msg)
+        
+        # set-up:
+        if self.rate >= newRate:
+            ratio = float(self.rate) / newRate
+            info = '-ds%i' % ratio
+        else:
+            ratio = float(newRate) / self.rate
+            info = '-us%i' % ratio
+        if ratio != int(ratio):
+            logging.warn('%s: old rate is not an integer factor of new rate'% self.loggingId)
+        ratio = int(ratio)
+        newFile = info.join(os.path.splitext(self.savedFile))
+        
+        # use pyo's downsamp or upsamp based on relative rates:
+        if not ratio:
+            logging.warn('%s: Re-sample by %sx is undefined, skipping' % (self.loggingId, str(ratio)))
+        elif self.rate >= newRate:
+            t0 = time.time()
+            downsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
+            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))
+        else:
+            t0 = time.time()
+            upsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
+            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))    
+            
+        # clean-up:
+        if not keep:
+            os.unlink(self.savedFile)
+            self.savedFile = newFile
+            self.rate = newRate
+        
+        return os.path.abspath(newFile)
     
 class SoundFormatNotSupported(StandardError):
     """Class to report an unsupported sound format"""
@@ -336,7 +391,6 @@ class Speech2Text(object):
         
         :Author: Jeremy R. Gray, with thanks to Lefteris Zafiris for his help
             and excellent command-line perl script at https://github.com/zaf/asterisk-speech-recog (GPLv2)
-    
     """
     def __init__(self, file,
                  lang='en-US',
@@ -348,27 +402,27 @@ class Speech2Text(object):
         """
             :Parameters:
             
-                file : <required>
+                `file` : <required>
                     name of the speech file (.flac, .wav, or .spx) to process. wav files will be
                     converted to flac, and for this to work you need to have flac (as an
                     executable). spx format is speex-with-headerbyte (for google).
-                lang :
+                `lang` :
                     the presumed language of the speaker, as a locale code; default 'en-US'
-                timeout :
+                `timeout` :
                     seconds to wait before giving up, default 10
-                samplingrate :
+                `samplingrate` :
                     the sampling rate of the speech clip in Hz, either 16000 or 8000. You can
                     record at a higher rate, and then down-sample to 16000 for speech
                     recognition. `file` is the down-sampled file, not the original.
-                flac_exe :
+                `flac_exe` :
                     **Windows only**: path to binary for converting wav to flac;
                     must be a string with **two back-slashes where you want one** to appear
                     (this does not display correctly above, in the web documentation auto-build);
                     default is 'C:\\\\\\\\Program Files\\\\\\\\FLAC\\\\\\\\flac.exe'
-                pro_filter :
+                `pro_filter` :
                     profanity filter level; default 2 (e.g., f***)
-                quiet :
-                    no reporting intermediate details; default True (non-verbose)
+                `quiet` :
+                    no reporting intermediate details; default `True` (non-verbose)
                  
         """
         # set up some key parameters:
@@ -525,11 +579,12 @@ class BatchSpeech2Text(list):
         return count
     
 def switchOn(sampleRate=48000):
-    """You need to switch on the microphone before use. Can take several seconds.
+    """You need to switch on the microphone before use, which can take several seconds.
     The only time you can specify the sample rate (in Hz) is during switchOn().
-    You can switchOff() and switchOn() with a different rate.
+    You can switchOff() and switchOn() with a different rate, and can `resample()`
+    a given an `AudioCapture()` object (if one has been recorded).
     
-    Considerations on the default sample rate::
+    Considerations on the default sample rate 48kHz::
     
         DVD or video = 48,000
         CD-quality   = 44,100 / 24 bit
@@ -538,16 +593,16 @@ def switchOn(sampleRate=48000):
         google speech API: 16,000 or 8,000 only
         Nyquist frequency: twice the highest rate, good to oversample a bit
         
-        pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
-        so: recording at 48kHz will generate high-quality archival data, and permit easy downsampling
+    pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
+    So recording at 48kHz will generate high-quality archival data, and permit easy downsampling.
     """
     # imports from pyo, creates globals pyoServer
     t0 = core.getTime()
     try:
         global Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
         from pyo import Server, Record, Input, Clean_objects, SfPlayer, serverCreated, serverBooted
-        global getVersion, pa_get_input_devices, pa_get_output_devices, downsamp
-        from pyo import getVersion, pa_get_input_devices, pa_get_output_devices, downsamp
+        global getVersion, pa_get_input_devices, pa_get_output_devices, downsamp, upsamp
+        from pyo import getVersion, pa_get_input_devices, pa_get_output_devices, downsamp, upsamp
         global haveMic
         haveMic = True
     except ImportError:
@@ -560,13 +615,14 @@ def switchOn(sampleRate=48000):
         pyoServer.boot()
     else:
         pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
-        core.pyoServers.append(pyoServer)
+    core.pyoServers.append(pyoServer)
     pyoServer.start()
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
     
 def switchOff():
     """Its good to explicitly switch off the microphone when done (in order to avoid
-    a segmentation fault).
+    a segmentation fault). core.quit() also tries to switchOff if needed, but best to
+    do so explicitly.
     """
     t0 = core.getTime()
     global haveMic
@@ -592,8 +648,9 @@ if __name__ == '__main__':
         mic = AudioCapture()
         if len(sys.argv) > 1: # stability test using argv[1] iterations
             for i in xrange(int(sys.argv[1])): 
-                print i, mic.record(.5)
-                os.remove(mic.savedFile)
+                print i, mic.record(2)
+                mic.resample(8000, keep=False) # removes orig file
+                os.remove(mic.savedFile) # removes downsampled file
         else: # interactive playback test
             testDuration = 2
             raw_input('testing record and playback, press <return> to start: ')
