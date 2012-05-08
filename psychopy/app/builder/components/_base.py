@@ -58,6 +58,8 @@ class BaseComponent(object):
         """Test whether we need to start
         """
         if self.params['startType'].val=='time (s)':
+            if not self.params['startVal'].val.strip():
+                self.params['startVal'].val = '0.0'
             buff.writeIndented("if t>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
         elif self.params['startType'].val=='frame N':
             buff.writeIndented("if frameN>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
