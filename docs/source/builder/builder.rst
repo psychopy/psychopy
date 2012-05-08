@@ -5,6 +5,8 @@ Builder
 
 *Building experiments in a GUI*
 
+You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing you how to build a simple experiment in the Builder interface
+
 .. note::
 
     The Builder view is now (at version 1.70) fairly well-developed and should be able to construct a wide variety of studies. But you should still check carefully that the stimuli and response collection are as expected.
@@ -35,7 +37,7 @@ Contents:
 Future developments
 -----------------------
 
-As at version 1.61 the builder view still has a few rough edges, but is hopefully fairly usable. Here are some of the ways I hope it will improve:
+The builder view still has a few rough edges, but is hopefully fairly usable. Here are some of the ways I hope it will improve:
 
 * More components. Several of the stimuli and events that PsychoPy can handle don't currently show up as components in the builder view, but they can be added easily (take a look inside the components directory to see how easy it is to create a component).
 * Dialogue entry validation. Dialogue boxes currently allow you to type almost anything into their windows. The only current checking is that a name is given to the component and that this is unique. More checking is needed to reduce errors.

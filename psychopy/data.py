@@ -308,7 +308,7 @@ class TrialType(dict):
             except KeyError:
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class _BaseTrialHandler:
+class _BaseTrialHandler(object):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -2842,6 +2842,10 @@ class FitCumNormal(_baseFunctionFit):
         chance = self.expectedMin
         xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
         return xx
+
+
+
+########################## End psychopy.data classes ##########################
 
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
