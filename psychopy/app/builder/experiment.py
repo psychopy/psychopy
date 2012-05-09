@@ -114,7 +114,7 @@ class Experiment:
             localDateTime = data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
-        
+
         script.write('#!/usr/bin/env python\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
@@ -846,7 +846,9 @@ class Flow(list):
                         toBeRemoved.append(self[id])
                 for comp in toBeRemoved:
                     self.remove(comp)
-            else: del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
+            else:
+                del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
+
     def writeCode(self, script):
         #initialise
         # very few components need writeStartCode:
@@ -895,7 +897,7 @@ class Routine(list):
         # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility in _base,py
-            if hasattr(thisCompon, 'writeStartCode'): 
+            if hasattr(thisCompon, 'writeStartCode'):
                 thisCompon.writeStartCode(buff)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
