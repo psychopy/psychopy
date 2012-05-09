@@ -6,12 +6,12 @@ from tempfile import mkdtemp
 from psychopy.contrib import opensslwrap
 
 
-class test_openssl_wrap():
-    def setUp(self):
+class Test_openssl_wrap():
+    def set_up(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-    
-    def testPubEncDec(self):    
+
+    def test_PubEncDec(self):
         opensslwrap._testPubEncDec('secret'+str(time.time())) # does the work
-    
-    def tearDown(self):
+
+    def tear_down(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
