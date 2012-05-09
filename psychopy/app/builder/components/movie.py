@@ -59,7 +59,7 @@ class MovieComponent(VisualComponent):
             params = self.params
         buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
         buff.writeIndented("    filename=%(movie)s,\n" %(params))
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s," %(params))
+        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n" %(params))
         if self.params['size'].val != '':
             buff.writeIndented("    size=%(size)s,\n"%(params))
         depth = -self.getPosInRoutine()
@@ -81,7 +81,7 @@ class MovieComponent(VisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
+        #buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" %(self.params['name']))
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
