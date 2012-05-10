@@ -154,6 +154,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.pdc.RemoveId(id)
         self.entryPointPosList = []
         self.entryPointIDlist = []
+        self.gapsExcluded=[]
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel('Insert Routine')
@@ -250,15 +251,20 @@ class FlowPanel(wx.ScrolledWindow):
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
-        """Someone pushed the insert loop button.
-        Fetch the dialog
+        """We'ce got the location of the first point, waiting to get the second
         """
         self.mode='loopPoint2'
-        self.frame.SetStatusText('Click the other start/end for the loop')
+        self.frame.SetStatusText('Click the other end for the loop')
+        thisPos = self.entryPointPosList[0]
+        self.gapsExcluded=[thisPos]
+        self.gapsExcluded.extend(self.getGapPointsCrossingStreams(thisPos))
+        #is there more than one available point
         x = self.getNearestGapPoint(wx.GetMousePosition()[0]-self.GetScreenPosition()[0],
-            exclude=[self.entryPointPosList[0]])#exclude point 1
+            exclude=self.gapsExcluded)#exclude point 1, and
         self.drawEntryPoints([self.entryPointPosList[0], x])
-
+        nAvailableGaps= len(self.gapMidPoints)-len(self.gapsExcluded)
+        if nAvailableGaps==1:
+            self.insertLoop()#there's only one place - go ahead and insert it
     def insertLoop(self, evt=None):
         #bring up listbox to choose the routine to add and/or create a new one
         loopDlg = DlgLoopProperties(frame=self.frame,
@@ -389,9 +395,11 @@ class FlowPanel(wx.ScrolledWindow):
             if event.LeftDown():
                 self.insertLoop()
             else:#move spot if needed
-                point = self.getNearestGapPoint(mouseX=x)
+                point = self.getNearestGapPoint(mouseX=x, exclude=self.gapsExcluded)
                 self.drawEntryPoints([self.entryPointPosList[0], point])
     def getNearestGapPoint(self, mouseX, exclude=[]):
+        """Get gap that is nearest to a particular mouse location
+        """
         d=1000000000
         nearest=None
         for point in self.gapMidPoints:
@@ -400,6 +408,15 @@ class FlowPanel(wx.ScrolledWindow):
                 d=(point-mouseX)**2
                 nearest=point
         return nearest
+    def getGapPointsCrossingStreams(self,gapPoint):
+        """For a given gap point, identify the gap points that are
+        excluded by crossing a loop line
+        """
+        gapArray=numpy.array(self.gapMidPoints)
+        nestLevels=numpy.array(self.gapNestLevels)
+        thisLevel=nestLevels[gapArray==gapPoint]
+        invalidGaps= (gapArray[nestLevels!=thisLevel]).tolist()
+        return invalidGaps
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
         for item in self.contextMenuItems:
@@ -412,25 +429,54 @@ class FlowPanel(wx.ScrolledWindow):
         """Perform a given action on the component chosen
         """
         op = self.contextItemFromID[event.GetId()]
-        component=self.componentFromID[self._menuComponentID]
+        compID=self._menuComponentID #the ID is also the index to the element in the flow list
         flow = self.frame.exp.flow
+        component=flow[compID]
+
         if op=='remove':
-            # remove name from namespace only if its a loop (which exists only in the flow)
-            if 'conditionsFile' in component.params.keys():
-                conditionsFile = component.params['conditionsFile'].val
-                if conditionsFile and conditionsFile not in ['None','']:
-                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
-                    for fname in fieldNames:
-                        self.frame.exp.namespace.remove(fname)
-                self.frame.exp.namespace.remove(component.params['name'].val)
-            flow.removeComponent(component, id=self._menuComponentID)
-            self.frame.addToUndoStack("removed %s from flow" %component.params['name'])
+            self.removeComponent(component, compID)
+            self.frame.addToUndoStack("remove %s from flow" %component.params['name'])
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
             #elif comonent is a routine: DlgRoutineProperties
         self.draw()
         self._menuComponentID=None
+    def removeComponent(self, component, compID):
+        """Remove either a Routine or a Loop from the Flow
+        """
+        flow=self.frame.exp.flow
+        if component.getType()=='Routine':
+            #check whether this will cause a collapsed loop
+            #prev and next elements on flow are a loop init/end
+            prevIsLoop=nextIsLoop=False
+            if compID>0:#there is at least one preceding
+                prevIsLoop = (flow[compID-1]).getType()=='LoopInitiator'
+            if len(flow)>(compID+1):#there is at least one more compon
+                nextIsLoop = (flow[compID+1]).getType()=='LoopTerminator'
+            if prevIsLoop and nextIsLoop:
+                loop=flow[compID+1].loop#because flow[compID+1] is a terminator
+                warnDlg = dialogs.MessageDialog(parent=self.frame,
+                    message=u'The "%s" Loop is about to be deleted as well (by collapsing). OK to proceed?' %loop.params['name'],
+                    type='Warning', title='Impending Loop collapse')
+                resp=warnDlg.ShowModal()
+                if resp in [wx.ID_CANCEL, wx.ID_NO]:
+                    return#abort
+                elif resp==wx.ID_YES:
+                    #make some recursive calls to this same method until success
+                    self.removeComponent(loop, compID )#remove the loop first
+                    self.removeComponent(component, compID-1)#because the loop has been removed ID is now one less
+                    return #because we would have done the removal in final successful call
+        # remove name from namespace only if it's a loop (which exists only in the flow)
+        elif 'conditionsFile' in component.params.keys():
+            conditionsFile = component.params['conditionsFile'].val
+            if conditionsFile and conditionsFile not in ['None','']:
+                _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                for fname in fieldNames:
+                    self.frame.exp.namespace.remove(fname)
+            self.frame.exp.namespace.remove(component.params['name'].val)
+        #perform the actual removal
+        flow.removeComponent(component, id=compID)
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
@@ -495,6 +541,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.loops={}#NB the loop is itself the key!? and the value is further info about it
         nestLevel=0; maxNestLevel=0
         self.gapMidPoints=[currX-gap/2]
+        self.gapNestLevels=[0]
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='LoopInitiator':
                 self.loops[entry.loop]={'init':currX,'nest':nestLevel, 'id':ii}#NB the loop is itself the dict key!?
@@ -507,6 +554,7 @@ class FlowPanel(wx.ScrolledWindow):
                 # just get currX based on text size, don't draw anything yet:
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10], draw=False)
             self.gapMidPoints.append(currX+gap/2)
+            self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
             pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])

@@ -3713,10 +3713,18 @@ class MovieStim(_BaseVisualStim):
 
     def pause(self):
         """Pause the current point in the movie (sound will stop, current frame
-        will not advance)
+        will not advance).  If play() is called again both will restart.
         """
         self._player.pause()
         self.status=PAUSED
+
+    def stop(self):
+        """Stop the current point in the movie (sound will stop, current frame
+        will not advance). Once stopped the movie cannot be restarted - it must
+        be loaded again. Use pause() if you may need to restart the movie.
+        """
+        self._player.stop()
+        self.status=STOPPED
 
     def play(self):
         """Continue a paused movie from current position
@@ -3789,7 +3797,11 @@ class MovieStim(_BaseVisualStim):
             - val: True/False
                 True to add the stimulus to the draw list, False to remove it
         """
-        self.play()  # set to play in case stopped
+        if val:
+            self.play()  # set to play in case stopped
+        else:
+            self.pause()
+        #add to drawing list and update status
         _BaseVisualStim.setAutoDraw(self, val)
 
 class TextStim(_BaseVisualStim):
@@ -5093,7 +5105,7 @@ class RatingScale:
                 stretchHoriz=1.0,
                 pos=None,
                 minTime=1.0,
-                maxTime=0.0, 
+                maxTime=0.0,
                 disappear=False,
                 name='',
                 autoLog=True):
@@ -5205,12 +5217,12 @@ class RatingScale:
             number of seconds that must elapse before a reponse can be accepted,
             default = 1.0s
         maxTime :
-            number of seconds after which a reponse cannot be made accepted. 
+            number of seconds after which a reponse cannot be made accepted.
             if `maxTime` <= `minTime`, there's unlimited time.
             default = 0.0s (wait forever)
         disappear :
-            if True, the rating scale will be hidden after a value is accepted; 
-            useful when showing multiple scales. The default is to remain on-screen. 
+            if True, the rating scale will be hidden after a value is accepted;
+            useful when showing multiple scales. The default is to remain on-screen.
 
         name : string
             The name of the object to be using during logged messages about
@@ -5692,7 +5704,7 @@ class RatingScale:
         else:
             logging.exp('RatingScale %s: no scale description; low=%s, high=%s' %
                         (self.name, self.lowAnchor.text, self.highAnchor.text))
-        
+
     def _initAcceptBox(self, showAccept, acceptPreText, acceptText,
                        markerColor, textSizeSmall, textSizeFactor, textFont):
         """creates a ShapeStim for self.acceptBox (mouse-click-able 'accept'  button)
