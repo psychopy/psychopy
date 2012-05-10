@@ -3725,10 +3725,11 @@ class MovieStim(_BaseVisualStim):
         self.status=PLAYING
 
     def stop(self):
-        """Stop movie presentation before it is finished.
+        """Stop a movie presentation before it has finished.
         """
-        self._player.stop()
-        self.status=FINISHED
+        print 'hi, from stop'
+        #self._player.stop()
+        #self.status=FINISHED
 
     def seek(self,timestamp):
         """ Seek to a particular timestamp in the movie.
