@@ -40,6 +40,8 @@ PsychoPy 1.74.00
 * CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
 * CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
 * FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
+* FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
+* FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
 
 PsychoPy 1.73
 ------------------------------
