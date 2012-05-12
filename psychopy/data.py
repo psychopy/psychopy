@@ -2970,16 +2970,18 @@ def isValidVariableName(name):
     >>> isValidVariableName('first second')
     (False, 'Variables cannot contain punctuation or spaces')
     >>> isValidVariableName('')
-    (False, "Missing variable name, e.g., None or ''")
+    (False, "Variables cannot be missing, None, or ''")
     >>> isValidVariableName(None)
-    (False, "Missing variable name, e.g., None or ''")
+    (False, "Variables cannot be missing, None, or ''")
     >>> isValidVariableName(23)
-    (False, "Variables names must be string-like")
+    (False, "Variables must be string-like")
+    >>> data.isValidVariableName('a_b_c')
+    (True, '')
     """
     if not name:
-        return False, "Missing variable name, e.g., None or ''"
+        return False, "Variables cannot be missing, None, or ''"
     if not type(name) in [str, unicode, numpy.string_, numpy.unicode_]:
-        return False, "Variables names must be string-like"
+        return False, "Variables must be string-like"
     try:
         name=str(name)#convert from unicode if possible
     except:
