@@ -1195,8 +1195,8 @@ def importConditions(fileName, returnFieldNames=False):
                     OK, msg = isValidVariableName(fieldName)
                     if not OK:
                         #provide error message about incorrect header
-                        msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                        raise ImportError, '%s: %s' %(fieldName, msg)
+                        msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                        raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
                     val = trialsArr[trialN][fieldN]
                     #if it looks like a list, convert it
                     if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
@@ -1219,8 +1219,8 @@ def importConditions(fileName, returnFieldNames=False):
                 OK, msg = isValidVariableName(fieldName)
                 if not OK:
                     #provide error message about incorrect header
-                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, '%s: %s' %(fieldName, msg)
+                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
             for row in trialsArr[1:]:
                 thisTrial = {}
                 for fieldN, fieldName in enumerate(fieldNames):
@@ -1242,13 +1242,13 @@ def importConditions(fileName, returnFieldNames=False):
             #get headers
             fieldNames = []
             for colN in range(nCols):
-                #get filedName and check validity
+                #get fieldName and check validity
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 OK, msg = isValidVariableName(fieldName)
                 if not OK:
                     #provide error message about incorrect header
-                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, '%s: %s' %(fieldName, msg)
+                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
                 else:
                     fieldNames.append(fieldName)
 
@@ -1267,6 +1267,8 @@ def importConditions(fileName, returnFieldNames=False):
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
 
+        logging.exp('Imported %s as conditions, %d conditions, %d params' %
+                     (fileName, len(trialList), len(fieldNames)))
         if returnFieldNames:
             return (trialList,fieldNames)
         else:
@@ -2975,7 +2977,7 @@ def isValidVariableName(name):
     (False, "Variables cannot be missing, None, or ''")
     >>> isValidVariableName(23)
     (False, "Variables must be string-like")
-    >>> data.isValidVariableName('a_b_c')
+    >>> isValidVariableName('a_b_c')
     (True, '')
     """
     if not name:

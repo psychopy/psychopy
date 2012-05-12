@@ -23,6 +23,7 @@ PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (https://github.com/psychopy/psychopy)
 
+* FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
 * ADDED: Coder demo "what_key": display key codes interactively, e.g., '1', 'num_1', 'escape', 'lshift'
