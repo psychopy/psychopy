@@ -14,6 +14,7 @@ from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref
+import re
 
 try:
     import openpyxl
@@ -24,6 +25,7 @@ except:
     haveOpenpyxl=False
 
 _experiments=weakref.WeakValueDictionary()
+_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
@@ -1193,8 +1195,8 @@ def importConditions(fileName, returnFieldNames=False):
                     OK, msg = isValidVariableName(fieldName)
                     if not OK:
                         #provide error message about incorrect header
-                        msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                        raise ImportError, '%s: %s' %(fieldName, msg)
+                        msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                        raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
                     val = trialsArr[trialN][fieldN]
                     #if it looks like a list, convert it
                     if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
@@ -1217,8 +1219,8 @@ def importConditions(fileName, returnFieldNames=False):
                 OK, msg = isValidVariableName(fieldName)
                 if not OK:
                     #provide error message about incorrect header
-                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, '%s: %s' %(fieldName, msg)
+                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
             for row in trialsArr[1:]:
                 thisTrial = {}
                 for fieldN, fieldName in enumerate(fieldNames):
@@ -1240,13 +1242,13 @@ def importConditions(fileName, returnFieldNames=False):
             #get headers
             fieldNames = []
             for colN in range(nCols):
-                #get filedName and check validity
+                #get fieldName and check validity
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 OK, msg = isValidVariableName(fieldName)
                 if not OK:
                     #provide error message about incorrect header
-                    msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, '%s: %s' %(fieldName, msg)
+                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
                 else:
                     fieldNames.append(fieldName)
 
@@ -1265,6 +1267,8 @@ def importConditions(fileName, returnFieldNames=False):
                     thisTrial[fieldName] = val
                 trialList.append(thisTrial)
 
+        logging.exp('Imported %s as conditions, %d conditions, %d params' %
+                     (fileName, len(trialList), len(fieldNames)))
         if returnFieldNames:
             return (trialList,fieldNames)
         else:
@@ -2967,20 +2971,31 @@ def isValidVariableName(name):
     (False, 'Variables cannot begin with numeric character')
     >>> isValidVariableName('first second')
     (False, 'Variables cannot contain punctuation or spaces')
+    >>> isValidVariableName('')
+    (False, "Variables cannot be missing, None, or ''")
+    >>> isValidVariableName(None)
+    (False, "Variables cannot be missing, None, or ''")
+    >>> isValidVariableName(23)
+    (False, "Variables must be string-like")
+    >>> isValidVariableName('a_b_c')
+    (True, '')
     """
-    punctuation = " -[]()+*¬£@!$%^&/\{}~.,?'|:;"
+    if not name:
+        return False, "Variables cannot be missing, None, or ''"
+    if not type(name) in [str, unicode, numpy.string_, numpy.unicode_]:
+        return False, "Variables must be string-like"
     try:
         name=str(name)#convert from unicode if possible
     except:
-        if type(name)==unicode:
+        if type(name) in [unicode, numpy.unicode_]:
             raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name))
         else:
             raise AttributeError, "name %s (type %s) could not be converted to a string" % (name, type(name))
 
     if name[0].isdigit():
         return False, "Variables cannot begin with numeric character"
-    for chr in punctuation:
-        if chr in name: return False, "Variables cannot contain punctuation or spaces"
+    if _nonalphanumeric_re.search(name):
+        return False, "Variables cannot contain punctuation or spaces"
     return True, ""
 
 def _getExcelCellName(col, row):

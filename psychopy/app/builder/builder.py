@@ -2260,11 +2260,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     self.constantsCtrls['conditions'].setValue(msg)
-                    log.error('Could not open as a conditions file.')
+                    logging.error('Could not open as a conditions file.')
                 else:
                     self.constantsCtrls['conditions'].setValue(
                         'Badly formed condition name(s) in file:\n'+msg.replace(':','\n'))
-                    log.error('Rejected bad condition name in conditions file: %s' % msg.split(':')[0])
+                    logging.error('Rejected bad condition name in conditions file: %s' % msg.split(':')[0])
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
