@@ -14,6 +14,7 @@ from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref
+import re
 
 try:
     import openpyxl
@@ -24,6 +25,7 @@ except:
     haveOpenpyxl=False
 
 _experiments=weakref.WeakValueDictionary()
+_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
@@ -2967,20 +2969,29 @@ def isValidVariableName(name):
     (False, 'Variables cannot begin with numeric character')
     >>> isValidVariableName('first second')
     (False, 'Variables cannot contain punctuation or spaces')
+    >>> isValidVariableName('')
+    (False, "Missing variable name, e.g., None or ''")
+    >>> isValidVariableName(None)
+    (False, "Missing variable name, e.g., None or ''")
+    >>> isValidVariableName(23)
+    (False, "Variables names must be string-like")
     """
-    punctuation = " -[]()+*¬£@!$%^&/\{}~.,?'|:;"
+    if not name:
+        return False, "Missing variable name, e.g., None or ''"
+    if not type(name) in [str, unicode, numpy.string_, numpy.unicode_]:
+        return False, "Variables names must be string-like"
     try:
         name=str(name)#convert from unicode if possible
     except:
-        if type(name)==unicode:
+        if type(name) in [unicode, numpy.unicode_]:
             raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name))
         else:
             raise AttributeError, "name %s (type %s) could not be converted to a string" % (name, type(name))
 
     if name[0].isdigit():
         return False, "Variables cannot begin with numeric character"
-    for chr in punctuation:
-        if chr in name: return False, "Variables cannot contain punctuation or spaces"
+    if _nonalphanumeric_re.search(name):
+        return False, "Variables cannot contain punctuation or spaces"
     return True, ""
 
 def _getExcelCellName(col, row):
