@@ -1107,14 +1107,14 @@ class _BaseVisualStim:
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', units=None):
-        """Set the stimulus position in the specified (or inheritted) `units`
+        """Set the stimulus position in the specified (or inherited) `units`
         """
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
     def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)
     def setSize(self, newSize, operation='', units=None):
-        """Set the stimulus size [X,Y] in the specified (or inheritted) `units`
+        """Set the stimulus size [X,Y] in the specified (or inherited) `units`
         """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)

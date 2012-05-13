@@ -78,7 +78,8 @@ class MouseComponent(BaseComponent):
         routineClockName = self.exp.flow._currentRoutine._clockName
 
         #only write code for cases where we are storing data as we go (each frame or each click)
-        if self.params['saveMouseState'] not in ['every frame', 'on click'] and not forceEnd:
+        if self.params['saveMouseState'].val not in ['every frame', 'on click'] \
+            and not forceEnd:#might not be saving clicks, but want it to force end of trial
             return
 
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
