@@ -1148,6 +1148,15 @@ def importTrialTypes(fileName, returnFieldNames=False):
     logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
+def _screenValidVariableName(name, fileName):
+    """screens name as a candidate variable name during importConditions.
+    if name is OK, return silently; else raise ImportError with msg about incorrect header
+    """
+    OK, msg = isValidVariableName(name)
+    if not OK: #tailor message to importConditions
+        msg = msg.replace('Variables','Parameters (column headers)')
+        raise ImportError, 'file %s, %s: %s' %(fileName, name, msg)
+        
 def importConditions(fileName, returnFieldNames=False):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
@@ -1169,8 +1178,10 @@ def importConditions(fileName, returnFieldNames=False):
 
     """
     if fileName in ['None','none',None]:
+        if returnFieldNames:
+            return [], []
         return []
-    elif not os.path.isfile(fileName):
+    if not os.path.isfile(fileName):
         raise ImportError, 'Conditions file not found: %s' %os.path.abspath(fileName)
 
     if fileName.endswith('.csv'):
@@ -1181,7 +1192,6 @@ def importConditions(fileName, returnFieldNames=False):
             reader = csv.reader(f)#.split(os.linesep))
         except:
             raise ImportError, 'Could not open %s as conditions' % fileName
-            return []
         fieldNames = reader.next()
         #use matplotlib to import data and intelligently check for data types
         #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
@@ -1192,11 +1202,7 @@ def importConditions(fileName, returnFieldNames=False):
         for trialN, trialType in enumerate(trialsArr):
             thisTrial ={}
             for fieldN, fieldName in enumerate(fieldNames):
-                OK, msg = isValidVariableName(fieldName)
-                if not OK:
-                    #provide error message about incorrect header
-                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
+                _screenValidVariableName(fieldName, fileName)
                 val = trialsArr[trialN][fieldN]
                 #if it looks like a list, convert it
                 if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
@@ -1211,16 +1217,11 @@ def importConditions(fileName, returnFieldNames=False):
             trialsArr = cPickle.load(f)
         except:
             raise ImportError, 'Could not open %s as conditions' % fileName
-            return []
         f.close()
         trialList = []
         fieldNames = trialsArr[0] # header line first
         for fieldName in fieldNames:
-            OK, msg = isValidVariableName(fieldName)
-            if not OK:
-                #provide error message about incorrect header
-                msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
+            _screenValidVariableName(fieldName, fileName)
         for row in trialsArr[1:]:
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
@@ -1229,7 +1230,6 @@ def importConditions(fileName, returnFieldNames=False):
     else:
         if not haveOpenpyxl:
             raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
-            return []
         try:
             wb = load_workbook(filename = fileName)
         except: # InvalidFileException(unicode(e)): # this fails
@@ -1244,13 +1244,8 @@ def importConditions(fileName, returnFieldNames=False):
         for colN in range(nCols):
             #get fieldName and check validity
             fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
-            OK, msg = isValidVariableName(fieldName)
-            if not OK:
-                #provide error message about incorrect header
-                msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
-            else:
-                fieldNames.append(fieldName)
+            _screenValidVariableName(fieldName, fileName)
+            fieldNames.append(fieldName)
 
         #loop trialTypes
         trialList = []
