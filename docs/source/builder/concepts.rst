@@ -19,7 +19,7 @@ For a simple reaction time experiment there might be 3 :ref:`routines`, one that
 Example 2 - an fMRI block design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Many fMRI experiments present a sequence of stimuli in a `block`. For this there are multiple ways to create the experiment:
-* We could create a single :doc:`Routine </builder/routines>` that contained a number of stimuli and presented them sequentially, followed by a long blank period to give the inter-epoch interval, and surround this single :ref:`Routine <routines>` by a loop to control the blocks.
+* We could create a single :ref:`Routine <routines>` that contained a number of stimuli and presented them sequentially, followed by a long blank period to give the inter-epoch interval, and surround this single :ref:`Routine <routines>` by a loop to control the blocks.
 * Alternatively we could create a pair of :ref:`routines` to allow presentation of a) a single stimulus (for 1 sec) and b) a blank screen, for the prolonged period. With these :ref:`routines` we could insert  pair of loops, one to repeat the stimulus :ref:`Routine <routines>` with different images, followed by the blank :ref:`Routine <routines>`, and another to surround this whole set and control the blocks.
 
 Demos

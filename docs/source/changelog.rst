@@ -23,26 +23,34 @@ PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (https://github.com/psychopy/psychopy)
 
-* FIXED: missing parameter name in conditions file is detected, triggers more informative error message
-* ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
-* ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: Coder demo "what_key": display key codes interactively, e.g., '1', 'num_1', 'escape', 'lshift'
-* ADDED: basic audio capture (record, save, playback); lib: microphone.py, Builder component microphone, demo voiceCapture; only tested on mac
-* ADDED: speech recognition (by google, implementation subject to change; requires internet); lib: speech.py; see new Coder demo: "say_rgb.py"
-* ADDED: web-docs: how to contribute or fix documentation; two "recipes" from email list (web-cam, scrolling text animation)
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
-* ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
-* ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
-* FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
-* ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
-* ADDED: 'enable escape' option in experiment settings, default is enabled (= same as before, but can now disable if desired)
-* ADDED: HSV color space for all stimuli
-* ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
-* CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
-* CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
-* FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
-* FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
-* FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
+Major changes (and compatibility changes):
+
+    * ADDED: :ref:`longWide` outputs, which are now the default for all new Builder experiments. 
+    * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See :ref:`psychopy.microphone <microphone>` library, Coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
+    * ADDED: HSV color space for all stimuli
+    * CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments.
+
+Tweaks and fixes:
+
+    * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
+    * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
+    * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
+    * ADDED: Coder demo "what_key": display key codes interactively, e.g., '1', 'num_1', 'escape', 'lshift'
+    * ADDED: web-docs: how to contribute or fix documentation; two "recipes" from email list (web-cam, scrolling text animation)
+    * ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+    * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
+    * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
+    * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
+    * ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
+    * ADDED: 'enable escape' option in experiment settings, default is enabled (= same as before, but can now disable if desired)
+    * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
+    * CHANGED: remove python 2.4's version of sha1 digest from info.py (RunTimeInfo); StandAlone versions do not use python 2.4
+    * CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
+    * FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
+    * FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
+    * FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
+    * FIXED: Mouse component was not saving clicks in Builder experiments if forceEndOnClick was set to be False
+    * FIXED: DotStim.setFieldCoherence was having no effect if noise dots were updating by 'position'
 
 PsychoPy 1.73
 ------------------------------
