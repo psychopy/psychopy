@@ -1149,130 +1149,130 @@ def importTrialTypes(fileName, returnFieldNames=False):
     return importConditions(fileName, returnFieldNames)
 
 def importConditions(fileName, returnFieldNames=False):
-        """Imports a list of conditions from an .xlsx, .csv, or .pkl file
+    """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
-        The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
-        :class:`MultiStairHandler` as a `conditions` list.
+    The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
+    :class:`MultiStairHandler` as a `conditions` list.
 
-        If `fileName` ends with:
-            - .csv:  import as a comma-separated-value file (header + row x col)
-            - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
-            - .pkl:  import from a pickle file as list of lists (header + row x col)
+    If `fileName` ends with:
+        - .csv:  import as a comma-separated-value file (header + row x col)
+        - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
+        - .pkl:  import from a pickle file as list of lists (header + row x col)
 
-        The file should contain one row per type of trial needed and one column
-        for each parameter that defines the trial type. The first row should give
-        parameter names, which should:
+    The file should contain one row per type of trial needed and one column
+    for each parameter that defines the trial type. The first row should give
+    parameter names, which should:
 
-            - be unique
-            - begin with a letter (upper or lower case)
-            - contain no spaces or other punctuation (underscores are permitted)
+        - be unique
+        - begin with a letter (upper or lower case)
+        - contain no spaces or other punctuation (underscores are permitted)
 
-        """
-        if fileName in ['None','none',None]:
+    """
+    if fileName in ['None','none',None]:
+        return []
+    elif not os.path.isfile(fileName):
+        raise ImportError, 'Conditions file not found: %s' %os.path.abspath(fileName)
+
+    if fileName.endswith('.csv'):
+        #use csv import library to fetch the fieldNames
+        f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
+        #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
+        try:
+            reader = csv.reader(f)#.split(os.linesep))
+        except:
+            raise ImportError, 'Could not open %s as conditions' % fileName
             return []
-        elif not os.path.isfile(fileName):
-            raise ImportError, 'Conditions file not found: %s' %os.path.abspath(fileName)
-
-        if fileName.endswith('.csv'):
-            #use csv import library to fetch the fieldNames
-            f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
-            #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
-            try:
-                reader = csv.reader(f)#.split(os.linesep))
-            except:
-                raise ImportError, 'Could not open %s as conditions' % fileName
-                return []
-            fieldNames = reader.next()
-            #use matplotlib to import data and intelligently check for data types
-            #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-            trialsArr = mlab.csv2rec(f)
-            f.close()
-            #convert the record array into a list of dicts
-            trialList = []
-            for trialN, trialType in enumerate(trialsArr):
-                thisTrial ={}
-                for fieldN, fieldName in enumerate(fieldNames):
-                    OK, msg = isValidVariableName(fieldName)
-                    if not OK:
-                        #provide error message about incorrect header
-                        msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                        raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
-                    val = trialsArr[trialN][fieldN]
-                    #if it looks like a list, convert it
-                    if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
-                        exec('val=%s' %unicode(val.decode('utf8')))
-                    elif type(val)==numpy.string_:#if it looks like a string read it as utf8
-                        val=unicode(val.decode('utf-8'))
-                    thisTrial[fieldName] = val
-                trialList.append(thisTrial)
-        elif fileName.endswith('.pkl'):
-            f = open(fileName, 'rU') # is U needed?
-            try:
-                trialsArr = cPickle.load(f)
-            except:
-                raise ImportError, 'Could not open %s as conditions' % fileName
-                return []
-            f.close()
-            trialList = []
-            fieldNames = trialsArr[0] # header line first
-            for fieldName in fieldNames:
+        fieldNames = reader.next()
+        #use matplotlib to import data and intelligently check for data types
+        #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
+        trialsArr = mlab.csv2rec(f)
+        f.close()
+        #convert the record array into a list of dicts
+        trialList = []
+        for trialN, trialType in enumerate(trialsArr):
+            thisTrial ={}
+            for fieldN, fieldName in enumerate(fieldNames):
                 OK, msg = isValidVariableName(fieldName)
                 if not OK:
                     #provide error message about incorrect header
                     msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
                     raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
-            for row in trialsArr[1:]:
-                thisTrial = {}
-                for fieldN, fieldName in enumerate(fieldNames):
-                    thisTrial[fieldName] = row[fieldN] # type is correct, being .pkl
-                trialList.append(thisTrial)
-        else:
-            if not haveOpenpyxl:
-                raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
-                return []
-            try:
-                wb = load_workbook(filename = fileName)
-            except: # InvalidFileException(unicode(e)): # this fails
-                raise ImportError, 'Could not open %s as conditions' % fileName
-                return []
-            ws = wb.worksheets[0]
-            nCols = ws.get_highest_column()
-            nRows = ws.get_highest_row()
+                val = trialsArr[trialN][fieldN]
+                #if it looks like a list, convert it
+                if type(val)==numpy.string_ and val.startswith('[') and val.endswith(']'):
+                    exec('val=%s' %unicode(val.decode('utf8')))
+                elif type(val)==numpy.string_:#if it looks like a string read it as utf8
+                    val=unicode(val.decode('utf-8'))
+                thisTrial[fieldName] = val
+            trialList.append(thisTrial)
+    elif fileName.endswith('.pkl'):
+        f = open(fileName, 'rU') # is U needed?
+        try:
+            trialsArr = cPickle.load(f)
+        except:
+            raise ImportError, 'Could not open %s as conditions' % fileName
+            return []
+        f.close()
+        trialList = []
+        fieldNames = trialsArr[0] # header line first
+        for fieldName in fieldNames:
+            OK, msg = isValidVariableName(fieldName)
+            if not OK:
+                #provide error message about incorrect header
+                msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
+        for row in trialsArr[1:]:
+            thisTrial = {}
+            for fieldN, fieldName in enumerate(fieldNames):
+                thisTrial[fieldName] = row[fieldN] # type is correct, being .pkl
+            trialList.append(thisTrial)
+    else:
+        if not haveOpenpyxl:
+            raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
+            return []
+        try:
+            wb = load_workbook(filename = fileName)
+        except: # InvalidFileException(unicode(e)): # this fails
+            raise ImportError, 'Could not open %s as conditions' % fileName
+            return []
+        ws = wb.worksheets[0]
+        nCols = ws.get_highest_column()
+        nRows = ws.get_highest_row()
 
-            #get headers
-            fieldNames = []
+        #get headers
+        fieldNames = []
+        for colN in range(nCols):
+            #get fieldName and check validity
+            fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+            OK, msg = isValidVariableName(fieldName)
+            if not OK:
+                #provide error message about incorrect header
+                msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
+                raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
+            else:
+                fieldNames.append(fieldName)
+
+        #loop trialTypes
+        trialList = []
+        for rowN in range(nRows)[1:]:#not first row
+            thisTrial={}
             for colN in range(nCols):
-                #get fieldName and check validity
-                fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
-                OK, msg = isValidVariableName(fieldName)
-                if not OK:
-                    #provide error message about incorrect header
-                    msg = msg.replace('Variables','Parameters (column headers)') #tailor message to this usage
-                    raise ImportError, 'file %s, %s: %s' %(fileName, fieldName, msg)
-                else:
-                    fieldNames.append(fieldName)
+                fieldName = fieldNames[colN]
+                val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
+                #if it looks like a list, convert it
+                if type(val) in [unicode, str] and val.startswith('[') and val.endswith(']'):
+                    val = eval(val)
+                elif type(val) in [unicode, str] and val.startswith('(') and val.endswith(')'):
+                    val = eval(val)
+                thisTrial[fieldName] = val
+            trialList.append(thisTrial)
 
-            #loop trialTypes
-            trialList = []
-            for rowN in range(nRows)[1:]:#not first row
-                thisTrial={}
-                for colN in range(nCols):
-                    fieldName = fieldNames[colN]
-                    val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
-                    #if it looks like a list, convert it
-                    if type(val) in [unicode, str] and val.startswith('[') and val.endswith(']'):
-                        val = eval(val)
-                    elif type(val) in [unicode, str] and val.startswith('(') and val.endswith(')'):
-                        val = eval(val)
-                    thisTrial[fieldName] = val
-                trialList.append(thisTrial)
-
-        logging.exp('Imported %s as conditions, %d conditions, %d params' %
-                     (fileName, len(trialList), len(fieldNames)))
-        if returnFieldNames:
-            return (trialList,fieldNames)
-        else:
-            return trialList
+    logging.exp('Imported %s as conditions, %d conditions, %d params' %
+                 (fileName, len(trialList), len(fieldNames)))
+    if returnFieldNames:
+        return (trialList,fieldNames)
+    else:
+        return trialList
 
 def createFactorialTrialList(factors):
     """Create a trialList by entering a list of factors with names (keys) and levels (values)
