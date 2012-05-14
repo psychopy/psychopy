@@ -2262,9 +2262,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.constantsCtrls['conditions'].setValue(msg)
                     logging.error('Could not open as a conditions file.')
                 else:
+                    m2 = msg.replace('Conditions file ', '')
+                    dlgErr = wx.MessageBox(m2.replace(': ', os.linesep+os.linesep),
+                                           'Configuration error in conditions file', wx.OK | wx.ICON_ERROR)
                     self.constantsCtrls['conditions'].setValue(
-                        'Badly formed condition name(s) in file:\n'+msg.replace(':','\n'))
-                    logging.error('Rejected bad condition name in conditions file: %s' % msg.split(':')[0])
+                        'Badly formed condition name(s) in file:\n'+m2.split(':')[0])
+                    logging.error('Rejected bad condition name(s) in file: %s' % m2.split(':')[0])
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])

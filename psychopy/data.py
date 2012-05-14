@@ -1173,12 +1173,12 @@ def importConditions(fileName, returnFieldNames=False):
         OK, return silently; else raise ImportError with msg
         """
         if not all(fieldNames):
-            raise ImportError, 'Conditions file %s: missing Parameter names; empty cell(s) in the first row?' % fileName
+            raise ImportError, 'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError, 'Conditions file %s, %s: %s' %(fileName, name, msg)
+                raise ImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
     
     if fileName in ['None','none',None]:
         if returnFieldNames:
