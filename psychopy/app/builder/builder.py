@@ -2253,34 +2253,34 @@ class DlgLoopProperties(_BaseParamsDlg):
                 isSameFilePathAndName = False
             newPath = _relpath(newFullPath, expFolder)
             self.conditionsFile = newPath
+            needUpdate = False
             try:
                 self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
                                                         returnFieldNames=True)
+                needUpdate = True
             except ImportError, msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
-                    self.constantsCtrls['conditions'].setValue(msg)
-                    logging.error('Could not open as a conditions file.')
+                    self.constantsCtrls['conditions'].setValue('Could not read conditions from:\n' + newFullPath.split(os.path.sep)[-1])
+                    logging.error('Could not open as a conditions file: %s' % newFullPath)
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     dlgErr = dialogs.MessageDialog(parent=self.frame,
                         message=m2.replace(': ', os.linesep * 2), type='Info',
                         title='Configuration error in conditions file').ShowModal()
-                    try: dlgErr.Destroy()
-                    except: pass
                     self.constantsCtrls['conditions'].setValue(
-                        'Badly formed condition name(s) in file:\n'+m2.split(':')[0])
-                    logging.error('Rejected bad condition name(s) in file: %s' % m2.split(':')[0])
+                        'Bad condition name(s) in file:\n' + newFullPath.split(os.path.sep)[-1])
+                    logging.error('Rejected bad condition name(s) in file: %s' % newFullPath)
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
-                logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
-                return
+                return # no update or display changes
 
             duplCondNames = []
             if len(self.condNamesInFile):
                 for condName in self.condNamesInFile:
                     if self.exp.namespace.exists(condName):
                         duplCondNames.append(condName)
+            # abbrev long strings to better fit in the dialog:
             duplCondNamesStr = ' '.join(duplCondNames)[:42]
             if len(duplCondNamesStr)==42:
                 duplCondNamesStr = duplCondNamesStr[:39]+'...'
@@ -2296,7 +2296,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # stash condition names but don't add to namespace yet, user can still cancel
             self.duplCondNames = duplCondNames # add after self.show() in __init__
 
-            if 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
+            if needUpdate or 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
                 self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
 
