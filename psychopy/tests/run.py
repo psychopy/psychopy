@@ -4,12 +4,12 @@ import sys, os
 thisDir,filename = os.path.split(os.path.abspath(__file__))
 os.chdir(thisDir)
 
-argv = sys.argv
+argv = sys.argv[1:]
 
 try:
     import pytest
     usePytest=True
-except:
+except ImportError:
     usePytest=False
 
 if usePytest:
