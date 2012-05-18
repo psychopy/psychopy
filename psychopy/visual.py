@@ -4615,7 +4615,6 @@ class ShapeStim(_BaseVisualStim):
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
 
-
     def _calcVerticesRendered(self):
         self.needVertexUpdate=False
         if self.units in ['norm', 'pix', 'height']:
@@ -4628,6 +4627,16 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
+
+    def contains(self, x, y=None):
+        """Determines if a point x,y is inside the shape (polygon).
+        
+        Accepts two args, x and y, or a point: (x,y)
+        See coder demo, shapeContains.py
+        """
+        if type(x) in [list, tuple, numpy.ndarray]:
+            x, y = x[0], x[1]
+        return pointInPolygon(x, y, self.vertices)
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
@@ -6548,6 +6557,33 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
                         pixFormat, dataType, texture)
 
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
+def pointInPolygon(x, y, poly):
+    """Determine if a point is inside a polygon, using the ray casting method.
+    
+    `poly` is a list of vertices as (x,y) pairs, `x` and `y` define the point.
+    Returns True (inside) or False (outside).
+    """
+    # from http://www.ariel.com.au/a/python-point-int-poly.html
+    # via http://geospatialpython.com/2011/01/point-in-polygon.html
+    
+    nVert = len(poly)
+    if nVert < 3:
+        return False
+    inside = False
+    p1x, p1y = poly[0]
+    for i in xrange(1, nVert + 1):
+        p2x, p2y = poly[i % nVert]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xints:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
 
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
