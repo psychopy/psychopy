@@ -1,26 +1,23 @@
-"""demo ShapeStim.contains()
+"""demo for psychopy.visual.ShapeStim.contains(). 
+inherited by Polygon(), Circle(), and Rect()
 """
-from psychopy import visual, core, event
-import time
+from psychopy import visual, event
 
-win = visual.Window(size=(400,400))
+win = visual.Window(size=(400,400), monitor='testMonitor')
+mouse = event.Mouse(win=win)
+instr = visual.TextStim(win, text='click the shape to quit', wrapWidth=1.2)
 
-# these are the target shapes, will see if points are inside or not:
-cir = visual.Circle(win, radius=.6, edges=64)
-irreg = visual.ShapeStim(win, vertices=[(0,0), (-.8,.2), (0,.6), (.1,0), (.8, .3), (.6,-.4)])
+# a target polygon:
+shape = visual.ShapeStim(win, fillColor='blue', interpolate=False, lineColor=None,
+    vertices=[(-0.02, -0.0), (-.8,.2), (0,.6), (.1,0.04), (.8, .3), (.6,-.4)])
 
-dot = visual.Circle(win, radius=.03, fillColor=1, lineColor=0)  # display dot
-points = [(.4,0), (.1,0.5), (0,.5), (0.73, 0), (0.62, 0), (.6, 0), (.56,0.3)]
-
-for shape in [cir, irreg]:
-    for p in points:
-        shape.draw()
-        dot.setPos(p)
-        t0 = time.time()
-        inside = shape.contains(p) # == shape.contains(dot.pos)
-        t1 = time.time() - t0
-        dot.setFillColor(('red','green')[inside])
-        dot.draw()
-        win.flip()
-        print p, inside, ('out', 'in')[inside], "%.2fms" % (t1 * 1000)
-        core.wait(1)
+# loop until detect a click inside the shape boundary
+hovering = False
+while not any(mouse.getPressed()) or not hovering:
+    instr.draw()
+    
+    # is the mouse hovering over the shape (i.e., inside the shape boundary)?
+    hovering = shape.contains(mouse.getPos())
+    shape.setOpacity( (0.4, .7)[hovering] ) # could change color, lineWidth, etc
+    shape.draw()
+    win.flip()
