@@ -4614,7 +4614,6 @@ class ShapeStim(_BaseVisualStim):
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
 
-
     def _calcVerticesRendered(self):
         self.needVertexUpdate=False
         if self.units in ['norm', 'pix', 'height']:
@@ -4627,6 +4626,29 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
+
+    def contains(self, x, y=None):
+        """Determines if a point x,y is inside the shape.
+        
+        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is a list, tuple, or
+        numpy array; or c) an object with a getPos() method that returns x,y, such
+        as a mouse. Returns True if the point is within the area defined by `vertices`, 
+        using a ray-casting algorithm. This handles complex shapes, including
+        concavities and self-crossings. See coder demo, shapeContains.py
+        """
+        if hasattr(x, 'getPos'):
+            x,y = x.getPos()
+        elif type(x) in [list, tuple, numpy.ndarray]:
+            x, y = x[0], x[1]
+        return pointInPolygon(x, y, self.vertices)
+
+    def overlaps(self, polygon):
+        """Determines if this shape intersects another one. If `polygon` is 
+        a `ShapeStim` instance, will use (vertices + pos) as the polygon. Overlap
+        detection is only approximate; can fail with pointy shapes. Returns True
+        if the two shapes overlap. See coder demo, shapeContains.py
+        """
+        return polygonsOverlap(self.vertices, polygon)
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
@@ -4764,8 +4786,11 @@ class Line(ShapeStim):
     """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
-        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
+        Line accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
+        
+        The methods `contains` and `overlaps` are inherited from `~psychopy.visual.ShapeStim`,
+        but always return False (because a line is not a proper (2D) polygon).
 
         :Parameters:
 
@@ -4799,8 +4824,10 @@ class Line(ShapeStim):
         or 2x1 array specifying the coordinates of the end point"""
         self.end = end
         self.setVertices([self.start, self.end])
-
-
+    def contains(self):
+        pass
+    def overlaps(self):
+        pass
 
 class BufferImageStim(PatchStim):
     """
@@ -6547,6 +6574,60 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
                         pixFormat, dataType, texture)
 
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
+def pointInPolygon(x, y, poly):
+    """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
+    
+    `poly` is a list of 3+ vertices as (x,y) pairs.
+    If given an object that has .vertices and .pos attributes, will use (.vertices + .pos) as the polygon.
+    
+    Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
+    """
+    # from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+    # via http://www.ariel.com.au/a/python-point-int-poly.html
+    
+    # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
+    # see also https://github.com/jraedler/Polygon2/
+
+    if hasattr(poly, 'vertices') and hasattr(poly, 'pos'):
+        poly = poly.vertices + poly.pos
+    nVert = len(poly)
+    if nVert < 3:
+        msg = 'pointInPolygon expects a polygon with 3 or more vertices'
+        logging.warning(msg)
+        return False
+    inside = False
+    # trace (horizontal?) rays, flip inside status if cross an edge:
+    p1x, p1y = poly[-1]
+    for p2x, p2y in poly:
+        if y > min(p1y, p2y) and y <= max(p1y, p2y) and x <= max(p1x, p2x):
+            if p1y != p2y:
+                xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+            if p1x == p2x or x <= xints:
+                inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
+
+def polygonsOverlap(poly1, poly2):
+    """Determine if two polygons intersect; the approximation can fail for pointy polygons.
+    
+    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`
+    instances, will use (vertices + pos) as the polygon.
+    
+    Checks if any vertex of one polygon is inside the other polygon; will fail in some
+    cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
+    """
+    if isinstance(poly1, ShapeStim):
+        poly1 = poly1.vertices + poly1.pos
+    if isinstance(poly2, ShapeStim):
+        poly2 = poly2.vertices + poly2.pos
+    for p1 in poly1:
+        if pointInPolygon(p1[0], p1[1], poly2):
+            return True
+    for p2 in poly2:
+        if pointInPolygon(p2[0], p2[1], poly1):
+            return True
+    return False
 
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties

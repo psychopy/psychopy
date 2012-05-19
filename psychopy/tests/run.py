@@ -9,10 +9,11 @@ argv = sys.argv
 try:
     import pytest
     usePytest=True
-except:
+except ImportError:
     usePytest=False
 
 if usePytest:
+    argv.pop(0)  # remove run.py
     #argv.append('--doctest-modules') #doctests
     if 'cover' in argv:
         argv.remove('cover')
