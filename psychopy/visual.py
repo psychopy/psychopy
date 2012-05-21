@@ -5042,19 +5042,23 @@ class BufferImageStim(PatchStim):
         GL.glPopMatrix() #return the view to previous state
 
 class RatingScale:
-    """A class for getting numeric or categorical ratings, e.g., on a 1-to-7 scale.
+    """A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.
 
-    Returns a re-usable rating-scale object having a .draw() method, with a customizable visual appearance.
-    Tries to provide useful default values.
+    Returns a re-usable rating-scale object having a .draw() method, with a
+    customizable visual appearance. Tries to provide useful default values.
 
-    The .draw() method displays the rating scale only (not the item to be rated), handles the subject's response, and
-    updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then
-    call .getRating() to obtain the rating, .getRT() to get the decision time, or .reset() to restore the scale (for
-    re-use). The experimenter has to handle the item to be rated, i.e., draw() it in the same window each frame.
-    A RatingScale instance has no idea what else is on the screen. The subject can use the arrow keys (left, right)
-    to move the marker in small increments (e.g., 1/100th of a tick-mark if precision = 100).
+    The .draw() method displays the rating scale only (not the item to be rated),
+    handles the subject's response, and updates the display. When the subject
+    responds, .noResponse goes False (i.e., there is a response). You can then 
+    call .getRating() to obtain the rating, .getRT() to get the decision time, or
+    .reset() to restore the scale (for re-use). The experimenter has to handle
+    the item to be rated, i.e., draw() it in the same window each frame. A
+    RatingScale instance has no idea what else is on the screen. The subject can
+    use the arrow keys (left, right) to move the marker in small increments (e.g.,
+    1/100th of a tick-mark if precision = 100).
 
-    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
+    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple
+    of 10, just to reduce visual clutter.
 
     **Example 1**::
 
@@ -5068,11 +5072,16 @@ class RatingScale:
                 myWin.flip()
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
+        
+        You can equivalently specify the while condition using .status::
+        
+            while myRatingScale.status != FINISHED:
 
     **Example 2**::
 
-        Mouse-free. Considerable customization is possible. For fMRI, if your response
-        box sends keys 1-4, you could specify left, right, and accept keys, and no mouse:
+        Mouse-free. Considerable customization is possible. For fMRI, if your
+        response box sends keys 1-4, you could specify left, right, and accept
+        keys, and no mouse:
 
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
@@ -5265,27 +5274,6 @@ class RatingScale:
             whether logging should be done automatically
         """
 
-        ### May June 2011
-        # ADDED: singleClick, customMarker,
-        # ADDED: markerStart for choices
-        # CHANGED: default = triangle for windows too
-        #          when using choices=[ ], default showAnchors=False
-        # REMOVED: offsetHoriz, offsetVert; use pos=(offsetHoriz,offsetVert) instead
-        # - rewrite default params to be immutables only
-
-        ### March 2011
-        # REORGANIZED
-        # ADDED :
-        #  - several text controls: textSizeFactor, textColor (rgb), lowAnchorText, highAnchorText, textFont
-        #  - pos=(x,y) : position on the screen, uses the units of the window (norm or pix only)
-        #  - choices=[list] : present unordered or categorical choices (non-numeric)
-        # DEPRECATED : offsetHoriz offsetVert; use pos[] instead
-        # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
-
-        ### June 2011
-        # ADDED :
-        #  - parameter to set line color (default white): lineColor
-
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
 
@@ -5326,7 +5314,7 @@ class RatingScale:
 
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
-        self.reset()
+        self.reset() # sets .status
         self.win.units = self.savedWinUnits # restore
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
@@ -5568,7 +5556,12 @@ class RatingScale:
         self.lineRightEnd = self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor
 
         # space around the line within which to accept mouse input:
-        self.padSize = 0.06 * self.displaySizeFactor
+        pad = 0.06 * self.displaySizeFactor
+        self.nearLine = numpy.asarray([
+            (self.lineLeftEnd - pad, -2 * pad + self.offsetVert),
+            (self.lineLeftEnd - pad, 2 * pad + self.offsetVert),
+            (self.lineRightEnd + pad, 2 * pad + self.offsetVert),
+            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ])
 
         # vertices for ShapeStim:
         vertices = [[self.lineLeftEnd, self.offsetVert]] # first vertex
@@ -5797,18 +5790,6 @@ class RatingScale:
         if markerColor in ['White']:
             self.acceptTextColor = 'Black'
 
-    def _nearLine(self, mouseX, mouseY):
-        if (mouseY > -2 * self.padSize + self.offsetVert and
-                mouseY < 2 * self.padSize + self.offsetVert and
-                mouseX > self.lineLeftEnd - self.padSize and
-                mouseX < self.lineRightEnd + self.padSize):
-            return True
-        return False
-    def _inAcceptBox(self, mouseX, mouseY):
-        if (mouseY > self.acceptBoxbot and mouseY < self.acceptBoxtop and
-                mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
-            return True
-        return False
     def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low, fractional if precision > 1
         """
@@ -5816,7 +5797,7 @@ class RatingScale:
         markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
             self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
         markerPos = (round(markerPos * self.precision * self.autoRescaleFactor) /
-                    float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
+            float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
         return markerPos # 0 .. high-low
     def _getMarkerFromTick(self, value):
         """Convert a requested tick value into a position on the internal scale.
@@ -5855,6 +5836,7 @@ class RatingScale:
         if self.firstDraw:
             self.firstDraw = False
             self.myClock.reset()
+            self.status = STARTED
 
         # timed out?
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
@@ -5902,7 +5884,7 @@ class RatingScale:
                                         (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
             # update position:
-            if self.singleClick and self._nearLine(mouseX, mouseY):
+            if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
                 #self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
@@ -5958,7 +5940,7 @@ class RatingScale:
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
             #mouseX, mouseY = self.myMouse.getPos() # done above
-            if self._nearLine(mouseX, mouseY): # if near the line, place the marker there:
+            if pointInPolygon(mouseX, mouseY, self.nearLine): # if near the line, place the marker there:
                 self.markerPlaced = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
@@ -5968,7 +5950,7 @@ class RatingScale:
             # if in accept box, and a value has been selected, and enough time has elapsed:
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
-                        self._inAcceptBox(mouseX,mouseY)):
+                        self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                                 (self.name, str(self.getRating())) )
@@ -5979,14 +5961,16 @@ class RatingScale:
             logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
             # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
+            self.status = FINISHED
 
         # restore user's units:
         self.win.units = self.savedWinUnits
 
     def reset(self):
-        """restores the rating-scale to its post-creation state (as "untouched" by the subject).
+        """Restores the rating-scale to its post-creation state, status NOT_STARTED.
 
-        does not restore the scale text description (such reset is needed between items when rating multiple items)
+        Does not restore the scale text description (such reset is needed between
+        items when rating multiple items)
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
@@ -6006,6 +5990,7 @@ class RatingScale:
             self.accept.setColor('#444444','rgb') # greyed out
             self.accept.setText(self.keyClick)
         logging.exp('RatingScale %s: reset()' % self.name)
+        self.status = NOT_STARTED
 
     def getRating(self):
         """Returns the numerical rating.
