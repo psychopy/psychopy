@@ -428,11 +428,14 @@ class FlowPanel(wx.ScrolledWindow):
     def onContextSelect(self, event):
         """Perform a given action on the component chosen
         """
+        #get ID
         op = self.contextItemFromID[event.GetId()]
         compID=self._menuComponentID #the ID is also the index to the element in the flow list
         flow = self.frame.exp.flow
         component=flow[compID]
-
+        #if we have a Loop Initiator, remove the whole loop
+        if component.getType()=='LoopInitiator':
+            component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
             self.frame.addToUndoStack("remove %s from flow" %component.params['name'])

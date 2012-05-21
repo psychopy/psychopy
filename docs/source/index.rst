@@ -7,22 +7,9 @@ News
 
 **Video tutorial**: You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing you how to build a simple experiment in the Builder interface
 
-**Latest version**: 1.73.05 was released March 2012. See complete :doc:`changelog`
+**Latest version**: 1.73.06 was released April 2012. See complete :doc:`changelog`
 
 Work has now begun on 1.74.00 which wil bring new data file formats, HSV color space and more detailed info about key presses.
-
-.. raw:: html
-
-    <font color="red">
-
-VSS Workshop
-=================
-
-.. raw:: html
-
-    </font>
-
-We will be running a small-group workshop (probably limit to 30 people) for PsychoPy as a satellite at VSS on the Thursday before the main conference starts. Registration is required. See :ref:`VSS` for further details
 
 .. title:: Home
 

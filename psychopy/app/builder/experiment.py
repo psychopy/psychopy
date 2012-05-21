@@ -662,7 +662,8 @@ class StairHandler:
         if self.params['N reversals'].val in ["", None, 'None']:
             self.params['N reversals'].val='0'
         #write the code
-        buff.writeIndentedLines("\n#set up handler to look after next chosen value etc\n")
+        buff.writeIndentedLines('\n#--------Prepare to start Staircase "%(name)s" --------\n' %self.params)
+        buff.writeIndentedLines("#set up handler to look after next chosen value etc\n")
         buff.writeIndented("%(name)s=data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
@@ -901,7 +902,7 @@ class Routine(list):
                 thisCompon.writeStartCode(buff)
     def writeInitCode(self,buff):
         buff.writeIndented('\n')
-        buff.writeIndented('#Initialise components for routine:%s\n' %(self.name))
+        buff.writeIndented('#Initialise components for Routine "%s"\n' %(self.name))
         self._clockName = self.name+"Clock"
         buff.writeIndented('%s=core.Clock()\n' %(self._clockName))
         for thisCompon in self:
@@ -911,12 +912,12 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         #create the frame loop for this routine
-        buff.writeIndentedLines('\n#Start of routine %s\n' %(self.name))
+        buff.writeIndentedLines('\n#------Prepare to start Routine"%s"-------\n' %(self.name))
 
         buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
 
-        buff.writeIndentedLines("\n#update component parameters for each repeat\n")
+        buff.writeIndentedLines("#update component parameters for each repeat\n")
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
@@ -929,7 +930,7 @@ class Routine(list):
         buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
         buff.writeIndented("    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED\n")
 
-        buff.writeIndented('#start the Routine\n')
+        buff.writeIndented('#-------Start Routine "%s"-------\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
         buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
@@ -967,7 +968,7 @@ class Routine(list):
 
         #write the code for each component for the end of the routine
         buff.writeIndented('\n')
-        buff.writeIndented('#end of routine %s\n' %(self.name))
+        buff.writeIndented('#End of Routine "%s"\n' %(self.name))
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
         buff.writeIndentedLines('    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)\n')
         for event in self:

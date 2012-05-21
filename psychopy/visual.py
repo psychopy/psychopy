@@ -1107,14 +1107,14 @@ class _BaseVisualStim:
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', units=None):
-        """Set the stimulus position in the specified (or inheritted) `units`
+        """Set the stimulus position in the specified (or inherited) `units`
         """
         self._set('pos', val=newPos, op=operation)
         self._calcPosRendered()
     def setDepth(self,newDepth, operation=''):
         self._set('depth', newDepth, operation)
     def setSize(self, newSize, operation='', units=None):
-        """Set the stimulus size [X,Y] in the specified (or inheritted) `units`
+        """Set the stimulus size [X,Y] in the specified (or inherited) `units`
         """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation)
@@ -1333,8 +1333,7 @@ class DotStim(_BaseVisualStim):
     determines for how many frames the dot will continue before being regenerated).
 
     The default settings (as of v1.70.00) is for the noise dots to have identical velocity
-    but random direction and signal dots that come from a different population
-    to the noise dots (once a signal dot, always a signal dot).
+    but random direction and signal dots remain the 'same' (once a signal dot, always a signal dot).
 
     For further detail about the different configurations see :ref:`dots` in the Builder
     Components section of the documentation.
@@ -1547,7 +1546,7 @@ class DotStim(_BaseVisualStim):
         self._signalDots[0:int(self.coherence*self.nDots)]=True
         #for 'direction' method we need to update the direction of the number
         #of signal dots immediately, but for other methods it will be done during updateXY
-        if self.noiseDots == 'direction':
+        if self.noiseDots in ['direction','position']:
             self._dotsDir=numpy.random.rand(self.nDots)*2*pi
             self._dotsDir[self._signalDots]=self.dir*pi/180
     def setDir(self,val, op=''):
