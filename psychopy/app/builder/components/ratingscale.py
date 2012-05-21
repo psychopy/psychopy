@@ -188,12 +188,23 @@ class RatingScaleComponent(BaseComponent):
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
-        buff.writeIndented("%(name)s.status = NOT_STARTED\n" % (self.params))
 
     def writeFrameCode(self, buff):
         name = self.params['name']
         buff.writeIndented("\n")
         buff.writeIndented("#*%(name)s* updates\n" %(self.params))
+        # try to handle blank start condition gracefully:
+        if not self.params['startVal'].val.strip():
+            self.params['startVal'].val = 0 # time, frame
+            if self.params['startType'].val == 'condition':
+                self.params['startVal'].val = 'True'
+        if self.params['startType'].val == 'frame N':
+            buff.writeIndented("if frameN > %(startVal)s:\n" % self.params)
+        elif self.params['startType'].val == 'condition':
+            buff.writeIndented("if %(startVal)s:\n" % self.params)
+        else: # self.params['startType'].val == 'time (s)':
+            buff.writeIndented("if t > %(startVal)s:\n" % self.params)
+        buff.setIndentLevel(1, relative=True)
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
         # if requested, force end of trial when the subject 'accepts' the current rating:
         if self.params['forceEndRoutine'].val:
@@ -201,11 +212,10 @@ class RatingScaleComponent(BaseComponent):
         # only need to do the following the first time it goes False, here gets set every frame:
         buff.writeIndented("if %s.noResponse == False:\n" % name)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("%(name)s.status = FINISHED\n" % (self.params))
         buff.writeIndented("%s.response = %s.getRating()\n" % (name, name));
         if self.params['storeRatingTime'].val:
             buff.writeIndented("%s.rt = %s.getRT()\n" % (name, name));
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
