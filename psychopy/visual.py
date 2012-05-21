@@ -3493,7 +3493,7 @@ class ElementArrayStim:
         self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
 
         #depth
-        self._visXYZvertices[:,:,2] = self.depths
+        self._visXYZvertices[:,:,2] = numpy.tile(self.depths,(4,1)).T + self.fieldDepth
 
         self.needVertexUpdate=False
 
