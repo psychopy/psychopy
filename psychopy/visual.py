@@ -70,6 +70,12 @@ try:
 except:
     haveFB=False
 
+try:
+    from matplotlib import nxutils
+    haveNxutils = True
+except:
+    haveNxutils = False
+    
 global DEBUG; DEBUG=False
 
 #symbols for MovieStim
@@ -6587,13 +6593,11 @@ def pointInPolygon(x, y, poly):
     """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
     
     `poly` is a list of 3+ vertices as (x,y) pairs.
-    If given an object that has .vertices and .pos attributes, will use (.vertices + .pos) as the polygon.
+    If given a `ShapeStim`-based object, will use the
+    rendered vertices and position as the polygon.
     
     Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
     """
-    # from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
-    # via http://www.ariel.com.au/a/python-point-int-poly.html
-    
     # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
     # see also https://github.com/jraedler/Polygon2/
 
@@ -6604,6 +6608,15 @@ def pointInPolygon(x, y, poly):
         msg = 'pointInPolygon expects a polygon with 3 or more vertices'
         logging.warning(msg)
         return False
+
+    # faster if have matplotlib.nxutils:
+    if haveNxutils:
+        return bool(nxutils.pnpoly(x, y, poly))
+
+    # fall through to pure python:
+    # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+    # via http://www.ariel.com.au/a/python-point-int-poly.html
+    
     inside = False
     # trace (horizontal?) rays, flip inside status if cross an edge:
     p1x, p1y = poly[-1]
@@ -6619,8 +6632,8 @@ def pointInPolygon(x, y, poly):
 def polygonsOverlap(poly1, poly2):
     """Determine if two polygons intersect; the approximation can fail for pointy polygons.
     
-    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`
-    instances, will use (vertices + pos) as the polygon.
+    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
+    instances, will use rendered (vertices + pos) as the polygon.
     
     Checks if any vertex of one polygon is inside the other polygon; will fail in some
     cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
@@ -6629,6 +6642,14 @@ def polygonsOverlap(poly1, poly2):
         poly1 = poly1._verticesRendered + poly1._posRendered
     if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
         poly2 = poly2._verticesRendered + poly2._posRendered
+    
+    # faster if have matplotlib.nxutils: 
+    if haveNxutils:
+        if any(nxutils.points_inside_poly(poly1, poly2)):
+            return True
+        return any(nxutils.points_inside_poly(poly2, poly1))
+    
+    # fall through to pure python:
     for p1 in poly1:
         if pointInPolygon(p1[0], p1[1], poly2):
             return True
