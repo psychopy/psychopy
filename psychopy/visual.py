@@ -4635,21 +4635,29 @@ class ShapeStim(_BaseVisualStim):
         numpy array; or c) an object with a getPos() method that returns x,y, such
         as a mouse. Returns True if the point is within the area defined by `vertices`, 
         using a ray-casting algorithm. This handles complex shapes, including
-        concavities and self-crossings. See coder demo, shapeContains.py
+        concavities and self-crossings.
+        
+        See coder demo, shapeContains.py
         """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
             x,y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
-        return pointInPolygon(x, y, self.vertices)
+        return pointInPolygon(x, y, self)
 
     def overlaps(self, polygon):
         """Determines if this shape intersects another one. If `polygon` is 
         a `ShapeStim` instance, will use (vertices + pos) as the polygon. Overlap
         detection is only approximate; can fail with pointy shapes. Returns True
-        if the two shapes overlap. See coder demo, shapeContains.py
+        if the two shapes overlap.
+        
+        See coder demo, shapeContains.py
         """
-        return polygonsOverlap(self.vertices, polygon)
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        return polygonsOverlap(self, polygon)
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
@@ -6590,8 +6598,8 @@ def pointInPolygon(x, y, poly):
     # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
     # see also https://github.com/jraedler/Polygon2/
 
-    if hasattr(poly, 'vertices') and hasattr(poly, 'pos'):
-        poly = poly.vertices + poly.pos
+    if hasattr(poly, '_verticesRendered') and hasattr(poly, '_posRendered'):
+        poly = poly._verticesRendered + poly._posRendered
     nVert = len(poly)
     if nVert < 3:
         msg = 'pointInPolygon expects a polygon with 3 or more vertices'
@@ -6618,10 +6626,10 @@ def polygonsOverlap(poly1, poly2):
     Checks if any vertex of one polygon is inside the other polygon; will fail in some
     cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
-    if isinstance(poly1, ShapeStim):
-        poly1 = poly1.vertices + poly1.pos
-    if isinstance(poly2, ShapeStim):
-        poly2 = poly2.vertices + poly2.pos
+    if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
+        poly1 = poly1._verticesRendered + poly1._posRendered
+    if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
+        poly2 = poly2._verticesRendered + poly2._posRendered
     for p1 in poly1:
         if pointInPolygon(p1[0], p1[1], poly2):
             return True
