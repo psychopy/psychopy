@@ -96,7 +96,7 @@ class VisualComponent(_base.BaseComponent):
                 continue
             elif thisParamName=='letterHeight':
                 paramCaps='Height' #setHeight for TextStim
-            elif thisParamName=='image':
+            elif thisParamName=='image' and self.getType()=='Patch':
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
                 paramCaps='SF' #setSF, not SetSf
@@ -106,9 +106,16 @@ class VisualComponent(_base.BaseComponent):
                 paramCaps='FieldPos'
             else:
                 paramCaps = thisParamName.capitalize()
+
+            if thisParam.updates=='set every frame':
+                loggingStr = ',log=False'
+            else:
+                loggingStr=''
             #color is slightly special
             if thisParam.updates==updateType:
                 if thisParamName=='color':
-                    buff.writeIndented("%(name)s.setColor(%(color)s, colorSpace=%(colorSpace)s)\n" %(self.params))
-                else: buff.writeIndented("%s.set%s(%s)\n" %(self.params['name'], paramCaps, thisParam))
+                    buff.writeIndented("%(name)s.setColor(%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+                    buff.write("%s)\n" %(loggingStr))
+                else:
+                    buff.writeIndented("%s.set%s(%s%s)\n" %(self.params['name'], paramCaps, thisParam,loggingStr))
 
