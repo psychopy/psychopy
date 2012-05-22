@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from psychopy import visual, filters, event, core
 import numpy as np
-"""Textures (e.g. for a PatchStim) can be created from custom numpy arrays. 
+"""Textures (e.g. for a GratingStim) can be created from custom numpy arrays. 
 
 For this they should be square arrays, with size in powers of two (e.g. 64,128,256,512)
 A 256x256 array can then be given color efficiently using the normal stimulus methods.
@@ -25,10 +25,10 @@ radialTexture_sub = radialTexture[256:,0:256]
 #and create an appropriate mask for it
 subMask = filters.makeMask(res, radius=0.5, center=[-0,0])
 
-bigStim = visual.PatchStim(win, tex=radialTexture, mask=mainMask,
+bigStim = visual.GratingStim(win, tex=radialTexture, mask=mainMask,
    color=[1,1,1], size=512, sf=1.0/512, interpolate=True)
 #draw the quadrant stimulus centred in the top left quadrant of the 'base' stimulus (so they're aligned)
-subStim = visual.PatchStim(win, tex=radialTexture_sub, pos=(-128,128), mask=subMask,
+subStim = visual.GratingStim(win, tex=radialTexture_sub, pos=(-128,128), mask=subMask,
    color=[1,1,1], size=256, sf=1.0/256, interpolate=True,
    autoLog=False)#this stim changes too much for autologging to be useful
 

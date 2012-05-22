@@ -16,7 +16,7 @@ from numpy import sin, pi
 myWin = visual.Window((600,600.0), allowGUI=False, monitor='testMonitor', units='deg')
 
 #INITIALISE SOME STIMULI
-grating1 = visual.PatchStim(myWin,tex="sin",mask="circle",texRes=128,
+grating1 = visual.GratingStim(myWin,tex="sin",mask="circle",texRes=128,
             color=[1.0,1.0,1.0],colorSpace='rgb', opacity=1.0,
             size=(5.0,5.0), sf=(2.0,2.0),
             ori = 45, depth=0.5,
