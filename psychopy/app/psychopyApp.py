@@ -126,8 +126,9 @@ class PsychoPyApp(wx.App):
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
         splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
+        from psychopy import compatibility
         from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, wxIDs, urls
+        from psychopy.app import coder, builder, dialogs, wxIDs, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
@@ -137,6 +138,15 @@ class PsychoPyApp(wx.App):
         self.IDs=wxIDs
         self.urls=urls.urls
         self.quitting=False
+        #check compatibility with last run version (before opening windows)
+        if 'lastVersion' not in self.prefs.appData.keys():
+            last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
+        else:
+            last=self.prefs.appData['lastVersion']
+        ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
+        if not ok:#tell the user what has changed
+            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
+            dlg.ShowModal()
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -220,7 +230,6 @@ class PsychoPyApp(wx.App):
             #check for updates
             self.updater.suggestUpdate(confirmationDlg=False)
         evt.Skip()
-
     def getPrimaryDisplaySize(self):
         """Get the size of the primary display (whose coords start (0,0))
         """
@@ -335,6 +344,8 @@ class PsychoPyApp(wx.App):
         else:
             self.prefs.appData['lastFrame']='both'
 
+        self.prefs.appData['lastVersion']=self.version
+
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]
@@ -375,7 +386,10 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Jeremy Gray')
+        info.AddDeveloper('Erik Kastner')
+        info.AddDeveloper('Michael MacAskill')
         info.AddDocWriter('Jonathan Peirce')
+        info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
 
         wx.AboutBox(info)

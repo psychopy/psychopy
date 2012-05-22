@@ -6,13 +6,13 @@ myWin = visual.Window((600,600), allowGUI=False, color=(-1,-1,-1),
         monitor='testMonitor',winType='pyglet', units='norm')
 myWin.setRecordFrameIntervals()
 #INITIALISE SOME STIMULI
-faceRGB = visual.PatchStim(myWin,tex='face.jpg',
+faceRGB = visual.ImageStim(myWin,image='face.jpg',
     mask=None,
     pos=(0.0,0.0),
-    size=(1.0,1.0),
-    sf=(1.0, 1.0))
-    
-faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
+    size=(1.0,1.0))
+
+#can also use the face image as a mask for a grating!
+faceALPHA = visual.GratingStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
     color='green',
     size=(0.5,0.5), sf=1.0, units="norm")

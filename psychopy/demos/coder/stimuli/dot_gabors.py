@@ -6,7 +6,7 @@ myWin = visual.Window((600,600), allowGUI=False,
                       monitor='testMonitor', units='deg')
 
 #INITIALISE SOME STIMULI
-myDotShape = visual.PatchStim(myWin, mask='gauss',sf=3)
+myDotShape = visual.GratingStim(myWin, mask='gauss',sf=3)
 dotPatch = visual.DotStim(myWin, color=[1,1,1],
                         dotLife=5, #lifetime of a dot in frames (if this is long density artefacts can occur in the stimulus)
                         signalDots='different', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
