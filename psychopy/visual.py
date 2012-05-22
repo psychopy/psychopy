@@ -4908,6 +4908,156 @@ class Line(ShapeStim):
 
 
 class ImageStim(_BaseVisualStim):
+    def __init__(self,
+                 win,
+                 image     =None,
+                 mask    =None,
+                 units   ="",
+                 pos     =(0.0,0.0),
+                 size    =None,
+                 ori     =0.0,
+                 color=(1.0,1.0,1.0),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 depth=0,
+                 interpolate=False,
+                 flipHoriz=False,
+                 flipVert=False,
+                 texRes=128,
+                 name='', autoLog=True,
+                 maskParams=None):
+        """
+        :Parameters:
+
+            win :
+                a :class:`~psychopy.visual.Window` object (required)
+            image :
+                The image file to be presented (most formats supported)
+            mask :
+                The alpha mask that can be used to control the outer shape of the stimulus
+
+                + **None**, 'circle', 'gauss', 'raisedCos'
+                + or the name of an image file (most formats supported)
+                + or a numpy array (1xN or NxN) ranging -1:1
+
+            units : **None**, 'norm', 'cm', 'deg' or 'pix'
+                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
+                See :ref:`units` for explanation of other options.
+
+            pos :
+                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+                The origin is the screen centre, the units are determined
+                by units (see above). Stimuli can be position beyond the
+                window!
+
+            size :
+                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
+                OR a single value (which will be applied to x and y).
+                Units are specified by 'units' (see above).
+                Sizes can be negative and can extend beyond the window.
+
+                .. note::
+
+                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
+                    the stimulus at 3 standard deviations on each side of the
+                    centre (ie. sd=size/6)
+
+            ori:
+                orientation of stimulus in degrees
+
+            color:
+
+                Could be a:
+
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
+
+            contrast:
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus).
+
+            opacity:
+                1.0 is opaque, 0.0 is transparent
+
+            texRes:
+                Sets the resolution of the mask (this is independent of the image resolution)
+
+            depth:
+                The depth argument is deprecated and may be removed in future versions.
+                Depth is controlled simply by drawing order.
+
+            name : string
+                The name of the object to be using during logged messages about
+                this stim
+
+            maskParams: Various types of input. Default to None.
+                This is used to pass additional parameters to the mask if those
+                are needed.
+                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                where 'fringeWidth' is a parameter (float, 0-1), determining
+                the proportion of the patch that will be blurred by the raised
+                cosine edge.
+
+        """
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+
+        if win._haveShaders: self._useShaders=True#by default, this is a good thing
+        else: self._useShaders=False
+
+        self.ori = float(ori)
+        self.contrast = float(contrast)
+        self.opacity = opacity
+        self.interpolate=interpolate
+        self.flipHoriz = flipHoriz
+        self.flipVert = flipVert
+
+        self.origSize=None#if an image texture is loaded this will be updated
+
+        self.colorSpace=colorSpace
+        self.setColor(color, colorSpace=colorSpace, log=False)
+
+        #initialise textures for stimulus
+        self.texID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.texID))
+        self.maskID=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.maskID))
+
+        # Set the maskParams (defaults to None):
+        self.maskParams= maskParams
+
+        self.texRes=texRes
+        self.setImage(image, log=False)
+        self.setMask(mask, log=False)
+
+        #size
+        self._requestedSize=size
+        if size==None:
+            self._setSizeToDefault()
+        elif type(size) in [tuple,list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size),float)#make a square if only given one dimension
+
+        self.pos = numpy.array(pos,float)
+
+        self.depth=depth
+        #fix scaling to window coords
+        self._calcSizeRendered()
+        self._calcPosRendered()
+
+        #generate a displaylist ID
+        self._listID = GL.glGenLists(1)
+        self._updateList()#ie refresh display list
 
     def _updateListShaders(self):
         """
@@ -6636,6 +6786,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             #check if it's a square power of two
             maxDim = max(tex.shape)
             powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+            if forcePOW2 and (tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2):
                 logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
                 core.quit()
             res=tex.shape[0]
@@ -6760,7 +6911,9 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             maxDim = max(im.size)
             powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
             if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
-                if _nImageResizes<reportNImageResizes:
+                if not forcePOW2:
+                    notSqr=True
+                elif _nImageResizes<reportNImageResizes:
                     logging.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
                 elif _nImageResizes==reportNImageResizes:
                     logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
