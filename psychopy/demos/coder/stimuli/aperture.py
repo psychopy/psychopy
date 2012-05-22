@@ -1,10 +1,10 @@
 from psychopy import visual, core, event
 
 win = visual.Window([400,400],allowStencil=True,units='norm')
-gabor1 = visual.PatchStim(win, mask='circle', pos=[0.2, 0.2], 
+gabor1 = visual.GratingStim(win, mask='circle', pos=[0.2, 0.2], 
     sf=4, size=.4,
     color=[0.5,-0.5,1])
-gabor2 = visual.PatchStim(win, mask='circle', pos=[-0.2, -0.2], 
+gabor2 = visual.GratingStim(win, mask='circle', pos=[-0.2, -0.2], 
     sf=4, size=.4,
     color=[-0.5,-0.5,-1])
 

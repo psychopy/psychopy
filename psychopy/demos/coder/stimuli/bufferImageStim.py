@@ -5,7 +5,7 @@ bufferImageStim.py
 
 illustrates using class psychopy.visual.BufferImageStim(): 
 - take a snapshot of a static, multi-item screen image (eg, graphics + text)
-- save as a PatchStim-like image (BufferImageStim) for later fast drawing
+- save as a ImageStim-like image (BufferImageStim) for later fast drawing
 - report timing stats for using a fullscreen BufferImageStim()
 """
 __author__ = 'Jeremy Gray'
@@ -87,7 +87,7 @@ print "initial set-up: %.0fms total\n    capture time = %.1fms" % \
 print "    first frame = %.2fms (transfer to graphics card?)" % (1000. * first)
 print "draw time %d frames: %.2fms avg, %.2fms max" % \
         (len(drawTimeSingle), singleAvg, max(drawTimeSingle) * 1000.)
-print "    (vs. draw as 3 non-PatchStim = %.2fms avg, %.2fms max)" % \
+print "    (vs. draw as 3 non-ImageStim = %.2fms avg, %.2fms max)" % \
         ( multiAvg, max(drawTimeMulti) * 1000.)
 
     

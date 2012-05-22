@@ -9,10 +9,10 @@ logging.console.setLevel(logging.DEBUG)
 myWin = visual.Window([600,600], allowGUI=False)
 
 noiseTexture = scipy.random.rand(128,128)*2.0-1
-myPatch = visual.PatchStim(myWin, tex=noiseTexture, 
+myPatch = visual.GratingStim(myWin, tex=noiseTexture, 
     size=(128,128), units='pix',
     interpolate=False,
-    autoLog=True)#this stim changes too much for autologging to be useful
+    autoLog=False)#this stim changes too much for autologging to be useful
 
 for n in range(200): #for 200 frames
     myPatch.setPhase(1/128.0,'+')# increment by one pixel
