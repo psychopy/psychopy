@@ -5060,9 +5060,9 @@ class RatingScale:
     Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple
     of 10, just to reduce visual clutter.
 
-    **Example 1**::
+    **Example 1**:
 
-        *Default 7-point scale*::
+        The default 7-point scale::
 
             myItem = <create your text, image, movie, ...>
             myRatingScale = visual.RatingScale(myWin)
@@ -5073,22 +5073,22 @@ class RatingScale:
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
         
-        You can equivalently specify the while condition using .status::
+        You can equivalently specify the `while` condition using `.status`::
         
             while myRatingScale.status != FINISHED:
 
-    **Example 2**::
+    **Example 2**:
 
-        Mouse-free. Considerable customization is possible. For fMRI, if your
+        Key-board only. Considerable customization is possible. For fMRI, if your
         response box sends keys 1-4, you could specify left, right, and accept
-        keys, and no mouse:
+        keys, and no mouse::
 
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
 
-    **Example 3**::
+    **Example 3**:
 
-        Non-numeric choices (categorical, unordered):
+        Non-numeric choices (categorical, unordered)::
 
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
             myRatingScale = visual.RatingScale(myWin,
@@ -5110,7 +5110,7 @@ class RatingScale:
     allows full control over a RatingScale (via 'customizeEverything').
 
     :Author:
-        2010 Jeremy Gray, 2011 updates
+        2010 Jeremy Gray, with various updates.
     """
     def __init__(self,
                 win,
@@ -5173,9 +5173,9 @@ class RatingScale:
         highAnchorText :
             text to display for the high end of the scale (default = numeric high value)
         precision :
-            portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
+            portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
-            .. note:: left/right keys will move the marker by one portion of a tick.
+            .. note:: `leftKeys` / `rightKeys` will move the marker by one portion of a tick.
 
         textSizeFactor :
             control the size of text elements of the scale.
@@ -5199,30 +5199,33 @@ class RatingScale:
                 to give the subject a way to respond.
 
         acceptKeys :
-            list of keys that mean "accept the current response", default = ['return']
+            a key or list of keys that mean "accept the current response", default = ['return']
         acceptPreText :
             text to display before any value has been selected
         acceptText :
             text to display in the 'accept' button after a value has been selected
         leftKeys :
-            list of keys that mean "move leftwards", default = ['left']
+            a key or list of keys that mean "move leftwards", default = ['left']
         rightKeys :
-            list of keys that mean "move rightwards", default = ['right']
+            a key or list of keys that mean "move rightwards", default = ['right']
         lineColor :
             color to use for the scale line, default = 'White'
         markerStyle :
-            *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
+            'triangle' (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
         markerColor :
-            *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
+            None = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
         markerStart :
-            *False*, or the value in [low..high] to be pre-selected upon initial display
+            False, or the value in [low..high] to be pre-selected upon initial display
         markerExpansion :
             how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
         customMarker :
-            allows for a user-defined marker; must have a `.draw()` method, such as a TextStim()
-            or PatchStim()
+            allows for a user-defined marker; must have a `.draw()` method, such as a
+            :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.PatchStim()`
         escapeKeys :
-            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none)
+            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
+            
+            .. note:: in the Builder, the default is ['escape'] (to be consistent with other Builder conventions)
+            
         allowSkip :
             if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
         skipKeys :
