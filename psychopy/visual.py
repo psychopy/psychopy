@@ -5300,18 +5300,17 @@ class ImageStim(_BaseVisualStim):
         #set it
         self._calcSizeRendered()
         self.needUpdate=True
-class BufferImageStim(PatchStim):
+class BufferImageStim(GratingStim):
     """
-    Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
+    Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
 
     The class returns a screen-shot, i.e., a single collage image composed of static
     elements, ones that you want to treat as effectively a single stimulus. The
     screen-shot can be of the visible screen (front buffer) or hidden (back buffer).
 
     BufferImageStim aims to provide fast rendering, while still allowing dynamic
-    orientation, position, and opacity. Its fast to draw but slow to init: ~75ms for
-    a 1024 x 512 capture; init time is proportional to image size (as for PatchStim).
-    There is no support for dynamic depth or color.
+    orientation, position, and opacity. Its fast to draw but slow to init (like
+    ImageStim). There is no support for dynamic depth.
 
     You specify the part of the screen to capture (in norm units), and optionally
     the stimuli themselves (as a list of items to be drawn). You get a screenshot
@@ -5323,8 +5322,8 @@ class BufferImageStim(PatchStim):
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
     Status: seems to work on Mac, but limitations:
-        - Screen units are not properly sorted out, better to allow pix too
-        - Rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+    - Screen units are not properly sorted out, would be better to allow pix too
+    - Not tested on Windows, Linux, FreeBSD
 
     **Example**::
 
@@ -5342,7 +5341,7 @@ class BufferImageStim(PatchStim):
             other_stuff.draw() # dynamic
             myWin.flip()
 
-    See coder Demos > stimuli > bufferImageStim.py for a demo.
+    See coder Demos > stimuli > bufferImageStim.py for a demo, with timing stats.
 
     :Author:
         - 2010 Jeremy Gray
@@ -5403,7 +5402,11 @@ class BufferImageStim(PatchStim):
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         # turn the RGBA region into a PatchStim()-like object:
-        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
+        GratingStim.__init__(self, win, tex=region, units='pix',
+                             interpolate=interpolate, name=name, autoLog=autoLog)
+        # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
+        # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
+        #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
@@ -5480,10 +5483,11 @@ class BufferImageStim(PatchStim):
                 level=logging.EXP,obj=self)
     def draw(self):
         """
-        streamlined version of :class:`~psychopy.visual.PatchStim.draw`.
-        limitations / bugs: not sure what happens with shaders & self._updateList()
+        Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
+        Allows dynamic position, size, rotation, color, and opacity.
+        Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        # this is copy & pasted from PatchStim, then had stuff taken out for speed
+        # this is copy & pasted from old PatchStim, then had stuff taken out for speed
 
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
