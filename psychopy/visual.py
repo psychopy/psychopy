@@ -116,7 +116,8 @@ class Window:
                  viewPos  = None,
                  viewOri  = 0.0,
                  waitBlanking=True,
-                 allowStencil=False):
+                 allowStencil=False,
+                 name='window1'):
         """
         :Parameters:
 
@@ -158,12 +159,13 @@ class Window:
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
 
         """
-
+        self.name=name
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
         self.winHandle=None#this will get overridden once the window is created
 
         self._defDepth=0.0
+        self._toLog=[]
 
         #settings for the monitor: local settings (if available) override monitor
         #if we have a monitors.Monitor object (psychopy 0.54 onwards)
@@ -301,7 +303,6 @@ class Window:
         self.recordFrameIntervalsJustTurnedOn=False # Allows us to omit the long timegap that follows each time turn it off
         self.nDroppedFrames=0
         self.frameIntervals=[]
-        self._toLog=[]
         self._toDraw=[]
         self._toDrawDepths=[]
         self._eventDispatchers=[]
@@ -1106,38 +1107,33 @@ class _BaseVisualStim:
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
-    def setPos(self, newPos, operation='', units=None):
+    def setPos(self, newPos, operation='', units=None, log=True):
         """Set the stimulus position in the specified (or inherited) `units`
         """
-        self._set('pos', val=newPos, op=operation)
+        self._set('pos', val=newPos, op=operation, log=log)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=''):
-        self._set('depth', newDepth, operation)
-    def setSize(self, newSize, operation='', units=None):
+    def setDepth(self,newDepth, operation='', log=True):
+        self._set('depth', newDepth, operation, log)
+    def setSize(self, newSize, operation='', units=None, log=True):
         """Set the stimulus size [X,Y] in the specified (or inherited) `units`
         """
         if units==None: units=self.units#need to change this to create several units from one
-        self._set('size', newSize, op=operation)
+        self._set('size', newSize, op=operation, log=log)
         self._requestedSize=newSize#to track whether we're just using a default
         self._calcSizeRendered()
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
         self.needUpdate=True
-    def setOri(self, newOri, operation=''):
+    def setOri(self, newOri, operation='', log=True):
         """Set the stimulus orientation in degrees
         """
-        self._set('ori',val=newOri, op=operation)
-    def setOpacity(self,newOpacity,operation=''):
+        self._set('ori',val=newOri, op=operation, log=log)
+    def setOpacity(self,newOpacity,operation='', log=True):
         self._set('opacity', newOpacity, operation)
         #opacity is coded by the texture, if not using shaders
         if not self._useShaders and hasattr(self,'setMask'):
-            #turn off autologging
-            autoLogging = self.autoLog
-            self.autoLog=False
             #update mask with new opacity
-            self.setMask(self._maskName)
-            #reinstate autologging if needed
-            self.autoLog=autoLogging
+            self.setMask(self._maskName, log=False)
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
         """
@@ -1154,7 +1150,7 @@ class _BaseVisualStim:
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
 
-    def setColor(self, color, colorSpace=None, operation=''):
+    def setColor(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
 
@@ -1204,19 +1200,17 @@ class _BaseVisualStim:
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
-                    colorAttrib='color')
-        if self.autoLog:
-            self.win.logOnFlip("Set %s color=%s colorSpace=%s" %(self.name, self.color, self.colorSpace),
-                level=logging.EXP,obj=self)
-    def setContr(self, newContr, operation=''):
+                    colorAttrib='color',
+                    log=log)
+    def setContr(self, newContr, operation='', log=True):
         """Set the contrast of the stimulus
         """
-        self._set('contr', newContr, operation)
+        self._set('contr', newContr, operation, log)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             if hasattr(self,'_texName'): self.setTex(self._texName)
             elif hasattr(self,'_imName'): self.setIm(self._imName)
-    def _set(self, attrib, val, op=''):
+    def _set(self, attrib, val, op='', log=True):
         """
         Deprecated. Use methods specific to the parameter you want to set
 
@@ -1240,7 +1234,7 @@ class _BaseVisualStim:
         else:
             exec('self.'+attrib+op+'=val')
 
-        if self.autoLog:
+        if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
                 level=logging.EXP,obj=self)
 
@@ -1252,9 +1246,11 @@ class _BaseVisualStim:
             logging.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
-            if hasattr(self,'_texName'): self.setTex(self._texName)
-            elif hasattr(self,'_imName'): self.setIm(self._imName)
-            self.setMask(self._maskName)
+            if hasattr(self,'_texName'):
+                self.setTex(self._texName, log=False)
+            elif hasattr(self,'_imName'):
+                self.setIm(self._imName, log=False)
+            self.setMask(self._maskName, log=False)
             self.needUpdate=True
 
     def _updateList(self):
@@ -1279,7 +1275,7 @@ class _BaseVisualStim:
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-    def setAutoDraw(self, val):
+    def setAutoDraw(self, val, log=True):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
 
@@ -1311,11 +1307,14 @@ class _BaseVisualStim:
             toDrawDepths.pop(toDraw.index(self))#remove from depths
             toDraw.remove(self)#remove from draw list
             #update log and status
-            if self.autoLog: self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name,
-                level=logging.EXP, obj=self)
+            if log and self.autoLog:
+                self.win.logOnFlip(msg=u"Stopped presenting %s" %self.name,
+                    level=logging.EXP, obj=self)
             self.status = STOPPED
     def setAutoLog(self,val=True):
         """Turn on (or off) autoLogging for this stimulus.
+        When autologging is enabled it can be overridden for an individual set()
+        operation using the log=False argument.
 
         :parameters:
             - val: True (default) or False
@@ -1493,7 +1492,7 @@ class DotStim(_BaseVisualStim):
         self._calcFieldCoordsRendered()
         self._update_dotsXY()
 
-    def _set(self, attrib, val, op=''):
+    def _set(self, attrib, val, op='', log=True):
         """Use this to set attributes of your stimulus after initialising it.
 
         :Parameters:
@@ -1525,25 +1524,28 @@ class DotStim(_BaseVisualStim):
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
 
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
+                level=logging.EXP,obj=self)
 
-    def set(self, attrib, val, op=''):
+    def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setFieldPos(), setCoherence()...)
         """
-        self._set(attrib, val, op)
-    def setPos(self, newPos=None, operation='', units=None):
+        self._set(attrib, val, op, log=log)
+    def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
-    def setFieldPos(self,val, op=''):
-        self._set('fieldPos', val, op)
+    def setFieldPos(self,val, op='', log=True):
+        self._set('fieldPos', val, op, log=log)
         self._calcFieldCoordsRendered()
-    def setFieldCoherence(self,val, op=''):
+    def setFieldCoherence(self,val, op='', log=True):
         """Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
         """
-        self._set('coherence', val, op)
+        self._set('coherence', val, op, log=log)
         self.coherence=round(self.coherence*self.nDots)/self.nDots#store actual coherence rounded by nDots
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
         self._signalDots[0:int(self.coherence*self.nDots)]=True
@@ -1552,18 +1554,18 @@ class DotStim(_BaseVisualStim):
         if self.noiseDots in ['direction','position']:
             self._dotsDir=numpy.random.rand(self.nDots)*2*pi
             self._dotsDir[self._signalDots]=self.dir*pi/180
-    def setDir(self,val, op=''):
+    def setDir(self,val, op='', log=True):
         """Change the direction of the signal dots (units in degrees)
         """
         #check which dots are signal
         signalDots = self._dotsDir==(self.dir*pi/180)
-        self._set('dir', val, op)
+        self._set('dir', val, op, log=log)
         #dots currently moving in the signal direction also need to update their direction
         self._dotsDir[signalDots] = self.dir*pi/180
-    def setSpeed(self,val, op=''):
+    def setSpeed(self,val, op='', log=True):
         """Change the speed of the dots (in stimulus `units` per second)
         """
-        self._set('speed', val, op)
+        self._set('speed', val, op, log=log)
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
@@ -1783,7 +1785,7 @@ class SimpleImageStim:
         self.setFlipVert(flipVert)
 
         self._calcPosRendered()
-    def setFlipHoriz(self,newVal=True):
+    def setFlipHoriz(self,newVal=True, log=True):
         """If set to True then the image will be flipped horiztonally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
@@ -1791,7 +1793,10 @@ class SimpleImageStim:
             self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipHoriz=newVal
         self._needStrUpdate=True
-    def setFlipVert(self,newVal=True):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" %(self.name, newVal),
+                level=logging.EXP,obj=self)
+    def setFlipVert(self,newVal=True, log=True):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
         """
@@ -1799,6 +1804,9 @@ class SimpleImageStim:
             self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipVert=newVal
         self._needStrUpdate=True
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" %(self.name, newVal),
+                level=logging.EXP,obj=self)
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
@@ -1851,7 +1859,7 @@ class SimpleImageStim:
         GL.glMatrixMode( GL.GL_PROJECTION )
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
-    def _set(self, attrib, val, op=''):
+    def _set(self, attrib, val, op='', log=True):
         """
         Deprecated. Use methods specific to the parameter you want to set
 
@@ -1875,20 +1883,20 @@ class SimpleImageStim:
         else:
             exec('self.'+attrib+op+'=val')
 
-        if self.autoLog:
+        if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
                 level=logging.EXP,obj=self)
-    def setPos(self, newPos, operation='', units=None):
-        self._set('pos', val=newPos, op=operation)
+    def setPos(self, newPos, operation='', units=None, log=True):
+        self._set('pos', val=newPos, op=operation, log=log)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation=''):
-        self._set('depth', newDepth, operation)
+    def setDepth(self,newDepth, operation='', log=True):
+        self._set('depth', newDepth, operation, log=log)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['pix', 'pixels', 'height', 'norm']: self._posRendered=self.pos
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
-    def setImage(self,filename=None):
+    def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
 
         :Parameters:
@@ -1897,6 +1905,7 @@ class SimpleImageStim:
                 Can actually also be an image loaded by PIL.
 
         """
+        self.image=filename
         if type(filename) in [str, unicode]:
         #is a string - see if it points to a file
             if os.path.isfile(filename):
@@ -1928,6 +1937,9 @@ class SimpleImageStim:
         self.dataType = GL.GL_FLOAT
         self._needStrUpdate = True
 
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
+                level=logging.EXP,obj=self)
 class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
@@ -2102,15 +2114,15 @@ class GratingStim(_BaseVisualStim):
         self.colorSpace=colorSpace
         if rgb!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            self.setColor(rgb, colorSpace='rgb', log=False)
         elif dkl!=None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
+            self.setColor(dkl, colorSpace='dkl', log=False)
         elif lms!=None:
             logging.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
+            self.setColor(lms, colorSpace='lms', log=False)
         else:
-            self.setColor(color, colorSpace=colorSpace)
+            self.setColor(color, colorSpace=colorSpace, log=False)
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
         if type(rgbPedestal)==float or type(rgbPedestal)==int: #user may give a luminance val
@@ -2133,8 +2145,8 @@ class GratingStim(_BaseVisualStim):
         # Set the maskParams (defaults to None):
         self.maskParams= maskParams
 
-        self.setTex(tex)
-        self.setMask(mask)
+        self.setTex(tex, log=False)
+        self.setMask(mask, log=False)
 
         #size
         self._requestedSize=size
@@ -2167,8 +2179,8 @@ class GratingStim(_BaseVisualStim):
         self._updateList()#ie refresh display list
 
 
-    def setSF(self,value,operation=''):
-        self._set('sf', value, operation)
+    def setSF(self,value,operation='', log=True):
+        self._set('sf', value, operation, log=log)
         self.needUpdate = 1
         self._calcCyclesPerStim()
         self._requestedSf=value#to track whether we're just using a default value
@@ -2204,17 +2216,17 @@ class GratingStim(_BaseVisualStim):
         if hasattr(self, 'sf'):
             self._calcCyclesPerStim()
         self.needUpdate=True
-    def setPhase(self,value, operation=''):
-        self._set('phase', value, operation)
+    def setPhase(self,value, operation='', log=True):
+        self._set('phase', value, operation, log=log)
         self.needUpdate = 1
 
-    def setContrast(self,value,operation=''):
-        self._set('contrast', value, operation)
+    def setContrast(self,value,operation='', log=True):
+        self._set('contrast', value, operation, log=log)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
-            self.setTex(self._texName)
+            self.setTex(self._texName, log=False)
 
-    def setTex(self,value):
+    def setTex(self,value, log=True):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
@@ -2223,10 +2235,17 @@ class GratingStim(_BaseVisualStim):
             self._setSizeToDefault()
         if hasattr(self, '_requestedSf') and self._requestedSf==None:
             self._setSfToDefault()
-    def setMask(self,value):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s tex=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def setMask(self,value, log=True):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
         res=self.texRes, maskParams=self.maskParams)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -2411,7 +2430,7 @@ class PatchStim(GratingStim):
         whereas the ImageStim is designed to be use for non-cyclic images (photographs, not gratings).
         """
         GratingStim.__init__(self, *args, **kwargs)
-        
+
 class RadialStim(GratingStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
     a checkerboard etc...
@@ -2566,8 +2585,8 @@ class RadialStim(GratingStim):
         GL.glGenTextures(1, ctypes.byref(self.texID))
         self.maskID=GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self.maskID))
-        self.setTex(tex)
-        self.setMask(mask)
+        self.setTex(tex, log=False)
+        self.setMask(mask, log=False)
 
         #
         self._triangleWidth = pi*2/self.angularRes
@@ -2589,29 +2608,29 @@ class RadialStim(GratingStim):
             self._listID = GL.glGenLists(1)
             self._updateList()#ie refresh display list
 
-    def setSize(self, value, operation=''):
-        self._set('size', value, operation)
+    def setSize(self, value, operation='', log=True):
+        self._set('size', value, operation, log=log)
         self._calcSizeRendered()
         self._updateXY()
         self.needUpdate=True
-    def setAngularCycles(self,value,operation=''):
+    def setAngularCycles(self,value,operation='', log=True):
         """set the number of cycles going around the stimulus"""
-        self._set('angularCycles', value, operation)
+        self._set('angularCycles', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialCycles(self,value,operation=''):
+    def setRadialCycles(self,value,operation='', log=True):
         """set the number of texture cycles from centre to periphery"""
-        self._set('radialCycles', value, operation)
+        self._set('radialCycles', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setAngularPhase(self,value, operation=''):
+    def setAngularPhase(self,value, operation='', log=True):
         """set the angular phase of the texture"""
-        self._set('angularPhase', value, operation)
+        self._set('angularPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
-    def setRadialPhase(self,value, operation=''):
+    def setRadialPhase(self,value, operation='', log=True):
         """set the radial phase of the texture"""
-        self._set('radialPhase', value, operation)
+        self._set('radialPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
 
@@ -2829,11 +2848,15 @@ class RadialStim(GratingStim):
 
         GL.glEndList()
 
-    def setTex(self,value):
+    def setTex(self,value, log=True):
+        """Update the texture of the stimulus"""
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
-    def setMask(self,value):
-        """
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s tex=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def setMask(self,value, log=True):
+        """Change the alpha-mask for the stimulus
         """
         self._maskName = value
         res = self.texRes#resolution of texture - 128 is bearable
@@ -2893,6 +2916,10 @@ class RadialStim(GratingStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self.needUpdate=True
+
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
 
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
@@ -3058,9 +3085,9 @@ class ElementArrayStim:
         self.colorSpace=colorSpace
         if rgbs!=None:
             logging.warning("Use of the rgb argument to ElementArrayStim is deprecated. Please use colors and colorSpace args instead")
-            self.setColors(rgbs, colorSpace='rgb')
+            self.setColors(rgbs, colorSpace='rgb', log=False)
         else:
-            self.setColors(colors, colorSpace=colorSpace)
+            self.setColors(colors, colorSpace=colorSpace, log=False)
 
         #Deal with input for fieldpos
         if type(fieldPos) in [tuple,list]:
@@ -3080,23 +3107,23 @@ class ElementArrayStim:
         GL.glGenTextures(1, ctypes.byref(self.texID))
         self.maskID=GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self.maskID))
-        self.setMask(elementMask)
-        self.setTex(elementTex)
+        self.setMask(elementMask, log=False)
+        self.setTex(elementTex, log=False)
 
-        self.setContrs(contrs)
-        self.setOpacities(opacities)#opacities is used by setRgbs, so this needs to be early
-        self.setXYs(xys)
-        self.setOris(oris)
-        self.setSizes(sizes) #set sizes before sfs (sfs may need it formatted)
-        self.setSfs(sfs)
-        self.setPhases(phases)
+        self.setContrs(contrs, log=False)
+        self.setOpacities(opacities, log=False)#opacities is used by setRgbs, so this needs to be early
+        self.setXYs(xys, log=False)
+        self.setOris(oris, log=False)
+        self.setSizes(sizes, log=False) #set sizes before sfs (sfs may need it formatted)
+        self.setSfs(sfs, log=False)
+        self.setPhases(phases, log=False)
 
         self._calcFieldCoordsRendered()
         self._calcSizesRendered()
         self._calcXYsRendered()
 
 
-    def setXYs(self,value=None, operation=''):
+    def setXYs(self,value=None, operation='', log=True):
         """Set the xy values of the element centres (relative to the centre of the field).
         Values should be:
 
@@ -3136,8 +3163,10 @@ class ElementArrayStim:
                 self.xys=value
             else: exec('self.xys'+operation+'=value')
         self.needVertexUpdate=True
-
-    def setOris(self,value,operation=''):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s XYs=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setOris(self,value,operation='', log=True):
         """Set the orientation for each element.
         Should either be a single value or an Nx1 array/list
         """
@@ -3156,8 +3185,11 @@ class ElementArrayStim:
             self.oris=value
         else: exec('self.oris'+operation+'=value')
         self.needVertexUpdate=True
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s oris=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
     #----------------------------------------------------------------------
-    def setSfs(self, value,operation=''):
+    def setSfs(self, value,operation='', log=True):
         """Set the spatial frequency for each element.
         Should either be:
 
@@ -3189,8 +3221,11 @@ class ElementArrayStim:
         if operation=='':
             self.sfs=value
         else: exec('self.sfs'+operation+'=value')
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s sfs=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
 
-    def setOpacities(self,value,operation=''):
+    def setOpacities(self,value,operation='', log=True):
         """Set the opacity for each element.
         Should either be a single value or an Nx1 array/list
         """
@@ -3211,7 +3246,10 @@ class ElementArrayStim:
         else: exec('self.opacities'+operation+'=value')
         self.needColorUpdate =True
 
-    def setSizes(self,value,operation=''):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s opacities=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setSizes(self,value,operation='', log=True):
         """Set the size for each element.
         Should either be:
 
@@ -3240,7 +3278,10 @@ class ElementArrayStim:
         self.needVertexUpdate=True
         self.needTexCoordUpdate=True
 
-    def setPhases(self,value,operation=''):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s sizes=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setPhases(self,value,operation='', log=True):
         """Set the phase for each element.
         Should either be:
 
@@ -3268,11 +3309,14 @@ class ElementArrayStim:
         else: exec('self.phases'+operation+'=value')
         self.needTexCoordUpdate=True
 
-    def setRgbs(self,value,operation=''):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s phases=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setRgbs(self,value,operation='', log=True):
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
-        self.setColors(value,operation)
-    def setColors(self, color, colorSpace=None, operation=''):
+        self.setColors(value,operation, log=log)
+    def setColors(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
 
@@ -3312,8 +3356,7 @@ class ElementArrayStim:
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgbs', #or 'fillRGB' etc
                     colorAttrib='colors',
-                    colorSpaceAttrib='colorSpace')
-
+                    colorSpaceAttrib='colorSpace',log=log)
         #check shape
         if self.rgbs.shape in [(), (1,),(3,)]:
             self.rgbs = numpy.resize(self.rgbs, [self.nElements,3])
@@ -3324,14 +3367,8 @@ class ElementArrayStim:
             pass#all is good
         else:
             raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
-
         self.needColorUpdate=True
-        if len(self.colors)>5: colors='array(%ix%i)' %(self.colors.shape[0],self.colors.shape[1])
-        else: colors=self.colors
-        if self.autoLog:
-            self.win.logOnFlip("Set %s colors=%s colorSpace=%s" %(self.name, colors, self.colorSpace),
-                level=logging.EXP,obj=self)
-    def setContrs(self,value,operation=''):
+    def setContrs(self,value,operation='', log=True):
         """Set the contrast for each element.
         Should either be:
 
@@ -3353,7 +3390,10 @@ class ElementArrayStim:
             self.contrs=value
         else: exec('self.contrs'+operation+'=value')
         self.needColorUpdate=True
-    def setFieldPos(self,value,operation=''):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s contrs=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setFieldPos(self,value,operation='', log=True):
         """Set the centre of the array (X,Y)
         """
         #make into an array
@@ -3368,12 +3408,15 @@ class ElementArrayStim:
         else:
             exec('self.fieldPos'+operation+'=value')
         self._calcFieldCoordsRendered()
-    def setPos(self, newPos=None, operation='', units=None):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s fieldPos=%s" %(self.name, type(value)),
+                level=logging.EXP,obj=self)
+    def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obselete - users should use setFieldPos or instead of setPos
         """
         logging.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
 
-    def setFieldSize(self,value,operation=''):
+    def setFieldSize(self,value,operation='', log=True):
         """Set the size of the array on the screen (will override
         current XY positions of the elements)
         """
@@ -3388,8 +3431,11 @@ class ElementArrayStim:
             self.fieldSize=value
         else:
             exec('self.fieldSize'+operation+'=value')
-        self.setXYs()#to reflect new settings, overriding individual xys
+        self.setXYs(log=False)#to reflect new settings, overriding individual xys
 
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s fieldSize=%s" %(self.name,value),
+                level=logging.EXP,obj=self)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -3550,19 +3596,25 @@ class ElementArrayStim:
             .transpose().reshape([N,4,2]).astype('d')
         self.needTexCoordUpdate=False
 
-    def setTex(self,value):
+    def setTex(self,value, log=True):
         """Change the texture (all elements have the same base texture). Avoid this
         during time-critical points in your script. Uploading new textures to the
         graphics card can be time-consuming.
         """
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
-    def setMask(self,value):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s tex=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def setMask(self,value, log=True):
         """Change the mask (all elements have the same mask). Avoid doing this
         during time-critical points in your script. Uploading new textures to the
         graphics card can be time-consuming."""
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
     def clearTextures(self):
@@ -3673,20 +3725,20 @@ class MovieStim(_BaseVisualStim):
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
-    def setOpacity(self,newOpacity,operation=''):
+    def setOpacity(self,newOpacity,operation='', log=True):
         """
         Sets the opacity of the movie to `newOpacity`
         """
         # Over-rides _BaseVisualStim.setOpacity
-        self._set('opacity', newOpacity, operation)
+        self._set('opacity', newOpacity, operation, log=log)
 
-    def setMovie(self, filename):
+    def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
         """
-        self.loadMovie(filename)
+        self.loadMovie(filename, log=log)
 
-    def loadMovie(self, filename):
+    def loadMovie(self, filename, log=True):
         """Load a movie from file
 
         :Parameters:
@@ -3719,34 +3771,45 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
+                level=logging.EXP,obj=self)
 
-    def pause(self):
+    def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance).  If play() is called again both will restart.
         """
         self._player.pause()
         self.status=PAUSED
-
-    def stop(self):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s paused" %(self.name),
+                level=logging.EXP,obj=self)
+    def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again. Use pause() if you may need to restart the movie.
         """
         self._player.stop()
         self.status=STOPPED
-
-    def play(self):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s stopped" %(self.name),
+                level=logging.EXP,obj=self)
+    def play(self, log=True):
         """Continue a paused movie from current position
         """
         self._player.play()
         self.status=PLAYING
-
-    def seek(self,timestamp):
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s playing" %(self.name),
+                level=logging.EXP,obj=self)
+    def seek(self,timestamp, log=True):
         """ Seek to a particular timestamp in the movie.
         NB this does not seem very robust as at version 1.62 and may cause crashes!
         """
         self._player.seek(float(timestamp))
-
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s seek=" %(self.name,timestamp),
+                level=logging.EXP,obj=self)
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in
@@ -3791,8 +3854,10 @@ class MovieStim(_BaseVisualStim):
             self.status=PLAYING
         else:
             self.status=FINISHED
-
-    def setAutoDraw(self, val):
+        if self.autoLog:
+            self.win.logOnFlip("Set %s finished" %(self.name),
+                level=logging.EXP,obj=self)
+    def setAutoDraw(self, val, log=True):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
 
@@ -3801,11 +3866,11 @@ class MovieStim(_BaseVisualStim):
                 True to add the stimulus to the draw list, False to remove it
         """
         if val:
-            self.play()  # set to play in case stopped
+            self.play(log=False)  # set to play in case stopped
         else:
-            self.pause()
+            self.pause(log=False)
         #add to drawing list and update status
-        _BaseVisualStim.setAutoDraw(self, val)
+        _BaseVisualStim.setAutoDraw(self, val, log=log)
 
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
@@ -3944,17 +4009,17 @@ class TextStim(_BaseVisualStim):
         self.colorSpace=colorSpace
         if rgb!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            self.setColor(rgb, colorSpace='rgb', log=False)
         else:
-            self.setColor(color)
+            self.setColor(color, log=False)
 
         self._calcPosRendered()
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
-        self.setFont(font)
-        self.setText(text) #self.width and self.height get set with text and calcSizeRednered is called
+        self.setFont(font, log=False)
+        self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRednered is called
         self.needUpdate=True
-    def setHeight(self,height):
+    def setHeight(self,height, log=True):
         """Set the height of the letters (including the entire box that surrounds the letters
         in the font). The width of the letters is then defined by the font.
         """
@@ -3980,8 +4045,11 @@ class TextStim(_BaseVisualStim):
             else: self.height = height
             self.heightPix = self.height
         #need to update the font to reflect the change
-        self.setFont(self.fontname)
-    def setFont(self, font):
+        self.setFont(self.fontname, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s height=%.2f" %(self.name, height),
+                level=logging.EXP,obj=self)
+    def setFont(self, font, log=True):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
         """
@@ -4023,8 +4091,11 @@ class TextStim(_BaseVisualStim):
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s font=%s" %(self.name, self.fontname),
+                level=logging.EXP,obj=self)
 
-    def setText(self,value=None):
+    def setText(self,value=None, log=True):
         """Set the text to be rendered using the current font
         """
         if value!=None:#make sure we have unicode object to render
@@ -4034,11 +4105,14 @@ class TextStim(_BaseVisualStim):
         else:
             self._setTextNoShaders(value)
         self._needSetText=False
-    def setRGB(self,value, operation=''):
-        self._set('rgb', value, operation)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s text=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def setRGB(self,value, operation='', log=True):
+        self._set('rgb', value, operation, log=log)
         if not self._useShaders:
             self._needSetText=True
-    def setColor(self, color, colorSpace=None, operation=''):
+    def setColor(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
 
@@ -4087,7 +4161,8 @@ class TextStim(_BaseVisualStim):
                 thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
         """
         #call setColor from super class
-        _BaseVisualStim.setColor(self, color, colorSpace=colorSpace, operation=operation)
+        _BaseVisualStim.setColor(self, color, colorSpace=colorSpace,
+            operation=operation, log=log)
         #but then update text objects if necess
         if not self._useShaders:
             self._needSetText=True
@@ -4133,7 +4208,7 @@ class TextStim(_BaseVisualStim):
         This is only used with pygame text - pyglet handles all from the draw()
         """
         if self._needSetText:
-            self.setText()
+            self.setText(log=False)
         GL.glNewList(self._listID, GL.GL_COMPILE)
         #GL.glPushMatrix()
 
@@ -4243,7 +4318,7 @@ class TextStim(_BaseVisualStim):
         rather than using the .set() command
         """
         if self._needSetText:
-            self.setText()
+            self.setText(log=False)
         GL.glNewList(self._listID, GL.GL_COMPILE)
 
         #coords:
@@ -4504,8 +4579,8 @@ class ShapeStim(_BaseVisualStim):
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0,0.0])
-        self.setSize(size)
-        self.setVertices(vertices)
+        self.setSize(size, log=False)
+        self.setVertices(vertices, log=False)
         self._calcVerticesRendered()
     def setColor(self, color, colorSpace=None, operation=''):
         """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
@@ -4520,14 +4595,15 @@ class ShapeStim(_BaseVisualStim):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setFillColor`
         """
         self._set('fillRGB', value, operation)
-    def setLineColor(self, color, colorSpace=None, operation=''):
+    def setLineColor(self, color, colorSpace=None, operation='', log=True):
         """Sets the color of the shape edge. See :meth:`PatchStim.setColor`
         for further details of how to use this function.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='lineRGB',#the name for this rgb value
-                    colorAttrib='lineColor')#the name for this color
-    def setFillColor(self, color, colorSpace=None, operation=''):
+                    colorAttrib='lineColor',#the name for this color
+                    log=log)
+    def setFillColor(self, color, colorSpace=None, operation='', log=True):
         """Sets the color of the shape fill. See :meth:`PatchStim.setColor`
         for further details of how to use this function.
 
@@ -4537,17 +4613,17 @@ class ShapeStim(_BaseVisualStim):
         #run the original setColor, which creates color and
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value
-                    colorAttrib='fillColor')#the name for this color
-
-    def setSize(self, value, operation=''):
+                    colorAttrib='fillColor',#the name for this color
+                    log=log)
+    def setSize(self, value, operation='', log=True):
         """ Sets the size of the shape.
         Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
         Use a tuple or list of two values to scale asymmetrically.
         """
-        self._set('size', numpy.asarray(value), operation)
+        self._set('size', numpy.asarray(value), operation, log=log)
         self.needVertexUpdate=True
 
-    def setVertices(self,value=None, operation=''):
+    def setVertices(self,value=None, operation='', log=True):
         """Set the xy values of the vertices (relative to the centre of the field).
         Values should be:
 
@@ -4566,6 +4642,9 @@ class ShapeStim(_BaseVisualStim):
             self.vertices=value
         else: exec('self.vertices'+operation+'=value')
         self.needVertexUpdate=True
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -4675,14 +4754,16 @@ class Polygon(ShapeStim):
             for e in xrange(self.edges)
         ]
 
-    def setRadius(self, radius):
+    def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 
             - float, int, tuple, list or 2x1 array"""
         self.radius = numpy.asarray(radius)
         self._calcVertices()
-        self.setVertices(self.vertices)
-
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
+                level=logging.EXP,obj=self)
 class Circle(Polygon):
     """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
 
@@ -4711,12 +4792,15 @@ class Circle(Polygon):
         Polygon.__init__(self, win, **kwargs)
 
 
-    def setRadius(self, radius):
+    def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. If radius is a 2-tuple or list, the values will be
         interpreted as semi-major and semi-minor radii of an ellipse."""
         self.radius = numpy.asarray(radius)
         self._calcVertices()
-        self.setVertices(self.vertices)
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
+                level=logging.EXP,obj=self)
 
 class Rect(ShapeStim):
     """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
@@ -4755,17 +4839,23 @@ class Rect(ShapeStim):
             (-self.width*.5, -self.height*.5)
         ]
 
-    def setWidth(self, width):
+    def setWidth(self, width, log=True):
         """Changes the width of the Rectangle"""
         self.width = width
         self._calcVertices()
-        self.setVertices(self.vertices)
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s width=%s" %(self.name, width),
+                level=logging.EXP,obj=self)
 
-    def setHeight(self, height):
+    def setHeight(self, height, log=True):
         """Changes the height of the Rectangle """
         self.height = height
         self._calcVertices()
-        self.setVertices(self.vertices)
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s height=%s" %(self.name, height),
+                level=logging.EXP,obj=self)
 
 class Line(ShapeStim):
     """Creates a Line between two points.
@@ -4797,18 +4887,24 @@ class Line(ShapeStim):
         kwargs['fillColor'] = None
         ShapeStim.__init__(self, win, **kwargs)
 
-    def setStart(self, start):
+    def setStart(self, start, log=True):
         """Changes the start point of the line. Argument should be
 
             - tuple, list or 2x1 array specifying the coordinates of the start point"""
         self.start = start
-        self.setVertices([self.start, self.end])
+        self.setVertices([self.start, self.end], log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s start=%s" %(self.name, start),
+                level=logging.EXP,obj=self)
 
     def setEnd(self, end):
         """Changes the end point of the line. Argument should be a tuple, list
         or 2x1 array specifying the coordinates of the end point"""
         self.end = end
-        self.setVertices([self.start, self.end])
+        self.setVertices([self.start, self.end], log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s end=%s" %(self.name, end),
+                level=logging.EXP,obj=self)
 
 
 class ImageStim(_BaseVisualStim):
@@ -4836,11 +4932,14 @@ class ImageStim(_BaseVisualStim):
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
+
+        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
+        flipVert = self.flipVert*(-2)+1
         #calculate coords in advance:
-        L = -self._sizeRendered[0]/2#vertices
-        R =  self._sizeRendered[0]/2
-        T =  self._sizeRendered[1]/2
-        B = -self._sizeRendered[1]/2
+        L = -self._sizeRendered[0]/2 * flipHoriz#vertices
+        R =  self._sizeRendered[0]/2 * flipHoriz
+        T =  self._sizeRendered[1]/2 * flipVert
+        B = -self._sizeRendered[1]/2 * flipVert
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
@@ -4896,11 +4995,14 @@ class ImageStim(_BaseVisualStim):
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texID)
+
+        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
+        flipVert = self.flipVert*(-2)+1
         #calculate vertices
-        L = -self._sizeRendered[0]/2
-        R =  self._sizeRendered[0]/2
-        T =  self._sizeRendered[1]/2
-        B = -self._sizeRendered[1]/2
+        L = -self._sizeRendered[0]/2 * flipHoriz
+        R =  self._sizeRendered[0]/2 * flipHoriz
+        T =  self._sizeRendered[1]/2 * flipVert
+        B = -self._sizeRendered[1]/2 * flipVert
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
@@ -4936,7 +5038,7 @@ class ImageStim(_BaseVisualStim):
         """
         GL.glDeleteTextures(1, self.texID)
         GL.glDeleteTextures(1, self.maskID)
-    def draw(self):
+    def draw(self, win=None):
         if win==None: win=self.win
         if win.winType=='pyglet': win.winHandle.switch_to()
 
@@ -4962,28 +5064,49 @@ class ImageStim(_BaseVisualStim):
 
         #return the view to previous state
         GL.glPopMatrix()
-    def setContrast(self,value,operation=''):
-        self._set('contrast', value, operation)
+    def setContrast(self,value,operation='', log=True):
+        self._set('contrast', value, operation, log=log)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
             self.setIm(self._imName)
-    def setImage(self, value):
+    def setImage(self, value, log=True):
         """Set the image to be used for the stimulus to this new value
         """
         self._imName = value
+
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
-            res=self.texRes, maskParams=self.maskParams)
+            maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self._setSizeToDefault()
-    def setTex(self,value):
-        """Deprecated (1.74.00): please use setImage() instead
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s image=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def setMask(self,value, log=True):
+        """Change the image to be used as an alpha-mask for the image
         """
-        self.setImage(value)
-    def setMask(self,value):
         self._maskName = value
         createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
+                level=logging.EXP,obj=self)
+    def _setSizeToDefault(self):
+        """Set the size to default (e.g. to the size of the loaded image etc)
+        """
+        #calculate new size
+        if self.origSize is None:#not an image from a file
+            self.size=numpy.array([0.5,0.5])#this was PsychoPy's original default
+        else:
+            #we have an image - calculate the size in `units` that matches original pixel size
+            if self.units=='pix': self.size=numpy.array(self.origSize)
+            elif self.units=='deg': self.size= psychopy.misc.pix2deg(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='cm': self.size= psychopy.misc.pix2cm(numpy.array(self.origSize, float), self.win.monitor)
+            elif self.units=='norm': self.size= 2*numpy.array(self.origSize, float)/self.win.size
+            elif self.units=='height': self.size= numpy.array(self.origSize, float)/self.win.size[1]
+        #set it
+        self._calcSizeRendered()
+        self.needUpdate=True
 class BufferImageStim(PatchStim):
     """
     Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
@@ -5100,7 +5223,7 @@ class BufferImageStim(PatchStim):
 
         self.thisScale = 2.0/numpy.array(self.win.size)
 
-    def setTex(self, tex, interpolate=True):
+    def setTex(self, tex, interpolate=True, log=True):
         # setTex is called only once
         self._texName = tex
         id = self.texID
@@ -5159,6 +5282,9 @@ class BufferImageStim(PatchStim):
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
 
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
+                level=logging.EXP,obj=self)
     def draw(self):
         """
         streamlined version of :class:`~psychopy.visual.PatchStim.draw`.
@@ -6469,19 +6595,24 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
+def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True):
     """
     id is the texture ID
     pixFormat = GL.GL_ALPHA, GL.GL_RGB
     useShaders is a bool
     interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
     res is the resolution of the texture (unless a bitmap image is used)
+
+    For grating stimuli (anything that needs multiple cycles) forcePOW2 should
+    be set to be True. Otherwise the wrapping of the texture will not work.
+
     """
 
     """
     Create an intensity texture, ranging -1:1.0
     """
     global _nImageResizes
+    notSqr=False #most of the options will be creating a sqr texture
     useShaders = stim._useShaders
     interpolate = stim.interpolate
     if type(tex) == numpy.ndarray:
@@ -6505,8 +6636,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None):
             #check if it's a square power of two
             maxDim = max(tex.shape)
             powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-            if tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2:
-                logging.error("Numpy array textures must be square and must be power of two (e.g. 16x16, 256x256)")
+                logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
                 core.quit()
             res=tex.shape[0]
     elif tex in [None,"none", "None"]:
@@ -6739,8 +6869,8 @@ def _setTexIfNoShaders(obj):
 def _setColor(self, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
                 colorAttrib='color', #or 'fillColor' etc
-                colorSpaceAttrib=None #e.g. 'colorSpace' or 'fillColorSpace'
-                ):
+                colorSpaceAttrib=None, #e.g. 'colorSpace' or 'fillColorSpace'
+                log=True):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc)
     """
@@ -6830,6 +6960,13 @@ def _setColor(self, color, colorSpace=None, operation='',
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
+    if log:
+        if hasattr(self,'win'):
+            self.win.logOnFlip("Set %s.%s=%s (%s)" %(self.name,colorAttrib,newColor,colorSpace),
+                level=logging.EXP,obj=self)
+        else:
+            self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
+                level=logging.EXP,obj=self)
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
 
