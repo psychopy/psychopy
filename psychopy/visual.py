@@ -70,6 +70,12 @@ try:
 except:
     haveFB=False
 
+try:
+    from matplotlib import nxutils
+    haveNxutils = True
+except:
+    haveNxutils = False
+    
 global DEBUG; DEBUG=False
 
 #symbols for MovieStim
@@ -4634,21 +4640,29 @@ class ShapeStim(_BaseVisualStim):
         numpy array; or c) an object with a getPos() method that returns x,y, such
         as a mouse. Returns True if the point is within the area defined by `vertices`, 
         using a ray-casting algorithm. This handles complex shapes, including
-        concavities and self-crossings. See coder demo, shapeContains.py
+        concavities and self-crossings.
+        
+        See coder demo, shapeContains.py
         """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
             x,y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
-        return pointInPolygon(x, y, self.vertices)
+        return pointInPolygon(x, y, self)
 
     def overlaps(self, polygon):
         """Determines if this shape intersects another one. If `polygon` is 
         a `ShapeStim` instance, will use (vertices + pos) as the polygon. Overlap
         detection is only approximate; can fail with pointy shapes. Returns True
-        if the two shapes overlap. See coder demo, shapeContains.py
+        if the two shapes overlap.
+        
+        See coder demo, shapeContains.py
         """
-        return polygonsOverlap(self.vertices, polygon)
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        return polygonsOverlap(self, polygon)
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
@@ -5028,19 +5042,23 @@ class BufferImageStim(PatchStim):
         GL.glPopMatrix() #return the view to previous state
 
 class RatingScale:
-    """A class for getting numeric or categorical ratings, e.g., on a 1-to-7 scale.
+    """A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.
 
-    Returns a re-usable rating-scale object having a .draw() method, with a customizable visual appearance.
-    Tries to provide useful default values.
+    Returns a re-usable rating-scale object having a .draw() method, with a
+    customizable visual appearance. Tries to provide useful default values.
 
-    The .draw() method displays the rating scale only (not the item to be rated), handles the subject's response, and
-    updates the display. When the subject responds, .noResponse goes False (i.e., there is a response). You can then
-    call .getRating() to obtain the rating, .getRT() to get the decision time, or .reset() to restore the scale (for
-    re-use). The experimenter has to handle the item to be rated, i.e., draw() it in the same window each frame.
-    A RatingScale instance has no idea what else is on the screen. The subject can use the arrow keys (left, right)
-    to move the marker in small increments (e.g., 1/100th of a tick-mark if precision = 100).
+    The .draw() method displays the rating scale only (not the item to be rated),
+    handles the subject's response, and updates the display. When the subject
+    responds, .noResponse goes False (i.e., there is a response). You can then 
+    call .getRating() to obtain the rating, .getRT() to get the decision time, or
+    .reset() to restore the scale (for re-use). The experimenter has to handle
+    the item to be rated, i.e., draw() it in the same window each frame. A
+    RatingScale instance has no idea what else is on the screen. The subject can
+    use the arrow keys (left, right) to move the marker in small increments (e.g.,
+    1/100th of a tick-mark if precision = 100).
 
-    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple of 10, just to reduce visual clutter.
+    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple
+    of 10, just to reduce visual clutter.
 
     **Example 1**::
 
@@ -5054,11 +5072,16 @@ class RatingScale:
                 myWin.flip()
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
+        
+        You can equivalently specify the while condition using .status::
+        
+            while myRatingScale.status != FINISHED:
 
     **Example 2**::
 
-        Mouse-free. Considerable customization is possible. For fMRI, if your response
-        box sends keys 1-4, you could specify left, right, and accept keys, and no mouse:
+        Mouse-free. Considerable customization is possible. For fMRI, if your
+        response box sends keys 1-4, you could specify left, right, and accept
+        keys, and no mouse:
 
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
@@ -5251,27 +5274,6 @@ class RatingScale:
             whether logging should be done automatically
         """
 
-        ### May June 2011
-        # ADDED: singleClick, customMarker,
-        # ADDED: markerStart for choices
-        # CHANGED: default = triangle for windows too
-        #          when using choices=[ ], default showAnchors=False
-        # REMOVED: offsetHoriz, offsetVert; use pos=(offsetHoriz,offsetVert) instead
-        # - rewrite default params to be immutables only
-
-        ### March 2011
-        # REORGANIZED
-        # ADDED :
-        #  - several text controls: textSizeFactor, textColor (rgb), lowAnchorText, highAnchorText, textFont
-        #  - pos=(x,y) : position on the screen, uses the units of the window (norm or pix only)
-        #  - choices=[list] : present unordered or categorical choices (non-numeric)
-        # DEPRECATED : offsetHoriz offsetVert; use pos[] instead
-        # rename escapeKeys to skipKeys; repurpose escapeKeys as how to quit the experiment== ['escape']
-
-        ### June 2011
-        # ADDED :
-        #  - parameter to set line color (default white): lineColor
-
         ### MAYBE SOMEDAY ?
         # - radio-button-like display for categorical choices
 
@@ -5312,7 +5314,7 @@ class RatingScale:
 
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
-        self.reset()
+        self.reset() # sets .status
         self.win.units = self.savedWinUnits # restore
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
@@ -5554,7 +5556,12 @@ class RatingScale:
         self.lineRightEnd = self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor
 
         # space around the line within which to accept mouse input:
-        self.padSize = 0.06 * self.displaySizeFactor
+        pad = 0.06 * self.displaySizeFactor
+        self.nearLine = numpy.asarray([
+            (self.lineLeftEnd - pad, -2 * pad + self.offsetVert),
+            (self.lineLeftEnd - pad, 2 * pad + self.offsetVert),
+            (self.lineRightEnd + pad, 2 * pad + self.offsetVert),
+            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ])
 
         # vertices for ShapeStim:
         vertices = [[self.lineLeftEnd, self.offsetVert]] # first vertex
@@ -5783,18 +5790,6 @@ class RatingScale:
         if markerColor in ['White']:
             self.acceptTextColor = 'Black'
 
-    def _nearLine(self, mouseX, mouseY):
-        if (mouseY > -2 * self.padSize + self.offsetVert and
-                mouseY < 2 * self.padSize + self.offsetVert and
-                mouseX > self.lineLeftEnd - self.padSize and
-                mouseX < self.lineRightEnd + self.padSize):
-            return True
-        return False
-    def _inAcceptBox(self, mouseX, mouseY):
-        if (mouseY > self.acceptBoxbot and mouseY < self.acceptBoxtop and
-                mouseX > self.acceptBoxleft and mouseX < self.acceptBoxright):
-            return True
-        return False
     def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low, fractional if precision > 1
         """
@@ -5802,7 +5797,7 @@ class RatingScale:
         markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
             self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
         markerPos = (round(markerPos * self.precision * self.autoRescaleFactor) /
-                    float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
+            float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
         return markerPos # 0 .. high-low
     def _getMarkerFromTick(self, value):
         """Convert a requested tick value into a position on the internal scale.
@@ -5841,6 +5836,7 @@ class RatingScale:
         if self.firstDraw:
             self.firstDraw = False
             self.myClock.reset()
+            self.status = STARTED
 
         # timed out?
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
@@ -5888,7 +5884,7 @@ class RatingScale:
                                         (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
             # update position:
-            if self.singleClick and self._nearLine(mouseX, mouseY):
+            if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
                 #self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
@@ -5944,7 +5940,7 @@ class RatingScale:
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
             #mouseX, mouseY = self.myMouse.getPos() # done above
-            if self._nearLine(mouseX, mouseY): # if near the line, place the marker there:
+            if pointInPolygon(mouseX, mouseY, self.nearLine): # if near the line, place the marker there:
                 self.markerPlaced = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
@@ -5954,7 +5950,7 @@ class RatingScale:
             # if in accept box, and a value has been selected, and enough time has elapsed:
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
-                        self._inAcceptBox(mouseX,mouseY)):
+                        self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                                 (self.name, str(self.getRating())) )
@@ -5965,14 +5961,16 @@ class RatingScale:
             logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
             # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
+            self.status = FINISHED
 
         # restore user's units:
         self.win.units = self.savedWinUnits
 
     def reset(self):
-        """restores the rating-scale to its post-creation state (as "untouched" by the subject).
+        """Restores the rating-scale to its post-creation state, status NOT_STARTED.
 
-        does not restore the scale text description (such reset is needed between items when rating multiple items)
+        Does not restore the scale text description (such reset is needed between
+        items when rating multiple items)
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
@@ -5992,6 +5990,7 @@ class RatingScale:
             self.accept.setColor('#444444','rgb') # greyed out
             self.accept.setText(self.keyClick)
         logging.exp('RatingScale %s: reset()' % self.name)
+        self.status = NOT_STARTED
 
     def getRating(self):
         """Returns the numerical rating.
@@ -6579,23 +6578,30 @@ def pointInPolygon(x, y, poly):
     """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
     
     `poly` is a list of 3+ vertices as (x,y) pairs.
-    If given an object that has .vertices and .pos attributes, will use (.vertices + .pos) as the polygon.
+    If given a `ShapeStim`-based object, will use the
+    rendered vertices and position as the polygon.
     
     Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
     """
-    # from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
-    # via http://www.ariel.com.au/a/python-point-int-poly.html
-    
     # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
     # see also https://github.com/jraedler/Polygon2/
 
-    if hasattr(poly, 'vertices') and hasattr(poly, 'pos'):
-        poly = poly.vertices + poly.pos
+    if hasattr(poly, '_verticesRendered') and hasattr(poly, '_posRendered'):
+        poly = poly._verticesRendered + poly._posRendered
     nVert = len(poly)
     if nVert < 3:
         msg = 'pointInPolygon expects a polygon with 3 or more vertices'
         logging.warning(msg)
         return False
+
+    # faster if have matplotlib.nxutils:
+    if haveNxutils:
+        return bool(nxutils.pnpoly(x, y, poly))
+
+    # fall through to pure python:
+    # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+    # via http://www.ariel.com.au/a/python-point-int-poly.html
+    
     inside = False
     # trace (horizontal?) rays, flip inside status if cross an edge:
     p1x, p1y = poly[-1]
@@ -6611,16 +6617,24 @@ def pointInPolygon(x, y, poly):
 def polygonsOverlap(poly1, poly2):
     """Determine if two polygons intersect; the approximation can fail for pointy polygons.
     
-    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`
-    instances, will use (vertices + pos) as the polygon.
+    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
+    instances, will use rendered (vertices + pos) as the polygon.
     
     Checks if any vertex of one polygon is inside the other polygon; will fail in some
     cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
-    if isinstance(poly1, ShapeStim):
-        poly1 = poly1.vertices + poly1.pos
-    if isinstance(poly2, ShapeStim):
-        poly2 = poly2.vertices + poly2.pos
+    if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
+        poly1 = poly1._verticesRendered + poly1._posRendered
+    if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
+        poly2 = poly2._verticesRendered + poly2._posRendered
+    
+    # faster if have matplotlib.nxutils: 
+    if haveNxutils:
+        if any(nxutils.points_inside_poly(poly1, poly2)):
+            return True
+        return any(nxutils.points_inside_poly(poly2, poly1))
+    
+    # fall through to pure python:
     for p1 in poly1:
         if pointInPolygon(p1[0], p1[1], poly2):
             return True
