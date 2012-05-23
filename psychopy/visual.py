@@ -4725,11 +4725,10 @@ class ShapeStim(_BaseVisualStim):
     def contains(self, x, y=None):
         """Determines if a point x,y is inside the shape.
 
-        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is a list, tuple, or
-        numpy array; or c) an object with a getPos() method that returns x,y, such
-        as a mouse. Returns True if the point is within the area defined by `vertices`,
-        using a ray-casting algorithm. This handles complex shapes, including
-        concavities and self-crossings.
+        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
+        list-like; or c) an object with a getPos() method that returns x,y, such
+        as a mouse. Returns True if the point is within the area defined by `vertices`.
+        This handles complex shapes, including concavities and self-crossings.
 
         See coder demo, shapeContains.py
         """
@@ -5098,6 +5097,10 @@ class ImageStim(_BaseVisualStim):
         self._calcSizeRendered()
         self._calcPosRendered()
 
+        # _verticesRendered for .contains() and .overlaps()
+        v = [(-.5,-.5), (-.5,.5), (.5,.5), (.5,-.5)]
+        self._verticesRendered = numpy.array(self._sizeRendered, dtype=float) * v
+
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
@@ -5222,6 +5225,24 @@ class ImageStim(_BaseVisualStim):
 
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
+
+    def contains(self, x, y=None):
+        """Determines if a point x,y is on the image (within its boundary).
+        
+        See :class:`~psychopy.visual.ShapeStim` `.contains()`.
+        """
+        if hasattr(x, 'getPos'):
+            x,y = x.getPos()
+        elif type(x) in [list, tuple, numpy.ndarray]:
+            x,y = x[0:2]
+        return pointInPolygon(x, y, self)
+
+    def overlaps(self, polygon):
+        """Determines if the image overlaps another image or shape (`polygon`).
+        
+        See :class:`~psychopy.visual.ShapeStim` `.overlaps()`.
+        """
+        return polygonsOverlap(self, polygon)
 
     def clearTextures(self):
         """
@@ -7089,13 +7110,16 @@ def pointInPolygon(x, y, poly):
     return inside
 
 def polygonsOverlap(poly1, poly2):
-    """Determine if two polygons intersect; the approximation can fail for pointy polygons.
+    """Determine if two polygons intersect; can fail for pointy polygons.
 
     Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
     instances, will use rendered (vertices + pos) as the polygon.
 
-    Checks if any vertex of one polygon is inside the other polygon; will fail in some
-    cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
+    Checks if any vertex of one polygon is inside the other polygon; will fail in 
+    some cases, especially for pointy polygons. "crossed-swords" configurations
+    overlap but may not be detected by the algorithm.
+    
+    Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
     if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
         poly1 = poly1._verticesRendered + poly1._posRendered
