@@ -71,6 +71,50 @@ class Clock:
         time on the clock
         """
         self.timeAtLastReset=getTime()+newT
+    def add(self,t):
+        """Add more time to the clock's 'start' time (t0).
+
+        Note that, by adding time to t0, you make the current time appear less.
+        Can have the effect that getTime() returns a negative number that will
+        gradually count back up to zero.
+
+        e.g.::
+
+            timer = core.Clock()
+            timer.add(5)
+            while timer.getTime()<0:
+                #do something
+        """
+        self.timeAtLastReset += t
+
+class CountdownTimer(Clock):
+    """Similar to a Clock except that time counts down from the time of last reset
+
+    Typical usage::
+
+        timer = core.CountdownTimer()
+        timer.add(5)
+        while timer.getTime(): #after 5s will become negative
+            #do stuff
+    """
+    def getTime(self):
+        """Returns the current time on this clock in secs (sub-ms precision)
+        """
+        return self.timeAtLastReset-getTime()
+    def add(self,t):
+        """Add more time to the clock's 'start' time (t0).
+
+        Unlike the Clock.add() method this actually adds time to the apparent
+        current time. (It actually subtracts time from the stored t0)
+
+        e.g.::
+
+            timer = core.Clock()
+            timer.add(5)
+            while timer.getTime()>0:
+                #do something
+        """
+        self.timeAtLastReset += t
 
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
@@ -82,7 +126,7 @@ def wait(secs, hogCPUperiod=0.2):
 
     If you want to obtain key-presses during the wait, be sure to use pyglet and
     to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
-    
+
     If you want to suppress checking for pyglet events during the wait, do this once:
         core.checkPygletDuringWait = False
     and from then on you can do
