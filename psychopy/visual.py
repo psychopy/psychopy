@@ -6394,6 +6394,8 @@ class RatingScale:
                     else:
                         val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
                     self.accept.setText(val)
+                elif self.markerPlacedAt is not False:
+                    self.accept.setText(self.acceptText)
 
         # handle key responses:
         if not self.mouseOnly:
