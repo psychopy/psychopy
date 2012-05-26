@@ -996,7 +996,7 @@ class RoutineCanvas(wx.ScrolledWindow):
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
-        tMax=self.getMaxTime()*1.1
+        tMax=self.routine.getMaxTime()*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
@@ -1057,7 +1057,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
         #deduce start and stop times if possible
-        startTime, duration = self.getStartAndDuration(component)
+        startTime, duration = component.getStartAndDuration()
         #draw entries on timeline (if they have some time definition)
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
@@ -1096,53 +1096,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.frame.addToUndoStack("edit %s" %component.params['name'])
 
     def getSecsPerPixel(self):
-        return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
-    def getMaxTime(self):
-        """What the last (predetermined) stimulus time to be presented. If
-        there are no components or they have code-based times then will default
-        to 10secs
-        """
-        maxTime=0
-        for n, component in enumerate(self.routine):
-            if component.params.has_key('startType'):
-                start, duration = self.getStartAndDuration(component)
-                if duration==FOREVER:
-                    # only the start of an unlimited event should contribute to maxTime
-                    duration = 1 # plus some minimal duration so its visible
-                try:thisT=start+duration#will fail if either value is not defined
-                except:thisT=0
-                maxTime=max(maxTime,thisT)
-        if maxTime==0:#if there are no components
-            maxTime=10
-        return maxTime
-    def getStartAndDuration(self, component):
-        """Determine the start and duration of the stimulus
-        purely for Routine rendering purposes in the app (does not affect
-        actual drawing during the experiment)
-        """
-        if not component.params.has_key('startType'):
-            return None, None#this component does not have any start/stop
-        startType=component.params['startType'].val
-        stopType=component.params['stopType'].val
-        #deduce a start time (s) if possible
-        #user has given a time estimate
-        if canBeNumeric(component.params['startEstim'].val):
-            startTime=float(component.params['startEstim'].val)
-        elif startType=='time (s)' and canBeNumeric(component.params['startVal'].val):
-            startTime=float(component.params['startVal'].val)
-        else: startTime=None
-        #deduce duration (s) if possible. Duration used because box needs width
-        if canBeNumeric(component.params['durationEstim'].val):
-            duration=float(component.params['durationEstim'].val)
-        elif component.params['stopVal'].val in ['','-1','None']:
-            duration=FOREVER#infinite duration
-        elif stopType=='time (s)' and canBeNumeric(component.params['stopVal'].val):
-            duration=float(component.params['stopVal'].val)-startTime
-        elif stopType=='duration (s)' and canBeNumeric(component.params['stopVal'].val):
-            duration=float(component.params['stopVal'].val)
-        else:
-            duration=None
-        return startTime, duration
+        return float(self.routine.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
 
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
@@ -3768,15 +3722,6 @@ def appDataToFrames(prefs):
     dat = prefs.appData['builder']
 def framesToAppData(prefs):
     pass
-def canBeNumeric(inStr):
-    """Determines whether the input can be converted to a float
-    (using a try: float(instr))
-    """
-    try:
-        float(inStr)
-        return True
-    except:
-        return False
 def _relpath(path, start='.'):
     """This code is based on os.path.repath in the Python 2.6 distribution,
     included here for compatibility with Python 2.5"""

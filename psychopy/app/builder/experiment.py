@@ -5,6 +5,7 @@
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences, __version__, logging
+from psychopy.constants import *
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -987,6 +988,24 @@ class Routine(list):
             if comp.params['name']==name:
                 return comp
         return None
+    def getMaxTime(self):
+        """What the last (predetermined) stimulus time to be presented. If
+        there are no components or they have code-based times then will default
+        to 10secs
+        """
+        maxTime=0
+        for n, component in enumerate(self):
+            if component.params.has_key('startType'):
+                start, duration = component.getStartAndDuration()
+                if duration==FOREVER:
+                    # only the start of an unlimited event should contribute to maxTime
+                    duration = 1 # plus some minimal duration so its visible
+                try:thisT=start+duration#will fail if either value is not defined
+                except:thisT=0
+                maxTime=max(maxTime,thisT)
+        if maxTime==0:#if there are no components
+            maxTime=10
+        return maxTime
 
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.

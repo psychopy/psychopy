@@ -5,6 +5,7 @@
 import wx, copy
 from os import path
 from psychopy.app.builder.experiment import Param
+from psychopy.constants import *
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
@@ -126,6 +127,35 @@ class BaseComponent(object):
             if thisParam.updates==updateType:
                 return True
         return False
+
+    def getStartAndDuration(self):
+        """Determine the start and duration of the stimulus
+        purely for Routine rendering purposes in the app (does not affect
+        actual drawing during the experiment)
+        """
+        if not self.params.has_key('startType'):
+            return None, None#this component does not have any start/stop
+        startType=self.params['startType'].val
+        stopType=self.params['stopType'].val
+        #deduce a start time (s) if possible
+        #user has given a time estimate
+        if canBeNumeric(self.params['startEstim'].val):
+            startTime=float(self.params['startEstim'].val)
+        elif startType=='time (s)' and canBeNumeric(self.params['startVal'].val):
+            startTime=float(self.params['startVal'].val)
+        else: startTime=None
+        #deduce duration (s) if possible. Duration used because box needs width
+        if canBeNumeric(self.params['durationEstim'].val):
+            duration=float(self.params['durationEstim'].val)
+        elif self.params['stopVal'].val in ['','-1','None']:
+            duration=FOREVER#infinite duration
+        elif stopType=='time (s)' and canBeNumeric(self.params['stopVal'].val):
+            duration=float(self.params['stopVal'].val)-startTime
+        elif stopType=='duration (s)' and canBeNumeric(self.params['stopVal'].val):
+            duration=float(self.params['stopVal'].val)
+        else:
+            duration=None
+        return startTime, duration
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
         """
@@ -135,3 +165,13 @@ class BaseComponent(object):
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
+
+def canBeNumeric(inStr):
+    """Determines whether the input can be converted to a float
+    (using a try: float(instr))
+    """
+    try:
+        float(inStr)
+        return True
+    except:
+        return False
