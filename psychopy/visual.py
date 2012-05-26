@@ -6712,6 +6712,8 @@ class CustomMouse():
         """
         if pos is None:
             pos = self.getPos()
+        else:
+            self.lastPos = pos
         self.pointer.setPos(pos)
     def getPos(self):
         """Returns the mouse's current position.
