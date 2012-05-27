@@ -5,6 +5,7 @@
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences, __version__, logging
+from psychopy.constants import *
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
@@ -126,7 +127,7 @@ class Experiment:
                     "\nfrom __future__ import division #so that 1/3=0.333 instead of 1/3=0\n" +
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import * #things like STARTED, FINISHED\n" +
-                    "import numpy as np  # whole numpy lib is available, pre-pend 'np.'\n" +
+                    "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n")
@@ -860,6 +861,10 @@ class Flow(list):
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(script)
+        #create clocks (after initialising stimuli)
+        script.writeIndented("\n# Create some handy timers\n")
+        script.writeIndented("globalClock=core.Clock() #to track the time since experiment started\n")
+        script.writeIndented("routineTimer=core.CountdownTimer() #to track time remaining of each (non-slip) routine \n")
         #run-time code
         for entry in self:
             self._currentRoutine=entry
@@ -914,16 +919,20 @@ class Routine(list):
         #create the frame loop for this routine
         buff.writeIndentedLines('\n#------Prepare to start Routine"%s"-------\n' %(self.name))
 
-        buff.writeIndented('t=0; %s.reset()\n' %(self._clockName))
+        buff.writeIndented('t=0; %s.reset() #clock \n' %(self._clockName))
         buff.writeIndented('frameN=-1\n')
+        #can we use non-slip timing?
+        maxTime, useNonSlip = self.getMaxTime()
+        if useNonSlip:
+            buff.writeIndented('routineTimer.add(%f)\n' %(maxTime))
 
         buff.writeIndentedLines("#update component parameters for each repeat\n")
         #This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
 
-        buff.writeIndented('#keep track of which have finished\n')
-        buff.writeIndented('%sComponents=[]#to keep track of which have finished\n' %(self.name))
+        buff.writeIndented('#keep track of which components have finished\n')
+        buff.writeIndented('%sComponents=[]\n' %(self.name))
         for thisCompon in self:
             if thisCompon.params.has_key('startType'):
                 buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
@@ -932,7 +941,10 @@ class Routine(list):
 
         buff.writeIndented('#-------Start Routine "%s"-------\n' %(self.name))
         buff.writeIndented('continueRoutine=True\n')
-        buff.writeIndented('while continueRoutine:\n')
+        if useNonSlip:
+            buff.writeIndented('while continueRoutine and routineTimer.getTime()>0:\n')
+        else:
+            buff.writeIndented('while continueRoutine:\n')
         buff.setIndentLevel(1,True)
 
         #on each frame
@@ -941,14 +953,15 @@ class Routine(list):
         buff.writeIndented('frameN=frameN+1#number of completed frames (so 0 in first frame)\n')
 
         #write the code for each component during frame
-        buff.writeIndentedLines('#update/draw components on each frame')
+        buff.writeIndentedLines('#update/draw components on each frame\n')
         for event in self:
             event.writeFrameCode(buff)
 
         #are we done yet?
         buff.writeIndentedLines('\n#check if all components have finished\n')
-        buff.writeIndentedLines('if not continueRoutine:\n')
-        buff.writeIndentedLines('    break # lets a component forceEndRoutine\n')
+        buff.writeIndentedLines('if not continueRoutine: #a component has requested that we end\n')
+        buff.writeIndentedLines('    routineClock.reset() #this is the new t0 for non-slip Routines\n')
+        buff.writeIndentedLines('    break\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
         buff.writeIndentedLines('    if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:\n')
@@ -957,7 +970,8 @@ class Routine(list):
         #allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines('\n#check for quit (the [Esc] key)')
-            buff.writeIndentedLines('if event.getKeys(["escape"]):\n    core.quit()')
+            buff.writeIndentedLines('if event.getKeys(["escape"]):\n')
+            buff.writeIndentedLines('    core.quit()\n')
         #update screen
         buff.writeIndentedLines('\n#refresh the screen\n')
         buff.writeIndented("if continueRoutine:#don't flip if this routine is over or we'll get a blank screen\n")
@@ -987,6 +1001,30 @@ class Routine(list):
             if comp.params['name']==name:
                 return comp
         return None
+    def getMaxTime(self):
+        """What the last (predetermined) stimulus time to be presented. If
+        there are no components or they have code-based times then will default
+        to 10secs
+        """
+        maxTime=0
+        nonSlipSafe = True # if possible
+        for n, component in enumerate(self):
+            if component.params.has_key('startType'):
+                start, duration, nonSlip = component.getStartAndDuration()
+                if duration==FOREVER:
+                    # only the start of an unlimited event should contribute to maxTime
+                    duration = 1 # plus some minimal duration so it's visible
+                    nonSlipSafe=False
+                try:
+                    thisT=start+duration#will fail if either value is not defined
+                except:
+                    thisT=0
+                    nonSlipSafe=False
+                maxTime=max(maxTime,thisT)
+        if maxTime==0:#if there are no components
+            maxTime=10
+            nonSlipSafe=False
+        return maxTime, nonSlipSafe
 
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.
