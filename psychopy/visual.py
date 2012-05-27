@@ -4725,11 +4725,10 @@ class ShapeStim(_BaseVisualStim):
     def contains(self, x, y=None):
         """Determines if a point x,y is inside the shape.
 
-        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is a list, tuple, or
-        numpy array; or c) an object with a getPos() method that returns x,y, such
-        as a mouse. Returns True if the point is within the area defined by `vertices`,
-        using a ray-casting algorithm. This handles complex shapes, including
-        concavities and self-crossings.
+        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
+        list-like; or c) an object with a getPos() method that returns x,y, such
+        as a mouse. Returns True if the point is within the area defined by `vertices`.
+        This handles complex shapes, including concavities and self-crossings.
 
         See coder demo, shapeContains.py
         """
@@ -5098,6 +5097,10 @@ class ImageStim(_BaseVisualStim):
         self._calcSizeRendered()
         self._calcPosRendered()
 
+        # _verticesRendered for .contains() and .overlaps()
+        v = [(-.5,-.5), (-.5,.5), (.5,.5), (.5,-.5)]
+        self._verticesRendered = numpy.array(self._sizeRendered, dtype=float) * v
+
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
@@ -5223,6 +5226,24 @@ class ImageStim(_BaseVisualStim):
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
 
+    def contains(self, x, y=None):
+        """Determines if a point x,y is on the image (within its boundary).
+        
+        See :class:`~psychopy.visual.ShapeStim` `.contains()`.
+        """
+        if hasattr(x, 'getPos'):
+            x,y = x.getPos()
+        elif type(x) in [list, tuple, numpy.ndarray]:
+            x,y = x[0:2]
+        return pointInPolygon(x, y, self)
+
+    def overlaps(self, polygon):
+        """Determines if the image overlaps another image or shape (`polygon`).
+        
+        See :class:`~psychopy.visual.ShapeStim` `.overlaps()`.
+        """
+        return polygonsOverlap(self, polygon)
+
     def clearTextures(self):
         """
         Clear the textures associated with the given stimulus.
@@ -5300,18 +5321,17 @@ class ImageStim(_BaseVisualStim):
         #set it
         self._calcSizeRendered()
         self.needUpdate=True
-class BufferImageStim(PatchStim):
+class BufferImageStim(GratingStim):
     """
-    Take a "screen-shot" (full or partial), save to a PatchStim()-like RBGA object.
+    Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
 
     The class returns a screen-shot, i.e., a single collage image composed of static
     elements, ones that you want to treat as effectively a single stimulus. The
     screen-shot can be of the visible screen (front buffer) or hidden (back buffer).
 
     BufferImageStim aims to provide fast rendering, while still allowing dynamic
-    orientation, position, and opacity. Its fast to draw but slow to init: ~75ms for
-    a 1024 x 512 capture; init time is proportional to image size (as for PatchStim).
-    There is no support for dynamic depth or color.
+    orientation, position, and opacity. Its fast to draw but slow to init (like
+    ImageStim). There is no support for dynamic depth.
 
     You specify the part of the screen to capture (in norm units), and optionally
     the stimuli themselves (as a list of items to be drawn). You get a screenshot
@@ -5323,8 +5343,8 @@ class BufferImageStim(PatchStim):
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
     Status: seems to work on Mac, but limitations:
-        - Screen units are not properly sorted out, better to allow pix too
-        - Rudimentary testing on pygame; none on Windows, Linux, FreeBSD
+    - Screen units are not properly sorted out, would be better to allow pix too
+    - Not tested on Windows, Linux, FreeBSD
 
     **Example**::
 
@@ -5342,7 +5362,7 @@ class BufferImageStim(PatchStim):
             other_stuff.draw() # dynamic
             myWin.flip()
 
-    See coder Demos > stimuli > bufferImageStim.py for a demo.
+    See coder Demos > stimuli > bufferImageStim.py for a demo, with timing stats.
 
     :Author:
         - 2010 Jeremy Gray
@@ -5403,7 +5423,11 @@ class BufferImageStim(PatchStim):
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         # turn the RGBA region into a PatchStim()-like object:
-        PatchStim.__init__(self, win, tex=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
+        GratingStim.__init__(self, win, tex=region, units='pix',
+                             interpolate=interpolate, name=name, autoLog=autoLog)
+        # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
+        # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
+        #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
@@ -5480,10 +5504,11 @@ class BufferImageStim(PatchStim):
                 level=logging.EXP,obj=self)
     def draw(self):
         """
-        streamlined version of :class:`~psychopy.visual.PatchStim.draw`.
-        limitations / bugs: not sure what happens with shaders & self._updateList()
+        Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
+        Allows dynamic position, size, rotation, color, and opacity.
+        Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        # this is copy & pasted from PatchStim, then had stuff taken out for speed
+        # this is copy & pasted from old PatchStim, then had stuff taken out for speed
 
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
@@ -5520,9 +5545,9 @@ class RatingScale:
     Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple
     of 10, just to reduce visual clutter.
 
-    **Example 1**::
+    **Example 1**:
 
-        *Default 7-point scale*::
+        The default 7-point scale::
 
             myItem = <create your text, image, movie, ...>
             myRatingScale = visual.RatingScale(myWin)
@@ -5537,18 +5562,18 @@ class RatingScale:
 
             while myRatingScale.status != FINISHED:
 
-    **Example 2**::
+    **Example 2**:
 
-        Mouse-free. Considerable customization is possible. For fMRI, if your
+        Key-board only. Considerable customization is possible. For fMRI, if your
         response box sends keys 1-4, you could specify left, right, and accept
-        keys, and no mouse:
+        keys, and no mouse::
 
             myRatingScale = visual.RatingScale(myWin, markerStart=4,
                 leftKeys='1', rightKeys = '2', acceptKeys='4')
 
-    **Example 3**::
+    **Example 3**:
 
-        Non-numeric choices (categorical, unordered):
+        Non-numeric choices (categorical, unordered)::
 
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
             myRatingScale = visual.RatingScale(myWin,
@@ -5570,7 +5595,7 @@ class RatingScale:
     allows full control over a RatingScale (via 'customizeEverything').
 
     :Author:
-        2010 Jeremy Gray, 2011 updates
+        2010 Jeremy Gray, with various updates.
     """
     def __init__(self,
                 win,
@@ -5633,9 +5658,9 @@ class RatingScale:
         highAnchorText :
             text to display for the high end of the scale (default = numeric high value)
         precision :
-            portions of a tick to accept as input [1,10,100], default = 1 tick (no fractional parts)
+            portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
-            .. note:: left/right keys will move the marker by one portion of a tick.
+            .. note:: `leftKeys` / `rightKeys` will move the marker by one portion of a tick.
 
         textSizeFactor :
             control the size of text elements of the scale.
@@ -5659,30 +5684,33 @@ class RatingScale:
                 to give the subject a way to respond.
 
         acceptKeys :
-            list of keys that mean "accept the current response", default = ['return']
+            a key or list of keys that mean "accept the current response", default = ['return']
         acceptPreText :
             text to display before any value has been selected
         acceptText :
             text to display in the 'accept' button after a value has been selected
         leftKeys :
-            list of keys that mean "move leftwards", default = ['left']
+            a key or list of keys that mean "move leftwards", default = ['left']
         rightKeys :
-            list of keys that mean "move rightwards", default = ['right']
+            a key or list of keys that mean "move rightwards", default = ['right']
         lineColor :
             color to use for the scale line, default = 'White'
         markerStyle :
-            *'triangle'* (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
+            'triangle' (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
         markerColor :
-            *None* = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
+            None = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
         markerStart :
-            *False*, or the value in [low..high] to be pre-selected upon initial display
+            False, or the value in [low..high] to be pre-selected upon initial display
         markerExpansion :
             how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
         customMarker :
-            allows for a user-defined marker; must have a `.draw()` method, such as a TextStim()
-            or PatchStim()
+            allows for a user-defined marker; must have a `.draw()` method, such as a
+            :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.PatchStim()`
         escapeKeys :
-            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none)
+            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
+            
+            .. note:: in the Builder, the default is ['escape'] (to be consistent with other Builder conventions)
+            
         allowSkip :
             if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
         skipKeys :
@@ -6366,6 +6394,8 @@ class RatingScale:
                     else:
                         val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
                     self.accept.setText(val)
+                elif self.markerPlacedAt is not False:
+                    self.accept.setText(self.acceptText)
 
         # handle key responses:
         if not self.mouseOnly:
@@ -6626,14 +6656,16 @@ class CustomMouse():
             showLimitBox : default is False
                 display the boundary of the area within which the mouse can move.
             pointer :
-                The visual display item to use as the pointer; must have .draw() and setPos() methods.
-                If your item has .setOpacity(), you can alter the mouse's opacity.
+                The visual display item to use as the pointer; must have .draw()
+                and setPos() methods. If your item has .setOpacity(), you can
+                alter the mouse's opacity.
             clickOnUp : when to count a mouse click as having occured
-                default is False, record a click when the mouse is first pressed down
-                True means record a click when the mouse button is released
+                default is False, record a click when the mouse is first pressed 
+                down. True means record a click when the mouse button is released.
         :Note:
-            CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
-            and mouseMoved() always returns False. clickReset() may not be working.
+            CustomMouse is a new feature, and subject to change. `setPos()` does
+            not work yet. `getRel()` returns `[0,0]` and `mouseMoved()` always
+            returns `False`. `clickReset()` may not be working. 
         """
         self.win = win
         self.mouse = event.Mouse(win=self.win)
@@ -6677,12 +6709,20 @@ class CustomMouse():
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
 
-    def setPos(self, pos=None):
-        """Place the mouse at a specific position (pyglet or pygame).
+    def _setPos(self, pos=None):
+        """internal mouse position management. setting a position here leads to
+        the virtual mouse being out of alignment with the hardware mouse, which
+        leads to an 'invisible wall' effect for the mouse.
         """
         if pos is None:
             pos = self.getPos()
+        else:
+            self.lastPos = pos
         self.pointer.setPos(pos)
+    def setPos(self, pos):
+        """Not implemented yet. Place the mouse at a specific position.
+        """
+        raise NotImplementedError('setPos is not available for custom mouse')
     def getPos(self):
         """Returns the mouse's current position.
         Influenced by changes in .getRel(), constrained to be in its virtual box.
@@ -6695,7 +6735,7 @@ class CustomMouse():
     def draw(self):
         """Draw mouse (if its visible), show the limit box, update the click count.
         """
-        self.setPos()
+        self._setPos()
         if self.showLimitBox:
             self.box.draw()
         if self.visible:
@@ -6722,7 +6762,7 @@ class CustomMouse():
         self.visible = visible
     def setPointer(self, pointer):
         """Set the visual item to be drawn as the mouse pointer."""
-        if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
+        if hasattr(pointer, 'draw') and hasattr(pointer, 'setPos'):
             self.pointer = pointer
         else:
             raise AttributeError, "need .draw() and .setPos() methods in pointer"
@@ -7082,13 +7122,16 @@ def pointInPolygon(x, y, poly):
     return inside
 
 def polygonsOverlap(poly1, poly2):
-    """Determine if two polygons intersect; the approximation can fail for pointy polygons.
+    """Determine if two polygons intersect; can fail for pointy polygons.
 
     Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
     instances, will use rendered (vertices + pos) as the polygon.
 
-    Checks if any vertex of one polygon is inside the other polygon; will fail in some
-    cases, especially for pointy polygons. Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
+    Checks if any vertex of one polygon is inside the other polygon; will fail in 
+    some cases, especially for pointy polygons. "crossed-swords" configurations
+    overlap but may not be detected by the algorithm.
+    
+    Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
     if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
         poly1 = poly1._verticesRendered + poly1._posRendered
