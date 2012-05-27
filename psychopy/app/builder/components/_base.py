@@ -132,9 +132,14 @@ class BaseComponent(object):
         """Determine the start and duration of the stimulus
         purely for Routine rendering purposes in the app (does not affect
         actual drawing during the experiment)
+
+        start, duration, nonSlipSafe = component.getStartAndDuration()
+
+        nonSlipSafe indicates that the component's duration is a known fixed
+        value and can be used in non-slip global clock timing (e.g for fMRI)
         """
         if not self.params.has_key('startType'):
-            return None, None#this component does not have any start/stop
+            return None, None, True#this component does not have any start/stop
         startType=self.params['startType'].val
         stopType=self.params['stopType'].val
         #deduce a start time (s) if possible
@@ -144,18 +149,23 @@ class BaseComponent(object):
         elif startType=='time (s)' and canBeNumeric(self.params['startVal'].val):
             startTime=float(self.params['startVal'].val)
         else: startTime=None
-        #deduce duration (s) if possible. Duration used because box needs width
-        if canBeNumeric(self.params['durationEstim'].val):
-            duration=float(self.params['durationEstim'].val)
-        elif self.params['stopVal'].val in ['','-1','None']:
-            duration=FOREVER#infinite duration
-        elif stopType=='time (s)' and canBeNumeric(self.params['stopVal'].val):
+        #if we have an exact
+        if stopType=='time (s)' and canBeNumeric(self.params['stopVal'].val):
             duration=float(self.params['stopVal'].val)-startTime
+            nonSlipSafe=True
         elif stopType=='duration (s)' and canBeNumeric(self.params['stopVal'].val):
             duration=float(self.params['stopVal'].val)
+            nonSlipSafe=True
         else:
-            duration=None
-        return startTime, duration
+            nonSlipSafe=False
+            #deduce duration (s) if possible. Duration used because component time icon needs width
+            if canBeNumeric(self.params['durationEstim'].val):
+                duration=float(self.params['durationEstim'].val)
+            elif self.params['stopVal'].val in ['','-1','None']:
+                duration=FOREVER#infinite duration
+            else:
+                duration=None
+        return startTime, duration, nonSlipSafe
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
         """

@@ -996,7 +996,7 @@ class RoutineCanvas(wx.ScrolledWindow):
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
-        tMax=self.routine.getMaxTime()*1.1
+        tMax=self.routine.getMaxTime()[0]*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
@@ -1057,7 +1057,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         fullRect.Union(wx.Rect(x-20,y,w,h))
 
         #deduce start and stop times if possible
-        startTime, duration = component.getStartAndDuration()
+        startTime, duration, nonSlipSafe = component.getStartAndDuration()
         #draw entries on timeline (if they have some time definition)
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
@@ -1096,7 +1096,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.frame.addToUndoStack("edit %s" %component.params['name'])
 
     def getSecsPerPixel(self):
-        return float(self.routine.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
+        return float(self.routine.getMaxTime()[0])/(self.timeXposEnd-self.timeXposStart)
 
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
