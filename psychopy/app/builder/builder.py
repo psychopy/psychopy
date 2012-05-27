@@ -22,6 +22,10 @@ from psychopy.constants import *
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
+nonSlipFill=wx.Color(150,200,150, 255)
+nonSlipEdge=wx.Color(0,100,0, 255)
+relTimeFill=wx.Color(200,150,150, 255)
+relTimeEdge=wx.Color(200,50,50, 255)
 routineFlowColor=wx.Color(200,150,150, 255)
 darkgrey=wx.Color(65,65,65, 255)
 white=wx.Color(255,255,255, 255)
@@ -685,7 +689,7 @@ class FlowPanel(wx.ScrolledWindow):
         else:
             dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]-4*size)#points down
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
-    def drawFlowRoutine(self,dc,routine,id, rgb=[200,50,50],pos=[0,0], draw=True):
+    def drawFlowRoutine(self,dc,routine,id,pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
         """
@@ -706,7 +710,14 @@ class FlowPanel(wx.ScrolledWindow):
         else:
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
-        r, g, b = rgb
+
+        maxTime,nonSlip=routine.getMaxTime()
+        if nonSlip:
+            rgbFill=nonSlipFill
+            rgbEdge=nonSlipEdge
+        else:
+            rgbFill=relTimeFill
+            rgbEdge=relTimeEdge
 
         #get size based on text
         self.SetFont(font)
@@ -719,13 +730,17 @@ class FlowPanel(wx.ScrolledWindow):
         endX = pos[0]+w+pad
         #the edge should match the text
         if draw:
-            dc.SetPen(wx.Pen(wx.Color(r, g, b, wx.ALPHA_OPAQUE)))
-            #for the fill, draw once in white near-opaque, then in transp color
-            dc.SetBrush(wx.Brush(routineFlowColor))
+            dc.SetPen(wx.Pen(wx.Color(rgbEdge[0],rgbEdge[1],rgbEdge[2], wx.ALPHA_OPAQUE)))
+            dc.SetBrush(wx.Brush(rgbFill))
             dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
             #draw text
-            dc.SetTextForeground(rgb)
-            dc.DrawText(name, pos[0]+pad/2, pos[1]+pad/2)
+            dc.SetTextForeground(rgbEdge)
+            dc.DrawLabel(name, rect, alignment = wx.ALIGN_CENTRE)
+            if nonSlip and self.appData['flowSize']!=0:
+                font.SetPointSize(font.GetPointSize()*0.6)
+                dc.SetFont(font)
+                dc.DrawLabel("(%.2fs)" %maxTime,
+                    rect, alignment = wx.ALIGN_CENTRE|wx.ALIGN_BOTTOM)
 
             self.componentFromID[id]=routine
             #set the area for this component
@@ -1082,6 +1097,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         if hasattr(component, 'url'):helpUrl=component.url
         else:helpUrl=None
         old_name = component.params['name'].val
+        #check current timing settings of component (if it changes we need to update views)
+        timings = component.getStartAndDuration()
         #create the dialog
         dlg = DlgComponentProperties(frame=self.frame,
             title=component.params['name'].val+' Properties',
@@ -1089,8 +1106,11 @@ class RoutineCanvas(wx.ScrolledWindow):
             order = component.order,
             helpUrl=helpUrl, editing=True)
         if dlg.OK:
-            self.redrawRoutine()#need to refresh timings section
-            self.Refresh()#then redraw visible
+            if component.getStartAndDuration() != timings:
+                self.redrawRoutine()#need to refresh timings section
+                self.Refresh()#then redraw visible
+                self.frame.flowPanel.draw()
+#                self.frame.flowPanel.Refresh()
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("edit %s" %component.params['name'])
