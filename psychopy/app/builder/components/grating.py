@@ -28,12 +28,13 @@ class GratingComponent(VisualComponent):
         self.type='Grating'
         self.url="http://www.psychopy.org/builder/components/grating.html"
         self.exp.requirePsychopyLibs(['visual'])
+        self.order=['tex','mask']
         #params
         self.params['advancedParams']=['texture resolution','interpolate']
         self.params['tex']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)",
-            label="Image")
+            label="Texture")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)",
@@ -61,7 +62,7 @@ class GratingComponent(VisualComponent):
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
         buff.writeIndented("%s=visual.GratingStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
-        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
+        buff.writeIndented("    tex=%(tex)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
