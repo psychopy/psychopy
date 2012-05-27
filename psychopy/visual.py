@@ -6656,14 +6656,16 @@ class CustomMouse():
             showLimitBox : default is False
                 display the boundary of the area within which the mouse can move.
             pointer :
-                The visual display item to use as the pointer; must have .draw() and setPos() methods.
-                If your item has .setOpacity(), you can alter the mouse's opacity.
+                The visual display item to use as the pointer; must have .draw()
+                and setPos() methods. If your item has .setOpacity(), you can
+                alter the mouse's opacity.
             clickOnUp : when to count a mouse click as having occured
-                default is False, record a click when the mouse is first pressed down
-                True means record a click when the mouse button is released
+                default is False, record a click when the mouse is first pressed 
+                down. True means record a click when the mouse button is released.
         :Note:
-            CustomMouse is a new feature, and as such is subject to change. Currently, getRel() returns [0,0]
-            and mouseMoved() always returns False. clickReset() may not be working.
+            CustomMouse is a new feature, and subject to change. `setPos()` does
+            not work yet. `getRel()` returns `[0,0]` and `mouseMoved()` always
+            returns `False`. `clickReset()` may not be working. 
         """
         self.win = win
         self.mouse = event.Mouse(win=self.win)
@@ -6707,14 +6709,20 @@ class CustomMouse():
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
 
-    def setPos(self, pos=None):
-        """Place the mouse at a specific position (pyglet or pygame).
+    def _setPos(self, pos=None):
+        """internal mouse position management. setting a position here leads to
+        the virtual mouse being out of alignment with the hardware mouse, which
+        leads to an 'invisible wall' effect for the mouse.
         """
         if pos is None:
             pos = self.getPos()
         else:
             self.lastPos = pos
         self.pointer.setPos(pos)
+    def setPos(self, pos):
+        """Not implemented yet. Place the mouse at a specific position.
+        """
+        raise NotImplementedError('setPos is not available for custom mouse')
     def getPos(self):
         """Returns the mouse's current position.
         Influenced by changes in .getRel(), constrained to be in its virtual box.
@@ -6727,7 +6735,7 @@ class CustomMouse():
     def draw(self):
         """Draw mouse (if its visible), show the limit box, update the click count.
         """
-        self.setPos()
+        self._setPos()
         if self.showLimitBox:
             self.box.draw()
         if self.visible:
@@ -6754,7 +6762,7 @@ class CustomMouse():
         self.visible = visible
     def setPointer(self, pointer):
         """Set the visual item to be drawn as the mouse pointer."""
-        if 'draw' in dir(pointer) and 'setPos' in dir(pointer):
+        if hasattr(pointer, 'draw') and hasattr(pointer, 'setPos'):
             self.pointer = pointer
         else:
             raise AttributeError, "need .draw() and .setPos() methods in pointer"
