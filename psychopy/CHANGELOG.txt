@@ -17,8 +17,10 @@ PsychoPy 1.74.00
 
 Major changes (and compatibility changes):
 
+* ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)
 * ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments. 
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See psychopy.microphone library, coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
+* ADDED: ImageStim and GratingStim to take over the combined role of PatchStim. For new experiments users are recommended to switch to these new more-specialised stimuli, although PatchStim objects will continue to work for the foreseeable future.
 * ADDED: HSV color space for all stimuli
 * CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments.
 

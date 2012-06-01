@@ -25,6 +25,7 @@ PsychoPy 1.74.00
 
 Highlights (and compatibility changes):
 
+* :red:`ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)` See :ref:`nonSlip` for further info
 * :red:`ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments.` See :ref:`longWide` outputs
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See :ref:`psychopy.microphone <microphone>` library, Coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
 * ADDED: HSV color space for all stimuli

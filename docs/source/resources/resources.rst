@@ -2,12 +2,13 @@ Resources (e.g. for teaching)
 =====================================
 
 There are a number of further resources to help learn/teach about PsychoPy.
-       
-Upcoming events
---------------------
 
-:ref:`VSS`
+.. _youtube:
 
+Youtube tutorials
+---------------------
+
+There is now a `youtube PsychoPy <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ tutorial showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
 
 .. _lectureMaterials:
 
@@ -29,6 +30,8 @@ Lecture materials (Coder)
 
 Previous events
 --------------------
+
+* :ref:`VSS`
 
 * `Yale, 21-23 July <https://scanlab.psych.yale.edu/public/psychopy>`_ : The first ever dedicated PsychoPy workshop/conference was at Yale, 21-23 July 2011. Thanks Jeremy for organising!
 
