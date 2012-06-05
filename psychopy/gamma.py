@@ -63,7 +63,8 @@ def getGammaRamp(pygletWindow):
     if sys.platform=='win32':
         origramps = numpy.empty((3, 256), dtype=numpy.uint16) # init R, G, and B ramps
         success = windll.gdi32.GetDeviceGammaRamp(pygletWindow._dc, origramps.ctypes)
-        if not success: raise AssertionError, 'SetDeviceGammaRamp failed'
+        if not success:
+            raise AssertionError, 'SetDeviceGammaRamp failed'
         origramps.byteswap(True)
         origramps=origramps/255.0#rescale to 0:1
 
@@ -72,13 +73,16 @@ def getGammaRamp(pygletWindow):
         n = numpy.empty([1],dtype=numpy.int)
         error =carbon.CGGetDisplayTransferByTable(pygletWindow._screen.id, 256,
                    origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes, n.ctypes);
-        if error: raise AssertionError, 'CGSetDisplayTransferByTable failed'
+        if error:
+            raise AssertionError, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux'):
         origramps = numpy.empty((3, 256), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
                     origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes)
-        if not success: raise AssertionError, 'XF86VidModeGetGammaRamp failed'
+        if not success:
+            raise AssertionError, 'XF86VidModeGetGammaRamp failed'
+        origramps=origramps/65535.0#rescale to 0:1
 
     return origramps
 

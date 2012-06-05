@@ -7,7 +7,15 @@ def test_low_gamma():
         win.flip()
     if win.useNativeGamma==True:
         assert False
-    #win.close()
+    win.close()
+def test_mid_gamma():
+    """setting gamma high (bright screen)"""
+    win = visual.Window([600,600], gamma=2.0)#should make the entire screen bright
+    for n in range(5):
+        win.flip()
+    if win.useNativeGamma==True:
+        assert False
+    win.close()
 def test_high_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=4.0)#should make the entire screen bright
@@ -15,7 +23,7 @@ def test_high_gamma():
         win.flip()
     if win.useNativeGamma==True:
         assert False
-    #win.close()
+    win.close()
 def test_no_gamma():
     """check that no gamma is used if not passed"""
     win = visual.Window([600,600])#should not change gamma

@@ -46,7 +46,7 @@ import pyglet
 pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
 GL = pyglet.gl
 
-import gamma
+import psychopy.gamma
 #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 import _shadersPyglet as _shaders
 try:
@@ -313,7 +313,7 @@ class Window:
         self._toDrawDepths=[]
         self._eventDispatchers=[]
         try:
-            self.origGammaRamp=self.getGammaRamp()
+            self.origGammaRamp=psychopy.gamma.getGammaRamp(self.winHandle)
         except:
             self.origGammaRamp=None
         if self.useNativeGamma:
@@ -705,6 +705,8 @@ class Window:
         else:
             #pygame.quit()
             pygame.display.quit()
+        if (not self.useNativeGamma) and self.origGammaRamp!=None:
+            psychopy.gamma.setGammaRamp(self.winHandle, self.origGammaRamp)
         if self.bitsMode!=None:
             self.bits.reset()
         openWindows.remove(self)
@@ -879,9 +881,9 @@ class Window:
                                               style=style
                                           )
         #add these methods to the pyglet window
-        self.winHandle.setGamma = gamma.setGamma
-        self.winHandle.setGammaRamp = gamma.setGammaRamp
-        self.winHandle.getGammaRamp = gamma.getGammaRamp
+        self.winHandle.setGamma = psychopy.gamma.setGamma
+        self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
+        self.winHandle.getGammaRamp = psychopy.gamma.getGammaRamp
         self.winHandle.set_vsync(True)
         self.winHandle.on_key_press = psychopy.event._onPygletKey
         self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
