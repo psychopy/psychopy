@@ -100,14 +100,14 @@ class PsychoPyApp(wx.App):
     def __init__(self, arg=0, showSplash=True):
         wx.App.__init__(self, arg)
         self.onInit(showSplash)
-        
+
     def onInit(self, showSplash=True):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
-        #fetch prefs
+        #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
-            log.console.setLevel(log.DEBUG)
+            logging.console.setLevel(logging.DEBUG)
             
         if showSplash:
             #show splash screen
@@ -121,14 +121,10 @@ class PsychoPyApp(wx.App):
             raise "OMG error"
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
+        splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy import compatibility
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, dialogs, wxIDs, urls
-        #set default paths and prefs
-        self.prefs = preferences.Preferences() #from preferences.py
-        if self.prefs.app['debugMode']:
-            logging.console.setLevel(logging.DEBUG)
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
@@ -191,7 +187,8 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        if showSplash: splash.SetText("  Creating frames..."+uidRootFlag)
+        if showSplash and splash:
+            splash.SetText("  Creating frames..."+uidRootFlag)
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
