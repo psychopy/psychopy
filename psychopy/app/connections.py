@@ -172,7 +172,6 @@ class SuggestUpdateDialog(wx.Dialog):
             self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Keep warning me')
             self.cancelBtn.SetDefault()
             self.noBtn=wx.Button(self,wx.ID_NO,'Stop warning me')
-            btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
         else:
             self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
@@ -180,12 +179,12 @@ class SuggestUpdateDialog(wx.Dialog):
             self.noBtn=wx.Button(self,wx.ID_NO,'Skip this version')
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
-        self.yesBtn.SetDefault()
         btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
         btnSizer.Add((60, 20), 0, wx.EXPAND)
         btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
 
         if not sys.platform.startswith('linux'):
+            self.yesBtn.SetDefault()
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
 
