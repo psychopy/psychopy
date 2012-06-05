@@ -124,7 +124,7 @@ class Updater:
                     self.app.followLink(url=self.app.urls['downloads'])
                 if resp==wx.ID_NO:
                     self.app.followLink(url=self.app.urls['changelog'])
-        elif not confirmationDlg:#don't confirm but return the latest version info
+        elif not confirmationDlg:#do nothing
             return 0
         else:
             msg= "You are running the latest version of PsychoPy (%s). " %(self.runningVersion)
@@ -140,7 +140,7 @@ class SuggestUpdateDialog(wx.Dialog):
     """A dialog explaining that a new version is available with a link to the changelog
     """
     def __init__(self,latest,runningVersion):
-        wx.Dialog.__init__(self,None,-1,title='PsychoPy2 auto-updater')
+        wx.Dialog.__init__(self,None,-1,title='PsychoPy2 Updates')
         sizer=wx.BoxSizer(wx.VERTICAL)
 
         #info about current version
@@ -155,7 +155,11 @@ class SuggestUpdateDialog(wx.Dialog):
         changelogLink = wxhl.HyperLinkCtrl(self, wx.ID_ANY, "View complete Changelog",
                                         URL="http://www.psychopy.org/changelog.html")
 
-        msg3 = wx.StaticText(self,-1,"Should PsychoPy update itself?")
+        if sys.platform.startswith('linux'):
+            msg3 = wx.StaticText(self,-1,"You can update PsychoPy with your package manager")
+        else:
+            msg3 = wx.StaticText(self,-1,"Should PsychoPy update itself?")
+
         sizer.Add(msg1,flag=wx.ALL|wx.CENTER,border=15)
         sizer.Add(msg2,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=15)
         sizer.Add(changelogLink,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=5)
@@ -163,18 +167,27 @@ class SuggestUpdateDialog(wx.Dialog):
 
         #add buttons
         btnSizer=wx.BoxSizer(wx.HORIZONTAL)
-        self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
-        self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Not now')
-        self.noBtn=wx.Button(self,wx.ID_NO,'Skip this version')
+
+        if sys.platform.startswith('linux'):#for linux there should be no 'update' option
+            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Keep warning me')
+            self.cancelBtn.SetDefault()
+            self.noBtn=wx.Button(self,wx.ID_NO,'Stop warning me')
+            btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
+        else:
+            self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
+            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Not now')
+            self.noBtn=wx.Button(self,wx.ID_NO,'Skip this version')
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
         self.yesBtn.SetDefault()
         btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
         btnSizer.Add((60, 20), 0, wx.EXPAND)
         btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
-        btnSizer.Add((5, 20), 0)
-        btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+
+        if not sys.platform.startswith('linux'):
+            btnSizer.Add((5, 20), 0)
+            btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
 
         #configure sizers and fit
         sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)

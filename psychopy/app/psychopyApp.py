@@ -218,17 +218,23 @@ class PsychoPyApp(wx.App):
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
-        self.Bind
-        wx.EVT_IDLE(self, self.onIdle)
+        if self.prefs.connections['checkForUpdates']:
+            self.Bind(wx.EVT_IDLE, self.checkUpdates)
+        else:
+            self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
-    def onIdle(self, evt):
+    def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
-        if self._latestAvailableVersion not in [-1, None] and \
-          self.prefs.connections['checkForUpdates'] and \
-          self.updater==None:#we have a network connection but not yet tried an update
+        if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update
+            #change IDLE routine so we won't come back here
+            self.Unbind(wx.EVT_IDLE)#unbind all EVT_IDLE methods from app
+            self.Bind(wx.EVT_IDLE, self.onIdle)
+            #create updater (which will create dialogs as needed)
             self.updater=connections.Updater(app=self)
-            #check for updates
+            self.updater.latest=self._latestAvailableVersion
             self.updater.suggestUpdate(confirmationDlg=False)
+        evt.Skip()
+    def onIdle(self, evt):
         evt.Skip()
     def getPrimaryDisplaySize(self):
         """Get the size of the primary display (whose coords start (0,0))

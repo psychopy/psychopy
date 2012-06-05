@@ -1283,7 +1283,7 @@ class _BaseVisualStim:
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, val, log=True):
         """Add or remove a stimulus from the list of stimuli that will be
-        automatically drawn on each flip
+        automatically drawn on each flip. You do NOT need to call this on every frame flip!
 
         :parameters:
             - val: True/False
@@ -5228,7 +5228,7 @@ class ImageStim(_BaseVisualStim):
 
     def contains(self, x, y=None):
         """Determines if a point x,y is on the image (within its boundary).
-        
+
         See :class:`~psychopy.visual.ShapeStim` `.contains()`.
         """
         if hasattr(x, 'getPos'):
@@ -5239,7 +5239,7 @@ class ImageStim(_BaseVisualStim):
 
     def overlaps(self, polygon):
         """Determines if the image overlaps another image or shape (`polygon`).
-        
+
         See :class:`~psychopy.visual.ShapeStim` `.overlaps()`.
         """
         return polygonsOverlap(self, polygon)
@@ -5708,9 +5708,9 @@ class RatingScale:
             :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.PatchStim()`
         escapeKeys :
             keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
-            
+
             .. note:: in the Builder, the default is ['escape'] (to be consistent with other Builder conventions)
-            
+
         allowSkip :
             if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
         skipKeys :
@@ -6660,12 +6660,12 @@ class CustomMouse():
                 and setPos() methods. If your item has .setOpacity(), you can
                 alter the mouse's opacity.
             clickOnUp : when to count a mouse click as having occured
-                default is False, record a click when the mouse is first pressed 
+                default is False, record a click when the mouse is first pressed
                 down. True means record a click when the mouse button is released.
         :Note:
             CustomMouse is a new feature, and subject to change. `setPos()` does
             not work yet. `getRel()` returns `[0,0]` and `mouseMoved()` always
-            returns `False`. `clickReset()` may not be working. 
+            returns `False`. `clickReset()` may not be working.
         """
         self.win = win
         self.mouse = event.Mouse(win=self.win)
@@ -7127,10 +7127,10 @@ def polygonsOverlap(poly1, poly2):
     Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
     instances, will use rendered (vertices + pos) as the polygon.
 
-    Checks if any vertex of one polygon is inside the other polygon; will fail in 
+    Checks if any vertex of one polygon is inside the other polygon; will fail in
     some cases, especially for pointy polygons. "crossed-swords" configurations
     overlap but may not be detected by the algorithm.
-    
+
     Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
     if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
