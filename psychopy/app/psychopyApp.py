@@ -118,10 +118,11 @@ class PsychoPyApp(wx.App):
             splash.SetTextPosition((10,240))
             splash.SetText("  Loading libraries..."+uidRootFlag)
         else:
-            raise "OMG error"
+            splash=None
+			
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
+        if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy import compatibility
         from psychopy.monitors import MonitorCenter
         from psychopy.app import coder, builder, dialogs, wxIDs, urls
@@ -135,10 +136,6 @@ class PsychoPyApp(wx.App):
             last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
         else:
             last=self.prefs.appData['lastVersion']
-        ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
-        if not ok:#tell the user what has changed
-            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
-            dlg.ShowModal()
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -187,8 +184,7 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        if showSplash and splash:
-            splash.SetText("  Creating frames..."+uidRootFlag)
+        if splash: splash.SetText("  Creating frames..."+uidRootFlag)
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -204,6 +200,11 @@ class PsychoPyApp(wx.App):
             connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
             connectThread.start()
         
+        ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
+        if not ok:#tell the user what has changed
+            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
+            dlg.ShowModal()
+			
         if self.prefs.app['showStartupTips']:
             tipIndex = self.prefs.appData['tipIndex']            
             tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
