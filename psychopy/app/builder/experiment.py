@@ -310,6 +310,10 @@ class Experiment:
         settingsNode=root.find('Settings')
         for child in settingsNode:
             self._getXMLparam(params=self.settings.params, paramNode=child)
+        #name should be saved as a settings parameter (only from 1.74.00)
+        if self.settings.params['expName'].val in ['',None,'None']:
+            shortName = os.path.splitext(filename_base)[0]
+            self.setExpName(shortName)
         #fetch routines
         routinesNode=root.find('Routines')
         for routineNode in routinesNode:#get each routine node from the list of routines
@@ -380,7 +384,7 @@ class Experiment:
 
     def setExpName(self, name):
         self.name=name
-        self.settings.expName=name
+        self.settings.params['expName'].val=name
 
 class Param:
     """Defines parameters for Experiment Components

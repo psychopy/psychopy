@@ -19,10 +19,13 @@ class SettingsComponent:
         self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
-        self.order=['Show info dlg','Experiment info',
+        self.order=['expName','Show info dlg','Experiment info',
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
+        self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
+            hint="Name of the entire experiment (taken by default from the filename on save)",
+            label="Experiment name")
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint="Run the experiment full-screen (recommended)")
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
