@@ -3062,6 +3062,7 @@ class BuilderFrame(wx.Frame):
         else:
             self.lastSavedCopy=None
             self.fileNew(closeCurrent=False)#don't try to close before opening
+        self.updateReadme()
 
         #control the panes using aui manager
         self._mgr = wx.aui.AuiManager(self)
@@ -3235,6 +3236,8 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
+        self.viewMenu.Append(self.IDs.toggleReadme, "&Toggle readme\t%s" %self.app.keys['toggleReadme'], "Open a new Coder view")
+        wx.EVT_MENU(self, self.IDs.toggleReadme,  self.toggleReadme)
         self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Flow Larger\t%s" %self.app.keys['largerFlow'], "Larger flow items")
         wx.EVT_MENU(self, self.IDs.tbIncrFlowSize, self.flowPanel.increaseSize)
         self.viewMenu.Append(self.IDs.tbDecrFlowSize, "&Flow Smaller\t%s" %self.app.keys['smallerFlow'], "Smaller flow items")
@@ -3293,45 +3296,22 @@ class BuilderFrame(wx.Frame):
             if not self.app.quitting:
                 self.app.quit()
                 return#app.quit() will have closed the frame already
-
-        if checkSave:
-            ok=self.checkSave()
-            if not ok: return False
-        if self.filename==None:
-            frameData=self.appData['defaultFrame']
+        okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
+        if not okToClose:
+            return 0
         else:
-            frameData = dict(self.appData['defaultFrame'])
-            self.appData['prevFiles'].append(self.filename)
-        #get size and window layout info
-        if self.IsIconized():
-            self.Iconize(False)#will return to normal mode to get size info
-            frameData['state']='normal'
-        elif self.IsMaximized():
-            self.Maximize(False)#will briefly return to normal mode to get size info
-            frameData['state']='maxim'
-        else:
-            frameData['state']='normal'
-        frameData['auiPerspective'] = self._mgr.SavePerspective()
-        frameData['winW'], frameData['winH']=self.GetSize()
-        frameData['winX'], frameData['winY']=self.GetPosition()
-        for ii in range(self.fileHistory.GetCount()):
-            self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
-
-        #assign the data to this filename
-        self.appData['frames'][self.filename] = frameData
-        self.app.allFrames.remove(self)
-        self.app.builderFrames.remove(self)
-        #close window
-        self.Destroy()
-        return 1#indicates that check was successful
+            self.app.allFrames.remove(self)
+            self.app.builderFrames.remove(self)
+            self.Destroy()#close window
+            return 1#indicates all was successful (including check for save)
     def quit(self, event=None):
         """quit the app"""
         self.app.quit()
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""
-        # check whether existing file is modified
+        #Note: this is NOT the method called by the File>New menu item. That calls app.newBuilderFrame() instead
         if closeCurrent: #if no exp exists then don't try to close it
-            if not self.fileClose(): return False #close the existing (and prompt for save if necess)
+            if not self.fileClose(updateViews=False): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment(prefs=self.app.prefs)
         default_routine = 'trial'
@@ -3372,6 +3352,8 @@ class BuilderFrame(wx.Frame):
             #routinePanel.addRoutinePage() is done in routinePanel.redrawRoutines(), as called by self.updateAllViews()
             #update the views
             self.updateAllViews()#if frozen effect will be visible on thaw
+        self.updateReadme()
+
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
@@ -3387,6 +3369,9 @@ class BuilderFrame(wx.Frame):
     def fileSaveAs(self,event=None, filename=None):
         """
         """
+        origFilename = self.filename
+        origShortname = os.path.splitext(os.path.split(origFilename)[1])[0]
+        defaultName = (origShortname==self.exp.name)
         if filename==None: filename = self.filename
         initPath, filename = os.path.split(filename)
 
@@ -3407,8 +3392,10 @@ class BuilderFrame(wx.Frame):
                         message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
                         type='Warning')
             if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
-                shortName = os.path.splitext(os.path.split(newPath)[1])[0]
-                self.exp.setExpName(shortName)
+                #if user has not manually renamed experiment
+                if defaultName:
+                    newShortName = os.path.splitext(os.path.split(newPath)[1])[0]
+                    self.exp.setExpName(newShortName)
                 #actually save
                 self.fileSave(event=None, filename=newPath)
                 self.filename = newPath
@@ -3423,6 +3410,35 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+
+
+    def updateReadme(self):
+        """Check whether there is a readme file in this folder and try to show it"""
+        #create the frame if we don't have one yet
+        if not hasattr(self, 'readmeFrame') or self.readmeFrame==None:
+            self.readmeFrame=ReadmeFrame(parent=self)
+        #look for a readme file
+        if self.filename and self.filename!='untitled.psyexp':
+            dirname = os.path.dirname(self.filename)
+            possibles = glob.glob(os.path.join(dirname,'readme*'))
+            if len(possibles)==0:
+                possibles = glob.glob(os.path.join(dirname,'Readme*'))
+                possibles.extend(glob.glob(os.path.join(dirname,'README*')))
+            #still haven't found a file so use default name
+            if len(possibles)==0:
+                self.readmeFilename=os.path.join(dirname,'readme.txt')#use this as our default
+            else:
+                self.readmeFilename = possibles[0]#take the first one found
+        else:
+            self.readmeFilename=None
+        self.readmeFrame.setFile(self.readmeFilename)
+        if self.readmeFrame.ctrl.GetValue() and self.prefs['alwaysShowReadme']:
+            self.showReadme()
+    def showReadme(self, evt=None, value=True):
+        if not self.readmeFrame.IsShown():
+            self.readmeFrame.Show(value)
+    def toggleReadme(self, evt=None):
+        self.readmeFrame.toggleVisible()
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
         fileNum = evt.GetId() - wx.ID_FILE1
@@ -3443,10 +3459,34 @@ class BuilderFrame(wx.Frame):
             elif resp == wx.ID_NO: pass #don't save just quit
         return 1
     def fileClose(self, event=None, checkSave=True, updateViews=True):
-        """user closes the Frame, not the file; fileOpen() calls fileClose()"""
+        """This is typically only called when the user x"""
         if checkSave:
             ok = self.checkSave()
             if not ok: return False#user cancelled
+
+        if self.filename==None:
+            frameData=self.appData['defaultFrame']
+        else:
+            frameData = dict(self.appData['defaultFrame'])
+            self.appData['prevFiles'].append(self.filename)
+            #get size and window layout info
+        if self.IsIconized():
+            self.Iconize(False)#will return to normal mode to get size info
+            frameData['state']='normal'
+        elif self.IsMaximized():
+            self.Maximize(False)#will briefly return to normal mode to get size info
+            frameData['state']='maxim'
+        else:
+            frameData['state']='normal'
+        frameData['auiPerspective'] = self._mgr.SavePerspective()
+        frameData['winW'], frameData['winH']=self.GetSize()
+        frameData['winX'], frameData['winY']=self.GetPosition()
+        for ii in range(self.fileHistory.GetCount()):
+            self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
+
+        #assign the data to this filename
+        self.appData['frames'][self.filename] = frameData
+
         #close self
         self.routinePanel.removePages()
         self.filename = 'untitled.psyexp'
@@ -3505,7 +3545,6 @@ class BuilderFrame(wx.Frame):
         if state==None:
             state=copy.deepcopy(self.exp)
         #remove actions from after the current level
-#        print 'before stack=', self.currentUndoStack
         if self.currentUndoLevel>1:
             self.currentUndoStack = self.currentUndoStack[:-(self.currentUndoLevel-1)]
             self.currentUndoLevel=1
@@ -3513,7 +3552,7 @@ class BuilderFrame(wx.Frame):
         self.currentUndoStack.append({'action':action,'state':state})
         self.enableUndo(True)
         self.setIsModified(newVal=True)#update save icon if needed
-#        print 'after stack=', self.currentUndoStack
+
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
         and update the windows
@@ -3727,7 +3766,73 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
+class ReadmeFrame(wx.Frame):
+    def __init__(self, parent):
+        """
+        A frame for presenting/loading/saving readme files
+        """
+        self.parent=parent
+        title="%s readme" %(parent.exp.name)
+        self._fileLastModTime=None
+        pos=wx.Point(parent.Position[0]+80, parent.Position[1]+80 )
+        wx.Frame.__init__(self, parent, title=title, size=(600,500),pos=pos,
+            style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT)
+        self.Hide()
+        self.makeMenus()
+        self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+    def makeMenus(self):
+        """ IDs are from app.wxIDs"""
 
+        #---Menus---#000000#FFFFFF--------------------------------------------------
+        menuBar = wx.MenuBar()
+        #---_file---#000000#FFFFFF--------------------------------------------------
+        self.fileMenu = wx.Menu()
+        menuBar.Append(self.fileMenu, '&File')
+        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.parent.app.keys['save'])
+        self.fileMenu.Append(wx.ID_CLOSE,   "&Close readme\t%s" %self.parent.app.keys['close'])
+        self.fileMenu.Append(self.parent.IDs.toggleReadme, "&Toggle readme\t%s" %self.parent.app.keys['toggleReadme'], "Open a new Coder view")
+        wx.EVT_MENU(self, self.parent.IDs.toggleReadme,  self.toggleVisible)
+        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.toggleVisible)
+        self.SetMenuBar(menuBar)
+    def setFile(self, filename):
+        self.filename=filename
+        self.expName = self.parent.exp.name
+        #check we can read
+        if filename==None:#check if we can write to the directory
+            return False
+        elif not os.access(filename, os.R_OK):
+            logging.warning("Found readme file (%s) no read permissions" %filename)
+            return False
+            #attempt to open
+        try:
+            f=codecs.open(filename, 'r', 'utf-8')
+        except IOError, err:
+            logging.warning("Found readme file for %s and appear to have permissions, but can't open" %expName)
+            logging.warning(err)
+            return False
+            #attempt to read
+        try:
+            readmeText=f.read().replace("\r\n", "\n")
+        except:
+            logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %expName)
+            return False
+        f.close()
+        self._fileLastModTime=os.path.getmtime(filename)
+        self.ctrl.SetValue(readmeText)
+        self.SetTitle("%s readme (%s)" %(self.expName, filename))
+    def fileSave(self, evt=None):
+        if self._fileLastModTime and os.path.getmtime(self.filename)>self._fileLastModTime:
+            logging.warning('readme file has been changed by another programme?')
+        txt = self.ctrl.GetValue()
+        f = codecs.open(self.filename, 'w', 'utf-8')
+        f.write(txt)
+        f.close()
+    def toggleVisible(self, evt=None):
+        if self.IsShown():
+            self.Hide()
+        else:
+            self.Show()
 def getAbbrev(longStr, n=30):
     """for a filename (or any string actually), give the first
     10 characters, an ellipsis and then n-10 of the final characters"""
