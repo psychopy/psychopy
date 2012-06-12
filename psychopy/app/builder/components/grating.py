@@ -66,7 +66,7 @@ class GratingComponent(VisualComponent):
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
-        if self.params['interpolate']=='linear':
+        if self.params['interpolate'].val=='linear':
             buff.write(", interpolate=True")
         else: buff.write(", interpolate=False")
         depth = -self.getPosInRoutine()

@@ -111,8 +111,10 @@ class SettingsComponent:
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
 
-            if self.params['Save log file']:
+            if self.params['Save log file'].val:
                 buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+        else:
+            buff.writeIndented("filename=None\n")
         buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
 
         #set up the ExperimentHandler
