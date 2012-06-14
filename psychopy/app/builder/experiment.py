@@ -964,7 +964,7 @@ class Routine(list):
         #are we done yet?
         buff.writeIndentedLines('\n#check if all components have finished\n')
         buff.writeIndentedLines('if not continueRoutine: #a component has requested that we end\n')
-        buff.writeIndentedLines('    routineClock.reset() #this is the new t0 for non-slip Routines\n')
+        buff.writeIndentedLines('    routineTimer.reset() #this is the new t0 for non-slip Routines\n')
         buff.writeIndentedLines('    break\n')
         buff.writeIndentedLines('continueRoutine=False#will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
