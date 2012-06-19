@@ -10,6 +10,7 @@ from tempfile import mkdtemp
 from numpy.random import random, randint
 
 from psychopy import data
+from psychopy.tests import utils
 from psychopy.tests.utils import TESTS_PATH
 
 TESTSDATA_PATH = pjoin(TESTS_PATH, 'test_data')
@@ -40,8 +41,9 @@ class TestTrialHandler:
         f = open(data_filename, 'rb')
         header = f.readline()
         f.close()
-        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std," +os.linesep
+        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std,order," +os.linesep
         if expected_header != header:
+            print base_data_filename
             print expected_header,type(expected_header),len(expected_header)
             print header, type(header), len(header)
         assert expected_header == unicode(header)
@@ -106,16 +108,12 @@ class TestTrialHandler:
             randResp=random()#a unique number so we can see which track orders
             trials.addData('resp', resp)
             trials.addData('rand',randResp)
-            #test summarised data outputs
+        #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testFullRandom.dlm'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrFullRandom.dlm'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.dlm'), pjoin(thisPath,'corrFullRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testFullRandom.csv'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrFullRandom.csv'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(thisPath,'corrFullRandom.csv'))
 
     def test_random_data_output(self):
         #create conditions
@@ -131,14 +129,10 @@ class TestTrialHandler:
             trials.addData('rand',random())
         #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testRandom.dlm'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrRandom.dlm'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.dlm'), pjoin(thisPath,'corrRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testRandom.csv'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrRandom.csv'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(thisPath,'corrRandom.csv'))
 
 class TestMultiStairs:
     def setup_class(self):

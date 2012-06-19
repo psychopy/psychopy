@@ -1,7 +1,8 @@
 import Image
 from os.path import abspath, basename, dirname, isfile, join as pjoin
+import os.path
+import shutil
 import numpy as np
-import OpenGL
 from psychopy import logging
 
 try:
@@ -46,14 +47,33 @@ def compareScreenshot(fileName, win, crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
-        logging.debug('PsychoPyTests: RMS=%.3g at threshold=%3.g'
+        logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if rms>=crit:
             filenameLocal = fileName.replace('.png','_local.png')
             frame.save(filenameLocal, optimize=1)
-            logging.debug('PsychoPyTests: Saving local copy into %s' % filenameLocal)
+            logging.warning('PsychoPyTests: Saving local copy into %s' % filenameLocal)
         assert rms<crit, \
             "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
+
+
+def compareTextFiles(pathToActual, pathToCorrect):
+    """Compare the text of two files, ignoring EOL differences, and save a copy if they differ
+    """
+    if not os.path.isfile(pathToCorrect):
+        logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
+        foundComparisonFile=False
+        assert foundComparisonFile #deliberately raise an error to see the warning message
+        return
+    #we have the necessary file
+    txtActual = open(pathToActual, 'r').read().replace('\r\n','\n')
+    txtCorr = open(pathToCorrect, 'r').read().replace('\r\n','\n')
+    if txtActual!=txtCorr:
+        pathToLocal, ext = os.path.splitext(pathToCorrect)
+        pathToLocal = pathToLocal+'_local'+ext
+        shutil.copyfile(pathToActual,pathToLocal)
+        logging.warning("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
+    assert txtActual==txtCorr, "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
 
 def skip(msg=""):
     """Helper function to allow skipping of tests from either pytest or nose.
