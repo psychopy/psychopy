@@ -75,6 +75,34 @@ def compareTextFiles(pathToActual, pathToCorrect):
         logging.warning("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
     assert txtActual==txtCorr, "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
 
+def compareXlsxFiles(pathToActual, pathToCorrect):
+    from openpyxl.reader.excel import load_workbook
+    # Make sure the file is there
+    expBook = load_workbook(pathToCorrect)
+    actBook = load_workbook(pathToActual)
+
+    errors=0
+    for wsN, expWS in enumerate(expBook.worksheets):
+        actWS = actBook.worksheets[wsN]
+        for key, expVal in expWS._cells.items():
+            actVal = actWS._cells[key]
+            try:
+                # convert to float if possible and compare with a reasonable
+                # (default) precision
+                expVal.value = float(expVal.value)
+                errors+= (abs(expVal.value-float(actVal.value))<0.0001)
+                assert abs(expVal.value-float(actVal.value))<0.0001
+            except:
+                # otherwise do precise comparison
+                errors+= (expVal.value==actVal.value)
+                assert expVal.value==actVal.value
+    if errors:
+        pathToLocal, ext = os.path.splitext(pathToCorrect)
+        pathToLocal = pathToLocal+'_local'+ext
+        shutil.copyfile(pathToActual,pathToLocal)
+        logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
+
+
 def skip(msg=""):
     """Helper function to allow skipping of tests from either pytest or nose.
     Call this in test code rather than pytest.skip or nose SkipTest

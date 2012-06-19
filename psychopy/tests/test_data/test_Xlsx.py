@@ -4,6 +4,7 @@ import numpy
 
 from openpyxl.reader.excel import load_workbook
 from psychopy import data, misc
+from psychopy.tests import utils
 from tempfile import mkdtemp
 
 thisDir,filename = os.path.split(os.path.abspath(__file__))
@@ -33,24 +34,10 @@ class TestXLSX:
         trials.saveAsExcel(self.name)# '.xlsx' should be added automatically to make fullName
         trials.saveAsText(self.name, delim=',')# '.xlsx' should be added automatically to make fullName
         trials.saveAsWideText(os.path.join(thisDir,'actualXlsx'))
-
         # Make sure the file is there
         assert os.path.isfile(self.fullName)
-        expBook = load_workbook(os.path.join(thisDir,'corrXlsx.xlsx'))
-        actBook = load_workbook(self.fullName)
-
-        for wsN, expWS in enumerate(expBook.worksheets):
-            actWS = actBook.worksheets[wsN]
-            for key, expVal in expWS._cells.items():
-                actVal = actWS._cells[key]
-                try:
-                    # convert to float if possible and compare with a reasonable
-                    # (default) precision
-                    expVal.value = float(expVal.value)
-                    assert abs(expVal.value-float(actVal.value))<0.0001
-                except:
-                    # otherwise do precise comparison
-                    assert expVal.value==actVal.value
+        #compare with known good file
+        utils.compareXlsxFiles(self.fullName,os.path.join(thisDir,'corrXlsx.xlsx'))
 
 
 def test_TrialTypeImport():
