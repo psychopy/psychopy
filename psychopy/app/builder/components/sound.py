@@ -52,7 +52,7 @@ class SoundComponent(BaseComponent):
 
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
-        if self.params['stopType']=='duration (s)':
+        if self.params['stopType'].val=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.params
         else:
             durationSetting=""
