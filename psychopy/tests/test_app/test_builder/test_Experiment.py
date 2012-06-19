@@ -167,7 +167,10 @@ class TestExpt():
         for file in test_psyexp:
             # test for any diffs using various locale's:
             for loc in ['en_US', 'en_US.UTF-8', 'ru_RU', 'ja_JP']:
-                locale.setlocale(locale.LC_ALL, loc)
+                try:
+                    locale.setlocale(locale.LC_ALL, loc)
+                except locale.Error:
+                    continue #skip this locale; it isnt installed
                 file_py, file_psyexp = self._checkLoadSave(file)
                 file_pyc = self._checkCompile(file_py)
                 #sha1_first = sha1hex(file_pyc, file=True)
