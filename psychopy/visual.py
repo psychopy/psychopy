@@ -1851,6 +1851,7 @@ class DotStim(_BaseVisualStim):
             self.element.setDepth(initialDepth)#reset depth before going to next frame
         GL.glPopMatrix()
 
+
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the fieldShape and fieldSize
 
@@ -1875,6 +1876,106 @@ class DotStim(_BaseVisualStim):
 
         """Find dead dots, update positions, get new positions for dead and out-of-bounds
         """
+        def _wrapPoint(width,height,point,motionDir):
+            """
+            The user shouldn't call this - its gets done within _wrap() which is within draw()
+            """
+    
+            """Get new positions for out-of-bounds dot
+            """        
+            #assume rectangle is centered on 0,0
+            #width of rectangle
+            #height of rectangle
+            #point (x,y)
+            #motionDir is vector (x,y)
+            #take line going from current location back towards center of field
+            #get closest intersection with sides of field
+            #take line segment extending from that intersection to current point
+            #add it to the opposite side. The opposite side is the other intersection
+        
+            def intersectLineWithLine(A1,B1,C1,A2,B2,C2):
+                #A*x + B*y = C
+                delta = A1*B2 - A2*B1;
+                parallel = False
+                if delta == 0: 
+                    parallel= True #raise Exception("Lines are parallel")
+                    x=y=0
+                else:
+                    x = (B2*C1 - B1*C2)/delta
+                    y = (A1*C2 - A2*C1)/delta
+                return (x,y,parallel)
+            
+            def generalEquationLineThruTwoPoints(p1, p2):
+                #p1 point 1 on the line
+                #p2 point 2 on the line
+                #return coefficients A,B,C for Ax+By=C
+                #imagine that the two points are (d,e) and (f,g)
+                d=p1[0]; e=p1[1]
+                f=p2[0]; g=p2[1]
+                if d==f and e==g: #points are identical!
+                    raise Exception("Two points that supposedly define a line are actually identical!")
+                else: 
+                    if f==d: #vertical line, equation of line is x=d
+                        A=1; B=0; C=d
+                    elif e==g: #horizontal line
+                        A=0; B=1; C=g
+                    else:
+                          m = (g-e) / ((f-d)*1.0)
+                          #y = mx+b
+                          #e = md + b
+                          #b = e-md
+                          b = e - m*d
+                          #y - mx = b
+                          #-mx + 1y = b
+                          #A=-m, B=1, C=b
+                          A= -m; B= 1; C=b
+                #A,B,C now define the line going from point in direction of motion
+                return A,B,C
+                
+            sidesOfRect = list()
+            #represent lines as Ax + By = C . Just add A,B,C to the list
+            sidesOfRect.append([0,1,height/2.]) #top
+            sidesOfRect.append([0,1,-height/2.]) #bottom
+            sidesOfRect.append([1,0,-width/2.]) #left
+            sidesOfRect.append([1,0,width/2.]) #right
+            if (point[0] <= width/2.) and (point[0] >= -width/2.) and (point[1] <= height/2.) and (point[1] >= -height/2.):
+                errMsg = str(point[0]) + ',' + str(point[1]) + ' is not outside of region with width =' + str(width) + ' and height=' + str(height) + ' so should not be asking to wrap it'
+                raise Exception(errMsg)
+            point = numpy.array( point )
+            motionDir = numpy.array( motionDir )
+            #calculate coefficients of line extending through point that needs to be wrapped
+            #Ax + By = C
+            point2 = point + motionDir
+            A,B,C = generalEquationLineThruTwoPoints(point, point2) #get coefficients for general equation of the line
+            
+            #for each side, intersect with line and find closest intersection point among all sides
+            #also find the second-closest intersection point, that is the other end where the point needs to be wrapped around to
+            locatnDistAndWallIndex = list(); #intersectn = list()
+            for i in range(len(sidesOfRect)):
+                line = sidesOfRect[i]
+                x,y,parallel = intersectLineWithLine(A,B,C,line[0],line[1],line[2])
+                if not parallel:
+                    #calculate distance from intersection to point
+                    dist = numpy.sqrt( (point[1]-y)**2 + (point[0]-x)**2 )
+                    #test that the intersection is actually on the field sides and not on their extensions. The extensions don't count, you always want to wrap back to an actual wall
+                    intersectnOnBoundary = True
+                    if (numpy.abs(x) - width/2.0 > 1e-10) or (numpy.abs(y) - height/2.0 > 1e-10): # floating point calculations will give an error on the order  of 10e-16 so might be off by that much
+                        intersectnOnBoundary = False            
+                    if intersectnOnBoundary:
+                        locatnDistAndWallIndex.append( (x,y,dist,i) ) #also add the index in so that after sorting, know which side was which
+            locatnDistAndWallIndex = sorted(locatnDistAndWallIndex,key= lambda dist: dist[2]) #sort by  column 2 (distance)
+            
+            #second-closest wall is the one that need to wrap to
+            overSpillDist = locatnDistAndWallIndex[0][2]
+            #add vector scaled by distance to second-farthest
+            normedMotionDir = motionDir/numpy.sqrt( (motionDir[0])**2 + (motionDir[1])**2 ) #make it length one
+            normedMotionDir *= overSpillDist #make it length of overspillDist
+            #add to second-closest intersection point
+            #print 'normedMotionDir = ',normedMotionDir, ' second-closest intersection point to add to is ',locatnDistAndWallIndex[ 1 ][0:2]
+            newLocation = locatnDistAndWallIndex[ 1 ][0:2] + normedMotionDir
+            return newLocation
+            #end _wrapPoint
+
         #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
@@ -1913,19 +2014,29 @@ class DotStim(_BaseVisualStim):
             dead = dead+(~self._signalDots)#just create new ones
 
         #handle boundaries of the field
+        #how to exclude dead dots?
+        outOfBounds=numpy.zeros(0,dtype=bool) #indices of dots that go out of bounds
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
-                                                                                  (self
-                                                                                   ._dotsXY[:,1])>(self.fieldSize[1]/2.0))
+            outOfBounds = (numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs(self._dotsXY[:,1])>(self.fieldSize[1]/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
             normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
-            dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+            outOfBounds = (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+
+        #handle out of bounds dots. Default behavior is to wrap to other side
+        if sum(outOfBounds):
+            if self.fieldShape == 'circle': #haven't implemented wrapping for circle yet
+                self._dotsXY[outOfBounds,:] = self._newDotsXY(sum(outOfBounds))
+            else: #wrap all outOfBounds points
+                for i in (numpy.where(outOfBounds)[0]):
+                    motionDir = [self.speed*numpy.cos(self._dotsDir[i]), self.speed*numpy.sin(self._dotsDir[i])]
+                    newLocatn = _wrapPoint(self.fieldSize[0],self.fieldSize[1],self._dotsXY[i,:],motionDir)
+                    self._dotsXY[i,:] = newLocatn
 
         #update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
-
+                
         #update the pixel XY coordinates
         self._calcDotsXYRendered()
 
