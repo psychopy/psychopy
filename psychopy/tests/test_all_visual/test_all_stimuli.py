@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys, os, copy
-from psychopy import visual, misc, core, monitors, filters
+from psychopy import visual, misc, core, monitors, filters, preferences
 from psychopy.tests import utils
 import numpy
+prefs = preferences.Preferences()
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -80,24 +81,25 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #set font
-        font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+        fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
-            height=0.8*self.scaleFactor, pos=[0,0], font=font)
+            height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
+            fontFiles=[fontFile])
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=40)
+        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=20)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
-        stim.setFont(font)
+        stim.setFont('Courier')
         stim.setOri(-30.5)
         stim.setHeight(1.0*self.scaleFactor)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
         stim.setPos([-0.5,0.5],'+')
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=30)
+        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=20)
 
     def test_mov(self):
         win = self.win
