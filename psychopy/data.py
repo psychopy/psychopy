@@ -938,7 +938,10 @@ class TrialHandler(_BaseTrialHandler):
             else: f=codecs.open(fileName+'.txt',writeFormat, encoding = "utf-8")
 
         # collect parameter names related to the stimuli:
-        header = self.trialList[0].keys()
+        if self.trialList[0]:
+            header = self.trialList[0].keys()
+        else:
+            header = []
         # and then add parameter names related to data (e.g. RT)
         header.extend(self.data.dataTypes)
 
@@ -973,7 +976,7 @@ class TrialHandler(_BaseTrialHandler):
                 # now collect the value from each trial of the variables named in the header:
                 for parameterName in header:
                     # the header includes both trial and data variables, so need to check before accessing:
-                    if self.trialList[trialTypeIndex].has_key(parameterName):
+                    if self.trialList[trialTypeIndex] and self.trialList[trialTypeIndex].has_key(parameterName):
                         nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
                     elif self.data.has_key(parameterName):
                         nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
