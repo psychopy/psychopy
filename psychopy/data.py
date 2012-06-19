@@ -516,7 +516,6 @@ class TrialHandler(_BaseTrialHandler):
             self.data.addDataType(dataTypes)
         self.data.addDataType('ran')
         self.data['ran'].mask=False#this is a bool - all entries are valid
-        self.data.addDataType('order')
         #generate stimulus sequence
         if self.method in ['random','sequential', 'fullRandom']:
             self.sequenceIndices = self._createSequence()
@@ -682,7 +681,6 @@ class TrialHandler(_BaseTrialHandler):
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
-            self.data.add('order',self.thisN)
         logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
 
@@ -705,9 +703,7 @@ class TrialHandler(_BaseTrialHandler):
 
         #expand any 'all' dataTypes to be the full list of available dataTypes
         allDataTypes=self.data.keys()
-        #treat these separately later
         allDataTypes.remove('ran')
-        #ready to go trhough standard data types
         dataOutNew=[]
         for thisDataOut in dataOut:
             if thisDataOut=='n':
@@ -718,8 +714,6 @@ class TrialHandler(_BaseTrialHandler):
             dataType, analType =string.rsplit(thisDataOut, '_', 1)
             if dataType=='all':
                 dataOutNew.extend([key+"_"+analType for key in allDataTypes])
-                if 'order_mean' in dataOutNew: dataOutNew.remove('order_mean')
-                if 'order_std' in dataOutNew: dataOutNew.remove('order_std')
             else:
                 dataOutNew.append(thisDataOut)
         dataOut=dataOutNew
@@ -727,13 +721,9 @@ class TrialHandler(_BaseTrialHandler):
 
         #do the various analyses, keeping track of fails (e.g. mean of a string)
         dataOutInvalid=[]
-        #add back special data types (n and order)
         if 'ran_sum' in dataOut:#move n to the first column
             dataOut.remove('ran_sum')
             dataOut.insert(0,'ran_sum')
-        if 'order_raw' in dataOut:#move order_raw to the second column
-            dataOut.remove('order_raw')
-            dataOut.append('order_raw')
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
             dataType, analType =string.rsplit(thisDataOut, '_', 1)
@@ -834,7 +824,6 @@ class TrialHandler(_BaseTrialHandler):
             #write a header line
             for heading in stimOut+dataHead:
                 if heading=='ran_sum': heading ='n'
-                elif heading=='order_raw': heading ='order'
                 f.write('%s%s' %(heading,delim))
             f.write('\n')
 
@@ -1102,7 +1091,6 @@ class TrialHandler(_BaseTrialHandler):
             #write a header line
             for colN, heading in enumerate(stimOut+dataHead):
                 if heading=='ran_sum': heading ='n'
-                elif heading=='order_raw': heading ='order'
                 ws.cell(_getExcelCellName(col=colN,row=0)).value=unicode(heading)
 
         #loop through lines (trialTypes), writing data
@@ -1191,7 +1179,7 @@ def importConditions(fileName, returnFieldNames=False):
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise ImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
-
+    
     if fileName in ['None','none',None]:
         if returnFieldNames:
             return [], []
