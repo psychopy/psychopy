@@ -4282,8 +4282,8 @@ class TextStim(_BaseVisualStim):
     def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        self.text = value
-
+        if value!=None:
+            self.text = value
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
             if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
@@ -4422,7 +4422,8 @@ class TextStim(_BaseVisualStim):
         GL.glDisable(GL.GL_DEPTH_TEST) #should text have a depth or just on top?
         #update list if necss and then call it
         if win.winType=='pyglet':
-
+            if self._needSetText:
+                self.setText()
             #and align based on x anchor
             if self.alignHoriz=='right':
                 GL.glTranslatef(-self.width,0,0)#NB depth is set already
