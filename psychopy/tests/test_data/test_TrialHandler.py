@@ -3,9 +3,9 @@ import os, sys, glob
 from os.path import join as pjoin
 import shutil
 try:
-    from nose.tools import raises
-except:
     from pytest import raises
+except:
+    from nose.tools import raises
 from tempfile import mkdtemp
 from numpy.random import random, randint
 

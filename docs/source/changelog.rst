@@ -30,6 +30,9 @@ Highlights (and compatibility changes):
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See :ref:`psychopy.microphone <microphone>` library, Coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
 * ADDED: HSV color space for all stimuli
 * :red:`CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot).` Only affects new experiments.
+* :red:`CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented.` This may affect any automated analysis you perform on your spreadsheet outputs.
+* :red:`CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation`, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values.
+* :red:`CHANGED: pygame is no longer being formally supported/tested` although it will probably continue to work for some time.
 
 Additional changes:
 
@@ -50,6 +53,10 @@ Additional changes:
 * FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
 * FIXED: Mouse component was not saving clicks in Builder experiments if forceEndOnClick was set to be False
 * FIXED: DotStim.setFieldCoherence was having no effect if noise dots were updating by 'position'
+* FIXED: TextStim.setColor() was not updating stimulus properly when haveShaders=False
+* FIXED: In Builder, sound duration was not being used in creating new sounds
+* CHANGED: Under linux, although you will be warned if a new version is available, it will not be auto-installed by PsychoPy (that should be done by your package manager)
+* FIXED: all test suite tests should now pass :-)
 
 PsychoPy 1.73
 ------------------------------

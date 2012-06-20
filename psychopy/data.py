@@ -2839,23 +2839,31 @@ class FitCumNormal(_baseFunctionFit):
     After fitting the function you can evaluate an array of x-values
     with fit.eval(x), retrieve the inverse of the function with
     fit.inverse(y) or retrieve the parameters from fit.params
-    (a list with [xShift, xScale])
+    (a list with [centre, sd] for the Gaussian distribution forming the cumulative)
+
+    NB: Prior to version 1.74 the parameters had different meaning, relating
+    to xShift and slope of the function (similar to 1/sd). Although that is more in
+    with the parameters for the Weibull fit, for instance, it is less in keeping
+    with standard expectations of normal (Gaussian distributions) so in version
+    1.74.00 the parameters became the [centre,sd] of the normal distribution.
+
     """
     def eval(self, xx=None, params=None):
         if params==None:  params=self.params #so the user can set params for this particular eval
         xShift = params[0]
-        xScale = params[1]
+        sd = params[1]
         chance = self.expectedMin
-        if xScale<=0: xScale=0.001
+        #if xScale<=0: xScale=0.001
         xx = numpy.asarray(xx)
-        yy = chance + (1-chance)*(special.erf(xx*xScale - xShift)/2.0+0.5)#NB numpy.special.erf() goes from -1:1
+        yy = chance + (1-chance)*(special.erf((xx-xShift)/sd)/2.0+0.5)#NB numpy.special.erf() goes from -1:1
         return yy
     def inverse(self, yy, params=None):
         if params==None: params=self.params #so the user can set params for this particular inv
         xShift = params[0]
-        xScale = params[1]
+        sd = params[1]
         chance = self.expectedMin
-        xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
+        #xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erfinv() goes from -1:1
+        xx = xShift+sd*special.erfinv(( (yy-chance)/(1-chance) - 0.5 )*2)
         return xx
 
 

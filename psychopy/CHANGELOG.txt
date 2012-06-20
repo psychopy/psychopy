@@ -23,6 +23,9 @@ Major changes (and compatibility changes):
 * ADDED: ImageStim and GratingStim to take over the combined role of PatchStim. For new experiments users are recommended to switch to these new more-specialised stimuli, although PatchStim objects will continue to work for the foreseeable future.
 * ADDED: HSV color space for all stimuli
 * CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments.
+* CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented. This may affect any automated analysis you perform on your spreadsheet outputs.
+* CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values.
+* CHANGED: pygame is no longer being formally supported/tested although it will probably continue to work for some time.
 
 Tweaks and fixes:
 
@@ -43,6 +46,10 @@ Tweaks and fixes:
 * FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
 * FIXED: Mouse component was not saving clicks in Builder experiments if forceEndOnClick was set to be False
 * FIXED: DotStim.setFieldCoherence was having no effect if noise dots were updating by 'position'
+* FIXED: TextStim.setColor() was not updating stimulus properly when haveShaders=False
+* FIXED: In Builder, sound duration was not being used in creating new sounds
+* CHANGED: Under linux, although you will be warned if a new version is available, it will not be auto-installed by PsychoPy (that should be done by your package manager)
+* FIXED: all test suite tests should now pass :-)
 
 PsychoPy 1.73
 ------------------------------
