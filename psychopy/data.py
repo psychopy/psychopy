@@ -696,6 +696,51 @@ class TrialHandler(_BaseTrialHandler):
         condIndex=seqs[self.thisN+n]
         return self.trialList[condIndex]
 
+    def _parseOutputArray(self,stimOut,dataOut,delim=None,
+                          matrixOnly=False):
+        """
+        Does the leg-work for saveAsText and saveAsExcel.
+        Combines stimOut with ._parseDataOutput()
+        """
+        lines=[]
+        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
+        if not matrixOnly:
+            thisLine=[]
+            lines.append(thisLine)
+            #write a header line
+            for heading in stimOut+dataHead:
+                if heading=='ran_sum': heading ='n'
+                elif heading=='order_raw': heading ='order'
+                thisLine.append(heading)
+
+        #loop through stimuli, writing data
+        for stimN in range(len(self.trialList)):
+            thisLine=[]
+            lines.append(thisLine)
+            #first the params for this stim (from self.trialList)
+            for heading in stimOut:
+                thisLine.append(self.trialList[stimN][heading])
+
+            #then the data for this stim (from self.data)
+            for thisDataOut in dataOut:
+                #make a string version of the data and then format it
+                tmpData = dataAnal[thisDataOut][stimN]
+                if hasattr(tmpData,'tolist'):
+                    strVersion = str(tmpData.tolist())
+                else:
+                    strVersion = str(tmpData)
+                if strVersion=='()':
+                    strVersion="--"#no data in masked array should show as "--"
+                if strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]
+                    strVersion=strVersion[1:-1]#skip first and last chars
+                thisLine.append('%s' %(strVersion))
+
+        #add self.extraInfo
+        if (self.extraInfo != None) and not matrixOnly:
+            lines.append([],['extraInfo'])#give a single line of space and then a heading
+            for key, value in self.extraInfo.items():
+                lines.append([key,value])
+
     def _parseDataOutput(self, dataOut):
 
         dataHead=[]#will store list of data headers
@@ -817,7 +862,9 @@ class TrialHandler(_BaseTrialHandler):
             logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
-        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
+        dataArray = parseOutputArray(stimOut=[],
+            dataOut=('n','all_mean','all_std', 'all_raw'),
+            matrixOnly=False,)
 
         #create the file or print to stdout
         if appendFile: writeFormat='a'
@@ -830,21 +877,15 @@ class TrialHandler(_BaseTrialHandler):
             if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
             else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
-        if not matrixOnly:
-            #write a header line
-            for heading in stimOut+dataHead:
-                if heading=='ran_sum': heading ='n'
-                elif heading=='order_raw': heading ='order'
-                f.write('%s%s' %(heading,delim))
-            f.write('\n')
-
         #loop through stimuli, writing data
         for stimN in range(len(self.trialList)):
             #first the params for this stim (from self.trialList)
             for heading in stimOut:
                 thisType = type(self.trialList[stimN][heading])
-                if thisType==float: f.write('%.4f%s' %(self.trialList[stimN][heading],delim))
-                else: f.write('%s%s' %(self.trialList[stimN][heading],delim))
+                if thisType==float:
+                    f.write('%.4f%s' %(self.trialList[stimN][heading],delim))
+                else:
+                    f.write('%s%s' %(self.trialList[stimN][heading],delim))
 
             #then the data for this stim (from self.data)
             for thisDataOut in dataOut:
