@@ -364,6 +364,82 @@ class _BaseTrialHandler(object):
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
+    def saveAsText(self,fileName,
+                   stimOut=[],
+                   dataOut=('n','all_mean','all_std', 'all_raw'),
+                   delim='\t',
+                   matrixOnly=False,
+                   appendFile=True,
+                   summarised=True,
+                   ):
+        """
+        Write a text file with the data and various chosen stimulus attributes
+
+         :Parameters:
+
+            fileName:
+                will have .dlm appended (so you can double-click it to
+                open in excel) and can include path info.
+
+            stimOut:
+                the stimulus attributes to be output. To use this you need to
+                use a list of dictionaries and give here the names of dictionary keys
+                that you want as strings
+
+            dataOut:
+                a list of strings specifying the dataType and the analysis to
+                be performed,in the form `dataType_analysis`. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
+                'raw' or most things in the numpy library, including;
+                'mean','std','median','max','min'...
+                The default values will output the raw, mean and std of all datatypes found
+
+            delim:
+                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
+
+            matrixOnly:
+                outputs the data with no header row or extraInfo attached
+
+            appendFile:
+                will add this output to the end of the specified file if it already exists
+
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+            return -1
+
+        dataArray = self._createOutputArray(stimOut=[],
+            dataOut=dataOut,
+            matrixOnly=False,)
+
+        #create the file or print to stdout
+        if appendFile: writeFormat='a'
+        else: writeFormat='w' #will overwrite a file
+        if fileName=='stdout':
+            f = sys.stdout
+        elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
+            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
+        else:
+            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
+
+        #loop through lines in the data matrix
+        for line in dataArray:
+            for cellN, entry in enumerate(line):
+                if type(entry) in [float]:
+                    f.write('%.4f' %(entry))
+                elif type(entry) in [int]:
+                    f.write('%i' %(entry))
+                elif entry==None:
+                    f.write('')
+                else:
+                    f.write(entry)
+                if cellN<len(line):
+                    f.write(delim)
+            f.write("\n")#add an EOL at end of each line
+        if f != sys.stdout:
+            f.close()
+            logging.info('saved data to %s' %f.name)
     def printAsText(self, stimOut=[],
                     dataOut=('all_mean', 'all_std', 'all_raw'),
                     delim='\t',
@@ -372,6 +448,108 @@ class _BaseTrialHandler(object):
         """Exactly like saveAsText() except that the output goes
         to the screen instead of a file"""
         self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
+
+    def saveAsExcel(self,fileName, sheetName='rawData',
+                    stimOut=[],
+                    dataOut=('n','all_mean','all_std', 'all_raw'),
+                    matrixOnly=False,
+                    appendFile=True,
+                    ):
+        """
+        Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing
+        in most spreadsheet packages. This format is compatible with
+        versions of Excel (2007 or greater) and and with OpenOffice (>=3.0).
+
+        It has the advantage over the simpler text files (see :func:`TrialHandler.saveAsText()` )
+        that data can be stored in multiple named sheets within the file. So you could have a single file
+        named after your experiment and then have one worksheet for each participant. Or you could have
+        one file for each participant and then multiple sheets for repeated sessions etc.
+
+        The file extension `.xlsx` will be added if not given already.
+
+        :Parameters:
+
+            fileName: string
+                the name of the file to create or append. Can include relative or absolute path
+
+            sheetName: string
+                the name of the worksheet within the file
+
+            stimOut: list of strings
+                the attributes of the trial characteristics to be output. To use this you need to have provided
+                a list of dictionaries specifying to trialList parameter of the TrialHandler
+                and give here the names of strings specifying entries in that dictionary
+
+            dataOut: list of strings
+                specifying the dataType and the analysis to
+                be performed, in the form `dataType_analysis`. The data can be any of the types that
+                you added using trialHandler.data.add() and the analysis can be either
+                'raw' or most things in the numpy library, including
+                'mean','std','median','max','min'. e.g. `rt_max` will give a column of max reaction
+                times across the trials assuming that `rt` values have been stored.
+                The default values will output the raw, mean and std of all datatypes found
+
+            appendFile: True or False
+                If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
+                If a worksheet already exists with that name a number will be added to make it unique.
+
+
+        """
+
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+            return -1
+
+        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
+        if not haveOpenpyxl:
+            raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
+            return -1
+
+        #create the data array to be sent to the Excel file
+        dataArray = self._createOutputArray(stimOut=[],
+            dataOut=dataOut,
+            matrixOnly=False,)
+
+        #import necessary subpackages - they are small so won't matter to do it here
+        from openpyxl.workbook import Workbook
+        from openpyxl.writer.excel import ExcelWriter
+        from openpyxl.reader.excel import load_workbook
+
+        if not fileName.endswith('.xlsx'): fileName+='.xlsx'
+        #create or load the file
+        if appendFile and os.path.isfile(fileName):
+            wb = load_workbook(fileName)
+            newWorkbook=False
+        else:
+            if not appendFile: #the file exists but we're not appending, so will be overwritten
+                logging.warning('Data file, %s, will be overwritten' %fileName)
+            wb = Workbook()#create new workbook
+            wb.properties.creator='PsychoPy'+psychopy.__version__
+            newWorkbook=True
+
+        ew = ExcelWriter(workbook = wb)
+
+        if newWorkbook:
+            ws = wb.worksheets[0]
+            ws.title=sheetName
+        else:
+            ws=wb.create_sheet()
+            ws.title=sheetName
+
+        #loop through lines in the data matrix
+        for lineN, line in enumerate(dataArray):
+            if line==None:
+                continue
+            for colN, entry in enumerate(line):
+                if entry in [None]:
+                    entry=''
+                try:
+                    ws.cell(_getExcelCellName(col=colN,row=lineN)).value = float(entry)#if it can conver to a number (from numpy) then do it
+                except:#some thi
+                    ws.cell(_getExcelCellName(col=colN,row=lineN)).value = unicode(entry)#else treat as unicode
+
+        ew.save(filename = fileName)
+
     def nextTrial(self):
         """DEPRECATION WARNING: nextTrial() will be deprecated
         please use next() instead.
@@ -696,14 +874,23 @@ class TrialHandler(_BaseTrialHandler):
         condIndex=seqs[self.thisN+n]
         return self.trialList[condIndex]
 
-    def _parseOutputArray(self,stimOut,dataOut,delim=None,
+    def _createOutputArray(self,stimOut,dataOut,delim=None,
                           matrixOnly=False):
         """
         Does the leg-work for saveAsText and saveAsExcel.
         Combines stimOut with ._parseDataOutput()
         """
+        if stimOut==[] and len(self.trialList) and hasattr(self.trialList[0],'keys'):
+            stimOut=self.trialList[0].keys()
+            #these get added somewhere (by DataHandler?)
+            if 'n' in stimOut:
+                stimOut.remove('n')
+            if 'float' in stimOut:
+                stimOut.remove('float')
+
         lines=[]
-        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
+        #parse the dataout section of the output
+        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut=dataOut)
         if not matrixOnly:
             thisLine=[]
             lines.append(thisLine)
@@ -725,24 +912,33 @@ class TrialHandler(_BaseTrialHandler):
             for thisDataOut in dataOut:
                 #make a string version of the data and then format it
                 tmpData = dataAnal[thisDataOut][stimN]
-                if hasattr(tmpData,'tolist'):
-                    strVersion = str(tmpData.tolist())
+                if hasattr(tmpData,'tolist'): #is a numpy array
+                    strVersion = unicode(tmpData.tolist())
+                    #for numeric data replace None with a blank cell
+                    if tmpData.dtype.kind not in ['SaUV']:
+                        strVersion=strVersion.replace('None','')
+                elif tmpData in [None,'None']:
+                    strVersion=''
                 else:
-                    strVersion = str(tmpData)
+                    strVersion = unicode(tmpData)
+
                 if strVersion=='()':
-                    strVersion="--"#no data in masked array should show as "--"
-                if strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]
+                    strVersion="--"# 'no data' in masked array should show as "--"
+                if strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
                     strVersion=strVersion[1:-1]#skip first and last chars
-                thisLine.append('%s' %(strVersion))
+                thisLine.extend(strVersion.split(','))
 
         #add self.extraInfo
         if (self.extraInfo != None) and not matrixOnly:
             lines.append([],['extraInfo'])#give a single line of space and then a heading
             for key, value in self.extraInfo.items():
                 lines.append([key,value])
+        return lines
 
-    def _parseDataOutput(self, dataOut):
-
+    def _createOutputArrayData(self, dataOut):
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header line and adds the stimOut columns
+        """
         dataHead=[]#will store list of data headers
         dataAnal=dict([])    #will store data that has been analyzed
         if type(dataOut)==str: dataout=[dataOut]#don't do list convert or we get a list of letters
@@ -797,8 +993,10 @@ class TrialHandler(_BaseTrialHandler):
                         #normalise by N-1 instead. his should work by setting ddof=1
                         #but doesn't as of 08/2010 (because of using a masked array?)
                         N=thisData.shape[1]
-                        if N == 1: thisAnal*=0 #prevent a divide-by-zero error
-                        else: thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                        if N == 1:
+                            thisAnal*=0 #prevent a divide-by-zero error
+                        else:
+                            thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
                         exec("thisAnal = numpy.%s(thisData,1)" %analType)
                 except:
@@ -819,112 +1017,6 @@ class TrialHandler(_BaseTrialHandler):
         for invalidAnal in dataOutInvalid: dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
 
-    def saveAsText(self,fileName,
-                   stimOut=[],
-                   dataOut=('n','all_mean','all_std', 'all_raw'),
-                   delim='\t',
-                   matrixOnly=False,
-                   appendFile=True,
-                  ):
-        """
-        Write a text file with the data and various chosen stimulus attributes
-
-         :Parameters:
-
-            fileName:
-                will have .dlm appended (so you can double-click it to
-                open in excel) and can include path info.
-
-            stimOut:
-                the stimulus attributes to be output. To use this you need to
-                use a list of dictionaries and give here the names of dictionary keys
-                that you want as strings
-
-            dataOut:
-                a list of strings specifying the dataType and the analysis to
-                be performed,in the form `dataType_analysis`. The data can be any of the types that
-                you added using trialHandler.data.add() and the analysis can be either
-                'raw' or most things in the numpy library, including;
-                'mean','std','median','max','min'...
-                The default values will output the raw, mean and std of all datatypes found
-
-            delim:
-                allows the user to use a delimiter other than tab ("," is popular with file extension ".csv")
-
-            matrixOnly:
-                outputs the data with no header row or extraInfo attached
-
-            appendFile:
-                will add this output to the end of the specified file if it already exists
-
-        """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
-            return -1
-
-        dataArray = parseOutputArray(stimOut=[],
-            dataOut=('n','all_mean','all_std', 'all_raw'),
-            matrixOnly=False,)
-
-        #create the file or print to stdout
-        if appendFile: writeFormat='a'
-        else: writeFormat='w' #will overwrite a file
-        if fileName=='stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
-            f= codecs.open(fileName,writeFormat, encoding = "utf-8")
-        else:
-            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
-            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
-
-        #loop through stimuli, writing data
-        for stimN in range(len(self.trialList)):
-            #first the params for this stim (from self.trialList)
-            for heading in stimOut:
-                thisType = type(self.trialList[stimN][heading])
-                if thisType==float:
-                    f.write('%.4f%s' %(self.trialList[stimN][heading],delim))
-                else:
-                    f.write('%s%s' %(self.trialList[stimN][heading],delim))
-
-            #then the data for this stim (from self.data)
-            for thisDataOut in dataOut:
-                #make a string version of the data and then format it
-                tmpData = dataAnal[thisDataOut][stimN]
-                if hasattr(tmpData,'tolist'): strVersion = str(tmpData.tolist())
-                else: strVersion = str(tmpData)
-
-                if strVersion=='()': strVersion="--"#no data in masked array should show as "--"
-
-                for brackets in ['[', ']','(',')']: #some objects may have these surrounding their string representation
-                    strVersion=string.replace(strVersion, brackets,"")
-                for newCell in [', ', '  ', ',']: #some objects may already have these as delimitters
-                    strVersion=string.replace(strVersion, newCell,delim)
-                #remove any multiple delimitters
-                while string.find(strVersion, delim+delim)>(-1):
-                    strVersion=string.replace(strVersion, delim+delim, delim)
-                #remove final delim
-                if strVersion[-1]==delim:
-                    strVersion=strVersion[:-1]
-                f.write('%s%s' %(strVersion, delim))
-            f.write('\n')
-
-        #add self.extraInfo
-        if (self.extraInfo != None) and not matrixOnly:
-            strInfo = str(self.extraInfo)
-            #dict begins and ends with {} - remove
-            strInfo = strInfo[1:-1] #string.replace(strInfo, '{','');strInfo = string.replace(strInfo, '}','');
-            strInfo = string.replace(strInfo, ': ', ':\n')#separate value from keyname
-            strInfo = string.replace(strInfo, ',', '\n')#separate values from each other
-            strInfo = string.replace(strInfo, 'array([ ', '')
-            strInfo = string.replace(strInfo, '])', '')
-
-            f.write('\n%s\n' %strInfo)
-
-        f.write("\n")
-        if f != sys.stdout:
-            f.close()
-            logging.info('saved data to %s' %f.name)
 
     def saveAsWideText(self,fileName,
                    delim='\t',
@@ -1059,143 +1151,6 @@ class TrialHandler(_BaseTrialHandler):
         if self.getExp()!=None:#update the experiment handler too
             self.getExp().addData(thisType, value)
 
-    def saveAsExcel(self,fileName, sheetName='rawData',
-                    stimOut=[],
-                    dataOut=('n','all_mean','all_std', 'all_raw'),
-                    matrixOnly=False,
-                    appendFile=True,
-                    ):
-        """
-        Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing
-        in most spreadsheet packages. This format is compatible with
-        versions of Excel (2007 or greater) and and with OpenOffice (>=3.0).
-
-        It has the advantage over the simpler text files (see :func:`TrialHandler.saveAsText()` )
-        that data can be stored in multiple named sheets within the file. So you could have a single file
-        named after your experiment and then have one worksheet for each participant. Or you could have
-        one file for each participant and then multiple sheets for repeated sessions etc.
-
-        The file extension `.xlsx` will be added if not given already.
-
-        :Parameters:
-
-            fileName: string
-                the name of the file to create or append. Can include relative or absolute path
-
-            sheetName: string
-                the name of the worksheet within the file
-
-            stimOut: list of strings
-                the attributes of the trial characteristics to be output. To use this you need to have provided
-                a list of dictionaries specifying to trialList parameter of the TrialHandler
-                and give here the names of strings specifying entries in that dictionary
-
-            dataOut: list of strings
-                specifying the dataType and the analysis to
-                be performed, in the form `dataType_analysis`. The data can be any of the types that
-                you added using trialHandler.data.add() and the analysis can be either
-                'raw' or most things in the numpy library, including
-                'mean','std','median','max','min'. e.g. `rt_max` will give a column of max reaction
-                times across the trials assuming that `rt` values have been stored.
-                The default values will output the raw, mean and std of all datatypes found
-
-            appendFile: True or False
-                If False any existing file with this name will be overwritten. If True then a new worksheet will be appended.
-                If a worksheet already exists with that name a number will be added to make it unique.
-
-
-        """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
-            return -1
-
-        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
-        if not haveOpenpyxl:
-            raise ImportError, 'openpyxl is required for saving files in Excel (xlsx) format, but was not found.'
-            return -1
-        dataOut, dataAnal, dataHead = self._parseDataOutput(dataOut=dataOut)
-
-        #import necessary subpackages - they are small so won't matter to do it here
-        from openpyxl.workbook import Workbook
-        from openpyxl.writer.excel import ExcelWriter
-        from openpyxl.reader.excel import load_workbook
-
-        if not fileName.endswith('.xlsx'): fileName+='.xlsx'
-        #create or load the file
-        if appendFile and os.path.isfile(fileName):
-            wb = load_workbook(fileName)
-            newWorkbook=False
-        else:
-            if not appendFile: #the file exists but we're not appending, so will be overwritten
-                logging.warning('Data file, %s, will be overwritten' %fileName)
-            wb = Workbook()#create new workbook
-            wb.properties.creator='PsychoPy'+psychopy.__version__
-            newWorkbook=True
-
-        ew = ExcelWriter(workbook = wb)
-
-        if newWorkbook:
-            ws = wb.worksheets[0]
-            ws.title=sheetName
-        else:
-            ws=wb.create_sheet()
-            ws.title=sheetName
-
-        #write the header line
-        if not matrixOnly:
-            #write a header line
-            for colN, heading in enumerate(stimOut+dataHead):
-                if heading=='ran_sum': heading ='n'
-                elif heading=='order_raw': heading ='order'
-                ws.cell(_getExcelCellName(col=colN,row=0)).value=unicode(heading)
-
-        #loop through lines (trialTypes), writing data
-        for stimN in range(len(self.trialList)):
-            #first the params for this trialType (from self.trialList)
-            for colN, heading in enumerate(stimOut):
-                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(self.trialList[stimN][heading])
-            colN = len(stimOut)
-            #then the data for this stim (from self.data)
-            for thisDataOut in dataOut:
-                tmpData = dataAnal[thisDataOut][stimN]
-                datType = type(tmpData)
-                if tmpData is None:#just go to next column
-                    colN+=1
-                    continue
-                #handle single data values
-                elif not hasattr(tmpData,'__iter__') or \
-                    (hasattr(tmpData,'shape') and tmpData.shape==()):
-                    if hasattr(tmpData,'mask') and tmpData.mask:
-                        ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
-                        colN+=1
-                    else:
-                        try:
-                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
-                        except:#some thi
-                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(tmpData)#else treat as unicode
-                    colN+=1
-                #handle arrays of data (e.g. multiple trials per condition)
-                else:
-                    for entry in tmpData:
-                        if hasattr(entry,'mask') and entry.mask:
-                            ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
-                        else:
-                            try:
-                                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
-                            except:#some thi
-                                ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
-                        colN+=1
-
-        #add self.extraInfo
-        rowN = len(self.trialList)+2
-        if (self.extraInfo != None) and not matrixOnly:
-            ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
-            for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
-                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
-                rowN+=1
-
-        ew.save(filename = fileName)
 
 def importTrialTypes(fileName, returnFieldNames=False):
     """importTrialTypes is DEPRECATED (as of v1.70.00)
