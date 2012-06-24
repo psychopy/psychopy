@@ -80,27 +80,33 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
     # Make sure the file is there
     expBook = load_workbook(pathToCorrect)
     actBook = load_workbook(pathToActual)
+    error=None
 
-    errors=0
     for wsN, expWS in enumerate(expBook.worksheets):
         actWS = actBook.worksheets[wsN]
         for key, expVal in expWS._cells.items():
-            actVal = actWS._cells[key]
+            actVal = actWS._cells[key].value
+            expVal = expVal.value
+            #determine whether there will be errors
             try:
                 # convert to float if possible and compare with a reasonable
                 # (default) precision
-                expVal.value = float(expVal.value)
-                errors+= (abs(expVal.value-float(actVal.value))<0.0001)
-                assert abs(expVal.value-float(actVal.value))<0.0001
+                expVal = float(expVal)
+                isFloatable=True
             except:
-                # otherwise do precise comparison
-                errors+= (expVal.value==actVal.value)
-                assert expVal.value==actVal.value
-    if errors:
+                isFloatable=False
+            if isFloatable and abs(expVal-float(actVal))>0.0001:
+                error = "Cell %s: %f != %f" %(key, expVal, actVal)
+                break
+            elif not isFloatable and expVal!=actVal:
+                error = "Cell %s: %s != %s" %(key, expVal, actVal)
+                break
+    if error:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
+        raise IOError, error
 
 
 def skip(msg=""):

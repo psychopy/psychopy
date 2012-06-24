@@ -94,10 +94,9 @@ def checkCompatibility(old, new, prefs=None, fix=True):
 
     msg="From %s to %s:" %(old, new)
     if old.startswith<'1.74':
-        msg += """\nPatch stimuli have been deprecated but are still available for now.
-        They are replaced by two separate stimuli for Images and Gratings.
-        In Builder your existing Patch stimuli will be unchanged, but the
-        component is hidden from the components panel (can undo that in preferences).\n"""
+        msg += "\n\nThere were many changes in version 1.74.00 that will break" + \
+            "\ncompatibility with older versions. Make sure you read the changelog carefully" + \
+            "\nbefore using this version. Do not upgrade to this version halfway through an experiment.\n"
         if fix and 'PatchComponent' not in prefs.builder['hiddenComponents']:
             prefs.builder['hiddenComponents'].append('PatchComponent')
     else:

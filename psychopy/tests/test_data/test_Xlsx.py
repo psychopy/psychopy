@@ -26,19 +26,17 @@ class TestXLSX:
         responses=[1,1,None,3,2,3, 1,3,2,2,1,1]
         rts=[0.1,0.1,None,0.3,0.2,0.3, 0.1,0.3,0.2,0.2,0.1,0.1]
         for trialN, trial in enumerate(trials):
-            trials.addData('index',trialN)
             if responses[trialN]==None:
                 continue
             trials.addData('resp', responses[trialN])
             trials.addData('rt',rts[trialN])
         trials.saveAsExcel(self.name)# '.xlsx' should be added automatically to make fullName
         trials.saveAsText(self.name, delim=',')# '.xlsx' should be added automatically to make fullName
-        trials.saveAsWideText(os.path.join(thisDir,'actualXlsx'))
+        trials.saveAsWideText(os.path.join(self.temp_dir,thisDir,'actualXlsx'))
         # Make sure the file is there
         assert os.path.isfile(self.fullName)
         #compare with known good file
         utils.compareXlsxFiles(self.fullName,os.path.join(thisDir,'corrXlsx.xlsx'))
-
 
 def test_TrialTypeImport():
     fromCSV = data.importConditions(os.path.join(thisDir, 'trialTypes.csv'))

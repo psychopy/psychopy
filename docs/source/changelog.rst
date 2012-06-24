@@ -25,6 +25,7 @@ PsychoPy 1.74.00
 
 Highlights (and compatibility changes):
 
+* :red:`CHANGED`: Builder experiments saved from this version will NOT open in older versions
 * :red:`ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)` See :ref:`nonSlip` for further info
 * :red:`ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments.` See :ref:`longWide` outputs
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See :ref:`psychopy.microphone <microphone>` library, Coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
@@ -33,6 +34,7 @@ Highlights (and compatibility changes):
 * :red:`CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented.` This may affect any automated analysis you perform on your spreadsheet outputs.
 * :red:`CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation`, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values.
 * :red:`CHANGED: pygame is no longer being formally supported/tested` although it will probably continue to work for some time.
+* :red:`RESTRUCTURED:` the generation of 'summarised' data outputs (text and excel) were also rewritten in this versino, so make sure that your data files still contain all the data you were expecting
 
 Additional changes:
 
@@ -56,6 +58,7 @@ Additional changes:
 * FIXED: TextStim.setColor() was not updating stimulus properly when haveShaders=False
 * FIXED: In Builder, sound duration was not being used in creating new sounds
 * CHANGED: Under linux, although you will be warned if a new version is available, it will not be auto-installed by PsychoPy (that should be done by your package manager)
+* FIXED: csv/dlm data outputs no longer have a trailing delimitter at end of line
 * FIXED: all test suite tests should now pass :-)
 
 PsychoPy 1.73

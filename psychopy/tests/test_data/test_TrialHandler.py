@@ -83,17 +83,17 @@ class TestTrialHandler:
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*overwrite.psydat")))
             assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
-    @raises(IOError)
-    def test_psydat_filename_collision_failure(self):
-        raises(IOError)
-        for count in range(1,3):
-            trials = data.TrialHandler([], 1)
-            trials.data.addDataType('trialType')
-            for trial in trials:#need to run trials or file won't be saved
-                trials.addData('trialType', 0)
-            base_data_filename = pjoin(self.temp_dir, self.rootName)
 
-            trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
+    def test_psydat_filename_collision_failure(self):
+        with raises(IOError):
+            for count in range(1,3):
+                trials = data.TrialHandler([], 1)
+                trials.data.addDataType('trialType')
+                for trial in trials:#need to run trials or file won't be saved
+                    trials.addData('trialType', 0)
+                base_data_filename = pjoin(self.temp_dir, self.rootName)
+
+                trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
 
     def test_psydat_filename_collision_output(self):
         #create conditions
@@ -169,3 +169,6 @@ class TestMultiStairs:
         stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
         stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))#contains more info
 
+if __name__=='__main__':
+    import pytest
+    pytest.main()
