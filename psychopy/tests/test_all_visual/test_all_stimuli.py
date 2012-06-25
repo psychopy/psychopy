@@ -128,7 +128,7 @@ class _baseVisualTest:
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=12.0)
     def test_radial(self):
         win = self.win
         contextName=self.contextName
