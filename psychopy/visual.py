@@ -699,14 +699,14 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
+        if (not self.useNativeGamma) and self.origGammaRamp!=None:
+            psychopy.gamma.setGammaRamp(self.winHandle, self.origGammaRamp)
         self.setMouseVisible(True)
         if self.winType=='pyglet':
             self.winHandle.close()
         else:
             #pygame.quit()
             pygame.display.quit()
-        if (not self.useNativeGamma) and self.origGammaRamp!=None:
-            psychopy.gamma.setGammaRamp(self.winHandle, self.origGammaRamp)
         if self.bitsMode!=None:
             self.bits.reset()
         openWindows.remove(self)
