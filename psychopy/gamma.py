@@ -37,7 +37,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     """Sets the hardware look-up table, using platform-specific ctypes functions.
     For use with pyglet windows only (pygame has its ow routines for this).
     Ramp should be provided as 3x256 or 3x1024 array in range 0:1.0
-    
+
     On windows the first attempt to set the ramp doesn't always work. The parameter nAttemps
     allows the user to determine how many attempts should be made before failing
     """
@@ -46,7 +46,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
         newRamp.byteswap(True)#necessary, according to pyglet post from Martin Spacek
         for n in range(nAttempts):
             success = windll.gdi32.SetDeviceGammaRamp(pygletWindow._dc, newRamp.ctypes)
-            if success: 
+            if success:
                 break
         assert success, 'SetDeviceGammaRamp failed'
 
@@ -55,7 +55,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
         LUTlength=newRamp.shape[1]
         error =carbon.CGSetDisplayTransferByTable(pygletWindow._screen.id, LUTlength,
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
-        assert success, 'CGSetDisplayTransferByTable failed'
+        assert not error, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux'):
         newRamp= (65535*newRamp).astype(numpy.uint16)
