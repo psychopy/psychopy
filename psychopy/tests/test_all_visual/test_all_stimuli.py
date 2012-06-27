@@ -92,7 +92,10 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
-        stim.setFont('Courier')
+        if sys.platform=='win32':
+            stim.setFont('Courier New')
+        else:
+            stim.setFont('Courier')
         stim.setOri(-30.5)
         stim.setHeight(1.0*self.scaleFactor)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
@@ -135,6 +138,8 @@ class _baseVisualTest:
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
+        wedge.draw()
+        win.flip()#AFTER compare screenshot
         wedge.draw()
         utils.compareScreenshot('wedge1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
@@ -179,7 +184,6 @@ class _baseVisualTest:
         contextName=self.contextName
         if not win._haveShaders:
             utils.skip("ElementArray requires shaders, which aren't available")
-        win.flip()
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
@@ -189,7 +193,10 @@ class _baseVisualTest:
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
             sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
+        win.flip()
+        spiral.draw()
         utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
+        win.flip()
     def test_aperture(self):
         win = self.win
         if not win.allowStencil:
