@@ -453,7 +453,6 @@ class Window:
 
         if self.winType == "glut": GLUT.glutSwapBuffers()
         elif self.winType =="pyglet":
-            #print "updating pyglet"
             #make sure this is current context
             self.winHandle.switch_to()
 
@@ -796,9 +795,13 @@ class Window:
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color')
 
+        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
+            desiredRGB = (self.rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
+        else:
+            desiredRGB = (self.rgb)/255.0
         if self.winHandle!=None:#if it is None then this will be done during window setup
             if self.winType=='pyglet': self.winHandle.switch_to()
-            GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
+            GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
@@ -1080,7 +1083,7 @@ class Window:
 
         status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT);
         if status != FB.GL_FRAMEBUFFER_COMPLETE_EXT:
-            print "Error in framebuffer activation"
+            logging.warning("Error in framebuffer activation")
             return
         GL.glDisable(GL.GL_TEXTURE_2D)
 
@@ -2333,7 +2336,6 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        #print 'updating Shaders list'
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram
@@ -2402,7 +2404,6 @@ class PatchStim(_BaseVisualStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        #print 'updating No Shaders list'
         self.needUpdate=0
 
         GL.glNewList(self._listID,GL.GL_COMPILE)
@@ -4989,7 +4990,6 @@ class BufferImageStim(PatchStim):
             texture = data.tostring()#serialise
         else:#pyglet on linux needs ctypes instead of string object!?
             texture = data.ctypes#serialise
-        # print data.shape, self.origSize # they are swapped, relative to each other
 
         #bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -5777,7 +5777,6 @@ class RatingScale:
         Accounts for non-zero low end, autoRescale, and precision.
         The return value is assured to be on the scale.
         """
-        print 'set tick'
         # on the line:
         value = max(min(self.high, value), self.low)
         # with requested precision:
@@ -6603,7 +6602,6 @@ def _setColor(self, color, colorSpace=None, operation='',
         if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
         elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
         else:
-            print hasattr(self,'dkl_rgb'), dir(self)
             win=None
             logging.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
@@ -6703,7 +6701,6 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     msdrawAvg = 1000. * float(numpy.average(drawTimes))
     msdrawSD = 1000. * float(numpy.std(drawTimes))
     msfree = 1000. * float(numpy.average(freeTimes))
-    #print "draw=%.1fms free=%.1fms pad=%.1fms" % (msdrawAvg,msfree,msDelay)
 
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
 

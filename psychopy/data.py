@@ -12,8 +12,9 @@ from scipy import optimize, special
 from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
 import inspect #so that Handlers can find the script that called them
-import codecs
+import codecs, locale
 import weakref
+import __main__ as main
 
 try:
     import openpyxl
@@ -79,13 +80,17 @@ class ExperimentHandler(object):
         self.name=name
         self.version=version
         self.runtimeInfo=runtimeInfo
-        self.extraInfo=extraInfo
+        if extraInfo==None:
+            self.extraInfo = {}
+        else:
+            self.extraInfo=extraInfo
         self.originPath=originPath
         self.savePickle=savePickle
         self.saveWideText=saveWideText
         self.dataFileName=dataFileName
         self.thisEntry = {}
         self.entries=[]#chronological list of entries
+        self._paramNamesSoFar=[]
         self.dataNames=[]#names of all the data (eg. resp.keys)
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
@@ -113,23 +118,37 @@ class ExperimentHandler(object):
         """
         if loopHandler in self.loopsUnfinished:
             self.loopsUnfinished.remove(loopHandler)
-    def getAllParamNames(self):
-        """Returns the attributes of loop parameters (trialN etc)
+    def _getAllParamNames(self):
+        """Returns the attribute names of loop parameters (trialN etc)
         that the current set of loops contain, ready to build a wide-format
         data file.
         """
-        #ToDo: keep track of the available column names
-        names = []
+        names=copy.deepcopy(self._paramNamesSoFar)
         #get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
-            theseNames, vals = self._getLoopData(thisLoop)
+            theseNames, vals = self._getLoopInfo(thisLoop)
             names.extend(theseNames)
         return names
-    def _getLoopData(self, loop):
+    def _getExtraInfo(self):
+        """
+        Get the names and vals from the extraInfo dict (if it exists)
+        """
+        if type(self.extraInfo) != dict:
+            names=[]
+            vals=[]
+        else:
+            names=self.extraInfo.keys()
+            vals= self.extraInfo.values()
+        return names, vals
+    def _getLoopInfo(self, loop):
+        """Returns the attribute names and values for the current trial of a particular loop.
+        Does not return data inputs from the subject, only info relating to the trial
+        execution.
+        """
         names=[]
         vals=[]
         name = loop.name
-        #attribute about the loop we want to find
+        #standard attributes
         for attr in ['thisRepN', 'thisTrialN', 'thisN','thisIndex', 'stepSizeCurrent']:
             if hasattr(loop, attr):
                 if attr=='stepSizeCurrent':
@@ -139,6 +158,26 @@ class ExperimentHandler(object):
                 #append the attribute name and the current value
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
+
+        if hasattr(loop, 'thisTrial'):
+            trial = loop.thisTrial
+            if hasattr(trial,'items'):#is a TrialList object or a simple dict
+                for attr,val in trial.items():
+                    if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
+                    names.append(attr)
+                    vals.append(val)
+            elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
+                pass
+            else:
+                names.append(name+'.thisTrial')
+                vals.append(trial)
+        elif hasattr(loop, 'intensities'):
+            names.append(name+'.intensity')
+            if len(loop.intensities)>0:
+                vals.append(loop.intensities[-1])
+            else:
+                vals.append(None)
+
         return names, vals
     def addData(self, name, value):
         """Add the data with a given name to the current experiment.
@@ -155,7 +194,7 @@ class ExperimentHandler(object):
         e.g.::
 
             #add some data for this trial
-            exp.addData('rt', 0.8)
+            exp.addData('resp.rt', 0.8)
             exp.addData('resp.key', 'k')
             #end of trial - move to next line in data output
             exp.nextEntry()
@@ -165,24 +204,41 @@ class ExperimentHandler(object):
         self.thisEntry[name]=value
 
     def nextEntry(self):
-        """Call this for each entry (e.g. trial) to be stored, but only
-        after all the forms of data have been added to the individual handlers
+        """Calling nextEntry indicates to the ExperimentHandler that the
+        current trial has ended and so further
+        addData() calls correspond to the next trial.
         """
         this=self.thisEntry
+        #fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
-            names, vals = self._getLoopData(thisLoop)
+            names, vals = self._getLoopInfo(thisLoop)
             for n, name in enumerate(names):
                 this[name]=vals[n]
+        #add the extraInfo dict to the data
+        if type(self.extraInfo)==dict:
+            this.update(self.extraInfo)#NB update() really means mergeFrom()
         self.entries.append(this)
         #then create new empty entry for n
         self.thisEntry = {}
     def saveAsWideText(self, fileName, delim=',',
                    matrixOnly=False,
                    appendFile=False):
+        """Saves a long, wide-format text file, with one line representing the attributes and data
+        for a single trial. Suitable for analysis in R and SPSS.
+
+        If `appendFile=True` then the data will be added to the bottom of an existing file. Otherwise, if the file exists
+        already it will be overwritten
+
+        If `matrixOnly=True` then the file will not contain a header row, which can be handy if you want to append data
+        to an existing file of the same format.
+        """
 
         #create the file or print to stdout
         if appendFile: writeFormat='a'
         else: writeFormat='w' #will overwrite a file
+        if os.path.exists(fileName) and writeFormat == 'w':
+            logging.warning('Data file, %s, will be overwritten' %fileName)
+
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
@@ -191,8 +247,9 @@ class ExperimentHandler(object):
             if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
             else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
-        names = self.getAllParamNames()
+        names = self._getAllParamNames()
         names.extend(self.dataNames)
+        names.extend(self._getExtraInfo()[0]) #names from the extraInfo dictionary
         #write a header line
         if not matrixOnly:
             for heading in names:
@@ -208,22 +265,38 @@ class ExperimentHandler(object):
             f.write('\n')
         f.close()
         self.saveWideText=False
-    def saveAsPickle(self,fileName):
+    def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
-        This can be reloaded if necess and further analyses carried out.
+        This can be reloaded if necessary and further analyses carried out.
+
+        :Parameters:
+
+            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
         """
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
-        f = open(fileName, "wb")
+        if os.path.exists(fileName):
+            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+
+        #the pickled copy should have its 'need-to-save' settings set to False
+        neededSaveWideText=self.saveWideText
+        self.abort()
+
+        #create the file
+        f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
-        #no need to save again
-        self.savePickle=False
+        #but set back to previous setting for the 'live' copy
+        self.saveWideText=neededSaveWideText
 
     def abort(self):
-        """Abort the experiment (prevents data files being saved)
+        """Inform the ExperimentHandler that the run was aborted.
+
+        Experiment handler will attempt automatically to save data (even in the event of a crash if possible).
+        So if you quit your script early you may want to tell the Handler not to save out the data files for this run.
+        This is the method that allows you to do that.
         """
         self.savePickle=False
         self.saveWideText=False
@@ -238,10 +311,9 @@ class TrialType(dict):
             try:
                 return self[name]
             except KeyError:
-#                print 'TrialType has no attribute (or key) \'%s\'' %(name)
                 raise AttributeError, ('TrialType has no attribute (or key) \'%s\'' %(name))
 
-class _BaseTrialHandler:
+class _BaseTrialHandler(object):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -273,10 +345,14 @@ class _BaseTrialHandler:
             exp.loopEnded(self)
         #and halt the loop
         raise StopIteration
-    def saveAsPickle(self,fileName):
+    def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of the handler (with data) to a pickle file.
 
-        This can be reloaded if necess and further analyses carried out.
+        This can be reloaded if necessesary and further analyses carried out.
+
+        :Parameters:
+
+            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
@@ -284,7 +360,11 @@ class _BaseTrialHandler:
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
-        f = open(fileName, "wb")
+        if os.path.exists(fileName):
+            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+
+        #create the file or print to stdout
+        f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
     def printAsText(self, stimOut=[],
@@ -319,7 +399,8 @@ class _BaseTrialHandler:
         if originPath==None or not os.path.isfile(originPath):
             originPath = inspect.getouterframes(inspect.currentframe())[1][1]
             logging.debug("Using %s as origin file" %originPath)
-        if os.path.isfile(originPath):#do we NOW have a path?
+        # Don't set the origin in interactive mode.
+        if hasattr(main, '__file__') and os.path.isfile(originPath):#do we NOW have a path?
             origin = codecs.open(originPath,"r", encoding = "utf-8").read()
         else:
             origin=None
@@ -361,7 +442,7 @@ class TrialHandler(_BaseTrialHandler):
             nReps: number of repeats for all conditions
 
             method: *'random',* 'sequential', or 'fullRandom'
-                'sequential obviously presents the conditions in the order they appear in the list.
+                'sequential' obviously presents the conditions in the order they appear in the list.
                 'random' will result in a shuffle of the conditions on each repeat, but all conditions
                 occur once before the second repeat etc. 'fullRandom' fully randomises the
                 trials across repeats as well, which means you could potentially run all trials of
@@ -844,10 +925,10 @@ class TrialHandler(_BaseTrialHandler):
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f= file(fileName,writeFormat)
+            f = codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f=file(fileName+'.csv',writeFormat)
-            else: f=file(fileName+'.txt',writeFormat)
+            if delim==',': f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            else: f=codecs.open(fileName+'.txt',writeFormat, encoding = "utf-8")
 
         # collect parameter names related to the stimuli:
         header = self.trialList[0].keys()
@@ -1034,6 +1115,7 @@ class TrialHandler(_BaseTrialHandler):
                     (hasattr(tmpData,'shape') and tmpData.shape==()):
                     if hasattr(tmpData,'mask') and tmpData.mask:
                         ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = ''
+                        colN+=1
                     else:
                         try:
                             ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(tmpData)#if it can conver to a number (from numpy) then do it
@@ -1050,15 +1132,15 @@ class TrialHandler(_BaseTrialHandler):
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = float(entry)
                             except:#some thi
                                 ws.cell(_getExcelCellName(col=colN,row=stimN+1)).value = unicode(entry)
-                            colN+=1
+                        colN+=1
 
         #add self.extraInfo
         rowN = len(self.trialList)+2
         if (self.extraInfo != None) and not matrixOnly:
             ws.cell(_getExcelCellName(0,rowN)).value = 'extraInfo'; rowN+=1
             for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+':'
-                ws.cell(_getExcelCellName(1,rowN)).value = (val)
+                ws.cell(_getExcelCellName(0,rowN)).value = unicode(key)+u':'
+                ws.cell(_getExcelCellName(1,rowN)).value = unicode(val)
                 rowN+=1
 
         ew.save(filename = fileName)
@@ -2375,7 +2457,7 @@ class DataHandler(dict):
         during initialisation and as each xtra type is needed.
         """
         if not shape: shape = self.dataShape
-        if type(names) != str:
+        if not isinstance(names,basestring):
             #recursively call this function until we have a string
             for thisName in names: self.addDataType(thisName)
         else:
@@ -2767,6 +2849,10 @@ class FitCumNormal(_baseFunctionFit):
         xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erf() goes from -1:1
         return xx
 
+
+
+########################## End psychopy.data classes ##########################
+
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
 
@@ -2862,11 +2948,17 @@ def functionFromStaircase(intensities, responses, bins = 10):
 
 def getDateStr(format="%Y_%b_%d_%H%M"):
     """Uses ``time.strftime()``_ to generate a string of the form
-    Apr_19_1531 for 19th April 3.31pm.
+    2012_Apr_19_1531 for 19th April 3.31pm, 2012.
     This is often useful appended to data filenames to provide unique names.
     To include the year: getDateStr(format="%Y_%b_%d_%H%M") returns '2011_Mar_16_1307'
+    depending on locale, can have unicode chars in month names, so utf_8_decode them
+    For date in the format of the current localization, do:
+        data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    return time.strftime(format, time.localtime())
+    now = time.strftime(format, time.localtime())
+    now_dec = codecs.utf_8_decode(now)[0]
+
+    return now_dec
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
