@@ -19,10 +19,21 @@ Changelog
 PsychoPy 1.73
 ------------------------------
 
+PsychoPy 1.73.06
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released April 2012)
+
+* FIXED: xlsx outputs were collapsing raw data from trials with non-response
+* FIXED: monitor gamma grids are now returned as arrays rather than lists (Ariel Rokem)
+* FIXED: bug with Window.setColor being incorrectly scaled for some spaces
+* FIXED: buglet preventing unicode from being used in TrialHandler parameter names (William Hogman) and saving to data files (Becky Sharman)
+* FIXED: StairHandler in Builder now saves the expInfo dictionary (Jeremy)
+
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(https://github.com/psychopy/psychopy)
+(released March 2012)
 
 * FIXED: Joystick error when calling :class:`~psychopy.hardware.joystick.Joystick.getHat()` or :class:`~psychopy.hardware.joystick.Joystick.getHats()` (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)

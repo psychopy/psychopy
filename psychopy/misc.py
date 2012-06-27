@@ -9,7 +9,7 @@ import numpy, random #this is imported by psychopy.core
 from psychopy import logging
 import monitors
 
-import os, shutil
+import os, shutil, glob
 import Image, cPickle
 #from random import shuffle #this is core python dist
 
@@ -480,9 +480,15 @@ def hsv2rgb(hsv_Nx3):
 
     Note that in some uses of HSV space the Hue component is given in radians or
     cycles (range 0:1]). In this version H is given in degrees (0:360).
+
+    Also note that the RGB output ranges -1:1, in keeping with other PsychoPy functions
     """
     #based on method in http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
     hsv_Nx3 = numpy.asarray(hsv_Nx3, dtype=float)
+    #we expect a 2D array so convert there if needed
+    origShape = hsv_Nx3.shape
+    hsv_Nx3 = hsv_Nx3.reshape([-1,3])
+
     H_ = (hsv_Nx3[:,0]%360)/60.0 #this is H' in the wikipedia version
     C = hsv_Nx3[:,1]*hsv_Nx3[:,2] #multiply H and V to give chroma (color intensity)
     X = C*(1-abs(H_%2-1))
@@ -509,7 +515,7 @@ def hsv2rgb(hsv_Nx3):
     rgb[II,2]=X[II]
     m=(hsv_Nx3[:,2] - C)
     rgb +=  m.reshape([len(m),1])# V-C is sometimes called m
-    return rgb
+    return rgb.reshape(origShape)*2-1
 
 def pol2cart(theta, radius, units='deg'):
     """Convert from polar to cartesian coordinates
@@ -556,3 +562,30 @@ def plotFrameIntervals(intervals):
     #    hist(intervals, int(len(intervals)/10))
     plot(intervals)
     show()
+
+def _handleFileCollision(fileName, fileCollisionMethod):
+    """ Handle filename collisions by overwriting, renaming, or failing hard. 
+    
+    :Parameters:
+
+        fileCollisionMethod: 'overwrite', 'rename', 'fail'
+            If a file with the requested name already exists, specify how to deal with it. 'overwrite' will overwite existing files in place, 'rename' will append an integer to create a new file ('trials1.psydat', 'trials2.pysdat' etc) and 'error' will raise an IOError.
+    """
+    if fileCollisionMethod == 'overwrite':
+        logging.warning('Data file, %s, will be overwritten' % fileName)
+    elif fileCollisionMethod == 'fail':
+        raise IOError("Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
+    elif fileCollisionMethod == 'rename':
+        rootName, extension = os.path.splitext(fileName)
+        matchingFiles = glob.glob("%s*%s" % (rootName, extension))
+        count = len(matchingFiles)
+        
+        fileName = "%s_%d%s" % (rootName, count, extension) # Build the renamed string.
+        
+        if os.path.exists(fileName): # Check to make sure the new fileName hasn't been taken too.
+            raise IOError("New fileName %s has already been taken. Something is wrong with the append counter." % fileName)
+        
+    else:
+        raise ValueError("Argument fileCollisionMethod was invalid: %s" % str(fileCollisionMethod))
+
+    return fileName
