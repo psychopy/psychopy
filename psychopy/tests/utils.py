@@ -57,23 +57,61 @@ def compareScreenshot(fileName, win, crit=5.0):
             "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
 
 
-def compareTextFiles(pathToActual, pathToCorrect):
+def compareTextFiles(pathToActual, pathToCorrect, delim=None):
     """Compare the text of two files, ignoring EOL differences, and save a copy if they differ
     """
     if not os.path.isfile(pathToCorrect):
         logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
         foundComparisonFile=False
+        shutil.copyfile(pathToActual,pathToCorrect)
         assert foundComparisonFile #deliberately raise an error to see the warning message
         return
-    #we have the necessary file
-    txtActual = open(pathToActual, 'r').read().replace('\r\n','\n')
-    txtCorr = open(pathToCorrect, 'r').read().replace('\r\n','\n')
-    if txtActual!=txtCorr:
+    if delim==None:
+        if pathToCorrect.endswith('.csv'): delim=','
+        elif pathToCorrect.endswith('.dlm'): delim='\t'
+
+    try:
+        #we have the necessary file
+        txtActual = open(pathToActual, 'r').readlines()
+        txtCorrect = open(pathToCorrect, 'r').readlines()
+        assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
+        for lineN in range(len(txtActual)):
+            if delim==None:
+                #just compare the entire line
+                assert lineActual==lineCorrect
+            else:#word by word instead
+                lineActual=txtActual[lineN].split(delim)
+                lineCorrect=txtCorrect[lineN].split(delim)
+                for wordN in range(len(lineActual)):
+                    wordActual=lineActual[wordN]
+                    wordCorrect=lineCorrect[wordN]
+                    try:
+                        wordActual=float(wordActual)
+                        wordCorrect=float(wordCorrect)
+                        isFloat=True
+                    except:#stick with simple text if not a float value
+                        isFloat=False
+                        pass
+                    if isFloat:
+                        #to a default of 8 dp?
+                        assert np.allclose(wordActual,wordCorrect), "Numeric values at (%i,%i) differ: %f != %f " \
+                            %(lineN, wordN, wordActual, wordCorrect)
+                    else:
+                        if wordActual!=wordCorrect:
+                            print 'actual:'
+                            print repr(txtActual[lineN])
+                            print lineActual
+                            print 'expected:'
+                            print repr(txtCorrect[lineN])
+                            print lineCorrect
+                        assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
+                            %(lineN, wordN, repr(wordActual), repr(wordCorrect))
+    except AssertionError, err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
-        logging.warning("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
-    assert txtActual==txtCorr, "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
+        print "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
+        raise AssertionError, err
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook

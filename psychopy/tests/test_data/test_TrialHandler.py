@@ -9,7 +9,7 @@ except:
 from tempfile import mkdtemp
 from numpy.random import random, randint
 
-from psychopy import data
+from psychopy import data, logging
 from psychopy.tests import utils
 from psychopy.tests.utils import TESTS_PATH
 
@@ -39,13 +39,13 @@ class TestTrialHandler:
 
         # Make sure the header line is correct
         f = open(data_filename, 'rb')
-        header = f.readline()
+        header = f.readline().replace('\n','')
         f.close()
-        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std,order," +os.linesep
+        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
         if expected_header != header:
             print base_data_filename
-            print expected_header,type(expected_header),len(expected_header)
-            print header, type(header), len(header)
+            print repr(expected_header),type(expected_header),len(expected_header)
+            print repr(header), type(header), len(header)
         assert expected_header == unicode(header)
 
     def test_psydat_filename_collision_renaming(self):
