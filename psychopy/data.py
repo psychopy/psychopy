@@ -434,7 +434,7 @@ class _BaseTrialHandler(object):
                     f.write('')
                 else:
                     f.write(entry)
-                if cellN<len(line):
+                if cellN<(len(line)-1):
                     f.write(delim)
             f.write("\n")#add an EOL at end of each line
         if f != sys.stdout:
