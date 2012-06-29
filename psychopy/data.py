@@ -930,7 +930,8 @@ class TrialHandler(_BaseTrialHandler):
 
         #add self.extraInfo
         if (self.extraInfo != None) and not matrixOnly:
-            lines.append([],['extraInfo'])#give a single line of space and then a heading
+            lines.append([])
+            lines.append(['extraInfo'])#give a single line of space and then a heading
             for key, value in self.extraInfo.items():
                 lines.append([key,value])
         return lines
