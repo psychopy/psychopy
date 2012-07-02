@@ -38,16 +38,16 @@ def _convertToNewStyle(newClass, oldInstance):
 
 
 def fromFile(filename):
-    """In order to switch experiment handler to the new-style (post-python 2.2, 
+    """In order to switch experiment handler to the new-style (post-python 2.2,
        circa 2001) classes, this is a proof-of-concept loader based on misc.fromFile
        that will load psydat files created with either new or old style TrialHandlers
        or StairHandlers.
-       
-       Since this is really just an example, it probably [hopefully] won't be 
+
+       Since this is really just an example, it probably [hopefully] won't be
        incorporated into upstream code, but it will work.
-       
+
        The method will try to load the file using a normal new-style Pickle loader;
-       however, if a type error occurs it will temporarily replace the new-style 
+       however, if a type error occurs it will temporarily replace the new-style
        class with a stubbed version of the old-style class and will then instantiate
        a fresh new-style class with the original attributes.
     """
@@ -73,3 +73,33 @@ def fromFile(filename):
                 raise TypeError, ("Didn't recognize %s" % name)
 
 	return contents
+
+def checkCompatibility(old, new, prefs=None, fix=True):
+    """Check for known compatibility issue between a pair of versions and fix
+    automatically if possible. (This facility, and storing the most recently run
+    version of the app, was added in version 1.74.00)
+
+    usage::
+
+        ok, msg =  checkCompatibility(old, new, prefs, fix=True)
+
+    prefs is a standard psychopy preferences object. It isn't needed by all checks
+    but may be useful.
+    This function can be used simply to check for issues by setting fix=False
+    """
+    if old==new:
+        return 1,"" #no action needed
+    if old>new:#switch them over
+        old,new=new,old
+
+    msg="From %s to %s:" %(old, new)
+    if old.startswith<'1.74':
+        msg += "\n\nThere were many changes in version 1.74.00 that will break" + \
+            "\ncompatibility with older versions. Make sure you read the changelog carefully" + \
+            "\nbefore using this version. Do not upgrade to this version halfway through an experiment.\n"
+        if fix and 'PatchComponent' not in prefs.builder['hiddenComponents']:
+            prefs.builder['hiddenComponents'].append('PatchComponent')
+    else:
+        msg+= "\nNo known compatibility issues"
+        return 0, msg
+    return 0, msg

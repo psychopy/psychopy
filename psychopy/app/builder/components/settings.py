@@ -19,10 +19,13 @@ class SettingsComponent:
         self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
-        self.order=['Show info dlg','Experiment info',
+        self.order=['expName','Show info dlg','Experiment info',
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
+        self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
+            hint="Name of the entire experiment (taken by default from the filename on save)",
+            label="Experiment name")
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint="Run the experiment full-screen (recommended)")
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
@@ -108,8 +111,10 @@ class SettingsComponent:
             else:
                 buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
 
-            if self.params['Save log file']:
+            if self.params['Save log file'].val:
                 buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+        else:
+            buff.writeIndented("filename=None\n")
         buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
 
         #set up the ExperimentHandler
@@ -142,11 +147,10 @@ class SettingsComponent:
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         buff.write(unitsCode+")\n")
-        
+
         if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
             buff.writeIndented("\n# Enable sound input/output:\n"+
-                                "microphone.switchOn()\n\n")
-
+                                "microphone.switchOn()\n")
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """

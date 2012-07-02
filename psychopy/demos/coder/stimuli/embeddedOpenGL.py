@@ -8,8 +8,8 @@ from psychopy import visual, core, event
 from pyglet.gl import *
 
 myWin = visual.Window([600,600], units='norm',monitor='testMonitor')
-a_blob = visual.PatchStim(myWin, pos = [0.5,0],mask='gauss', sf=3)
-xx = visual.PatchStim(myWin, texRes=4)
+a_blob = visual.GratingStim(myWin, pos = [0.5,0],mask='gauss', sf=3)
+xx = visual.GratingStim(myWin, texRes=4)
 
 def drawStuff():    
     

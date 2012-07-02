@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys, os, copy
-from psychopy import visual, misc, core, monitors, filters
+from psychopy import visual, misc, core, monitors, filters, preferences
 from psychopy.tests import utils
 import numpy
+prefs = preferences.Preferences()
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -80,24 +81,28 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         #set font
-        font = os.path.join(utils.TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+        fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
-            height=0.8*self.scaleFactor, pos=[0,0], font=font)
+            height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
+            fontFiles=[fontFile])
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=40)
+        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=20)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
-        stim.setFont(font)
+        if sys.platform=='win32':
+            stim.setFont('Courier New')
+        else:
+            stim.setFont('Courier')
         stim.setOri(-30.5)
         stim.setHeight(1.0*self.scaleFactor)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
         stim.setPos([-0.5,0.5],'+')
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=30)
+        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=20)
 
     def test_mov(self):
         win = self.win
@@ -126,13 +131,15 @@ class _baseVisualTest:
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=10.0)
-    def testRadial(self):
+        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=12.0)
+    def test_radial(self):
         win = self.win
         contextName=self.contextName
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
+        wedge.draw()
+        win.flip()#AFTER compare screenshot
         wedge.draw()
         utils.compareScreenshot('wedge1_%s.png' %(contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
@@ -177,7 +184,6 @@ class _baseVisualTest:
         contextName=self.contextName
         if not win._haveShaders:
             utils.skip("ElementArray requires shaders, which aren't available")
-        win.flip()
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
@@ -187,7 +193,10 @@ class _baseVisualTest:
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
             sfs=3.0, xys=xys, oris=thetas)
         spiral.draw()
+        win.flip()
+        spiral.draw()
         utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
+        win.flip()
     def test_aperture(self):
         win = self.win
         if not win.allowStencil:

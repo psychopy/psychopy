@@ -3,7 +3,8 @@
 import os
 from psychopy import compatibility
 
-fixtures_path = '../data/'
+thisPath = os.path.split(__file__)[0]
+fixtures_path = os.path.join(thisPath,'..','data')
 
 class _baseCompatibilityTest(object):
     def test_FromFile(self):

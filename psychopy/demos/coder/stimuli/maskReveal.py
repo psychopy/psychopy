@@ -16,7 +16,7 @@ myWin = visual.Window((600,600), allowGUI=False, color=0,
         monitor='testMonitor',winType='pyglet', units='norm')
 
 #INITIALISE SOME STIMULI
-faceRGB = visual.PatchStim(myWin,tex='sin',
+gabor = visual.GratingStim(myWin,tex='sin',
     mask='gauss',
     pos=(0.0,0.0),
     size=(1.0,1.0),
@@ -41,8 +41,8 @@ numpy.random.shuffle(maskIndices)
 frameN=0
 while True:
     t=trialClock.getTime()
-    faceRGB.setOri(1,'+')#advance ori by 1 degree
-    faceRGB.draw()
+    gabor.setOri(1,'+')#advance ori by 1 degree
+    gabor.draw()
 
     #update mask b ymaking one element transparent
     if frameN<len(maskIndices):

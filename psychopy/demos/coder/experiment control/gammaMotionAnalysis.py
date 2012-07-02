@@ -35,7 +35,7 @@ for fileN, thisStair in enumerate(allIntensities):
 
 #get combined data
 combinedInten, combinedResp, combinedN = \
-             data.functionFromStaircase(allIntensities, allResponses, 7)
+             data.functionFromStaircase(allIntensities, allResponses, 'unique')
 #fit curve
 guess= [num.average(combinedInten), num.average(combinedInten)/5]
 

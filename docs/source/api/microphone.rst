@@ -1,5 +1,9 @@
+.. _microphone:
+
 :mod:`psychopy.microphone` - Capture and analyze sound
 ======================================================
+
+(Available as of version 1.74.00)
 
 Overview
 --------
@@ -15,7 +19,7 @@ skipping a slow response once in a while.
 using Speech2Text with up to 5 concurrent threads. Returns a list of (file, response) tuples.
 Batch processing is intended to facillitate post-experiment processing.
 
-Eventually, other features are planed, including: **loudness** and
+Eventually, other features are planned, including: **loudness** and
 **voice onset detection** (to automatically estimate vocal RT for a
 given speech sample), and **interactive visual inspection** of sound waveform, with
 playback and manual onset determination (= the "gold standard" for RT).

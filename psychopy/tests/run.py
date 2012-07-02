@@ -9,11 +9,13 @@ argv = sys.argv
 try:
     import pytest
     usePytest=True
-except:
+except ImportError:
     usePytest=False
 
 if usePytest:
+    argv.pop(0)  # remove run.py
     #argv.append('--doctest-modules') #doctests
+    argv.append('--tb=short')
     if 'cover' in argv:
         argv.remove('cover')
         argv.extend(['--cov-report','html','--cov','psychopy'])

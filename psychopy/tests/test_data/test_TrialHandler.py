@@ -3,13 +3,14 @@ import os, sys, glob
 from os.path import join as pjoin
 import shutil
 try:
-    from nose.tools import raises
-except:
     from pytest import raises
+except:
+    from nose.tools import raises
 from tempfile import mkdtemp
 from numpy.random import random, randint
 
-from psychopy import data
+from psychopy import data, logging
+from psychopy.tests import utils
 from psychopy.tests.utils import TESTS_PATH
 
 TESTSDATA_PATH = pjoin(TESTS_PATH, 'test_data')
@@ -38,12 +39,13 @@ class TestTrialHandler:
 
         # Make sure the header line is correct
         f = open(data_filename, 'rb')
-        header = f.readline()
+        header = f.readline().replace('\n','')
         f.close()
-        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std," +os.linesep
+        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
         if expected_header != header:
-            print expected_header,type(expected_header),len(expected_header)
-            print header, type(header), len(header)
+            print base_data_filename
+            print repr(expected_header),type(expected_header),len(expected_header)
+            print repr(header), type(header), len(header)
         assert expected_header == unicode(header)
 
     def test_psydat_filename_collision_renaming(self):
@@ -81,17 +83,17 @@ class TestTrialHandler:
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*overwrite.psydat")))
             assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
-    @raises(IOError)
-    def test_psydat_filename_collision_failure(self):
-        raises(IOError)
-        for count in range(1,3):
-            trials = data.TrialHandler([], 1)
-            trials.data.addDataType('trialType')
-            for trial in trials:#need to run trials or file won't be saved
-                trials.addData('trialType', 0)
-            base_data_filename = pjoin(self.temp_dir, self.rootName)
 
-            trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
+    def test_psydat_filename_collision_failure(self):
+        with raises(IOError):
+            for count in range(1,3):
+                trials = data.TrialHandler([], 1)
+                trials.data.addDataType('trialType')
+                for trial in trials:#need to run trials or file won't be saved
+                    trials.addData('trialType', 0)
+                base_data_filename = pjoin(self.temp_dir, self.rootName)
+
+                trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
 
     def test_psydat_filename_collision_output(self):
         #create conditions
@@ -106,16 +108,12 @@ class TestTrialHandler:
             randResp=random()#a unique number so we can see which track orders
             trials.addData('resp', resp)
             trials.addData('rand',randResp)
-            #test summarised data outputs
+        #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testFullRandom.dlm'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrFullRandom.dlm'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.dlm'), pjoin(thisPath,'corrFullRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testFullRandom.csv'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrFullRandom.csv'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(thisPath,'corrFullRandom.csv'))
 
     def test_random_data_output(self):
         #create conditions
@@ -131,14 +129,10 @@ class TestTrialHandler:
             trials.addData('rand',random())
         #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testRandom.dlm'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrRandom.dlm'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.dlm'), pjoin(thisPath,'corrRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
-        txtActual = open(pjoin(self.temp_dir, 'testRandom.csv'), 'r').read()
-        txtCorr = open(pjoin(thisPath,'corrRandom.csv'), 'r').read()
-        assert txtActual==txtCorr
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(thisPath,'corrRandom.csv'))
 
 class TestMultiStairs:
     def setup_class(self):
@@ -175,3 +169,6 @@ class TestMultiStairs:
         stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
         stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))#contains more info
 
+if __name__=='__main__':
+    import pytest
+    pytest.main()

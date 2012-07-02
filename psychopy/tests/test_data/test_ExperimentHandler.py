@@ -1,6 +1,20 @@
 from psychopy import data, logging
 from numpy import random
+import os, glob, shutil
 logging.console.setLevel(logging.DEBUG)
+
+from tempfile import mkdtemp
+tmpFile = mkdtemp(prefix='psychopy-tests-testExp')
+
+def teardown():
+    #    remove the tmp files
+    shutil.rmtree(tmpFile)
+    #for a while (until 1.74.00) files were being left in the tests folder by mistake
+    for f in glob.glob('testExp*.psyexp'):
+        os.remove(f)
+    for f in glob.glob('testExp*.csv'):
+        os.remove(f)
+
 
 def test_ExperimentHandler():
     exp = data.ExperimentHandler(name='testExp',
@@ -10,7 +24,7 @@ def test_ExperimentHandler():
                     originPath=None,
                     savePickle=True,
                     saveWideText=True,
-                    dataFileName='testExp')
+                    dataFileName=tmpFile+'x')
 
     #a first loop (like training?)
     conds = data.createFactorialTrialList({'faceExpression':['happy','sad'],'presTime':[0.2,0.3]})

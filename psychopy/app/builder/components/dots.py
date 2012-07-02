@@ -16,7 +16,7 @@ class DotsComponent(VisualComponent):
                 nDots=100,
                 direction=0.0, speed=0.1, coherence=1.0,
                 dotSize=2,
-                dotLife=3, signalDots='different', noiseDots='direction',
+                dotLife=3, signalDots='same', noiseDots='direction',
                 fieldShape='circle', fieldSize=1.0, fieldPos=[0.0,0.0],
                 color='$[1.0,1.0,1.0]',colorSpace='rgb',
                 opacity=1.0,
@@ -61,7 +61,7 @@ class DotsComponent(VisualComponent):
             hint="Number of frames before each dot is killed and randomly assigned a new position",
             label="Dot lifetime")
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
-            hint="Are the signal dots the same population as the noise dot? See Scase et al.",
+            hint="On each frame are the signals dots remaining the same or changing? See Scase et al.",
             label="Signal dots")
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
             hint="What governs the behaviour of the noise dots? See Scase et al.",

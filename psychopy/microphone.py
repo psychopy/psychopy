@@ -17,8 +17,6 @@ from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
 
 __author__ = 'Jeremy R. Gray'
 
-ONSET_TIME_HERE = '!ONSET_TIME_HERE!'
-
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo; goes False in switchOff
 
@@ -101,7 +99,7 @@ class AudioCapture(object):
         if file:
             self.wavOutFilename = file
         else:
-            self.wavOutFilename = os.path.join(self.saveDir, name + ONSET_TIME_HERE +'.wav')
+            self.wavOutFilename = os.path.join(self.saveDir, name + '.wav')
         if not self.saveDir:
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
         else:
@@ -146,9 +144,10 @@ class AudioCapture(object):
         logging.data('%s: Record: onset %.3f, capture %.3fs' %
                      (self.loggingId, self.onset, self.duration) )
         if not file:
-            self.savedFile = self.wavOutFilename.replace(ONSET_TIME_HERE, '-%.3f' % self.onset)
+            onsettime = '-%.3f' % self.onset
+            self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
-            self.savedFile = os.path.abspath(file).strip('.wav')+'.wav'
+            self.savedFile = os.path.abspath(file).strip('.wav') + '.wav'
         
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, self.sampletype)

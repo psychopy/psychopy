@@ -7,14 +7,15 @@ from os import path
 from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'patch.png')
-tooltip = 'Patch: present images (bmp, jpg, tif...) or textures like gratings'
+iconFile = path.join(thisFolder,'image.png')
+tooltip = 'Image: present images (bmp, jpg, tif...)'
 
-class PatchComponent(VisualComponent):
+class ImageComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
-    def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
+    def __init__(self, exp, parentName, name='image', image='', mask='None', interpolate='linear',
                 units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
-                pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
+                pos=[0,0], size=[0.5,0.5], ori=0, texRes='128',
+                flipVert=False, flipHoriz=False,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
@@ -25,44 +26,44 @@ class PatchComponent(VisualComponent):
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
-        self.type='Patch'
-        self.url="http://www.psychopy.org/builder/components/patch.html"
+        self.type='Image'
+        self.url="http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
+        self.params['advancedParams']=['color', 'colorSpace','texture resolution','interpolate']
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)",
+            hint="The image to be displayed - a filename, including path",
             label="Image")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)",
+            hint="An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)",
             label="Mask")
-        self.params['sf']=Param(sf, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]",
-            label="SF")
-        self.params['phase']=Param(phase, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)",
-            label="Phase")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
+            hint="Resolution of the mask if one is used.",
             label="Texture resolution")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled",
             label="Interpolate")
+        self.params['flipVert']=Param(flipVert, valType='bool',
+            updates='constant', allowedUpdates=[],
+            hint="Should the image be flipped vertically (top to bottom)?",
+            label="Flip vertically")
+        self.params['flipHoriz']=Param(flipVert, valType='bool',
+            updates='constant', allowedUpdates=[],
+            hint="Should the image be flipped horizontally (left to right)?",
+            label="Flip horizontally")
 
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
-        buff.writeIndented("%s=visual.PatchStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
-        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" %(inits))
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" %(inits) )
+        buff.writeIndented("%s=visual.ImageStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
+        buff.writeIndented("    image=%(image)s, mask=%(mask)s,\n" %(inits))
+        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
         if self.params['interpolate'].val=='linear':

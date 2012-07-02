@@ -69,7 +69,8 @@ class SyncGenerator(threading.Thread):
                 sync:    character used as flag for sync timing, default='5'
                 skip:    how many frames to silently omit initially during T1 
                          stabilization, no sync pulse. Not needed to test script
-                         timing, but will give more accurate feel to start of run
+                         timing, but will give more accurate feel to start of run.
+                         aka "discdacqs".
                 sound:   play a tone, slightly shorter duration than TR
         """
         if TR < 0.1: 
@@ -214,6 +215,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     except ValueError:
         raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
+    logging.exp('launchScan: ' + runInfo)
     instr = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4)
     parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4)
     
@@ -259,6 +261,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
             raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
+    logging.exp('launchScan: start of scan')
     win.flip() # blank the screen on first sync pulse received
     elapsed = 1 # one sync pulse has been caught so far
     

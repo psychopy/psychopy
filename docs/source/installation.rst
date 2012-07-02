@@ -35,7 +35,7 @@ There are different ways to install PsychoPy on a mac that will suit different u
     
     (thanks James Kyles for that).
 
-* For PPC macs (or for intel mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution <http://www.enthought.com/products/epddownload.php>`_. It's free (for academic use) and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below. One advantage to this is that you can then upgrade versions with::
+* For PPC macs (or for intel mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution <http://www.enthought.com>`_. `It's free for academic use <http://www.enthought.com/products/edudownload.php>`_ and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below. One advantage to this is that you can then upgrade versions with::
     
     sudo /usr/local/bin/easy_install-2.5 -N -Z -U psychopy
 

@@ -1,33 +1,19 @@
 #!/usr/bin/env python
 from psychopy import core, visual, event
 
-"""There are two options for drawing image-based stimuli in PsychoPy:
-    
-    PatchStim is more versatile and faster - it uses opengl textures which allow for alpha 
-    masks, arbitrary transforms of the image data in space (multiple cycles, 
-    scaling, rotation...). It can also draw mathmatical textures, instead of 
-    bitmaps if you request things like 'sin', 'sqr'...
-    
-    SimpleImageStim is OK if you don't need to draw a large number of 
-    stimuli and want them to have exactly the pixels you created (with no scaling).
-    Unfortunately it is slower to draw than PatchStim and can lead to dropped frames.
-    (to test this on your system try commenting out the beach.draw() command)
-    
-"""
-
 #create a window to draw in
 myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, color=(-1,-1,-1))
 myWin._haveShaders=False
 
 #INITIALISE SOME STIMULI
-beach = visual.SimpleImageStim(myWin, 'beach.jpg', flipHoriz=True, pos=(0,1.50), units='deg')
-faceRGB = visual.PatchStim(myWin,tex='face.jpg', mask=None,
-    pos=(50,-20), 
+beach = visual.ImageStim(myWin, image='beach.jpg', flipVert=True, pos=(0,4.50), units='deg')
+faceRGB = visual.ImageStim(myWin,image='face.jpg', mask=None,
+    pos=(50,-50), 
     size=None,#will be the size of the original image in pixels
     units='pix', interpolate=True,
     autoLog=False)#this stim changes too much for autologging to be useful
 print "original image size:", faceRGB.origSize
-faceALPHA = visual.PatchStim(myWin,pos=(-0.7,-0.2),
+faceALPHA = visual.GratingStim(myWin,pos=(-0.7,-0.2),
     tex="sin",mask="face.jpg",
     color=[1.0,1.0,-1.0],
     size=(0.5,0.5), units="norm",
@@ -41,12 +27,12 @@ t=lastFPSupdate=0
 myWin.setRecordFrameIntervals()
 while True:
     t=trialClock.getTime()
-    beach.draw()
-    #Patch stimuli can be manipulated on the fly
+    #Images can be manipulated on the fly
     faceRGB.setOri(1,'+')#advance ori by 1 degree
     faceRGB.draw()
     faceALPHA.setPhase(0.01,"+")#advance phase by 1/100th of a cycle
     faceALPHA.draw()
+    beach.draw()
     
     #update fps every second
     if t-lastFPSupdate>1.0:
