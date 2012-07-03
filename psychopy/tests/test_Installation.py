@@ -33,10 +33,11 @@ def test_extra_imports():
         import u3, u6, ue9, LabJackPython
     import ioLabs
     import hid
+    import pyo
     #avbin
     import pyglet
     assert pyglet.media.have_avbin
     #platform specific
-    if sys.platform=='win32': 
+    if sys.platform=='win32':
         import parallel
     import pylink

@@ -572,8 +572,12 @@ class _BaseTrialHandler(object):
         """
         #self.originPath and self.origin (the contents of the origin file)
         if originPath==None or not os.path.isfile(originPath):
-            originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-            logging.debug("Using %s as origin file" %originPath)
+            try:
+                originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+                logging.debug("Using %s as origin file" %originPath)
+            except:
+                logging.debug("Failed to find origin file using inspect.getouterframes")
+                return '',''
         if os.path.isfile(originPath):#do we NOW have a path?
             origin = codecs.open(originPath,"r", encoding = "utf-8").read()
         else:

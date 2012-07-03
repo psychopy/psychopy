@@ -187,10 +187,19 @@ class UnitTestFrame(wx.Frame):
         self.frameType='unittest'
         self.prefs = self.app.prefs
         self.paths = self.app.prefs.paths
-        self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
+        #deduce the script for running the tests
+        try:
+            import pytest
+            havePytest=True
+        except:
+            havePytest=False
+        if havePytest:
+            self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
+        else:
+            self.runpyPath = os.path.join(self.prefs.paths['tests'], 'runPytest.py')#run the standalone version
         if sys.platform != 'win32':
             self.runpyPath = self.runpyPath.replace(' ','\ ')
-
+        #setup the frame
         self.IDs = self.app.IDs
         wx.Frame.__init__(self, parent, ID, title, pos=(450,45)) # to right, so Cancel button is clickable during a long test
         self.scriptProcess=None
@@ -246,9 +255,10 @@ class UnitTestFrame(wx.Frame):
 
         self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
         self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
-        #self.chkCoverage.Bind(wx.EVT_CHECKBOX, self.onChgCoverage)
+        self.chkCoverage.Disable()
         self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
         self.chkAllStdOut.SetToolTip(wx.ToolTip("Report all printed output & show any new rms-test images"))
+        self.chkAllStdOut.Disable()
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
 

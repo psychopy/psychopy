@@ -2,6 +2,7 @@
 *.egg-info
 *.log
 *.orig
+*__pycache__*
 .hg*
 .coverage
 .idea
@@ -27,7 +28,7 @@ psychopy/demos/*/*/*.txt
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
-psychopy/tests/*/htmlcov*
+psychopy/tests/*htmlcov*
 
 .DS_Store
 

@@ -6,29 +6,40 @@ os.chdir(thisDir)
 
 argv = sys.argv
 
+if argv[0]=='run.py':
+    argv.pop(0)  # remove run.py
+
+#create extra args and then append main args to them
+#if the user specifies a directory that should come last
+extraArgs = []
+
+#if user didn't specify a traceback deetail level then set to be short
+for thisArg in argv:
+    if thisArg.startswith('--tb='):
+        break
+    extraArgs.append('--tb=short')
+
+#always add doctests if not included
+if '--doctest-modules' not in argv:
+    extraArgs.append('--doctest-modules') #doctests
+#add coverage if requested
+if 'cover' in argv:
+    argv.remove('cover')
+    extraArgs.extend(['--cov','psychopy'])
+
+#use the pytest module itself if available
+#otherwise use the precompiled pytest script
 try:
     import pytest
-    usePytest=True
+    havePytest=True
 except ImportError:
-    usePytest=False
-
-if usePytest:
-    argv.pop(0)  # remove run.py
-    #argv.append('--doctest-modules') #doctests
-    argv.append('--tb=short')
-    if 'cover' in argv:
-        argv.remove('cover')
-        argv.extend(['--cov-report','html','--cov','psychopy'])
-    print ' '.join(argv)
+    havePytest=False
+if havePytest:
     pytest.main(' '.join(argv))
 else:
-    import nose
-    argv.append('--verbosity=3')
-    if 'cover' in argv:
-        argv.remove('cover')
-        argv.append('--with-coverage')
-        argv.append('--cover-package=psychopy')
-
-    argv.append('--with-doctest')
-
-    nose.run(argv=argv)
+    import subprocess
+    command = '%s -u runPytest.py ' %(sys.executable)
+    command = command + ' ' + ' '.join(extraArgs)
+    command = command + ' ' + ' '.join(argv)
+    print command
+    subprocess.Popen(command, shell=True)
