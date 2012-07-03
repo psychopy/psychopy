@@ -96,7 +96,7 @@ class VisualComponent(_base.BaseComponent):
                 continue
             elif thisParamName=='letterHeight':
                 paramCaps='Height' #setHeight for TextStim
-            elif thisParamName=='image' and self.getType()=='Patch':
+            elif thisParamName=='image' and self.getType()=='PatchComponent':
                 paramCaps='Tex' #setTex for PatchStim
             elif thisParamName=='sf':
                 paramCaps='SF' #setSF, not SetSf
