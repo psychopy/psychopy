@@ -1785,8 +1785,10 @@ class SimpleImageStim:
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.setImage(image)
-
-        #flip if necess
+        #check image size against window size
+        if (self.size[0]>self.win.size[0]) or (self.size[1]>self.win.size[1]):
+            logging.warning("Image size (%s, %s)  was larger than window size (%s, %s). Will draw black screen." % (self.size[0], self.size[1], self.win.size[0], self.win.size[1]))
+        #flip if necessary
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
         self.setFlipHoriz(flipHoriz)
         self.flipVert=False#initially it is false, then so the flip according to arg above
