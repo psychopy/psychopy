@@ -2488,7 +2488,7 @@ class RadialStim(GratingStim):
                 - or the name of an image file (most formats supported)
                 - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
 
-            mask :
+            mask : **none** or 'gauss'
                 Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
                 from the centre of the stimulus to the surround.
             units : **None**, 'norm', 'cm', 'deg' or 'pix'
@@ -2509,9 +2509,9 @@ class RadialStim(GratingStim):
                 100, the number of triangles used to make the sti
             radialPhase :
                 the phase of the texture from the centre to the perimeter
-                of the stimulus
+                of the stimulus (in radians)
             angularPhase :
-                the phase of the texture around the stimulus
+                the phase of the texture around the stimulus (in radians)
 
             color:
 
@@ -2632,12 +2632,12 @@ class RadialStim(GratingStim):
         self._updateTextureCoords()
         self.needUpdate=True
     def setAngularPhase(self,value, operation='', log=True):
-        """set the angular phase of the texture"""
+        """set the angular phase of the texture (radians)"""
         self._set('angularPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
     def setRadialPhase(self,value, operation='', log=True):
-        """set the radial phase of the texture"""
+        """set the radial phase of the texture (radians)"""
         self._set('radialPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
