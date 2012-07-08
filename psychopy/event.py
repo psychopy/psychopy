@@ -48,6 +48,31 @@ if havePyglet:
     #global eventThread
     #eventThread = _EventDispatchThread()
     #eventThread.start()
+    
+useText = False # By default _onPygletText is not used
+    
+def _onPygletText(text, emulated=False):
+    """handler for on_text pyglet events, or call directly to emulate a text
+    event.
+    
+    S Mathot 2012: This function only acts when the key that is pressed
+    corresponds to a non-ASCII text character (Greek, Arabic, Hebrew, etc.). In
+    that case the symbol that is passed to _onPygletKey() is translated into a
+    useless 'user_key()' string. If this happens, _onPygletText takes over the
+    role of capturing the key. Unfortunately, _onPygletText() cannot solely
+    handle all input, because it does not respond to spacebar presses, etc.    
+    """
+    
+    global useText    
+    if not useText: # _onPygletKey has handled the input
+        return    
+    keyTime=psychopy.core.getTime() #capture when the key was pressed    
+    if emulated:
+        keySource = 'EmulatedKey'
+    else:
+        keySource = 'KeyPress'
+    _keyBuffer.append( (text, keyTime) )        
+    logging.data("%s: %s" % (keySource, text))    
 
 def _onPygletKey(symbol, modifiers, emulated=False):
     """handler for on_key_press pyglet events, or call directly to emulate a key press
@@ -61,7 +86,11 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     Logging distinguished EmulatedKey events from real Keypress events.
     For emulation, the key added to the buffer is unicode(symbol), instead of
     pyglet.window.key.symbol_string(symbol)
+    
+    S Mathot 2012: Implement fallback to _onPygletText
     """
+    
+    global useText        
     keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
@@ -69,6 +98,13 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     else:
         thisKey = pyglet.window.key.symbol_string(symbol).lower() #convert symbol into key string
         #convert pyglet symbols to pygame forms ( '_1'='1', 'NUM_1'='[1]')
+        # 'user_key' indicates that Pyglet has been unable to make sense out of
+        # the keypress. In that case, we fall back to _onPygletText to handle
+        # the input.
+        if 'user_key' in thisKey:
+            useText = True
+            return
+        useText = False                
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
         keySource = 'Keypress'
     _keyBuffer.append( (thisKey,keyTime) ) # tuple
