@@ -885,6 +885,7 @@ class Window:
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
         self.winHandle.getGammaRamp = psychopy.gamma.getGammaRamp
         self.winHandle.set_vsync(True)
+        self.winHandle.on_text = psychopy.event._onPygletText
         self.winHandle.on_key_press = psychopy.event._onPygletKey
         self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
         self.winHandle.on_mouse_release = psychopy.event._onPygletMouseRelease
