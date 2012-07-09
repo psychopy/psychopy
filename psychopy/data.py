@@ -1141,7 +1141,7 @@ class TrialHandler(_BaseTrialHandler):
         for trial in dataOut:
             nextLine = ''
             for parameterName in header:
-                nextLine = nextLine + str(trial[parameterName]) + delim
+                nextLine = nextLine + unicode(trial[parameterName]) + delim
             nextLine = nextLine[:-1] # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
