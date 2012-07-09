@@ -78,7 +78,7 @@ class SettingsComponent:
             saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
             if not saveToDir:
                 saveToDir = 'data'
-        return saveToDir
+        return path.expanduser(saveToDir)
     def writeStartCode(self,buff):
         buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
