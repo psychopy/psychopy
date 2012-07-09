@@ -428,7 +428,7 @@ class _BaseTrialHandler(object):
             for cellN, entry in enumerate(line):
                 if type(entry) in [float]:
                     f.write('%.4f' %(entry))
-                elif type(entry) in [int]:
+                elif type(entry) in [int, numpy.int32]:
                     f.write('%i' %(entry))
                 elif entry==None:
                     f.write('')
@@ -928,7 +928,7 @@ class TrialHandler(_BaseTrialHandler):
 
                 if strVersion=='()':
                     strVersion="--"# 'no data' in masked array should show as "--"
-                if strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
+                if len(strVersion) != 0 and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
                     strVersion=strVersion[1:-1]#skip first and last chars
                 thisLine.extend(strVersion.split(','))
 
@@ -1196,6 +1196,7 @@ def importConditions(fileName, returnFieldNames=False):
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise ImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
 
+    fileName = os.path.expanduser(fileName)
     if fileName in ['None','none',None]:
         if returnFieldNames:
             return [], []
