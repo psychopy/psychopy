@@ -1788,6 +1788,14 @@ class SimpleImageStim:
         #check image size against window size
         if (self.size[0]>self.win.size[0]) or (self.size[1]>self.win.size[1]):
             logging.warning("Image size (%s, %s)  was larger than window size (%s, %s). Will draw black screen." % (self.size[0], self.size[1], self.win.size[0], self.win.size[1]))
+
+        #check position with size, warn if stimuli not fully drawn
+        if ((self.pos[0]+(self.size[0]/2.0) > self.win.size[0]/2.0) or (self.pos[0]-(self.size[0]/2.0) < -self.win.size[0]/2.0)):
+            logging.warning("Image position and width mean the stimuli does not fit the window in the X direction.")
+
+        if ((self.pos[1]+(self.size[1]/2.0) > self.win.size[1]/2.0) or (self.pos[1]-(self.size[1]/2.0) < -self.win.size[1]/2.0)):
+            logging.warning("Image position and height mean the stimuli does not fit the window in the Y direction.")            
+
         #flip if necessary
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
         self.setFlipHoriz(flipHoriz)
