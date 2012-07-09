@@ -5845,9 +5845,9 @@ class RatingScale:
             if lowAnchorText is None and highAnchorText is None:
                 self.showAnchors = False
             else:
-                self.lowAnchorText = str(lowAnchorText)
-                self.highAnchorText = str(highAnchorText)
-            self.scale = '  '.join(map(str, choices)) # str for display
+                self.lowAnchorText = unicode(lowAnchorText)
+                self.highAnchorText = unicode(highAnchorText)
+            self.scale = '  '.join(map(unicode, choices)) # unicode for display
             self.choices = choices
         else:
             self.choices = False
@@ -5872,7 +5872,7 @@ class RatingScale:
             self.markerStart = markerStart
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
-        elif type(markerStart) == str and type(self.choices) == list and markerStart in self.choices:
+        elif isinstance(markerStart, basestring) and type(self.choices) == list and markerStart in self.choices:
             self.markerStart = self.choices.index(markerStart)
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
@@ -6087,7 +6087,7 @@ class RatingScale:
         self.markerExpansion = float(markerExpansion) * 0.6
 
         self.markerColor = markerColor
-        if markerColor and type(markerColor) == str:
+        if markerColor and isinstance(markerColor, basestring):
             markerColor = markerColor.replace(' ','')
 
         # decide how to define self.marker:
@@ -6176,11 +6176,11 @@ class RatingScale:
         if lowAnchorText:
             lowText = unicode(lowAnchorText)
         else:
-            lowText = unicode(str(self.low))
+            lowText = unicode(self.low)
         if highAnchorText:
             highText = unicode(highAnchorText)
         else:
-            highText = unicode(str(self.high))
+            highText = unicode(self.high)
         self.lowAnchorText = lowText
         self.highAnchorText = highText
         if not scale:
@@ -6334,7 +6334,7 @@ class RatingScale:
             self.noResponse = False
             self.timedOut = True
             logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
-                         (self.name, str(self.getRating()), self.maximumTime) )
+                         (self.name, unicode(self.getRating()), self.maximumTime) )
             logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
 
         # 'disappear' == draw nothing if subj is done:
@@ -6393,7 +6393,7 @@ class RatingScale:
                 self.accept.setColor(self.acceptTextColor)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
-                        val = str(self.choices[int(self.markerPlacedAt)])
+                        val = unicode(self.choices[int(self.markerPlacedAt)])
                     else:
                         val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
                     self.accept.setText(val)
@@ -6417,7 +6417,7 @@ class RatingScale:
                         self.noResponse = False
                         self.marker.setPos((0, self.offsetVert), '+')
                         logging.data('RatingScale %s: (key single-click) rating=%s' %
-                                     (self.name, str(self.getRating())) )
+                                     (self.name, unicode(self.getRating())) )
                 if key in self.leftKeys:
                     if self.markerPlaced and self.markerPlacedAt > 0:
                         self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
@@ -6428,7 +6428,7 @@ class RatingScale:
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
                     logging.data('RatingScale %s: (key response) rating=%s' %
-                                     (self.name, str(self.getRating())) )
+                                     (self.name, unicode(self.getRating())) )
 
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
@@ -6439,14 +6439,14 @@ class RatingScale:
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
                     logging.data('RatingScale %s: (mouse single-click) rating=%s' %
-                                 (self.name, str(self.getRating())) )
+                                 (self.name, unicode(self.getRating())) )
             # if in accept box, and a value has been selected, and enough time has elapsed:
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
                         self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
-                                (self.name, str(self.getRating())) )
+                                (self.name, unicode(self.getRating())) )
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
         if not self.noResponse and self.decisionTime == 0:
