@@ -5,7 +5,7 @@ Coder
 
 .. note::
 
-    These do not teach you about Python /per se/, and you are recommended also to learn about that (`Python <http://www.python.org/>`_ has many excellent tutorials for programmers and non-programmers alike). In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments.
+    These do not teach you about Python `per se`, and you are recommended also to learn about that (`Python <http://www.python.org/>`_ has many excellent tutorials for programmers and non-programmers alike). In particular, dictionaries, lists and numpy arrays are used a great deal in most PsychoPy experiments.
 
 You can learn to use the scripting interface to PsychoPy in several ways, and you should probably follow a combination of them:
 
