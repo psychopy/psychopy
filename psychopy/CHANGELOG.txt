@@ -32,6 +32,7 @@ Major changes (and compatibility changes):
 
 Tweaks and fixes:
 
+* ADDED: contains() and intersects() methods to visual shape stimuli (including Rect etc) to determine whether a point or array of points is within the present stimulus boundaries
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
