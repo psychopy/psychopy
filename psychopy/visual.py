@@ -6950,9 +6950,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         intensity = intensity / numpy.max(intensity)
 
         #Sometimes there are some remaining artifacts from this process, get rid of them:
-        artifact_idx = numpy.where(numpy.logical_and(intensity == -1, rad < 1))
+        artifact_idx = numpy.where(numpy.logical_and(intensity == -1,
+                                                     rad < 0.99))
         intensity[artifact_idx] = 1
-        artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad > 1))
+        artifact_idx = numpy.where(numpy.logical_and(intensity == 1, rad >
+                                                     0.99))
         intensity[artifact_idx] = 0
 
     else:
