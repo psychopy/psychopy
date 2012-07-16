@@ -19,18 +19,20 @@ Major changes (and compatibility changes):
 
 * CHANGED: Builder experiments saved from this version will NOT open in older versions
 * ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)
-* ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments. 
+* ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments
+* CHANGED: psydat files from Builder have also changed. They are now ExperimentHandler objects, which contain all loops in a single file (previously they were TrialHandlers and had one file for each loop of the experiment). Analysis scripts will need slight modifications to handle this
+* CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented. This may affect any automated analysis you perform on your spreadsheet outputs
+* RESTRUCTURED: the generation of 'summarised' data outputs (text and excel) were also rewritten in this version, so make sure that your data files still contain all the data you were expecting
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See psychopy.microphone library, coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
 * ADDED: ImageStim and GratingStim to take over the combined role of PatchStim. For new experiments users are recommended to switch to these new more-specialised stimuli, although PatchStim objects will continue to work for the foreseeable future.
 * ADDED: HSV color space for all stimuli
-* CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments.
-* CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented. This may affect any automated analysis you perform on your spreadsheet outputs.
-* CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values.
-* CHANGED: pygame is no longer being formally supported/tested although it will probably continue to work for some time.
-* :red:`RESTRUCTURED:` the generation of 'summarised' data outputs (text and excel) were also rewritten in this versino, so make sure that your data files still contain all the data you were expecting
+* CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments
+* CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values
+* CHANGED: pygame is no longer being formally supported/tested although it will probably continue to work for some time
 
 Tweaks and fixes:
 
+* ADDED: contains() and intersects() methods to visual shape stimuli (including Rect etc) to determine whether a point or array of points is within the present stimulus boundaries
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats

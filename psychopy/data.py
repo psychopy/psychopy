@@ -1141,7 +1141,7 @@ class TrialHandler(_BaseTrialHandler):
         for trial in dataOut:
             nextLine = ''
             for parameterName in header:
-                nextLine = nextLine + str(trial[parameterName]) + delim
+                nextLine = nextLine + unicode(trial[parameterName]) + delim
             nextLine = nextLine[:-1] # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
@@ -2975,7 +2975,10 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
     now = time.strftime(format, time.localtime())
-    now_dec = codecs.utf_8_decode(now)[0]
+    try:
+        now_dec = codecs.utf_8_decode(now)[0]
+    except UnicodeDecodeError:
+        now_dec = time.strftime("%Y_%m_%d_%H%M", time.localtime())  # '2011_03_16_1307'
 
     return now_dec
 

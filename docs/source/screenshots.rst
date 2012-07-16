@@ -6,11 +6,13 @@ Screenshots
 A few screenshots are provided here to give you a flavour, but it's easier to download the software and run the demos (from the demos menus in each view) to see the variety of stimuli that can be generated. 
 
 PsychoPy is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program (or just use your own editor)
+
 .. image:: images/coder_small.gif
    :target: coder/coder.html
    :alt: The Coder view
 
 and the :ref:`builder` view for those that don't:
+
 .. image:: images/builder_small.jpg
    :target: builder/builder.html
    :alt: The Builder view

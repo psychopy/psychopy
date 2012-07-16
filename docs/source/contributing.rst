@@ -3,11 +3,11 @@
 Contributing to the project
 =====================================
 
-PsychoPy is an open-source project. It was originally written by `Jon Peirce`_ to run vision science experiments in his lab. He felt that others might find it useful and made it available by releasing it for free on the web.
+PsychoPy is an open-source, community-driven project. It is written and provided free out of goodwill by people that make no money from it and have other jobs to do. The way that open-source projects work is that users contribute back some of their time.
 
 Why make it free?
 ---------------------
-It has taken, literally, thousands of hours of programming to get PsychoPy where it is today and it is provided absolutely for free. Without somone working on it full time (which would entail charging you for the result) the only way for the software to keep getting better is if people contribute back to the project.
+It has taken, literally, thousands of hours of programming to get PsychoPy where it is today and it is provided absolutely for free. Without somone working on it full time (which would mean charging you for it) the only way for the software to keep getting better is if people contribute back to the project.
 
 **Please, please, please** make the effort to give a little back to this project. If you found the documentation hard to understand then think about how you would have preferred it to be written and contribute it.
 
@@ -17,9 +17,8 @@ For simple changes, and for users that aren't so confident with things like vers
 
 If you want to make more substantial changes then its often good to discuss them first on the `developers mailing list <http://groups.google.com/group/psychopy-dev>`_. 
 
-The ideal model, for :ref:`developers` that know about git and may make more frequent contributions, is to :ref:`create your own clone <createClone>` of the project on github, make changes to that and then send a pull request to have them merged back into the main repository.
+The ideal model, is to contribute via the repository on github. There is more information on that in the :ref:`developers` section of the documentation.
 
-.. _Jon Peirce: http://www.peirce.org.uk
 .. _Sphinx: http://sphinx.pocoo.org
 
 .. _contribForum:

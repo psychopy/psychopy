@@ -4,36 +4,31 @@
 Credits
 =====================================
 
+       
 Developers
 ---------------
-PsychoPy is predominantly written and maintained by `Jon Peirce`_ but has received code from a number of contributors:
 
-    - Jeremy Gray (various aspects of code and ideas)
-    - Yaroslav Halchenko (building the Debian package and a lot more)
-    - Dave Britton
-    - Ariel Rokem
-    - Gary Strangman
-    - C Luhmann
+PsychoPy was initially created and maintained by `Jon Peirce`_ but has many contributors to the code:
 
-Included packages
--------------------
+    **Jeremy Gray**, Yaroslav Halchenko, Erik Kastman, Mike MacAskill, William Hogman, Jonas Lindeløv, Ariel Rokem, Dave Britton, Gary Strangman, C Luhmann
 
-The PsychoPy library always includes a copy of:
+You can see `details of contributions on Ohloh.net <https://www.ohloh.net/p/PsychoPy/contributors/summary>`_ and there's a visualisation of `PsychoPy's development history <http://www.youtube.com/watch?v=l0xZvHLFrl4>`_ on youtube.
 
-    - `pyparallel <http://pyserial.sourceforge.net/pyparallel.html>`_ by Chris Liechti. Used by :ref:`psychopy.parallel <parallel>`
-    - `quest.py <http://www.visionegg.org/Quest>`_ by Andrew Straw. Used by :class:`~psychopy.data.QuestHandler`
-
-The Standalone versions also include the :ref:`suggestedPackages`
+PsychoPy also stands on top of a large number of other developers' work. It wouldn't be possible to write this package without the preceding work of those that wrote the :ref:`dependencies`
 
 Funding
 ----------------
 
-PsychoPy project has attracted small grants from the `HEA Psychology Network`_ and `Cambridge Research Systems`_ . Thanks to those organisations for their support.
+The PsychoPy project has attracted small grants from the `HEA Psychology Network`_ and `Cambridge Research Systems`_ . Thanks to those organisations for their support.
 
-Jon is paid by `The University of Nottingham`_, and has been funded by the `BBSRC`_
+Jon is paid by `The University of Nottingham`_ (which allows him to spend time on this) and his grants from the `BBSRC`_ and `Wellcome Trust`_ have also helped the development PsychoPy.
+ 
 
+
+.. _Jon Peirce: http://www.peirce.org.uk
 .. _The University of Nottingham: http://www.nottingham.ac.uk
 .. _BBSRC:  http://www.bbsrc.ac.uk
+.. _Wellcome Trust: http://www.wellcome.ac.uk/
 .. _University of Nottingham: http://www.nottingham.ac.uk
 .. _HEA Psychology Network: http://www.psychology.heacademy.ac.uk/s.php?p=256&db=104
 .. _Cambridge Research Systems: http://www.crsltd.com/

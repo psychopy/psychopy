@@ -885,6 +885,7 @@ class Window:
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
         self.winHandle.getGammaRamp = psychopy.gamma.getGammaRamp
         self.winHandle.set_vsync(True)
+        self.winHandle.on_text = psychopy.event._onPygletText
         self.winHandle.on_key_press = psychopy.event._onPygletKey
         self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
         self.winHandle.on_mouse_release = psychopy.event._onPygletMouseRelease
@@ -1785,8 +1786,10 @@ class SimpleImageStim:
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.setImage(image)
-
-        #flip if necess
+        #check image size against window size
+        if (self.size[0]>self.win.size[0]) or (self.size[1]>self.win.size[1]):
+            logging.warning("Image size (%s, %s)  was larger than window size (%s, %s). Will draw black screen." % (self.size[0], self.size[1], self.win.size[0], self.win.size[1]))
+        #flip if necessary
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
         self.setFlipHoriz(flipHoriz)
         self.flipVert=False#initially it is false, then so the flip according to arg above
@@ -2488,7 +2491,7 @@ class RadialStim(GratingStim):
                 - or the name of an image file (most formats supported)
                 - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
 
-            mask :
+            mask : **none** or 'gauss'
                 Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
                 from the centre of the stimulus to the surround.
             units : **None**, 'norm', 'cm', 'deg' or 'pix'
@@ -2509,9 +2512,9 @@ class RadialStim(GratingStim):
                 100, the number of triangles used to make the sti
             radialPhase :
                 the phase of the texture from the centre to the perimeter
-                of the stimulus
+                of the stimulus (in radians)
             angularPhase :
-                the phase of the texture around the stimulus
+                the phase of the texture around the stimulus (in radians)
 
             color:
 
@@ -2632,12 +2635,12 @@ class RadialStim(GratingStim):
         self._updateTextureCoords()
         self.needUpdate=True
     def setAngularPhase(self,value, operation='', log=True):
-        """set the angular phase of the texture"""
+        """set the angular phase of the texture (radians)"""
         self._set('angularPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
     def setRadialPhase(self,value, operation='', log=True):
-        """set the radial phase of the texture"""
+        """set the radial phase of the texture (radians)"""
         self._set('radialPhase', value, operation, log=log)
         self._updateTextureCoords()
         self.needUpdate=True
@@ -5845,9 +5848,9 @@ class RatingScale:
             if lowAnchorText is None and highAnchorText is None:
                 self.showAnchors = False
             else:
-                self.lowAnchorText = str(lowAnchorText)
-                self.highAnchorText = str(highAnchorText)
-            self.scale = '  '.join(map(str, choices)) # str for display
+                self.lowAnchorText = unicode(lowAnchorText)
+                self.highAnchorText = unicode(highAnchorText)
+            self.scale = '  '.join(map(unicode, choices)) # unicode for display
             self.choices = choices
         else:
             self.choices = False
@@ -5872,7 +5875,7 @@ class RatingScale:
             self.markerStart = markerStart
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
-        elif type(markerStart) == str and type(self.choices) == list and markerStart in self.choices:
+        elif isinstance(markerStart, basestring) and type(self.choices) == list and markerStart in self.choices:
             self.markerStart = self.choices.index(markerStart)
             self.markerPlacedAt = markerStart
             self.markerPlaced = True
@@ -6087,7 +6090,7 @@ class RatingScale:
         self.markerExpansion = float(markerExpansion) * 0.6
 
         self.markerColor = markerColor
-        if markerColor and type(markerColor) == str:
+        if markerColor and isinstance(markerColor, basestring):
             markerColor = markerColor.replace(' ','')
 
         # decide how to define self.marker:
@@ -6176,11 +6179,11 @@ class RatingScale:
         if lowAnchorText:
             lowText = unicode(lowAnchorText)
         else:
-            lowText = unicode(str(self.low))
+            lowText = unicode(self.low)
         if highAnchorText:
             highText = unicode(highAnchorText)
         else:
-            highText = unicode(str(self.high))
+            highText = unicode(self.high)
         self.lowAnchorText = lowText
         self.highAnchorText = highText
         if not scale:
@@ -6334,7 +6337,7 @@ class RatingScale:
             self.noResponse = False
             self.timedOut = True
             logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
-                         (self.name, str(self.getRating()), self.maximumTime) )
+                         (self.name, unicode(self.getRating()), self.maximumTime) )
             logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
 
         # 'disappear' == draw nothing if subj is done:
@@ -6393,7 +6396,7 @@ class RatingScale:
                 self.accept.setColor(self.acceptTextColor)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
-                        val = str(self.choices[int(self.markerPlacedAt)])
+                        val = unicode(self.choices[int(self.markerPlacedAt)])
                     else:
                         val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
                     self.accept.setText(val)
@@ -6417,7 +6420,7 @@ class RatingScale:
                         self.noResponse = False
                         self.marker.setPos((0, self.offsetVert), '+')
                         logging.data('RatingScale %s: (key single-click) rating=%s' %
-                                     (self.name, str(self.getRating())) )
+                                     (self.name, unicode(self.getRating())) )
                 if key in self.leftKeys:
                     if self.markerPlaced and self.markerPlacedAt > 0:
                         self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
@@ -6428,7 +6431,7 @@ class RatingScale:
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
                     logging.data('RatingScale %s: (key response) rating=%s' %
-                                     (self.name, str(self.getRating())) )
+                                     (self.name, unicode(self.getRating())) )
 
         # handle mouse:
         if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
@@ -6439,14 +6442,14 @@ class RatingScale:
                 if (self.singleClick and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
                     logging.data('RatingScale %s: (mouse single-click) rating=%s' %
-                                 (self.name, str(self.getRating())) )
+                                 (self.name, unicode(self.getRating())) )
             # if in accept box, and a value has been selected, and enough time has elapsed:
             if self.showAccept:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
                         self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
-                                (self.name, str(self.getRating())) )
+                                (self.name, unicode(self.getRating())) )
 
         # decision time = time from the first .draw() to when 'accept' was pressed:
         if not self.noResponse and self.decisionTime == 0:
