@@ -7248,6 +7248,8 @@ def _setColor(self, color, colorSpace=None, operation='',
         else: dkl_rgb=win.dkl_rgb
         setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms':
+        logging.error("The automated calibration routine for LMS space in PsychoPy is currently suspect." +\
+                      " We would STRONGLY recommend you don't use this space for now (contact Jon for further info)")
         if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
         else: lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
