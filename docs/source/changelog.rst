@@ -22,7 +22,7 @@ PsychoPy 1.74
 PsychoPy 1.74.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: the pyo package is now included in the windows Standalone distributino (making audio input available as intended)
+* FIXED: the pyo package is now included in the windows Standalone distribution (making audio input available as intended)
 * FIXED: error saving excel data from numpy.int formats (Erik Kastman)
 * FIXED: error at end of automated gamma calibration (which was causing a crash of the calibration script)
 * FIXED: misc.getDateStr() returns numeric date if there's an error with unicode encoding (Jeremy)
