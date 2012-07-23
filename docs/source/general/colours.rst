@@ -47,6 +47,24 @@ The reason that these colors are expressed ranging between 1 and -1 (rather than
 
 Note that Psychopy will use your monitor calibration to linearize this for each gun. E.g., 0 will be halfway between the minimum luminance and maximum luminance for each gun, if your monitor gammaGrid is set correctly.
 
+.. _HSV:
+
+HSV color space
+------------------
+
+Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <http://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
+
+Examples:
+    
+    * [0,1,1] is red
+    * [0,0.5,1] is pink
+    * [90,1,1] is cyan
+    * [anything, 0, 1] is white
+    * [anything, 0, 0.5] is grey
+    * [anything, anything,0] is black
+    
+Note that colors specified in this space (like in RGB space) are not going to be the same another monitor; they are device-specific. They simply specify the intensity of the 3 primaries of your monitor, but these differ between monitors. As with the RGB space gamma correction is automatically applied if available.
+
 .. _DKL:
 
 DKL color space

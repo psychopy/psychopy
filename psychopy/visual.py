@@ -1100,7 +1100,7 @@ class Window:
         return None
 
 class _BaseVisualStim:
-    """A template for a stimulus class, on which PatchStim, TextStim etc... are based.
+    """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
     Not finished...?
     """
     def __init__(self, win, units=None, name='', autoLog=True):
@@ -1252,7 +1252,7 @@ class _BaseVisualStim:
         """
         #NB TextStim overrides this function, so changes here may need changing there too
         if val==True and self.win._haveShaders==False:
-            logging.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
+            logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             if hasattr(self,'_texName'):
@@ -1433,7 +1433,7 @@ class DotStim(_BaseVisualStim):
 
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
-                ``.setPos([x,y])`` method (e.g. a PatchStim, TextStim...)!!
+                ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
 
             name : string
@@ -1717,10 +1717,10 @@ class SimpleImageStim:
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
 
-    Unlike the PatchStim, this type of stimulus cannot be rescaled, rotated or
+    Unlike the ImageStim, this type of stimulus cannot be rescaled, rotated or
     masked (although flipping horizontally or vertically is possible). Drawing will
     also tend to be marginally slower, because the image isn't preloaded to the
-    graphics card. The advantage, however is that the stimulus will always be in its
+    graphics card. The slight advantage, however is that the stimulus will always be in its
     original aspect ratio, with no interplotation or other transformation.
 
     SimpleImageStim does not support a depth parameter (the OpenGL method
@@ -1823,7 +1823,7 @@ class SimpleImageStim:
         """
         #NB TextStim overrides this function, so changes here may need changing there too
         if val==True and self.win._haveShaders==False:
-            logging.error("Shaders were requested for PatchStim but aren't available. Shaders need OpenGL 2.0+ drivers")
+            logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self.setImage()
@@ -1955,7 +1955,7 @@ class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
 
-    Formally PatchStim is just a texture behind an optional
+    Formally GratingStim is just a texture behind an optional
     transparency mask (an 'alpha mask'). Both the texture and mask can be
     arbitrary bitmaps and their combination allows an enormous variety of
     stimuli to be drawn in realtime.
@@ -1963,27 +1963,24 @@ class GratingStim(_BaseVisualStim):
     **Examples**::
 
         myGrat = GratingStim(tex='sin',mask='circle') #gives a circular patch of grating
-        myGabor = GratingStim(tex='sin',mask='gauss') #gives a 'Gabor' patchgrating
+        myGabor = GratingStim(tex='sin',mask='gauss') #gives a 'Gabor'
 
-    An GratingStim can be rotated scaled and shifted in position, its texture can
+    A GratingStim can be rotated scaled and shifted in position, its texture can
     be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
     (for an image file that simply draws multiple copies in the patch).
 
-    Also since transparency can be controlled two PatchStims can combine e.g.
+    Also since transparency can be controlled two GratingStims can combine e.g.
     to form a plaid.
 
     **Using GratingStim with images from disk (jpg, tif, png...)**
 
     Ideally texture images to be rendered should be square with 'power-of-2' dimensions
-    e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interp)
+    e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interpolation)
     to the nearest such texture by PsychoPy. The size of the stimulus should be
     specified in the normal way using the appropriate units (deg, pix, cm...). Be
     sure to get the aspect ratio the same as the image (if you don't want it
     stretched!).
 
-    **Why can't I have a normal image, drawn pixel-by-pixel?** PatchStims are
-    rendered using OpenGL textures. This is more powerful than using simple screen
-    blitting - it allows the rotation, masking, transparency to work.
     """
     def __init__(self,
                  win,
@@ -2435,7 +2432,7 @@ class GratingStim(_BaseVisualStim):
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
         """
-        Deprecated (as of version 1.74.00): please use the :class:`GratingStim` or the :class:`ImageStim` classes.
+        Deprecated (as of version 1.74.00): please use the :class:`~psychopy.visual.GratingStim` or the :class:`~psychopy.visual.ImageStim` classes.
 
         The GratingStim has identical abilities to the PatchStim (but possibly different initial values)
         whereas the ImageStim is designed to be use for non-cyclic images (photographs, not gratings).
@@ -2448,10 +2445,10 @@ class RadialStim(GratingStim):
 
     Ideal for fMRI retinotopy stimuli!
 
-    Many of the capabilities are built on top of the PatchStim.
+    Many of the capabilities are built on top of the GratingStim.
 
     This stimulus is still relatively new and I'm finding occasional gliches. it also takes longer to draw
-    than a typical PatchStim, so not recommended for tasks where high frame rates are needed.
+    than a typical GratingStim, so not recommended for tasks where high frame rates are needed.
     """
     def __init__(self,
                  win,
@@ -2492,7 +2489,7 @@ class RadialStim(GratingStim):
                 - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
 
             mask : **none** or 'gauss'
-                Unlike the mask in the PatchStim, this is a 1-D mask dictating the behaviour
+                Unlike the mask in the GratingStim, this is a 1-D mask dictating the behaviour
                 from the centre of the stimulus to the surround.
             units : **None**, 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
@@ -2562,7 +2559,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.interpolate=interpolate
 
-        #these are defined by the PatchStim but will just cause confusion here!
+        #these are defined by the GratingStim but will just cause confusion here!
         self.setSF = None
         self.setPhase = None
         self.setSF = None
@@ -4456,7 +4453,7 @@ class TextStim(_BaseVisualStim):
         """Set this stimulus to use shaders if possible.
         """
         if val==True and self.win._haveShaders==False:
-            logging.warn("Shaders were requested for PatchStim but aren;t available. Shaders need OpenGL 2.0+ drivers")
+            logging.warn("Shaders were requested but aren;t available. Shaders need OpenGL 2.0+ drivers")
         if val!=self._useShaders:
             self._useShaders=val
             self._needSetText=True
@@ -4608,7 +4605,7 @@ class ShapeStim(_BaseVisualStim):
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape edge. See :meth:`PatchStim.setColor`
+        """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.setColor`
         for further details of how to use this function.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
@@ -4616,7 +4613,7 @@ class ShapeStim(_BaseVisualStim):
                     colorAttrib='lineColor',#the name for this color
                     log=log)
     def setFillColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape fill. See :meth:`PatchStim.setColor`
+        """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.setColor`
         for further details of how to use this function.
 
         Note that shapes where some vertices point inwards will usually not
@@ -4759,13 +4756,13 @@ class ShapeStim(_BaseVisualStim):
         return polygonsOverlap(self, polygon)
 
 class Polygon(ShapeStim):
-    """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
     def __init__(self, win, edges=3, radius=.5, **kwargs):
         """
-        Polygon accepts all input parameters that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+        Polygon accepts all input parameters that :class:`~psychopy.visual.ShapeStim` accepts, except for vertices and closeShape.
 
         :Parameters:
 
@@ -5428,7 +5425,7 @@ class BufferImageStim(GratingStim):
                 logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
-        # turn the RGBA region into a PatchStim()-like object:
+        # turn the RGBA region into a GratingStim()-like object:
         GratingStim.__init__(self, win, tex=region, units='pix',
                              interpolate=interpolate, name=name, autoLog=autoLog)
         # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
@@ -5514,7 +5511,7 @@ class BufferImageStim(GratingStim):
         Allows dynamic position, size, rotation, color, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        # this is copy & pasted from old PatchStim, then had stuff taken out for speed
+        # this is copy & pasted from old GratingStim, then had stuff taken out for speed
 
         if self.win.winType=='pyglet':
             self.win.winHandle.switch_to()
@@ -5711,7 +5708,7 @@ class RatingScale:
             how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
         customMarker :
             allows for a user-defined marker; must have a `.draw()` method, such as a
-            :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.PatchStim()`
+            :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.GratingStim()`
         escapeKeys :
             keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
 
@@ -6076,7 +6073,7 @@ class RatingScale:
                               name=self.name+'.line')
 
     def _initMarker(self, customMarker, markerExpansion, markerColor, markerStyle, tickSize):
-        """define a PatchStim or ShapeStim to be used as the indicator
+        """define a GratingStim or ShapeStim to be used as the indicator
         """
         # preparatory stuff:
         self.markerStyle = markerStyle
@@ -6691,8 +6688,8 @@ class CustomMouse():
             self.setPointer(pointer)
         else:
             #self.pointer = TextStim(win, text='+')
-            self.pointer = PatchStim(win,
-                    tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'), sf=1)
+            self.pointer = ImageStim(win,
+                    tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'))
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
 
@@ -6976,8 +6973,8 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             try:
                 im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM) # ? need to flip if in mem?
             except AttributeError: # nope, not an image in memory
-                logging.error("Couldn't make sense of requested PatchStim."); logging.flush()
-                raise AttributeError, "Couldn't make sense of requested PatchStim."#ensure we quit
+                logging.error("Couldn't make sense of requested image."); logging.flush()
+                raise AttributeError, "Couldn't make sense of requested image."#ensure we quit
         # at this point we have a valid im
         stim.origSize=im.size
         #is it 1D?
@@ -7300,7 +7297,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         showText = False
     if showVisual:
         x,y = myWin.size
-        myStim = PatchStim(myWin, tex='sin', mask='gauss',
+        myStim = GratingStim(myWin, tex='sin', mask='gauss',
             size=[.6*y/float(x),.6], sf=3.0, opacity=.2,
             autoLog=False)
     clockt = [] # clock times

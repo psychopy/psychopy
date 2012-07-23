@@ -1,8 +1,8 @@
 
 
-:class:`PatchStim` (deprecated)
+:class:`ImageStim`
 ------------------------------------------------------------------------
-.. autoclass:: psychopy.visual.PatchStim
+.. autoclass:: psychopy.visual.ImageStim
     :members:
     :undoc-members:
     :inherited-members:
