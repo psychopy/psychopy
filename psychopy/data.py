@@ -426,9 +426,9 @@ class _BaseTrialHandler(object):
         #loop through lines in the data matrix
         for line in dataArray:
             for cellN, entry in enumerate(line):
-                if type(entry) in [float]:
+                if type(entry) in [float, numpy.float]:
                     f.write('%.4f' %(entry))
-                elif type(entry) in [int]:
+                elif type(entry) in [int, numpy.int32, numpy.int64]:
                     f.write('%i' %(entry))
                 elif entry==None:
                     f.write('')
