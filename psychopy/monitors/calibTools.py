@@ -556,7 +556,7 @@ class Monitor:
             else:
                 output = gammaInvFun(desiredLums,
                     minLum, maxLumWhite, gammaWhite,eq=linMethod)
-            
+
         else:
             logging.error("Don't know how to linearise with method %i" %linMethod)
             output = desiredLums
@@ -863,9 +863,7 @@ def getLumSeries(lumLevels=8,
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
                 psychopy.event.waitKeys()
-    print 'origRamp:', myWin.origGammaRamp
-    if myWin.origGammaRamp is not None:
-       myWin.setGammaRamp(myWin.origGammaRamp)
+
     myWin.close() #we're done with the visual stimuli
     if havePhotom: return lumsList
     else: return numpy.array([])
