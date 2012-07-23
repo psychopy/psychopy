@@ -1,1 +1,0 @@
-python -m profile demo_noise.py -o noiseProf.txt
