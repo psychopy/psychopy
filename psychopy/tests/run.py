@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import sys, os
+import subprocess
 
 thisDir,filename = os.path.split(os.path.abspath(__file__))
 os.chdir(thisDir)
 
 argv = sys.argv
 
-if argv[0]=='run.py':
+if argv[0].endswith('run.py'):#that's this script
     argv.pop(0)  # remove run.py
 
 #create extra args and then append main args to them
@@ -14,9 +15,11 @@ if argv[0]=='run.py':
 extraArgs = []
 
 #if user didn't specify a traceback deetail level then set to be short
+overrideTraceBack=True
 for thisArg in argv:
     if thisArg.startswith('--tb='):
-        break
+        overrideTraceBack=False
+if overrideTraceBack:
     extraArgs.append('--tb=short')
 
 #always add doctests if not included
@@ -34,12 +37,12 @@ try:
     havePytest=True
 except ImportError:
     havePytest=False
+
+extraArgs.extend(argv)
 if havePytest:
-    pytest.main(' '.join(argv))
+    command = 'py.test ' + ' '.join(extraArgs)
 else:
-    import subprocess
     command = '%s -u runPytest.py ' %(sys.executable)
     command = command + ' ' + ' '.join(extraArgs)
-    command = command + ' ' + ' '.join(argv)
-    print command
-    subprocess.Popen(command, shell=True)
+print command
+subprocess.Popen(command, shell=True)
