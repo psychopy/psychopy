@@ -291,10 +291,11 @@ def cart2sph(z, y, x):
         elevation, azimuth, radius = cart2sph(x,y,z)
         
         If working in DKL space, z = Luminance, y = S and x = LM"""
+    width = len(z)
     
-    elevation = numpy.empty([512,512])
-    radius = numpy.empty([512,512])
-    azimuth = numpy.empty([512,512])
+    elevation = numpy.empty([width,width])
+    radius = numpy.empty([width,width])
+    azimuth = numpy.empty([width,width])
     
     radius = numpy.sqrt(x**2 + y**2 + z**2)
     azimuth = numpy.arctan2(y, x)
