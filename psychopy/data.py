@@ -928,7 +928,7 @@ class TrialHandler(_BaseTrialHandler):
 
                 if strVersion=='()':
                     strVersion="--"# 'no data' in masked array should show as "--"
-                if strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
+                if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
                     strVersion=strVersion[1:-1]#skip first and last chars
                 thisLine.extend(strVersion.split(','))
 
