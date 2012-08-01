@@ -19,3 +19,8 @@ Non-slip timing from the Builder
 (new feature as of version 1.74.00)
 
 When creating experiments in the :ref:`builder`, PsychoPy will attempt to identify whether a particular :ref:`Routine <routines>` has a known endpoint in seconds. If so then it will use non-slip timing for this Routine based on a global countdown timer called `routineTimer`. Routines that are able to use this non-slip method are shown in green in the :ref:`flow`, whereas Routines using relative timing are shown in red. So, if you are using PsychoPy for imaging studies then make sure that all the Routines within your loop of epochs are showing as green. (Typically your study will also have a Routine at the start waiting for the first scanner pulse and this will use relative timing, which is appropriate).
+
+.. note::
+    There is one 'gotcha' to be aware of: If you specify an Expected Duration, Psychopy will use this as a maximum amount of time allotted for non-slip timing. For example, say you have a variable `fixationDuration` in your conditions file to specify a pre-determined Inter-Stimulus Interval (ISI) and set the Stop duration of a "+" crosshair text component to `$fixationDuration`. If you also enter the mean ISI as an Expected Duration (so that you can see it in a builder routine), the component (and routine) will stop at either the fixationDuration OR the expected duration, so that the fixation duration will never be longer than the expected mean. 
+
+    In this case it's recommended to simply not enter an expected duration.
