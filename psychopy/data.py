@@ -2207,7 +2207,7 @@ class MultiStairHandler(_BaseTrialHandler):
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
-            raise TypeError('conditions parameter to MultiStairHandler should be a list, not a %s' %type(conditions))
+            raise TypeError('conditions parameter to MultiStairHandler should be a list, not a %s' %type(self.conditions))
         c0=self.conditions[0]
         if type(c0)!=dict:
             raise TypeError('conditions to MultiStairHandler should be a list of python dictionaries' + \
