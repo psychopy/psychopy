@@ -18,6 +18,9 @@ class _oldStyleTrialHandler:
 class _oldStyleStairHandler:
     """Stubbed compapatibility class for StairHandler"""
     pass
+class _oldStyleMultiStairHandler:
+    """Stubbed compapatibility class for MultiStairHandler"""
+    pass
 ######### End Compatibility Class Definitions #########
 
 def _convertToNewStyle(newClass, oldInstance):
@@ -25,11 +28,20 @@ def _convertToNewStyle(newClass, oldInstance):
        by initializing a new-style class and copying the old compatibility
        instance's attributes.
     """
-    newHandler = newClass([], 0) #Init a new new-style object
+    #if the oldInstance was an ExperimentHandler it wouldn't throw an error related
+    #to itself, but to the underlying loops within it. So check if we have that and then
+    #do imports on each loop
+    if oldInstance.__class__.__name__=='ExperimentHandler':
+        newHandler = psychopy.data.ExperimentHandler()
+        #newClass() #Init a new new-style object
+    else:
+        newHandler = newClass([], 0) #Init a new new-style object
     for thisAttrib in dir(oldInstance):
         #can handle each attribute differently
         if 'instancemethod' in str(type(getattr(oldInstance,thisAttrib))):
             #this is a method
+            continue
+        elif thisAttrib=='__weakref__':
             continue
         else:
             value = getattr(oldInstance, thisAttrib)
@@ -69,10 +81,18 @@ def fromFile(filename):
                 old_contents = cPickle.load(f)
                 psychopy.data.StairHandler = currentHandler
                 contents = _convertToNewStyle(psychopy.data.StairHandler, old_contents)
+            elif name == 'MultiStairHandler':
+                newStair = psychopy.data.StairHandler
+                newMulti = psychopy.data.MultiStairHandler
+                psychopy.data.StairHandler = _oldStyleStairHandler # Temporarily replace new-style class
+                psychopy.data.MultiStairHandler = _oldStyleMultiStairHandler # Temporarily replace new-style class
+                old_contents = cPickle.load(f)
+                psychopy.data.MultiStairHandler = newMulti
+                psychopy.data.StairHandler = newStair # Temporarily replace new-style class
+                contents = _convertToNewStyle(psychopy.data.MultiStairHandler, old_contents)
             else:
                 raise TypeError, ("Didn't recognize %s" % name)
-
-	return contents
+    return contents
 
 def checkCompatibility(old, new, prefs=None, fix=True):
     """Check for known compatibility issue between a pair of versions and fix

@@ -2207,22 +2207,23 @@ class MultiStairHandler(_BaseTrialHandler):
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
-            raise TypeError('conditions parameter to MultiStairHandler should be a list, not a %s' %type(self.conditions))
+            logging.error('conditions parameter to MultiStairHandler should be a list, not a %s' %type(self.conditions))
+            return
         c0=self.conditions[0]
         if type(c0)!=dict:
-            raise TypeError('conditions to MultiStairHandler should be a list of python dictionaries' + \
+            logging.error('conditions to MultiStairHandler should be a list of python dictionaries' + \
                 ', not a list of %ss' %type(c0))
         #did conditions contain the things we need?
         params = c0.keys()
         if self.type in ['simple','quest']:
             if 'startVal' not in params:
-                raise ValueError('MultiStairHandler needs a param called `startVal` in conditions')
+                logging.error('MultiStairHandler needs a param called `startVal` in conditions')
             if 'label' not in params:
-                raise ValueError('MultiStairHandler needs a param called `label` in conditions')
+                logging.error('MultiStairHandler needs a param called `label` in conditions')
             if 'startValSd' not in params and self.type=='quest':
-                raise ValueError("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
+                logging.error("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
         else:
-            raise ValueError("MultiStairHandler `stairType` should be 'simple' or 'quest', not '%s'" %self.type)
+            logging.error("MultiStairHandler `stairType` should be 'simple' or 'quest', not '%s'" %self.type)
     def _createStairs(self):
         if self.type=='simple':
             defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':self.nTrials,
