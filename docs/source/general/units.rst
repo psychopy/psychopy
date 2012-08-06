@@ -60,5 +60,18 @@ Spatial frequency: cycles per degree
 
 Requires : information about the screen width in cm and pixels and the viewing distance in cm
 
-Assumes : that all parts of the screen are a constant distance from the eye (ie that the screen is curved!). This (clearly incorrect assumption) is common to most studies that report the size of their stimulus in degrees of visual angle. The resulting error is small at moderate eccentricities (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For studies of peripheral vision this should be corrected for. PsychoPy also makes no correction for the thickness of the screen glass, which refracts the image slightly.
+Assumes : that pixels are square (see above) and that all parts of the screen are a constant distance from the eye (ie that the screen is curved!). This (clearly incorrect assumption) is common to most studies that report the size of their stimulus in degrees of visual angle. The resulting error is small at moderate eccentricities (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For studies of peripheral vision this should be corrected for. PsychoPy also makes no correction for the thickness of the screen glass, which refracts the image slightly.
 
+
+.. _unitsPix:
+
+Pixels on screen
+----------------------
+
+You can also specify the size and location of your stimulus in pixels. Obviously this has the disadvantage that sizes are specific to your monitor (because all monitors differ in pixel size).
+
+Spatial frequency: ```cycles per pixel``` (this catches people out but is used to be in keeping with the other units. If using pixels as your units you probably want a spatial frequency in the range 0.2-0.001 (i.e. from 1 cycle every 5 pixels to one every 100 pixels).
+
+Requires : information about the size of the screen (not window) in pixels, although this can often be deduce from the operating system if it has been set correctly there.
+
+Assumes: nothing

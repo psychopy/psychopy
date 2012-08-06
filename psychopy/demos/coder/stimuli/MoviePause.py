@@ -6,7 +6,7 @@ print 'orig movie size=[%i,%i]' %(mov.format.width, mov.format.height)
 print 'duration=%.2fs' %(mov.duration)
 globalClock = core.Clock()
 
-#play 100 fraes normally
+#play 100 frames normally
 for frameN in range(100):
     mov.draw()
     win.flip()

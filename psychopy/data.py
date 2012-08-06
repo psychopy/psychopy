@@ -426,9 +426,9 @@ class _BaseTrialHandler(object):
         #loop through lines in the data matrix
         for line in dataArray:
             for cellN, entry in enumerate(line):
-                if type(entry) in [float]:
+                if type(entry) in [float, numpy.float]:
                     f.write('%.4f' %(entry))
-                elif type(entry) in [int, numpy.int32]:
+                elif type(entry) in [int, numpy.int32, numpy.int64]:
                     f.write('%i' %(entry))
                 elif entry==None:
                     f.write('')
@@ -928,7 +928,7 @@ class TrialHandler(_BaseTrialHandler):
 
                 if strVersion=='()':
                     strVersion="--"# 'no data' in masked array should show as "--"
-                if len(strVersion) != 0 and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
+                if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
                     strVersion=strVersion[1:-1]#skip first and last chars
                 thisLine.extend(strVersion.split(','))
 
