@@ -4,7 +4,7 @@ Changelog
 
 .. raw:: html
 
-    <style> .red {color:blue} </style>
+    <style> .blue {color:blue} </style>
 
 .. role:: blue
 
@@ -19,15 +19,27 @@ Changelog
 PsychoPy 1.74
 ------------------------------
 
+(released Aug 2012)
+
+* FIXED: bug leading to message: `IndexError: string index out of range.` This was caused by problem saving excel files
+* FIXED: bug leading to message: `AttributeError: ImageStim instance has no attribute 'rgbPedestal'.` Was only occurring on non-shaders machines using the new ImageStim.
+* FIXED: problem loading old ExperimentHandlers that contained MultiStairHandlers
+* FIXED: Builder Text Components gave an error if letter height was a variable
+* ADDED: Window.flip() now returns the timestamp for the flip if possible (thanks (Sol Simpson)
+* ADDED: misc.sph2cart (Becky Sharman)
+* ADDED: warning when user presents SimpleImageStim that seems to extend beyond screen (James McMurray)
+
 PsychoPy 1.74.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released July 2012)
 
 * FIXED: the pyo package is now included in the windows Standalone distribution (making audio input available as intended)
 * FIXED: error saving excel data from numpy.int formats (Erik Kastman)
 * FIXED: error at end of automated gamma calibration (which was causing a crash of the calibration script)
 * FIXED: misc.getDateStr() returns numeric date if there's an error with unicode encoding (Jeremy)
 * FIXED: added partial support for non-ASCII keyboards (Sebastiaan Mathot)
-* ADDED: warning when user presents SimpleImageStim that seems to extend beyond screen (James McMurray)
+
 
 PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
