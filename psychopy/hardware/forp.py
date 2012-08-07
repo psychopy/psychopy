@@ -10,10 +10,25 @@
 # Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
 
 from psychopy import logging, event
-import struct, sys
+import sys
+from collections import defaultdict
 
 try: import serial
 except: serial=False
+
+BUTTON_BLUE = 1
+BUTTON_YELLOW = 2
+BUTTON_GREEN = 3
+BUTTON_RED = 4
+BUTTON_TRIGGER = 5
+# Maps bit patterns to character codes
+BUTTON_MAP = [
+    (0x01, BUTTON_BLUE),
+    (0x02, BUTTON_YELLOW),
+    (0x04, BUTTON_GREEN),
+    (0x08, BUTTON_RED),
+    (0x10, BUTTON_TRIGER)]
+
 
 class ButtonBox:
     """Serial line interface to the fORP MRI response box.
@@ -44,7 +59,10 @@ class ButtonBox:
                                   parity='N', stopbits=1, timeout=0.001)
         if not self.port.isOpen():
             self.port.open()
+
+        self.buttonStatus = defaultdict(bool) # Defaults to False
         self.rawEvts = []
+        self.pressEvents = []
     
     def clearBuffer(self):
         """Empty the input buffer of all characters"""
@@ -65,32 +83,63 @@ class ButtonBox:
         """
         nToGet = self.port.inWaiting()
         evtStr = self.port.read(nToGet)
-        self.rawEvts=[]
+        self.rawEvts = []
+        self.pressEvents = []
         #for each character convert to an ordinal int value (numpy the ascii chr)
         for thisChr in evtStr:
-            self.rawEvts.append(ord(thisChr))
+            pressCode = ord(thisChr)
+            self.rawEvts.append(pressCode)
+            decodedEvents = self._generateEvents(pressCode)
+            self.pressEvents += decodedEvents
             if asKeys:
-                event._onPygletKey(symbol=ord(thisChr), modifiers=None)
-                # better as: emulated='fORP_bbox_asKey', but need to adjust event._onPygletKey
-                # and the symbol conversion pyglet.window.key.symbol_string(symbol).lower()
-        #return the abbreviated list if necess
-        if returnRaw: 
+                for code in decodedEvents:
+                    event._onPygletKey(symbol=code, modifiers=None)
+                    # better as: emulated='fORP_bbox_asKey', but need to adjust event._onPygletKey
+                    # and the symbol conversion pyglet.window.key.symbol_string(symbol).lower()
+        #return the abbreviated list if necessary
+        if returnRaw:
             return self.rawEvts
         else:
             return self.getUniqueEvents()
-            
-    def getUniqueEvents(self, fullEvts=None):
-        """Returns a Python set of the unique (unordered) events of either 
+
+    def _generateEvents(self, pressCode):
+        """For a given button press, returns a list buttons that went from
+        unpressed to pressed.
+        Also flags any unpressed buttons as unpressed.
+
+        `pressCode` :
+            a number with a bit set for every button currently pressed.
+        """
+
+        curStatuses = self.__class__._decodePress(pressCode)
+        pressEvents = []
+        for button, pressed in curStatuses:
+            if pressed and not self.buttonStatus[button]:
+                # We're transitioning to pressed...
+                pressEvents.append(button)
+                self.buttonStatus[button] = True
+            if not pressed:
+                self.buttonStatus[button] = False
+        return pressEvents
+
+    @classmethod
+    def _decodePress(kls, pressCode):
+        """Returns a list of buttons and whether they're pressed, given a
+            character code.
+
+        `pressCode` :
+            A number with a bit set for every button currently pressed. Will
+            be between 0 and 31."""
+
+        return [(mapping[1], bool(mapping[0] & pressCode))
+            for mapping in BUTTON_MAP]
+
+
+    def getUniqueEvents(self, fullEvts=False):
+        """Returns a Python set of the unique (unordered) events of either
         a list given or the current rawEvts buffer"""
-        
-        evt = [] # start with a list, will return a set (sets have no duplicate elements)
-        if fullEvts==None: fullEvts=self.rawEvts
-        # get all bit-flags, for unique events:
-        for thisOrd in set(fullEvts): 
-            if thisOrd & 1: evt.append(1)
-            if thisOrd & 2: evt.append(2)
-            if thisOrd & 4: evt.append(3)
-            if thisOrd & 8: evt.append(4)
-            if thisOrd & 16: evt.append(5)
-        return set(evt) # remove redundant bit flags
-    
+
+        if fullEvts:
+            return set(self.rawEvts)
+        return set(self.pressEvents)
+
