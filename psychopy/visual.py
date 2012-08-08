@@ -89,7 +89,7 @@ from psychopy.constants import *
 #keep track of windows that have been opened
 openWindows=[]
 
-class Window:
+class Window(object):
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
 
@@ -399,8 +399,15 @@ class Window:
             - obj (optional): the python object that might be associated with this message
                 if desired
         """
-
         self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
+        
+    def doFlipLogging(self, now):
+        #log events
+        for logEntry in self._toLog:
+            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
+            logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
+        self._toLog = []
+    
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -504,12 +511,9 @@ class Window:
                        logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
                    elif self.nDroppedFrames==reportNDroppedFrames:
                        logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
-
-        #log events
-        for logEntry in self._toLog:
-            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
-            logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._toLog = []
+                       
+        # Emit logging entries if requested
+        self.doFlipLogging(now)
         
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -517,7 +521,6 @@ class Window:
         #
         if self.waitBlanking is True:
             return now
-            
 
     def update(self):
         """Deprecated: use Window.flip() instead
