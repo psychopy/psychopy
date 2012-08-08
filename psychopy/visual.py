@@ -1803,7 +1803,7 @@ class SimpleImageStim:
             logging.warning("Image position and width mean the stimuli does not fit the window in the X direction.")
 
         if ((self.pos[1]+(self.size[1]/2.0) > self.win.size[1]/2.0) or (self.pos[1]-(self.size[1]/2.0) < -self.win.size[1]/2.0)):
-            logging.warning("Image position and height mean the stimuli does not fit the window in the Y direction.")            
+            logging.warning("Image position and height mean the stimuli does not fit the window in the Y direction.")
 
         #flip if necessary
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
@@ -5086,6 +5086,7 @@ class ImageStim(_BaseVisualStim):
 
         self.colorSpace=colorSpace
         self.setColor(color, colorSpace=colorSpace, log=False)
+        self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
         #initialise textures for stimulus
         self.texID=GL.GLuint()
