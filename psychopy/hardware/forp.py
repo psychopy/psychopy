@@ -32,12 +32,12 @@ BUTTON_MAP = [
 
 class ButtonBox:
     """Serial line interface to the fORP MRI response box.
-    
+
     To use this object class, select the box use setting `serialPort`, and connect
     the serial line. To emulate key presses with a serial connection, use `getEvents(asKeys=True)`
     (e.g., to be able to use a RatingScale object during scanning).
     Alternatively connect the USB cable and use fORP to emulate a keyboard.
-    
+
     fORP sends characters at 800Hz, so you should check the buffer frequently.
     Also note that the trigger event numpy the fORP is typically extremely short
     (occurs for a single 800Hz epoch).
@@ -45,7 +45,7 @@ class ButtonBox:
     def __init__(self, serialPort=1, baudrate=19200):
         """
         :Parameters:
-        
+
             `serialPort` :
                 should be a number (where 1=COM1, ...)
             `baud` :
@@ -54,7 +54,7 @@ class ButtonBox:
         if not serial:
             raise ImportError('The module serial is needed to connect to fORP. ' +\
                 "On most systems this can be installed with\n\t easy_install pyserial")
-                
+
         self.port = serial.Serial(serialPort-1, baudrate=baudrate, bytesize=8,
                                   parity='N', stopbits=1, timeout=0.001)
         if not self.port.isOpen():
