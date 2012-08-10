@@ -1,6 +1,7 @@
-"""fORP fibre optic (MR-compatible) response devices by CurrentDesigns http://www.curdes.com/
-
-----------
+"""fORP fibre optic (MR-compatible) response devices by CurrentDesigns:
+http://www.curdes.com/
+This class is only useful when the fORP is connected via the serial port.
+If you're connecting via USB, just treat it like a standard keyboard.
 """
 
 # Part of the PsychoPy library
