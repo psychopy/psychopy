@@ -96,7 +96,8 @@ class ButtonBox:
             held down. On the "Bitwise" setting, you will get a set of all
             currently pressed buttons every time a button is pressed or
             released.
-            Really, don't use this option.
+            This option might be useful if you think your participant may be
+            holding the button down before you start checking for presses.
         """
         nToGet = self.port.inWaiting()
         evtStr = self.port.read(nToGet)
