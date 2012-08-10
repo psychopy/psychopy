@@ -27,7 +27,7 @@ BUTTON_MAP = [
     (0x02, BUTTON_YELLOW),
     (0x04, BUTTON_GREEN),
     (0x08, BUTTON_RED),
-    (0x10, BUTTON_TRIGER)]
+    (0x10, BUTTON_TRIGGER)]
 
 
 class ButtonBox:
