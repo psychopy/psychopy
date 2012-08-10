@@ -63,28 +63,46 @@ class ButtonBox:
         self.buttonStatus = defaultdict(bool) # Defaults to False
         self.rawEvts = []
         self.pressEvents = []
-    
+
     def clearBuffer(self):
         """Empty the input buffer of all characters"""
         self.port.flushInput()
-        
-    def getEvents(self, returnRaw=False, asKeys=False):
+
+    def clearStatus(self):
+        """ Resets the pressed statuses, so getEvents will return pressed
+        buttons, even if they were already pressed in the last call.
+        """
+        for k in self.buttonStatus.keys():
+            self.buttonStatus[k] = False
+
+    def getEvents(self, returnRaw=False, asKeys=False, allowRepeats=False):
         """Returns a list of unique events (one event per button pressed)
-        and also stores a copy of the full list of events since last getEvents() 
+        and also stores a copy of the full list of events since last getEvents()
         (stored as ForpBox.rawEvts)
-        
+
         `returnRaw` :
             return (not just store) the full event list
-            
+
         `asKeys` :
-            If True, will also emulate pyglet keyboard events, so that button 1 will
-            register as a keyboard event with value "1", and as such will be detectable
-            using `event.getKeys()`
+            If True, will also emulate pyglet keyboard events, so that button 1
+            will register as a keyboard event with value "1", and as such will
+            be detectable using `event.getKeys()`
+
+        `allowRepeats` :
+            If True, this will return pressed buttons even if they were held
+            down between calls to getEvents(). If the fORP is on the "Eprime"
+            setting, you will get a stream of button presses while a button is
+            held down. On the "Bitwise" setting, you will get a set of all
+            currently pressed buttons every time a button is pressed or
+            released.
+            Really, don't use this option.
         """
         nToGet = self.port.inWaiting()
         evtStr = self.port.read(nToGet)
         self.rawEvts = []
         self.pressEvents = []
+        if allowRepeats:
+            self.clearStatus()
         #for each character convert to an ordinal int value (numpy the ascii chr)
         for thisChr in evtStr:
             pressCode = ord(thisChr)
