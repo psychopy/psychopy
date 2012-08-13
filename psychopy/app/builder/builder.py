@@ -3648,7 +3648,10 @@ class BuilderFrame(wx.Frame):
         expPath = os.path.abspath(expPath)
         #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
-        script = self.exp.writeScript(expPath=expPath)
+        
+        script = self.generateScript(expPath)
+        if not script:
+            return
 
         #set the directory and add to path
         folder, scriptName = os.path.split(fullPath)
@@ -3661,6 +3664,7 @@ class BuilderFrame(wx.Frame):
         except:
             self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
 
+        # redirect standard streams to log window
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
 
@@ -3747,7 +3751,9 @@ class BuilderFrame(wx.Frame):
         self.app.coder.gotoLine(filename,lineNumber)
         self.app.showCoder()
     def compileScript(self, event=None):
-        script = self.exp.writeScript(expPath=None)#leave the experiment path blank
+        script = self.generateScript(None) #leave the experiment path blank
+        if not script:
+           return
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
         self.app.showCoder()#make sure coder is visible
         self.app.coder.fileNew(filepath=name)
@@ -3766,6 +3772,23 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
+
+    def generateScript(self, experimentPath):
+        try:
+            script = self.exp.writeScript(expPath=experimentPath)
+        except Exception as e:
+            try:
+                self.stdoutFrame.getText()
+            except:
+                self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
+            self.stdoutFrame.write("Error when generating experiment script:\n")
+            self.stdoutFrame.write(str(e) + "\n")    
+            self.stdoutFrame.Show()
+            self.stdoutFrame.Raise()
+            return None
+        return script
+
+
 class ReadmeFrame(wx.Frame):
     def __init__(self, parent):
         """
