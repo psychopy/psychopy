@@ -10,6 +10,14 @@ Changelog
 PsychoPy 1.74
 ------------------------------
 
+PsychoPy 1.74.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Aug 2012)
+
+* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks piwaniuk)
+* IMPROVED: serial (RS232) interface to fORP button box to avoid recording repeated presses (thanks Nate Vack). Does not affect use of fORP box from USB interface.
+
 PsychoPy 1.74.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -19,7 +27,7 @@ PsychoPy 1.74.02
 * FIXED: bug leading to message: `AttributeError: ImageStim instance has no attribute 'rgbPedestal'.` Was only occurring on non-shaders machines using the new ImageStim.
 * FIXED: problem loading old ExperimentHandlers that contained MultiStairHandlers
 * FIXED: Builder Text Components gave an error if letter height was a variable
-* ADDED: Window.flip() now returns the timestamp for the flip if possible (thanks (Sol Simpson)
+* ADDED: Window.flip() now returns the timestamp for the flip if possible (thanks Sol Simpson)
 * ADDED: misc.sph2cart (Becky Sharman)
 * ADDED: warning when user presents SimpleImageStim that seems to extend beyond screen (James McMurray)
 

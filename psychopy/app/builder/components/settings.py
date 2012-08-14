@@ -96,25 +96,24 @@ class SettingsComponent:
         buff.writeIndented("expInfo['expName']=expName\n")
         saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
-        if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
-            buff.writeIndented("#setup files for saving\n")
-            buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-            buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
-            if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
-            elif 'Participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
-            elif 'Subject' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
-            elif 'Observer' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
-            else:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
 
-            if self.params['Save log file'].val:
-                buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+        buff.writeIndented("#setup files for saving\n")
+        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
+        buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
+        if 'participant' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+        elif 'Participant' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
+        elif 'Subject' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
+        elif 'Observer' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
         else:
-            buff.writeIndented("filename=None\n")
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+
+        if self.params['Save log file'].val:
+            buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+
         buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
 
         #set up the ExperimentHandler
