@@ -1330,7 +1330,7 @@ class ParamCtrls:
         self.nameCtrl = wx.StaticText(parent,-1,displayLabel,size=None,
                                         style=wx.ALIGN_RIGHT)
 
-        if label in ['text', 'customize_everything']:
+        if label in ['text', 'customize_everything', 'Text']:
             #for text input we need a bigger (multiline) box
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
@@ -1634,7 +1634,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow,3) )
-        if fieldName=='text':
+        if fieldName in ['text', 'Text']:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         elif fieldName=='color':
