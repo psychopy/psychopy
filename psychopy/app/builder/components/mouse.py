@@ -115,15 +115,16 @@ class MouseComponent(BaseComponent):
             dedentAtEnd+=1
         #only do this if buttons were pressed
         if self.params['saveMouseState'].val == 'on click':
-            buff.writeIndented("acceptClick = True\n")
-            buff.writeIndented("if %(selectionMask)s:\n" % self.params)
-            buff.writeIndented("    for mask in %(selectionMask)s:\n" % self.params)
-            buff.writeIndented("        if mask.contains(%(name)s):\n" % self.params)
-            buff.writeIndented("            %(name)s.selection.append(mask.name)\n" % self.params)
-            buff.writeIndented("            acceptClick = True\n")
-            buff.writeIndented("            break\n");
-            buff.writeIndented("if acceptClick:\n")
-            buff.setIndentLevel(1, relative=True)
+            if self.params['selectionMask'].val:
+                buff.writeIndented("acceptClick = False\n")
+                buff.writeIndented("for mask in %s:\n" % self.params['selectionMask'].val)
+                buff.writeIndented("    if mask.contains(%(name)s):\n" % self.params)
+                buff.writeIndented("        %(name)s.selection.append(mask.name)\n" % self.params)
+                buff.writeIndented("        acceptClick = True\n")
+                buff.writeIndented("        break\n");
+                buff.writeIndented("if acceptClick:\n")
+                buff.setIndentLevel(1, relative=True)
+                dedentAtEnd += 1
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
             buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
@@ -131,7 +132,6 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton.append(buttons[1])\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton.append(buttons[2])\n" %(self.params))
             buff.writeIndented("%s.time.append(%s.getTime())\n" %(self.params['name'], clockStr))
-            buff.setIndentLevel(-1, relative=True)
 
         #does the response end the trial?
         if forceEnd==True:
