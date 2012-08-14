@@ -25,6 +25,7 @@ class MouseComponent(BaseComponent):
         #params
         self.params={}
         self.order=[]
+        self.params['advancedParams']=['selectionMask']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="Even mice need names!",
             label="Name")
