@@ -165,5 +165,5 @@ class MouseComponent(BaseComponent):
                 buff.writeIndented("%s.addData('%s.selection', selection)\n" %(currLoop.params['name'], name))
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("#save %(name)s data\n" %(self.params))
-            for property in ['x','y','leftButton','midButton','rightButton','time']:
+            for property in ['x','y','leftButton','midButton','rightButton','time', 'selection']:
                 buff.writeIndented("%s.addData('%s.%s',%s.%s)\n" %(currLoop.params['name'], name,property,name,property))
