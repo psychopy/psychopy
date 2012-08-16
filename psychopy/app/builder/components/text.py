@@ -30,6 +30,7 @@ class TextComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
+        self.params['advancedParams'] = ['wrapWidth', 'colorSpace', 'opacity', 'ori', 'units', 'letterHeight', 'font']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             label="Name")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
