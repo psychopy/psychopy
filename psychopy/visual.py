@@ -513,7 +513,7 @@ class Window(object):
                        logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
                        
         # Emit logging entries if requested
-        self.doFlipLogging(now)
+        self.doFlipLogging(now + logging.defaultClock.timeAtLastReset)
         
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
