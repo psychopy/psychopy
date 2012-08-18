@@ -25,6 +25,7 @@ class MouseComponent(BaseComponent):
         #params
         self.params={}
         self.order=[]
+        self.params['advancedParams']=['selectionMask']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="Even mice need names!",
             label="Name")
@@ -56,6 +57,10 @@ class MouseComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="What should the values of mouse.time should be relative to?",
             label="Time relative to")
+        self.params['selectionMask'] = Param(
+            '', valType='code', label='Click mask',
+            hint="A list of shape-like components to which clicks will be restricted")
+
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=event.Mouse(win=win)\n" %(self.params))
         buff.writeIndented("x,y=[None,None]\n" %(self.params))
@@ -71,6 +76,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton= []\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton= []\n" %(self.params))
             buff.writeIndented("%(name)s.time = []\n" %(self.params))
+            buff.writeIndented("%(name)s.selection = []\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
@@ -110,6 +116,16 @@ class MouseComponent(BaseComponent):
             dedentAtEnd+=1
         #only do this if buttons were pressed
         if self.params['saveMouseState'].val == 'on click':
+            if self.params['selectionMask'].val:
+                buff.writeIndented("acceptClick = False\n")
+                buff.writeIndented("for mask in %s:\n" % self.params['selectionMask'].val)
+                buff.writeIndented("    if mask.contains(%(name)s):\n" % self.params)
+                buff.writeIndented("        %(name)s.selection.append(mask.name)\n" % self.params)
+                buff.writeIndented("        acceptClick = True\n")
+                buff.writeIndented("        break\n");
+                buff.writeIndented("if acceptClick:\n")
+                buff.setIndentLevel(1, relative=True)
+                dedentAtEnd += 1
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
             buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
@@ -146,7 +162,8 @@ class MouseComponent(BaseComponent):
                 buff.writeIndented("%s.addData('%s.leftButton',buttons[0])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.midButton',buttons[1])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.rightButton',buttons[2])\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.selection', selection)\n" %(currLoop.params['name'], name))
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("#save %(name)s data\n" %(self.params))
-            for property in ['x','y','leftButton','midButton','rightButton','time']:
+            for property in ['x','y','leftButton','midButton','rightButton','time', 'selection']:
                 buff.writeIndented("%s.addData('%s.%s',%s.%s)\n" %(currLoop.params['name'], name,property,name,property))
