@@ -11,7 +11,7 @@ class SettingsComponent:
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  saveXLSXFile=True, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder=''):
+                 savedDataFolder='', paramValues={'sendTags': False, 'saveTags': True}):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -23,6 +23,8 @@ class SettingsComponent:
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
+        #self.params['advancedParams'] = ['Save excel file', 'Save wide csv file', 'Save psydat file', 'logging level',
+        #    'Monitor', 'Screen', 'colorSpace', 'sendTags', 'saveTags']
         self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
@@ -68,6 +70,8 @@ class SettingsComponent:
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
             label="Logging level")
+        self.params['sendTags'] = Param(paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?")
+        self.params['saveTags'] = Param(paramValues['saveTags'], valType='bool', hint="Save tags to file?")
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
@@ -80,6 +84,9 @@ class SettingsComponent:
                 saveToDir = 'data'
         return path.expanduser(saveToDir)
     def writeStartCode(self,buff):
+        # TODO move it somewhere else
+        buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
+        
         buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
         expInfo = self.params['Experiment info'].val.strip()
@@ -123,6 +130,15 @@ class SettingsComponent:
         buff.writeIndented("    originPath=%s,\n" %repr(self.exp.expPath))
         buff.writeIndented("    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n" %self.params)
         buff.writeIndented("    dataFileName=filename)\n")
+        
+        #set up tag sender variables
+        buff.writeIndented("thisExp.sendTags = %s\n" % self.params['sendTags'].val)
+        
+        #set up tag writer variables
+        buff.writeIndented("thisExp.saveTags = %s\n" % self.params['saveTags'].val)
+        if self.params['saveTags'].val:
+            buff.writeIndented("thisExp.tagList = []\n\n")
+        
 
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
@@ -139,9 +155,18 @@ class SettingsComponent:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size=self.params['Window size (pixels)']
-        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+        if self.params['saveTags'].val or self.params['storeTags']:
+            # TODO move import to anothe place
+            buff.writeIndented("import psychopy.contrib.obci\n")
+            buff.writeIndented("import psychopy.contrib as contrib\n")
+            # TODO pass real obci context instead of None
+            buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+        else:
+            buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+                           (size, fullScr, screenNumber, allowGUI, allowStencil))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
 
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
@@ -154,6 +179,14 @@ class SettingsComponent:
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("\n#Shutting down:\n")
+        
+        # Save tags
+        if self.params['saveTags']:
+            buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
+            buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
+            buff.writeIndented("    tagWriter.tag_received(tag)\n")
+            buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")
+
         if 'microphone' in self.exp.psychopyLibs:
             buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")

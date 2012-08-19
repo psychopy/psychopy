@@ -38,45 +38,59 @@ class SerialSender(object):
 
 class Window(visual.Window):
     def __init__(self, obciContext, *args, **kwargs):
-        self._toTag = []
+        self._tagsToSend = []
+        self._tagsToSave = []
         self.obciContext = obciContext
-        self.triggerPort = SerialSender("/dev/ttyUSB0", 0)
+        self.triggerPort = None
         self.trigOnFlip = False
         self.isTrigged = False
         super(Window, self).__init__(*args, **kwargs)
         # TODO check whether obciContext is instance of ExpsHelper?
     
-    def tagOnFlip(self, name):
-        self._toTag.append(str(name))
+    def sendTagOnFlip(self, name):
+        self._tagsToSend.append(str(name))
+        
+    def saveTagOnFlip(self, name):
+        self._tagsToSave.append(str(name))
     
     def enableTrig(self):
         self.trigOnFlip = True
+        
+    def requestTriggerPort(self):
+        self.triggerPort = SerialSender("/dev/ttyUSB0", 0)
     
     def doFlipLogging(self, now):
         # send signal
         if self.trigOnFlip:
             self.triggerPort.send_next()
             self.trigOnFlip = False
-            print "trig"
         # send tags
-        for tagEntry in self._toTag:
+        for tagEntry in self._tagsToSend:
             self.obciContext.send_tag(now, now, tagEntry)
-        self._toTag = []
+        for tagEntry in self._tagsToSave:
+            TagOnFlip.tags.append({"name": tagEntry, "start_timestamp": now,
+                "end_timestamp": now, "desc": {}})
+        self._tagsToSend = []
+        self._tagsToSave = []
 
 class TagOnFlip(object):
-    def __init__(self, window, doTag = True, tagName = "tag",
-            doSignal = False, signalByte = 'A'):
+    tags = []
+    def __init__(self, window, tagName="tag",
+            doSignal=False, sendTags=False, saveTags=False):
         self.window = window
         self.status = None
-        self.doTag = doTag
         self.tagName = tagName
         self.doSignal = doSignal
-        self.signalByte = signalByte
+        self.sendTags = sendTags
+        self.saveTags = saveTags
 
     def schedule(self):
         self.status = constants.STARTED
         if self.doSignal:
             self.window.enableTrig()
-        if self.doTag:
-            self.window.tagOnFlip(self.tagName)
+        
+        if self.sendTags:
+            self.window.sendTagOnFlip(self.tagName)
+        if self.saveTags:
+            self.window.saveTagOnFlip(self.tagName)
 
