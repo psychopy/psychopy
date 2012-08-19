@@ -5,13 +5,20 @@ from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
+DEFAULT_PARAM_VALUES = {
+  'sendTags': False,
+  'saveTags': True,
+  'doSignal': False,
+  'serialTriggerDevice': '/dev/ttyUSB0'
+}
+
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
+                 saveLogFile=False, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 saveXLSXFile=True, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', paramValues={'sendTags': False, 'saveTags': True}):
+                 saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=False, savePsydatFile=False,
+                 savedDataFolder='', paramValues=DEFAULT_PARAM_VALUES):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -56,7 +63,7 @@ class SettingsComponent:
             label="Save csv file (summaries)")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
-        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
+        self.params['Save psydat file']=Param(savePsydatFile, valType='bool',
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
@@ -70,8 +77,16 @@ class SettingsComponent:
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
             label="Logging level")
-        self.params['sendTags'] = Param(paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?")
-        self.params['saveTags'] = Param(paramValues['saveTags'], valType='bool', hint="Save tags to file?")
+        self.params['sendTags'] = Param(
+           paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?", label="send tags")
+        self.params['saveTags'] = Param(
+            paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="save tags")
+        self.params["doSignal"] = Param(
+            paramValues['doSignal'], valType="bool", hint="Should signal be sent?", label="do trigger")
+        self.params['serialTriggerDevice'] = Param(
+            paramValues['serialTriggerDevice'], valType='str', hint="To which serial port is trigger connected?",
+            label="device name for trigger")
+
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):

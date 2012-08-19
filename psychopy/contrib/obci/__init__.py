@@ -1,40 +1,7 @@
 from psychopy import visual
 from psychopy import constants
-import serial
-
-BAUD_RATE = 115200
-
-class SerialSender(object):
-    def __init__(self, port_name, init_value):
-        self.send_value = init_value
-        import serial
-        try:
-            self.port = serial.Serial(
-                port=port_name,
-                baudrate=BAUD_RATE,
-                #parity=serial.PARITY_ODD,
-                #stopbits=serial.STOPBITS_TWO,
-                #bytesize=serial.SEVENBITS
-                )
-        except serial.SerialException, e:
-            print "Nieprawidlowa nazwa portu."
-            raise e
-        self.send(self.send_value)
-    
-    def open(self):
-        self.port.open()
-        self.send(self.send_value)
-
-    def close(self):
-        self.port.close()
-        
-    def send(self, value):
-        self.port.setRTS(value)
-        
-    def send_next(self):
-        self.send_value = (self.send_value + 1) % 2
-        self.send(self.send_value)
-
+from serial_trigger import SerialSender
+from psychopy.errors import ExperimentException
 
 class Window(visual.Window):
     def __init__(self, obciContext, *args, **kwargs):
@@ -47,17 +14,20 @@ class Window(visual.Window):
         super(Window, self).__init__(*args, **kwargs)
         # TODO check whether obciContext is instance of ExpsHelper?
     
-    def sendTagOnFlip(self, name):
-        self._tagsToSend.append(str(name))
+    def sendTagOnFlip(self, name, description):
+        self._tagsToSend.append((str(name), description))
         
-    def saveTagOnFlip(self, name):
-        self._tagsToSave.append(str(name))
+    def saveTagOnFlip(self, name, description):
+        self._tagsToSave.append((str(name), description))
     
     def enableTrig(self):
         self.trigOnFlip = True
         
-    def requestTriggerPort(self):
-        self.triggerPort = SerialSender("/dev/ttyUSB0", 0)
+    def requestTriggerPort(self, triggerDevice):
+        try:
+            self.triggerPort = SerialSender(triggerDevice, 0)
+        except Exception as e:
+            raise ExperimentException(e)
     
     def doFlipLogging(self, now):
         # send signal
@@ -66,16 +36,16 @@ class Window(visual.Window):
             self.trigOnFlip = False
         # send tags
         for tagEntry in self._tagsToSend:
-            self.obciContext.send_tag(now, now, tagEntry)
+            self.obciContext.send_tag(now, now, tagEntry[0], tagEntry[1])
         for tagEntry in self._tagsToSave:
-            TagOnFlip.tags.append({"name": tagEntry, "start_timestamp": now,
-                "end_timestamp": now, "desc": {}})
+            TagOnFlip.tags.append({"name": tagEntry[0], "start_timestamp": now,
+                "end_timestamp": now, "desc": tagEntry[1]})
         self._tagsToSend = []
         self._tagsToSave = []
 
 class TagOnFlip(object):
     tags = []
-    def __init__(self, window, tagName="tag",
+    def __init__(self, window, tagName="tag", tagDescription={},
             doSignal=False, sendTags=False, saveTags=False):
         self.window = window
         self.status = None
@@ -83,6 +53,10 @@ class TagOnFlip(object):
         self.doSignal = doSignal
         self.sendTags = sendTags
         self.saveTags = saveTags
+        self.tagDescription = tagDescription
+
+    def setTagdescription(self, description):
+        self.tagDescription = description
 
     def schedule(self):
         self.status = constants.STARTED
@@ -90,7 +64,7 @@ class TagOnFlip(object):
             self.window.enableTrig()
         
         if self.sendTags:
-            self.window.sendTagOnFlip(self.tagName)
+            self.window.sendTagOnFlip(self.tagName, self.tagDescription)
         if self.saveTags:
-            self.window.saveTagOnFlip(self.tagName)
+            self.window.saveTagOnFlip(self.tagName, self.tagDescription)
 
