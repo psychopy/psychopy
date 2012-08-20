@@ -1192,7 +1192,9 @@ def importConditions(fileName, returnFieldNames=False):
         if not all(fieldNames):
             raise DataImportError, 'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName
         for name in fieldNames:
-            OK, msg = isValidVariableName(name)
+            
+            #OK, msg = isValidVariableName(name)
+            OK, msg = isValidColumnHeader(name)
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise DataImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
@@ -3022,6 +3024,20 @@ def isValidVariableName(name):
         return False, "Variables cannot begin with numeric character"
     if _nonalphanumeric_re.search(name):
         return False, "Variables cannot contain punctuation or spaces"
+    return True, ""
+
+def isValidColumnHeader(name):
+    '''
+    Checks whether a column header can be used as a dictionary key.
+    Even if it can be a variable name, it still can be accessed
+    '''
+    try:
+        hash(name)
+    except TypeError as e:
+        return False, str(e)
+    validVariable = isValidVariableName(name)[0]
+    if not validVariable:
+        logging.warning("Column header won't be abbreviated: %s" % name)
     return True, ""
 
 def _getExcelCellName(col, row):
