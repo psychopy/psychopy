@@ -11,3 +11,7 @@ class TimeoutError(StandardError):
 class ExperimentException(Exception):
     '''Exception thrown when standard experiment path fails.'''
     pass
+
+class DataImportError(Exception):
+    '''Error when working with data files'''
+    pass

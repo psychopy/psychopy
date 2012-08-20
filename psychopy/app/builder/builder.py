@@ -19,6 +19,7 @@ import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
 
 from psychopy.constants import *
+from psychopy.errors import DataImportError
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
@@ -2236,7 +2237,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
                                                         returnFieldNames=True)
                 needUpdate = True
-            except ImportError, msg:
+            except DataImportError, msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     self.constantsCtrls['conditions'].setValue('Could not read conditions from:\n' + newFullPath.split(os.path.sep)[-1])

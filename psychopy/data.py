@@ -15,6 +15,7 @@ import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref
 import re
+from psychopy.errors import DataImportError
 
 try:
     import openpyxl
@@ -1189,12 +1190,12 @@ def importConditions(fileName, returnFieldNames=False):
         OK, return silently; else raise ImportError with msg
         """
         if not all(fieldNames):
-            raise ImportError, 'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName
+            raise DataImportError, 'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
+                raise DataImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
 
     fileName = os.path.expanduser(fileName)
     if fileName in ['None','none',None]:
@@ -1211,7 +1212,7 @@ def importConditions(fileName, returnFieldNames=False):
         try:
             reader = csv.reader(f)#.split(os.linesep))
         except:
-            raise ImportError, 'Could not open %s as conditions' % fileName
+            raise DataImportError, 'Could not open %s as conditions' % fileName
         fieldNames = reader.next() # first row
         _assertValidVarNames(fieldNames, fileName)
         #use matplotlib to import data and intelligently check for data types
@@ -1237,7 +1238,7 @@ def importConditions(fileName, returnFieldNames=False):
         try:
             trialsArr = cPickle.load(f)
         except:
-            raise ImportError, 'Could not open %s as conditions' % fileName
+            raise DataImportError, 'Could not open %s as conditions' % fileName
         f.close()
         trialList = []
         fieldNames = trialsArr[0] # header line first
@@ -1253,7 +1254,7 @@ def importConditions(fileName, returnFieldNames=False):
         try:
             wb = load_workbook(filename = fileName)
         except: # InvalidFileException(unicode(e)): # this fails
-            raise ImportError, 'Could not open %s as conditions' % fileName
+            raise DataImportError, 'Could not open %s as conditions' % fileName
         ws = wb.worksheets[0]
         nCols = ws.get_highest_column()
         nRows = ws.get_highest_row()
