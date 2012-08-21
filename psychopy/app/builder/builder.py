@@ -6,8 +6,9 @@ import wx
 from wx.lib import platebtn, scrolledpanel
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.agw.aquabutton as AB
-import wx.aui
+import wx.aui, wx.stc
 import sys, os, glob, copy, platform, shutil, traceback
+import keyword
 import py_compile, codecs
 import csv, numpy
 import experiment, components
@@ -72,6 +73,134 @@ class WindowFrozen(object):
             return
         if self.ctrl is not None:#check it hasn't been deleted
             self.ctrl.Thaw()
+            
+class CodeBox(wx.stc.StyledTextCtrl):
+    # this comes mostly from the wxPython demo styledTextCtrl 2
+    def __init__(self, parent, ID, prefs,
+                 pos=wx.DefaultPosition, size=wx.Size(100,160),#set the viewer to be small, then it will increase with wx.aui control
+                 style=0):
+        wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
+        #JWP additions
+        self.notebook=parent
+        self.prefs = prefs
+        self.UNSAVED=False
+        self.filename=""
+        self.fileModTime=None # for checking if the file was modified outside of CodeEditor
+        self.AUTOCOMPLETE = True
+        self.autoCompleteDict={}
+        #self.analyseScript()  #no - analyse after loading so that window doesn't pause strangely
+        self.locals = None #this will contain the local environment of the script
+        self.prevWord=None
+        #remove some annoying stc key commands
+        self.CmdKeyClear(ord('['), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord(']'), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL|wx.stc.STC_SCMOD_SHIFT)
+
+        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self.SetKeyWords(0, " ".join(keyword.kwlist))
+
+        self.SetProperty("fold", "1")
+        self.SetProperty("tab.timmy.whinge.level", "4")#4 means 'tabs are bad'; 1 means 'flag inconsistency'
+        self.SetMargins(0,0)
+        self.SetUseTabs(False)
+        self.SetTabWidth(4)
+        self.SetIndent(4)
+        self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
+        #self.SetBufferedDraw(False)
+        self.SetViewEOL(False)
+        self.SetEOLMode(wx.stc.STC_EOL_LF)
+        self.SetUseAntiAliasing(True)
+        #self.SetUseHorizontalScrollBar(True)
+        #self.SetUseVerticalScrollBar(True)
+
+        #self.SetEdgeMode(wx.stc.STC_EDGE_BACKGROUND)
+        #self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
+        #self.SetEdgeColumn(78)
+
+        # Setup a margin to hold fold markers
+        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
+        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
+        self.SetMarginSensitive(2, True)
+        self.SetMarginWidth(2, 12)
+
+        self.SetIndentationGuides(False)
+
+        # Like a flattened tree control using square headers
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,    wx.stc.STC_MARK_BOXMINUS,          "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,        wx.stc.STC_MARK_BOXPLUS,           "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,     wx.stc.STC_MARK_VLINE,             "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,    wx.stc.STC_MARK_LCORNER,           "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,     wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
+
+        #self.DragAcceptFiles(True)
+        #self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
+        #self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
+        ##self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        #self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
+        #self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        #self.SetDropTarget(FileDropTarget(coder = self.coder))
+
+        self.setFonts()
+
+    def setFonts(self):
+
+        if wx.Platform == '__WXMSW__':
+            faces = { 'size' : 10}
+        elif wx.Platform == '__WXMAC__':
+            faces = { 'size' : 14}
+        else:
+            faces = { 'size' : 12}
+        if self.prefs.coder['codeFontSize']:
+            faces['size'] = int(self.prefs.coder['codeFontSize'])
+        faces['small']=faces['size']-2
+        # Global default styles for all languages
+        faces['code'] = self.prefs.coder['codeFont']#,'Arial']#use arial as backup
+        faces['comment'] = self.prefs.coder['commentFont']#,'Arial']#use arial as backup
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
+        self.StyleClearAll()  # Reset all to be like the default
+
+        # Global default styles for all languages
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,  "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR, "face:%(comment)s" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,  "fore:#FFFFFF,back:#0000FF,bold")
+        self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
+
+        # Python styles
+        # Default
+        self.StyleSetSpec(wx.stc.STC_P_DEFAULT, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
+        # Comments
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(comment)s,size:%(size)d" % faces)
+        # Number
+        self.StyleSetSpec(wx.stc.STC_P_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
+        # String
+        self.StyleSetSpec(wx.stc.STC_P_STRING, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
+        # Single quoted string
+        self.StyleSetSpec(wx.stc.STC_P_CHARACTER, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
+        # Keyword
+        self.StyleSetSpec(wx.stc.STC_P_WORD, "fore:#00007F,bold,size:%(size)d" % faces)
+        # Triple quotes
+        self.StyleSetSpec(wx.stc.STC_P_TRIPLE, "fore:#7F0000,size:%(size)d" % faces)
+        # Triple double quotes
+        self.StyleSetSpec(wx.stc.STC_P_TRIPLEDOUBLE, "fore:#7F0000,size:%(size)d" % faces)
+        # Class name definition
+        self.StyleSetSpec(wx.stc.STC_P_CLASSNAME, "fore:#0000FF,bold,underline,size:%(size)d" % faces)
+        # Function or method name definition
+        self.StyleSetSpec(wx.stc.STC_P_DEFNAME, "fore:#007F7F,bold,size:%(size)d" % faces)
+        # Operators
+        self.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
+        # Identifiers
+        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
+        # Comment-blocks
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK, "fore:#7F7F7F,size:%(size)d" % faces)
+        # End of line where string is not closed
+        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
+
+        self.SetCaretForeground("BLUE")
+        
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -1288,7 +1417,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
 class ParamCtrls:
-    def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False):
+    def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
         by the calling dlg.
@@ -1343,10 +1472,16 @@ class ParamCtrls:
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
         elif label in components.code.codeParamNames[:]:
+            self.valueCtrl = CodeBox(parent,-1,
+                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
+                 style=0, prefs=appPrefs)
+                 
+            if len(param.val):
+                self.valueCtrl.AddText(unicode(param.val))
             #code input fields one day change these to wx.stc fields?
-            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-                style=wx.TE_MULTILINE,
-                size=wx.Size(self.valueWidth*2,160))
+#            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
+#                style=wx.TE_MULTILINE,
+#                size=wx.Size(self.valueWidth*2,160))
         elif param.valType=='bool':
             #only True or False - use a checkbox
              self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
@@ -1395,6 +1530,8 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
         """
         if ctrl==None: return None
+        elif hasattr(ctrl,'GetText'):
+            return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
             return ctrl.GetValue()
         elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
@@ -1529,7 +1666,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.addAdvancedTab()
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
-
+        
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1623,7 +1760,7 @@ class _BaseParamsDlg(wx.Dialog):
             label=param.label
         else:
             label=fieldName
-        ctrls=ParamCtrls(dlg=self, label=label,param=param, advanced=advanced)
+        ctrls=ParamCtrls(dlg=self, label=label,param=param, advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
