@@ -73,7 +73,7 @@ class WindowFrozen(object):
             return
         if self.ctrl is not None:#check it hasn't been deleted
             self.ctrl.Thaw()
-            
+
 class CodeBox(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, prefs,
@@ -200,7 +200,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
-        
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -1475,7 +1475,7 @@ class ParamCtrls:
             self.valueCtrl = CodeBox(parent,-1,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
                  style=0, prefs=appPrefs)
-                 
+
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
             #code input fields one day change these to wx.stc fields?
@@ -1666,7 +1666,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.addAdvancedTab()
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
-        
+
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1780,8 +1780,9 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         elif fieldName in self.codeParamNames:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
-            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
+            #ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
+            #ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
             id = wx.NewId()
             self.codeFieldNameFromID[id] = fieldName
             self.codeIDFromFieldName[fieldName] = id
@@ -1933,29 +1934,19 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-    def onNavigationCode(self, event):
-        #print event.GetId(),event.GetCurrentFocus() # 0 None
-        return
-
-        fieldName = self.codeFieldNameFromID[event.GetId()] #fails
-        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
-        val = self.paramCtrls[fieldName].getValue()
-        newVal = val[:pos] + '    ' + val[pos:]
-        self.paramCtrls[fieldName].valueCtrl.ChangeValue(newVal)
-        self.paramCtrls[fieldName].valueCtrl.SendTextUpdatedEvent()
 
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
         """
-        #print event.GetId()
-        fieldName = self.codeFieldNameFromID[event.GetId()]
-        val = self.paramCtrls[fieldName].getValue()
-        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
-        if pos >= 1 and val[pos-1] != "\n": # only do syntax check at end of line
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
-        elif pos >= 2 and val[pos-2] != ":": # ... but skip the check if end of line is colon
-            self._setNameColor(self._testCompile(fieldName))
-    def _testCompile(self, fieldName):
+        codeBox = event.GetEventObject()
+        newChar = chr(event.GetKeyCode())
+        pos = event.GetPosition()
+        if newChar not in ["\n", "\r"]: # only do syntax check at end of line
+            codeBox.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
+        elif newChar != ":": # ... but skip the check if end of line is colon
+            self._setNameColor(self._testCompile(codeBox))
+        event.Skip()
+    def _testCompile(self, ctrl):
         """checks code.val for legal python syntax, sets field bg color, returns status
 
         method: writes code to a file, try to py_compile it. not intended for
@@ -1965,17 +1956,22 @@ class _BaseParamsDlg(wx.Dialog):
         # definitely don't want eval() or exec()
         tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
         tmpFile = os.path.join(tmpDir, 'tmp')
-        val = self.paramCtrls[fieldName].getValue() # better than getParams(), which sets them, messes with cancel
+        if hasattr(ctrl,'GetText'):
+            val = ctrl.GetText()
+        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+            val = ctrl.GetValue()
+        else:
+            raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
         f = codecs.open(tmpFile, 'w', 'utf-8')
         f.write(val)
         f.close()
         #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
             py_compile.compile(tmpFile, doraise=True)
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white, ok
+            ctrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white, ok
             syntaxCheck = True # syntax fine
         except: # hopefully SyntaxError, but can't check for it; checking messes with things
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
             syntaxCheck = False # syntax error
             # need to capture stderr to get the msg, which has line number etc
             #msg = py_compile.compile(tmpFile)
@@ -1995,7 +1991,7 @@ class _BaseParamsDlg(wx.Dialog):
             if not self.paramCtrls[fieldName].getValue().strip(): # if basically empty
                 self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
                 continue # skip test
-            goodSyntax = goodSyntax and self._testCompile(fieldName) # test syntax
+            goodSyntax = goodSyntax and self._testCompile(self.params[fieldName].valueCtrl) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:

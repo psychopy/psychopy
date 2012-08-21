@@ -29,7 +29,7 @@ PsychoPy 1.74.03
 
 (released Aug 2012)
 
-* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks piwaniuk)
+* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks Piotr Iwaniuk)
 * IMPROVED: serial (RS232) interface to fORP button box to avoid recording repeated presses (thanks Nate Vack). Does not affect use of fORP box from USB interface.
 
 PsychoPy 1.74.02
