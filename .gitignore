@@ -32,3 +32,7 @@ psychopy/tests/*htmlcov*
 
 .DS_Store
 
+/.ropeproject/config.py
+/.ropeproject/history
+/.ropeproject/objectdb
+/.spyderproject
