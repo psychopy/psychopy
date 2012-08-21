@@ -19,6 +19,11 @@ Changelog
 PsychoPy 1.74
 ------------------------------
 
+PsychoPy 1.74.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED: larger Code Component boxes (and fixed bug with being only one line on linux)
+
 PsychoPy 1.74.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

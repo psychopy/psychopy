@@ -1346,7 +1346,7 @@ class ParamCtrls:
             #code input fields one day change these to wx.stc fields?
             self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
                 style=wx.TE_MULTILINE,
-                size=wx.Size(self.valueWidth,-1))
+                size=wx.Size(self.valueWidth*2,160))
         elif param.valType=='bool':
             #only True or False - use a checkbox
              self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
