@@ -2528,6 +2528,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             num_displays = wx.Display.GetCount()
             if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
                 logging.error("User requested non-existent screen")
+                screenN=0
             else:
                 screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
             size=list(wx.Display(screenN).GetGeometry()[2:])

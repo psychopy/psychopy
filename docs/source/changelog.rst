@@ -25,6 +25,7 @@ PsychoPy 1.74.04
 * IMPROVED: larger Code Component boxes (and fixed bug with being only one line on linux)
 * FIXED: Builder code syntax error when using Mouse set state 'every frame'
 * FIXED: Builder was erroneously using 'estimated duration' for constraining non-slip timing
+* FIXED: Builder couldn't open Experiment Settings if the expected screen number didn't exist on this system
 
 PsychoPy 1.74.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
