@@ -1015,15 +1015,16 @@ class Routine(list):
         for n, component in enumerate(self):
             if component.params.has_key('startType'):
                 start, duration, nonSlip = component.getStartAndDuration()
-                if duration==FOREVER:
-                    # only the start of an unlimited event should contribute to maxTime
-                    duration = 1 # plus some minimal duration so it's visible
+                if not nonSlip:
                     nonSlipSafe=False
+                if duration==FOREVER:
+                    # only the *start* of an unlimited event should contribute to maxTime
+                    duration = 1 # plus some minimal duration so it's visible
+                #now see if we have a end t value that beats the previous max
                 try:
                     thisT=start+duration#will fail if either value is not defined
                 except:
                     thisT=0
-                    nonSlipSafe=False
                 maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
             maxTime=10
