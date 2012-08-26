@@ -108,8 +108,11 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("if sum(buttons)>0:#ie if any button is pressed\n")
             buff.setIndentLevel(1, relative=True)
             dedentAtEnd+=1
+        elif self.params['saveMouseState'].val == 'every frame':
+            buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
+
         #only do this if buttons were pressed
-        if self.params['saveMouseState'].val == 'on click':
+        if self.params['saveMouseState'].val in ['on click','every frame']:
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
             buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
