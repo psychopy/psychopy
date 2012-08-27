@@ -143,9 +143,9 @@ class CodeBox(wx.stc.StyledTextCtrl):
         #self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         #self.SetDropTarget(FileDropTarget(coder = self.coder))
 
-        self.setFonts()
+        self.setupStyles()
 
-    def setFonts(self):
+    def setupStyles(self):
 
         if wx.Platform == '__WXMSW__':
             faces = { 'size' : 10}
@@ -200,6 +200,15 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
+    def setStatus(self, status):
+        if status=='error':
+            color=(255,210,210,255)
+        elif status=='changed':
+            color=(220,220,220,255)
+        else:
+            color=(255,255,255,255)
+        self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, color)
+        self.setupStyles()#then reset fonts again on top of that color
 
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
@@ -1774,20 +1783,12 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName in ['text', 'Text']:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
-        elif fieldName=='color':
+        elif fieldName in ['color', 'Color']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif fieldName=='Experiment info':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         elif fieldName in self.codeParamNames:
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
-            #ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
-            #ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
-            id = wx.NewId()
-            self.codeFieldNameFromID[id] = fieldName
-            self.codeIDFromFieldName[fieldName] = id
-            ctrls.valueCtrl.SetId(id)
-            #print id, fieldName
         elif fieldName=='Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
         #increment row number
@@ -1922,13 +1923,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
         self.SetSizerAndFit(self.border)
 
-        # run syntax check for a code component dialog:
-        if hasattr(self, 'codeParamNames'):
-            valTypes = [self.params[param].valType for param in self.params.keys()
-                        if param in self.codeParamNames] # not configured to properly handle code fields except in code components
-            if 'code' in valTypes:
-                self.checkCodeSyntax()
-
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
@@ -1939,11 +1933,14 @@ class _BaseParamsDlg(wx.Dialog):
         """process text events for code components: change color to grey
         """
         codeBox = event.GetEventObject()
-        newChar = chr(event.GetKeyCode())
+        textBeforeThisKey = codeBox.GetText()
+        keyCode = event.GetKeyCode()
         pos = event.GetPosition()
-        if newChar not in ["\n", "\r"]: # only do syntax check at end of line
-            codeBox.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
-        elif newChar != ":": # ... but skip the check if end of line is colon
+        if keyCode<256 and keyCode not in [10,13]: # ord(10)='\n', ord(13)='\l'
+            #new line is trigger to check syntax
+            codeBox.setStatus('changed')
+        elif keyCode in [10,13] and len(textBeforeThisKey) and textBeforeThisKey[-1] != ':':
+            # ... but skip the check if end of line is colon ord(58)=':'
             self._setNameColor(self._testCompile(codeBox))
         event.Skip()
     def _testCompile(self, ctrl):
@@ -1968,14 +1965,12 @@ class _BaseParamsDlg(wx.Dialog):
         #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
             py_compile.compile(tmpFile, doraise=True)
-            ctrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white, ok
             syntaxCheck = True # syntax fine
+            ctrl.setStatus('OK')
         except: # hopefully SyntaxError, but can't check for it; checking messes with things
-            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+#            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+            ctrl.setStatus('error')
             syntaxCheck = False # syntax error
-            # need to capture stderr to get the msg, which has line number etc
-            #msg = py_compile.compile(tmpFile)
-            #self.nameOKlabel.SetLabel(str(msg))
         # clean up tmp files:
         shutil.rmtree(tmpDir, ignore_errors=True)
 
@@ -1984,14 +1979,18 @@ class _BaseParamsDlg(wx.Dialog):
     def checkCodeSyntax(self, event=None):
         """Checks syntax for whole code component by code box, sets box bg-color.
         """
-        goodSyntax = True
-        for fieldName in self.codeParamNames:
-            if self.params[fieldName].valType != 'code':
-                continue
-            if not self.paramCtrls[fieldName].getValue().strip(): # if basically empty
-                self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
-                continue # skip test
-            goodSyntax = goodSyntax and self._testCompile(self.params[fieldName].valueCtrl) # test syntax
+        if hasattr(event, 'GetEventObject'):
+            codeBox = event.GetEventObject()
+        elif hasattr(event,'GetText'):
+            codeBox = event #we were given the control itself, not an event
+        else:
+            print 'checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event)
+            logging.error('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
+        text = codeBox.GetText()
+        if not text.strip(): # if basically empty
+            codeBox.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            return # skip test
+        goodSyntax = self._testCompile(codeBox) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
