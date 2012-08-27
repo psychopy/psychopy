@@ -123,6 +123,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
         self.SetMarginSensitive(2, True)
         self.SetMarginWidth(2, 12)
+        self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
 
         self.SetIndentationGuides(False)
 
@@ -209,7 +210,24 @@ class CodeBox(wx.stc.StyledTextCtrl):
             color=(255,255,255,255)
         self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, color)
         self.setupStyles()#then reset fonts again on top of that color
+    def OnMarginClick(self, evt):
+        # fold and unfold as needed
+        if evt.GetMargin() == 2:
+            lineClicked = self.LineFromPosition(evt.GetPosition())
 
+            if self.GetFoldLevel(lineClicked) & wx.stc.STC_FOLDLEVELHEADERFLAG:
+                if evt.GetShift():
+                    self.SetFoldExpanded(lineClicked, True)
+                    self.Expand(lineClicked, True, True, 1)
+                elif evt.GetControl():
+                    if self.GetFoldExpanded(lineClicked):
+                        self.SetFoldExpanded(lineClicked, False)
+                        self.Expand(lineClicked, False, True, 0)
+                    else:
+                        self.SetFoldExpanded(lineClicked, True)
+                        self.Expand(lineClicked, True, True, 100)
+                else:
+                    self.ToggleFold(lineClicked)
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
