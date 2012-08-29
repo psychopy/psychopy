@@ -68,6 +68,7 @@ tbFileSaveAs=40
 tbUndo= 70
 tbRedo= 80
 tbRun = 100
+tbRunAmp = 101
 tbStop = 110
 tbCompile=120
 tbPreferences=130#for the app

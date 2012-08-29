@@ -20,6 +20,8 @@ from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
 
 from psychopy.constants import *
 from psychopy.errors import DataImportError
+from psychopy.app.builder import amp_launcher
+
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
@@ -3006,6 +3008,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
+        self.experiment_contact = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -3129,6 +3132,9 @@ class BuilderFrame(wx.Frame):
         redo_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'redo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         stop_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         run_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        
+        run_amp_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'run_amp%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        
         compile_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'compile%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         settings_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'settingsExp%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
@@ -3164,6 +3170,8 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
         self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, ("Compile Script [%s]" %self.app.keys['compileScript']).replace('Ctrl+', ctrlKey),  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
+        self.toolbar.AddSimpleTool(self.IDs.tbRunAmp, run_amp_bmp, "Run with amplifier...",  "Run experiment with selected amplifier")
+        self.toolbar.Bind(wx.EVT_TOOL, self.runFileAmp, id=self.IDs.tbRunAmp)
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, ("Run [%s]" %self.app.keys['runScript']).replace('Ctrl+', ctrlKey),  "Run experiment")
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
         self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp, ("Stop [%s]" %self.app.keys['stopScript']).replace('Ctrl+', ctrlKey),  "Stop experiment")
@@ -3685,7 +3693,65 @@ class BuilderFrame(wx.Frame):
             command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
+        self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
         self.toolbar.EnableTool(self.IDs.tbStop,True)
+    
+    def runFileAmp(self, event):        
+        #get abs path of expereiment so it can be stored with data at end of exp
+        expPath = self.filename
+        if expPath==None or expPath.startswith('untitled'):
+            ok = self.fileSave()
+            if not ok: return#save file before compiling script
+        expPath = os.path.abspath(expPath)
+        #make new pathname for script file
+        fullPath = self.filename.replace('.psyexp','_lastrun.py')
+        
+        script = self.generateScript(expPath)
+        if not script:
+            return
+
+        #set the directory and add to path
+        folder, scriptName = os.path.split(fullPath)
+        if len(folder)>0: os.chdir(folder)#otherwise this is unsaved 'untitled.psyexp'
+        f = codecs.open(fullPath, 'w', 'utf-8')
+        f.write(script.getvalue())
+        f.close()
+        
+        runAmpDialog = amp_launcher.AmpLauncherDialog(self)
+        print runAmpDialog.ShowModal()
+        self.experiment_contact = runAmpDialog.get_experiment_contact()
+        print self.experiment_contact
+        if not self.experiment_contact:
+            return
+        
+        try:
+            self.stdoutFrame.getText()
+        except:
+            self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
+
+        # redirect standard streams to log window
+        sys.stdout = self.stdoutFrame
+        sys.stderr = self.stdoutFrame
+
+        #provide a running... message
+        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
+
+        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
+        self.scriptProcess.Redirect()#builder will receive the stdout/stdin
+
+        if sys.platform=='win32':
+            command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
+            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
+        else:
+            fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
+            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+        self.toolbar.EnableTool(self.IDs.tbRun,False)
+        self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
+        self.toolbar.EnableTool(self.IDs.tbStop,True)
+
     def stopFile(self, event=None):
         success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
         if success[0] != wx.KILL_OK:
@@ -3694,7 +3760,12 @@ class BuilderFrame(wx.Frame):
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
+        if self.experiment_contact:
+            self.experiment_contact.stop_experiment()
+            self.experiment_contact = None
+        
         self.toolbar.EnableTool(self.IDs.tbRun,True)
+        self.toolbar.EnableTool(self.IDs.tbRunAmp, True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
         #update the output window and show it
         text=""
