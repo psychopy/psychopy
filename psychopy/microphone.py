@@ -5,6 +5,8 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+# Author: Jeremy R. Gray, March 2012
+
 from __future__ import division
 import os, sys, shutil, time
 import threading, urllib2, json
@@ -14,8 +16,6 @@ from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
 # import pyo is done within switchOn/Off to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
-
-__author__ = 'Jeremy R. Gray'
 
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo; goes False in switchOff
@@ -30,16 +30,25 @@ class AudioCapture(object):
         
             from psychopy import microphone
             
-            microphone.switchOn(sampleRate=16000) # do once when starting, can take 2-3s
+            microphone.switchOn(sampleRate=16000)  # do once when starting, can take 2-3s
             
+            # record for 1.000 seconds, save to mic.savedFile
             mic = microphone.AudioCapture()  # prepare to record; only one can be active
-            mic.record(1)  # record for 1.000 seconds, save to mic.savedFile
+            mic.record(1)
             mic.playback()
-            mic.resample(48000, keep=False) # creates a new file, discards original
-            mic.resample(24000, keep=False) # only int ratios are supported
+            mic.resample(48000, keep=False)  # creates a new file, discards original
+            mic.resample(24000, keep=False)  # only int ratios are supported
             # mic.savedFile is now the name of the re-re-sampled file
             
-            microphone.switchOff() # do once, at exit 
+            # another example: record for 1 minute unless key 'q' is pressed
+            # (Note: this assumes you have a visual.Window() for key events)
+            mic.reset()
+            mic.record(60, block=False)  # non-blocking is crucial
+            while mic.recorder.running:
+                if 'q' in event.getKeys():
+                    mic.stop()
+            
+            microphone.switchOff()  # do once, at exit 
         
         Also see Builder Demo "voiceCapture".
             
@@ -54,6 +63,8 @@ class AudioCapture(object):
         Then in record(), do:
             self.recorder.run(file, sec)
         This sets recording parameters, starts recording.
+        To stop a recording that is in progress, do
+            self.stop()
         This class never handles blocking; SimpleAudioCapture has to do that.
         
         Motivation: Doing pyo Record from within a function worked most of the time,
@@ -76,9 +87,11 @@ class AudioCapture(object):
             self.__init__(file, sec, sampletype)
             self.running = True
             self.clean.start() # controls recording onset (now) and offset (later)
-            threading.Timer(sec, self.stop).start() # set running flag False
+            threading.Timer(sec, self._stop).start() # set running flag False
         def stop(self):
             self.recorder.stop()
+            self._stop()
+        def _stop(self):
             self.running = False
             
     def __init__(self, name='mic', file='', saveDir='', sampletype=0):
@@ -676,7 +689,6 @@ if __name__ == '__main__':
             mic.record(testDuration * 5, block=False) # block False returns immediately
                 # which you want if you might need to stop a recording early
             core.wait(testDuration)  # we'll stop the record after 2s, not 10
-            mic.stop()
             print
             print 'record stopped; sleeping 1s'
             sys.stdout.flush()
