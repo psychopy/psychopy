@@ -26,29 +26,30 @@ class AudioCapture(object):
         
         Untested whether you can have two recordings going on simultaneously.
         
-        **Example**::
+        **Examples**::
         
             from psychopy import microphone
+            from psychopy import event, visual  # for key events
             
-            microphone.switchOn(sampleRate=16000)  # do once when starting, can take 2-3s
+            microphone.switchOn(sampleRate=16000)  # do once
             
-            # record for 1.000 seconds, save to mic.savedFile
-            mic = microphone.AudioCapture()  # prepare to record; only one can be active
+            # Record for 1.000 seconds, save to mic.savedFile
+            mic = microphone.AudioCapture()
             mic.record(1)
             mic.playback()
-            mic.resample(48000, keep=False)  # creates a new file, discards original
-            mic.resample(24000, keep=False)  # only int ratios are supported
-            # mic.savedFile is now the name of the re-re-sampled file
             
-            # another example: record for 1 minute unless key 'q' is pressed
-            # (Note: this assumes you have a visual.Window() for key events)
+            # Resample, creates a new file discards orig
+            mic.resample(48000, keep=False)
+            
+            # Record new file for 60 sec or until key 'q'
+            w = visual.Window()  # needed for key-events
             mic.reset()
-            mic.record(60, block=False)  # non-blocking is crucial
+            mic.record(60, block=False)
             while mic.recorder.running:
                 if 'q' in event.getKeys():
                     mic.stop()
             
-            microphone.switchOff()  # do once, at exit 
+            microphone.switchOff()  # do once 
         
         Also see Builder Demo "voiceCapture".
             
@@ -65,7 +66,7 @@ class AudioCapture(object):
         This sets recording parameters, starts recording.
         To stop a recording that is in progress, do
             self.stop()
-        This class never handles blocking; SimpleAudioCapture has to do that.
+        This class never handles blocking; AudioCapture has to do that.
         
         Motivation: Doing pyo Record from within a function worked most of the time,
         but failed catastrophically ~1% of time with a bus error. Seemed to be due to
@@ -689,6 +690,7 @@ if __name__ == '__main__':
             mic.record(testDuration * 5, block=False) # block False returns immediately
                 # which you want if you might need to stop a recording early
             core.wait(testDuration)  # we'll stop the record after 2s, not 10
+            mic.stop()
             print
             print 'record stopped; sleeping 1s'
             sys.stdout.flush()
