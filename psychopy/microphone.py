@@ -65,19 +65,20 @@ class AudioCapture(object):
             self.running = False
             if file:
                 inputter = Input(chnl=0, mul=1)
-                recorder = Record(inputter,
+                self.recorder = Record(inputter,
                                file,
                                chnls=2,
                                fileformat=0,
                                sampletype=sampletype,
                                buffering=4)
-                self.clean = Clean_objects(sec, recorder)
+                self.clean = Clean_objects(sec, self.recorder)
         def run(self, file, sec, sampletype):
             self.__init__(file, sec, sampletype)
             self.running = True
             self.clean.start() # controls recording onset (now) and offset (later)
             threading.Timer(sec, self.stop).start() # set running flag False
         def stop(self):
+            self.recorder.stop()
             self.running = False
             
     def __init__(self, name='mic', file='', saveDir='', sampletype=0):
@@ -126,6 +127,22 @@ class AudioCapture(object):
 
     def __del__(self):
         pass
+    def stop(self):
+        """Interrupt a recording that is in progress; close & keep the file.
+        
+        Ends the recording before the duration that was initially specified. The
+        same file name is retained, with the same onset time but a shorter duration.
+        
+        The same recording cannot be resumed after a stop (it is not a pause),
+        but you can start a new one.
+        """
+        if not self.recorder.running:
+            logging.exp('%s: Stop requested, but no record() in progress' % self.loggingId )
+            return
+        self.duration = core.getTime() - self.onset  # new shorter duration
+        self.recorder.stop()
+        logging.data('%s: Record stopped early, new duration %.3fs' % (self.loggingId, self.duration))
+
     def reset(self):
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, core.getTime()))
@@ -155,7 +172,7 @@ class AudioCapture(object):
         
         if block:
             core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
-                # actual timing is done by Clean_object in _theGlobalRecordingThread()
+                # actual timing is done by Clean_objects
             logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, core.getTime(), core.getTime() - t0) )
         else:
@@ -650,15 +667,18 @@ if __name__ == '__main__':
                 print i, mic.record(2)
                 mic.resample(8000, keep=False) # removes orig file
                 os.remove(mic.savedFile) # removes downsampled file
-        else: # interactive playback test
-            testDuration = 2
+        else: # two interactive record + playback tests
+            testDuration = 2  # sec
             raw_input('testing record and playback, press <return> to start: ')
             print "say something:",
             sys.stdout.flush()
-            mic.record(testDuration, block=False) # block False returns immediately
-            core.wait(testDuration) # you need testDuration in record and core.wait
+            # tell it to record for 10s:
+            mic.record(testDuration * 5, block=False) # block False returns immediately
+                # which you want if you might need to stop a recording early
+            core.wait(testDuration)  # we'll stop the record after 2s, not 10
+            mic.stop()
             print
-            print 'record done; sleeping 1s'
+            print 'record stopped; sleeping 1s'
             sys.stdout.flush()
             core.wait(1)
             print 'start playback ',
@@ -668,11 +688,12 @@ if __name__ == '__main__':
             sys.stdout.flush()
             os.remove(mic.savedFile)
             mic.reset()
+            
+            # do another record, fixed duration, use block=True
             raw_input('<ret> for another: ')
             print "say something else:",
             sys.stdout.flush()
             mic.record(testDuration, file='m') # block=True by default; here use explicit file name
-            
             mic.playback()
             print mic.savedFile
             os.remove(mic.savedFile)
