@@ -510,14 +510,14 @@ class Window:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
         self._toLog = []
-        
+
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
         # return None as before
         #
         if self.waitBlanking is True:
             return now
-            
+
 
     def update(self):
         """Deprecated: use Window.flip() instead
@@ -2454,6 +2454,7 @@ class PatchStim(GratingStim):
         whereas the ImageStim is designed to be use for non-cyclic images (photographs, not gratings).
         """
         GratingStim.__init__(self, *args, **kwargs)
+        self.setImage = self.setTex
 
 class RadialStim(GratingStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,

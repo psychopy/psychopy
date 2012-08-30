@@ -14,7 +14,7 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
+:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
 PsychoPy 1.74
 ------------------------------
