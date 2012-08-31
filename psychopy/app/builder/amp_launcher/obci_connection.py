@@ -7,6 +7,7 @@ Created on 28-08-2012
 import socket
 from obci.obci_control.launcher import launcher_messages
 from obci.obci_control.common.message import OBCIMessageTool
+from StringIO import StringIO
 
 class NetstringCodec(object):
     def __init__(self, separator = ":", delimiter=","):
@@ -25,8 +26,10 @@ class NetstringCodec(object):
             len_string += digit
             digit = socket.recv(1)
         length = int(len_string)
-        buffer_size = length + 1 # TODO make it power of 2
-        text_buffer = socket.recv(buffer_size)
+        buffer_size = length + 1
+        text_buffer = StringIO()
+        while text_buffer.len < buffer_size:
+            text_buffer.write(socket.recv(buffer_size - text_buffer.len))
         if text_buffer[-1] != self.delimiter:
             raise Exception("Missing message delimiter")
         return text_buffer[:-1]
