@@ -56,21 +56,19 @@ class MicrophoneComponent(BaseComponent):
             inits['name'], inits['name']))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame"""
-        # calc duration first:
-        try:
-            duration = float(self.params['stopVal'].val)
-        except ValueError:
-            duration = 0
+        duration = "%s" % self.params['stopVal']  # type is code
+        if not len(duration):
+            duration = "0"
         # starting condition: 
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)  # writes an if statement
         buff.writeIndented("%(name)s.status = STARTED\n" %(self.params))
-        buff.writeIndented("%s.record(sec=%.3f, block=False)  # start the recording thread\n" %
+        buff.writeIndented("%s.record(sec=%s, block=False)  # start the recording thread\n" %
                             (self.params['name'], duration))
         buff.setIndentLevel(-1, relative=True)  # ends the if statement
         buff.writeIndented("\n")
-        # these lines are in case users to do mic.stop() in a code component:
+        # these lines handle both normal end of rec thread, and user .stop():
         buff.writeIndented("if %(name)s.status == STARTED and not %(name)s.recorder.running:\n" % self.params)
         buff.writeIndented("    %s.status = FINISHED\n" % self.params['name'])
     def writeRoutineEndCode(self,buff):
