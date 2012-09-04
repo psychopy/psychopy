@@ -1222,7 +1222,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.sizer=wx.FlexGridSizer(cols=2)
         # add a button for each type of event that can be added
         self.componentButtons={}; self.componentFromID={}
-        self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        self.components=components.getAllComponents(self.app.prefs.builder['componentsFolders'])
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
                 del self.components[hiddenComp]

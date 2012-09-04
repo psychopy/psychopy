@@ -3,13 +3,15 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
-from components import *#getComponents('') and getAllComponents([])
+#from components import *#getComponents('') and getAllComponents([])
 from psychopy import data, preferences, __version__, logging
 from psychopy.constants import *
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
 import re, os
 import locale
+import psychopy
+from psychopy.app.builder import components
 
 # predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
@@ -93,7 +95,7 @@ class Experiment:
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['visual','core','data','event','logging']
-        self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
+        self.settings=components.getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
     def requirePsychopyLibs(self, libs=[]):
