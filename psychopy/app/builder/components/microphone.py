@@ -84,7 +84,7 @@ class MicrophoneComponent(BaseComponent):
             buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
             buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
             buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
-        
+
             #always add saved file name
             buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))
             #only add loudness / rms if we have a file

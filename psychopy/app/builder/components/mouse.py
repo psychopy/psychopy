@@ -12,6 +12,7 @@ tooltip = 'Mouse: query mouse position and buttons'
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given timepoints"""
+    categories = ['Inputs']
     def __init__(self, exp, parentName, name='mouse',
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -22,6 +23,7 @@ class MouseComponent(BaseComponent):
         self.parentName=parentName
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['event'])
+        self.categories=['Inputs']
         #params
         self.params={}
         self.order=[]

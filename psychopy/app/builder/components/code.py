@@ -14,12 +14,14 @@ tooltip = 'Code: insert python commands into an experiment'
 codeParamNames = ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']
 
 class CodeComponent(BaseComponent):
+    categories = ['Custom']#an attribute of the class, determines the section in the components panel
     """An event class for inserting arbitrary code into Builder experiments"""
     def __init__(self, exp, parentName, name='code',beginExp="",beginRoutine="",eachFrame="",endRoutine="",endExperiment=""):
         self.type='Code'
         self.url="http://www.psychopy.org/builder/components/code.html"
         self.exp=exp#so we can access the experiment if necess
         #params
+        self.categories=['misc']
         self.order = ['name'] + codeParamNames[:] # want a copy, else codeParamNames list gets mutated
         self.params={}
         self.params['name']=Param(name, valType='code', allowedTypes=[],
