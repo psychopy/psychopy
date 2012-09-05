@@ -12,6 +12,7 @@ tooltip = 'Text: present text stimuli'
 
 class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
+    categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',
                 text='Any text\n\nincluding line breaks',
                 font='Arial',units='from exp settings', color='white', colorSpace='rgb',

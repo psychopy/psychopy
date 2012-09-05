@@ -9,6 +9,7 @@ from psychopy.app.builder.experiment import Param
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
+    categories = ['Stimuli']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name='', units='from exp settings', color='$[1,1,1]',
                 pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb', opacity=1,
                 startType='time (s)',startVal='',

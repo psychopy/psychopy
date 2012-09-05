@@ -55,6 +55,8 @@ def getComponents(folder=None):
             file=os.path.split(file)[1]
 #            module = imp.load_source(file[:-3], fullPath)#can't use imp - breaks py2app
             exec('import %s as module' %(file[:-3]))
+            if not hasattr(module,'categories'):
+                module.categories=['Custom']
             for attrib in dir(module):
                 name=None
                 #just fetch the attributes that end with 'Component', not other functions
@@ -68,7 +70,9 @@ def getComponents(folder=None):
                     else:icons[name]=icons['default']
                     if hasattr(module, 'tooltip'):
                         tooltips[name] = module.tooltip
-                    # else will use shortName, done in Builder ComponentsPanel __init__
+                    #assign the module categories to the Component
+                    if not hasattr(components[attrib], 'categories'):
+                        components[attrib].categories=['Custom']
     return components
 
 def getAllComponents(folderList=[]):
@@ -85,6 +89,16 @@ def getAllComponents(folderList=[]):
         for thisKey in userComps.keys():
             components[thisKey]=userComps[thisKey]
     return components
+
+
+def getAllCategories(folderList=[]):
+    allComps = getAllComponents(folderList)
+    allCats = ['Stimuli','Inputs','Custom']
+    for name, thisComp in allComps.items():
+        for thisCat in thisComp.categories:
+            if thisCat not in allCats:
+                allCats.append(thisCat)
+    return allCats
 
 def getInitVals(params):
     """Works out a suitable initial value for a parameter (e.g. to go into the

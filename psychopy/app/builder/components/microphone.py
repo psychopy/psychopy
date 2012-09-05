@@ -14,8 +14,9 @@ tooltip = 'Microphone: basic sound capture (fixed onset & duration), okay for sp
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
-    def __init__(self, exp, parentName, name='mic_1', 
-                 startType='time (s)', startVal=0.0, 
+    categories = ['Inputs']
+    def __init__(self, exp, parentName, name='mic_1',
+                 startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0, startEstim='', durationEstim='',
                 ):
         self.type='Microphone'
@@ -23,6 +24,7 @@ class MicrophoneComponent(BaseComponent):
         self.parentName=parentName
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['microphone'])
+        self.categories=['Inputs']
         #params
         self.order=[]#order for things (after name and timing params)
         self.params={}
@@ -47,7 +49,7 @@ class MicrophoneComponent(BaseComponent):
         #    label="rate")
     def writeStartCode(self,buff):
         # filename should have date_time, so filename_wav should be unique
-        buff.writeIndented("wavDirName = filename + '_wav'\n") 
+        buff.writeIndented("wavDirName = filename + '_wav'\n")
         buff.writeIndented("if not os.path.isdir(wavDirName):\n" +
                            "    os.makedirs(wavDirName) # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
@@ -61,7 +63,7 @@ class MicrophoneComponent(BaseComponent):
             duration = float(self.params['stopVal'].val)
         except ValueError:
             duration = 0
-        # starting condition: 
+        # starting condition:
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)  # writes an if statement
@@ -86,7 +88,7 @@ class MicrophoneComponent(BaseComponent):
             buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
             buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
             buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
-        
+
             #always add saved file name
             buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))
             #only add loudness / rms if we have a file

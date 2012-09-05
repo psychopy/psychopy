@@ -1361,6 +1361,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.addRoutinePage(routineName, self.frame.exp.routines[routineName])
         if currPage>-1:
             self.SetSelection(currPage)
+
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
@@ -1368,47 +1369,70 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
-        if self.app.prefs.app['largeIcons']:
-            self.sizer=wx.BoxSizer(wx.VERTICAL)
-        else:
-            self.sizer=wx.FlexGridSizer(cols=2)
-        # add a button for each type of event that can be added
-        self.componentButtons={}; self.componentFromID={}
+        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(100,10*self.dpi))
+        self.sizer=wx.BoxSizer(wx.VERTICAL)
+        self.components=components.getAllComponents()
+        categories = components.getAllCategories()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        #get rid of hidden components
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
                 del self.components[hiddenComp]
         del self.components['SettingsComponent']#also remove settings - that's in toolbar not components panel
-        for thisName in self.components.keys():
-            #NB thisComp is a class - we can't use its methods until it is an instance
-            thisComp=self.components[thisName]
-            shortName=thisName#but might be shortened below
-            for redundant in ['component','Component']:
-                if redundant in thisName: shortName=thisName.replace(redundant, "")
-#            thisIcon.SetSize((16,16))
+        #create labels and sizers for each category
+        self.componentFromID={}
+        self.panels={}
+        for categ in categories:
+            sectionBtn = platebtn.PlateButton(self,-1,categ,
+                style=platebtn.PB_STYLE_DROPARROW)
+            sectionBtn.Bind(wx.EVT_BUTTON, self.onSectionBtn)
             if self.app.prefs.app['largeIcons']:
-                thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
+                self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
             else:
-                thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
-            btn = wx.BitmapButton(self, -1, thisIcon,
-                           size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
-                           name=thisComp.__name__)
-            if thisName in components.tooltips:
-                thisTip = components.tooltips[thisName]
-            else:
-                thisTip = shortName
-            btn.SetToolTip(wx.ToolTip(thisTip))
-            self.componentFromID[btn.GetId()]=thisName
-            self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
-            self.sizer.Add(btn, proportion=0, flag=wx.ALIGN_TOP)#,wx.EXPAND|wx.ALIGN_CENTER )
-            self.componentButtons[thisName]=btn#store it for elsewhere
-
+                self.panels[categ]=wx.FlexGridSizer(cols=2)
+            self.sizer.Add(sectionBtn, flag=wx.EXPAND)
+            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_RIGHT)
+        self.makeComponentButtons()
+        #start all collapsed
+        for name, section in self.panels.items():
+            self.toggleSection(section)
         self.SetSizer(self.sizer)
-        self.SetAutoLayout(1)
+        self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDropTarget(FileDropTarget(builder = self.frame))
 
+    def makeComponentButtons(self):
+        for thisName in self.components.keys():
+            #NB thisComp is a class - we can't use its methods/attribs until it is an instance
+            thisComp=self.components[thisName]
+            for category in thisComp.categories:
+                shortName=thisName#but might be shortened below
+                for redundant in ['component','Component']:
+                    if redundant in thisName: shortName=thisName.replace(redundant, "")
+
+                if self.app.prefs.app['largeIcons']:
+                    thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
+                else:
+                    thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
+                btn = wx.BitmapButton(self, -1, thisIcon,
+                               size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
+                               name=thisComp.__name__)
+                if thisName in components.tooltips:
+                    thisTip = components.tooltips[thisName]
+                else:
+                    thisTip = shortName
+                btn.SetToolTip(wx.ToolTip(thisTip))
+                self.componentFromID[btn.GetId()]=thisName
+                self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
+                self.panels[category].Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
+    def onSectionBtn(self,evt):
+        buttons = self.panels[evt.GetString()]
+        self.toggleSection(buttons)
+    def toggleSection(self, section):
+        ii=self.sizer.GetItemIndex(section)
+        self.sizer.Show( ii, not self.sizer.IsShown(ii) )
+        self.sizer.Layout()
+        self.SetupScrolling()
     def onComponentAdd(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
@@ -1443,6 +1467,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
+
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be

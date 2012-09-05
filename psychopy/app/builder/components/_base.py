@@ -9,6 +9,8 @@ from psychopy.constants import *
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
+    #override the categories property below
+    categories = ['Custom']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name=''):
         self.type='Base'
         self.exp=exp#so we can access the experiment if necess
