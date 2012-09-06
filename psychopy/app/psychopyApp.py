@@ -247,7 +247,7 @@ class PsychoPyApp(wx.App):
         self.coder.setOutputWindow()#takes control of sys.stdout
         self.allFrames.append(self.coder)
     def newBuilderFrame(self, event=None, fileName=None):
-        from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
+        from psychopy.app.builder import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder (v%s)" %self.version,
                                   fileName=fileName, app=self)

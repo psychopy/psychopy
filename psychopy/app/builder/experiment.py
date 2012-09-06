@@ -96,6 +96,7 @@ class Experiment:
         self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=components.getAllComponents()['SettingsComponent'](parentName='', exp=self)
+        self.resourcePool=components.getAllComponents()['ResourcePoolComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
     def requirePsychopyLibs(self, libs=[]):
@@ -145,6 +146,8 @@ class Experiment:
                     "from numpy import %s\n" % ', '.join(_numpy_imports) +
                     "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
                     "import os #handy system and path functions\n")
+        script.write("from StringIO import StringIO\n") #for resource pool
+        script.write("import base64\n")
         if self.prefsApp['locale']:
             # if locale is set explicitly as a pref, add it to the script:
             localeValue = '.'.join(locale.getlocale())
@@ -152,11 +155,23 @@ class Experiment:
                      "locale.setlocale(locale.LC_ALL, '%s')\n" % localeValue)
         script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile, Window
+        self.resourcePool.writeStartCode(script) #inline resources
         #delegate rest of the code-writing to Flow
         self.flow.writeCode(script)
         self.settings.writeEndCode(script) #close log file
 
         return script
+
+
+    def save_resource_pool(self):
+        poolNode = etree.SubElement(self.xmlRoot, 'Pool')
+        resourcesNode = etree.SubElement(poolNode, 'Resources')
+        for resource in self.resourcePool.params['resources'].val:
+            resourceNode = etree.SubElement(resourcesNode, 'Resource')
+            resourceNode.set("name", resource.get_name())
+            resourceNode.set("date", str(resource.get_date()))
+            resourceNode.set("description", resource.get_description())
+            resourceNode.text = resource.get_content()
 
     def saveToXML(self, filename):
         #create the dom object
@@ -194,6 +209,7 @@ class Experiment:
                 elementNode.set('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
                 elementNode.set('name', '%s' %element.params['name'])
+        self.save_resource_pool()
         #write to disk
         f=codecs.open(filename, 'wb', 'utf-8')
         f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
@@ -289,6 +305,15 @@ class Experiment:
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
+    
+    def load_resource_pool(self, root):
+        poolNode = root.find("Pool")
+        resourcesNode = poolNode.find("Resources")
+        for resourceNode in resourcesNode:
+            name = resourceNode.get("name")
+            description = resourceNode.get("description")
+            self.resourcePool.add_resource(name, description=description, content=resourceNode.text)
+    
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
@@ -341,7 +366,7 @@ class Experiment:
             for componentNode in routineNode:
                 componentType=componentNode.tag
                 #create an actual component of that type
-                component=getAllComponents()[componentType](\
+                component=components.getAllComponents()[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
                 #populate the component with its various params
@@ -392,6 +417,8 @@ class Experiment:
                 self.flow.append(LoopTerminator(loop=loops[elementNode.get('name')]))
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
+            
+            self.load_resource_pool(root)
 
         if modified_names:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))

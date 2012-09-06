@@ -20,7 +20,7 @@ from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
 
 from psychopy.constants import *
 from psychopy.errors import DataImportError
-from psychopy.app.builder import amp_launcher
+from psychopy.app.builder import amp_launcher, resource_pool
 
 
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -1208,7 +1208,13 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.addRoutinePage(routineName, self.frame.exp.routines[routineName])
         if currPage>-1:
             self.SetSelection(currPage)
+
+
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
+    
+    # Singleton components have one instance per experiment
+    SINGLETON_COMPONENTS = ["SettingsComponent", "ResourcePoolComponent"]
+    
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
         """
@@ -1226,7 +1232,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
                 del self.components[hiddenComp]
-        del self.components['SettingsComponent']#also remove settings - that's in toolbar not components panel
+        # remove singleton components
+        for singletonComponent in ComponentsPanel.SINGLETON_COMPONENTS:
+            if singletonComponent in self.components.keys():
+                del self.components[singletonComponent]
         for thisName in self.components.keys():
             #NB thisComp is a class - we can't use its methods until it is an instance
             thisComp=self.components[thisName]
@@ -3137,6 +3146,7 @@ class BuilderFrame(wx.Frame):
         
         compile_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'compile%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         settings_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'settingsExp%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
+        pool_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'pool%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         preferences_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preferences%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         monitors_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'monitors%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         #colorpicker_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'color%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
@@ -3168,6 +3178,10 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, "Experiment Settings",  "Settings for this exp")
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
+        
+        self.toolbar.AddSimpleTool(self.IDs.tbResPool, pool_bmp, "Resource Pool",  "Edit resource pool")
+        self.toolbar.Bind(wx.EVT_TOOL, self.showResourcePool, id=self.IDs.tbResPool)
+        
         self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, ("Compile Script [%s]" %self.app.keys['compileScript']).replace('Ctrl+', ctrlKey),  "Compile to script")
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
         self.toolbar.AddSimpleTool(self.IDs.tbRunAmp, run_amp_bmp, "Run with amplifier...",  "Run experiment with selected amplifier")
@@ -3842,6 +3856,12 @@ class BuilderFrame(wx.Frame):
         if dlg.OK:
             self.addToUndoStack("edit experiment settings")
             self.setIsModified(True)
+
+    def showResourcePool(self, event=None):
+        component = self.exp.resourcePool
+        dlg = resource_pool.ResourcePoolDialog(self, pool=component)
+        dlg.Show()
+
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
 

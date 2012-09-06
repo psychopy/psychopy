@@ -73,6 +73,7 @@ tbStop = 110
 tbCompile=120
 tbPreferences=130#for the app
 tbExpSettings=140#for the experiment
+tbResPool=141
 tbMonitorCenter=150
 tbColorPicker=160
 
