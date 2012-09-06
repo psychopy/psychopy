@@ -6988,7 +6988,14 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                 logging.error("Found file '%s' but failed to load as an image" %(tex)); logging.flush()
                 raise IOError, "Found file '%s' [= %s] but it failed to load as an image" \
                     % (tex, os.path.abspath(tex))#ensure we quit
-        else:
+        #try to simply feed it to PIL, whatever it is
+        loaded = True
+        try:
+            im = Image.open(tex)
+            im = im.transpose(Image.FLIP_TOP_BOTTOM) # images are flipped on display
+        except Exception:
+            loaded = False
+        if not loaded:
             # can't be a file; maybe its an image already in memory?
             try:
                 im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM) # ? need to flip if in mem?
