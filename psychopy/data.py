@@ -221,7 +221,7 @@ class ExperimentHandler(object):
         self.entries.append(this)
         #then create new empty entry for n
         self.thisEntry = {}
-    def saveAsWideText(self, fileName, delim=',',
+    def saveAsWideText(self, fileName, delim=None,
                    matrixOnly=False,
                    appendFile=False):
         """Saves a long, wide-format text file, with one line representing the attributes and data
@@ -240,13 +240,20 @@ class ExperimentHandler(object):
         if os.path.exists(fileName) and writeFormat == 'w':
             logging.warning('Data file, %s, will be overwritten' %fileName)
 
+        if fileName[-4:] in ['.csv', '.CSV']:
+            delim=','
+        else:
+            delim='\t'
+
         if fileName=='stdout':
             f = sys.stdout
         elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
             f= codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
-            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
+            if delim==',':
+                f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else:
+                f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
@@ -367,7 +374,7 @@ class _BaseTrialHandler(object):
     def saveAsText(self,fileName,
                    stimOut=[],
                    dataOut=('n','all_mean','all_std', 'all_raw'),
-                   delim='\t',
+                   delim=None,
                    matrixOnly=False,
                    appendFile=True,
                    summarised=True,
@@ -412,6 +419,13 @@ class _BaseTrialHandler(object):
             dataOut=dataOut,
             matrixOnly=False,)
 
+        #set default delimiter if none given
+        if delim==None:
+            if fileName[-4:] in ['.csv','.CSV']:
+                delim=','
+            else:
+                delim='\t'
+
         #create the file or print to stdout
         if appendFile: writeFormat='a'
         else: writeFormat='w' #will overwrite a file
@@ -420,8 +434,10 @@ class _BaseTrialHandler(object):
         elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
             f= codecs.open(fileName,writeFormat, encoding = "utf-8")
         else:
-            if delim==',': f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
-            else: f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
+            if delim==',':
+                f= codecs.open(fileName+'.csv',writeFormat, encoding = "utf-8")
+            else:
+                f=codecs.open(fileName+'.dlm',writeFormat, encoding = "utf-8")
 
         #loop through lines in the data matrix
         for line in dataArray:
