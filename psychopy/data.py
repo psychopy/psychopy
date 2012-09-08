@@ -267,7 +267,10 @@ class ExperimentHandler(object):
         for entry in self.entries:
             for name in names:
                 if name in entry.keys():
-                    f.write(u'%s%s' %(entry[name],delim))
+                    if ',' in unicode(entry[name]):
+                        f.write(u'"%s"%s' %(entry[name],delim))
+                    else:
+                        f.write(u'%s%s' %(entry[name],delim))
                 else:
                     f.write(delim)
             f.write('\n')
@@ -442,14 +445,10 @@ class _BaseTrialHandler(object):
         #loop through lines in the data matrix
         for line in dataArray:
             for cellN, entry in enumerate(line):
-                if type(entry) in [float, numpy.float]:
-                    f.write('%.4f' %(entry))
-                elif type(entry) in [int, numpy.int32, numpy.int64]:
-                    f.write('%i' %(entry))
-                elif entry==None:
-                    f.write('')
+                if delim in unicode(entry):#surround in quotes to prevent effect of delimiter
+                    f.write(u'"%s"' %unicode(entry))
                 else:
-                    f.write(entry)
+                    f.write(unicode(entry))
                 if cellN<(len(line)-1):
                     f.write(delim)
             f.write("\n")#add an EOL at end of each line
@@ -561,7 +560,7 @@ class _BaseTrialHandler(object):
                     entry=''
                 try:
                     ws.cell(_getExcelCellName(col=colN,row=lineN)).value = float(entry)#if it can conver to a number (from numpy) then do it
-                except:#some thi
+                except:
                     ws.cell(_getExcelCellName(col=colN,row=lineN)).value = unicode(entry)#else treat as unicode
 
         ew.save(filename = fileName)
@@ -944,9 +943,17 @@ class TrialHandler(_BaseTrialHandler):
 
                 if strVersion=='()':
                     strVersion="--"# 'no data' in masked array should show as "--"
+                #handle list of values (e.g. rt_raw )
                 if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
                     strVersion=strVersion[1:-1]#skip first and last chars
-                thisLine.extend(strVersion.split(','))
+                #handle lists of lists (e.g. raw of multiple key presses)
+                if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
+                    tup = eval(strVersion) #convert back to a tuple
+                    for entry in tup:
+                        #contents of each entry is a list or tuple so keep in quotes to avoid probs with delim
+                        thisLine.append(unicode(entry))
+                else:
+                    thisLine.extend(strVersion.split(','))
 
         #add self.extraInfo
         if (self.extraInfo != None) and not matrixOnly:
@@ -1620,7 +1627,6 @@ class StairHandler(_BaseTrialHandler):
         #check we haven't gone out of the legal range
         if (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
-
 
     def saveAsText(self,fileName,
                    delim='\t',

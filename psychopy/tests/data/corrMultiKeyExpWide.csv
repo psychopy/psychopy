@@ -1,0 +1,3 @@
+trials.thisRepN,trials.thisTrialN,trials.thisN,trials.thisIndex,key_resp.keys,key_resp.rt,date,expName,participant,session,
+0,0,0,0,"['p', 'd', 'o', 'f', 'i']","[0.36064505577087402, 0.55618906021118164, 0.67210602760314941, 0.83822298049926758, 0.95431208610534668]",2012_Sep_08_1431,None,,001,
+1,0,1,0,"['e', 'space']","[0.098556041717529297, 0.43057894706726074]",2012_Sep_08_1431,None,,001,

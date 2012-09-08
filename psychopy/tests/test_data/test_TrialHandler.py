@@ -9,12 +9,12 @@ except:
 from tempfile import mkdtemp
 from numpy.random import random, randint
 
-from psychopy import data, logging
+from psychopy import data, logging, misc
 from psychopy.tests import utils
 from psychopy.tests.utils import TESTS_PATH
 
-TESTSDATA_PATH = pjoin(TESTS_PATH, 'test_data')
 thisPath = os.path.split(__file__)[0]
+fixturesPath = os.path.join(thisPath,'..','data')
 
 class TestTrialHandler:
     def setup_class(self):
@@ -83,6 +83,14 @@ class TestTrialHandler:
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*overwrite.psydat")))
             assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
+    def test_multiKeyResponses(self):
+        dat = misc.fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
+        #test csv output
+        dat.saveAsText(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), appendFile=False)
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), pjoin(fixturesPath,'corrMultiKeyTrials.csv'))
+        #test xlsx output
+        dat.saveAsExcel(pjoin(self.temp_dir, 'testMultiKeyTrials.xlsx'), appendFile=False)
+        utils.compareXlsxFiles(pjoin(self.temp_dir, 'testMultiKeyTrials.xlsx'), pjoin(fixturesPath,'corrMultiKeyTrials.xlsx'))
 
     def test_psydat_filename_collision_failure(self):
         with raises(IOError):
@@ -110,10 +118,10 @@ class TestTrialHandler:
             trials.addData('rand',randResp)
         #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.dlm'), pjoin(thisPath,'corrFullRandom.dlm'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.dlm'), pjoin(fixturesPath,'corrFullRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(thisPath,'corrFullRandom.csv'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandom.csv'))
 
     def test_random_data_output(self):
         #create conditions
@@ -129,10 +137,10 @@ class TestTrialHandler:
             trials.addData('rand',random())
         #test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.dlm'), pjoin(thisPath,'corrRandom.dlm'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.dlm'), pjoin(fixturesPath,'corrRandom.dlm'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(thisPath,'corrRandom.csv'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))
 
 class TestMultiStairs:
     def setup_class(self):
@@ -143,7 +151,7 @@ class TestMultiStairs:
 
     def test_simple(self):
         conditions = data.importConditions(
-            pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
+            pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
                 method='random', nTrials=20)
         for intensity,condition in stairs:
@@ -157,7 +165,7 @@ class TestMultiStairs:
 
     def test_quest(self):
         conditions = data.importConditions(
-            pjoin(TESTSDATA_PATH, 'multiStairConds.xlsx'))
+            pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
                     method='random', nTrials=5)
         for intensity,condition in stairs:
