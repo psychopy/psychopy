@@ -123,6 +123,7 @@ class Window:
                  viewOri  = 0.0,
                  waitBlanking=True,
                  allowStencil=False,
+                 stereo=False,
                  name='window1'):
         """
         :Parameters:
@@ -161,6 +162,10 @@ class Window:
             allowStencil : True or *False*
                 When set to True, this allows operations that use the OpenGL stencil buffer
                 (notably, allowing the class:`~psychopy.visual.Aperture` to be used).
+            stereo : True or *False*
+                If True and your graphics card supports quad buffers then this will be enabled.
+                You can switch between left and right-eye scenes for drawing operations using
+                :func:`~psychopy.visual.Window.setBuffer`
 
             :note: Preferences. Some parameters (e.g. units) can now be given default values in the user/site preferences and these will be used if None is given here. If you do specify a value here it will take precedence over preferences.
 
@@ -215,6 +220,7 @@ class Window:
             self.viewPos = numpy.array(viewPos, numpy.float64)
         else: self.viewPos = viewPos
         self.viewOri  = float(viewOri)
+        self.stereo = stereo #use quad buffer if requested (and if possible)
 
         #setup bits++ if possible
         self.bitsMode = bitsMode #could be [None, 'fast', 'slow']
@@ -554,6 +560,35 @@ class Window:
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
+    def setBuffer(self, buffer, clear=True):
+        """Choose which buffer to draw to ('left' or 'right').
+
+        Requires the Window to be initialised with stereo=True and requires a
+        graphics card that supports quad buffering (e,g nVidia Quadro series)
+
+        PsychoPy always draws to the back buffers, so 'left' will use GL_BACK_LEFT
+        This then needs to be flipped once both eye's buffers have been rendered.
+
+        Typical usage::
+
+            win = visual.Window(...., stereo=True)
+            while True:
+                win.setBuffer('left',clear=True) #clear may not actually be needed
+                #do drawing for left eye
+                win.setBuffer('right', clear=True)
+                #do drawing for right eye
+                win.flip()
+
+        """
+        if buffer=='left':
+            GL.glDrawBuffer(GL.GL_LEFT)
+        elif buffer=='right':
+            GL.glDrawBuffer(GL.GL_RIGHT)
+        else:
+            raise "Unknown buffer '%s' requested in Window.setBuffer" %buffer
+        if clear:
+            self.clearBuffer()
+
     def clearBuffer(self):
         """Clear the back buffer (to which you are currently drawing) without flipping the window.
         Useful if you want to generate movie sequences from the back buffer without actually
@@ -865,9 +900,11 @@ class Window:
     def _setupPyglet(self):
         self.winType = "pyglet"
         if self.allowStencil:
-            config = GL.Config(depth_size=8, double_buffer=True, stencil_size=8)
+            stencil_size=8
         else:
-            config = GL.Config(depth_size=8, double_buffer=True)
+            stencil_size=0
+        config = GL.Config(depth_size=8, double_buffer=True,
+            stencil_size=stencil_size, stereo=self.stereo) #options that the user might want
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
         if len(allScrs)>self.screen:
             thisScreen = allScrs[self.screen]
@@ -888,6 +925,9 @@ class Window:
                                               screen=thisScreen,
                                               style=style
                                           )
+        #provide warning if stereo buffers are requested but unavailable
+        if self.stereo and not GL.gl_info.have_extension(GL.GL_STEREO):
+            logging.warning('A stereo window was requested but the graphics card does not appear to support GL_STEREO')
         #add these methods to the pyglet window
         self.winHandle.setGamma = psychopy.gamma.setGamma
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
