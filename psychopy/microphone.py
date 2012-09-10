@@ -608,7 +608,7 @@ class BatchSpeech2Text(list):
         count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
         return count
     
-def switchOn(sampleRate=48000):
+def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     """You need to switch on the microphone before use, which can take several seconds.
     The only time you can specify the sample rate (in Hz) is during switchOn().
     You can switchOff() and switchOn() with a different rate, and can `resample()`
@@ -625,6 +625,9 @@ def switchOn(sampleRate=48000):
         
     pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
     So recording at 48kHz will generate high-quality archival data, and permit easy downsampling.
+    
+    outputDevice, bufferSize: set these parameters on the pyoServer before booting;
+        None means use pyo's default values
     """
     # imports from pyo, creates globals pyoServer
     t0 = core.getTime()
@@ -642,9 +645,14 @@ def switchOn(sampleRate=48000):
     global pyoServer
     if serverCreated():
         pyoServer.setSamplingRate(sampleRate)
-        pyoServer.boot()
+        
     else:
-        pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
+        pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1)
+    if outputDevice:
+        pyoServer.setOutputDevice(outputDevice)
+    if bufferSize:
+        pyoServer.setBufferSize(bufferSize)
+    pyoServer.boot()
     core.pyoServers.append(pyoServer)
     pyoServer.start()
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
