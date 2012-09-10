@@ -1816,14 +1816,13 @@ class StairHandler(_BaseTrialHandler):
 
 
 class QuestHandler(StairHandler):
-    """Class that implements the Quest algorithm using python code from XXX.  f
-    Like StairHandler, it handles the selection of the next trial and report
-    current values etc. Calls to nextTrial() will fetch the next object given
-    to this handler, according to the method specified.
+    """Class that implements the Quest algorithm for quick measurement of
+    psychophysical thresholds.
 
-    The staircase will terminate when *nTrials* or *XXX* has been exceeded.
+    Uses Andrew Straw's `QUEST <http://www.visionegg.org/Quest>`_, which is a
+    Python port of Denis Pelli's Matlab code.
 
-    Measure threshold using a Weibull psychometric function. Currently, it is
+    Measures threshold using a Weibull psychometric function. Currently, it is
     not possible to use a different psychometric function.
 
     Threshold 't' is measured on an abstract 'intensity' scale, which
@@ -1854,7 +1853,7 @@ class QuestHandler(StairHandler):
             core.wait(0.5)
             # get response
             ...
-            # add response
+            # inform QUEST of the response, needed to calculate next level
             staircase.addData(thisResp)
         ...
         # can now access 1 of 3 suggested threshold levels
@@ -2130,7 +2129,7 @@ class QuestHandler(StairHandler):
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
-            sef._terminate()
+            self._terminate()
 
     def _checkFinished(self):
         """checks if we are finished
