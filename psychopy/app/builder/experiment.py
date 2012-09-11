@@ -849,9 +849,10 @@ class Flow(list):
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):
                     if hasattr(compInFlow, 'name') and component.name==compInFlow.name:
-                        toBeRemoved.append(self[id])
-                for comp in toBeRemoved:
-                    self.remove(comp)
+                        toBeRemoved.append(id)
+                toBeRemoved.reverse()#need to delete from the end backwards or the order changes
+                for id in toBeRemoved:
+                    del self[id]
             else:
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
