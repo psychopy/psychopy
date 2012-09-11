@@ -3872,7 +3872,8 @@ class BuilderFrame(wx.Frame):
         """Paste the current routine from self.app.copiedRoutine to a new page
         in self.routinePanel after promting for a new name
         """
-        if self.app.copiedRoutine == None: return -1
+        if self.app.copiedRoutine == None:
+            return -1
         defaultName = self.exp.namespace.makeValid(self.app.copiedRoutine.name)
         message = 'New name for copy of "%s"?  [%s]' % (self.app.copiedRoutine.name, defaultName)
         dlg = wx.TextEntryDialog(self, message=message, caption='Paste Routine')
@@ -3882,6 +3883,7 @@ class BuilderFrame(wx.Frame):
             if not routineName:
                 routineName = defaultName
             newRoutine.name = self.exp.namespace.makeValid(routineName)
+            newRoutine.params['name'] = newRoutine.name
             self.exp.namespace.add(newRoutine.name)
             self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
             for newComp in newRoutine: # routine == list of components

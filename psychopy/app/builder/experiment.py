@@ -149,8 +149,6 @@ class Experiment:
         self.xmlRoot = etree.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
-
-        ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
         for name, setting in self.settings.params.iteritems():
