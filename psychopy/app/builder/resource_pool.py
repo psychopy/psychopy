@@ -10,6 +10,12 @@ import os.path
 from psychopy.app.builder.components.resource_pool import Resource
 
 class ResourceList(wx.ListView):
+    """
+    Customized ListView showing contents of a resource pool. Used as a main component in
+    ResourcePoolDialog.
+    
+    @see: ResourcePoolDialog
+    """
     def __init__(self, parent, resource_entries):
         super(ResourceList, self).__init__(parent, style=wx.LC_ICON)
         self.InsertColumn(0, "name")
@@ -21,8 +27,12 @@ class ResourceList(wx.ListView):
 
 
 class ResourcePoolDialog(wx.Frame):
+    """
+    A window which allows adding, editing and deleting resources.
+    """
     def __init__(self, parent, pool):
         super(ResourcePoolDialog, self).__init__(parent, title="Resource Pool")
+        self.app = parent.app
         self.pool = pool
         self.resource_list = ResourceList(self, self.make_resource_entries())
         self.init_toolbar()
@@ -36,7 +46,9 @@ class ResourcePoolDialog(wx.Frame):
         toolbar = self.CreateToolBar()
         add_tool_id = wx.NewId()
         self.Bind(wx.EVT_TOOL, self.show_file_add, id=add_tool_id)
-        toolbar.AddLabelTool(add_tool_id, "foo", wx.Bitmap("Resources/fileopen32.png"))
+        bitmap_add_path = os.path.join(self.app.prefs.paths['resources'], "fileopen32.png")
+        bitmap_add = wx.Bitmap(bitmap_add_path)
+        toolbar.AddLabelTool(add_tool_id, "foo", bitmap_add)
         toolbar.Realize()
 
     def add_to_pool(self, file_name):
