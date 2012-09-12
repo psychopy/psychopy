@@ -1372,13 +1372,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(100,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.components=components.getAllComponents()
-        categories = components.getAllCategories()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        categories = ['Favorites']
+        categories.extend(components.getAllCategories())
         #get rid of hidden components
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
                 del self.components[hiddenComp]
         del self.components['SettingsComponent']#also remove settings - that's in toolbar not components panel
+        #get favorites
+        self.favorites = FavoriteComponents(componentsPanel=self)
         #create labels and sizers for each category
         self.componentFromID={}
         self.panels={}
@@ -1401,30 +1404,48 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetupScrolling()
         self.SetDropTarget(FileDropTarget(builder = self.frame))
 
+    def makeFavoriteButtons(self):
+        #add a copy of each favorite to that panel first
+        for thisName in self.favorites.getFavorites():
+            self.addComponentButton(thisName, self.panels['Favorites'])
+        print dir(self.panels['Favorites'])
+        print self.panels['Favorites'].Children
     def makeComponentButtons(self):
+        """Make all the components buttons, including a call to makeFavorite() buttons
+        """
+        self.makeFavoriteButtons()
+        #then add another copy for each category that the component itself lists
         for thisName in self.components.keys():
-            #NB thisComp is a class - we can't use its methods/attribs until it is an instance
             thisComp=self.components[thisName]
+            #NB thisComp is a class - we can't use its methods/attribs until it is an instance
             for category in thisComp.categories:
-                shortName=thisName#but might be shortened below
-                for redundant in ['component','Component']:
-                    if redundant in thisName: shortName=thisName.replace(redundant, "")
+                panel = self.panels[category]
+                self.addComponentButton(thisName, panel)
+    def addComponentButton(self, name, panel):
+        """Create a component button and add it to a specific panel's sizer
+        """
+        thisComp=self.components[name]
+        shortName=name
+        for redundant in ['component','Component']:
+            if redundant in name:
+                shortName=name.replace(redundant, "")
+        if self.app.prefs.app['largeIcons']:
+            thisIcon = components.icons[name]['48add']#index 1 is the 'add' icon
+        else:
+            thisIcon = components.icons[name]['24add']#index 1 is the 'add' icon
+        btn = wx.BitmapButton(self, -1, thisIcon,
+                       size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
+                       name=thisComp.__name__)
+        if name in components.tooltips:
+            thisTip = components.tooltips[name]
+        else:
+            thisTip = shortName
+        btn.SetToolTip(wx.ToolTip(thisTip))
+        self.componentFromID[btn.GetId()]=name
+        self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
+        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
 
-                if self.app.prefs.app['largeIcons']:
-                    thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
-                else:
-                    thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
-                btn = wx.BitmapButton(self, -1, thisIcon,
-                               size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
-                               name=thisComp.__name__)
-                if thisName in components.tooltips:
-                    thisTip = components.tooltips[thisName]
-                else:
-                    thisTip = shortName
-                btn.SetToolTip(wx.ToolTip(thisTip))
-                self.componentFromID[btn.GetId()]=thisName
-                self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
-                self.panels[category].Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
     def onSectionBtn(self,evt):
         buttons = self.panels[evt.GetString()]
         self.toggleSection(buttons)
@@ -1433,6 +1454,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.sizer.Show( ii, not self.sizer.IsShown(ii) )
         self.sizer.Layout()
         self.SetupScrolling()
+    def onRightClick(self, evt):
+        print 'right-clicked', evt.GetEventObject().Name
     def onComponentAdd(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
@@ -1467,6 +1490,69 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
+    def onComponentAddFav(self,evt):
+        compName = self.componentFromID[evt.GetId()]
+        if compName not in self.favourites.getFavorites():
+            self.favorites.makeFavorite(compName)
+            for btn in self.panels['Favorites'].Children:
+                self.addComponentButton(name, panel)
+    def onComponentRemoveFav(self,evt):
+        compName = self.componentFromID[evt.GetId()]
+        if compName in self.favourites.getFavorites():
+            self.favorites.setLevel(compName, -100)
+            for btn in self.panels['Favorites'].Children:
+                print btn.Name
+                if btn.Name == compName:
+                    bt.Destroy()
+
+class FavoriteComponents(object):
+
+    def __init__(self, componentsPanel, threshold=20, neutral=0):
+        self.threshold=20
+        self.neutral=0
+        self.panel = componentsPanel
+        self.frame = componentsPanel.frame
+        self.app = self.frame.app
+        self.prefs = self.app.prefs
+        self.currentLevels  = self.prefs.appDataCfg['builder']['favComponents']
+        self.setDefaults()
+    def setDefaults(self):
+        #set those that are favorites by default
+        for comp in ['ImageComponent','KeyboardComponent','SoundComponent','TextComponent']:
+            if comp not in self.currentLevels.keys():
+                self.currentLevels[comp]=self.threshold
+        for comp in self.panel.components.keys():
+            if comp not in self.currentLevels.keys():
+                self.currentLevels[comp]=self.neutral
+
+    def makeFavorite(self, compName):
+        """Set the value of this component to an arbitraty high value (10000)
+        """
+        self.currentLevels[compName] = 10000
+    def promoteComponent(self, compName, value=1):
+        """Promote this component by a certain value (can be negative to demote)
+        """
+        self.currentLevels[compName] += value
+    def setLevel(self, compName, value=0):
+        """Set the level to neutral (0) favourite (20?) or banned (-1000?)
+        """
+        self.currentLevels[compName] = value
+    def getFavorites(self):
+        """Returns a list of favorite components. Each must have level greater
+        than the threshold and there will be not more than
+        max length prefs['builder']['maxFavorites']
+        """
+        sortedVals = sorted(self.currentLevels.items(), key=self.currentLevels.get)
+        favorites=[]
+        for name, level in sortedVals:
+            if level>=10000:#this has been explicitly requested (or REALLY liked!)
+                favorites.append(name)
+            elif level>=self.threshold and len(favorites)<self.prefs.builder['maxFavorites']:
+                favorites.append(name)
+            else:
+                #either we've run out of levels>10000 or exceeded maxFavs or runout of level>=thresh
+                break
+        return favorites
 
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):

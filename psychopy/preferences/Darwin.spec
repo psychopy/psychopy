@@ -89,6 +89,7 @@
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
     alwaysShowReadme = boolean(default=True)
+    maxFavorites = integer(default=10)
 
 # Settings for connections
 [connections]

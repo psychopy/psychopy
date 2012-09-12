@@ -19,13 +19,16 @@ prevFiles = list(default=list())  #file open on last save
 showIndentGuides = boolean(default=True)
 showWhitespace = boolean(default=True)
 showEOLs= boolean(default=False)
-    
+
 [builder]
 fileHistory = list(default=list())  #files in history
-prevFiles = list(default=list())  #file open on last quit    
-    
+prevFiles = list(default=list())  #file open on last quit
+
+    [[favComponents]]
+    ImageComponent = integer(default=20)
+
     [[frames]]
-    
+
         [[[__many__]]]
         winX = integer(default=50)
         winY = integer(default=50)
@@ -34,7 +37,7 @@ prevFiles = list(default=list())  #file open on last quit
         auiPerspective = string(default='')
         state = option('normal','maxim', default='normal')
         lastOpened = integer(default=0)
-    
+
     [[defaultFrame]]
     winX = integer(default=50)
     winY = integer(default=50)
