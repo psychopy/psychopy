@@ -5,6 +5,8 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+# Author: Jeremy R. Gray, March 2012
+
 from __future__ import division
 import os, sys, shutil, time
 import threading, urllib2, json
@@ -15,8 +17,6 @@ from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
 
-__author__ = 'Jeremy R. Gray'
-
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo; goes False in switchOff
 
@@ -26,20 +26,30 @@ class AudioCapture(object):
         
         Untested whether you can have two recordings going on simultaneously.
         
-        **Example**::
+        **Examples**::
         
             from psychopy import microphone
+            from psychopy import event, visual  # for key events
             
-            microphone.switchOn(sampleRate=16000) # do once when starting, can take 2-3s
+            microphone.switchOn(sampleRate=16000)  # do once
             
-            mic = microphone.AudioCapture()  # prepare to record; only one can be active
-            mic.record(1)  # record for 1.000 seconds, save to mic.savedFile
+            # Record for 1.000 seconds, save to mic.savedFile
+            mic = microphone.AudioCapture()
+            mic.record(1)
             mic.playback()
-            mic.resample(48000, keep=False) # creates a new file, discards original
-            mic.resample(24000, keep=False) # only int ratios are supported
-            # mic.savedFile is now the name of the re-re-sampled file
             
-            microphone.switchOff() # do once, at exit 
+            # Resample, creates a new file discards orig
+            mic.resample(48000, keep=False)
+            
+            # Record new file for 60 sec or until key 'q'
+            w = visual.Window()  # needed for key-events
+            mic.reset()
+            mic.record(60, block=False)
+            while mic.recorder.running:
+                if 'q' in event.getKeys():
+                    mic.stop()
+            
+            microphone.switchOff()  # do once 
         
         Also see Builder Demo "voiceCapture".
             
@@ -54,7 +64,9 @@ class AudioCapture(object):
         Then in record(), do:
             self.recorder.run(file, sec)
         This sets recording parameters, starts recording.
-        This class never handles blocking; SimpleAudioCapture has to do that.
+        To stop a recording that is in progress, do
+            self.stop()
+        This class never handles blocking; AudioCapture has to do that.
         
         Motivation: Doing pyo Record from within a function worked most of the time,
         but failed catastrophically ~1% of time with a bus error. Seemed to be due to
@@ -65,19 +77,22 @@ class AudioCapture(object):
             self.running = False
             if file:
                 inputter = Input(chnl=0, mul=1)
-                recorder = Record(inputter,
+                self.recorder = Record(inputter,
                                file,
                                chnls=2,
                                fileformat=0,
                                sampletype=sampletype,
                                buffering=4)
-                self.clean = Clean_objects(sec, recorder)
+                self.clean = Clean_objects(sec, self.recorder)
         def run(self, file, sec, sampletype):
             self.__init__(file, sec, sampletype)
             self.running = True
             self.clean.start() # controls recording onset (now) and offset (later)
-            threading.Timer(sec, self.stop).start() # set running flag False
+            threading.Timer(sec, self._stop).start() # set running flag False
         def stop(self):
+            self.recorder.stop()
+            self._stop()
+        def _stop(self):
             self.running = False
             
     def __init__(self, name='mic', file='', saveDir='', sampletype=0):
@@ -126,6 +141,22 @@ class AudioCapture(object):
 
     def __del__(self):
         pass
+    def stop(self):
+        """Interrupt a recording that is in progress; close & keep the file.
+        
+        Ends the recording before the duration that was initially specified. The
+        same file name is retained, with the same onset time but a shorter duration.
+        
+        The same recording cannot be resumed after a stop (it is not a pause),
+        but you can start a new one.
+        """
+        if not self.recorder.running:
+            logging.exp('%s: Stop requested, but no record() in progress' % self.loggingId )
+            return
+        self.duration = core.getTime() - self.onset  # new shorter duration
+        self.recorder.stop()
+        logging.data('%s: Record stopped early, new duration %.3fs' % (self.loggingId, self.duration))
+
     def reset(self):
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, core.getTime()))
@@ -155,7 +186,7 @@ class AudioCapture(object):
         
         if block:
             core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
-                # actual timing is done by Clean_object in _theGlobalRecordingThread()
+                # actual timing is done by Clean_objects
             logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, core.getTime(), core.getTime() - t0) )
         else:
@@ -577,7 +608,7 @@ class BatchSpeech2Text(list):
         count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
         return count
     
-def switchOn(sampleRate=48000):
+def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     """You need to switch on the microphone before use, which can take several seconds.
     The only time you can specify the sample rate (in Hz) is during switchOn().
     You can switchOff() and switchOn() with a different rate, and can `resample()`
@@ -594,6 +625,9 @@ def switchOn(sampleRate=48000):
         
     pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
     So recording at 48kHz will generate high-quality archival data, and permit easy downsampling.
+    
+    outputDevice, bufferSize: set these parameters on the pyoServer before booting;
+        None means use pyo's default values
     """
     # imports from pyo, creates globals pyoServer
     t0 = core.getTime()
@@ -611,9 +645,14 @@ def switchOn(sampleRate=48000):
     global pyoServer
     if serverCreated():
         pyoServer.setSamplingRate(sampleRate)
-        pyoServer.boot()
+        
     else:
-        pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1).boot()
+        pyoServer = Server(sr=sampleRate, nchnls=2, duplex=1)
+    if outputDevice:
+        pyoServer.setOutputDevice(outputDevice)
+    if bufferSize:
+        pyoServer.setBufferSize(bufferSize)
+    pyoServer.boot()
     core.pyoServers.append(pyoServer)
     pyoServer.start()
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
@@ -650,15 +689,18 @@ if __name__ == '__main__':
                 print i, mic.record(2)
                 mic.resample(8000, keep=False) # removes orig file
                 os.remove(mic.savedFile) # removes downsampled file
-        else: # interactive playback test
-            testDuration = 2
+        else: # two interactive record + playback tests
+            testDuration = 2  # sec
             raw_input('testing record and playback, press <return> to start: ')
             print "say something:",
             sys.stdout.flush()
-            mic.record(testDuration, block=False) # block False returns immediately
-            core.wait(testDuration) # you need testDuration in record and core.wait
+            # tell it to record for 10s:
+            mic.record(testDuration * 5, block=False) # block False returns immediately
+                # which you want if you might need to stop a recording early
+            core.wait(testDuration)  # we'll stop the record after 2s, not 10
+            mic.stop()
             print
-            print 'record done; sleeping 1s'
+            print 'record stopped; sleeping 1s'
             sys.stdout.flush()
             core.wait(1)
             print 'start playback ',
@@ -668,11 +710,12 @@ if __name__ == '__main__':
             sys.stdout.flush()
             os.remove(mic.savedFile)
             mic.reset()
+            
+            # do another record, fixed duration, use block=True
             raw_input('<ret> for another: ')
             print "say something else:",
             sys.stdout.flush()
             mic.record(testDuration, file='m') # block=True by default; here use explicit file name
-            
             mic.playback()
             print mic.savedFile
             os.remove(mic.savedFile)

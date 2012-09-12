@@ -27,7 +27,7 @@ print "(Selected) Extensions:"
 extensionsOfInterest=['GL_ARB_multitexture', 
     'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
     'GL_ARB_shader_objects','GL_ARB_vertex_shader',
-    'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
+    'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']
 for ext in extensionsOfInterest:
     print "\t", bool(gl_info.have_extension(ext)), ext
 #also determine nVertices that can be used in vertex arrays

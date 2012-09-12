@@ -14,17 +14,25 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
+:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
 PsychoPy 1.74
 ------------------------------
+
+PsychoPy 1.74.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED: larger Code Component boxes (and fixed bug with being only one line on linux)
+* FIXED: Builder code syntax error when using Mouse set state 'every frame'
+* FIXED: Builder was erroneously using 'estimated duration' for constraining non-slip timing
+* FIXED: Builder couldn't open Experiment Settings if the expected screen number didn't exist on this system
 
 PsychoPy 1.74.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (released Aug 2012)
 
-* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks piwaniuk)
+* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks Piotr Iwaniuk)
 * IMPROVED: serial (RS232) interface to fORP button box to avoid recording repeated presses (thanks Nate Vack). Does not affect use of fORP box from USB interface.
 
 PsychoPy 1.74.02

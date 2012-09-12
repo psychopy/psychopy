@@ -6,8 +6,9 @@ import wx
 from wx.lib import platebtn, scrolledpanel
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 #import wx.lib.agw.aquabutton as AB
-import wx.aui
+import wx.aui, wx.stc
 import sys, os, glob, copy, platform, shutil, traceback
+import keyword
 import py_compile, codecs
 import csv, numpy
 import experiment, components
@@ -75,6 +76,161 @@ class WindowFrozen(object):
             return
         if self.ctrl is not None:#check it hasn't been deleted
             self.ctrl.Thaw()
+
+class CodeBox(wx.stc.StyledTextCtrl):
+    # this comes mostly from the wxPython demo styledTextCtrl 2
+    def __init__(self, parent, ID, prefs,
+                 pos=wx.DefaultPosition, size=wx.Size(100,160),#set the viewer to be small, then it will increase with wx.aui control
+                 style=0):
+        wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
+        #JWP additions
+        self.notebook=parent
+        self.prefs = prefs
+        self.UNSAVED=False
+        self.filename=""
+        self.fileModTime=None # for checking if the file was modified outside of CodeEditor
+        self.AUTOCOMPLETE = True
+        self.autoCompleteDict={}
+        #self.analyseScript()  #no - analyse after loading so that window doesn't pause strangely
+        self.locals = None #this will contain the local environment of the script
+        self.prevWord=None
+        #remove some annoying stc key commands
+        self.CmdKeyClear(ord('['), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord(']'), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL)
+        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL|wx.stc.STC_SCMOD_SHIFT)
+
+        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self.SetKeyWords(0, " ".join(keyword.kwlist))
+
+        self.SetProperty("fold", "1")
+        self.SetProperty("tab.timmy.whinge.level", "4")#4 means 'tabs are bad'; 1 means 'flag inconsistency'
+        self.SetMargins(0,0)
+        self.SetUseTabs(False)
+        self.SetTabWidth(4)
+        self.SetIndent(4)
+        self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
+        #self.SetBufferedDraw(False)
+        self.SetViewEOL(False)
+        self.SetEOLMode(wx.stc.STC_EOL_LF)
+        self.SetUseAntiAliasing(True)
+        #self.SetUseHorizontalScrollBar(True)
+        #self.SetUseVerticalScrollBar(True)
+
+        #self.SetEdgeMode(wx.stc.STC_EDGE_BACKGROUND)
+        #self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
+        #self.SetEdgeColumn(78)
+
+        # Setup a margin to hold fold markers
+        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
+        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
+        self.SetMarginSensitive(2, True)
+        self.SetMarginWidth(2, 12)
+        self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
+
+        self.SetIndentationGuides(False)
+
+        # Like a flattened tree control using square headers
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,    wx.stc.STC_MARK_BOXMINUS,          "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,        wx.stc.STC_MARK_BOXPLUS,           "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,     wx.stc.STC_MARK_VLINE,             "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,    wx.stc.STC_MARK_LCORNER,           "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,     wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
+        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
+
+        #self.DragAcceptFiles(True)
+        #self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
+        #self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
+        ##self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        #self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
+        #self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        #self.SetDropTarget(FileDropTarget(coder = self.coder))
+
+        self.setupStyles()
+
+    def setupStyles(self):
+
+        if wx.Platform == '__WXMSW__':
+            faces = { 'size' : 10}
+        elif wx.Platform == '__WXMAC__':
+            faces = { 'size' : 14}
+        else:
+            faces = { 'size' : 12}
+        if self.prefs.coder['codeFontSize']:
+            faces['size'] = int(self.prefs.coder['codeFontSize'])
+        faces['small']=faces['size']-2
+        # Global default styles for all languages
+        faces['code'] = self.prefs.coder['codeFont']#,'Arial']#use arial as backup
+        faces['comment'] = self.prefs.coder['commentFont']#,'Arial']#use arial as backup
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
+        self.StyleClearAll()  # Reset all to be like the default
+
+        # Global default styles for all languages
+        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,     "face:%(code)s,size:%(size)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,  "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR, "face:%(comment)s" % faces)
+        self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,  "fore:#FFFFFF,back:#0000FF,bold")
+        self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
+
+        # Python styles
+        # Default
+        self.StyleSetSpec(wx.stc.STC_P_DEFAULT, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
+        # Comments
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(comment)s,size:%(size)d" % faces)
+        # Number
+        self.StyleSetSpec(wx.stc.STC_P_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
+        # String
+        self.StyleSetSpec(wx.stc.STC_P_STRING, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
+        # Single quoted string
+        self.StyleSetSpec(wx.stc.STC_P_CHARACTER, "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
+        # Keyword
+        self.StyleSetSpec(wx.stc.STC_P_WORD, "fore:#00007F,bold,size:%(size)d" % faces)
+        # Triple quotes
+        self.StyleSetSpec(wx.stc.STC_P_TRIPLE, "fore:#7F0000,size:%(size)d" % faces)
+        # Triple double quotes
+        self.StyleSetSpec(wx.stc.STC_P_TRIPLEDOUBLE, "fore:#7F0000,size:%(size)d" % faces)
+        # Class name definition
+        self.StyleSetSpec(wx.stc.STC_P_CLASSNAME, "fore:#0000FF,bold,underline,size:%(size)d" % faces)
+        # Function or method name definition
+        self.StyleSetSpec(wx.stc.STC_P_DEFNAME, "fore:#007F7F,bold,size:%(size)d" % faces)
+        # Operators
+        self.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
+        # Identifiers
+        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER, "fore:#000000,face:%(code)s,size:%(size)d" % faces)
+        # Comment-blocks
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK, "fore:#7F7F7F,size:%(size)d" % faces)
+        # End of line where string is not closed
+        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
+
+        self.SetCaretForeground("BLUE")
+    def setStatus(self, status):
+        if status=='error':
+            color=(255,210,210,255)
+        elif status=='changed':
+            color=(220,220,220,255)
+        else:
+            color=(255,255,255,255)
+        self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, color)
+        self.setupStyles()#then reset fonts again on top of that color
+    def OnMarginClick(self, evt):
+        # fold and unfold as needed
+        if evt.GetMargin() == 2:
+            lineClicked = self.LineFromPosition(evt.GetPosition())
+
+            if self.GetFoldLevel(lineClicked) & wx.stc.STC_FOLDLEVELHEADERFLAG:
+                if evt.GetShift():
+                    self.SetFoldExpanded(lineClicked, True)
+                    self.Expand(lineClicked, True, True, 1)
+                elif evt.GetControl():
+                    if self.GetFoldExpanded(lineClicked):
+                        self.SetFoldExpanded(lineClicked, False)
+                        self.Expand(lineClicked, False, True, 0)
+                    else:
+                        self.SetFoldExpanded(lineClicked, True)
+                        self.Expand(lineClicked, True, True, 100)
+                else:
+                    self.ToggleFold(lineClicked)
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -1300,7 +1456,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
 class ParamCtrls:
-    def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False):
+    def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
         by the calling dlg.
@@ -1355,10 +1511,16 @@ class ParamCtrls:
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
         elif label in components.code.codeParamNames[:]:
+            self.valueCtrl = CodeBox(parent,-1,
+                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
+                 style=0, prefs=appPrefs)
+
+            if len(param.val):
+                self.valueCtrl.AddText(unicode(param.val))
             #code input fields one day change these to wx.stc fields?
-            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-                style=wx.TE_MULTILINE,
-                size=wx.Size(self.valueWidth,-1))
+#            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
+#                style=wx.TE_MULTILINE,
+#                size=wx.Size(self.valueWidth*2,160))
         elif param.valType=='bool':
             #only True or False - use a checkbox
              self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
@@ -1407,6 +1569,8 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
         """
         if ctrl==None: return None
+        elif hasattr(ctrl,'GetText'):
+            return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
             return ctrl.GetValue()
         elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
@@ -1635,13 +1799,13 @@ class _BaseParamsDlg(wx.Dialog):
             label=param.label
         else:
             label=fieldName
-        ctrls=ParamCtrls(dlg=self, label=label,param=param, advanced=advanced)
+        ctrls=ParamCtrls(dlg=self, label=label,param=param, advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
-        sizer.Add(ctrls.nameCtrl, (currRow,0), (1,1),wx.ALIGN_RIGHT| wx.LEFT|wx.RIGHT,border=5 )
-        sizer.Add(ctrls.valueCtrl, (currRow,1) , flag=wx.EXPAND| wx.LEFT|wx.RIGHT,border=5)
+        sizer.Add(ctrls.nameCtrl, (currRow,0), flag=wx.ALIGN_RIGHT| wx.LEFT|wx.RIGHT,border=5 )
+        sizer.Add(ctrls.valueCtrl, (currRow,1) , flag=wx.EXPAND| wx.ALL,border=5)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
@@ -1649,19 +1813,13 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName in ['text', 'Text']:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
-        elif fieldName=='color':
+        elif fieldName in ['color', 'Color']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif fieldName=='Experiment info':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         elif fieldName in self.codeParamNames:
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.checkCodeSyntax)
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.onTextEventCode)
-            ctrls.valueCtrl.Bind(wx.EVT_NAVIGATION_KEY, self.onNavigationCode) #catch Tab
-            id = wx.NewId()
-            self.codeFieldNameFromID[id] = fieldName
-            self.codeIDFromFieldName[fieldName] = id
-            ctrls.valueCtrl.SetId(id)
-            #print id, fieldName
+            sizer.AddGrowableRow(currRow)#doesn't seem to work though
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName=='Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
         #increment row number
@@ -1787,50 +1945,36 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
         #put it all together
-        self.mainSizer.Add(self.ctrlSizer,flag=wx.GROW)#add main controls
+        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
-            self.mainSizer.Add(self.advPanel,0,flag=wx.GROW|wx.ALL,border=5)
+            self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
         self.SetSizerAndFit(self.border)
 
-        # run syntax check for a code component dialog:
-        if hasattr(self, 'codeParamNames'):
-            valTypes = [self.params[param].valType for param in self.params.keys()
-                        if param in self.codeParamNames] # not configured to properly handle code fields except in code components
-            if 'code' in valTypes:
-                self.checkCodeSyntax()
-
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
-    def onNavigationCode(self, event):
-        #print event.GetId(),event.GetCurrentFocus() # 0 None
-        return
-
-        fieldName = self.codeFieldNameFromID[event.GetId()] #fails
-        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
-        val = self.paramCtrls[fieldName].getValue()
-        newVal = val[:pos] + '    ' + val[pos:]
-        self.paramCtrls[fieldName].valueCtrl.ChangeValue(newVal)
-        self.paramCtrls[fieldName].valueCtrl.SendTextUpdatedEvent()
 
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
         """
-        #print event.GetId()
-        fieldName = self.codeFieldNameFromID[event.GetId()]
-        val = self.paramCtrls[fieldName].getValue()
-        pos = self.paramCtrls[fieldName].valueCtrl.GetInsertionPoint()
-        if pos >= 1 and val[pos-1] != "\n": # only do syntax check at end of line
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(215,215,215,255)) # grey, "changed"
-        elif pos >= 2 and val[pos-2] != ":": # ... but skip the check if end of line is colon
-            self._setNameColor(self._testCompile(fieldName))
-    def _testCompile(self, fieldName):
+        codeBox = event.GetEventObject()
+        textBeforeThisKey = codeBox.GetText()
+        keyCode = event.GetKeyCode()
+        pos = event.GetPosition()
+        if keyCode<256 and keyCode not in [10,13]: # ord(10)='\n', ord(13)='\l'
+            #new line is trigger to check syntax
+            codeBox.setStatus('changed')
+        elif keyCode in [10,13] and len(textBeforeThisKey) and textBeforeThisKey[-1] != ':':
+            # ... but skip the check if end of line is colon ord(58)=':'
+            self._setNameColor(self._testCompile(codeBox))
+        event.Skip()
+    def _testCompile(self, ctrl):
         """checks code.val for legal python syntax, sets field bg color, returns status
 
         method: writes code to a file, try to py_compile it. not intended for
@@ -1840,21 +1984,24 @@ class _BaseParamsDlg(wx.Dialog):
         # definitely don't want eval() or exec()
         tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
         tmpFile = os.path.join(tmpDir, 'tmp')
-        val = self.paramCtrls[fieldName].getValue() # better than getParams(), which sets them, messes with cancel
+        if hasattr(ctrl,'GetText'):
+            val = ctrl.GetText()
+        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+            val = ctrl.GetValue()
+        else:
+            raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
         f = codecs.open(tmpFile, 'w', 'utf-8')
         f.write(val)
         f.close()
         #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
             py_compile.compile(tmpFile, doraise=True)
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white, ok
             syntaxCheck = True # syntax fine
+            ctrl.setStatus('OK')
         except: # hopefully SyntaxError, but can't check for it; checking messes with things
-            self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+#            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+            ctrl.setStatus('error')
             syntaxCheck = False # syntax error
-            # need to capture stderr to get the msg, which has line number etc
-            #msg = py_compile.compile(tmpFile)
-            #self.nameOKlabel.SetLabel(str(msg))
         # clean up tmp files:
         shutil.rmtree(tmpDir, ignore_errors=True)
 
@@ -1863,14 +2010,18 @@ class _BaseParamsDlg(wx.Dialog):
     def checkCodeSyntax(self, event=None):
         """Checks syntax for whole code component by code box, sets box bg-color.
         """
-        goodSyntax = True
-        for fieldName in self.codeParamNames:
-            if self.params[fieldName].valType != 'code':
-                continue
-            if not self.paramCtrls[fieldName].getValue().strip(): # if basically empty
-                self.paramCtrls[fieldName].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
-                continue # skip test
-            goodSyntax = goodSyntax and self._testCompile(fieldName) # test syntax
+        if hasattr(event, 'GetEventObject'):
+            codeBox = event.GetEventObject()
+        elif hasattr(event,'GetText'):
+            codeBox = event #we were given the control itself, not an event
+        else:
+            print 'checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event)
+            logging.error('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
+        text = codeBox.GetText()
+        if not text.strip(): # if basically empty
+            codeBox.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            return # skip test
+        goodSyntax = self._testCompile(codeBox) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
@@ -2407,6 +2558,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             num_displays = wx.Display.GetCount()
             if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
                 logging.error("User requested non-existent screen")
+                screenN=0
             else:
                 screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
@@ -3810,7 +3962,8 @@ class BuilderFrame(wx.Frame):
         """Paste the current routine from self.app.copiedRoutine to a new page
         in self.routinePanel after promting for a new name
         """
-        if self.app.copiedRoutine == None: return -1
+        if self.app.copiedRoutine == None:
+            return -1
         defaultName = self.exp.namespace.makeValid(self.app.copiedRoutine.name)
         message = 'New name for copy of "%s"?  [%s]' % (self.app.copiedRoutine.name, defaultName)
         dlg = wx.TextEntryDialog(self, message=message, caption='Paste Routine')
@@ -3820,6 +3973,7 @@ class BuilderFrame(wx.Frame):
             if not routineName:
                 routineName = defaultName
             newRoutine.name = self.exp.namespace.makeValid(routineName)
+            newRoutine.params['name'] = newRoutine.name
             self.exp.namespace.add(newRoutine.name)
             self.exp.addRoutine(newRoutine.name, newRoutine)#add to the experiment
             for newComp in newRoutine: # routine == list of components

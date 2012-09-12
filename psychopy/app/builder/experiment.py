@@ -178,8 +178,6 @@ class Experiment:
         self.xmlRoot = etree.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
-
-        ##in the following, anything beginning '
         #store settings
         settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
         for name, setting in self.settings.params.iteritems():
@@ -890,9 +888,10 @@ class Flow(list):
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):
                     if hasattr(compInFlow, 'name') and component.name==compInFlow.name:
-                        toBeRemoved.append(self[id])
-                for comp in toBeRemoved:
-                    self.remove(comp)
+                        toBeRemoved.append(id)
+                toBeRemoved.reverse()#need to delete from the end backwards or the order changes
+                for id in toBeRemoved:
+                    del self[id]
             else:
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
@@ -1056,15 +1055,16 @@ class Routine(list):
         for n, component in enumerate(self):
             if component.params.has_key('startType'):
                 start, duration, nonSlip = component.getStartAndDuration()
-                if duration==FOREVER:
-                    # only the start of an unlimited event should contribute to maxTime
-                    duration = 1 # plus some minimal duration so it's visible
+                if not nonSlip:
                     nonSlipSafe=False
+                if duration==FOREVER:
+                    # only the *start* of an unlimited event should contribute to maxTime
+                    duration = 1 # plus some minimal duration so it's visible
+                #now see if we have a end t value that beats the previous max
                 try:
                     thisT=start+duration#will fail if either value is not defined
                 except:
                     thisT=0
-                    nonSlipSafe=False
                 maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
             maxTime=10
