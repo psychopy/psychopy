@@ -61,7 +61,7 @@ class ImageComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
-        buff.writeIndented("%s=visual.ImageStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
+        buff.writeIndented("%s = visual.ImageStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
         buff.writeIndented("    image=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )

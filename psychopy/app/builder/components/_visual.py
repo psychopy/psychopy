@@ -69,7 +69,7 @@ class VisualComponent(_base.BaseComponent):
         """Write the code that will be called every frame
         """
         buff.writeIndented("\n")
-        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.setAutoDraw(True)\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
@@ -80,7 +80,7 @@ class VisualComponent(_base.BaseComponent):
             buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
         if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
-            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)#to exit the if block
@@ -109,7 +109,7 @@ class VisualComponent(_base.BaseComponent):
                 paramCaps = thisParamName.capitalize()
 
             if thisParam.updates=='set every frame':
-                loggingStr = ',log=False'
+                loggingStr = ', log=False'
             else:
                 loggingStr=''
             #color is slightly special

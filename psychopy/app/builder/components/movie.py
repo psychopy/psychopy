@@ -57,7 +57,7 @@ class MovieComponent(VisualComponent):
             params = components.getInitVals(self.params)
         else:
             params = self.params
-        buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+        buff.writeIndented("%s = visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
         buff.writeIndented("    filename=%(movie)s,\n" %(params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n" %(params))
         if self.params['size'].val != '':
@@ -79,7 +79,7 @@ class MovieComponent(VisualComponent):
         """Write the code that will be called every frame
         """
         buff.writeIndented("\n")
-        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         #buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" %(self.params['name']))
@@ -90,11 +90,12 @@ class MovieComponent(VisualComponent):
             buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
         if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
-            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(+1, relative=True)#to exit the if block
         #do force end of trial code
         if self.params['forceEndRoutine'].val==True:
-            buff.writeIndented("if %s.status==FINISHED: continueRoutine=False\n" %(self.params['name']))
+            buff.writeIndented("if %s.status == FINISHED:  # force-end the routine\n" % (self.params['name']))
+            buff.writeIndented("    continueRoutine = False\n")
 

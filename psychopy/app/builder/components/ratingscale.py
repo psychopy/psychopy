@@ -118,7 +118,7 @@ class RatingScaleComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
-        init_str = "%(name)s=visual.RatingScale(win=win, name='%(name)s'" % (self.params)
+        init_str = "%(name)s = visual.RatingScale(win=win, name='%(name)s'" % (self.params)
         if self.params['customize_everything'].val.strip() != '':
             # clean it up a little, remove win=*, leading / trailing typos
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)
@@ -192,8 +192,7 @@ class RatingScaleComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         name = self.params['name']
-        buff.writeIndented("\n")
-        buff.writeIndented("#*%(name)s* updates\n" %(self.params))
+        buff.writeIndented("# *%(name)s* updates\n" %(self.params))
         # try to handle blank start condition gracefully:
         if not self.params['startVal'].val.strip():
             self.params['startVal'].val = 0 # time, frame
@@ -228,7 +227,7 @@ class RatingScaleComponent(BaseComponent):
         #write the actual code
         if currLoop and (self.params['storeRating'].val or self.params['storeRatingTime'].val):
             if currLoop.type in ['StairHandler', 'QuestHandler']:
-                buff.writeIndented("#NB PsychoPy doesn't handle a 'correct answer' for ratingscale " +
+                buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for ratingscale " +
                                "events so doesn't know what to tell a StairHandler (or QuestHandler)")
             elif currLoop.type == 'TrialHandler':
                 if self.params['storeRating'].val == True:
@@ -238,5 +237,5 @@ class RatingScaleComponent(BaseComponent):
                     buff.writeIndented("%s.addData('%s.rt', %s.getRT())\n" \
                                        % (currLoop.params['name'], name, name))
             else:
-                buff.writeIndented("#RatingScaleComponent: unknown loop type, not saving any data.")
+                buff.writeIndented("# RatingScaleComponent: unknown loop type, not saving any data.")
 
