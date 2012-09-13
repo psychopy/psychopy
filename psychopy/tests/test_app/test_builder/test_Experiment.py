@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 import codecs
 from psychopy.core import shellCall
 from psychopy.tests import utils
+import pytest
 import locale
 
 #from psychopy.info import _getSha1hexDigest as sha1hex
@@ -184,7 +185,7 @@ class TestExpt():
         #    shutil.copyfile(f, path.join(self.tmp_dir, path.basename(f)))
         test_psyexp = list(glob.glob(path.join(self.tmp_dir, '*.psyexp')))
         if len(test_psyexp) == 0:
-            utils.skip("No test .psyexp files found (no Builder demos??)")
+            pytest.skip("No test .psyexp files found (no Builder demos??)")
 
         diff_in_file_py = '' # will later assert that this is empty
         #diff_in_file_psyexp = ''
@@ -222,10 +223,10 @@ class TestExpt():
 
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
-        utils.skip()  # test is stalling, hangs up before any text is displayed
+        pytest.skip()  # test is stalling, hangs up before any text is displayed
 
         if sys.platform.startswith('linux'):
-            utils.skip("response emulation thread not working on linux yet")
+            pytest.skip("response emulation thread not working on linux yet")
 
         os.chdir(self.tmp_dir)
 

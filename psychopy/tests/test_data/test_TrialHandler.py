@@ -2,16 +2,12 @@
 import os, sys, glob
 from os.path import join as pjoin
 import shutil
-try:
-    from pytest import raises
-except:
-    from nose.tools import raises
+from pytest import raises
 from tempfile import mkdtemp
-from numpy.random import random, randint
+from numpy.random import random
 
-from psychopy import data, logging, misc
+from psychopy import data, misc
 from psychopy.tests import utils
-from psychopy.tests.utils import TESTS_PATH
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')

@@ -5,16 +5,14 @@
 import wx
 from wx.lib import platebtn, scrolledpanel
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-#import wx.lib.agw.aquabutton as AB
 import wx.aui, wx.stc
-import sys, os, glob, copy, platform, shutil, traceback
+import sys, os, glob, copy, shutil, traceback
 import keyword
 import py_compile, codecs
-import csv, numpy
+import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
 from psychopy import data, logging, misc, gui
-import re
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
@@ -467,10 +465,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.appData['flowSize'] = max(0, self.appData['flowSize'] - 1)
         self.clearMode() # redraws
     def editLoopProperties(self, event=None, loop=None):
-        if event:#we got here from a wx.button press (rather than our own drawn icons)
-            loopName=event.EventObject.GetName()
-            loop=self.routine.getLoopFromName(loopName)
-
         #add routine points to the timeline
         self.setDrawPoints('loops')
         self.draw()
@@ -1389,7 +1383,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for categ in categories:
             sectionBtn = platebtn.PlateButton(self,-1,categ,
                 style=platebtn.PB_STYLE_DROPARROW)
-            sectionBtn.Bind(wx.EVT_BUTTON, self.onSectionBtn)
+            sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
+            sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
                 self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
             else:
@@ -1444,12 +1439,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             thisTip = shortName
         btn.SetToolTip(wx.ToolTip(thisTip))
         self.componentFromID[btn.GetId()]=name
-        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick) #use btn.bind instead of self.Bind in oder to trap event here
         self.Bind(wx.EVT_BUTTON, self.onClick, btn)
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
 
     def onSectionBtn(self,evt):
-        buttons = self.panels[evt.GetString()]
+        if hasattr(evt,'GetString'):
+            buttons = self.panels[evt.GetString()]
+        else:
+            btn = evt.GetEventObject()
+            buttons = self.panels[btn.Label]
         self.toggleSection(buttons)
     def toggleSection(self, section):
         ii = self.sizerList.index(section)
@@ -1637,7 +1636,7 @@ class ParamCtrls:
         if noCtrls: return#we don't need to do any more
 
         if type(param.val)==numpy.ndarray:
-            initial=initial.tolist() #convert numpy arrays to lists
+            initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
         if param.valType == 'code' and label != 'name':
             displayLabel = label+' $'
@@ -1726,7 +1725,7 @@ class ParamCtrls:
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            print "failed to retrieve the value for %s" %(ctrl)
             return None
     def _setCtrlValue(self, ctrl, newVal):
         """Set the current value form the control (whatever type of ctrl it
@@ -1743,7 +1742,7 @@ class ParamCtrls:
         elif hasattr(ctrl, 'SetLabel'): #for wx.StaticText
             ctrl.SetLabel(newVal)
         else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            print "failed to retrieve the value for %s" %(ctrl)
     def getValue(self):
         """Get the current value of the value ctrl
         """
@@ -4122,14 +4121,14 @@ class ReadmeFrame(wx.Frame):
         try:
             f=codecs.open(filename, 'r', 'utf-8')
         except IOError, err:
-            logging.warning("Found readme file for %s and appear to have permissions, but can't open" %expName)
+            logging.warning("Found readme file for %s and appear to have permissions, but can't open" %self.expName)
             logging.warning(err)
             return False
             #attempt to read
         try:
             readmeText=f.read().replace("\r\n", "\n")
         except:
-            logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %expName)
+            logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %self.expName)
             return False
         f.close()
         self._fileLastModTime=os.path.getmtime(filename)
@@ -4162,7 +4161,7 @@ def appDataToFrames(prefs):
 def framesToAppData(prefs):
     pass
 def _relpath(path, start='.'):
-    """This code is based on os.path.repath in the Python 2.6 distribution,
+    """This code is based on os.path.relpath in the Python 2.6 distribution,
     included here for compatibility with Python 2.5"""
 
     if not path:
@@ -4176,5 +4175,5 @@ def _relpath(path, start='.'):
 
     rel_list = ['..'] * (len(start_list)-i) + path_list[i:]
     if not rel_list:
-        return curdir
+        return path
     return os.path.join(*rel_list)
