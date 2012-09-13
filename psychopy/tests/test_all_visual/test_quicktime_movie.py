@@ -1,11 +1,11 @@
 from psychopy import makeMovies
-from psychopy.tests import utils
+import pytest
 import sys
 
 def test_quicktime():
 
     if sys.platform!='darwin':
-        utils.skip("Only OS X can make Quicktime movies")
+        pytest.skip("Only OS X can make Quicktime movies")
     import numpy, time, os
     mov_name = "qtTest.mov"
     t0=time.time()
@@ -19,4 +19,4 @@ def test_quicktime():
     os.unlink(mov_name)
 
 if __name__=='__main__':
-    testQuicktime()
+    test_quicktime()

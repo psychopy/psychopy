@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
-import StringIO, copy
+import copy
 if sys.argv[-1] in ['-v', '--version']:
     print 'PsychoPy2, version %s (c)Jonathan Peirce, 2012, GNU GPL license' %psychopy.__version__
     sys.exit()
@@ -45,7 +45,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
 from psychopy.app import connections
-import sys, os, threading, time, platform
+import sys, os, threading
 
 """
 knowing if the user has admin priv is generally a good idea, but not actually needed.
@@ -124,8 +124,7 @@ class PsychoPyApp(wx.App):
         #but then that they end up being local so keep track in self
         if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy import compatibility
-        from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, dialogs, wxIDs, urls
+        from psychopy.app import coder, builder, dialogs, wxIDs, urls #import coder and builder here but only use them later
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs

@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, platform, time, glob, copy
+import sys, os, glob, copy
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
@@ -1077,11 +1077,11 @@ class Window:
 
         #attach texture to the frame buffer
         FB.glFramebufferTexture2DEXT (FB.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
-                                      GL.GL_TEXTURE_2D, self.frameTexture, 0);
+                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
         FB.glFramebufferRenderbufferEXT(FB.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer);
+                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer)
 
-        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT);
+        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT)
         if status != FB.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.warning("Error in framebuffer activation")
             return
@@ -4995,7 +4995,7 @@ class Line(ShapeStim):
             self.win.logOnFlip("Set %s start=%s" %(self.name, start),
                 level=logging.EXP,obj=self)
 
-    def setEnd(self, end):
+    def setEnd(self, end, log=True):
         """Changes the end point of the line. Argument should be a tuple, list
         or 2x1 array specifying the coordinates of the end point"""
         self.end = end
@@ -5494,7 +5494,7 @@ class BufferImageStim(GratingStim):
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
             if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%self.desiredRGB) #AOH
                 self.desiredRGB=[0.0,0.0,1.0]
         else:
             self.desiredRGB = (self.rgb * self.contrast)/255.0
@@ -6160,8 +6160,8 @@ class RatingScale:
                 else:
                     customMarker.color = 'DarkBlue'
                 markerColor = customMarker.color
-                if not hasattr(marker, 'name'):
-                    marker.name = 'customMarker'
+                if not hasattr(self.marker, 'name'):
+                    self.marker.name = 'customMarker'
         elif self.markerStyle == 'triangle': # and sys.platform in ['linux2', 'darwin']):
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
@@ -7387,7 +7387,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         elif showText:
             myMsg.draw()
         if doWait:
-            wait(delayTime)
+            core.wait(delayTime)
         drawt.append(core.getTime())
         myWin.flip()
     rush(False)

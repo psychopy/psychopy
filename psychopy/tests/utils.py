@@ -9,15 +9,9 @@ try:
     import pytest
     usePytest=True
 except:
-    import nose
     usePytest=False
 
-if usePytest:
-    from pytest import skip as _skip
-else:
-    logging.warning("pytest was not found. This is the recommended tool for testing in PsychoPy (rather than nose)")
-    from nose.plugins.skip import SkipTest as _skip
-
+from pytest import skip
 
 # define the path where to find testing data
 # so tests could be ran from any location
@@ -145,13 +139,3 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError, error
-
-
-def skip(msg=""):
-    """Helper function to allow skipping of tests from either pytest or nose.
-    Call this in test code rather than pytest.skip or nose SkipTest
-    """
-    if usePytest:
-        _skip(msg)
-    else:
-        raise _skip(msg)

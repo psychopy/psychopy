@@ -1,5 +1,5 @@
 import sys
-from psychopy.tests import utils
+import pytest
 
 def test_essential_imports():
     import wx
@@ -22,7 +22,7 @@ def test_extra_imports():
         import pwd
         user = pwd.getpwuid(os.getuid()).pw_name
     if user not in ['jwp','lpzjwp']:
-        utils.skip('Testing extra imports is only needed for building Standalone distributions')
+        pytest.skip('Testing extra imports is only needed for building Standalone distributions')
     #OK, it's Jon , so run it
     import serial
     import pp
