@@ -17,11 +17,12 @@ from psychopy import data, logging, misc, gui
 import re
 from tempfile import mkdtemp # to check code syntax
 import cPickle
-from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
+from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
+    Param
 
 from psychopy.constants import *
 from psychopy.errors import DataImportError
-from psychopy.app.builder import amp_launcher, resource_pool
+from psychopy.app.builder import amp_launcher, resource_pool, validators
 
 
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -1314,11 +1315,13 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             currId = self.GetSelection()
             self.DeletePage(currId)
     def createNewRoutine(self, returnName=False):
-        dlg = wx.TextEntryDialog(self, message="What is the name for the new Routine? (e.g. instr, trial, feedback)",
-            caption='New Routine')
+        #dlg = wx.TextEntryDialog(self, message="What is the name for the new Routine? (e.g. instr, trial, feedback)",
+        #    caption='New Routine')
+        dlg = RoutineNameEntry(self.frame)
         exp = self.frame.exp
         routineName = None
-        if dlg.ShowModal() == wx.ID_OK:
+        dlg.show()
+        if dlg.GetReturnCode() == wx.ID_OK:
             routineName=dlg.GetValue()
             # silently auto-adjust the name to be valid, and register in the namespace:
             routineName = exp.namespace.makeValid(routineName, prefix='routine')
@@ -1455,6 +1458,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 #            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
         return True
+
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
@@ -1541,6 +1545,10 @@ class ParamCtrls:
         if len(param.allowedVals)==1:
             self.valueCtrl.Disable()#visible but can't be changed
 
+        # add a NameValidator to name valueCtrl
+        if label.lower() == "name":
+            self.valueCtrl.SetValidator(validators.NameValidator())
+
         #create the type control
         if len(param.allowedTypes)==0:
             pass
@@ -1621,11 +1629,15 @@ class ParamCtrls:
         if self.typeCtrl: self.typeCtrl.Show(newVal)
 
 class _BaseParamsDlg(wx.Dialog):
+    """
+    Base dialog for a list of configurable parameters. Includes validation, which disables OK button on failure.
+    """
     def __init__(self,frame,title,params,order,
             helpUrl=None, suppressTitles=True,
             showAdvanced=False,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
+            style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL | wx.WS_EX_VALIDATE_RECURSIVELY,
+            editing=False):
         wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
         self.frame=frame
         self.app=frame.app
@@ -1935,8 +1947,7 @@ class _BaseParamsDlg(wx.Dialog):
             buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         # intercept OK button if a loop dialog, in case file name was edited:
-        if type(self) == DlgLoopProperties:
-            self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         self.checkName() # disables OKbtn if bad name
 
@@ -1959,6 +1970,28 @@ class _BaseParamsDlg(wx.Dialog):
         if retVal== wx.ID_OK: self.OK=True
         else:  self.OK=False
         return wx.ID_OK
+
+    def Validate(self, *args, **kwargs):
+        """
+        Validate form data and disable OK button if validation fails.
+        """
+        valid = super(_BaseParamsDlg, self).Validate(*args, **kwargs)
+        if valid:
+            self.OKbtn.Enable()
+        else:
+            self.OKbtn.Disable()
+        return valid
+
+    def onOK(self, event=None):
+        """
+        Handler for OK button which should validate dialog contents.
+        """
+        print self.GetValidator()
+        valid = self.Validate()
+        print valid
+        if not valid:
+            return
+        event.Skip()
 
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
@@ -2082,17 +2115,33 @@ class _BaseParamsDlg(wx.Dialog):
                 return namespace.isPossiblyDerivable(newName), True
             else:
                 return "", True
+
     def checkName(self, event=None):
-        """check param name against namespace, legal var name
         """
-        msg, enable = self._checkName(event=event)
-        self.nameOKlabel.SetLabel(msg)
-        if enable: self.OKbtn.Enable()
-        else: self.OKbtn.Disable()
+        Issue a form validation on name change.
+        """
+        self.Validate()
+
     def onHelp(self, event=None):
         """Uses self.app.followLink() to self.helpUrl
         """
         self.app.followLink(url=self.helpUrl)
+
+
+class RoutineNameEntry(_BaseParamsDlg):
+    MESSAGE = "What is the name for the new Routine? (e.g. instr, trial, feedback)"
+    CAPTION = "New Routine"
+    
+    def __init__(self, parent):
+        params = {
+            'name': Param("", "str", label="Name", hint=RoutineNameEntry.MESSAGE)
+        }
+        super(RoutineNameEntry, self).__init__(
+            parent, RoutineNameEntry.CAPTION, params, [])
+    
+    def GetValue(self):
+        return self.params["name"].val
+
 
 class DlgLoopProperties(_BaseParamsDlg):
     def __init__(self,frame,title="Loop properties",loop=None,
@@ -2485,6 +2534,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             #self.constantsCtrls['conditions'] could be misleading at this point
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
+        super(DlgLoopProperties, self).onOK(event)
         if 'conditionsFile' in self.currentCtrls.keys():
             self.refreshConditions()
         event.Skip() # do the OK button press
@@ -4028,7 +4078,8 @@ class BuilderFrame(wx.Frame):
             except:
                 self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
             self.stdoutFrame.write("Error when generating experiment script:\n")
-            self.stdoutFrame.write(str(e) + "\n")    
+            self.stdoutFrame.write(str(e) + "\n")
+            traceback.print_exc(file=self.stdoutFrame)
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
             return None
