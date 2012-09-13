@@ -15,7 +15,7 @@ tooltip = 'Rating scale: obtain numerical or categorical responses'
 
 class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component"""
-    categories = ['Inputs','Custom']
+    categories = ['Responses','Custom']
     def __init__(self, exp, parentName,
                  name='rating',
                  scaleDescription='',

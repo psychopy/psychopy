@@ -12,7 +12,7 @@ tooltip = 'Mouse: query mouse position and buttons'
 
 class MouseComponent(BaseComponent):
     """An event class for checking the mouse location and buttons at given timepoints"""
-    categories = ['Inputs']
+    categories = ['Responses']
     def __init__(self, exp, parentName, name='mouse',
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,

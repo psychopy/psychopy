@@ -14,8 +14,9 @@ tooltip = 'Microphone: basic sound capture (fixed onset & duration), okay for sp
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
-    def __init__(self, exp, parentName, name='mic_1', 
-                 startType='time (s)', startVal=0.0, 
+    categories = ['Responses']
+    def __init__(self, exp, parentName, name='mic_1',
+                 startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0, startEstim='', durationEstim='',
                 ):
         self.type='Microphone'

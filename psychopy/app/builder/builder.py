@@ -1385,6 +1385,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #create labels and sizers for each category
         self.componentFromID={}
         self.panels={}
+        self.sizerList=[]#to keep track of the objects (sections and section labels) within the main sizer
         for categ in categories:
             sectionBtn = platebtn.PlateButton(self,-1,categ,
                 style=platebtn.PB_STYLE_DROPARROW)
@@ -1394,11 +1395,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             else:
                 self.panels[categ]=wx.FlexGridSizer(cols=2)
             self.sizer.Add(sectionBtn, flag=wx.EXPAND)
+            self.sizerList.append(sectionBtn)
             self.sizer.Add(self.panels[categ], flag=wx.ALIGN_RIGHT)
+            self.sizerList.append(self.panels[categ])
         self.makeComponentButtons()
-        #start all collapsed
-        for name, section in self.panels.items():
-            self.toggleSection(section)
+        self._rightClicked=None
+        #start all except for Favorites collapsed
+        for section in categories[1:]:
+            self.toggleSection(self.panels[section])
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
@@ -1408,8 +1412,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #add a copy of each favorite to that panel first
         for thisName in self.favorites.getFavorites():
             self.addComponentButton(thisName, self.panels['Favorites'])
-        print dir(self.panels['Favorites'])
-        print self.panels['Favorites'].Children
     def makeComponentButtons(self):
         """Make all the components buttons, including a call to makeFavorite() buttons
         """
@@ -1442,21 +1444,57 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             thisTip = shortName
         btn.SetToolTip(wx.ToolTip(thisTip))
         self.componentFromID[btn.GetId()]=name
-        self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
         btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        self.Bind(wx.EVT_BUTTON, self.onClick, btn)
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
 
     def onSectionBtn(self,evt):
         buttons = self.panels[evt.GetString()]
         self.toggleSection(buttons)
     def toggleSection(self, section):
-        ii=self.sizer.GetItemIndex(section)
-        self.sizer.Show( ii, not self.sizer.IsShown(ii) )
+        ii = self.sizerList.index(section)
+        self.sizer.Show( ii, not self.sizer.IsShown(ii) ) #ie toggle this item
         self.sizer.Layout()
         self.SetupScrolling()
+    def getIndexInSizer(self, obj, sizer):
+        """Find index of an item within a sizer (to see if it's there or to toggle visibility)
+        WX sizers don't (as of v2.8.11) have a way to find the index of their contents. This method helps
+        get around that.
+        """
+        #if the obj is itself a sizer (e.g. within the main sizer then we can't even use
+        #sizer.Children (as far as I can work out) so we keep a list to track the contents
+        if sizer==self.sizer:#for the main sizer we kept track of everything with a list
+            return self.sizerList.index(obj)
+        else:
+            #let's just hope the
+            index = None
+            for ii, child in enumerate(sizer.Children):
+                if child.GetWindow()==obj:
+                    index=ii
+                    break
+            return index
     def onRightClick(self, evt):
-        print 'right-clicked', evt.GetEventObject().Name
-    def onComponentAdd(self,evt):
+        btn = evt.GetEventObject()
+        self._rightClicked = btn
+        index = self.getIndexInSizer(btn, self.panels['Favorites'])
+        if index==None:
+            #not currently in favs
+            msg = "Add to favorites"
+            function = self.onAddToFavorites
+        else:
+            #is currently in favs
+            msg = "Remove from favorites"
+            function = self.onRemFromFavorites
+        menu = wx.Menu()
+        id = wx.NewId()
+        menu.Append(id, msg)
+        wx.EVT_MENU(menu, id, function)
+        #where to put the context menu
+        x,y = evt.GetPosition()#this is position relative to object
+        xBtn,yBtn = evt.GetEventObject().GetPosition()
+        self.PopupMenu( menu, (x+xBtn, y+yBtn) )
+        menu.Destroy() # destroy to avoid mem leak
+    def onClick(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         if not currRoutinePage:
@@ -1487,23 +1525,34 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             newComp.params['name'].val = namespace.makeValid(newComp.params['name'].val)
             namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
-#            currRoutinePage.Refresh()#done at the end of redrawRoutine
             self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
+            self.favorites.promoteComponent(newClassStr, 1)
+            #was that promotion enough to be a favorite?
+            if newClassStr in self.favorites.getFavorites():
+                self.addComponentButton(newClassStr, self.panels['Favorites'])
+                self.sizer.Layout()
         return True
-    def onComponentAddFav(self,evt):
-        compName = self.componentFromID[evt.GetId()]
-        if compName not in self.favourites.getFavorites():
-            self.favorites.makeFavorite(compName)
-            for btn in self.panels['Favorites'].Children:
-                self.addComponentButton(name, panel)
-    def onComponentRemoveFav(self,evt):
-        compName = self.componentFromID[evt.GetId()]
-        if compName in self.favourites.getFavorites():
-            self.favorites.setLevel(compName, -100)
-            for btn in self.panels['Favorites'].Children:
-                print btn.Name
-                if btn.Name == compName:
-                    bt.Destroy()
+
+    def onAddToFavorites(self, evt=None, btn=None):
+        if btn is None:
+            btn = self._rightClicked
+        if btn.Name not in self.favorites.getFavorites():#check we aren't duplicating
+            self.favorites.makeFavorite(btn.Name)
+            self.addComponentButton(btn.Name, self.panels['Favorites'])
+        self.sizer.Layout()
+        self._rightClicked = None
+
+    def onRemFromFavorites(self, evt=None, btn=None):
+        if btn is None:
+            btn = self._rightClicked
+        index = self.getIndexInSizer(btn,self.panels['Favorites'])
+        if index is None:
+            pass
+        else:
+            self.favorites.setLevel(btn.Name, -100)
+            btn.Destroy()
+        self.sizer.Layout()
+        self._rightClicked = None
 
 class FavoriteComponents(object):
 
@@ -1542,7 +1591,7 @@ class FavoriteComponents(object):
         than the threshold and there will be not more than
         max length prefs['builder']['maxFavorites']
         """
-        sortedVals = sorted(self.currentLevels.items(), key=self.currentLevels.get)
+        sortedVals = sorted(self.currentLevels.items(), key=lambda x: x[1], reverse=True)
         favorites=[]
         for name, level in sortedVals:
             if level>=10000:#this has been explicitly requested (or REALLY liked!)

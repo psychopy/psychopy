@@ -93,7 +93,7 @@ def getAllComponents(folderList=[]):
 
 def getAllCategories(folderList=[]):
     allComps = getAllComponents(folderList)
-    allCats = ['Stimuli','Inputs','Custom']
+    allCats = ['Stimuli','Responses','Custom']
     for name, thisComp in allComps.items():
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
