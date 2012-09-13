@@ -1389,7 +1389,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for categ in categories:
             sectionBtn = platebtn.PlateButton(self,-1,categ,
                 style=platebtn.PB_STYLE_DROPARROW)
-            sectionBtn.Bind(wx.EVT_BUTTON, self.onSectionBtn)
+            sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
+            sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
                 self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
             else:
@@ -1444,12 +1445,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             thisTip = shortName
         btn.SetToolTip(wx.ToolTip(thisTip))
         self.componentFromID[btn.GetId()]=name
-        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick) #use btn.bind instead of self.Bind in oder to trap event here
         self.Bind(wx.EVT_BUTTON, self.onClick, btn)
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
 
     def onSectionBtn(self,evt):
-        buttons = self.panels[evt.GetString()]
+        if hasattr(evt,'GetString'):
+            buttons = self.panels[evt.GetString()]
+        else:
+            btn = evt.GetEventObject()
+            buttons = self.panels[btn.Label]
         self.toggleSection(buttons)
     def toggleSection(self, section):
         ii = self.sizerList.index(section)
