@@ -30,9 +30,9 @@ class NetstringCodec(object):
         text_buffer = StringIO()
         while text_buffer.len < buffer_size:
             text_buffer.write(socket.recv(buffer_size - text_buffer.len))
-        if text_buffer[-1] != self.delimiter:
+        if text_buffer.getvalue()[-1] != self.delimiter:
             raise Exception("Missing message delimiter")
-        return text_buffer[:-1]
+        return text_buffer.getvalue()[:-1]
 
 
 class OBCIConnection(object):
