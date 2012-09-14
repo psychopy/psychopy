@@ -2140,7 +2140,7 @@ class RoutineNameEntry(_BaseParamsDlg):
             parent, RoutineNameEntry.CAPTION, params, [])
     
     def GetValue(self):
-        return self.params["name"].val
+        return self.getParams()["name"].val
 
 
 class DlgLoopProperties(_BaseParamsDlg):
