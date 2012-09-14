@@ -389,7 +389,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         """
         self.frame.exp.flow.addRoutine(self.frame.exp.routines[self.insertingRoutine], ii)
-        self.frame.addToUndoStack("AddRoutine")
+        self.frame.addToUndoStack("ADD Routine `%s`" %self.frame.exp.routines[self.insertingRoutine].name)
         #reset flow drawing (remove entry point)
         self.clearMode()
 
@@ -433,7 +433,7 @@ class FlowPanel(wx.ScrolledWindow):
             handler=loopDlg.currentHandler
             self.frame.exp.flow.addLoop(handler,
                 startPos=startII, endPos=endII)
-            self.frame.addToUndoStack("AddLoopToFlow")
+            self.frame.addToUndoStack("ADD Loop `%s` to Flow" %handler.params['name'].val)
         self.clearMode()
         self.draw()
     def dumpNamespace(self, evt=None):
@@ -492,7 +492,7 @@ class FlowPanel(wx.ScrolledWindow):
                 flow.removeComponent(prevLoop)
                 #finally insert the new loop
                 flow.addLoop(loop, startII, endII)
-            self.frame.addToUndoStack("Edit Loop")
+            self.frame.addToUndoStack("EDIT Loop `%s`" %(loop.params['name'].val))
         elif 'conditions' in loop.params.keys():
             loop.params['conditions'].val = condOrig
             loop.params['conditionsFile'].val = condFileOrig
@@ -592,7 +592,7 @@ class FlowPanel(wx.ScrolledWindow):
             component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
-            self.frame.addToUndoStack("remove %s from flow" %component.params['name'])
+            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'].val)
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
@@ -1091,7 +1091,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.editComponentProperties(component=component)
         elif op=='remove':
             r.remove(component)
-            self.frame.addToUndoStack("removed" + component.params['name'].val)
+            self.frame.addToUndoStack("REMOVE `%s` from Routine" %(component.params['name'].val))
             self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
             lastLoc=r.index(component)
@@ -1100,7 +1100,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if op=='move up': r.insert(lastLoc-1, component)
             if op=='move down': r.insert(lastLoc+1, component)
             if op=='move to bottom': r.append(component)
-            self.frame.addToUndoStack("moved" + component.params['name'].val)
+            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
         self.redrawRoutine()
         self._menuComponent=None
     def OnPaint(self, event):
@@ -1263,7 +1263,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 #                self.frame.flowPanel.Refresh()
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
-            self.frame.addToUndoStack("edit %s" %component.params['name'])
+            self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
 
     def getSecsPerPixel(self):
         return float(self.routine.getMaxTime()[0])/(self.timeXposEnd-self.timeXposStart)
@@ -1316,7 +1316,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             exp.namespace.add(routineName) #add to the namespace
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
-            self.frame.addToUndoStack("created %s routine" %routineName)
+            self.frame.addToUndoStack("NEW Routine `%s`" %routineName)
         dlg.Destroy()
         if returnName:
             return routineName
@@ -1335,7 +1335,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
-        self.frame.addToUndoStack("remove routine %s" %(name))
+        self.frame.addToUndoStack("REMOVE Routine `%s`" %(name))
     def increaseSize(self, event=None):
         self.appData['routineSize'] = min(self.routineMaxSize, self.appData['routineSize'] + 1)
         self.frame.Freeze()
@@ -2093,7 +2093,7 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
         #put it all together
-        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND)#add main controls
+        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND|wx.ALL)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
             self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
@@ -3521,9 +3521,9 @@ class BuilderFrame(wx.Frame):
 
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
+        self._undoLabel = self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
+        self._redoLabel = self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
 
         #---_tools---#000000#FFFFFF--------------------------------------------------
@@ -3843,8 +3843,7 @@ class BuilderFrame(wx.Frame):
         self.currentUndoLevel=1#1 is current, 2 is back one setp...
         self.currentUndoStack=[]
         self.addToUndoStack()
-        self.enableUndo(False)
-        self.enableRedo(False)
+        self.updateUndoRedo()
         self.setIsModified(newVal=False)#update save icon if needed
     def addToUndoStack(self, action="", state=None):
         """Add the given ``action`` to the currentUndoStack, associated with the @state@.
@@ -3862,8 +3861,8 @@ class BuilderFrame(wx.Frame):
             self.currentUndoLevel=1
         #append this action
         self.currentUndoStack.append({'action':action,'state':state})
-        self.enableUndo(True)
         self.setIsModified(newVal=True)#update save icon if needed
+        self.updateUndoRedo()
 
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
@@ -3876,12 +3875,9 @@ class BuilderFrame(wx.Frame):
             return -1#can't undo
         self.currentUndoLevel+=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
-        #set undo redo buttons
-        self.enableRedo(True)#if we've undone, then redo must be possible
-        if (self.currentUndoLevel)==len(self.currentUndoStack):
-            self.enableUndo(False)
         self.updateAllViews()
         self.setIsModified(newVal=True)#update save icon if needed
+        self.updateUndoRedo()
         # return
         return self.currentUndoLevel
     def redo(self, event=None):
@@ -3895,20 +3891,35 @@ class BuilderFrame(wx.Frame):
             return -1#can't redo, we're already at latest state
         self.currentUndoLevel-=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
-        #set undo redo buttons
-        self.enableUndo(True)#if we've redone then undo must be possible
-        if self.currentUndoLevel==1:
-            self.enableRedo(False)
+        self.updateUndoRedo()
         self.updateAllViews()
         self.setIsModified(newVal=True)#update save icon if needed
-        # return
         return self.currentUndoLevel
-    def enableRedo(self,enable=True):
-        self.toolbar.EnableTool(self.IDs.tbRedo,enable)
-        self.editMenu.Enable(wx.ID_REDO,enable)
-    def enableUndo(self,enable=True):
+    def updateUndoRedo(self):
+        #check undo
+        if (self.currentUndoLevel)>=len(self.currentUndoStack):
+            # can't undo if we're at top of undo stack
+            label = "Undo\t%s" %(self.app.keys['undo'])
+            enable = False
+        else:
+            action = self.currentUndoStack[-self.currentUndoLevel]['action']
+            label = "Undo %s\t%s" %(action, self.app.keys['undo'])
+            enable = True
+        self._undoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
         self.editMenu.Enable(wx.ID_UNDO,enable)
+        # check redo
+        if self.currentUndoLevel==1:
+            label = "Redo\t%s" %(self.app.keys['redo'])
+            enable = False
+        else:
+            action = self.currentUndoStack[-self.currentUndoLevel+1]['action']
+            label = "Redo %s\t%s" %(action, self.app.keys['redo'])
+            enable = True
+        self._redoLabel.SetText(label)
+        self.toolbar.EnableTool(self.IDs.tbRedo,enable)
+        self.editMenu.Enable(wx.ID_REDO,enable)
+
     def demosUnpack(self, event=None):
         """Get a folder location from the user and unpack demos into it
         """
@@ -4051,7 +4062,7 @@ class BuilderFrame(wx.Frame):
                 self.exp.namespace.add(newName)
                 newComp.params['name'].val = newName
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?
-            self.addToUndoStack("paste Routine %s" % newRoutine.name)
+            self.addToUndoStack("PASTE Routine `%s`" % newRoutine.name)
         dlg.Destroy()
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -4076,7 +4087,7 @@ class BuilderFrame(wx.Frame):
             params = component.params,helpUrl=helpUrl,
             order = component.order)
         if dlg.OK:
-            self.addToUndoStack("edit experiment settings")
+            self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
