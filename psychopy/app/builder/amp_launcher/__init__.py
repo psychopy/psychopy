@@ -10,6 +10,7 @@ from psychopy.app.builder.amp_launcher.amplifier_panels import ChannelsPanel,\
 from obci.obci_control.common.message import OBCIMessageTool
 from obci.obci_control.launcher import launcher_messages
 from psychopy.app.builder.amp_launcher.obci_connection import OBCIConnection
+from psychopy.app.builder.amp_launcher.retriever import AmplifierInfo
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
@@ -71,10 +72,10 @@ class SavingConfigPanel(wx.Panel):
         sizer.Add(self.save_path, (0, 1), flag=wx.EXPAND, border=4)
         sizer.Add(self.do_trig, (1, 0), border=4)
         sizer.Add(self.trig_path, (1, 1), flag=wx.EXPAND, border=8)
-        
+
         sizer.Add(self.do_send_tags, (2, 0), (1, 2), border=8)
         sizer.Add(self.do_save_tags, (3, 0), (1, 2), border=8)
-        
+
         self.SetSizer(sizer)
 
 
@@ -94,7 +95,11 @@ class AmpLauncherDialog(wx.Dialog):
 
     def init_info(self, retriever):
         self.retriever = retriever
-        self.amp_info = self.retriever.fetch_amp_list()
+        try:
+            self.amp_info = self.retriever.fetch_amp_list()
+        except Exception as e:
+            self.amp_info = AmplifierInfo()
+            print e
     
     def init_panels(self):
         self.amp_list_panel = AmpListPanel(self, self.amp_info)
@@ -115,10 +120,10 @@ class AmpLauncherDialog(wx.Dialog):
 
     def init_sizer(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.amp_list_panel, proportion=1, flag=wx.EXPAND, border=8)
-        sizer.Add(self.amp_config, proportion=1, flag=wx.EXPAND, border=8)
-        sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND, border=8)
-        sizer.Add(self.button_panel, proportion=0, flag=wx.EXPAND | wx.ALIGN_RIGHT, border=8)
+        sizer.Add(self.amp_list_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
+        sizer.Add(self.amp_config, proportion=1, flag=wx.EXPAND  | wx.ALL, border=8)
+        sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
+        sizer.Add(self.button_panel, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
         self.SetSizer(sizer)
     
     def select_amplifier(self, event):
