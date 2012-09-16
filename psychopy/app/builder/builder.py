@@ -1639,7 +1639,7 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label != 'name':
+        if param.valType == 'code' and label not in ['name', 'Experiment info']:
             displayLabel = label+' $'
         else:
             displayLabel = label
@@ -1658,6 +1658,10 @@ class ParamCtrls:
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
+        elif label == 'Experiment info':
+            #for expInfo convert from a string to the list-of-dicts
+            val = self.expInfoToListWidget(param.val)
+            self.valueCtrl = dialogs.ListWidget(parent, val, order=['Field','Default'])
         elif label in components.code.codeParamNames[:]:
             self.valueCtrl = CodeBox(parent,-1,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
@@ -1720,7 +1724,10 @@ class ParamCtrls:
         elif hasattr(ctrl,'GetText'):
             return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
-            return ctrl.GetValue()
+            val = ctrl.GetValue()
+            if isinstance(self.valueCtrl, dialogs.ListWidget):
+                val = self.expInfoFromListWidget(val)
+            return val
         elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
             return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
@@ -1767,6 +1774,24 @@ class ParamCtrls:
         self.nameCtrl.Show(newVal)
         if self.updateCtrl: self.updateCtrl.Show(newVal)
         if self.typeCtrl: self.typeCtrl.Show(newVal)
+    def expInfoToListWidget(self, expInfoStr):
+        """Takes a string describing a dictionary and turns it into a format
+        that the ListWidget can receive (list of dicts of Field:'', Default:'')
+        """
+        expInfo = eval(expInfoStr)
+        listOfDicts = []
+        for field, default in expInfo.items():
+            listOfDicts.append({'Field':field, 'Default':default})
+        return listOfDicts
+    def expInfoFromListWidget(self, listOfDicts):
+        """Creates a string representation of a dict from a list of field/default
+        values.
+        """
+        expInfo = {}
+        for field in listOfDicts:
+            expInfo[field['Field']] = field['Default']
+        expInfoStr = repr(expInfo)
+        return expInfoStr
 
 class _BaseParamsDlg(wx.Dialog):
     def __init__(self,frame,title,params,order,
@@ -1963,8 +1988,6 @@ class _BaseParamsDlg(wx.Dialog):
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         elif fieldName in ['color', 'Color']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
-        elif fieldName=='Experiment info':
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         elif fieldName in self.codeParamNames:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
@@ -1984,45 +2007,6 @@ class _BaseParamsDlg(wx.Dialog):
         #    if wx.TheClipboard.GetData(dataObject):
         #        self.paramCtrls['Monitor'].valueCtrl.WriteText(dataObject.GetText())
         #    wx.TheClipboard.Close()
-
-    def previewExpInfo(self, event):
-        thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
-        expInfo = thisValueCtrl.GetValue()
-        needsUpdate = False
-        if expInfo.strip()=='':
-            expInfo = "{'participant':'', 'session':'001'}"
-            title = 'providing default values...'
-        else:
-            title = 'PREVIEW' # not actually checked yet
-        if not expInfo.lstrip().startswith('{'):
-            expInfo = '{' + expInfo
-            needsUpdate = True
-        if not expInfo.strip().endswith('}'):
-            expInfo += '}'
-            needsUpdate = True
-        try:
-            newInfo = dict(eval(expInfo))
-        except SyntaxError:
-            # try to be helpful, but dict syntax is not so intuitive
-            dlg = gui.Dlg(title="oops, syntax error...")
-            dlg.addText('') # spacer
-            dlg.addText("Experiment info needs to have python 'dict' syntax.")
-            dlg.addText("(Delete everything and preview again to reset.)")
-            dlg.addText("- items are pairs of the form 'a1': 'b', 'a2': b, 'a3': u'b',")
-            dlg.addText("  (u' ' is unicode), with pairs separated by commas")
-            dlg.addText("- the a's must be unique ('a1', 'a2', 'a3', ...)")
-            dlg.addText("- the b's must be well-formed (str, int, float, list)")
-            dlg.addText("- enclose everything in {   }")
-            dlg.show()
-            return
-        # show preview
-        previewDlg = gui.DlgFromDict(dictionary=newInfo, title=title)
-        # if user made edits to values and then clicked OK, save them:
-        if previewDlg.OK or needsUpdate:
-            thisValueCtrl.SetFocus()
-            thisValueCtrl.Clear()
-            thisValueCtrl.WriteText(str(newInfo))
-
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1

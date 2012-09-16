@@ -1,5 +1,14 @@
 import wx
-"""This is for general purpose dialogs, not related to particular functionality
+"""This is for general purpose dialogs/widgets, not related to particular functionality
+
+MessageDialog:
+    a drop-in replacement for wx message dialog (which was buggy on mac)
+GlobSizer:
+    A helpful sizer, built on top of GridBagSizer but with ability to add/remove
+    rows. Needed for the ListWidget
+ListWidget:
+    A ctrl that takes a list of dictionaries (with identical fields) and allows
+    the user to add/remove entries. e.g. expInfo control
 """
 
 class MessageDialog(wx.Dialog):
@@ -415,7 +424,7 @@ class GlobSizer(wx.GridBagSizer):
             self._setSpan(objs)
         self.Layout()
 
-class ListWidget:
+class ListWidget(GlobSizer):
     """A widget for handling a list of dicts of identical structure.
     Has one row per entry and a +/- buttons at end to add/insert/remove from
     the list
@@ -426,6 +435,7 @@ class ListWidget:
         order should be used to specify the order in which the fields appear
         (left to right)
         """
+        GlobSizer.__init__(self, hgap=2,vgap=2)
         self.parent = parent
         self.value=value
         if type(value)!=list or len(value)<1:
@@ -441,63 +451,53 @@ class ListWidget:
             self.fieldNames.append(name)
         self.fieldNames.extend(allNames)#extend list by the remaining (no explicit order)
         #set up controls
-        self.grid=None
         self.createGrid()
     def createGrid(self):
-        #get rid of previous grid if it exists
-        if hasattr(self.grid, 'Destroy'):
-            for child in self.grid.GetChildren():
-                child.GetWindow().Destroy()
-        else:
-            #create a new grid
-            self.grid = GlobSizer(hgap=2,vgap=2)
-
-            row=0
-            for col, field in enumerate(self.fieldNames):
-                self.grid.Add(wx.StaticText(self.parent, -1, label=field), (row,col), flag=wx.ALL)
-            for entry in self.value:
-                row+=1
-                self.addEntryCtrls(row, entry)
-            self.grid.Layout()
-
+        row=0
+        for col, field in enumerate(self.fieldNames):
+            self.Add(wx.StaticText(self.parent, -1, label=field), (row,col), flag=wx.ALL)
+        for entry in self.value:
+            row+=1
+            self.addEntryCtrls(row, entry)
+        self.Layout()
     def addEntryCtrls(self, row, entry):
         for col, field in enumerate(self.fieldNames):
             c = wx.TextCtrl(self.parent, -1, entry[field])
-            self.grid.Add(c, (row,col), flag=wx.ALL )
+            self.Add(c, (row,col), flag=wx.ALL )
         plusBtn = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
-        self.grid.Add(plusBtn, (row,col+1), flag=wx.ALL )
+        self.Add(plusBtn, (row,col+1), flag=wx.ALL )
         plusBtn.Bind(wx.EVT_BUTTON, self.onAddElement)
         minusBtn = wx.Button(self.parent, -1, '-', style=wx.BU_EXACTFIT)
-        self.grid.Add(minusBtn, (row,col+2), flag=wx.ALL )
+        self.Add(minusBtn, (row,col+2), flag=wx.ALL )
         minusBtn.Bind(wx.EVT_BUTTON, self.onRemoveElement)
     def onAddElement(self, event):
         """The plus button has been pressed
         """
-        btn = self.grid.FindItem(event.GetEventObject())
+        btn = self.FindItem(event.GetEventObject())
         row,col = btn.GetPosTuple()
-        self.grid.InsertRow(row)
+        self.InsertRow(row)
         newEntry = {}
         for fieldName in self.fieldNames:
             newEntry[fieldName]=""
         self.addEntryCtrls(row,newEntry)
-        self.grid.Layout()
+        self.Layout()
         self.parent.Fit()
     def onRemoveElement(self, event=None):
         """Called when the minus button is pressed.
         """
-        btn = self.grid.FindItem(event.GetEventObject())
+        btn = self.FindItem(event.GetEventObject())
         row,col = btn.GetPosTuple()
-        self.grid.DeleteRow(row)
-        self.grid.Layout()
+        self.DeleteRow(row)
+        self.Layout()
         self.parent.Fit()
     def getListOfDicts(self):
         """Retrieve the current list of dicts from the grid
         """
         currValue = []
-        for rowN in range(self.grid.GetRows())[1:]: #skipping the irst row (headers)
+        for rowN in range(self.GetRows())[1:]: #skipping the irst row (headers)
             thisEntry = {}
             for colN, fieldName in enumerate(self.fieldNames):
-                ctrl = self.grid.FindItemAtPosition((rowN,colN)).GetWindow()
+                ctrl = self.FindItemAtPosition((rowN,colN)).GetWindow()
                 thisEntry[fieldName] = ctrl.GetValue()
             currValue.append(thisEntry)
         return currValue
@@ -506,7 +506,10 @@ class ListWidget:
         current value of the list of dictionaries represented in the grid
         """
         return self.getListOfDicts()
-
+    def SetToolTipString(self, tip):
+        """This isn't implemented yet - set every control to have the same tooltip?
+        """
+        pass
 if __name__=='__main__':
     app = wx.PySimpleApp()
     dlg = wx.Dialog(None)
