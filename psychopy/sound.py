@@ -329,7 +329,7 @@ class SoundPygame(_SoundBase):
 class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16):
+    def __init__(self,value="C",secs=0.5,octave=4, stereo=True, sampleRate=44100, bits=16):
         """
         value: can be a number, string or an array.
 
@@ -364,9 +364,8 @@ class SoundPyo(_SoundBase):
             initPyo()
         self.sampleRate=sampleRate
         self.format = bits
-        self.isStereo = True
+        self.isStereo = stereo
         self.secs=secs
-
 
         #try to create sound
         self._snd=None
@@ -382,30 +381,33 @@ class SoundPyo(_SoundBase):
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
-
+        self._snd.out()
         self.status=STARTED
 
     def _onEOS(self):
-
+        #ToDo: is an EOS callback supported by pyo?
         self.status=FINISHED
         return True
 
     def stop(self):
         """Stops the sound immediately"""
-
+        self._snd.stop()
         self.status=STOPPED
 
     def getDuration(self):
-
-        return duration
+        """Return the duration of the sound file
+        """
+        return self._sndTable.getDur()
 
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
+        #ToDo : get volume for pyo
         return volume
 
     def setVolume(self,newVol):
         """Sets the current volume of the sound (0.0:1.0)"""
-        self._player._set_volume(newVol)
+        #ToDo : set volume for pyo
+        pass
     def _fromFile(self, fileName):
 
         #try finding the file
@@ -417,21 +419,19 @@ class SoundPyo(_SoundBase):
                 self.fileName=path.join(filePath,fileName+'.wav')
         if self.fileName is None:
             return False
-
-
+        #load the file
+        self._sndTable = pyo.SndTable(self.fileName)
+        self._snd = pyo.Osc(self._sndTable, freq=self._sndTable.getRate())
         return True
 
     def _fromArray(self, thisArray):
-
-        #make stereo if mono
-        if self.isStereo and \
-            (len(thisArray.shape)==1 or thisArray.shape[1]<2):
-            tmp = numpy.ones((len(thisArray),2))
-            tmp[:,0] = thisArray
-            tmp[:,1] = thisArray
-            thisArray = numpy.transpose(tmp)#pyglet wants the transpose
-
-        self._player.queue(self._snd)
+        #ToDo: create a pyo sound from an array
+        if self.isStereo:
+            channels=2
+        else:
+            channels=1
+        self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(), chnls=channels)
+        self._snd = pyo.Osc(self._sndTable, freq=self._sndTable.getRate())
         return True
 
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
@@ -458,13 +458,22 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     if setStereo!=2 and stereo==True:
         logging.warn('Requested stereo setting was not possible')
 
-def initPyo():
+def initPyo(rate=44100, stereo=True, buffer=256):
     """setup the pyo (sound) server
     """
     global pyoSndServer
-    pyoSndServer = pyo.Server()
+    #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
+    class Server(pyo.Server):
+        def __del__(self):
+            from psychopy import core
+            self.shutdown()
+            core.wait(0.25)#make sure enough time passes for the server to shutdown
+    #create the instance of the server
+    pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio='coreaudio', jackname='pyo')
+    pyoSndServer.boot()
+    pyoSndServer.start()
     core.pyoServers.append(pyoSndServer)#so we can kill/quit server thread on exit
-
+    print core.pyoServers
 
 def setAudioAPI(api):
     """Change the API used for the presentation of sounds
