@@ -50,7 +50,7 @@ class MicrophoneComponent(BaseComponent):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n") 
         buff.writeIndented("if not os.path.isdir(wavDirName):\n" +
-                           "    os.makedirs(wavDirName) # to hold .wav files\n")
+                           "    os.makedirs(wavDirName)  # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
         inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
         buff.writeIndented("%s = microphone.AudioCapture(name='%s', saveDir=wavDirName)\n" %(
@@ -62,7 +62,7 @@ class MicrophoneComponent(BaseComponent):
             duration = "0"
         # starting condition: 
         buff.writeIndented("\n")
-        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)  # writes an if statement
         buff.writeIndented("%(name)s.status = STARTED\n" %(self.params))
         buff.writeIndented("%s.record(sec=%s, block=False)  # start the recording thread\n" %
@@ -81,10 +81,10 @@ class MicrophoneComponent(BaseComponent):
 
         #write the actual code
         if currLoop: #need a loop to do the storing of data!
-            buff.writeIndented("#check responses\n" %self.params)
+            buff.writeIndented("# check responses\n" %self.params)
             buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
             buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
-            buff.writeIndented("#store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+            buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
 
             #always add saved file name
             buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))

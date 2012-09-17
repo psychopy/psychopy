@@ -59,10 +59,10 @@ class TextComponent(VisualComponent):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['wrapWidth'].val in ['','None','none']:
             inits['wrapWidth']='None'
-        buff.writeIndented("%(name)s=visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
+        buff.writeIndented("%(name)s = visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
         buff.writeIndented("    text=%(text)s,\n" %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
-        buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s,wrapWidth=%(wrapWidth)s,\n" %(inits))
+        buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
         depth=-self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" %(depth))
