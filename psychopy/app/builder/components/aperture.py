@@ -48,14 +48,14 @@ class ApertureComponent(VisualComponent):
     def writeInitCode(self, buff):
         inits = components.getInitVals(self.params)
         #do writing of init
-        buff.writeIndented("%(name)s=visual.Aperture(win=win, name='%(name)s',\n" % (inits))
+        buff.writeIndented("%(name)s = visual.Aperture(win=win, name='%(name)s',\n" % (inits))
         buff.writeIndented("    size=%(size)s, pos=%(pos)s, units='pix')\n" % (inits))
-        buff.writeIndented("%(name)s.disable() # is enabled by default\n" %(inits))
+        buff.writeIndented("%(name)s.disable()  # disable until its actually used\n" %(inits))
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
         buff.writeIndented("\n")
-        buff.writeIndented("#*%s* updates\n" %(self.params['name']))
+        buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.enable()\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
@@ -64,11 +64,11 @@ class ApertureComponent(VisualComponent):
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
         if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
-            buff.writeIndented("if %(name)s.status==STARTED:#only update if being drawn\n" %(self.params))
+            buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(+1, relative=True)#to exit the if block
 
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented("%(name)s.disable() #just in case it was left enabled\n" % (self.params))
+        buff.writeIndented("%(name)s.disable()  # just in case it was left enabled\n" % (self.params))
 
