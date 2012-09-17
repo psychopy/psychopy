@@ -462,7 +462,7 @@ class ListWidget(GlobSizer):
         self.Layout()
     def addEntryCtrls(self, row, entry):
         for col, field in enumerate(self.fieldNames):
-            c = wx.TextCtrl(self.parent, -1, entry[field])
+            c = wx.TextCtrl(self.parent, -1, unicode(entry[field]))
             self.Add(c, (row,col), flag=wx.ALL )
         plusBtn = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
         self.Add(plusBtn, (row,col+1), flag=wx.ALL )
