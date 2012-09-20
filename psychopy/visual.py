@@ -1378,6 +1378,44 @@ class _BaseVisualStim:
 
         """
         self.autoLog=val
+    def contains(self, x, y=None):
+        """Determines if a point x,y is inside the extent of the stimulus.
+
+        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
+        list-like; or c) an object with a getPos() method that returns x,y, such
+        as a mouse. Returns True if the point is within the area defined by `vertices`.
+        This handles complex shapes, including concavities and self-crossings.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        this is not accounted for by the `contains` method; the extent of the
+        stmulus is determined purely by the size, pos and orientation settings
+        (and by the vertices for shape stimuli).
+
+        See coder demo, shapeContains.py
+        """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        if hasattr(x, 'getPos'):
+            x,y = x.getPos()
+        elif type(x) in [list, tuple, numpy.ndarray]:
+            x, y = x[0], x[1]
+        return pointInPolygon(x, y, self)
+    def overlaps(self, polygon):
+        """Determines if this stimulus intersects another one. If `polygon` is
+        another stimulus instance, then the vertices and location of that stimulus
+        will be used as the polygon. Overlap detection is only approximate; it
+        can fail with pointy shapes. Returns `True` if the two shapes overlap.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        this is not accounted for by the `overlaps` method; the extent of the
+        stmulus is determined purely by the size, pos and orientation settings
+        (and by the vertices for shape stimuli).
+
+        See coder demo, shapeContains.py
+        """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        return polygonsOverlap(self, polygon)
 
 class DotStim(_BaseVisualStim):
     """
@@ -4515,6 +4553,14 @@ class TextStim(_BaseVisualStim):
             self._useShaders=val
             self._needSetText=True
             self.needUpdate=True
+    def overlaps(self, polygon):
+        """Not implemented for TextStim
+        """
+        pass
+    def contains(self, polygon):
+        """Not implemented for TextStim
+        """
+        pass
 
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.
@@ -4781,36 +4827,6 @@ class ShapeStim(_BaseVisualStim):
             self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
-
-    def contains(self, x, y=None):
-        """Determines if a point x,y is inside the shape.
-
-        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
-        list-like; or c) an object with a getPos() method that returns x,y, such
-        as a mouse. Returns True if the point is within the area defined by `vertices`.
-        This handles complex shapes, including concavities and self-crossings.
-
-        See coder demo, shapeContains.py
-        """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if hasattr(x, 'getPos'):
-            x,y = x.getPos()
-        elif type(x) in [list, tuple, numpy.ndarray]:
-            x, y = x[0], x[1]
-        return pointInPolygon(x, y, self)
-
-    def overlaps(self, polygon):
-        """Determines if this shape intersects another one. If `polygon` is
-        a `ShapeStim` instance, will use (vertices + pos) as the polygon. Overlap
-        detection is only approximate; can fail with pointy shapes. Returns True
-        if the two shapes overlap.
-
-        See coder demo, shapeContains.py
-        """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        return polygonsOverlap(self, polygon)
 
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a :class:`~psychopy.visual.ShapeStim`
