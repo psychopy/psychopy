@@ -7,3 +7,11 @@
 
 class TimeoutError(StandardError):
     '''Error to signify that waiting for something took too long.'''
+
+class ExperimentException(Exception):
+    '''Exception thrown when standard experiment path fails.'''
+    pass
+
+class DataImportError(Exception):
+    '''Error when working with data files'''
+    pass

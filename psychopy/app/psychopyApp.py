@@ -37,6 +37,10 @@ if not hasattr(sys, 'frozen'):
     import wxversion
     wxversion.ensureMinimal('2.8')
 import wx
+try:
+    from agw import advancedsplash as AS
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.advancedsplash as AS
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
@@ -70,30 +74,7 @@ except:
 uidRootFlag = '.'
 #if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu
 #    uidRootFlag = '!'
-
-
-class PsychoSplashScreen(wx.SplashScreen):
-    """
-    Create a splash screen widget.
-    """
-    def __init__(self):
-        prefs=preferences.Preferences()
-        splashFile = os.path.join(prefs.paths['resources'], 'psychopySplash.png')
-        aBitmap = wx.Image(name = splashFile).ConvertToBitmap()
-        splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.NO_BORDER
-        # Call the constructor with the above arguments in exactly the
-        # following order.
-        wx.SplashScreen.__init__(self, aBitmap, splashStyle,
-                                 0, None)
-        #setup statusbar
-        self.SetBackgroundColour('WHITE')
-        self.status = wx.StaticText(self, -1, "  Loading libraries..."+uidRootFlag,
-                                    wx.Point(0,250),#splash image is 640x240
-                                    wx.Size(520, 20), wx.ALIGN_LEFT|wx.ALIGN_TOP)
-        self.status.SetMinSize(wx.Size(520,20))
-        self.Fit()
-        self.Close()
-
+    
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
     """
@@ -116,27 +97,45 @@ class MenuFrame(wx.Frame):
         self.Show()
 
 class PsychoPyApp(wx.App):
-    def OnInit(self):
+    def __init__(self, arg=0, showSplash=True):
+        wx.App.__init__(self, arg)
+        self.onInit(showSplash)
+
+    def onInit(self, showSplash=True):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
-        #show splash screen
-        splash = PsychoSplashScreen()
-        if splash:
-            splash.Show()
-        #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
-        #but then that they end up being local so keep track in self
-        splash.status.SetLabel("  Loading PsychoPy2..."+uidRootFlag)
-        from psychopy.monitors import MonitorCenter
-        from psychopy.app import coder, builder, wxIDs, urls
         #set default paths and prefs
         self.prefs = preferences.Preferences() #from preferences.py
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
+            
+        if showSplash:
+            #show splash screen
+            splashFile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
+            splashBitmap = wx.Image(name = splashFile).ConvertToBitmap()
+            splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=2000,
+                                      shadowcolour=wx.RED)#could use this in future for transparency
+            splash.SetTextPosition((10,240))
+            splash.SetText("  Loading libraries..."+uidRootFlag)
+        else:
+            splash=None
+			
+        #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
+        #but then that they end up being local so keep track in self
+        if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
+        from psychopy import compatibility
+        from psychopy.monitors import MonitorCenter
+        from psychopy.app import coder, builder, dialogs, wxIDs, urls
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.urls=urls.urls
         self.quitting=False
+        #check compatibility with last run version (before opening windows)
+        if 'lastVersion' not in self.prefs.appData.keys():
+            last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
+        else:
+            last=self.prefs.appData['lastVersion']
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -185,6 +184,7 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
+        if splash: splash.SetText("  Creating frames..."+uidRootFlag)
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -199,28 +199,38 @@ class PsychoPyApp(wx.App):
         if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
             connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
             connectThread.start()
-
+        
+        ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
+        if not ok:#tell the user what has changed
+            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
+            dlg.ShowModal()
+			
         if self.prefs.app['showStartupTips']:
-            tipIndex = self.prefs.appData['tipIndex']
+            tipIndex = self.prefs.appData['tipIndex']            
             tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
             showTip = wx.ShowTip(None, tp)
             self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
-        self.Bind
-        wx.EVT_IDLE(self, self.onIdle)
+        if self.prefs.connections['checkForUpdates']:
+            self.Bind(wx.EVT_IDLE, self.checkUpdates)
+        else:
+            self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
-    def onIdle(self, evt):
+    def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
-        if self._latestAvailableVersion not in [-1, None] and \
-          self.prefs.connections['checkForUpdates'] and \
-          self.updater==None:#we have a network connection but not yet tried an update
+        if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update
+            #change IDLE routine so we won't come back here
+            self.Unbind(wx.EVT_IDLE)#unbind all EVT_IDLE methods from app
+            self.Bind(wx.EVT_IDLE, self.onIdle)
+            #create updater (which will create dialogs as needed)
             self.updater=connections.Updater(app=self)
-            #check for updates
+            self.updater.latest=self._latestAvailableVersion
             self.updater.suggestUpdate(confirmationDlg=False)
         evt.Skip()
-
+    def onIdle(self, evt):
+        evt.Skip()
     def getPrimaryDisplaySize(self):
         """Get the size of the primary display (whose coords start (0,0))
         """
@@ -237,7 +247,7 @@ class PsychoPyApp(wx.App):
         self.coder.setOutputWindow()#takes control of sys.stdout
         self.allFrames.append(self.coder)
     def newBuilderFrame(self, event=None, fileName=None):
-        from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
+        from psychopy.app.builder import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder (v%s)" %self.version,
                                   fileName=fileName, app=self)
@@ -263,20 +273,20 @@ class PsychoPyApp(wx.App):
     #def showShell(self, event=None):
     #    from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
     #    if self.shell==None:
-    #        self.shell = ipythonShell.ShellFrame(None, -1,
+    #        self.shell = ipythonShell.ShellFrame(None, -1, 
     #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
     #        self.shell.Show()
     #        self.shell.SendSizeEvent()
     #    self.shell.Raise()
-    #    self.SetTopWindow(self.shell)
+    #    self.SetTopWindow(self.shell)                           
     #    self.shell.SetFocus()
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
-
+        
     def colorPicker(self, event=None):
         """Opens system color-picker, sets clip-board and parent.new_rgb = string [r,g,b].
-
+        
         Note: units are psychopy -1..+1 rgb units to three decimal places, preserving 24-bit color
         """
         class ColorPicker(wx.Panel):
@@ -296,7 +306,7 @@ class PsychoPyApp(wx.App):
                         wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                         wx.TheClipboard.Close()
                 dlg.Destroy()
-                parent.new_rgb = rgb
+                parent.new_rgb = rgb        
         frame = wx.Frame(None, wx.ID_ANY, "Color picker", size=(0,0)) # not shown
         ColorPicker(frame)
         new_rgb = frame.new_rgb # string; also on system clipboard, try wx.TheClipboard
@@ -321,12 +331,12 @@ class PsychoPyApp(wx.App):
         for frame in self.allFrames:
             try:#will fail if the frame has been shut somehow elsewhere
                 ok=frame.checkSave()
-            except:
+            except: 
                 ok=False
-            if not ok:
+            if not ok: 
                 logging.debug('PsychoPyApp: User cancelled shutdown')
                 return#user cancelled quit
-
+            
         #save info about current frames for next run
         if self.coder and len(self.builderFrames)==0:
             self.prefs.appData['lastFrame']='coder'
@@ -334,6 +344,8 @@ class PsychoPyApp(wx.App):
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'
+        
+        self.prefs.appData['lastVersion']=self.version
 
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
@@ -344,9 +356,9 @@ class PsychoPyApp(wx.App):
             self.prefs.saveAppData()#must do this before destroying the frame?
         if sys.platform=='darwin':
             self.menuFrame.Destroy()
-
+            
         sys.exit()#really force a quit
-
+        
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg
         logging.debug('PsychoPyApp: Showing prefs dlg')
@@ -375,7 +387,11 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Jeremy Gray')
+        info.AddDeveloper('Erik Kastner')
+        info.AddDeveloper('Michael MacAskill')
         info.AddDocWriter('Jonathan Peirce')
+        info.AddDocWriter('Jeremy Gray')
+        info.AddDocWriter('Rebecca Sharman')
 
         wx.AboutBox(info)
 
@@ -387,7 +403,7 @@ let me/us know at psychopy-users@googlegroups.com"""
             wx.LaunchDefaultBrowser(self.urls[event.GetId()])
         elif url!=None:
             wx.LaunchDefaultBrowser(url)
-
+            
 
 if __name__=='__main__':
     app = PsychoPyApp(0)

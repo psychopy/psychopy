@@ -62,6 +62,7 @@ else:
                                       '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
                                       'ioLabs','hid','pypsignifit',
                                       'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
+                                      'pyo',
                                       ],
                                       excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
                                       frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
@@ -94,7 +95,7 @@ if writeNewInit:
     createInitFile.createInitFile(dist=None)
 
 #running testApp from within the app raises wx errors
-shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")
+#shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")
 
 """
 I struggled getting the app to build properly. These were some of the problems:

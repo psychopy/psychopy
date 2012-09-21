@@ -18,13 +18,13 @@ class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
     circle or square of a given size and position"""
     def __init__(self, exp, parentName, name='aperture', units='norm',
-                size=[1,1], pos=(0,0),
+                size=1, pos=(0,0),
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters
         VisualComponent.__init__(self, exp, parentName, name=name, units=units,
-                    pos=pos,
+                    pos=pos,size=size,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
@@ -34,7 +34,8 @@ class ApertureComponent(VisualComponent):
         #params:
         #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
-        self.params['size'].hint = "How big is the aperture?"
+        self.params['size'].hint = "How big is the aperture? (a single number for diameter)"
+        self.params['size'].label="Size"
         self.params['pos'].hint = "Where is the aperture centred?"
         self.params['startVal'].hint = "When does the aperture come into effect?"
         self.params['stopVal'].hint="When does the aperture stop having an effect?"

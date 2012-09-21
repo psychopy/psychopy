@@ -28,6 +28,7 @@ class RatingScaleComponent(BaseComponent):
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
+                 disappear=False,
                  storeRating=True, storeRatingTime=True,
                  lowAnchorText='', highAnchorText='',
                  customize_everything=''
@@ -41,12 +42,13 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {}
-        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size',
+        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size', 'disappear',
                         'pos', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint="A rating scale only collects the response; it does not display the stimulus to be rated.")
+            hint="A rating scale only collects the response; it does not display the stimulus to be rated.",
+            label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -64,22 +66,30 @@ class RatingScaleComponent(BaseComponent):
             hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices")
+            hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices",
+            label="Visual analog scale")
         self.params['categoryChoices'] = Param(categoryChoices, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale")
+            hint="A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale",
+            label="Category choices")
         self.params['scaleDescription'] = Param(scaleDescription, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Brief instructions, such as a description of the scale numbers as seen by the subject.")
+            hint="Brief instructions, such as a description of the scale numbers as seen by the subject.",
+            label="Scale description")
         self.params['low'] = Param(low, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Lowest rating (low end of the scale); not used for categories.")
+            updates='constant', allowedUpdates=[], hint="Lowest rating (low end of the scale); not used for categories.",
+            label="Low")
         self.params['high'] = Param(high, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.")
+            updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.",
+            label="High")
 
         # advanced params:
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Should clicking the line accept that rating (without needing to confirm via 'accept')?")
+        self.params['disappear'] = Param(disappear, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Hide the scale when a rating has been accepted; False to remain on-screen")
         self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
@@ -170,18 +180,31 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ", scale='" + str(scaleDescription) +"'"
             if self.params['singleClick'].val:
                 init_str += ", singleClick=True"
+            if self.params['disappear'].val:
+                init_str += ", disappear=True"
         # write the RatingScale() instantiation code:
         init_str += ")\n"
         buff.writeIndented(init_str)
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
-        buff.writeIndented("%(name)s.status = NOT_STARTED\n" % (self.params))
 
     def writeFrameCode(self, buff):
         name = self.params['name']
         buff.writeIndented("\n")
         buff.writeIndented("#*%(name)s* updates\n" %(self.params))
+        # try to handle blank start condition gracefully:
+        if not self.params['startVal'].val.strip():
+            self.params['startVal'].val = 0 # time, frame
+            if self.params['startType'].val == 'condition':
+                self.params['startVal'].val = 'True'
+        if self.params['startType'].val == 'frame N':
+            buff.writeIndented("if frameN > %(startVal)s:\n" % self.params)
+        elif self.params['startType'].val == 'condition':
+            buff.writeIndented("if %(startVal)s:\n" % self.params)
+        else: # self.params['startType'].val == 'time (s)':
+            buff.writeIndented("if t > %(startVal)s:\n" % self.params)
+        buff.setIndentLevel(1, relative=True)
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
         # if requested, force end of trial when the subject 'accepts' the current rating:
         if self.params['forceEndRoutine'].val:
@@ -189,11 +212,10 @@ class RatingScaleComponent(BaseComponent):
         # only need to do the following the first time it goes False, here gets set every frame:
         buff.writeIndented("if %s.noResponse == False:\n" % name)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("%(name)s.status = FINISHED\n" % (self.params))
         buff.writeIndented("%s.response = %s.getRating()\n" % (name, name));
         if self.params['storeRatingTime'].val:
             buff.writeIndented("%s.rt = %s.getRT()\n" % (name, name));
-        buff.setIndentLevel(-1, relative=True)
+        buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

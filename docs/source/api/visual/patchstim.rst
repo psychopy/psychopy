@@ -1,6 +1,6 @@
 
 
-:class:`PatchStim` - **the main stimulus class for presenting images**
+:class:`PatchStim` (deprecated)
 ------------------------------------------------------------------------
 .. autoclass:: psychopy.visual.PatchStim
     :members:

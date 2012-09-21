@@ -25,7 +25,7 @@ The use of git and the following workflow allows people to contribute changes th
         - when finished run unit tests
         - when the unit tests pass merge changes back into the `master` branch
         - submit a pull request to the central repository
-        - 
+
 .. createClone:
 
 Create your own fork of the central repository
@@ -54,6 +54,17 @@ Periodically it's worth fetching any changes to the central psychopy repository 
     $ git checkout master
     $ git pull upstream master  # here 'master' is the desired branch of psychopy to fetch
 
+Run PsychoPy using your local copy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Now that you've fetched the latest version of psychopy using git, you should run this version in order to try out yours/others latest improvements. See `this guide <http://www.ehow.com/how_8510325_set-python-path.html>`_ on how to permanently run your git version of psychopy instead of the version you previously installed.
+
+*Run git version for just one session (linux and mac only)*:
+If you want to switch between the latest-and-greatest development version from git and the stable version installed on your system, you can choose to only temporarily run the git version. Open a terminal and set a temporary python path to your psychopy git folder, then start your editor of choice::
+
+	$ export PYTHONPATH=/path/to/local/git/folder/
+	$ psychopy
+
+
 Fixing bugs and making minor improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can make minor changes directly in the `master` branch of your fork. After making a change you need to `commit` a set of changes to your files with a message. This enables you to group together changes and you will subsequently be able to go back to any previous `commit`, so your changes are reversible.
@@ -67,6 +78,17 @@ From the GUI you can select (or `stage` in git terminology) the files that you w
 If you have internet access then you could also push your changes back up to your fork (which is called your `origin` by default), either by pressing the `push` button in the GUI or by closing that and typing::
 
     $ git push
+    
+Commit messages
+~~~~~~~~~~~~~~~~~~~~~
+Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following to help us spot easily if this is a bug fix (which might need pulling into other development branches) or new feature (which we might want to avoid pulling in if it might disrupt existing code).
+
+  * *BF* : bug fix
+  * *RF* : refactoring
+  * *NF* : new feature
+  * *ENH* : enhancement (improvement to existing code)
+  * *DOC*: for all kinds of documentation related commits
+  * *TEST*: for adding or changing tests
 
 .. _pullRequest:
 

@@ -35,10 +35,12 @@ class MovieComponent(VisualComponent):
         self.params['stopVal'].hint="Leave blank simply to play the movie for its full duration"
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A filename for the movie (including path)")
+            hint="A filename for the movie (including path)",
+            label="Movie file")
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should the end of the movie cause the end of the routine (e.g. trial)?")
+            hint="Should the end of the movie cause the end of the routine (e.g. trial)?",
+            label="Force end of Routine")
         #these are normally added but we don't want them for a movie
         del self.params['color']
         del self.params['colorSpace']
@@ -57,7 +59,7 @@ class MovieComponent(VisualComponent):
             params = self.params
         buff.writeIndented("%s=visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
         buff.writeIndented("    filename=%(movie)s,\n" %(params))
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s," %(params))
+        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n" %(params))
         if self.params['size'].val != '':
             buff.writeIndented("    size=%(size)s,\n"%(params))
         depth = -self.getPosInRoutine()
@@ -79,7 +81,7 @@ class MovieComponent(VisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
+        #buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n" %(self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" %(self.params['name']))
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         if self.params['stopVal'].val not in ['', None, -1, 'None']:

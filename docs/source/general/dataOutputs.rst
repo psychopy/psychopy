@@ -41,7 +41,16 @@ For example, to open a psydat file and examine some of its contents with::
         print condition, datFile.data['response'][condN], numpy.mean(datFile.data['response'][condN])
 
 Ideally, we should provide a demo script here for fetching and plotting some data feel (free to :ref:`contribute <contribute>`).
-		
+
+.. _longWide:
+
+Long-wide data file
+-----------------------
+
+This form of data file is the default data output form Builder experiments as of v1.74.00. Rather than summarising data in a spreadsheet where one row represents all the data from a single condition (as in the summarised data format), in long-wide data files the data is not collapsed by condition, but written chronologically with one row representing one trial (hence it is typically longer than summarised data files). One column in his format is used for every single piece of information available in the experiment, even where that information might be considered redundant (hence the format is also 'wide').
+
+Although these data files might not be quite as easy to read quickly by the experimenter, they are ideal for import and analysis under packages such as R, SPSS or Matlab.
+
 .. _excelFile:
 
 Excel data file

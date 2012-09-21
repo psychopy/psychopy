@@ -281,6 +281,37 @@ def sph2cart(*args):
     else:
         return x, y, z
 
+def cart2sph(z, y, x):
+    """Convert from cartesian coordinates (x,y,z) to spherical (elevation,
+    azimuth, radius). Output is in degrees. 
+    
+    usage:
+        array3xN[el,az,rad] = cart2sph(array3xN[x,y,z])
+        OR
+        elevation, azimuth, radius = cart2sph(x,y,z)
+        
+        If working in DKL space, z = Luminance, y = S and x = LM"""
+    width = len(z)
+    
+    elevation = numpy.empty([width,width])
+    radius = numpy.empty([width,width])
+    azimuth = numpy.empty([width,width])
+    
+    radius = numpy.sqrt(x**2 + y**2 + z**2)
+    azimuth = numpy.arctan2(y, x)
+    #Calculating the elevation from x,y up
+    elevation = numpy.arctan2(z, numpy.sqrt(x**2+y**2))
+
+#convert azimuth and elevation angles into degrees
+    azimuth *=(180.0/numpy.pi)
+    elevation *=(180.0/numpy.pi)
+
+    sphere = numpy.array([elevation, azimuth, radius])
+    sphere = numpy.rollaxis(sphere, 0, 3)
+
+    return sphere
+
+
 #---unit conversions
 def pix2deg(pixels, monitor):
     """Convert size in pixels to size in degrees for a given Monitor object"""
@@ -356,7 +387,8 @@ def cm2pix(cm, monitor):
     return cm*scrSizePix[0]/float(scrWidthCm)
 
 #---color conversions---#000000#FFFFFF------------------------------------------
-def dkl2rgb(dkl_Nx3, conversionMatrix=None):
+
+def dkl2rgb(dkl, conversionMatrix=None):
     """Convert from DKL color space (cone-opponent space from Derrington,
     Krauskopf & Lennie) to RGB.
 
@@ -368,16 +400,9 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
     usage::
 
         rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
+        rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
 
     """
-
-    dkl_3xN = numpy.transpose(dkl_Nx3)#its easier to use in the other orientation!
-    if numpy.size(dkl_3xN)==3:
-        RG, BY, LUM = sph2cart(dkl_3xN[0],dkl_3xN[1],dkl_3xN[2])
-    else:
-        RG, BY, LUM = sph2cart(dkl_3xN[0,:],dkl_3xN[1,:],dkl_3xN[2,:])
-    dkl_cartesian = numpy.asarray([LUM, RG, BY])
-
     if conversionMatrix==None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN    %L-M    %L+M-S  (note that dkl has to be in cartesian coords first!)
@@ -386,9 +411,27 @@ def dkl2rgb(dkl_Nx3, conversionMatrix=None):
             [1.0000, 0.0180, -1.0000]])#B
         logging.warning('This monitor has not been color-calibrated. Using default DKL conversion matrix.')
 
-    rgb = numpy.dot(conversionMatrix, dkl_cartesian)
+    if len(dkl.shape)==3:
+        dkl_NxNx3 = dkl
+        """convert a 2D (image) of Spherical DKL colours to RGB space"""
+        origShape = dkl_NxNx3.shape#remember for later
+        NxN = origShape[0]*origShape[1]#find nPixels
+        dkl = numpy.reshape(dkl_NxNx3,[NxN,3])#make Nx3
+        rgb = dkl2rgb(dkl,conversionMatrix)#convert
+        return numpy.reshape(rgb,origShape)#reshape and return
+    
+    else:
+        dkl_Nx3=dkl
+        dkl_3xN = numpy.transpose(dkl_Nx3)#its easier to use in the other orientation!
+        if numpy.size(dkl_3xN)==3:
+            RG, BY, LUM = sph2cart(dkl_3xN[0],dkl_3xN[1],dkl_3xN[2])
+        else:
+            RG, BY, LUM = sph2cart(dkl_3xN[0,:],dkl_3xN[1,:],dkl_3xN[2,:])
+        dkl_cartesian = numpy.asarray([LUM, RG, BY])
+        rgb = numpy.dot(conversionMatrix, dkl_cartesian)
 
-    return numpy.transpose(rgb)#return in the shape we received it
+        return numpy.transpose(rgb)#return in the shape we received it
+
 
 def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
     """Like dkl2rgb except that it uses cartesian coords (LM,S,LUM) rather than

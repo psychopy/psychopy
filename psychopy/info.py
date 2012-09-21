@@ -6,7 +6,7 @@
 
 import sys, os, time, platform
 
-from psychopy import visual# imports for RuntimeInfo()
+from psychopy import visual, logging
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
@@ -14,10 +14,10 @@ from pyglet.gl import gl_info
 import numpy, scipy, matplotlib, pyglet
 try: import ctypes
 except: pass
-try: import hashlib # python 2.5
-except: import sha
+import hashlib
 import random
 import wx
+import locale
 
 
 class RunTimeInfo(dict):
@@ -97,7 +97,7 @@ class RunTimeInfo(dict):
             self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
-        self._setSystemUserInfo()
+        self._setSystemInfo() # current user, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
@@ -194,7 +194,7 @@ class RunTimeInfo(dict):
             self['experimentRandomSeed.string'] = None
             self['experimentRandomSeed.isSet'] = False
             
-    def _setSystemUserInfo(self):
+    def _setSystemInfo(self):
         # machine name
         self['systemHostName'] = platform.node()
         
@@ -233,31 +233,50 @@ class RunTimeInfo(dict):
             lastboot += ['[?]'] # put something in the list just in case
             self['systemRebooted'] = lastboot[0].strip()
         
-        # is R available (for stats)?
+        # R (and r2py) for stats:
         try:
             Rver,err = shellCall("R --version",stderr=True)
             Rversion = Rver.splitlines()[0]
-            if Rversion.find('R version') == 0:
+            if Rversion.startswith('R version'):
                 self['systemRavailable'] = Rversion.strip()
-            else: raise
+            try:
+                import rpy2
+                self['systemRpy2'] = rpy2.__version__
+            except:
+                pass
         except:
-            self['systemRavailable'] = False
+            pass
         
-        """try:
-            import rpy2
-            self['systemRpy2'] = rpy2.__version__
-        except:
-            self['systemRpy2'] = False
-        
-        # openssl version--maybe redundant with python distribution info?
-        # for a sha1 digest, python's hashlib is better than a shell call to openssl
+        # encryption / security tools:
         try:
-            self['systemOpenSSLVersion'],err = shellCall('openssl version',stderr=True)
-            if err:
-                raise
+            vers, se = shellCall('openssl version', stderr=True)
+            if se:
+                vers = str(vers) + se.replace('\n',' ')[:80]
+            if vers.strip():
+                self['systemSec.OpenSSLVersion'] = vers
         except:
-            self['systemOpenSSLVersion'] = None
-        """
+            pass
+        try:
+            so, se = shellCall('gpg --version', stderr=True)
+            if so.find('GnuPG') > -1:
+                self['systemSec.GPGVersion'] = so.splitlines()[0]
+                self['systemSec.GPGHome'] = ''.join([line.replace('Home:','').lstrip()
+                                                    for line in so.splitlines()
+                                                    if line.startswith('Home:')])
+        except:
+            pass
+        try:
+            import ssl
+            self['systemSec.pythonSSL'] = True
+        except ImportError:
+            self['systemSec.pythonSSL'] = False
+        
+        # pyo for sound:
+        try:
+            import pyo
+            self['systemPyoVersion'] = '.'.join(map(str, pyo.getVersion()))
+        except:
+            pass
         
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
@@ -265,7 +284,7 @@ class RunTimeInfo(dict):
         appFlagList = [# flag these apps if active, case-insensitive match:
             'Firefox','Safari','Explorer','Netscape', 'Opera', # web browsers can burn CPU cycles
             'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
-            'mdimport', # can have high CPU
+            'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
             'Parallels', 'Coherence', 'prl_client_app','prl_tools_service',
@@ -276,29 +295,24 @@ class RunTimeInfo(dict):
         # assess concurrently active processes owner by the current user:
         try:
             # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
-            if sys.platform in ['darwin']:
+            if sys.platform not in ['win32']:
                 proc = shellCall("ps -c -U "+os.environ['USER'])
-                cmdStr = 'COMMAND'
-            elif sys.platform in ['linux2']:
-                proc = shellCall("ps -c -U "+os.environ['USER'])
-                cmdStr = 'CMD'
-            elif sys.platform in ['win32']: 
+            else:
                 proc, err = shellCall("tasklist", stderr=True) # "tasklist /m" gives modules as well
                 if err:
-                    print 'tasklist error:', err
-                    raise
-            else: # guess about freebsd based on darwin... 
-                proc,err = shellCall("ps -U "+os.environ['USER'],stderr=True)
-                if err: raise
-                cmdStr = 'COMMAND' # or 'CMD'?
+                    logging.error('tasklist error:', err)
+                    #raise
             systemProcPsu = []
             systemProcPsuFlagged = [] 
             systemUserProcFlaggedPID = []
             procLines = proc.splitlines() 
             headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
-                cmd = headerLine.split().index(cmdStr) # columns and column labels can vary across platforms
-                pid = headerLine.split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
+                try:
+                    cmd = headerLine.upper().split().index('CMD') # columns and column labels can vary across platforms
+                except ValueError:
+                    cmd = headerLine.upper().split().index('COMMAND') 
+                pid = headerLine.upper().split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
             else: # this works for win XP, for output from 'tasklist'
                 procLines.pop(0) # blank
                 procLines.pop(0) # =====
@@ -544,7 +558,10 @@ def _getHgVersion(file):
         return None
 
 def _getUserNameUID():
-    """Return user name, UID: -1=undefined, 0=assume full root, >499=assume non-root; but its >999 on debian
+    """Return user name, UID.
+    
+    UID values can be used to infer admin-level:
+    -1=undefined, 0=full admin/root, >499=assume non-admin/root (>999 on debian-based)
     
     :Author:
         - 2010 written by Jeremy Gray
@@ -556,7 +573,7 @@ def _getUserNameUID():
     uid = '-1' 
     try:
         if sys.platform not in ['win32']:
-            uid = core.shellCall('id -u')
+            uid = shellCall('id -u')
         else:
             try:
                 uid = '1000'
@@ -573,27 +590,23 @@ def _getSha1hexDigest(thing, file=False):
     return None if a file is requested but no such file exists
     
     :Author:
-        - 2010 Jeremy Gray; updated 2011 to be more explicit
+        - 2010 Jeremy Gray; updated 2011 to be more explicit, 2012 to remove sha.new()
 
     >>> _getSha1hexDigest('1')
     '356a192b7913b04c54574d18c28d46e6395428ab'
     >>> _getSha1hexDigest(1)
     '356a192b7913b04c54574d18c28d46e6395428ab'
     """
-    try:
-        sha1 = hashlib.sha1()
-    except:
-        sha1 = sha.new() # deprecated, here for python 2.4
+    digester = hashlib.sha1()
     if file:
         filename = thing
         if os.path.isfile(filename):
             f = open(filename,'rb')
-            sha1.update(f.read()) # check file size < available RAM first? or update in chunks?
+            digester.update(f.read()) # check file size < available RAM first? or update in chunks?
             f.close()
         else:
             return None
-            #raise IOError, "file '" + filename + "' not found'"
     else:
-        sha1.update(str(thing))
-    return sha1.hexdigest()
+        digester.update(str(thing))
+    return digester.hexdigest()
         

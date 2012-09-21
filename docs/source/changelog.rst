@@ -4,9 +4,9 @@ Changelog
 
 .. raw:: html
 
-    <style> .red {color:red} </style>
+    <style> .blue {color:blue} </style>
 
-.. role:: red
+.. role:: blue
 
 .. note::
   Version numbers
@@ -14,7 +14,96 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-:red:`Changes in red typically indicate things that alter the PsychoPy behaviour in a way that could could break compatibility. Be especially wary of those!`
+:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
+
+PsychoPy 1.74
+------------------------------
+
+PsychoPy 1.74.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED: larger Code Component boxes (and fixed bug with being only one line on linux)
+* FIXED: Builder code syntax error when using Mouse set state 'every frame'
+* FIXED: Builder was erroneously using 'estimated duration' for constraining non-slip timing
+* FIXED: Builder couldn't open Experiment Settings if the expected screen number didn't exist on this system
+
+PsychoPy 1.74.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Aug 2012)
+
+* FIXED: the multiline text entry box in the Builder Text Component was broken (thanks Piotr Iwaniuk)
+* IMPROVED: serial (RS232) interface to fORP button box to avoid recording repeated presses (thanks Nate Vack). Does not affect use of fORP box from USB interface.
+
+PsychoPy 1.74.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released Aug 2012)
+
+* FIXED: bug leading to message: `IndexError: string index out of range.` This was caused by problem saving excel files
+* FIXED: bug leading to message: `AttributeError: ImageStim instance has no attribute 'rgbPedestal'.` Was only occurring on non-shaders machines using the new ImageStim.
+* FIXED: problem loading old ExperimentHandlers that contained MultiStairHandlers
+* FIXED: Builder Text Components gave an error if letter height was a variable
+* ADDED: Window.flip() now returns the timestamp for the flip if possible (thanks Sol Simpson)
+* ADDED: misc.sph2cart (Becky Sharman)
+* ADDED: warning when user presents SimpleImageStim that seems to extend beyond screen (James McMurray)
+
+PsychoPy 1.74.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released July 2012)
+
+* FIXED: the pyo package is now included in the windows Standalone distribution (making audio input available as intended)
+* FIXED: error saving excel data from numpy.int formats (Erik Kastman)
+* FIXED: error at end of automated gamma calibration (which was causing a crash of the calibration script)
+* FIXED: misc.getDateStr() returns numeric date if there's an error with unicode encoding (Jeremy)
+* FIXED: added partial support for non-ASCII keyboards (Sebastiaan Mathot)
+
+
+PsychoPy 1.74.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(released July 2012)
+
+Highlights (and compatibility changes):
+
+* :blue:`CHANGED`: Builder experiments saved from this version will NOT open in older versions
+* :blue:`ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)` See :ref:`nonSlip` for further info
+* :blue:`ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments.` See :ref:`longWide` outputs
+* :blue:`CHANGED: The psydat output files from Builder` have also changed. They are now :class:`~psychopy.data.ExperimentHandler` objects, which contain all loops in a single file. Previously they were TrialHandlers, which required one file for each loop of the experiment. Analysis scripts will need slight modifications to handle this
+* :blue:`CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented.` This may affect any automated analysis you perform on your spreadsheet outputs
+* :blue:`RESTRUCTURED:` the generation of 'summarised' data outputs (text and excel) were also rewritten in this version, so make sure that your data files still contain all the data you were expecting
+* ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See :ref:`psychopy.microphone <microphone>` library, Coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
+* ADDED: HSV color space for all stimuli
+* :blue:`CHANGED: in Builder the default :class:`~psychopy.visual.DotStim` has signal dots='same' (once a signal dot, always a signal dot).` Only affects new experiments
+* :blue:`CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation`, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values.
+* :blue:`CHANGED: pygame is no longer being formally supported/tested` although it will probably continue to work for some time.
+
+Additional changes:
+
+* ADDED: contains() and intersects() methods to visual shape stimuli (including Rect etc) to determine whether a point or array of points is within the present stimulus boundaries
+* FIXED: missing parameter name in conditions file is detected, triggers more informative error message
+* ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
+* ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
+* ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
+* FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
+* ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
+* ADDED: 'enable escape' option in experiment settings, default is 'enabled'
+* ADDED: support for :class:`~psychopy.visual.ElementArrayStim` to use the same set of color spaces as other stimuli
+* CHANGED: removed python 2.4's version of sha1 digest from :class:`~psychopy.info.RunTimeInfo`
+* CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
+* FIXED: Builder was ignoring changes to :class:`~psychopy.visual.DotStim` FieldPos (thanks Mike MacAskill)
+* FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
+* FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
+* FIXED: Mouse component was not saving clicks in Builder experiments if forceEndOnClick was set to be False
+* FIXED: DotStim.setFieldCoherence was having no effect if noise dots were updating by 'position'
+* FIXED: TextStim.setColor() was not updating stimulus properly when haveShaders=False
+* FIXED: In Builder, sound duration was not being used in creating new sounds
+* CHANGED: Under linux, although you will be warned if a new version is available, it will not be auto-installed by PsychoPy (that should be done by your package manager)
+* FIXED: csv/dlm data outputs no longer have a trailing delimitter at end of line
+* FIXED: all test suite tests should now pass :-)
 
 PsychoPy 1.73
 ------------------------------
@@ -29,11 +118,12 @@ PsychoPy 1.73.06
 * FIXED: bug with Window.setColor being incorrectly scaled for some spaces
 * FIXED: buglet preventing unicode from being used in TrialHandler parameter names (William Hogman) and saving to data files (Becky Sharman)
 * FIXED: StairHandler in Builder now saves the expInfo dictionary (Jeremy)
+* FIXED: can unpickle from either old-style or new-style data files (using psychopy.compatibility.fromFile()) (Erik Kastman)
 
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released March 2012)
+(Released March 2012)
 
 * FIXED: Joystick error when calling :class:`~psychopy.hardware.joystick.Joystick.getHat()` or :class:`~psychopy.hardware.joystick.Joystick.getHats()` (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
@@ -52,7 +142,7 @@ PsychoPy 1.73.04
 
 (released Feb 2012)
 
-* CHANGED: Builder scripts now silently convert division from integers to float where necessary. That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
+* :blue:`CHANGED: Builder scripts now silently convert division from integers to float where necessary.` That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
 * FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
 * FIXED: issue on OSX with updating from 1.70 binaries to 1.73 patch release
 
@@ -83,7 +173,7 @@ PsychoPy 1.73.00
 
 (released Jan 2012)
 
-* :red:`CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)`
+* :blue:`CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)`
 * ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
 * ADDED: support for CRS ColorCAL mkII for gamma calibrations in Monitor Center.
 * ADDED: data.ExpHandler to combine data for multiple separate loops in one study, including output of a single wide csv file. See demos>experimental control>experimentHandler. Support from Builder should now be easy to add
@@ -98,7 +188,7 @@ PsychoPy 1.72.00
 
 (rc1 released Nov 2011)
 
-* :red:`CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)`
+* :blue:`CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)`
     - for gui.Dlg the `.addField()` method now has `choices` attribute
     - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
     - for info see API docs for psychopy.gui
@@ -143,7 +233,7 @@ PsychoPy 1.71.00
 
 (released Sept 2011)
 
-* :red:`CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that`
+* :blue:`CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that`
 * CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
 * ADDED: Builder loop conditions mini-editor: (right-click in the filename box in a loop dialog)
     - create, edit, and save conditions from within PsychoPy; save & load using pickle format
@@ -196,7 +286,7 @@ PsychoPy 1.70.00
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
-* :red:`CHANGED use of allowedKeys in Keyboard Component.` You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
+* :blue:`CHANGED use of allowedKeys in Keyboard Component.` You used to be able to type `ynq` to get those keys, but this was confusing when you then needed `'space'` or `'left'` etc. Now you must type 'y','n','q', which makes it more obvious how to include 'space','left','right'...
 * CHANGED dot algorithm in DotStim. Previously the signalDots=same/different was using the opposite to Scase et al's terminology, now they match. Also the default method for noiseDots was 'position' and this has been changed to 'direction'. The documentation explaining the algorithms has been clarified. (see :ref:`dots`)
 * CHANGED `MovieStim.playing` property to be called `MovisStim.status` (in keeping with other stimuli)
 * CHANGED names:
@@ -207,13 +297,13 @@ PsychoPy 1.70.00
     - `trialList` and `trialListFile` in Builder are now `conditions` and `conditionsFile`, respectively
     - 'window units' to set Component units is now 'from exp settings' for less confusion
 
-* :red:`CHANGED numpy imports in Builder scripts:`
+* :blue:`CHANGED numpy imports in Builder scripts:`
 
     - only a subset of numpy features are now imported by default: numpy: sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray, random, randint, normal, shuffle
     - all items in the numpy namespace are available as np.*
     - if a pre-v1.70 script breaks due to this change, try prepending 'np.' or 'np.random.'
 
-* :red:`CHANGED: Builder use of $.` $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
+* :blue:`CHANGED: Builder use of $.` $ can now appear anywhere in the field (previously only the start). To display a '$' character now requires '\\$' in a text field (to prevent interpretation of normal text as being code).
 
 * ADDED flexibility for start/stop in Builder Components. Can now specify stimuli according to;
 

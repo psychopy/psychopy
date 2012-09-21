@@ -85,6 +85,7 @@
     topFlow = boolean(default=False)
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
+    alwaysShowReadme = boolean(default=True)
 
 # Settings for connections
 [connections]
@@ -176,3 +177,5 @@
     largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
     # decrease display size of Routines
     smallerRoutine = string(default='Ctrl+Shift+-')
+    #show or hide the readme (info) for this experiment if possible
+    toggleReadme = string(default='Ctrl+I')

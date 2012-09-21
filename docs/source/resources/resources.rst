@@ -2,30 +2,13 @@ Resources (e.g. for teaching)
 =====================================
 
 There are a number of further resources to help learn/teach about PsychoPy.
-       
-Upcoming events
---------------------
 
-.. _VSS:
+.. _youtube:
 
-VSS 2012 Satellite Event, May 2012
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Youtube tutorials
+---------------------
 
-We will be running a workshop for PsychoPy, as a satellite to the `Vision Sciences Society conference <http://www.visionsciences.org/index.html>`_.
-
-    - when: Thurs 10th May, 12-5pm
-    - where: Naples Grand, Banyan Room 1-2
-    - cost: £75
-    - target audience: novice
-    - material will cover the Builder interface and simple Python coding
-
-Email me personally (jon at peirce.org.uk) if you're interested in attending (or helping!).
-
-There will be very limited spaces available (probably 30) in order that participants get the most out of the event. So get in touch as soon as possible.
-
-The registration charge of £75 is to cover costs is to cover costs and, hopefully, lunch. This will be invoiced so that it can be claimed back.
-
-The workshop will include a mixture of demonstrations and periods of users creating their own experiment in the software. Time will be spent partly on the graphical interface and partly on writing Python code. Please bring a laptop with PsychoPy installed, as well as ideas for a simple experiment to build. That will allow you to ge the most out of the session.
+There is now a `youtube PsychoPy <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ tutorial showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
 
 .. _lectureMaterials:
 
@@ -47,6 +30,8 @@ Lecture materials (Coder)
 
 Previous events
 --------------------
+
+* :ref:`VSS`
 
 * `Yale, 21-23 July <https://scanlab.psych.yale.edu/public/psychopy>`_ : The first ever dedicated PsychoPy workshop/conference was at Yale, 21-23 July 2011. Thanks Jeremy for organising!
 

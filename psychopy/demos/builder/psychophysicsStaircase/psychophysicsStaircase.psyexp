@@ -19,7 +19,7 @@
   </Settings>
   <Routines>
     <Routine name="trial">
-      <PatchComponent name="fixation">
+      <GratingComponent name="fixation">
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="fixation" valType="code" updates="constant"/>
         <Param name="color" val="[1, 1, 1]" valType="code" updates="constant"/>
@@ -37,11 +37,11 @@
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="image" val="none" valType="str" updates="constant"/>
+        <Param name="tex" val="none" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="size" val="[3, 3]" valType="code" updates="constant"/>
-      </PatchComponent>
-      <PatchComponent name="gabor">
+      </GratingComponent>
+      <GratingComponent name="gabor">
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="gabor" valType="code" updates="constant"/>
         <Param name="color" val="$[level, level, level]" valType="code" updates="set every repeat"/>
@@ -59,10 +59,10 @@
         <Param name="ori" val="$expInfo['ori']" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.5" valType="code" updates="None"/>
-        <Param name="image" val="sin" valType="str" updates="constant"/>
+        <Param name="tex" val="sin" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="size" val="[128,128]" valType="code" updates="constant"/>
-      </PatchComponent>
+      </GratingComponent>
       <KeyboardComponent name="resp">
         <Param name="correctAns" val="up" valType="str" updates="constant"/>
         <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>

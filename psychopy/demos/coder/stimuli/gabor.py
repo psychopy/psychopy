@@ -5,7 +5,7 @@ from psychopy import core, visual, event
 myWin = visual.Window([400,400.0], allowGUI=False)
 
 #INITIALISE SOME STIMULI
-gabor = visual.PatchStim(myWin,tex="sin",mask="gauss",texRes=256,
+gabor = visual.GratingStim(myWin,tex="sin",mask="gauss",texRes=256,
            size=[1.0,1.0], sf=[4,0], ori = 0, name='gabor1')
 gabor.setAutoDraw(True)
 message = visual.TextStim(myWin,pos=(0.0,-0.9),text='Hit Q to quit')

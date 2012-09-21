@@ -3,6 +3,13 @@
 
 .. automodule:: psychopy.data
 
+:class:`ExperimentHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.ExperimentHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
+    
 :class:`TrialHandler`
 ---------------------------------------------------------------------------
 .. autoclass:: psychopy.data.TrialHandler

@@ -190,6 +190,11 @@ class _Logger:
         self.lowestTarget=50
     def __del__(self):
         self.flush()
+        #try:
+        #    self.flush()
+        #except TypeError: # can happen in tests, mildly distracting
+        #    '''Exception TypeError: "'NoneType' object is not callable" in <bound method _Logger.__del__ of <psychopy.logging._Logger instance at 0x12dc788>> ignored'''
+        #    pass
     def addTarget(self,target):
         """Add a target, typically a :class:`~log.LogFile` to the logger
         """
@@ -309,134 +314,3 @@ def log(msg, level, t=None, obj=None):
     """
     root.log(msg, level=level, t=t, obj=obj)
 
-#class _LogRecord(logging.LogRecord):
-#    #the LogRecord is basically a class of info that can be used by the format
-#    #attribute of each Handler when it receives a message to log
-#    #we need to subclass it here in order to add our own info: clockTime
-#    def __init__(self, name, level, pathname, lineno,
-#                 msg, args, clock, exc_info, func):
-#        logging.LogRecord.__init__(self,name, level, pathname, lineno,
-#                 msg, args, exc_info, func)#everything but the clock - that was ours
-#        if clock!=None and hasattr(clock, 'getTime'):
-#            self.clockTime = clock.getTime()
-#        else:
-#            self.clockTime = defaultClock.getTime()#the time the log was created according to time.time()
-
-#class _Logger(logging.Logger):
-#    #the logger sends the message, rather than receive it
-#    #we need a subclass so that we can use our own makeRecord function with a custom Clock
-#    """this Logger class is adapted to allow a Clock to be passed to the _log function
-#    so that time can be set relative to the start of the exp
-#    """
-#    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, clock=None, func=None, extra=None):
-#        """
-#        A factory method which can be overridden in subclasses to create
-#        specialized LogRecords.
-#        """
-#        rv = _LogRecord(name, level, fn, lno, msg, args, clock, exc_info, func)
-#        if extra:
-#            for key in extra:
-#                if (key in ["message", "asctime"]) or (key in rv.__dict__):
-#                    raise KeyError("Attempt to overwrite %r in LogRecord" % key)
-#                rv.__dict__[key] = extra[key]
-#        return rv
-#    def _log(self, level, msg, args, clock=None, exc_info=None, extra=None):
-#        """
-#        Low-level logging routine which creates a LogRecord and then calls
-#        all the handlers of this logger to handle the record.
-#        """
-#        if logging._srcfile:
-#            fn, lno, func = self.findCaller()
-#        else:
-#            fn, lno, func = "(unknown file)", 0, "(unknown function)"
-#        if exc_info:
-#            if type(exc_info) != types.TupleType:
-#                exc_info = sys.exc_info()
-#        record = self.makeRecord(self.name, level, fn, lno, msg, args, exc_info, clock, func, extra)
-#        self.handle(record)
-#class _StreamHandler(logging.StreamHandler):
-#    #subclass the StreamHandler in order to rewrite emit for non-flushing
-#    def emit(self, record):
-#        """
-#        Emit a record.
-
-#        If a formatter is specified, it is used to format the record.
-#        The record is then written to the stream with a trailing newline
-#        [N.B. this may be removed depending on feedback]. If exception
-#        information is present, it is formatted using
-#        traceback.print_exception and appended to the stream.
-#        """
-#        try:
-#            msg = self.format(record)
-#            fs = "%s\n"
-#            if not hasattr(types, "UnicodeType"): #if no unicode support...
-#                self.stream.write(fs % msg)
-#            else:
-#                try:
-#                    self.stream.write(fs % msg)
-#                except UnicodeError:
-#                    self.stream.write(fs % msg.encode("UTF-8"))
-#            #self.flush()#this is the only change from logging.StreamHandler
-#        except (KeyboardInterrupt, SystemExit):
-#            raise
-#        except:
-#            self.handleError(record)
-
-#class LogFile(_StreamHandler):
-#    """Creates an object to help with logging events to a file"""
-#    #this is adapted from logging.FileHandler to allow non-flushing emit
-#    def __init__(self, filename,
-#                       filemode = 'a', level=INFO,
-#                       format = '%(asctime)-s %(levelname)-8s %(message)s',
-#                       dateFormat='%y-%m-%d %H:%M'):
-#        """**Arguments:**
-#            - filename
-#            - filemode = 'a'(ppend) or 'w'(rite). The latter will remove the previous file
-#            - level = the minimum level of the messages to be entered into the log
-#            - format = a string defining the format of messages
-#            - datefmt = a string specifying just the date part of the message
-#        """
-#        self._file = open(filename, filemode)
-#        _StreamHandler.__init__(self, self._file)
-#        #~ self._log = logging.basicConfig(level=level,
-#                    #~ format=format, datefmt=datefmt,
-#                    #~ filename=filename, filemode=filemode)
-#        self.setLevel(level)
-#        formatter = logging.Formatter(format, dateFormat)
-#        self.setFormatter(formatter)
-#        psychopyLogger.addHandler(self)
-#    def getLevel(self):
-#        """Returns the current level for this log (numerically)
-#        The values correspond to:
-
-#            - 40:Error
-#            - 35 Data
-#            - 30:Warning
-#            - 20:Info
-#            - 10:Debug
-#            """
-#        return self.level
-#    def write(self, text):
-#        """Write arbitrary text to the logfile (and no other file).
-#        Consider using functions like `psychopy.log.info` instead, to write
-#        the message to all logfiles of a given level.
-
-#        .. Note::
-
-#            write() will likely be flushed immediately, whereas loggin messages aren't.
-#            That means that write() messages sent after the other logging methods
-#            might appear before it in the file!
-#        """
-#        self._file.write(text)
-#    def writeline(self, text):
-#        """As `LogFile.write` but adds a \n at the end of the text
-#        """
-#        self._file.write(text+'\n')
-#    def close(self):
-#        """
-#        Closes the stream.
-#        """
-#        self.flush()
-#        self.stream.close()
-#        _StreamHandler.close(self)
-#psychopyLog = LogFile('psychopy.log', 'a', level=ERROR)

@@ -101,15 +101,15 @@ def getInitVals(params):
             inits[name].val='None'
             inits[name].valType='code'
 
-        #is constant to don't touch the parameter value
+        #is constant so don't touch the parameter value
         elif inits[name].updates in ['constant',None,'None']:
             continue #things that are constant don't need handling
 
         #is changing so work out a reasonable default
-        elif name == 'pos':
+        elif name in ['pos', 'fieldPos']:
             inits[name].val='[0,0]'
             inits[name].valType='code'
-        elif name in ['ori','sf','size','height','color','phase','opacity',
+        elif name in ['ori','sf','size','height','letterHeight','color','phase','opacity',
             'volume', #sounds
             'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
             ]:

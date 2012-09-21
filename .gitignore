@@ -2,6 +2,7 @@
 *.egg-info
 *.log
 *.orig
+*__pycache__*
 .hg*
 .coverage
 .idea
@@ -27,6 +28,11 @@ psychopy/demos/*/*/*.txt
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
+psychopy/tests/*htmlcov*
 
 .DS_Store
 
+/.ropeproject/config.py
+/.ropeproject/history
+/.ropeproject/objectdb
+/.spyderproject

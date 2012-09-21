@@ -1,10 +1,23 @@
 import Image
-import nose
 from os.path import abspath, basename, dirname, isfile, join as pjoin
+import os.path
+import shutil
 import numpy as np
-import OpenGL
-
 from psychopy import logging
+
+try:
+    import pytest
+    usePytest=True
+except:
+    import nose
+    usePytest=False
+
+if usePytest:
+    from pytest import skip as _skip
+else:
+    logging.warning("pytest was not found. This is the recommended tool for testing in PsychoPy (rather than nose)")
+    from nose.plugins.skip import SkipTest as _skip
+
 
 # define the path where to find testing data
 # so tests could be ran from any location
@@ -28,18 +41,117 @@ def compareScreenshot(fileName, win, crit=5.0):
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
         frame.save(fileName, optimize=1)
-        raise nose.plugins.skip.SkipTest("Created %s" % basename(fileName))
+        skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
-        logging.debug('PsychoPyTests: RMS=%.3g at threshold=%3.g'
+        logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if rms>=crit:
             filenameLocal = fileName.replace('.png','_local.png')
             frame.save(filenameLocal, optimize=1)
-            logging.debug('PsychoPyTests: Saving local copy into %s' % filenameLocal)
-            raise AssertionError("RMS=%.3g at threshold=%.3g. Local copy in %s"
-                                 % (rms, crit, filenameLocal))
-        assert rms<crit         # must never fail here
+            logging.warning('PsychoPyTests: Saving local copy into %s' % filenameLocal)
+        assert rms<crit, \
+            "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
+
+
+def compareTextFiles(pathToActual, pathToCorrect, delim=None):
+    """Compare the text of two files, ignoring EOL differences, and save a copy if they differ
+    """
+    if not os.path.isfile(pathToCorrect):
+        logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
+        foundComparisonFile=False
+        shutil.copyfile(pathToActual,pathToCorrect)
+        assert foundComparisonFile #deliberately raise an error to see the warning message
+        return
+    if delim==None:
+        if pathToCorrect.endswith('.csv'): delim=','
+        elif pathToCorrect.endswith('.dlm'): delim='\t'
+
+    try:
+        #we have the necessary file
+        txtActual = open(pathToActual, 'r').readlines()
+        txtCorrect = open(pathToCorrect, 'r').readlines()
+        assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
+        for lineN in range(len(txtActual)):
+            if delim==None:
+                #just compare the entire line
+                assert lineActual==lineCorrect
+            else:#word by word instead
+                lineActual=txtActual[lineN].split(delim)
+                lineCorrect=txtCorrect[lineN].split(delim)
+                for wordN in range(len(lineActual)):
+                    wordActual=lineActual[wordN]
+                    wordCorrect=lineCorrect[wordN]
+                    try:
+                        wordActual=float(wordActual)
+                        wordCorrect=float(wordCorrect)
+                        isFloat=True
+                    except:#stick with simple text if not a float value
+                        isFloat=False
+                        pass
+                    if isFloat:
+                        #to a default of 8 dp?
+                        assert np.allclose(wordActual,wordCorrect), "Numeric values at (%i,%i) differ: %f != %f " \
+                            %(lineN, wordN, wordActual, wordCorrect)
+                    else:
+                        if wordActual!=wordCorrect:
+                            print 'actual:'
+                            print repr(txtActual[lineN])
+                            print lineActual
+                            print 'expected:'
+                            print repr(txtCorrect[lineN])
+                            print lineCorrect
+                        assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
+                            %(lineN, wordN, repr(wordActual), repr(wordCorrect))
+    except AssertionError, err:
+        pathToLocal, ext = os.path.splitext(pathToCorrect)
+        pathToLocal = pathToLocal+'_local'+ext
+        shutil.copyfile(pathToActual,pathToLocal)
+        print "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
+        raise AssertionError, err
+
+def compareXlsxFiles(pathToActual, pathToCorrect):
+    from openpyxl.reader.excel import load_workbook
+    # Make sure the file is there
+    expBook = load_workbook(pathToCorrect)
+    actBook = load_workbook(pathToActual)
+    error=None
+
+    for wsN, expWS in enumerate(expBook.worksheets):
+        actWS = actBook.worksheets[wsN]
+        for key, expVal in expWS._cells.items():
+            actVal = actWS._cells[key].value
+            expVal = expVal.value
+            #determine whether there will be errors
+            try:
+                # convert to float if possible and compare with a reasonable
+                # (default) precision
+                expVal = float(expVal)
+                isFloatable=True
+            except:
+                isFloatable=False
+            if isFloatable and abs(expVal-float(actVal))>0.0001:
+                error = "Cell %s: %f != %f" %(key, expVal, actVal)
+                break
+            elif not isFloatable and expVal!=actVal:
+                error = "Cell %s: %s != %s" %(key, expVal, actVal)
+                break
+    if error:
+        pathToLocal, ext = os.path.splitext(pathToCorrect)
+        pathToLocal = pathToLocal+'_local'+ext
+        shutil.copyfile(pathToActual,pathToLocal)
+        logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
+        raise IOError, error
+
+
+def skip(msg=""):
+    """Helper function to allow skipping of tests from either pytest or nose.
+    Call this in test code rather than pytest.skip or nose SkipTest
+    """
+    if usePytest:
+        _skip(msg)
+    else:
+        raise _skip(msg)

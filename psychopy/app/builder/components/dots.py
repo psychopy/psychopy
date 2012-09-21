@@ -16,7 +16,7 @@ class DotsComponent(VisualComponent):
                 nDots=100,
                 direction=0.0, speed=0.1, coherence=1.0,
                 dotSize=2,
-                dotLife=3, signalDots='different', noiseDots='direction',
+                dotLife=3, signalDots='same', noiseDots='direction',
                 fieldShape='circle', fieldSize=1.0, fieldPos=[0.0,0.0],
                 color='$[1.0,1.0,1.0]',colorSpace='rgb',
                 opacity=1.0,
@@ -35,37 +35,49 @@ class DotsComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         #params
         self.params['advancedParams']=['signalDots','noiseDots']
-        self.params['name']=Param(name, valType='code', allowedTypes=[])
+        self.params['name']=Param(name, valType='code', allowedTypes=[],
+            label="Name")
         self.params['nDots']=Param(nDots, valType='code',
             updates='constant',
-            hint="Number of dots in the field (for circular fields this will be average number of dots)")
+            hint="Number of dots in the field (for circular fields this will be average number of dots)",
+            label="Number of dots")
         self.params['dir']=Param(direction, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Direction of motion for the signal dots (degrees)")
+            hint="Direction of motion for the signal dots (degrees)",
+            label="Direction")
         self.params['speed']=Param(speed, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Speed of the dots (displacement per frame in the specified units)")
+            hint="Speed of the dots (displacement per frame in the specified units)",
+            label="Speed")
         self.params['coherence']=Param(coherence, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Coherence of the dots (fraction moving in the signal direction on any one frame)")
+            hint="Coherence of the dots (fraction moving in the signal direction on any one frame)",
+            label="Coherence")
         self.params['dotSize']=Param(dotSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Size of the dots IN PIXELS regardless of the set units")
+            hint="Size of the dots IN PIXELS regardless of the set units",
+            label="Dot Size")
         self.params['dotLife']=Param(dotLife, valType='code',
-            hint="Number of frames before each dot is killed and randomly assigned a new position")
+            hint="Number of frames before each dot is killed and randomly assigned a new position",
+            label="Dot lifetime")
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
-            hint="Are the signal dots the same population as the noise dot? See Scase et al.")
+            hint="On each frame are the signals dots remaining the same or changing? See Scase et al.",
+            label="Signal dots")
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
-            hint="What governs the behaviour of the noise dots? See Scase et al.")
+            hint="What governs the behaviour of the noise dots? See Scase et al.",
+            label="Noise dots")
         self.params['fieldShape']=Param(fieldShape, valType='str', allowedVals=['circle','square'],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="What is the shape of the field?")
+            hint="What is the shape of the field?",
+            label="Field shape")
         self.params['fieldSize']=Param(fieldSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="What is the size of the field (in the specified units)?")
+            hint="What is the size of the field (in the specified units)?",
+            label="Field size")
         self.params['fieldPos']=Param(fieldPos, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Where is the field centred (in the specified units)?")
+            hint="Where is the field centred (in the specified units)?",
+            label="Field position")
         del self.params['size']#should be fieldSize
         del self.params['pos']#should be fieldPos
         del self.params['ori']#should be dir for dots

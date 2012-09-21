@@ -25,8 +25,10 @@ class MouseComponent(BaseComponent):
         #params
         self.params={}
         self.order=[]
+        self.params['advancedParams']=['selectionMask']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="Even mice need names!")
+            hint="Even mice need names!",
+            label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -44,14 +46,21 @@ class MouseComponent(BaseComponent):
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['saveMouseState']=Param(save, valType='str',
             allowedVals=['final','on click', 'every frame', 'never'],
-            hint="How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?")
+            hint="How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?",
+            label="Save mouse state")
         self.params['forceEndRoutineOnPress']=Param(forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should a button press force the end of the routine (e.g end the trial)?")
+            hint="Should a button press force the end of the routine (e.g end the trial)?",
+            label="End Routine on press")
         self.params['timeRelativeTo']=Param(timeRelativeTo, valType='str',
             allowedVals=['experiment','routine'],
             updates='constant', allowedUpdates=[],
-            hint="What should the values of mouse.time should be relative to?")
+            hint="What should the values of mouse.time should be relative to?",
+            label="Time relative to")
+        self.params['selectionMask'] = Param(
+            '', valType='code', label='Click mask',
+            hint="A list of shape-like components to which clicks will be restricted")
+
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s=event.Mouse(win=win)\n" %(self.params))
         buff.writeIndented("x,y=[None,None]\n" %(self.params))
@@ -67,6 +76,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton= []\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton= []\n" %(self.params))
             buff.writeIndented("%(name)s.time = []\n" %(self.params))
+            buff.writeIndented("%(name)s.selection = []\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
@@ -74,7 +84,8 @@ class MouseComponent(BaseComponent):
         routineClockName = self.exp.flow._currentRoutine._clockName
 
         #only write code for cases where we are storing data as we go (each frame or each click)
-        if self.params['saveMouseState'] not in ['every frame', 'on click'] and not forceEnd:
+        if self.params['saveMouseState'].val not in ['every frame', 'on click'] \
+            and not forceEnd:#might not be saving clicks, but want it to force end of trial
             return
 
         buff.writeIndented("#*%s* updates\n" %(self.params['name']))
@@ -103,8 +114,21 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("if sum(buttons)>0:#ie if any button is pressed\n")
             buff.setIndentLevel(1, relative=True)
             dedentAtEnd+=1
+        elif self.params['saveMouseState'].val == 'every frame':
+            buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
+
         #only do this if buttons were pressed
-        if self.params['saveMouseState'].val == 'on click':
+        if self.params['saveMouseState'].val in ['on click','every frame']:
+            if self.params['selectionMask'].val:
+                buff.writeIndented("acceptClick = False\n")
+                buff.writeIndented("for mask in %s:\n" % self.params['selectionMask'].val)
+                buff.writeIndented("    if mask.contains(%(name)s):\n" % self.params)
+                buff.writeIndented("        %(name)s.selection.append(mask.name)\n" % self.params)
+                buff.writeIndented("        acceptClick = True\n")
+                buff.writeIndented("        break\n");
+                buff.writeIndented("if acceptClick:\n")
+                buff.setIndentLevel(1, relative=True)
+                dedentAtEnd += 1
             buff.writeIndented("x,y=%(name)s.getPos()\n" %(self.params))
             buff.writeIndented("%(name)s.x.append(x)\n" %(self.params))
             buff.writeIndented("%(name)s.y.append(y)\n" %(self.params))
@@ -141,7 +165,8 @@ class MouseComponent(BaseComponent):
                 buff.writeIndented("%s.addData('%s.leftButton',buttons[0])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.midButton',buttons[1])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.rightButton',buttons[2])\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addData('%s.selection', selection)\n" %(currLoop.params['name'], name))
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("#save %(name)s data\n" %(self.params))
-            for property in ['x','y','leftButton','midButton','rightButton','time']:
+            for property in ['x','y','leftButton','midButton','rightButton','time', 'selection']:
                 buff.writeIndented("%s.addData('%s.%s',%s.%s)\n" %(currLoop.params['name'], name,property,name,property))

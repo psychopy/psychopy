@@ -5,13 +5,20 @@ from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
+DEFAULT_PARAM_VALUES = {
+  'sendTags': False,
+  'saveTags': True,
+  'doSignal': False,
+  'serialTriggerDevice': '/dev/ttyUSB0'
+}
+
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
-                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
-                 logging='exp', color='$[0,0,0]', colorSpace='rgb',
-                 saveXLSXFile=True, saveCSVFile=False, savePsydatFile=True,
-                 savedDataFolder=''):
+                 saveLogFile=False, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+                 saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=False, savePsydatFile=False,
+                 savedDataFolder='', paramValues=DEFAULT_PARAM_VALUES):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -19,10 +26,15 @@ class SettingsComponent:
         self.url="http://www.psychopy.org/builder/settings.html"
         #params
         self.params={}
-        self.order=['Show info dlg','Experiment info',
-            'Save excel file','Save csv file','Save psydat file','Save log file','logging level',
+        self.order=['expName','Show info dlg','Experiment info',
+            'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
+        #self.params['advancedParams'] = ['Save excel file', 'Save wide csv file', 'Save psydat file', 'logging level',
+        #    'Monitor', 'Screen', 'colorSpace', 'sendTags', 'saveTags']
+        self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
+            hint="Name of the entire experiment (taken by default from the filename on save)",
+            label="Experiment name")
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint="Run the experiment full-screen (recommended)")
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
@@ -32,7 +44,8 @@ class SettingsComponent:
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
-            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)")
+            hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)",
+            label="Color")
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
@@ -42,26 +55,53 @@ class SettingsComponent:
             hint="Should the mouse be visible on screen?")
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
+        self.params['Save wide csv file']=Param(saveWideCSVFile, valType='bool', allowedTypes=[],
+            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
+            label="Save csv file (trial-by-trial)")
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
-            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability")
+            hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
+            label="Save csv file (summaries)")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
-        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedTypes=[],
+        self.params['Save psydat file']=Param(savePsydatFile, valType='bool',
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")
+        self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
+            hint="Enable the <esc> key, to allow subjects to quit / break out of the experiment")
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.")
         self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
-            hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)")
+            hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
+            label="Logging level")
+        self.params['sendTags'] = Param(
+           paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?", label="send tags")
+        self.params['saveTags'] = Param(
+            paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="save tags")
+        self.params["doSignal"] = Param(
+            paramValues['doSignal'], valType="bool", hint="Should signal be sent?", label="do trigger")
+        self.params['serialTriggerDevice'] = Param(
+            paramValues['serialTriggerDevice'], valType='str', hint="To which serial port is trigger connected?",
+            label="device name for trigger")
+
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
+    def getSaveDataDir(self):
+        saveToDir = self.params['Saved data folder'].val.strip()
+        if not saveToDir:
+            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
+            if not saveToDir:
+                saveToDir = 'data'
+        return path.expanduser(saveToDir)
     def writeStartCode(self,buff):
+        # TODO move it somewhere else
+        buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
+        
         buff.writeIndented("#store info about the experiment session\n")
         buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
         expInfo = self.params['Experiment info'].val.strip()
@@ -76,32 +116,44 @@ class SettingsComponent:
             buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")
         buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
         buff.writeIndented("expInfo['expName']=expName\n")
-
-        saveToDir = self.params['Saved data folder'].val.strip()
-        if not saveToDir:
-            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-            if not saveToDir:
-                saveToDir = 'data'
-
+        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
-        if self.params['Save log file'].val or self.params['Save csv file'].val or self.params['Save excel file'].val:
-            buff.writeIndented("#setup files for saving\n")
-            buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-            buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
-            if 'participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
-            elif 'Participant' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
-            elif 'Subject' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
-            elif 'Observer' in self.params['Experiment info'].val:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
-            else:
-                buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
-            if self.params['Save log file']:
-                buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+
+        buff.writeIndented("#setup files for saving\n")
+        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
+        buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
+        if 'participant' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+        elif 'Participant' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
+        elif 'Subject' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
+        elif 'Observer' in self.params['Experiment info'].val:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
+        else:
+            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+
+        if self.params['Save log file'].val:
+            buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
 
         buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
+
+        #set up the ExperimentHandler
+        buff.writeIndented("\n#an ExperimentHandler isn't essential but helps with data saving\n")
+        buff.writeIndented("thisExp = data.ExperimentHandler(name=expName, version='',\n")
+        buff.writeIndented("    extraInfo=expInfo, runtimeInfo=None,\n")
+        buff.writeIndented("    originPath=%s,\n" %repr(self.exp.expPath))
+        buff.writeIndented("    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n" %self.params)
+        buff.writeIndented("    dataFileName=filename)\n")
+        
+        #set up tag sender variables
+        buff.writeIndented("thisExp.sendTags = %s\n" % self.params['sendTags'].val)
+        
+        #set up tag writer variables
+        buff.writeIndented("thisExp.saveTags = %s\n" % self.params['saveTags'].val)
+        if self.params['saveTags'].val:
+            buff.writeIndented("thisExp.tagList = []\n\n")
+        
 
         buff.writeIndented("\n#setup the Window\n")
         #get parameters for the Window
@@ -118,18 +170,39 @@ class SettingsComponent:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size=self.params['Window size (pixels)']
-        buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+        if self.params['saveTags'].val or self.params['storeTags']:
+            # TODO move import to anothe place
+            buff.writeIndented("import psychopy.contrib.obci\n")
+            buff.writeIndented("import psychopy.contrib as contrib\n")
+            # TODO pass real obci context instead of None
+            buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+        else:
+            buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+                           (size, fullScr, screenNumber, allowGUI, allowStencil))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
 
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
         buff.write(unitsCode+")\n")
 
+        if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
+            buff.writeIndented("\n# Enable sound input/output:\n"+
+                                "microphone.switchOn()\n")
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
         buff.writeIndented("\n#Shutting down:\n")
+        
+        # Save tags
+        if self.params['saveTags']:
+            buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
+            buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
+            buff.writeIndented("    tagWriter.tag_received(tag)\n")
+            buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")
 
+        if 'microphone' in self.exp.psychopyLibs:
+            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

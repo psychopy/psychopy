@@ -1,6 +1,8 @@
 General issues
 ====================================
 
+These are issues that users should be aware of, whether they are using Builder or Coder views.
+
 .. toctree::
    :maxdepth: 1
    

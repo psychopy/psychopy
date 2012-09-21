@@ -22,7 +22,8 @@ coherence=0.5
 
 #build a standard (but dynamic!) global form stimulus
 globForm = visual.ElementArrayStim(win, nElements=N,sizes=elemSize,sfs=3,
-                                                    xys = random([N,2])*fieldSize-fieldSize/2.0) 
+                                                    xys = random([N,2])*fieldSize-fieldSize/2.0,
+                                                    colors=[180,1,1],colorSpace='hsv') 
     
 #calculate the orientations for global form stimulus
 def makeCoherentOris(XYs, coherence, formAngle):

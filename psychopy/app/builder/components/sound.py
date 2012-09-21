@@ -24,10 +24,12 @@ class SoundComponent(BaseComponent):
         #params
         self.order=[]#order for things (after name and timing params)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)")
+        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)",
+            label="Name")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename")
+            hint="A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename",
+            label="Sound")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint="How do you want to define your start point?")
@@ -45,11 +47,12 @@ class SoundComponent(BaseComponent):
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The volume (in range 0 to 1)")
+            hint="The volume (in range 0 to 1)",
+            label="Volume")
 
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
-        if self.params['stopType']=='duration (s)':
+        if self.params['stopType'].val=='duration (s)':
             durationSetting="secs=%(stopVal)s" %self.params
         else:
             durationSetting=""

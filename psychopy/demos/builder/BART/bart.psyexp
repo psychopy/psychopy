@@ -1,8 +1,9 @@
-<PsychoPy2experiment version="1.72.00" encoding="utf-8">
+<PsychoPy2experiment version="1.74.00" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="False" valType="bool" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[2560, 1440]" valType="code" updates="None"/>
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
@@ -10,7 +11,9 @@
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant':'', 'gender (m/f)':'', 'age':'', 'session':'004'}" valType="code" updates="None"/>
     <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="expName" val="bart" valType="str" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
     <Param name="Units" val="use prefs" valType="str" updates="None"/>
     <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
@@ -35,29 +38,29 @@
         <Param name="End Routine" val="#save data&#10;trials.addData('nPumps', nPumps)&#10;trials.addData('size', balloonSize)&#10;trials.addData('earnings', thisBalloonEarnings)&#10;trials.addData('popped', popped)&#10;&#10;" valType="code" updates="constant"/>
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
-      <PatchComponent name="balloonBody">
+      <ImageComponent name="balloonBody">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="balloonBody" valType="code" updates="constant"/>
-        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="mask" val="None" valType="str" updates="constant"/>
         <Param name="pos" val="$[-1+balloonSize/2, 0]" valType="code" updates="set every frame"/>
         <Param name="interpolate" val="linear" valType="str" updates="constant"/>
-        <Param name="sf" val="1" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="units" val="norm" valType="str" updates="None"/>
-        <Param name="texture resolution" val="512" valType="code" updates="constant"/>
-        <Param name="phase" val="0.0" valType="code" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
         <Param name="image" val="redBalloon.png" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="size" val="$balloonSize" valType="code" updates="set every frame"/>
-      </PatchComponent>
+      </ImageComponent>
       <TextComponent name="reminderMsg">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
