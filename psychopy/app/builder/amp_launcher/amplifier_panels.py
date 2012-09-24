@@ -97,41 +97,37 @@ class ChannelsPanel(wx.Panel):
 class ParametersPanel(wx.Panel):
     def __init__(self, parent):
         super(ParametersPanel, self).__init__(parent)
-        self.init_list()
+        self.init_controls()
         self.init_sizer()
 
-    def init_list(self):
-        self.param_grid = wx.grid.Grid(self)
-        self.param_grid.CreateGrid(0, 1)
-        self.param_grid.SetColLabelValue(0, "")
+    def init_controls(self):
+        self.sampling_rate_label = wx.StaticText(self, label="sampling rate")
+        self.sampling_rate = wx.TextCtrl(self, value="128")
 
     def init_sizer(self):
-        sizer = wx.BoxSizer()
-        sizer.Add(self.param_grid, proportion=1, flag=wx.EXPAND, border=8)
+        sizer = wx.GridBagSizer()
+        sizer.AddGrowableCol(1)
+        
+        sizer.Add(self.sampling_rate_label, (0,0), flag=wx.EXPAND)
+        sizer.Add(self.sampling_rate, (0, 1), flag=wx.EXPAND)
+        
         self.SetSizer(sizer)
     
     def fill(self, parameters):
-        self.param_grid.BeginBatch()
-        self.param_grid.DeleteRows(0, self.param_grid.GetNumberRows())
-        pos = 0
-        for param_entry in parameters:
-            self.param_grid.InsertRows(pos)
-            self.param_grid.SetRowLabelValue(pos, param_entry[0])
-            self.param_grid.SetCellValue(pos, 0, param_entry[1])
-            pos += 1
-        self.param_grid.EndBatch()
+        pass
     
     def get_param(self, param_name):
-        # TODO: ;-) guaranteed to be correct
-        return "128"
+        if param_name == "samplingRate":
+            return self.sampling_rate.GetValue()
+        else:
+            return None
     
     def get_preset_params(self):
-        return {"params": {"samplingRate": 128}}
+        return {"params": {"samplingRate": self.get_param("samplingRate")}}
 
     
     def set_preset_params(self, params):
-        # TODO: bind to controls
-        pass
+        self.sampling_rate.SetValue(str(params["samplingRate"]))
 
 
 class PresetsPanel(wx.Panel):
@@ -141,13 +137,15 @@ class PresetsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.preset_list = wx.ComboBox(self)
+        self.Bind(wx.EVT_TEXT, self.on_name_update, self.preset_list)
         sizer = wx.BoxSizer()
         sizer.Add(self.preset_list, proportion=1, flag=wx.EXPAND)
         buttons = [("load", self.on_load_click), ("save", self.on_add_click), ("remove", self.on_remove_click)]
+        self.buttons = {}
         for (label, handler) in buttons:
-            button = wx.Button(self, label=label)
-            sizer.Add(button, flag=wx.EXPAND)
-            self.Bind(EVT_BUTTON, handler, button)
+            self.buttons[label] = wx.Button(self, label=label)
+            sizer.Add(self.buttons[label], flag=wx.EXPAND)
+            self.Bind(EVT_BUTTON, handler, self.buttons[label])
         self.SetSizer(sizer)
         self.load_presets()
     
@@ -159,6 +157,7 @@ class PresetsPanel(wx.Panel):
         preset_names = self.preset_manager.get_preset_names()
         self.preset_list.Clear()
         self.preset_list.AppendItems(preset_names)
+        self.update_buttons()
 
     def get_preset_name(self):
         return self.preset_list.GetValue()
@@ -179,6 +178,7 @@ class PresetsPanel(wx.Panel):
         Set an empty name in preset list.
         """
         self.preset_list.SetValue("")
+        self.update_buttons()
     
     def on_remove_click(self, event):
         """
@@ -199,6 +199,23 @@ class PresetsPanel(wx.Panel):
         name = self.get_preset_name()
         preset = self.preset_manager.get_preset(name)
         self.GetParent().load_preset(preset)
+    
+    def on_name_update(self, event):
+        self.update_buttons()
+    
+    def update_buttons(self):
+        if len(self.get_preset_name()) == 0:
+            self.buttons["load"].Disable()
+            self.buttons["save"].Disable()
+            self.buttons["remove"].Disable()
+        elif self.get_preset_name() in self.preset_manager.get_preset_names():
+            self.buttons["load"].Enable()
+            self.buttons["save"].Disable()
+            self.buttons["remove"].Enable()
+        else:
+            self.buttons["load"].Disable()
+            self.buttons["save"].Enable()
+            self.buttons["remove"].Disable()
 
 
 class AmpConfigPanel(wx.Panel):
