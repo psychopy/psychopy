@@ -20,7 +20,10 @@ class ChannelsPanel(wx.Panel):
         self.channel_grid.CreateGrid(0, 2)
         self.channel_grid.SetColLabelValue(0, "label")
         self.channel_grid.SetColLabelValue(1, "selected")
-        self.channel_grid.SetColFormatBool(1)
+        col_attr = wx.grid.GridCellAttr()
+        col_attr.SetEditor(wx.grid.GridCellBoolEditor())
+        col_attr.SetRenderer(wx.grid.GridCellBoolRenderer())
+        self.channel_grid.SetColAttr(1, col_attr)
         self.grid_rows = 0;
 
     def init_sizer(self):
@@ -73,22 +76,22 @@ class ChannelsPanel(wx.Panel):
         """
         channel_names = []
         active_channels = set()
-        for pos in xrange(1, self.channel_grid.GetNumberRows()):
-            channel_names.append(self.channel_grid.GetCellValue(pos, 1))
+        for pos in xrange(0, self.channel_grid.GetNumberRows()):
+            channel_names.append(self.channel_grid.GetCellValue(pos, 0))
             if self.channel_grid.GetCellValue(pos, 1):
                 active_channels.add(pos)
         return {"channelNames": channel_names, "activeChannels": active_channels}
 
     
     def set_preset_channels(self, channel_names, active_channels):
-        for pos in xrange(1, self.channel_grid.GetNumberRows()):
+        for pos in xrange(0, self.channel_grid.GetNumberRows()):
             if pos < len(channel_names):
                 self.channel_grid.SetCellValue(pos, 0, channel_names[pos])
             if pos in active_channels:
-                active = 1
+                active = "1"
             else:
-                active = 0
-            self.channel_grid.SetCellValue(pos, 0, active)
+                active = ""
+            self.channel_grid.SetCellValue(pos, 1, active)
 
 
 class ParametersPanel(wx.Panel):
