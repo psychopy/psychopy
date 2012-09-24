@@ -1,3 +1,10 @@
+psychopy-openbci (1.74.03-openbci-0.1-1) precise; urgency=low
+
+  * New upstream release
+  * OpenBCI initail packaging
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 24 Sep 2012 22:03:10 +0200
+
 psychopy (1.73.06.dfsg-1) unstable; urgency=low
 
   * New upstream bugfix release (released April 2012)

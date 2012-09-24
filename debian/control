@@ -1,18 +1,17 @@
-Source: psychopy
+Source: psychopy-openbci
 Section: science
 Priority: optional
-Maintainer: NeuroDebian Team <team@neuro.debian.net>
-Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
+Maintainer: Karol Auguštin <karol@augustin.pl>
 Build-Depends: cdbs, debhelper (>= 5.0.38),
                python-support, python, python-setuptools,
                help2man, imagemagick,
                python-configobj,
-Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychopy.git
-Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychopy.git
+Vcs-Git: git://git.braintech.pl/psychopy.git
+Vcs-Browser: http://git.braintech.pl/psychopy.git
 Standards-Version: 3.9.3
-Homepage: http://www.psychopy.org
+Homepage: http://git.braintech.pl/psychopy.git
 
-Package: psychopy
+Package: psychopy-openbci
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
           python-pyglet | python-pygame,
@@ -28,6 +27,7 @@ Recommends: python-wxgtk2.8,
             libavbin0,
             ipython
 Suggests: python-iolabs, python-pyxid
+Breaks: psychopy
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}
 Description: environment for creating psychology stimuli in Python
