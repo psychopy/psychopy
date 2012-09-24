@@ -24,6 +24,10 @@ class ResourceList(wx.ListView):
     def fill_resources(self, resource_entries):
         for entry in resource_entries:
             self.Append(entry)
+    
+    def update_resources(self, resource_entries):
+        self.ClearAll()
+        self.fill_resources(resource_entries)
 
 
 class ResourcePoolDialog(wx.Frame):
@@ -45,10 +49,17 @@ class ResourcePoolDialog(wx.Frame):
     def init_toolbar(self):
         toolbar = self.CreateToolBar()
         add_tool_id = wx.NewId()
+        remove_tool_id = wx.NewId()
+        
         self.Bind(wx.EVT_TOOL, self.show_file_add, id=add_tool_id)
+        self.Bind(wx.EVT_TOOL, self.remove_file, id=remove_tool_id)
         bitmap_add_path = os.path.join(self.app.prefs.paths['resources'], "fileopen32.png")
         bitmap_add = wx.Bitmap(bitmap_add_path)
-        toolbar.AddLabelTool(add_tool_id, "foo", bitmap_add)
+        bitmap_remove_path = os.path.join(self.app.prefs.paths['resources'], "delete32.png")
+        bitmap_remove = wx.Bitmap(bitmap_remove_path)
+        toolbar.AddLabelTool(add_tool_id, "add file", bitmap_add)
+        toolbar.AddLabelTool(remove_tool_id, "remove file", bitmap_remove)
+        
         toolbar.Realize()
 
     def add_to_pool(self, file_name):
@@ -62,9 +73,18 @@ class ResourcePoolDialog(wx.Frame):
         entry = [self.pool.params["resources"].val[-1].get_name()]
         self.resource_list.Append(entry)
 
-    def show_file_add(self, event=None):
+    def show_file_add(self, event):
         file_name = wx.FileSelector("Add file", parent=self)
         if file_name:
             self.add_to_pool(file_name)
             self.list_added()
+
+    def remove_file(self, event):
+        #get selection
+        index = self.resource_list.GetFirstSelected()
+        name = self.resource_list.GetItem(index, 0).GetText()
+        print name
+        self.pool.remove_resource(name)
+        self.resource_list.update_resources(self.make_resource_entries())
+
             

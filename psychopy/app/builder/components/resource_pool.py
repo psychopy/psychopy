@@ -47,6 +47,9 @@ class ResourcePoolComponent(BaseComponent):
         resource = Resource(name, date, description, content)
         self.params["resources"].val.append(resource)
     
+    def remove_resource(self, name):
+        self.params["resources"].val = filter(lambda r: r.get_name() != name, self.params["resources"].val)
+    
     def writeStartCode(self, b):
         b.writeIndented("#### Embedded resource definitions start ####\n")
         b.writeIndented("resources = {\n")
