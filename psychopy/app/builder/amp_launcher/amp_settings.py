@@ -48,7 +48,7 @@ class PresetManager(object):
         presets_dir = self.get_presets_dir()
         presets_filename = os.path.join(presets_dir, PresetManager.FILENAME)
         presets_file = open(presets_filename, "w")
-        json.dump([(name, preset.get_preset_dict()) for (name, preset) in self.presets.items()], presets_file)
+        json.dump(self.presets, presets_file)
 
     def __init__(self):
         self.presets = {}
@@ -67,22 +67,26 @@ class PresetManager(object):
         del self.presets[name]
 
 
-class Preset(object):
+class Preset(dict):
     """
-    Stores amplifier setting for reuse.
+    Stores amplifier settings for reuse.
     """
     def __init__(self, preset_dict):
-        self.channel_names = []
-        self.active_channels = set()
-        self.sampling_rate = preset_dict["params"]["samplingRate"]
+        self["channelNames"] = []
+        active_channels = set()
+        self["params"] = {}
+        self["params"]["samplingRate"] = preset_dict["params"]["samplingRate"]
         for channel_name in preset_dict["channelNames"]:
-            self.channel_names.append(channel_name)
+            self["channel_names"].append(channel_name)
         for channel in preset_dict["activeChannels"]:
-            self.active_channels.add(channel)
+            active_channels.add(channel)
+        self["activeChannels"] = list(active_channels)
+
+    def get_channel_names(self):
+        return self["channelNames"]
     
-    def get_preset_dict(self):
-        return {
-            "channelNames": self.channel_names,
-            "activeChannels": self.active_channels,
-            "params": {"samplingRate": self.sampling_rate}
-        }
+    def get_active_channels(self):
+        return self["activeChannels"]
+    
+    def get_parameters(self):
+        return self["params"]

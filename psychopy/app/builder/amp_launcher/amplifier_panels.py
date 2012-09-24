@@ -126,7 +126,7 @@ class ParametersPanel(wx.Panel):
         return {"params": {"samplingRate": 128}}
 
     
-    def set_preset_params(self):
+    def set_preset_params(self, params):
         # TODO: bind to controls
         pass
 
@@ -172,6 +172,9 @@ class PresetsPanel(wx.Panel):
         self.load_presets()
     
     def clear_name(self):
+        """
+        Set an empty name in preset list.
+        """
         self.preset_list.SetValue("")
     
     def on_remove_click(self, event):
@@ -181,6 +184,7 @@ class PresetsPanel(wx.Panel):
         """
         name = self.get_preset_name()
         self.preset_manager.remove_preset(name)
+        self.preset_manager.save_to_file()
         self.load_presets()
         self.clear_name()
     
@@ -191,7 +195,7 @@ class PresetsPanel(wx.Panel):
         """
         name = self.get_preset_name()
         preset = self.preset_manager.get_preset(name)
-        self.parent.load_preset(preset)
+        self.GetParent().load_preset(preset)
 
 
 class AmpConfigPanel(wx.Panel):
@@ -241,10 +245,9 @@ class AmpConfigPanel(wx.Panel):
         preset = amp_settings.Preset(preset_dict)
         return preset
     
-    def set_preset(self, preset):
+    def load_preset(self, preset):
         """
         Use a preset in the form.
         """
         self.channels_panel.set_preset_channels(preset.get_channel_names(), preset.get_active_channels())
         self.parameters_panel.set_preset_params(preset.get_parameters())
-        self.presets_panel.set_preset(preset)
