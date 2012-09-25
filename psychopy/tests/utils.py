@@ -80,8 +80,9 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                     wordActual=lineActual[wordN]
                     wordCorrect=lineCorrect[wordN]
                     try:
-                        wordActual=float(wordActual)
-                        wordCorrect=float(wordCorrect)
+                        wordActual=float(wordActual.lstrip('"[').strip(']"'))
+                        wordCorrect=float(wordCorrect.lstrip('"[').strip(']"'))
+                        # its not a whole well-formed list because .split(delim)
                         isFloat=True
                     except:#stick with simple text if not a float value
                         isFloat=False
