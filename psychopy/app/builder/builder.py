@@ -5,16 +5,14 @@
 import wx
 from wx.lib import platebtn, scrolledpanel
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-#import wx.lib.agw.aquabutton as AB
 import wx.aui, wx.stc
-import sys, os, glob, copy, platform, shutil, traceback
+import sys, os, glob, copy, shutil, traceback
 import keyword
 import py_compile, codecs
-import csv, numpy
+import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
 from psychopy import data, logging, misc, gui
-import re
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
@@ -395,7 +393,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         """
         self.frame.exp.flow.addRoutine(self.frame.exp.routines[self.insertingRoutine], ii)
-        self.frame.addToUndoStack("AddRoutine")
+        self.frame.addToUndoStack("ADD Routine `%s`" %self.frame.exp.routines[self.insertingRoutine].name)
         #reset flow drawing (remove entry point)
         self.clearMode()
 
@@ -439,7 +437,7 @@ class FlowPanel(wx.ScrolledWindow):
             handler=loopDlg.currentHandler
             self.frame.exp.flow.addLoop(handler,
                 startPos=startII, endPos=endII)
-            self.frame.addToUndoStack("AddLoopToFlow")
+            self.frame.addToUndoStack("ADD Loop `%s` to Flow" %handler.params['name'].val)
         self.clearMode()
         self.draw()
     def dumpNamespace(self, evt=None):
@@ -471,10 +469,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.appData['flowSize'] = max(0, self.appData['flowSize'] - 1)
         self.clearMode() # redraws
     def editLoopProperties(self, event=None, loop=None):
-        if event:#we got here from a wx.button press (rather than our own drawn icons)
-            loopName=event.EventObject.GetName()
-            loop=self.routine.getLoopFromName(loopName)
-
         #add routine points to the timeline
         self.setDrawPoints('loops')
         self.draw()
@@ -502,7 +496,7 @@ class FlowPanel(wx.ScrolledWindow):
                 flow.removeComponent(prevLoop)
                 #finally insert the new loop
                 flow.addLoop(loop, startII, endII)
-            self.frame.addToUndoStack("Edit Loop")
+            self.frame.addToUndoStack("EDIT Loop `%s`" %(loop.params['name'].val))
         elif 'conditions' in loop.params.keys():
             loop.params['conditions'].val = condOrig
             loop.params['conditionsFile'].val = condFileOrig
@@ -602,7 +596,7 @@ class FlowPanel(wx.ScrolledWindow):
             component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
-            self.frame.addToUndoStack("remove %s from flow" %component.params['name'])
+            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'].val)
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
@@ -1101,7 +1095,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.editComponentProperties(component=component)
         elif op=='remove':
             r.remove(component)
-            self.frame.addToUndoStack("removed" + component.params['name'].val)
+            self.frame.addToUndoStack("REMOVE `%s` from Routine" %(component.params['name'].val))
             self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
             lastLoc=r.index(component)
@@ -1110,7 +1104,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if op=='move up': r.insert(lastLoc-1, component)
             if op=='move down': r.insert(lastLoc+1, component)
             if op=='move to bottom': r.append(component)
-            self.frame.addToUndoStack("moved" + component.params['name'].val)
+            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
         self.redrawRoutine()
         self._menuComponent=None
     def OnPaint(self, event):
@@ -1273,7 +1267,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 #                self.frame.flowPanel.Refresh()
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
-            self.frame.addToUndoStack("edit %s" %component.params['name'])
+            self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
 
     def getSecsPerPixel(self):
         return float(self.routine.getMaxTime()[0])/(self.timeXposEnd-self.timeXposStart)
@@ -1328,7 +1322,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             exp.namespace.add(routineName) #add to the namespace
             exp.addRoutine(routineName)#add to the experiment
             self.addRoutinePage(routineName, exp.routines[routineName])#then to the notebook
-            self.frame.addToUndoStack("created %s routine" %routineName)
+            self.frame.addToUndoStack("NEW Routine `%s`" %routineName)
         dlg.Destroy()
         if returnName:
             return routineName
@@ -1347,7 +1341,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
-        self.frame.addToUndoStack("remove routine %s" %(name))
+        self.frame.addToUndoStack("REMOVE Routine `%s`" %(name))
     def increaseSize(self, event=None):
         self.appData['routineSize'] = min(self.routineMaxSize, self.appData['routineSize'] + 1)
         self.frame.Freeze()
@@ -1368,7 +1362,6 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         if currPage>-1:
             self.SetSelection(currPage)
 
-
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     
     # Singleton components have one instance per experiment
@@ -1380,14 +1373,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(1.1*self.dpi,10*self.dpi))
-        if self.app.prefs.app['largeIcons']:
-            self.sizer=wx.BoxSizer(wx.VERTICAL)
-        else:
-            self.sizer=wx.FlexGridSizer(cols=2)
-        # add a button for each type of event that can be added
-        self.componentButtons={}; self.componentFromID={}
-        self.components=components.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(100,10*self.dpi))
+        self.sizer=wx.BoxSizer(wx.VERTICAL)
+        self.components=components.getAllComponents()
+        self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        categories = ['Favorites']
+        categories.extend(components.getAllCategories())
+        #get rid of hidden components
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
                 del self.components[hiddenComp]
@@ -1395,36 +1387,127 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for singletonComponent in ComponentsPanel.SINGLETON_COMPONENTS:
             if singletonComponent in self.components.keys():
                 del self.components[singletonComponent]
-        for thisName in self.components.keys():
-            #NB thisComp is a class - we can't use its methods until it is an instance
-            thisComp=self.components[thisName]
-            shortName=thisName#but might be shortened below
-            for redundant in ['component','Component']:
-                if redundant in thisName: shortName=thisName.replace(redundant, "")
-#            thisIcon.SetSize((16,16))
+        #x
+        #get favorites
+        self.favorites = FavoriteComponents(componentsPanel=self)
+        #create labels and sizers for each category
+        self.componentFromID={}
+        self.panels={}
+        self.sizerList=[]#to keep track of the objects (sections and section labels) within the main sizer
+        for categ in categories:
+            sectionBtn = platebtn.PlateButton(self,-1,categ,
+                style=platebtn.PB_STYLE_DROPARROW)
+            sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
+            sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
-                thisIcon = components.icons[thisName]['48add']#index 1 is the 'add' icon
+                self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
             else:
-                thisIcon = components.icons[thisName]['24add']#index 1 is the 'add' icon
-            btn = wx.BitmapButton(self, -1, thisIcon,
-                           size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
-                           name=thisComp.__name__)
-            if thisName in components.tooltips:
-                thisTip = components.tooltips[thisName]
-            else:
-                thisTip = shortName
-            btn.SetToolTip(wx.ToolTip(thisTip))
-            self.componentFromID[btn.GetId()]=thisName
-            self.Bind(wx.EVT_BUTTON, self.onComponentAdd,btn)
-            self.sizer.Add(btn, proportion=0, flag=wx.ALIGN_TOP)#,wx.EXPAND|wx.ALIGN_CENTER )
-            self.componentButtons[thisName]=btn#store it for elsewhere
-
+                self.panels[categ]=wx.FlexGridSizer(cols=2)
+            self.sizer.Add(sectionBtn, flag=wx.EXPAND)
+            self.sizerList.append(sectionBtn)
+            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_RIGHT)
+            self.sizerList.append(self.panels[categ])
+        self.makeComponentButtons()
+        self._rightClicked=None
+        #start all except for Favorites collapsed
+        for section in categories[1:]:
+            self.toggleSection(self.panels[section])
         self.SetSizer(self.sizer)
-        self.SetAutoLayout(1)
+        self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDropTarget(FileDropTarget(builder = self.frame))
 
-    def onComponentAdd(self,evt):
+    def makeFavoriteButtons(self):
+        #add a copy of each favorite to that panel first
+        for thisName in self.favorites.getFavorites():
+            self.addComponentButton(thisName, self.panels['Favorites'])
+    def makeComponentButtons(self):
+        """Make all the components buttons, including a call to makeFavorite() buttons
+        """
+        self.makeFavoriteButtons()
+        #then add another copy for each category that the component itself lists
+        for thisName in self.components.keys():
+            thisComp=self.components[thisName]
+            #NB thisComp is a class - we can't use its methods/attribs until it is an instance
+            for category in thisComp.categories:
+                panel = self.panels[category]
+                self.addComponentButton(thisName, panel)
+    def addComponentButton(self, name, panel):
+        """Create a component button and add it to a specific panel's sizer
+        """
+        thisComp=self.components[name]
+        shortName=name
+        for redundant in ['component','Component']:
+            if redundant in name:
+                shortName=name.replace(redundant, "")
+        if self.app.prefs.app['largeIcons']:
+            thisIcon = components.icons[name]['48add']#index 1 is the 'add' icon
+        else:
+            thisIcon = components.icons[name]['24add']#index 1 is the 'add' icon
+        btn = wx.BitmapButton(self, -1, thisIcon,
+                       size=(thisIcon.GetWidth()+10, thisIcon.GetHeight()+10),
+                       name=thisComp.__name__)
+        if name in components.tooltips:
+            thisTip = components.tooltips[name]
+        else:
+            thisTip = shortName
+        btn.SetToolTip(wx.ToolTip(thisTip))
+        self.componentFromID[btn.GetId()]=name
+        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick) #use btn.bind instead of self.Bind in oder to trap event here
+        self.Bind(wx.EVT_BUTTON, self.onClick, btn)
+        panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)#,wx.EXPAND|wx.ALIGN_CENTER )
+
+    def onSectionBtn(self,evt):
+        if hasattr(evt,'GetString'):
+            buttons = self.panels[evt.GetString()]
+        else:
+            btn = evt.GetEventObject()
+            buttons = self.panels[btn.Label]
+        self.toggleSection(buttons)
+    def toggleSection(self, section):
+        ii = self.sizerList.index(section)
+        self.sizer.Show( ii, not self.sizer.IsShown(ii) ) #ie toggle this item
+        self.sizer.Layout()
+        self.SetupScrolling()
+    def getIndexInSizer(self, obj, sizer):
+        """Find index of an item within a sizer (to see if it's there or to toggle visibility)
+        WX sizers don't (as of v2.8.11) have a way to find the index of their contents. This method helps
+        get around that.
+        """
+        #if the obj is itself a sizer (e.g. within the main sizer then we can't even use
+        #sizer.Children (as far as I can work out) so we keep a list to track the contents
+        if sizer==self.sizer:#for the main sizer we kept track of everything with a list
+            return self.sizerList.index(obj)
+        else:
+            #let's just hope the
+            index = None
+            for ii, child in enumerate(sizer.Children):
+                if child.GetWindow()==obj:
+                    index=ii
+                    break
+            return index
+    def onRightClick(self, evt):
+        btn = evt.GetEventObject()
+        self._rightClicked = btn
+        index = self.getIndexInSizer(btn, self.panels['Favorites'])
+        if index==None:
+            #not currently in favs
+            msg = "Add to favorites"
+            function = self.onAddToFavorites
+        else:
+            #is currently in favs
+            msg = "Remove from favorites"
+            function = self.onRemFromFavorites
+        menu = wx.Menu()
+        id = wx.NewId()
+        menu.Append(id, msg)
+        wx.EVT_MENU(menu, id, function)
+        #where to put the context menu
+        x,y = evt.GetPosition()#this is position relative to object
+        xBtn,yBtn = evt.GetEventObject().GetPosition()
+        self.PopupMenu( menu, (x+xBtn, y+yBtn) )
+        menu.Destroy() # destroy to avoid mem leak
+    def onClick(self,evt):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         if not currRoutinePage:
@@ -1455,9 +1538,84 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             newComp.params['name'].val = namespace.makeValid(newComp.params['name'].val)
             namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
-#            currRoutinePage.Refresh()#done at the end of redrawRoutine
-            self.frame.addToUndoStack("added %s to %s" %(compName, currRoutine.name))
+            self.frame.addToUndoStack("ADD `%s` to `%s`" %(compName, currRoutine.name))
+            wasNotInFavs = (not newClassStr in self.favorites.getFavorites())
+            self.favorites.promoteComponent(newClassStr, 1)
+            #was that promotion enough to be a favorite?
+            if wasNotInFavs and newClassStr in self.favorites.getFavorites():
+                self.addComponentButton(newClassStr, self.panels['Favorites'])
+                self.sizer.Layout()
         return True
+
+    def onAddToFavorites(self, evt=None, btn=None):
+        if btn is None:
+            btn = self._rightClicked
+        if btn.Name not in self.favorites.getFavorites():#check we aren't duplicating
+            self.favorites.makeFavorite(btn.Name)
+            self.addComponentButton(btn.Name, self.panels['Favorites'])
+        self.sizer.Layout()
+        self._rightClicked = None
+
+    def onRemFromFavorites(self, evt=None, btn=None):
+        if btn is None:
+            btn = self._rightClicked
+        index = self.getIndexInSizer(btn,self.panels['Favorites'])
+        if index is None:
+            pass
+        else:
+            self.favorites.setLevel(btn.Name, -100)
+            btn.Destroy()
+        self.sizer.Layout()
+        self._rightClicked = None
+
+class FavoriteComponents(object):
+
+    def __init__(self, componentsPanel, threshold=20, neutral=0):
+        self.threshold=20
+        self.neutral=0
+        self.panel = componentsPanel
+        self.frame = componentsPanel.frame
+        self.app = self.frame.app
+        self.prefs = self.app.prefs
+        self.currentLevels  = self.prefs.appDataCfg['builder']['favComponents']
+        self.setDefaults()
+    def setDefaults(self):
+        #set those that are favorites by default
+        for comp in ['ImageComponent','KeyboardComponent','SoundComponent','TextComponent']:
+            if comp not in self.currentLevels.keys():
+                self.currentLevels[comp]=self.threshold
+        for comp in self.panel.components.keys():
+            if comp not in self.currentLevels.keys():
+                self.currentLevels[comp]=self.neutral
+
+    def makeFavorite(self, compName):
+        """Set the value of this component to an arbitraty high value (10000)
+        """
+        self.currentLevels[compName] = 10000
+    def promoteComponent(self, compName, value=1):
+        """Promote this component by a certain value (can be negative to demote)
+        """
+        self.currentLevels[compName] += value
+    def setLevel(self, compName, value=0):
+        """Set the level to neutral (0) favourite (20?) or banned (-1000?)
+        """
+        self.currentLevels[compName] = value
+    def getFavorites(self):
+        """Returns a list of favorite components. Each must have level greater
+        than the threshold and there will be not more than
+        max length prefs['builder']['maxFavorites']
+        """
+        sortedVals = sorted(self.currentLevels.items(), key=lambda x: x[1], reverse=True)
+        favorites=[]
+        for name, level in sortedVals:
+            if level>=10000:#this has been explicitly requested (or REALLY liked!)
+                favorites.append(name)
+            elif level>=self.threshold and len(favorites)<self.prefs.builder['maxFavorites']:
+                favorites.append(name)
+            else:
+                #either we've run out of levels>10000 or exceeded maxFavs or runout of level>=thresh
+                break
+        return favorites
 
 class ParamCtrls:
     def __init__(self, dlg, label, param, browse=False, noCtrls=False, advanced=False, appPrefs=None):
@@ -1493,9 +1651,9 @@ class ParamCtrls:
         if noCtrls: return#we don't need to do any more
 
         if type(param.val)==numpy.ndarray:
-            initial=initial.tolist() #convert numpy arrays to lists
+            initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label != 'name':
+        if param.valType == 'code' and label not in ['name', 'Experiment info']:
             displayLabel = label+' $'
         else:
             displayLabel = label
@@ -1514,6 +1672,10 @@ class ParamCtrls:
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(500,-1))
             #self.valueCtrl.SetMaxHeight(500)
+        elif label == 'Experiment info':
+            #for expInfo convert from a string to the list-of-dicts
+            val = self.expInfoToListWidget(param.val)
+            self.valueCtrl = dialogs.ListWidget(parent, val, order=['Field','Default'])
         elif label in components.code.codeParamNames[:]:
             self.valueCtrl = CodeBox(parent,-1,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
@@ -1580,13 +1742,16 @@ class ParamCtrls:
         elif hasattr(ctrl,'GetText'):
             return ctrl.GetText()
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
-            return ctrl.GetValue()
+            val = ctrl.GetValue()
+            if isinstance(self.valueCtrl, dialogs.ListWidget):
+                val = self.expInfoFromListWidget(val)
+            return val
         elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
             return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            print "failed to retrieve the value for %s" %(ctrl)
             return None
     def _setCtrlValue(self, ctrl, newVal):
         """Set the current value form the control (whatever type of ctrl it
@@ -1603,7 +1768,7 @@ class ParamCtrls:
         elif hasattr(ctrl, 'SetLabel'): #for wx.StaticText
             ctrl.SetLabel(newVal)
         else:
-            print "failed to retrieve the value for %s: %s" %(fieldName, ctrls.valueCtrl)
+            print "failed to retrieve the value for %s" %(ctrl)
     def getValue(self):
         """Get the current value of the value ctrl
         """
@@ -1627,6 +1792,24 @@ class ParamCtrls:
         self.nameCtrl.Show(newVal)
         if self.updateCtrl: self.updateCtrl.Show(newVal)
         if self.typeCtrl: self.typeCtrl.Show(newVal)
+    def expInfoToListWidget(self, expInfoStr):
+        """Takes a string describing a dictionary and turns it into a format
+        that the ListWidget can receive (list of dicts of Field:'', Default:'')
+        """
+        expInfo = eval(expInfoStr)
+        listOfDicts = []
+        for field, default in expInfo.items():
+            listOfDicts.append({'Field':field, 'Default':default})
+        return listOfDicts
+    def expInfoFromListWidget(self, listOfDicts):
+        """Creates a string representation of a dict from a list of field/default
+        values.
+        """
+        expInfo = {}
+        for field in listOfDicts:
+            expInfo[field['Field']] = field['Default']
+        expInfoStr = repr(expInfo)
+        return expInfoStr
 
 class _BaseParamsDlg(wx.Dialog):
     """
@@ -1827,8 +2010,6 @@ class _BaseParamsDlg(wx.Dialog):
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
         elif fieldName in ['color', 'Color']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
-        elif fieldName=='Experiment info':
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.previewExpInfo)
         elif fieldName in self.codeParamNames:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
@@ -1848,45 +2029,6 @@ class _BaseParamsDlg(wx.Dialog):
         #    if wx.TheClipboard.GetData(dataObject):
         #        self.paramCtrls['Monitor'].valueCtrl.WriteText(dataObject.GetText())
         #    wx.TheClipboard.Close()
-
-    def previewExpInfo(self, event):
-        thisValueCtrl = self.paramCtrls['Experiment info'].valueCtrl
-        expInfo = thisValueCtrl.GetValue()
-        needsUpdate = False
-        if expInfo.strip()=='':
-            expInfo = "{'participant':'', 'session':'001'}"
-            title = 'providing default values...'
-        else:
-            title = 'PREVIEW' # not actually checked yet
-        if not expInfo.lstrip().startswith('{'):
-            expInfo = '{' + expInfo
-            needsUpdate = True
-        if not expInfo.strip().endswith('}'):
-            expInfo += '}'
-            needsUpdate = True
-        try:
-            newInfo = dict(eval(expInfo))
-        except SyntaxError:
-            # try to be helpful, but dict syntax is not so intuitive
-            dlg = gui.Dlg(title="oops, syntax error...")
-            dlg.addText('') # spacer
-            dlg.addText("Experiment info needs to have python 'dict' syntax.")
-            dlg.addText("(Delete everything and preview again to reset.)")
-            dlg.addText("- items are pairs of the form 'a1': 'b', 'a2': b, 'a3': u'b',")
-            dlg.addText("  (u' ' is unicode), with pairs separated by commas")
-            dlg.addText("- the a's must be unique ('a1', 'a2', 'a3', ...)")
-            dlg.addText("- the b's must be well-formed (str, int, float, list)")
-            dlg.addText("- enclose everything in {   }")
-            dlg.show()
-            return
-        # show preview
-        previewDlg = gui.DlgFromDict(dictionary=newInfo, title=title)
-        # if user made edits to values and then clicked OK, save them:
-        if previewDlg.OK or needsUpdate:
-            thisValueCtrl.SetFocus()
-            thisValueCtrl.Clear()
-            thisValueCtrl.WriteText(str(newInfo))
-
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None) # str, remapped to -1..+1
@@ -1956,7 +2098,7 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
         #put it all together
-        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND)#add main controls
+        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND|wx.ALL)#add main controls
         if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
             self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
@@ -3434,9 +3576,9 @@ class BuilderFrame(wx.Frame):
 
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
+        self._undoLabel = self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
+        self._redoLabel = self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
 
         #---_tools---#000000#FFFFFF--------------------------------------------------
@@ -3756,8 +3898,7 @@ class BuilderFrame(wx.Frame):
         self.currentUndoLevel=1#1 is current, 2 is back one setp...
         self.currentUndoStack=[]
         self.addToUndoStack()
-        self.enableUndo(False)
-        self.enableRedo(False)
+        self.updateUndoRedo()
         self.setIsModified(newVal=False)#update save icon if needed
     def addToUndoStack(self, action="", state=None):
         """Add the given ``action`` to the currentUndoStack, associated with the @state@.
@@ -3775,8 +3916,8 @@ class BuilderFrame(wx.Frame):
             self.currentUndoLevel=1
         #append this action
         self.currentUndoStack.append({'action':action,'state':state})
-        self.enableUndo(True)
         self.setIsModified(newVal=True)#update save icon if needed
+        self.updateUndoRedo()
 
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
@@ -3789,12 +3930,9 @@ class BuilderFrame(wx.Frame):
             return -1#can't undo
         self.currentUndoLevel+=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
-        #set undo redo buttons
-        self.enableRedo(True)#if we've undone, then redo must be possible
-        if (self.currentUndoLevel)==len(self.currentUndoStack):
-            self.enableUndo(False)
         self.updateAllViews()
         self.setIsModified(newVal=True)#update save icon if needed
+        self.updateUndoRedo()
         # return
         return self.currentUndoLevel
     def redo(self, event=None):
@@ -3808,20 +3946,35 @@ class BuilderFrame(wx.Frame):
             return -1#can't redo, we're already at latest state
         self.currentUndoLevel-=1
         self.exp = copy.deepcopy(self.currentUndoStack[-self.currentUndoLevel]['state'])
-        #set undo redo buttons
-        self.enableUndo(True)#if we've redone then undo must be possible
-        if self.currentUndoLevel==1:
-            self.enableRedo(False)
+        self.updateUndoRedo()
         self.updateAllViews()
         self.setIsModified(newVal=True)#update save icon if needed
-        # return
         return self.currentUndoLevel
-    def enableRedo(self,enable=True):
-        self.toolbar.EnableTool(self.IDs.tbRedo,enable)
-        self.editMenu.Enable(wx.ID_REDO,enable)
-    def enableUndo(self,enable=True):
+    def updateUndoRedo(self):
+        #check undo
+        if (self.currentUndoLevel)>=len(self.currentUndoStack):
+            # can't undo if we're at top of undo stack
+            label = "Undo\t%s" %(self.app.keys['undo'])
+            enable = False
+        else:
+            action = self.currentUndoStack[-self.currentUndoLevel]['action']
+            label = "Undo %s\t%s" %(action, self.app.keys['undo'])
+            enable = True
+        self._undoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
         self.editMenu.Enable(wx.ID_UNDO,enable)
+        # check redo
+        if self.currentUndoLevel==1:
+            label = "Redo\t%s" %(self.app.keys['redo'])
+            enable = False
+        else:
+            action = self.currentUndoStack[-self.currentUndoLevel+1]['action']
+            label = "Redo %s\t%s" %(action, self.app.keys['redo'])
+            enable = True
+        self._redoLabel.SetText(label)
+        self.toolbar.EnableTool(self.IDs.tbRedo,enable)
+        self.editMenu.Enable(wx.ID_REDO,enable)
+
     def demosUnpack(self, event=None):
         """Get a folder location from the user and unpack demos into it
         """
@@ -4031,7 +4184,7 @@ class BuilderFrame(wx.Frame):
                 self.exp.namespace.add(newName)
                 newComp.params['name'].val = newName
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)#could do redrawRoutines but would be slower?
-            self.addToUndoStack("paste Routine %s" % newRoutine.name)
+            self.addToUndoStack("PASTE Routine `%s`" % newRoutine.name)
         dlg.Destroy()
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -4058,7 +4211,7 @@ class BuilderFrame(wx.Frame):
             params = component.params,helpUrl=helpUrl,
             order = component.order)
         if dlg.OK:
-            self.addToUndoStack("edit experiment settings")
+            self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
 
     def showResourcePool(self, event=None):
@@ -4128,14 +4281,14 @@ class ReadmeFrame(wx.Frame):
         try:
             f=codecs.open(filename, 'r', 'utf-8')
         except IOError, err:
-            logging.warning("Found readme file for %s and appear to have permissions, but can't open" %expName)
+            logging.warning("Found readme file for %s and appear to have permissions, but can't open" %self.expName)
             logging.warning(err)
             return False
             #attempt to read
         try:
             readmeText=f.read().replace("\r\n", "\n")
         except:
-            logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %expName)
+            logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %self.expName)
             return False
         f.close()
         self._fileLastModTime=os.path.getmtime(filename)
@@ -4168,7 +4321,7 @@ def appDataToFrames(prefs):
 def framesToAppData(prefs):
     pass
 def _relpath(path, start='.'):
-    """This code is based on os.path.repath in the Python 2.6 distribution,
+    """This code is based on os.path.relpath in the Python 2.6 distribution,
     included here for compatibility with Python 2.5"""
 
     if not path:
@@ -4182,5 +4335,5 @@ def _relpath(path, start='.'):
 
     rel_list = ['..'] * (len(start_list)-i) + path_list[i:]
     if not rel_list:
-        return curdir
+        return path
     return os.path.join(*rel_list)

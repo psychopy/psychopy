@@ -530,11 +530,13 @@ class Mouse:
         elif self.win.units=='norm': return pos*2.0/self.win.size
         elif self.win.units=='cm': return psychopy.misc.pix2cm(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.pix2deg(pos, self.win.monitor)
+        elif self.win.units=='height': return pos/float(self.win.size[1])
     def _windowUnits2pix(self, pos):
         if self.win.units=='pix': return pos
         elif self.win.units=='norm': return pos*self.win.size/2.0
         elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
+        elif self.win.units=='height': return pos*float(self.win.size[1])
 
 
 class BuilderKeyResponse():

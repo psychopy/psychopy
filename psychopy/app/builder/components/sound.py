@@ -12,6 +12,7 @@ tooltip = 'Sound: play recorded files or generated sounds'
 
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
+    categories = ['Stimuli']
     def __init__(self, exp, parentName, name='sound_1', sound='A',volume=1,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
@@ -53,21 +54,21 @@ class SoundComponent(BaseComponent):
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['stopType'].val=='duration (s)':
-            durationSetting="secs=%(stopVal)s" %self.params
+            durationSetting=", secs=%(stopVal)s" %self.params
         else:
             durationSetting=""
-        buff.writeIndented("%s=sound.Sound(%s,%s)\n" %(inits['name'], inits['sound'], durationSetting))
+        buff.writeIndented("%s = sound.Sound(%s%s)\n" %(inits['name'], inits['sound'], durationSetting))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(inits))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
         #the sound object is unusual, because it is
-        buff.writeIndented("#start/stop %(name)s\n" %(self.params))
+        buff.writeIndented("# start/stop %(name)s\n" %(self.params))
         self.writeParamUpdates(buff, 'frame')#do this EVERY frame, even before/after playing?
         self.writeStartTestCode(buff)
-        buff.writeIndented("%s.play()#start the sound (it finishes automatically)\n" %(self.params['name']))
+        buff.writeIndented("%s.play()  # start the sound (it finishes automatically)\n" %(self.params['name']))
         buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)
-            buff.writeIndented("%s.stop()#stop the sound (if longer than duration)\n" %(self.params['name']))
+            buff.writeIndented("%s.stop()  # stop the sound (if longer than duration)\n" %(self.params['name']))
             buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test

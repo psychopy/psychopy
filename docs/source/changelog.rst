@@ -16,6 +16,22 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.75
+------------------------------
+
+PsychoPy 1.75.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
+* IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
+* IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
+* ADDED: Builder undo/redo now gives info about what is going to be un/redone
+* ADDED: Window now supports a `stereo` flag to provide support for quad-buffers (advanced graphics cards only)
+* FIXED: bug with copying/pasting Routines that was breaking Flow in certain situations and corrupting the experiment file
+* FIXED: fatal typo in QuestHandler code (Gary Lupyan)
+* FIXED: data outputs for multiple key/mouse presses
+* ADDED: Microphone now supports `stop` to abort recording early (Jeremy Gray)
+
 PsychoPy 1.74
 ------------------------------
 
@@ -58,7 +74,6 @@ PsychoPy 1.74.01
 * FIXED: error at end of automated gamma calibration (which was causing a crash of the calibration script)
 * FIXED: misc.getDateStr() returns numeric date if there's an error with unicode encoding (Jeremy)
 * FIXED: added partial support for non-ASCII keyboards (Sebastiaan Mathot)
-
 
 PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

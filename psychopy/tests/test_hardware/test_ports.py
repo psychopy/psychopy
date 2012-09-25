@@ -1,14 +1,13 @@
-import sys,collections
-from psychopy.tests import utils
+import collections
 from contextlib import nested
 import psychopy.hardware as hw
-
+import pytest
 try:
     import mock
 except:
     def require_mock(fn):
         def _inner():
-            utils.skip("Can't test without Mock")
+            pytest.skip("Can't test without Mock")
         _inner.__name__ = fn.__name__
         return _inner
 else:

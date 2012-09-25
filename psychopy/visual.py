@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, platform, time, glob, copy
+import sys, os, glob, copy
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
@@ -1081,11 +1081,11 @@ class Window(object):
 
         #attach texture to the frame buffer
         FB.glFramebufferTexture2DEXT (FB.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
-                                      GL.GL_TEXTURE_2D, self.frameTexture, 0);
+                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
         FB.glFramebufferRenderbufferEXT(FB.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer);
+                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer)
 
-        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT);
+        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT)
         if status != FB.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.warning("Error in framebuffer activation")
             return
@@ -1382,6 +1382,44 @@ class _BaseVisualStim:
 
         """
         self.autoLog=val
+    def contains(self, x, y=None):
+        """Determines if a point x,y is inside the extent of the stimulus.
+
+        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
+        list-like; or c) an object with a getPos() method that returns x,y, such
+        as a mouse. Returns True if the point is within the area defined by `vertices`.
+        This handles complex shapes, including concavities and self-crossings.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        this is not accounted for by the `contains` method; the extent of the
+        stmulus is determined purely by the size, pos and orientation settings
+        (and by the vertices for shape stimuli).
+
+        See coder demo, shapeContains.py
+        """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        if hasattr(x, 'getPos'):
+            x,y = x.getPos()
+        elif type(x) in [list, tuple, numpy.ndarray]:
+            x, y = x[0], x[1]
+        return pointInPolygon(x, y, self)
+    def overlaps(self, polygon):
+        """Determines if this stimulus intersects another one. If `polygon` is
+        another stimulus instance, then the vertices and location of that stimulus
+        will be used as the polygon. Overlap detection is only approximate; it
+        can fail with pointy shapes. Returns `True` if the two shapes overlap.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        this is not accounted for by the `overlaps` method; the extent of the
+        stmulus is determined purely by the size, pos and orientation settings
+        (and by the vertices for shape stimuli).
+
+        See coder demo, shapeContains.py
+        """
+        if self.needVertexUpdate:
+            self._calcVerticesRendered()
+        return polygonsOverlap(self, polygon)
 
 class DotStim(_BaseVisualStim):
     """
@@ -4519,6 +4557,14 @@ class TextStim(_BaseVisualStim):
             self._useShaders=val
             self._needSetText=True
             self.needUpdate=True
+    def overlaps(self, polygon):
+        """Not implemented for TextStim
+        """
+        pass
+    def contains(self, polygon):
+        """Not implemented for TextStim
+        """
+        pass
 
 class ShapeStim(_BaseVisualStim):
     """Create geometric (vector) shapes by defining vertex locations.
@@ -4786,36 +4832,6 @@ class ShapeStim(_BaseVisualStim):
             self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
 
-    def contains(self, x, y=None):
-        """Determines if a point x,y is inside the shape.
-
-        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
-        list-like; or c) an object with a getPos() method that returns x,y, such
-        as a mouse. Returns True if the point is within the area defined by `vertices`.
-        This handles complex shapes, including concavities and self-crossings.
-
-        See coder demo, shapeContains.py
-        """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if hasattr(x, 'getPos'):
-            x,y = x.getPos()
-        elif type(x) in [list, tuple, numpy.ndarray]:
-            x, y = x[0], x[1]
-        return pointInPolygon(x, y, self)
-
-    def overlaps(self, polygon):
-        """Determines if this shape intersects another one. If `polygon` is
-        a `ShapeStim` instance, will use (vertices + pos) as the polygon. Overlap
-        detection is only approximate; can fail with pointy shapes. Returns True
-        if the two shapes overlap.
-
-        See coder demo, shapeContains.py
-        """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        return polygonsOverlap(self, polygon)
-
 class Polygon(ShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a :class:`~psychopy.visual.ShapeStim`
 
@@ -4999,7 +5015,7 @@ class Line(ShapeStim):
             self.win.logOnFlip("Set %s start=%s" %(self.name, start),
                 level=logging.EXP,obj=self)
 
-    def setEnd(self, end):
+    def setEnd(self, end, log=True):
         """Changes the end point of the line. Argument should be a tuple, list
         or 2x1 array specifying the coordinates of the end point"""
         self.end = end
@@ -5498,7 +5514,7 @@ class BufferImageStim(GratingStim):
         if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
             self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
             if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%self.desiredRGB) #AOH
                 self.desiredRGB=[0.0,0.0,1.0]
         else:
             self.desiredRGB = (self.rgb * self.contrast)/255.0
@@ -6164,8 +6180,8 @@ class RatingScale:
                 else:
                     customMarker.color = 'DarkBlue'
                 markerColor = customMarker.color
-                if not hasattr(marker, 'name'):
-                    marker.name = 'customMarker'
+                if not hasattr(self.marker, 'name'):
+                    self.marker.name = 'customMarker'
         elif self.markerStyle == 'triangle': # and sys.platform in ['linux2', 'darwin']):
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
@@ -7398,7 +7414,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
         elif showText:
             myMsg.draw()
         if doWait:
-            wait(delayTime)
+            core.wait(delayTime)
         drawt.append(core.getTime())
         myWin.flip()
     rush(False)

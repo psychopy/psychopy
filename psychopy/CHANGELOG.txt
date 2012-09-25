@@ -7,6 +7,22 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+PsychoPy 1.75
+------------------------------
+
+PsychoPy 1.75.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
+* IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
+* IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
+* ADDED: Builder undo/redo now gives info about what is going to be un/redone
+* ADDED: Window now supports a `stereo` flag to provide support for quad-buffers (advanced graphics cards only)
+* FIXED: bug with copying/pasting Routines that was breaking Flow in certain situations and corrupting the experiment file
+* FIXED: fatal typo in QuestHandler code (Gary Lupyan)
+* FIXED: data outputs for multiple key/mouse presses
+* ADDED: Microphone now supports `stop` to abort recording early (Jeremy Gray)
+
 PsychoPy 1.74
 ------------------------------
 
@@ -53,26 +69,17 @@ PsychoPy 1.74.01
 PsychoPy 1.74.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released July 2012)
+(https://github.com/psychopy/psychopy)
 
-Highlights (and compatibility changes):
+Major changes (and compatibility changes):
 
-* CHANGED: Builder experiments saved from this version will NOT open in older versions
-* ADDED: 'non-slip' timing methods to the Builder interface (improved timing for imaging experiments)
-* ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments
-* CHANGED: psydat files from Builder have also changed. They are now ExperimentHandler objects, which contain all loops in a single file (previously they were TrialHandlers and had one file for each loop of the experiment). Analysis scripts will need slight modifications to handle this
-* CHANGED: The summarised excel/csv outputs now have an additional column for the order of the stimulus as presented. This may affect any automated analysis you perform on your spreadsheet outputs
-* RESTRUCTURED: the generation of 'summarised' data outputs (text and excel) were also rewritten in this version, so make sure that your data files still contain all the data you were expecting
+* ADDED: Long-wide data file outputs, which are now the default for all new Builder experiments. 
 * ADDED: basic audio capture (and speech recognition via google!). Builder now has a Microphone Component to record inputs, but does not yet use the speech recognition facility. See psychopy.microphone library, coder demo "input/say_rgb.py" and Builder demo "voiceCapture".  (Jeremy)
-* ADDED: ImageStim and GratingStim to take over the combined role of PatchStim. For new experiments users are recommended to switch to these new more-specialised stimuli, although PatchStim objects will continue to work for the foreseeable future.
 * ADDED: HSV color space for all stimuli
-* CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments
-* CHANGED: data.FitCumNormal now uses a slightly different equation that has a slightly different equation, which alters the interpretation of the parameters (but not the quality of fit). Parameters from this function before version 1.74 cannot to be compared with new values
-* CHANGED: pygame is no longer being formally supported/tested although it will probably continue to work for some time
+* CHANGED: in Builder the default dotstim has signal dots='same' (once a signal dot, always a signal dot). Only affects new experiments.
 
 Tweaks and fixes:
 
-* ADDED: contains() and intersects() methods to visual shape stimuli (including Rect etc) to determine whether a point or array of points is within the present stimulus boundaries
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
@@ -90,11 +97,6 @@ Tweaks and fixes:
 * FIXED: MovieStim used from Builder was not working very well. Sounds continued when it was told to stop and the seek(0.0001) line was causing some file formats not to work from Builder only (those that don't support seeking)
 * FIXED: Mouse component was not saving clicks in Builder experiments if forceEndOnClick was set to be False
 * FIXED: DotStim.setFieldCoherence was having no effect if noise dots were updating by 'position'
-* FIXED: TextStim.setColor() was not updating stimulus properly when haveShaders=False
-* FIXED: In Builder, sound duration was not being used in creating new sounds
-* CHANGED: Under linux, although you will be warned if a new version is available, it will not be auto-installed by PsychoPy (that should be done by your package manager)
-* FIXED: csv/dlm data outputs no longer have a trailing delimitter at end of line
-* FIXED: all test suite tests should now pass :-)
 
 PsychoPy 1.73
 ------------------------------

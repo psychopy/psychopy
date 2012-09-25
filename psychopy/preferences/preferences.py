@@ -138,6 +138,10 @@ class Preferences:
         cfg = configobj.ConfigObj(self.paths['appDataFile'], encoding='UTF8', configspec=appDataSpec)
         resultOfValidate = cfg.validate(self._validator, copy=True, preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
+        #force favComponent level values to be integers
+        if 'favComponents' in cfg['builder'].keys():
+            for key in cfg['builder']['favComponents']:
+                cfg['builder']['favComponents'][key] = int(cfg['builder']['favComponents'][key])
         return cfg
     def saveAppData(self):
         """Save the various setting to the appropriate files (or discard, in some cases)

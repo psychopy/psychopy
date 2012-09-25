@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys, os, copy
-from psychopy import visual, misc, core, monitors, filters, preferences
+from psychopy import visual, misc, monitors, filters, preferences
 from psychopy.tests import utils
 import numpy
+import pytest
 prefs = preferences.Preferences()
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
@@ -107,7 +108,7 @@ class _baseVisualTest:
     def test_mov(self):
         win = self.win
         if self.win.winType=='pygame':
-            utils.skip("movies only available for pyglet backend")
+            pytest.skip("movies only available for pyglet backend")
         win.flip()
         contextName=self.contextName
         #construct full path to the movie file
@@ -183,7 +184,7 @@ class _baseVisualTest:
         win = self.win
         contextName=self.contextName
         if not win._haveShaders:
-            utils.skip("ElementArray requires shaders, which aren't available")
+            pytest.skip("ElementArray requires shaders, which aren't available")
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
@@ -200,7 +201,7 @@ class _baseVisualTest:
     def test_aperture(self):
         win = self.win
         if not win.allowStencil:
-            utils.skip("Don't run aperture test when no stencil is available")
+            pytest.skip("Don't run aperture test when no stencil is available")
         contextName=self.contextName
         grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
@@ -224,7 +225,7 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
-            utils.skip("getMsPerFrame seems to crash the testing of pygame")
+            pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
         assert (1000/150.0 < msPFavg < 1000/40.0), \

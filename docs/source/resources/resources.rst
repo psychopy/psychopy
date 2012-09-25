@@ -5,6 +5,11 @@ There are a number of further resources to help learn/teach about PsychoPy.
 
 .. _youtube:
 
+P4N: Python for Neuroscience (and psychology) workshop
+---------------------------------------------------------------
+
+There will (very likely) be a 3-day workshop in March 2013 at Nottingham University, taught by Jon Peirce. It won't be /only/ about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. The cost will likely be roughly £300 plus accommodation costs. Details will be posted here as they are finalised.
+
 Youtube tutorials
 ---------------------
 
@@ -15,9 +20,11 @@ There is now a `youtube PsychoPy <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ 
 Lecture materials (Builder)
 -------------------------------
 
-At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version!
+At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version of them!
 
         `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
+
+The `GestaltReVision group (Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and a great tutorial for Python/PsychoPy coding of experiments).
 
 If you also use PsychoPy for your lectures then please let us know so that we can link to your materials/course from here too!
 
@@ -25,6 +32,8 @@ Lecture materials (Coder)
 -------------------------------
 
 `Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
+
+Also the `GestaltReVision group (Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ has lots of great information taking you from basic programming to advanced techniques.
 
 ---------------------------------
 
