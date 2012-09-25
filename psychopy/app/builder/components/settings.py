@@ -10,7 +10,7 @@ class SettingsComponent:
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 saveXLSXFile=True, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
+                 saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder=''):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess

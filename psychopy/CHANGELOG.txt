@@ -13,6 +13,7 @@ PsychoPy 1.75
 PsychoPy 1.75.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* CHANGED: New Builder experiments will, by default save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (wiht one sheet per loop) and many psydat files (one per loop). Psydat files can still be used to re-output any format of data file.
 * IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
 * IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
 * IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
