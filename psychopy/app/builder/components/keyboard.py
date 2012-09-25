@@ -5,6 +5,8 @@
 from _base import *
 from os import path
 
+from psychopy.app.builder.experiment import CodeGenerationException
+
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
 tooltip = 'Keyboard: check and record keypresses'
@@ -107,7 +109,10 @@ class KeyboardComponent(BaseComponent):
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
         else:
-            keyList = eval(self.params['allowedKeys'].val)
+            try:
+                keyList = eval(self.params['allowedKeys'].val)
+            except:
+                raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
             if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
                 keyList=list(keyList)
             elif type(keyList) in [str,unicode]: #a single string value

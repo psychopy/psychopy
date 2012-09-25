@@ -20,6 +20,18 @@ _numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 
                   'deg2rad', 'rad2deg', 'linspace', 'asarray']
 _numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
 
+"""
+Exception thrown by a component when it is unable to generate its code.
+"""
+class CodeGenerationException(Exception):   
+    def __init__(self, source, message = ""):
+        self.source = source
+        self.message = str(message)
+    
+    def __str__(self):
+        return str(self.source) + ": " + self.message
+
+
 """the code that writes out an actual experiment file is (in order):
     experiment.Experiment.writeScript() - starts things off, calls other parts
     settings.SettingsComponent.writeStartCode()
