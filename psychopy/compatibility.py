@@ -123,4 +123,4 @@ def checkCompatibility(old, new, prefs=None, fix=True):
         warning = True
     if not warning:
         msg+= "\nNo known compatibility issues"
-    return 0, msg
+    return (not warning), msg
