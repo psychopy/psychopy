@@ -1376,7 +1376,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(100,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.components=components.getAllComponents()
-        self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
+        self.components=components.getAllComponents(self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
         categories.extend(components.getAllCategories())
         #get rid of hidden components
