@@ -31,6 +31,8 @@ PsychoPy 1.75.00
 * FIXED: fatal typo in QuestHandler code (Gary Lupyan)
 * FIXED: data outputs for multiple key/mouse presses
 * ADDED: Microphone now supports `stop` to abort recording early (Jeremy Gray)
+* ADDED: beginning of error reporting when generating Builder experiments (thanks Piotr Iwaniuk)
+* FIXED: csv files now generated from Builder as expected not dlm files (tab-delimited)
 
 PsychoPy 1.74
 ------------------------------
