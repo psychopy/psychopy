@@ -4232,7 +4232,6 @@ class BuilderFrame(wx.Frame):
                 self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
             self.stdoutFrame.write("Error when generating experiment script:\n")
             self.stdoutFrame.write(str(e) + "\n")
-            traceback.print_exc(file=self.stdoutFrame)
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
             return None
