@@ -80,8 +80,9 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                     wordActual=lineActual[wordN]
                     wordCorrect=lineCorrect[wordN]
                     try:
-                        wordActual=float(wordActual)
-                        wordCorrect=float(wordCorrect)
+                        wordActual=float(wordActual.lstrip('"[').strip(']"'))
+                        wordCorrect=float(wordCorrect.lstrip('"[').strip(']"'))
+                        # its not a whole well-formed list because .split(delim)
                         isFloat=True
                     except:#stick with simple text if not a float value
                         isFloat=False
@@ -119,6 +120,16 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         for key, expVal in expWS._cells.items():
             actVal = actWS._cells[key].value
             expVal = expVal.value
+            # intercept lists-of-floats, which might mismatch by rounding error
+            isListableFloatable = False
+            if str(expVal).startswith('['):
+                expValList = eval(str(expVal))
+                try:
+                    expVal = np.array(expValList, dtype=float)
+                    actVal = np.array(eval(str(actVal)), dtype=float) # should go through if expVal does...
+                    isListableFloatable = True
+                except:
+                    pass # non-list+float-able at this point = default
             #determine whether there will be errors
             try:
                 # convert to float if possible and compare with a reasonable
@@ -127,11 +138,15 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
                 isFloatable=True
             except:
                 isFloatable=False
-            if isFloatable and abs(expVal-float(actVal))>0.0001:
-                error = "Cell %s: %f != %f" %(key, expVal, actVal)
+            if isListableFloatable:
+                if not np.allclose(expVal, actVal):
+                    error = "l+f Cell %s: %f != %f" %(key, expVal, actVal)
+                    break
+            elif isFloatable and abs(expVal-float(actVal))>0.0001:
+                error = "f Cell %s: %f != %f" %(key, expVal, actVal)
                 break
             elif not isFloatable and expVal!=actVal:
-                error = "Cell %s: %s != %s" %(key, expVal, actVal)
+                error = "nf Cell %s: %s != %s" %(key, expVal, actVal)
                 break
     if error:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
