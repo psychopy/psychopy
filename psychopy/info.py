@@ -6,7 +6,7 @@
 
 import sys, os, time, platform
 
-from psychopy import visual, logging
+from psychopy import visual, logging, core, data
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
@@ -173,8 +173,8 @@ class RunTimeInfo(dict):
             pass
         
         # when was this run?
-        self['experimentRunTime.epoch'] = time.time() # basis for default random.seed()
-        self['experimentRunTime'] = time.ctime(self['experimentRunTime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+        self['experimentRunTime.epoch'] = core.getTime() # basis for default random.seed()
+        self['experimentRunTime'] = data.getDateStr(format="%Y_%m_%d %H:%M (Year_Month_Day Hour:Min)")
         
         # random.seed -- record the value, and initialize random.seed() if 'set:'
         if randomSeedFlag: 
