@@ -948,7 +948,7 @@ class Window:
         self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
 
         try: #to load an icon for the window
-            iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
+            iconFile = os.path.join(psychopy.prefs.paths['resources'], 'psychopy.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except: pass#doesn't matter
