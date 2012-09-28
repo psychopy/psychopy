@@ -19,6 +19,11 @@ Changelog
 PsychoPy 1.75
 ------------------------------
 
+PsychoPy 1.75.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: Bug with not being able to play sounds of blank (infinite) duration from Builder
+
 PsychoPy 1.75.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
