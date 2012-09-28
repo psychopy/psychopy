@@ -7,7 +7,7 @@
 #--------------------------------------------------------------------------
 
 #version info for PsychoPy
-__version__='1.74.03'
+__version__='1.75.00'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
