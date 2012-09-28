@@ -5,12 +5,24 @@
 from _visual import * #to get the template visual component
 from os import path
 from psychopy.app.builder.components import getInitVals
+from psychopy import visual
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'image.png')
 tooltip = 'Image: present images (bmp, jpg, tif...)'
 
 class ImageComponent(VisualComponent):
+    
+    PREVIEW_PARAMS = {
+        "image": PreviewParam("image", "interpret"),
+        "mask": PreviewParam("mask", "interpret"),
+        "interpolate": PreviewParam("interpolate", "verbatim"),
+        "size": PreviewParam("size", "eval"),
+        "texture resolution": PreviewParam("texRes", "eval"),
+    }
+    
+    PREVIEW_STIMULUS = visual.ImageStim
+    
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='image', image='', mask='None', interpolate='linear',
                 units='from exp settings', color='$[1,1,1]', colorSpace='rgb',

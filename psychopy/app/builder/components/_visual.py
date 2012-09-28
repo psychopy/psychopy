@@ -6,9 +6,47 @@ import _base
 from os import path
 from psychopy.app.builder.experiment import Param
 
+class PreviewParam(object):
+    """
+    Description of component parameter, which is used in generating preview. Currently parameter values
+    from form field are stored as strings, so they need to be converted before used to constuct a
+    stimulus.
+    """
+    CONVERTERS = {
+        "interpret": lambda x: eval(str(x)),
+        "eval": lambda x: eval(x.val),
+        "verbatim": lambda x: str(x.val)
+    }
+    
+    def __init__(self, kwargKey, converter="verbatim"):
+        """
+        Associate parameter with keyword argument of a stimulus. There are built-in
+        converters: interpret, verbatim, eval.
+        @param kwargKey: Keyword argument key
+        @param converter: Name of built in converter or converting function.
+        """
+        self.kwargKey = kwargKey
+        if str(converter) in self.CONVERTERS.keys():
+            self.converter = self.CONVERTERS[converter]
+        else:
+            self.converter = converter
+
+
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
+    
+    BASE_PREVIEW_PARAMS = {
+        "color": PreviewParam("color", "interpret"),
+        "colorSpace": PreviewParam("colorSpace", "verbatim"),
+        "opacity": PreviewParam("opacity", "eval"),
+        "pos": PreviewParam("pos", "eval"),
+        #"size": PreviewParam("size", "eval"),
+        "ori": PreviewParam("ori", "eval"),
+        "units": PreviewParam("units", "interpret")
+    }
+    
+    
     categories = ['Stimuli']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name='', units='from exp settings', color='$[1,1,1]',
                 pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb', opacity=1,
@@ -119,4 +157,17 @@ class VisualComponent(_base.BaseComponent):
                     buff.write("%s)\n" %(loggingStr))
                 else:
                     buff.writeIndented("%s.set%s(%s%s)\n" %(self.params['name'], paramCaps, thisParam,loggingStr))
+    
+    def getStimulus(self, window):
+        """
+        Generate stimulus from parameter values.
+        """
+        if not hasattr(self, "PREVIEW_STIMULUS"):
+            return None
+        kwargs = {}
+        for previewParam in VisualComponent.BASE_PREVIEW_PARAMS.items() + self.PREVIEW_PARAMS.items():
+            componentParam = self.params[previewParam[0]]
+            kwargs[previewParam[1].kwargKey] = previewParam[1].converter(componentParam)
+        stimulus = self.PREVIEW_STIMULUS(window, **kwargs)
+        return stimulus
 

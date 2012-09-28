@@ -5,12 +5,22 @@
 from _visual import * #to get the template visual component
 from os import path
 from psychopy.app.builder import components #for getInitVals()
+from psychopy import visual
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
 tooltip = 'Text: present text stimuli'
 
 class TextComponent(VisualComponent):
+    
+    PREVIEW_PARAMS = {
+        "text": PreviewParam("text", "interpret"),
+        "font": PreviewParam("font", "interpret"),
+        "letterHeight": PreviewParam("height", "eval")
+    }
+    
+    PREVIEW_STIMULUS = visual.TextStim
+    
     """An event class for presenting text-based stimuli"""
     categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',

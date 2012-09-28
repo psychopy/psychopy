@@ -20,7 +20,8 @@ from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
 
 from psychopy.constants import *
 from psychopy.errors import DataImportError
-from psychopy.app.builder import amp_launcher, resource_pool, validators
+from psychopy.app.builder import amp_launcher, resource_pool, validators,\
+    sketchpad
 
 
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -3483,6 +3484,7 @@ class BuilderFrame(wx.Frame):
         saveAs_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'filesaveas%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         undo_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'undo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         redo_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'redo%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
+        preview_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'preview%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         stop_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'stop%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         run_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'run%i.png' %toolbarSize),wx.BITMAP_TYPE_PNG)
         
@@ -3510,6 +3512,8 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
         self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" %self.app.keys['redo']).replace('Ctrl+', ctrlKey),  "Redo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
+        self.toolbar.AddSimpleTool(self.IDs.tbPreview, preview_bmp, "Preview",  "Show routine preview")
+        self.toolbar.Bind(wx.EVT_TOOL, self.showPreview, id=self.IDs.tbPreview)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, "Preferences",  "Application preferences")
@@ -4017,6 +4021,12 @@ class BuilderFrame(wx.Frame):
                 continue #ignore 'private' or README files
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
+
+    def showPreview(self, event):
+        routine = self.routinePanel.getCurrentRoutine()
+        dialog = sketchpad.SketchpadWindow(self, routine)
+        dialog.ShowModal()
+
     def runFile(self, event=None):
         #get abs path of expereiment so it can be stored with data at end of exp
         expPath = self.filename
