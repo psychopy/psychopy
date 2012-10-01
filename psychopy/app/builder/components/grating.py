@@ -5,6 +5,7 @@
 from _visual import * #to get the template visual component
 from os import path
 from psychopy.app.builder.components import getInitVals
+from psychopy import visual
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'grating.png')
@@ -71,4 +72,10 @@ class GratingComponent(VisualComponent):
         else: buff.write(", interpolate=False")
         depth = -self.getPosInRoutine()
         buff.write(", depth=%.1f)\n" %depth)#finish with newline
+    
+    def getStimulus(self, window):
+        return visual.GratingStim(
+                window, tex=self.params["tex"].val, mask=self.params["mask"].val,
+                units="norm", pos=eval(self.params["pos"].val), size=eval(self.params["size"].val),
+                sf=eval(self.params["sf"].val), ori=eval(self.params["ori"].val), phase=eval(self.params["phase"].val))
 
