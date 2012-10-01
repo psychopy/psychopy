@@ -19,6 +19,11 @@ Changelog
 PsychoPy 1.75
 ------------------------------
 
+PsychoPy 1.75.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
+
 PsychoPy 1.75.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
