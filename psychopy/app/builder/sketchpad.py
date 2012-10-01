@@ -6,6 +6,7 @@ import wx
 from wx import glcanvas
 import OpenGL.GL as gl
 import pygame.font
+import pyglet.gl
 import numpy
 import logging
 
@@ -20,12 +21,20 @@ class RoutinePreview(glcanvas.GLCanvas):
         self.Bind(wx.EVT_PAINT, self.on_paint)
 
     def init_gl(self):
+        # init pyglet
+        #self.pygletcontext = pyglet.gl.Context(pyglet.gl.current_context)
+        #self.pygletcontext.set_current()
+        # init normal gl
         gl.glClearColor(0.67, 0.67, 0.67, 0.0)
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        #self.gl_inited = True
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glShadeModel(gl.GL_SMOOTH)
+        self.gl_inited = True
 
     def on_size(self, event):
+        if not self.context:
+            self.context = glcanvas.GLContext(self)
         self.SetCurrent(self.context)
         size = self.GetClientSize()
         self.GetParent().setSize((size.width, size.height))
@@ -35,7 +44,6 @@ class RoutinePreview(glcanvas.GLCanvas):
         self.SetCurrent(self.context)
         if not self.gl_inited:
             self.init_gl()
-        self.SetCurrent(self.context)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         if self.stimuli is None:
             self.generate_stimuli()
@@ -68,7 +76,7 @@ class SketchpadWindow(wx.Dialog):
         super(SketchpadWindow, self).__init__(parent, title="Routine preview")
         self.routine = routine
         self._haveShaders = False
-        self.winType = "mock_preview"
+        self.winType = "wxglcanvas"
         self.size = (128, 128)
         pygame.font.init()
         self.canvas = RoutinePreview(self)
