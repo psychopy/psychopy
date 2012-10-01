@@ -78,8 +78,8 @@ class SketchpadWindow(wx.Dialog):
         self.canvas.update_routine(self.routine)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
-        sizer.Add(self.canvas, proportion=1, flag=wx.EXPAND)
-        sizer.Add(self.CreateButtonSizer(wx.OK), flag=wx.EXPAND)
+        sizer.Add(self.canvas, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
+        sizer.Add(self.CreateButtonSizer(wx.OK), flag=wx.EXPAND | wx.ALL, border=8)
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
 
     def setScale(self, units, font='dummyFont', prevScale=(1.0, 1.0)):
