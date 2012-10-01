@@ -6,7 +6,6 @@ import wx
 from wx import glcanvas
 import OpenGL.GL as gl
 import pygame.font
-import pyglet.gl
 import numpy
 import logging
 
@@ -21,10 +20,6 @@ class RoutinePreview(glcanvas.GLCanvas):
         self.Bind(wx.EVT_PAINT, self.on_paint)
 
     def init_gl(self):
-        # init pyglet
-        #self.pygletcontext = pyglet.gl.Context(pyglet.gl.current_context)
-        #self.pygletcontext.set_current()
-        # init normal gl
         gl.glClearColor(0.67, 0.67, 0.67, 0.0)
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
