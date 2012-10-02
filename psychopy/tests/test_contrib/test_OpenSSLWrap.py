@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import os, shutil, time
-import nose
+import shutil, time
 from tempfile import mkdtemp
 from psychopy.contrib import opensslwrap
 

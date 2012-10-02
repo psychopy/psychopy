@@ -15,9 +15,9 @@ DEFAULT_PARAM_VALUES = {
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
-                 saveLogFile=False, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
+                 saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=False, savePsydatFile=False,
+                 saveXLSXFile=True, saveCSVFile=False, saveWideCSVFile=False, savePsydatFile=False,
                  savedDataFolder='', paramValues=DEFAULT_PARAM_VALUES):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
@@ -30,8 +30,6 @@ class SettingsComponent:
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
-        #self.params['advancedParams'] = ['Save excel file', 'Save wide csv file', 'Save psydat file', 'logging level',
-        #    'Monitor', 'Screen', 'colorSpace', 'sendTags', 'saveTags']
         self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
@@ -63,7 +61,7 @@ class SettingsComponent:
             label="Save csv file (summaries)")
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in Excel (.xlsx) format")
-        self.params['Save psydat file']=Param(savePsydatFile, valType='bool',
+        self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
             hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
@@ -97,49 +95,49 @@ class SettingsComponent:
             saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
             if not saveToDir:
                 saveToDir = 'data'
-        return path.expanduser(saveToDir)
+        return saveToDir
     def writeStartCode(self,buff):
         # TODO move it somewhere else
         buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
         
-        buff.writeIndented("#store info about the experiment session\n")
-        buff.writeIndented("expName='%s'#from the Builder filename that created this script\n" %(self.exp.name))
+        buff.writeIndented("# Store info about the experiment session\n")
+        buff.writeIndented("expName = '%s'  # from the Builder filename that created this script\n" %(self.exp.name))
         expInfo = self.params['Experiment info'].val.strip()
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
         except SyntaxError, err:
             logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
             raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
-        buff.writeIndented("expInfo=%s\n" % expInfo)
+        buff.writeIndented("expInfo = %s\n" % expInfo)
         if self.params['Show info dlg'].val:
-            buff.writeIndented("dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)\n")
-            buff.writeIndented("if dlg.OK==False: core.quit() #user pressed cancel\n")
-        buff.writeIndented("expInfo['date']=data.getDateStr()#add a simple timestamp\n")
-        buff.writeIndented("expInfo['expName']=expName\n")
+            buff.writeIndented("dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n")
+            buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
+        buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
+        buff.writeIndented("expInfo['expName'] = expName\n")
         saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
 
-        buff.writeIndented("#setup files for saving\n")
+        buff.writeIndentedLines("\n# Setup files for saving\n")
         buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-        buff.writeIndented("    os.makedirs('%s') #if this fails (e.g. permissions) we will get error\n" % saveToDir)
+        buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
         if 'participant' in self.params['Experiment info'].val:
-            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
         elif 'Participant' in self.params['Experiment info'].val:
-            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
+            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
         elif 'Subject' in self.params['Experiment info'].val:
-            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
+            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
         elif 'Observer' in self.params['Experiment info'].val:
-            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
+            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
         else:
-            buff.writeIndented("filename='" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
 
         if self.params['Save log file'].val:
-            buff.writeIndented("logFile=logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+            buff.writeIndented("logFile = logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
 
-        buff.writeIndented("logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file\n")
+        buff.writeIndented("logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file\n")
 
         #set up the ExperimentHandler
-        buff.writeIndented("\n#an ExperimentHandler isn't essential but helps with data saving\n")
+        buff.writeIndentedLines("\n# An ExperimentHandler isn't essential but helps with data saving\n")
         buff.writeIndented("thisExp = data.ExperimentHandler(name=expName, version='',\n")
         buff.writeIndented("    extraInfo=expInfo, runtimeInfo=None,\n")
         buff.writeIndented("    originPath=%s,\n" %repr(self.exp.expPath))
@@ -155,7 +153,7 @@ class SettingsComponent:
             buff.writeIndented("thisExp.tagList = []\n\n")
         
 
-        buff.writeIndented("\n#setup the Window\n")
+        buff.writeIndentedLines("\n# Setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window'].val
         allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val) #if fullscreen then hide the mouse, unless its requested explicitly
@@ -188,12 +186,12 @@ class SettingsComponent:
         buff.write(unitsCode+")\n")
 
         if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
-            buff.writeIndented("\n# Enable sound input/output:\n"+
+            buff.writeIndentedLines("\n# Enable sound input/output:\n"+
                                 "microphone.switchOn()\n")
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndented("\n#Shutting down:\n")
+        buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
         if self.params['saveTags']:

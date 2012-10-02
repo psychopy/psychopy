@@ -9,6 +9,8 @@ from psychopy.constants import *
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
+    #override the categories property below
+    categories = ['Custom']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name=''):
         self.type='Base'
         self.exp=exp#so we can access the experiment if necess
@@ -54,43 +56,43 @@ class BaseComponent(object):
         if self.params['duration'].val=='':
             buff.writeIndented("if (%(startTime)s <= t):\n" %(self.params))
         else:
-            buff.writeIndented("if (%(startTime)s <= t < (%(startTime)s+%(duration)s)):\n" %(self.params))
+            buff.writeIndented("if (%(startTime)s <= t < (%(startTime)s + %(duration)s)):\n" %(self.params))
     def writeStartTestCode(self,buff):
         """Test whether we need to start
         """
         if self.params['startType'].val=='time (s)':
             if not self.params['startVal'].val.strip():
                 self.params['startVal'].val = '0.0'
-            buff.writeIndented("if t>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %(self.params))
         elif self.params['startType'].val=='frame N':
-            buff.writeIndented("if frameN>=%(startVal)s and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %(self.params))
         elif self.params['startType'].val=='condition':
-            buff.writeIndented("if (%(startVal)s) and %(name)s.status==NOT_STARTED:\n" %(self.params))
+            buff.writeIndented("if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n" %(self.params))
         else:
             raise "Not a known startType (%(startType)s) for %(name)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)
-        buff.writeIndented("#keep track of start time/frame for later\n" %self.params)
-        buff.writeIndented("%(name)s.tStart=t#underestimates by a little under one frame\n" %self.params)
-        buff.writeIndented("%(name)s.frameNStart=frameN#exact frame index\n" %self.params)
+        buff.writeIndented("# keep track of start time/frame for later\n" %self.params)
+        buff.writeIndented("%(name)s.tStart = t  # underestimates by a little under one frame\n" %self.params)
+        buff.writeIndented("%(name)s.frameNStart = frameN  # exact frame index\n" %self.params)
     def writeStopTestCode(self,buff):
         """Test whether we need to stop
         """
         if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status==STARTED and t>=%(stopVal)s:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and t >= %(stopVal)s:\n" %(self.params))
         #duration in time (s)
         elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status==STARTED and t>=(%(startVal)s+%(stopVal)s):\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + %(stopVal)s):\n" %(self.params))
         elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
-            buff.writeIndented("elif %(name)s.status==STARTED and t>=(%(name)s.tStart+%(stopVal)s):\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %(self.params))
         #duration in frames
         elif self.params['stopType'].val=='duration (frames)':
-            buff.writeIndented("elif %(name)s.status==STARTED and frameN>=(%(name)s.frameNStart+%(stopVal)s):\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" %(self.params))
         #stop frame number
         elif self.params['stopType'].val=='frame N':
-            buff.writeIndented("elif %(name)s.status==STARTED and frameN>=%(stopVal)s:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %(self.params))
         #end according to a condition
         elif self.params['stopType'].val=='condition':
-            buff.writeIndented("elif %(name)s.status==STARTED and (%(stopVal)s):\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and (%(stopVal)s):\n" %(self.params))
         else:
             raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)

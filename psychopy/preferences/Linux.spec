@@ -81,7 +81,7 @@
     # folder names for custom components; expects a comma-separated list
     componentsFolders = list(default=list('/usr/share/pyshared/psychopy/app/builder/components'))
     # a list of components to hide (eg, because you never use them)
-    hiddenComponents = list(default=list())
+    hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
@@ -89,6 +89,7 @@
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
     alwaysShowReadme = boolean(default=True)
+    maxFavorites = integer(default=10)
 
 # Settings for connections
 [connections]

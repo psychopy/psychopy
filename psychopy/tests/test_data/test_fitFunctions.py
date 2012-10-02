@@ -1,10 +1,7 @@
 """Tests for psychopy.data.DataHandler"""
 import numpy
 from scipy import special
-try:
-    from pytest import raises
-except:
-    from nose.tools import raises
+from pytest import raises
 
 PLOTTING=False#turn this on to check it all looks right too
 if PLOTTING:

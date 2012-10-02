@@ -129,7 +129,9 @@ class ExperimentHandler(object):
         #get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
             theseNames, vals = self._getLoopInfo(thisLoop)
-            names.extend(theseNames)
+            for name in theseNames:
+                if name not in names:
+                    names.append(name)
         return names
     def _getExtraInfo(self):
         """
@@ -970,7 +972,7 @@ class TrialHandler(_BaseTrialHandler):
         """
         dataHead=[]#will store list of data headers
         dataAnal=dict([])    #will store data that has been analyzed
-        if type(dataOut)==str: dataout=[dataOut]#don't do list convert or we get a list of letters
+        if type(dataOut)==str: dataOut=[dataOut]#don't do list convert or we get a list of letters
         elif type(dataOut)!=list: dataOut = list(dataOut)
 
         #expand any 'all' dataTypes to be the full list of available dataTypes
