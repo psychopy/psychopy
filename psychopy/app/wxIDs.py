@@ -67,6 +67,7 @@ tbFileSave=30
 tbFileSaveAs=40
 tbUndo= 70
 tbRedo= 80
+tbPreview = 81
 tbRun = 100
 tbRunAmp = 101
 tbStop = 110
