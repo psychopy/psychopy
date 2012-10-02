@@ -3,17 +3,17 @@
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 DEB_PYTHON_SYSTEM = pysupport
-DEB_PYTHON_MODULE_PACKAGE = psychopy
-DEB_PYTHON_MODULE_PACKAGES = psychopy
+DEB_PYTHON_MODULE_PACKAGE = psychopy-openbci
+DEB_PYTHON_MODULE_PACKAGES = psychopy-openbci
 include /usr/share/cdbs/1/class/python-distutils.mk
 
-debian/psychopy.1: debian/psychopy.sh
+debian/psychopy-openbci.1: debian/psychopy.sh
 	chmod +x $^
 	PYTHONPATH=. help2man -N -n "Creating psychology stimuli in Python" $^ > $@
 ## cleanup
 	rm -f psychopy/__init__.pyc
 
-install/psychopy:: debian/psychopy.1
+install/psychopy-openbci:: debian/psychopy-openbci.1
 ## Fix up permissions on images -- pushed upstream, but left here
 ## just to make sure everything is ok
 	find $(DEB_DESTDIR) -name \*.png -o -name \*.ico -o -name \*.jpg | \
@@ -66,7 +66,7 @@ test::
 	LC_ALL=C.UTF-8 PYTHONPATH=$PWD xvfb-run -s "-screen 0 1280x1024x24 -noreset" nosetests -s -v psychopy/tests 2>&1
 
 clean::
-	rm -f debian/psychopy.1
+	rm -f debian/psychopy-openbci.1
 	rm -rf build dist PsychoPy.egg-info
 
 # do not actually install demos -- just symlink to them
