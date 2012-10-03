@@ -10,7 +10,7 @@ Developers
 
 PsychoPy was initially created and maintained by `Jon Peirce`_ but has many contributors to the code:
 
-    **Jeremy Gray**, Yaroslav Halchenko, Erik Kastman, Mike MacAskill, William Hogman, Jonas Lindeløv, Ariel Rokem, Dave Britton, Gary Strangman, C Luhmann
+    **Jeremy Gray**, Yaroslav Halchenko, Erik Kastman, Mike MacAskill, William Hogman, Jonas Lindeløv, Ariel Rokem, Dave Britton, Gary Strangman, C Luhmann, Sol Simpson, Hiroyuki Sogo
 
 You can see `details of contributions on Ohloh.net <https://www.ohloh.net/p/PsychoPy/contributors/summary>`_ and there's a visualisation of `PsychoPy's development history <http://www.youtube.com/watch?v=l0xZvHLFrl4>`_ on youtube.
 
