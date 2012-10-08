@@ -9,6 +9,7 @@ import wx.grid
 import collections
 import pickle
 import itertools
+import copy
 
 class ConditionsValueError(Exception):
     pass
@@ -222,21 +223,55 @@ class ConditionsGrid(wx.grid.Grid):
         event.Skip()
 
     def column_options(self, event):
+        def type_name_handler(type_name):
+            return lambda event: self.set_column_type(col_pos, type_name)
         col_pos = event.GetCol()
         menu = wx.Menu()
-        handler_dict = {}
-        for type_name in self.TYPE_PARSER_DICT.keys():
-            item_id = menu.Append(-1, type_name).GetId()
-            handler_dict[item_id] = type_name
-        handler = lambda event: self.set_column_type(col_pos, handler_dict[event.GetId()])
-        menu.Bind(wx.EVT_MENU, handler)
+        items1 = [(type_name, type_name_handler(type_name))
+            for type_name in self.TYPE_PARSER_DICT.keys()]
+        items2 = [
+            ("add column", lambda event: self.InsertCols(col_pos + 1)),
+            ("remove column", lambda event: self.DeleteCols(col_pos))
+        ]
+        for item in items1:
+            item_id = menu.Append(-1, item[0]).GetId()
+            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
+        menu.AppendSeparator()
+        for item in items2:
+            item_id = menu.Append(-1, item[0]).GetId()
+            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
+        self.PopupMenu(menu)
+        
+    def row_options(self, event):
+        row_pos = event.GetRow()
+        items = [
+            ("add row", lambda event: self.InsertRows(row_pos + 1)),
+            ("remove row", lambda event: self.DeleteRows(row_pos))
+        ]
+        menu = wx.Menu()
+        for item in items:
+            item_id = menu.Append(-1, item[0]).GetId()
+            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
+        self.PopupMenu(menu)
+
+    def grid_options(self, event):
+        items = [
+            ("add row", lambda event: self.InsertRows(0)),
+            ("add column", lambda event: self.InsertCols(0))
+        ]
+        menu = wx.Menu()
+        for item in items:
+            item_id = menu.Append(-1, item[0]).GetId()
+            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
         self.PopupMenu(menu)
 
     def label_options(self, event):
         if (event.GetCol() > -1):
             self.column_options(event)
+        elif (event.GetRow() > -1):
+            self.row_options(event)
         else:
-            pass
+            self.grid_options(event)
 
     def get_data(self):
         return self.data
