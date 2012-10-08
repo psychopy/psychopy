@@ -102,7 +102,7 @@ class ExperimentHandler(object):
             if self.savePickle==True:
                 self.saveAsPickle(self.dataFileName)
             if self.saveWideText==True:
-                self.saveAsWideText(self.dataFileName)
+                self.saveAsWideText(self.dataFileName+'.csv', delim=',')
     def addLoop(self, loopHandler):
         """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.

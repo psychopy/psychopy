@@ -6,11 +6,11 @@
 
 import sys, os, time, platform
 
-from psychopy import visual, logging
+from psychopy import visual, logging, core, data
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
-from pyglet.gl import gl_info
+from pyglet.gl import *
 import numpy, scipy, matplotlib, pyglet
 try: import ctypes
 except: pass
@@ -173,8 +173,8 @@ class RunTimeInfo(dict):
             pass
         
         # when was this run?
-        self['experimentRunTime.epoch'] = time.time() # basis for default random.seed()
-        self['experimentRunTime'] = time.ctime(self['experimentRunTime.epoch'])+' '+time.tzname[time.daylight] # a "right now" time-stamp
+        self['experimentRunTime.epoch'] = core.getTime() # basis for default random.seed()
+        self['experimentRunTime'] = data.getDateStr(format="%Y_%m_%d %H:%M (Year_Month_Day Hour:Min)")
         
         # random.seed -- record the value, and initialize random.seed() if 'set:'
         if randomSeedFlag: 
@@ -340,6 +340,11 @@ class RunTimeInfo(dict):
             if verbose:
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
+        
+        t0 = core.getTime()
+        for i in range(2000000):
+            pass
+        self['systemTimeForIinRange2000000pass_sec'] = "%.3f" % (core.getTime() - t0)
     
     def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
@@ -414,11 +419,16 @@ class RunTimeInfo(dict):
         self['openGLVendor'] = gl_info.get_vendor()
         self['openGLRenderingEngine'] = gl_info.get_renderer()
         self['openGLVersion'] = gl_info.get_version()
-        GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
-            'GL_ARB_shader_objects','GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float']
+        GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object',
+             'GL_ARB_fragment_program', 'GL_ARB_shader_objects','GL_ARB_vertex_shader',
+             'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']
     
         for ext in GLextensionsOfInterest:
             self['openGLext.'+ext] = bool(gl_info.have_extension(ext))
+        
+        maxVerts = GLint()
+        glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, maxVerts)
+        self['openGLmaxVerticesInVertexArray'] = maxVerts.value
         
     def __repr__(self):
         """ Return a string that is a legal python (dict), and close to YAML, .ini, and configObj syntax

@@ -19,9 +19,20 @@ Changelog
 PsychoPy 1.75
 ------------------------------
 
+PsychoPy 1.75.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
+
+PsychoPy 1.75.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: Bug with not being able to play sounds of blank (infinite) duration from Builder
+
 PsychoPy 1.75.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* CHANGED: New Builder experiments will, by default save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (wiht one sheet per loop) and many psydat files (one per loop). This can be changed in settings. Psydat files can still be used to re-output any format of data file.
 * IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
 * IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
 * IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
@@ -31,6 +42,8 @@ PsychoPy 1.75.00
 * FIXED: fatal typo in QuestHandler code (Gary Lupyan)
 * FIXED: data outputs for multiple key/mouse presses
 * ADDED: Microphone now supports `stop` to abort recording early (Jeremy Gray)
+* ADDED: beginning of error reporting when generating Builder experiments (thanks Piotr Iwaniuk)
+* FIXED: csv files now generated from Builder as expected not dlm files (tab-delimited)
 
 PsychoPy 1.74
 ------------------------------

@@ -952,7 +952,7 @@ class Window(object):
         self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
 
         try: #to load an icon for the window
-            iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
+            iconFile = os.path.join(psychopy.prefs.paths['resources'], 'psychopy.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except: pass#doesn't matter
@@ -3656,7 +3656,7 @@ class ElementArrayStim:
         self._visXYZvertices[:,3,1] = self._XYsRendered[:,1] -wy - hy
 
         #depth
-        self._visXYZvertices[:,:,2] = numpy.tile(self.depths,(4,1)).T + self.fieldDepth
+        self._visXYZvertices[:,:,2] = numpy.tile(self.depths,(1,4)) + self.fieldDepth
 
         self.needVertexUpdate=False
 
@@ -6653,18 +6653,24 @@ class Aperture:
 
         GL.glPopMatrix()
 
-    def setSize(self, size, needReset=True):
+    def setSize(self, size, needReset=True, log=True):
         """Set the size (diameter) of the Aperture
         """
         self.size = size
         self._calcSizeRendered()
         if needReset: self._reset()
-    def setPos(self, pos, needReset=True):
+        if log and self.autoLog:
+             self.win.logOnFlip("Set %s size=%s" %(self.name, size),
+                 level=logging.EXP,obj=self)
+    def setPos(self, pos, needReset=True, log=True):
         """Set the pos (centre) of the Aperture
         """
         self.pos = numpy.array(pos)
         self._calcPosRendered()
         if needReset: self._reset()
+        if log and self.autoLog:
+             self.win.logOnFlip("Set %s pos=%s" %(self.name, pos),
+                 level=logging.EXP,obj=self)
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
