@@ -21,7 +21,7 @@ from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
 from psychopy.constants import *
 from psychopy.errors import DataImportError
 from psychopy.app.builder import amp_launcher, resource_pool, validators,\
-    sketchpad
+    sketchpad, data_editor
 
 
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -2513,20 +2513,27 @@ class DlgLoopProperties(_BaseParamsDlg):
             fileName = os.path.join(*fileName)
             if fileName.endswith('.pkl'):
                 # edit existing .pkl file, loading from file
-                gridGUI = DlgConditions(fileName=self.conditionsFile,
-                                            parent=self, title=fileName)
+                #gridGUI = DlgConditions(fileName=self.conditionsFile,
+                #                            parent=self, title=fileName)
+                grid_dialog = data_editor.ConditionsEditor(self, file_name=self.conditionsFile)
+                grid_dialog.ShowModal()
+                    
             else:
                 # preview existing .csv or .xlsx file that has already been loaded -> conditions
                 # better to reload file, get fieldOrder as well
                 gridGUI = DlgConditions(conditions, parent=self,
                                         title=fileName, fixed=True)
         else: # edit new empty .pkl file
-            gridGUI = DlgConditions(parent=self)
+            grid_dialog = data_editor.ConditionsEditor(self)
+            if grid_dialog.ShowModal() == wx.OK:
+                print "OK!"
+                self.conditionsFile = grid_dialog.file_name
+            #gridGUI = DlgConditions(parent=self)
             # should not check return value, its meaningless
-            if gridGUI.OK:
-                self.conditions = gridGUI.asConditions()
-                if hasattr(gridGUI, 'fileName'):
-                    self.conditionsFile = gridGUI.fileName
+            #if gridGUI.OK:
+            #    self.conditions = gridGUI.asConditions()
+            #    if hasattr(gridGUI, 'fileName'):
+            #        self.conditionsFile = gridGUI.fileName
         self.currentHandler.params['conditionsFile'].val = self.conditionsFile
         if self.conditionsFile: # as set via DlgConditions
             valCtrl = self.constantsCtrls['conditionsFile'].valueCtrl
