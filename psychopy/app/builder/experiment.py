@@ -25,11 +25,11 @@ _numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
 """
 Exception thrown by a component when it is unable to generate its code.
 """
-class CodeGenerationException(Exception):   
+class CodeGenerationException(Exception):
     def __init__(self, source, message = ""):
         self.source = source
         self.message = str(message)
-    
+
     def __str__(self):
         return str(self.source) + ": " + self.message
 
@@ -633,17 +633,14 @@ class TrialHandler:
         ##a string to show all the available variables (if the conditions isn't just None or [None])
         saveExcel=self.exp.settings.params['Save excel file'].val
         saveCSV = self.exp.settings.params['Save csv file'].val
-        savePsydat = self.exp.settings.params['Save psydat file'].val
         #get parameter names
         if saveExcel or saveCSV:
             buff.writeIndented("# get names of stimulus parameters\n" %self.params)
             buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params = []\n" %self.params)
             buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
         #write out each type of file
-        if saveExcel or savePsydat or saveCSV:
+        if saveExcel or saveCSV:
             buff.writeIndented("# save data for this loop\n")
-        if savePsydat:
-            buff.writeIndented("%(name)s.saveAsPickle(filename + '%(name)s', fileCollisionMethod='rename')\n" %self.params)
         if saveExcel:
             buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s',\n" %self.params)
             buff.writeIndented("    stimOut=params,\n")
@@ -729,8 +726,6 @@ class StairHandler:
         buff.writeIndented("# staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        if self.exp.settings.params['Save psydat file'].val:
-            buff.writeIndented("%(name)s.saveAsPickle(filename + '%(name)s')\n" %self.params)
         if self.exp.settings.params['Save excel file'].val:
             buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" %self.params)
         if self.exp.settings.params['Save csv file'].val:
@@ -800,8 +795,6 @@ class MultiStairHandler:
         buff.writeIndented("# all staircases completed\n")
         buff.writeIndented("\n")
         #save data
-        if self.exp.settings.params['Save psydat file'].val:
-            buff.writeIndented("%(name)s.saveAsPickle(filename + '%(name)s')\n" %self.params)
         if self.exp.settings.params['Save excel file'].val:
             buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" %self.params)
         if self.exp.settings.params['Save csv file'].val:

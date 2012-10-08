@@ -102,7 +102,7 @@ class ExperimentHandler(object):
             if self.savePickle==True:
                 self.saveAsPickle(self.dataFileName)
             if self.saveWideText==True:
-                self.saveAsWideText(self.dataFileName)
+                self.saveAsWideText(self.dataFileName+'.csv', delim=',')
     def addLoop(self, loopHandler):
         """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
@@ -1219,7 +1219,7 @@ def importConditions(fileName, returnFieldNames=False):
         for name in fieldNames:
             
             #OK, msg = isValidVariableName(name)
-            OK, msg = isValidColumnHeader(name)
+            OK, msg = isValidVariableName(name)
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise DataImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
@@ -3047,20 +3047,6 @@ def isValidVariableName(name):
         return False, "Variables cannot begin with numeric character"
     if _nonalphanumeric_re.search(name):
         return False, "Variables cannot contain punctuation or spaces"
-    return True, ""
-
-def isValidColumnHeader(name):
-    '''
-    Checks whether a column header can be used as a dictionary key.
-    Even if it can be a variable name, it still can be accessed
-    '''
-    try:
-        hash(name)
-    except TypeError as e:
-        return False, str(e)
-    validVariable = isValidVariableName(name)[0]
-    if not validVariable:
-        logging.warning("Column header won't be abbreviated: %s" % name)
     return True, ""
 
 def _getExcelCellName(col, row):
