@@ -1,3 +1,10 @@
+psychopy-openbci (1.75.01-openbci-0.2-1) precise; urgency=low
+
+  * New upstream release
+  * Routine preveiw functionality
+
+ -- Karol Auguštin <karolaug@dell>  Mon, 08 Oct 2012 19:55:09 +0200
+
 psychopy-openbci (1.74.03-openbci-0.1-2) precise; urgency=low
 
   * New upstream release
