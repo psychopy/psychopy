@@ -405,5 +405,9 @@ let me/us know at psychopy-users@googlegroups.com"""
 
 
 if __name__=='__main__':
-    app = PsychoPyApp(0)
+    showSplash = True
+    if '--no-splash' in sys.argv:
+        showSplash = False
+        del sys.argv[sys.argv.index('--no-splash')]
+    app = PsychoPyApp(0, showSplash)
     app.MainLoop()
