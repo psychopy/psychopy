@@ -9,7 +9,6 @@ import wx.grid
 import collections
 import pickle
 import itertools
-import copy
 
 class ConditionsValueError(Exception):
     pass
@@ -121,7 +120,7 @@ class ConditionsGrid(wx.grid.Grid):
     def init_column_types(self):
         self.column_types = {}
         for col_pos in range(4):
-            self.set_column_type(col_pos, "json")
+            self.set_column_type(col_pos, "text")
     
     def set_column_type(self, col_pos, column_type):
         self.column_types[col_pos] = column_type
@@ -221,6 +220,23 @@ class ConditionsGrid(wx.grid.Grid):
         else:
             self.message_sink.SetLabel("")
         event.Skip()
+        
+    def add_column_handler(self, col_pos):
+        def handler(event):
+            self.InsertCols(col_pos + 1)
+            for dirty_col_pos in range(self.GetNumberCols() - 1, col_pos + 1, -1):
+                self.set_column_type(dirty_col_pos, self.column_types[dirty_col_pos - 1])
+            self.set_column_type(col_pos + 1, "text")
+        return handler
+    
+    def remove_column_handler(self, col_pos):
+        def handler(event):
+            self.DeleteCols(col_pos)
+            del self.column_types[col_pos]
+            # shift column types by 1
+            for dirty_col_pos in range(col_pos, self.GetNumberCols()):
+                self.set_column_type(dirty_col_pos, self.column_types[dirty_col_pos + 1])
+        return handler
 
     def column_options(self, event):
         def type_name_handler(type_name):
@@ -230,8 +246,8 @@ class ConditionsGrid(wx.grid.Grid):
         items1 = [(type_name, type_name_handler(type_name))
             for type_name in self.TYPE_PARSER_DICT.keys()]
         items2 = [
-            ("add column", lambda event: self.InsertCols(col_pos + 1)),
-            ("remove column", lambda event: self.DeleteCols(col_pos))
+            ("add column", self.add_column_handler(col_pos)),
+            ("remove column", self.remove_column_handler(col_pos))
         ]
         for item in items1:
             item_id = menu.Append(-1, item[0]).GetId()
@@ -257,7 +273,7 @@ class ConditionsGrid(wx.grid.Grid):
     def grid_options(self, event):
         items = [
             ("add row", lambda event: self.InsertRows(0)),
-            ("add column", lambda event: self.InsertCols(0))
+            ("add column", self.add_column_handler(-1))
         ]
         menu = wx.Menu()
         for item in items:
