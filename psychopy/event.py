@@ -48,49 +48,49 @@ if havePyglet:
     #global eventThread
     #eventThread = _EventDispatchThread()
     #eventThread.start()
-    
+
 useText = False # By default _onPygletText is not used
-    
+
 def _onPygletText(text, emulated=False):
     """handler for on_text pyglet events, or call directly to emulate a text
     event.
-    
+
     S Mathot 2012: This function only acts when the key that is pressed
     corresponds to a non-ASCII text character (Greek, Arabic, Hebrew, etc.). In
     that case the symbol that is passed to _onPygletKey() is translated into a
     useless 'user_key()' string. If this happens, _onPygletText takes over the
     role of capturing the key. Unfortunately, _onPygletText() cannot solely
-    handle all input, because it does not respond to spacebar presses, etc.    
+    handle all input, because it does not respond to spacebar presses, etc.
     """
-    
-    global useText    
+
+    global useText
     if not useText: # _onPygletKey has handled the input
-        return    
-    keyTime=psychopy.core.getTime() #capture when the key was pressed    
+        return
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         keySource = 'EmulatedKey'
     else:
         keySource = 'KeyPress'
-    _keyBuffer.append( (text, keyTime) )        
-    logging.data("%s: %s" % (keySource, text))    
+    _keyBuffer.append( (text, keyTime) )
+    logging.data("%s: %s" % (keySource, text))
 
 def _onPygletKey(symbol, modifiers, emulated=False):
     """handler for on_key_press pyglet events, or call directly to emulate a key press
-    
+
     Appends a tuple with (keyname, timepressed) into the global _keyBuffer. The
     _keyBuffer can then be accessed as normal using event.getKeys(), .waitKeys(),
     clearBuffer(), etc.
-    
+
     J Gray 2012: Emulated means add a key (symbol) to the buffer virtually.
     This is useful for fMRI_launchScan, and for unit testing (in testTheApp)
     Logging distinguished EmulatedKey events from real Keypress events.
     For emulation, the key added to the buffer is unicode(symbol), instead of
     pyglet.window.key.symbol_string(symbol)
-    
+
     S Mathot 2012: Implement fallback to _onPygletText
     """
-    
-    global useText        
+
+    global useText
     keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
@@ -104,7 +104,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
         if 'user_key' in thisKey:
             useText = True
             return
-        useText = False                
+        useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
         keySource = 'Keypress'
     _keyBuffer.append( (thisKey,keyTime) ) # tuple
@@ -243,72 +243,42 @@ def getKeys(keyList=None, timeStamped=False):
     elif timeStamped==True:
         return targets
 
-def waitKeys(maxWait = None, keyList=None):
+def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
     """
-    Halts everything (including drawing) while awaiting
-    input from keyboard. Then returns *list* of keys pressed. Implicitly clears
-    keyboard, so any preceding keypresses will be lost.
+    Same as `~psychopy.event.getKeys`, but halts everything (including drawing) while awaiting
+    input from keyboard. Implicitly clears keyboard, so any preceding keypresses will be lost.
 
-    Optional arguments specify maximum wait period and which keys to wait for.
+    :Parameters:
+        maxWait : any numeric value.
+            Maximum number of seconds period and which keys to wait for.
+            Default is float('inf') which simply waits forever.
 
     Returns None if times out.
     """
 
     #NB pygame.event does have a wait() function that will
     #do this and maybe leave more cpu idle time?
-    key=None
-    clearEvents('keyboard')#so that we only take presses from here onwards.
-    if maxWait!=None and keyList!=None:
-        #check keylist AND timer
-        timer = psychopy.core.Clock()
-        while key==None and timer.getTime()<maxWait:
-            if havePyglet:
-                wins = pyglet.window.get_platform().get_default_display().get_windows()
-                for win in wins: win.dispatch_events()#pump events on pyglet windows
-            keys = getKeys()
-            #check if we got a key in list
-            if len(keys)>0 and (keys[0] in keyList):
-                key = keys[0]
+    key = None
+    clearEvents('keyboard')  # So that we only take presses from here onwards.
 
-    elif keyList!=None:
-        #check the keyList each time there's a press
-        while key==None:
-            if havePyglet:
-                wins = pyglet.window.get_platform().get_default_display().get_windows()
-                for win in wins: win.dispatch_events()#pump events on pyglet windows
-            keys = getKeys()
-            #check if we got a key in list
-            if len(keys)>0 and (keys[0] in keyList):
-                key = keys[0]
+    # Check for keypresses until maxWait is exceeded
+    timer = psychopy.core.Clock()
+    while key == None and timer.getTime() < maxWait:
+        # Pump events on pyglet windows if they exist
+        if havePyglet:
+            wins = pyglet.window.get_platform().get_default_display().get_windows()
+            for win in wins: win.dispatch_events()
 
-    elif maxWait!=None:
-        #onyl wait for the maxWait
-        timer = psychopy.core.Clock()
-        while key==None and timer.getTime()<maxWait:
-            if havePyglet:
-                wins = pyglet.window.get_platform().get_default_display().get_windows()
-                for win in wins: win.dispatch_events()#pump events on pyglet windows
-            keys = getKeys()
-            #check if we got a key in list
-            if len(keys)>0:
-                key = keys[0]
+        # Get keypresses and return if anything is pressed
+        keys = getKeys(keyList=keyList, timeStamped=timeStamped)
+        if len(keys):
+            if timeStamped != False: logging.data("Key pressed: %s" % keys[0][0])
+            else: logging.data("Key pressed: %s" % keys[0])
+            return keys
 
-    else: #simply take the first key we get
-        while key==None:
-            if havePyglet:
-                wins = pyglet.window.get_platform().get_default_display().get_windows()
-                for win in wins: win.dispatch_events()#pump events on pyglet windows
-            keys = getKeys()
-            #check if we got a key in list
-            if len(keys)>0:
-                key = keys[0]
-
-    #after the wait period or received a valid keypress
-    if key:
-        logging.data("Key pressed: %s" %key)
-        return [key]#need to convert back to a list
-    else:
-        return None #no keypress in period
+    # If maxWait is exceeded (exits while-loop), return None
+    logging.data("No keypress (maxWait exceeded)")
+    return None
 
 def xydist(p1=[0.0,0.0],p2=[0.0,0.0]):
     """Helper function returning the cartesian distance between p1 and p2
