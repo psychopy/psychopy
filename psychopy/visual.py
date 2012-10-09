@@ -1259,14 +1259,6 @@ class _BaseVisualStim:
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
                     log=log)
-    def setContr(self, newContr, operation='', log=True):
-        """Set the contrast of the stimulus
-        """
-        self._set('contr', newContr, operation, log)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            if hasattr(self,'_texName'): self.setTex(self._texName)
-            elif hasattr(self,'_imName'): self.setIm(self._imName)
     def _set(self, attrib, val, op='', log=True):
         """
         Deprecated. Use methods specific to the parameter you want to set
