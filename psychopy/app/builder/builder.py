@@ -4104,10 +4104,10 @@ class BuilderFrame(wx.Frame):
         f.close()
         
         runAmpDialog = amp_launcher.AmpLauncherDialog(self)
-        print runAmpDialog.ShowModal()
-        self.experiment_contact = runAmpDialog.get_experiment_contact()
-        print self.experiment_contact
-        if not self.experiment_contact:
+        retval = runAmpDialog.ShowModal()
+        if retval == wx.ID_OK:
+            self.experiment_contact = runAmpDialog.get_experiment_contact()
+        else:
             return
         
         try:

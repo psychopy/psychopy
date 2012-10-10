@@ -20,6 +20,7 @@ class ChannelsPanel(wx.Panel):
         self.channel_grid.CreateGrid(0, 2)
         self.channel_grid.SetColLabelValue(0, "label")
         self.channel_grid.SetColLabelValue(1, "selected")
+        self.channel_grid.SetValidator(ChannelListValidator())
         col_attr = wx.grid.GridCellAttr()
         col_attr.SetEditor(wx.grid.GridCellBoolEditor())
         col_attr.SetRenderer(wx.grid.GridCellBoolRenderer())
@@ -217,11 +218,26 @@ class PresetsPanel(wx.Panel):
             self.buttons["save"].Enable()
             self.buttons["remove"].Disable()
 
+class ChannelListValidator(wx.PyValidator):
+    def __init__(self):
+        super(ChannelListValidator, self).__init__()
+
+    def Clone(self):
+        return ChannelListValidator()
+
+    def Validate(self, parent):
+        grid = self.GetWindow()
+        for row_pos in range(grid.GetNumberRows()):
+            if grid.GetCellValue(row_pos, 1):
+                return True
+        return False
+
 
 class AmpConfigPanel(wx.Panel):
     """A panel control with configuration of a selected amp."""
     def __init__(self, parent):
         super(AmpConfigPanel, self).__init__(parent, style=wx.EXPAND)
+        self.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
 
         self.amp_entry = None
         self.channels_panel = ChannelsPanel(self)
@@ -229,9 +245,9 @@ class AmpConfigPanel(wx.Panel):
         self.presets_panel = PresetsPanel(self)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.channels_panel, proportion=1, flag=wx.EXPAND, border=2)
-        sizer.Add(self.parameters_panel, flag=wx.EXPAND, border=2)
-        sizer.Add(self.presets_panel, flag=wx.EXPAND, border=2)
+        sizer.Add(self.channels_panel, proportion=1, flag=wx.EXPAND)
+        sizer.Add(self.parameters_panel, flag=wx.EXPAND | wx.TOP, border=12)
+        sizer.Add(self.presets_panel, flag=wx.EXPAND | wx.TOP, border=12)
         self.SetSizer(sizer)
 
     def select_amplifier(self, amp_entry):
@@ -253,7 +269,7 @@ class AmpConfigPanel(wx.Panel):
         return self.amp_entry.get_launch_file()
 
     def get_server(self):
-        return self.amp_entry.get_server()
+        return self.amp_entry and self.amp_entry.get_server()
 
     def get_preset(self):
         """

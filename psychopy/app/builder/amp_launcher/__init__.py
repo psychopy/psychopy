@@ -32,7 +32,7 @@ class AmpListPanel(wx.Panel):
         for entry in self.amp_info.get_summary():
             self.amp_list.Append(entry)
         for column in xrange(4):
-            self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE)
+            self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
 
     def disable_editing(self):
         self.refresh_button.Hide()
@@ -83,14 +83,14 @@ class AmpLauncherDialog(wx.Dialog):
     """Main amplifier laucher dialog."""
     def __init__(self, parent, retriever = None):
         super(AmpLauncherDialog, self).__init__(
-                parent, size=(760, 720), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
-        self.connection = OBCIConnection(("127.0.0.1", 12012))
+                parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
+        self.connection = OBCIConnection(("192.168.0.104", 12012))
         if not retriever:
             retriever = AmpListRetriever(self.connection)
         self.init_info(retriever)
         self.init_panels()
-        self.init_buttons()
         self.init_sizer()
+        self.init_buttons()
         #self.disable_editing()
 
     def init_info(self, retriever):
@@ -100,50 +100,49 @@ class AmpLauncherDialog(wx.Dialog):
         except Exception as e:
             self.amp_info = AmplifierInfo()
             print e
-    
+
     def init_panels(self):
         self.amp_list_panel = AmpListPanel(self, self.amp_info)
         self.amp_config = AmpConfigPanel(self)
-        self.saving_config = SavingConfigPanel(self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_amplifier, self.amp_list_panel.amp_list)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.channel_update)
 
     def init_buttons(self):
-        self.button_panel = wx.Panel(self)
-        self.close_button = wx.Button(self.button_panel, label="close")
-        self.launch_button = wx.Button(self.button_panel, label="run")
-        self.Bind(wx.EVT_BUTTON, self.close_click, self.close_button)
-        self.Bind(wx.EVT_BUTTON, self.run_click, self.launch_button)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.close_button, proportion=0, flag=wx.ALIGN_RIGHT, border=8)
-        sizer.Add(self.launch_button, proportion=0, flag=wx.ALIGN_RIGHT, border=8)
-        self.button_panel.SetSizer(sizer)
+        self.Bind(wx.EVT_BUTTON, self.run_click, id=wx.ID_OK)
+        self.FindWindowById(wx.ID_OK).Disable()
 
     def init_sizer(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.amp_list_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
-        sizer.Add(self.amp_config, proportion=1, flag=wx.EXPAND  | wx.ALL, border=8)
-        sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
-        sizer.Add(self.button_panel, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
+        flags0 = wx.SizerFlags().Border(wx.ALL, 12)
+        flags1 = wx.SizerFlags().Border(wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
+        sizer.AddF(self.amp_list_panel, flags0.Proportion(1).Expand())
+        sizer.AddF(self.amp_config, flags1.Proportion(1).Expand())
+        #sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
+        sizer.AddF(self.CreateButtonSizer(wx.OK | wx.CANCEL), flags1.Proportion(0))
         self.SetSizer(sizer)
-    
+
+    def channel_update(self, event):
+        if self.amp_config.Validate():
+            self.FindWindowById(wx.ID_OK).Enable()
+        else:
+            self.FindWindowById(wx.ID_OK).Disable()
+
     def select_amplifier(self, event):
         index = event.GetIndex()
         amp_entry = self.amp_info.get_entry(index)
         self.amp_config.select_amplifier(amp_entry)
-    
+
     def disable_editing(self):
         self.amp_list_panel.disable_editing()
         self.amp_config.Disable()
         self.launch_button.Disable()
-    
-    def close_click(self, event):
-        self.experiment_contact = None
-        self.EndModal(1)
-        
+
     def get_experiment_contact(self):
         return self.experiment_contact
-    
+
     def run_click(self, event):
+        if not self.amp_config.Validate():
+            return
         server = self.amp_config.get_server()
         sampling_rate = self.amp_config.get_param("sampling_rate")
         active_channels = self.amp_config.get_active_channels()
@@ -158,7 +157,8 @@ class AmpLauncherDialog(wx.Dialog):
         contact_uuid = remote_connection.start_eeg_signal(name, launch_file, amplifier_params)
         remote_connection.get_experiment_contact(contact_uuid)
         self.experiment_contact = remote_connection
-        self.EndModal(0)
+        print "End modal -- OK"
+        self.EndModal(wx.OK)
 
 if __name__ == "__main__":
     app = wx.App()
