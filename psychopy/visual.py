@@ -6649,18 +6649,24 @@ class Aperture:
 
         GL.glPopMatrix()
 
-    def setSize(self, size, needReset=True):
+    def setSize(self, size, needReset=True, log=True):
         """Set the size (diameter) of the Aperture
         """
         self.size = size
         self._calcSizeRendered()
         if needReset: self._reset()
-    def setPos(self, pos, needReset=True):
+        if log and self.autoLog:
+             self.win.logOnFlip("Set %s size=%s" %(self.name, size),
+                 level=logging.EXP,obj=self)
+    def setPos(self, pos, needReset=True, log=True):
         """Set the pos (centre) of the Aperture
         """
         self.pos = numpy.array(pos)
         self._calcPosRendered()
         if needReset: self._reset()
+        if log and self.autoLog:
+             self.win.logOnFlip("Set %s pos=%s" %(self.name, pos),
+                 level=logging.EXP,obj=self)
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size

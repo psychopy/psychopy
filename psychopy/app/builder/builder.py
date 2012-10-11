@@ -592,7 +592,7 @@ class FlowPanel(wx.ScrolledWindow):
             component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
-            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'].val)
+            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
@@ -3955,7 +3955,7 @@ class BuilderFrame(wx.Frame):
         expPath = os.path.abspath(expPath)
         #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
-        
+
         script = self.generateScript(expPath)
         if not script:
             return
@@ -3988,7 +3988,8 @@ class BuilderFrame(wx.Frame):
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            pythonExec = sys.executable.replace(' ','\ ')#for unix this signifis a space in a filename
+            command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbStop,True)
