@@ -4133,10 +4133,13 @@ class ReadmeFrame(wx.Frame):
         #check we can read
         if filename==None:#check if we can write to the directory
             return False
+        elif not os.path.exists(filename):
+            self.filename = None
+            return False
         elif not os.access(filename, os.R_OK):
             logging.warning("Found readme file (%s) no read permissions" %filename)
             return False
-            #attempt to open
+        #attempt to open
         try:
             f=codecs.open(filename, 'r', 'utf-8')
         except IOError, err:
