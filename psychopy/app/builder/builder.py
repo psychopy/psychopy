@@ -592,7 +592,7 @@ class FlowPanel(wx.ScrolledWindow):
             component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
-            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'].val)
+            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
