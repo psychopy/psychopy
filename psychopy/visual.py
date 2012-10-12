@@ -1446,6 +1446,7 @@ class DotStim(_BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity =1.0,
+                 contrast =1.0,
                  depth  =0,
                  element=None,
                  signalDots='same',
@@ -1538,6 +1539,7 @@ class DotStim(_BaseVisualStim):
         self.dir = dir
         self.speed = speed
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.element = element
         self.dotLife = dotLife
         self.signalDots = signalDots
@@ -3743,6 +3745,7 @@ class MovieStim(_BaseVisualStim):
                  flipVert = False,
                  flipHoriz = False,
                  opacity=1.0,
+                 contrast = 1.0,
                  name='',
                  loop=False,
                  autoLog=True,
@@ -3801,6 +3804,7 @@ class MovieStim(_BaseVisualStim):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.loop = loop
         self.status=NOT_STARTED
 
@@ -3826,7 +3830,11 @@ class MovieStim(_BaseVisualStim):
         """
         # Over-rides _BaseVisualStim.setOpacity
         self._set('opacity', newOpacity, operation, log=log)
-
+    def setContrast(self,value,operation='', log=True):
+        self._set('contrast', value, operation, log=log)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._useShaders:
+            self.setMovie(self._movie, log=False)
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -3979,6 +3987,7 @@ class TextStim(_BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity=1.0,
+                 contrast=1.0,
                  units="",
                  ori=0.0,
                  height=None,
@@ -4048,7 +4057,7 @@ class TextStim(_BaseVisualStim):
         else: self._useShaders=False
         self.needUpdate =1
         self.opacity= opacity
-        self.contrast= 1.0
+        self.contrast= float(contrast)
         self.alignHoriz = alignHoriz
         self.alignVert = alignVert
         self.antialias = antialias
@@ -4581,6 +4590,7 @@ class ShapeStim(_BaseVisualStim):
                  size=1,
                  ori=0.0,
                  opacity=1.0,
+                 contrast=1.0,
                  depth  =0,
                  interpolate=True,
                  lineRGB=None,
@@ -4660,6 +4670,7 @@ class ShapeStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.pos = numpy.array(pos, float)
         self.closeShape=closeShape
         self.lineWidth=lineWidth
@@ -4726,7 +4737,7 @@ class ShapeStim(_BaseVisualStim):
         """
         self._set('size', numpy.asarray(value), operation, log=log)
         self.needVertexUpdate=True
-
+        
     def setVertices(self,value=None, operation='', log=True):
         """Set the xy values of the vertices (relative to the centre of the field).
         Values should be:
@@ -5351,7 +5362,7 @@ class ImageStim(_BaseVisualStim):
         self._set('contrast', value, operation, log=log)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
-            self.setIm(self._imName)
+            self.setImage(self._imName)
     def setImage(self, value, log=True):
         """Set the image to be used for the stimulus to this new value
         """
