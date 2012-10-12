@@ -84,7 +84,7 @@ class AmpLauncherDialog(wx.Dialog):
     def __init__(self, parent, retriever = None):
         super(AmpLauncherDialog, self).__init__(
                 parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
-        self.connection = OBCIConnection(("192.168.0.104", 12012))
+        self.connection = OBCIConnection(("127.0.0.1", 12012))
         if not retriever:
             retriever = AmpListRetriever(self.connection)
         self.init_info(retriever)
