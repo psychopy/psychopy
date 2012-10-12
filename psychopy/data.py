@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, logging
+from psychopy import misc, gui, logging, trial_sequence
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -718,7 +718,7 @@ class TrialHandler(_BaseTrialHandler):
         self.data['ran'].mask=False#this is a bool - all entries are valid
         self.data.addDataType('order')
         #generate stimulus sequence
-        if self.method in ['random','sequential', 'fullRandom']:
+        if self.method in ['random','sequential', 'fullRandom'] or trial_sequence.METHODS.has_key(self.method):
             self.sequenceIndices = self._createSequence()
         else: self.sequenceIndices=[]
 
@@ -809,6 +809,8 @@ class TrialHandler(_BaseTrialHandler):
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
             randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+        else:
+            sequenceIndices = trial_sequence.METHODS[self.method](self.trialList, self.nReps)
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
         return sequenceIndices
@@ -878,7 +880,7 @@ class TrialHandler(_BaseTrialHandler):
             self._terminate()
 
         #fetch the trial info
-        if self.method in ['random','sequential','fullRandom']:
+        if self.method in ['random','sequential','fullRandom'] or trial_sequence.METHODS.has_key(self.method):
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)

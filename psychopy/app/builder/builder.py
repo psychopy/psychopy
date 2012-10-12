@@ -232,6 +232,17 @@ class CodeBox(wx.stc.StyledTextCtrl):
                 else:
                     self.ToggleFold(lineClicked)
 class FlowPanel(wx.ScrolledWindow):
+    
+    LOOP_ABBREV = [
+        '',
+        {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom': 'f-ran.',
+            'no-repeat random': 'n-ran.', 'no-repeat full random': 'nf-ran.', 
+            'staircase': 'stair.', 'interleaved staircases': "int-str."},
+        {'random': 'random', 'sequential': 'sequential', 'fullRandom': 'fullRandom',
+            'no-repeat random': 'no-repeat random', 'no-repeat full random': 'no-repeat fullRandom',
+            'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}
+    ]
+    
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
@@ -939,11 +950,7 @@ class FlowPanel(wx.ScrolledWindow):
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
-            abbrev = ['', {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom':'f-ran.',
-                      'staircase': 'stair.', 'interleaved staircases': "int-str."},
-                      {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
-                      'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
-            name += ' '+abbrev[self.appData['flowSize']][loop.params['loopType'].val]+')'
+            name += ' ' + self.LOOP_ABBREV[self.appData['flowSize']][loop.params['loopType'].val]+')'
         if self.appData['flowSize']==0:
             if len(name) > 9:
                 name = ' '+name[:8]+'..'

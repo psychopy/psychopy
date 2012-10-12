@@ -542,6 +542,10 @@ class TrialHandler:
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
+    
+    LOOP_TYPES = ['random', 'sequential', 'fullRandom', 'no-repeat random', 'no-repeat full random',
+        'staircase', 'interleaved staircases']
+    
     def __init__(self, exp, name, loopType='random', nReps=5,
         conditions=[], conditionsFile='',endPoints=[0,1],randomSeed=''):
         """
@@ -571,7 +575,7 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
-            allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
+            allowedVals=self.LOOP_TYPES,
                 # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
             hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
