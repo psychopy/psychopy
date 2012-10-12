@@ -28,6 +28,21 @@ proxies = None #if this is populated then it has been set up already
 SELECTOR_FOR_TEST_UPLOAD = 'http://upload.psychopy.org/test/up.php'
 BASIC_AUTH_CREDENTIALS = 'psychopy:open-sourc-ami'
     
+
+def haveInternetAccess():
+    """Detect active internet connection or fail quickly"""
+
+    # try to connect to a high-availability site
+    sites = ["http://www.google.com/", "http://www.opendns.com/"]
+    for wait in [0.3, 0.7]:  # try to be quick first
+        for site in sites:
+            try:
+                urllib2.urlopen(site, timeout=wait)
+                return True  # one success is good enough
+            except urllib2.URLError:
+                pass
+    return False
+
 def testProxy(handler, URL=None):
     """
     Test whether we can connect to a URL with the current proxy settings.
