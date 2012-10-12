@@ -6,7 +6,7 @@
 
 import sys, os, time, platform
 
-from psychopy import visual, logging, core, data
+from psychopy import visual, logging, core, data, web
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
@@ -274,15 +274,34 @@ class RunTimeInfo(dict):
         # pyo for sound:
         try:
             import pyo
-            self['systemPyoVersion'] = '.'.join(map(str, pyo.getVersion()))
+            self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
         except:
             pass
         
+        # flac (free lossless audio codec) for google-speech:
+        flacv = ''
+        if sys.platform != ['win32']:
+            flac, se = core.shellCall('which flac', stderr=True)
+            if not se and flac and not flac.find('Command not found') > -1:
+                flacv = core.shellCall('flac --version')
+        else:
+            flacexe = 'C:\\Program Files\\FLAC\\flac.exe'
+            if os.path.exists(flacexe):
+                flacv = core.shellCall(flacexe + ' --version')
+        if flacv:
+            self['systemFlacVersion'] = flacv
+        
+        # detect internet access or fail quickly:
+        #web.setupProxy() & web.testProxy(web.proxies)  # can take a long time to fail if there's no connection
+        self['systemHaveInternetAccess'] = web.haveInternetAccess()
+        if not self['systemHaveInternetAccess']:
+            self['systemHaveInternetAccess'] = 'False (proxies not attempted)'
+
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         # what other processes are currently active for this user?
         profileInfo = ''
         appFlagList = [# flag these apps if active, case-insensitive match:
-            'Firefox','Safari','Explorer','Netscape', 'Opera', # web browsers can burn CPU cycles
+            'Firefox','Safari','Explorer','Netscape', 'Opera', 'Google Chrome', # web browsers can burn CPU cycles
             'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
             'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
@@ -350,6 +369,8 @@ class RunTimeInfo(dict):
         """find and store info about the window: refresh rate, configuration info
         """
         
+        self['windowHaveShaders'] = win._haveShaders
+
         if refreshTest in ['grating', True]:
             msPFavg, msPFstd, msPFmd6 = visual.getMsPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
             self['windowRefreshTimeAvg_ms'] = msPFavg
