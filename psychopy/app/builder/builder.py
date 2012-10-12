@@ -3952,11 +3952,11 @@ class BuilderFrame(wx.Frame):
         if expPath==None or expPath.startswith('untitled'):
             ok = self.fileSave()
             if not ok: return#save file before compiling script
-        expPath = os.path.abspath(expPath)
+        self.exp.expPath = os.path.abspath(expPath)
         #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
 
-        script = self.generateScript(expPath)
+        script = self.generateScript(self.exp.expPath)
         if not script:
             return
 
