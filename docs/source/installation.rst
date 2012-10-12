@@ -28,7 +28,7 @@ Mac OS X:
 
 There are different ways to install PsychoPy on a mac that will suit different users
 
-* Intel Mac users (with OS X v10.5 or higher) can simply `download`_ the standalone application bundle (the *dmg* file) and drag it to their Applications folder. The app bundle contains its own independent python and all the dependencies and will not interact with anything else on your system (except its own preferences).
+* Intel Mac users (with OS X v10.5 or higher) can simply `download`_ the standalone application bundle (the *dmg* file) and drag it to their Applications folder. (Installing it elsewhere should work fine too.) The app bundle contains its own independent python and all the dependencies and will not interact with anything else on your system (except its own preferences).
 
 * Users of `macports <http://www.macports.org/>`_ can install PsychoPy and all its dependencies simply with:
     ``sudo port install py25-psychopy``
