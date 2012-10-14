@@ -97,7 +97,7 @@ class RunTimeInfo(dict):
             self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
-        self._setSystemInfo() # current user, other software
+        self._setSystemInfo() # current user, locale, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
@@ -198,6 +198,13 @@ class RunTimeInfo(dict):
         # machine name
         self['systemHostName'] = platform.node()
         
+        # locale information:
+        import locale
+        loc = '.'.join(map(str,locale.getlocale()))  # (None, None) -> str
+        if loc == 'None.None':
+            loc = locale.setlocale(locale.LC_ALL,'')
+        self['systemLocale'] = loc  # == the locale in use, from OS or user-pref
+        
         # platform name, etc
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
@@ -275,7 +282,14 @@ class RunTimeInfo(dict):
         try:
             import pyo
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
-        except:
+            try:
+                # requires pyo svn r1024 or higher:
+                inp, out = pyo.pa_get_devices_infos()
+                self['systemPyo.InputDevices'] = inp
+                self['systemPyo.OutputDevices'] = out
+            except AttributeError:
+                pass
+        except ImportError:
             pass
         
         # flac (free lossless audio codec) for google-speech:
@@ -302,7 +316,7 @@ class RunTimeInfo(dict):
         profileInfo = ''
         appFlagList = [# flag these apps if active, case-insensitive match:
             'Firefox','Safari','Explorer','Netscape', 'Opera', 'Google Chrome', # web browsers can burn CPU cycles
-            'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
+            'Dropbox', 'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
             'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
@@ -368,8 +382,6 @@ class RunTimeInfo(dict):
     def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
-        
-        self['windowHaveShaders'] = win._haveShaders
 
         if refreshTest in ['grating', True]:
             msPFavg, msPFstd, msPFmd6 = visual.getMsPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
