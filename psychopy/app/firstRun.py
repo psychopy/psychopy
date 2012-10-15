@@ -7,7 +7,6 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from pyo import pa_get_devices_infos
 from pyglet.gl import gl_info
 from psychopy import info, data, visual, gui, core, __version__
 import os, sys, time
