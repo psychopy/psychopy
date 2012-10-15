@@ -6,10 +6,10 @@
 
 import sys, psychopy
 import copy
-if sys.argv[-1] in ['-v', '--version']:
+if '-v' in sys.argv or '--version' in sys.argv:
     print 'PsychoPy2, version %s (c)Jonathan Peirce, 2012, GNU GPL license' %psychopy.__version__
     sys.exit()
-if sys.argv[-1] in ['-h', '--help']:
+if '-h' in sys.argv or '--help' in sys.argv:
     print """Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
@@ -26,8 +26,11 @@ Options:
     -c, --coder, coder       opens coder view only
     -b, --builder, builder   opens builder view only
 
-    --version        prints version and exits
+    -v, --version    prints version and exits
     -h, --help       prints this help and exit
+    
+    --firstrun       launches configuration wizard
+    --nosplash       suppresses splash screen
 
 """
     sys.exit()
@@ -133,8 +136,13 @@ class PsychoPyApp(wx.App):
         #check compatibility with last run version (before opening windows)
         if 'lastVersion' not in self.prefs.appData.keys():
             last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
+            sys.argv.append('--firstrun')  # to trigger firstrun configuration
         else:
             last=self.prefs.appData['lastVersion']
+        if '--firstrun' in sys.argv:  # command line or no last-run version
+            del sys.argv[sys.argv.index('--firstrun')]
+            self.configWizard()
+        
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -217,6 +225,10 @@ class PsychoPyApp(wx.App):
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
+    def configWizard(self, evt=None):
+        from psychopy.app import firstRun
+        firstRun.ConfigWizard(self)
+        
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
         if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update
@@ -376,6 +388,7 @@ class PsychoPyApp(wx.App):
 PsychoPy depends on your feedback. If something doesn't work then
 let me/us know at psychopy-users@googlegroups.com"""
         info = wx.AboutDialogInfo()
+        #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
         info.SetName('PsychoPy')
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)

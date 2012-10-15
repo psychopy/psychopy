@@ -438,7 +438,7 @@ class RunTimeInfo(dict):
         self['pythonScipyVersion'] = scipy.__version__
         self['pythonWxVersion'] = wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
-        self['pythonPygletVersion'] = pyglet.__version__
+        self['pythonPygletVersion'] = pyglet.version
         try: from pygame import __version__ as pygameVersion
         except: pygameVersion = '(no pygame)'
         self['pythonPygameVersion'] = pygameVersion
