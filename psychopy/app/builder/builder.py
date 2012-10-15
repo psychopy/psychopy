@@ -950,7 +950,11 @@ class FlowPanel(wx.ScrolledWindow):
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
-            name += ' ' + self.LOOP_ABBREV[self.appData['flowSize']][loop.params['loopType'].val]+')'
+            try:
+                loop_abbrev = self.LOOP_ABBREV[self.appData['flowSize']][loop.params['loopType'].val]
+            except KeyError:
+                loop_abbrev = "***"
+            name += ' ' + loop_abbrev + ')'
         if self.appData['flowSize']==0:
             if len(name) > 9:
                 name = ' '+name[:8]+'..'
@@ -2340,6 +2344,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditions=loop.params['conditions'].val
             self.conditionsFile=loop.params['conditionsFile'].val
             self.trialHandler = self.currentHandler = loop
+            loop.updateLoopTypes()
             self.currentType=loop.params['loopType']#could be 'random', 'sequential', 'fullRandom'
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop

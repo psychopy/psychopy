@@ -575,7 +575,7 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
-            allowedVals=self.LOOP_TYPES,
+            allowedVals=self.getLoopTypes(),
                 # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
             hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
@@ -583,6 +583,20 @@ class TrialHandler:
             hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
             hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
+    
+    def getLoopTypes(self):
+        loop_types = list(self.LOOP_TYPES)
+        for flow_item in self.exp.flow:
+            if isinstance(flow_item, list):
+                for component in flow_item:
+                    if hasattr(component, "get_loop_type"):
+                        loop_types.append(component.get_loop_type())
+        return loop_types
+    
+    def updateLoopTypes(self):
+        loop_types = self.getLoopTypes()
+        self.params['loopType'].allowedVals = loop_types
+    
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass

@@ -720,7 +720,9 @@ class TrialHandler(_BaseTrialHandler):
         #generate stimulus sequence
         if self.method in ['random','sequential', 'fullRandom'] or trial_sequence.METHODS.has_key(self.method):
             self.sequenceIndices = self._createSequence()
-        else: self.sequenceIndices=[]
+        else:
+            self.sequenceIndices=[]
+        print self.sequenceIndices
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
@@ -815,7 +817,8 @@ class TrialHandler(_BaseTrialHandler):
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
         return sequenceIndices
 
-    def _makeIndices(self,inputArray):
+    @staticmethod
+    def _makeIndices(inputArray):
         """
         Creates an array of tuples the same shape as the input array
         where each tuple contains the indices to itself in the array.
@@ -2528,11 +2531,13 @@ class DataHandler(dict):
 
         #check whether data falls within bounds
         posArr = numpy.asarray(position)
-        shapeArr = numpy.asarray(self.dataShape)
-        if not numpy.alltrue(posArr<shapeArr):
+        shapeArr = numpy.asarray(self[thisType].shape)
+        if not numpy.alltrue(posArr < shapeArr):
             #array isn't big enough
             logging.warning('need a bigger array for:'+thisType)
-            self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
+            newShape = [b if a < b else 2 * a for (a, b) in zip(posArr, shapeArr)]
+            print (posArr, shapeArr, newShape)
+            self[thisType]=misc.extendArr(self[thisType], newShape)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
             ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):
