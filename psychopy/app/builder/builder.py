@@ -2140,9 +2140,7 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Handler for OK button which should validate dialog contents.
         """
-        print self.GetValidator()
         valid = self.Validate()
-        print valid
         if not valid:
             return
         event.Skip()
@@ -2538,7 +2536,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         else: # edit new empty .pkl file
             grid_dialog = data_editor.ConditionsEditor(self)
             if grid_dialog.ShowModal() == wx.OK:
-                print "OK!"
                 self.conditionsFile = grid_dialog.file_name
             #gridGUI = DlgConditions(parent=self)
             # should not check return value, its meaningless

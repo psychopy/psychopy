@@ -722,7 +722,6 @@ class TrialHandler(_BaseTrialHandler):
             self.sequenceIndices = self._createSequence()
         else:
             self.sequenceIndices=[]
-        print self.sequenceIndices
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
@@ -2536,7 +2535,6 @@ class DataHandler(dict):
             #array isn't big enough
             logging.warning('need a bigger array for:'+thisType)
             newShape = [b if a < b else 2 * a for (a, b) in zip(posArr, shapeArr)]
-            print (posArr, shapeArr, newShape)
             self[thisType]=misc.extendArr(self[thisType], newShape)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
