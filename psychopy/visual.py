@@ -1460,6 +1460,25 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         return polygonsOverlap(self, polygon)
+    
+    def _getDesiredRGB(self):
+        """ Convert color to RGB while adding contrast
+        Requires self.rgb, self.colorSpace and self.contrast"""
+        # Ensure that we work on 0-centered color (to make negative contrast values work)
+        if self.colorSpace in ['rgb','dkl','lms','hsv']:
+            desiredRGB = self.rgb
+        else: 
+            desiredRGB = (self.rgb/255.0)*2-1
+        
+        # Convert to RGB in range 0:1 and scaled for contrast
+        desiredRGB = (desiredRGB*self.contrast+1)/2.0       
+        
+        # Check that boundaries are not exceeded
+        if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+            logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+            desiredRGB=[0.0,0.0,1.0]
+        
+        return desiredRGB
 
 class DotStim(_BaseVisualStim):
     """
@@ -1742,10 +1761,7 @@ class DotStim(_BaseVisualStim):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
-            if self.colorSpace in ['rgb','dkl','lms','hsv']:
-                desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            else:
-                desiredRGB = (self.rgb*self.contrast)/255.0
+            desiredRGB = self._getDesiredRGB()
             
             GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2], self.opacity)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
@@ -2414,13 +2430,7 @@ class GratingStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB()
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -2807,13 +2817,7 @@ class RadialStim(GratingStim):
 
         if self._useShaders:
             #setup color
-            if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-                desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-                if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                    logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                    desiredRGB=[0.0,0.0,1.0]
-            else:
-                desiredRGB = (self.rgb*self.contrast)/255.0
+            desiredRGB = self._getDesiredRGB()
 
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
@@ -4445,13 +4449,7 @@ class TextStim(_BaseVisualStim):
     def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB()
 
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
@@ -4562,14 +4560,7 @@ class TextStim(_BaseVisualStim):
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
-            if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-                desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-                if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                    logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                    desiredRGB=[0.0,0.0,1.0]
-                GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
-            else:
-                desiredRGB = (self.rgb*self.contrast)/255.0
+            desiredRGB = self._getDesiredRGB()
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
             GL.glUseProgram(self.win._progSignedTexFont)#self.win._progSignedTex)
@@ -5414,13 +5405,7 @@ class ImageStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB()
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -5575,13 +5560,7 @@ class BufferImageStim(GratingStim):
         #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
-            if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%self.desiredRGB) #AOH
-                self.desiredRGB=[0.0,0.0,1.0]
-        else:
-            self.desiredRGB = (self.rgb * self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB()
 
         self.thisScale = 2.0/numpy.array(self.win.size)
 
