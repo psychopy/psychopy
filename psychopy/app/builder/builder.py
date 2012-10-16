@@ -232,6 +232,17 @@ class CodeBox(wx.stc.StyledTextCtrl):
                 else:
                     self.ToggleFold(lineClicked)
 class FlowPanel(wx.ScrolledWindow):
+    
+    LOOP_ABBREV = [
+        '',
+        {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom': 'f-ran.',
+            'no-repeat random': 'n-ran.', 'no-repeat full random': 'nf-ran.', 
+            'staircase': 'stair.', 'interleaved staircases': "int-str."},
+        {'random': 'random', 'sequential': 'sequential', 'fullRandom': 'fullRandom',
+            'no-repeat random': 'no-repeat random', 'no-repeat full random': 'no-repeat fullRandom',
+            'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}
+    ]
+    
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
@@ -939,11 +950,11 @@ class FlowPanel(wx.ScrolledWindow):
                 xnumTrials = 'x'+str(len(loop.params['conditions'].val))
             else: xnumTrials = ''
             name += '  ('+str(loop.params['nReps'].val)+xnumTrials
-            abbrev = ['', {'random': 'rand.', 'sequential': 'sequ.', 'fullRandom':'f-ran.',
-                      'staircase': 'stair.', 'interleaved staircases': "int-str."},
-                      {'random': 'random', 'sequential': 'sequential', 'fullRandom':'fullRandom',
-                      'staircase': 'staircase', 'interleaved staircases': "interl'vd stairs"}]
-            name += ' '+abbrev[self.appData['flowSize']][loop.params['loopType'].val]+')'
+            try:
+                loop_abbrev = self.LOOP_ABBREV[self.appData['flowSize']][loop.params['loopType'].val]
+            except KeyError:
+                loop_abbrev = "***"
+            name += ' ' + loop_abbrev + ')'
         if self.appData['flowSize']==0:
             if len(name) > 9:
                 name = ' '+name[:8]+'..'
@@ -2129,9 +2140,7 @@ class _BaseParamsDlg(wx.Dialog):
         """
         Handler for OK button which should validate dialog contents.
         """
-        print self.GetValidator()
         valid = self.Validate()
-        print valid
         if not valid:
             return
         event.Skip()
@@ -2333,6 +2342,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditions=loop.params['conditions'].val
             self.conditionsFile=loop.params['conditionsFile'].val
             self.trialHandler = self.currentHandler = loop
+            loop.updateLoopTypes()
             self.currentType=loop.params['loopType']#could be 'random', 'sequential', 'fullRandom'
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
@@ -2526,7 +2536,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         else: # edit new empty .pkl file
             grid_dialog = data_editor.ConditionsEditor(self)
             if grid_dialog.ShowModal() == wx.OK:
-                print "OK!"
                 self.conditionsFile = grid_dialog.file_name
             #gridGUI = DlgConditions(parent=self)
             # should not check return value, its meaningless
@@ -4104,10 +4113,10 @@ class BuilderFrame(wx.Frame):
         f.close()
         
         runAmpDialog = amp_launcher.AmpLauncherDialog(self)
-        print runAmpDialog.ShowModal()
-        self.experiment_contact = runAmpDialog.get_experiment_contact()
-        print self.experiment_contact
-        if not self.experiment_contact:
+        retval = runAmpDialog.ShowModal()
+        if retval == wx.ID_OK:
+            self.experiment_contact = runAmpDialog.get_experiment_contact()
+        else:
             return
         
         try:

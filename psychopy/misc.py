@@ -115,30 +115,28 @@ def shuffleArray(inArray, shuffleAxis=-1, seed=None):
     newIndices =  numpy.argsort(rndArray, shuffleAxis)# and get the arguments that would sort it
     return numpy.take(inArray,newIndices)#return the array with the sorted random indices
 
-def extendArr(inArray,newSize):
+def extendArr(inArray, newSize):
     """Takes a numpy array and returns it padded with zeros to the necessary size
 
     >>> misc.extendArr([1,2,3],5)
     array([1, 2, 3, 0, 0])
-
     """
+    def copyDims(source, destination):
+        if len(source.shape) == 1:
+            destination[:len(source)] = source
+        else:
+            for i in range(len(source)):
+                copyDims(source[i], destination[i])
+    
     if type(inArray) in [tuple,list]:
         inArray=numpy.asarray(inArray)
 
     newArr = numpy.zeros(newSize,inArray.dtype)
-    #create a string to eval (see comment below)
-    indString=''
-    for thisDim in inArray.shape:
-        indString += '0:'+str(thisDim)+','
-    indString = indString[0:-1]#remove the final comma
 
     #e.g.
     #newArr[0:4,0:3]=inArray
-
-    exec("newArr["+indString+"]=inArray")
+    copyDims(inArray, newArr)
     return newArr
-
-
 
 def ratioRange(start, nSteps=None, stop=None,
                stepRatio=None, stepdB=None, stepLogUnits=None):

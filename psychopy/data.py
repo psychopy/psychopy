@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, logging
+from psychopy import misc, gui, logging, trial_sequence
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -718,9 +718,10 @@ class TrialHandler(_BaseTrialHandler):
         self.data['ran'].mask=False#this is a bool - all entries are valid
         self.data.addDataType('order')
         #generate stimulus sequence
-        if self.method in ['random','sequential', 'fullRandom']:
+        if self.method in ['random','sequential', 'fullRandom'] or trial_sequence.METHODS.has_key(self.method):
             self.sequenceIndices = self._createSequence()
-        else: self.sequenceIndices=[]
+        else:
+            self.sequenceIndices=[]
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
@@ -809,11 +810,14 @@ class TrialHandler(_BaseTrialHandler):
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
             randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+        else:
+            sequenceIndices = trial_sequence.METHODS[self.method](self.trialList, self.nReps)
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
         return sequenceIndices
 
-    def _makeIndices(self,inputArray):
+    @staticmethod
+    def _makeIndices(inputArray):
         """
         Creates an array of tuples the same shape as the input array
         where each tuple contains the indices to itself in the array.
@@ -878,7 +882,7 @@ class TrialHandler(_BaseTrialHandler):
             self._terminate()
 
         #fetch the trial info
-        if self.method in ['random','sequential','fullRandom']:
+        if self.method in ['random','sequential','fullRandom'] or trial_sequence.METHODS.has_key(self.method):
             self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
             self.data.add('ran',1)
@@ -2526,11 +2530,12 @@ class DataHandler(dict):
 
         #check whether data falls within bounds
         posArr = numpy.asarray(position)
-        shapeArr = numpy.asarray(self.dataShape)
-        if not numpy.alltrue(posArr<shapeArr):
+        shapeArr = numpy.asarray(self[thisType].shape)
+        if not numpy.alltrue(posArr < shapeArr):
             #array isn't big enough
             logging.warning('need a bigger array for:'+thisType)
-            self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
+            newShape = [b if a < b else 2 * a for (a, b) in zip(posArr, shapeArr)]
+            self[thisType]=misc.extendArr(self[thisType], newShape)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
             ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):
