@@ -1236,7 +1236,7 @@ class _BaseVisualStim:
                     self.setImage(self._imName)
                 if self.__class__.__name__ == 'GratingStim':
                     self.setTex(self._texName, log=False)
-                if self._class.__name__ in ('ShapeStim','DotStim'):
+                if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 elif log:
                     logging.warning('Called setContrast while _useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
