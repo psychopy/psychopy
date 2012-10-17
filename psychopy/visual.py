@@ -3802,8 +3802,9 @@ class MovieStim(_BaseVisualStim):
                  ori     =0.0,
                  flipVert = False,
                  flipHoriz = False,
+                 color=(1.0,1.0,1.0),
+                 colorSpace='rgb',
                  opacity=1.0,
-                 contrast=1.0,
                  name='',
                  loop=False,
                  autoLog=True,
@@ -3830,11 +3831,25 @@ class MovieStim(_BaseVisualStim):
             size :
                 Size of the stimulus in units given. If not specified then the movie will take its
                 original dimensions.
+            color:
+                Modified the weight of the colors in the movie. E,g, color="red"
+                will only display the red parts of the movie and make all other
+                things black. white (color=(1,1,1)) is the original colors.
+                
+                Could be a:
+
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity :
                 the movie can be made transparent by reducing this
-            contrast: float (default= *1.0* )
-                How far the movie deviates from the middle grey.
-                Contrast can vary 0 (gray) to 1 (original).
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -3864,8 +3879,9 @@ class MovieStim(_BaseVisualStim):
         self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
+        self.colorSpace=colorSpace
+        self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
-        self.contrast = float(contrast)
         self.loop = loop
         self.status=NOT_STARTED
 
@@ -3982,7 +3998,9 @@ class MovieStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         frameTexture = self._player.get_texture()
-        GL.glColor4f(self.contrast,self.contrast,self.contrast,self.opacity)
+        
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
+        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
         GL.glPushMatrix()
         #do scaling
         #scale the viewport to the appropriate size
@@ -4000,21 +4018,9 @@ class MovieStim(_BaseVisualStim):
                 z=0)
         GL.glPopMatrix()
 
-    def setContrast(self, newContrast, operation='', log=True):
-        """"
-        Set the contrast of the movie.
-
-        :Parameters:
-
-        newContrast : float between 0 (gray) and 1 (original)
-
-        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
-        """
-        # Overrides _BaseVisualStim.setContrast
-        if 0 <= newContrast <= 1:
-            self._set('contrast', newContrast, operation, log=log)
-        elif log:
-            logging.warning('Called setContrast on MovieStim with newContrast outside range 0:1. Did not change contrast.')
+    def setContrast(self):
+        """"Not yet implemented for MovieStim"""
+        pass
 
     def _onEos(self):
         if self.loop:
@@ -4856,7 +4862,7 @@ class ShapeStim(_BaseVisualStim):
         if nVerts>2: #draw a filled polygon first
             if self.fillRGB!=None:
                 #convert according to colorSpace
-                fillRGB = self._getDesiredRGB(self.fillRGB, self.colorSpace, self.contrast)
+                fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
                 #then draw
                 GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
@@ -5551,8 +5557,7 @@ class BufferImageStim(GratingStim):
         #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
-
+        self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         self.thisScale = 2.0/numpy.array(self.win.size)
 
     def setTex(self, tex, interpolate=True, log=True):
