@@ -1,8 +1,6 @@
 import sys, glob, collections
 from itertools import imap,chain
-import ctypes
-
-from psychopy import logging, core
+from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
 
 
@@ -158,64 +156,3 @@ def findPhotometer(ports=None, device=None):
             
     return None
 
-DWORD = ctypes.c_ulong
-DWORDLONG = ctypes.c_ulonglong
-
-def getRAM():
-    """Return system's physical RAM & available RAM, in M.
-    
-    Slow on Mac and Linux; fast on Windows. psutils is good but another dep."""
-    freeRAM = 'unknown'
-    totalRAM = 'unknown'
-    if sys.platform == 'darwin':
-        so,se = core.shellCall('vm_stat', stderr=True)
-        lines = so.splitlines()
-        pageIndex = lines[0].find('page size of ')
-        if  pageIndex > -1:
-            pagesize = int(lines[0][pageIndex + len('page size of '):].split()[0])
-            free = float(lines[1].split()[-1])
-            freeRAM = int(free * pagesize / 1048576.)  # M
-            pieces = [lines[i].split()[-1] for i in range(1,6)]
-            total = sum(map(float, pieces))
-            totalRAM = int(total * pagesize / 1048576.)  # M
-    elif sys.platform == 'win32':
-        try:
-            # http://code.activestate.com/recipes/511491/
-            # modified by Sol Simpson for 64-bit systems (also ok for 32-bit)
-            kernel32 = ctypes.windll.kernel32
-            class MEMORYSTATUS(ctypes.Structure):
-                _fields_ = [
-                ('dwLength', DWORD),
-                ('dwMemoryLoad', DWORD),
-                ('dwTotalPhys', DWORDLONG), # ctypes.c_ulonglong for 64-bit
-                ('dwAvailPhys', DWORDLONG),
-                ('dwTotalPageFile', DWORDLONG),
-                ('dwAvailPageFile', DWORDLONG),
-                ('dwTotalVirtual', DWORDLONG),
-                ('dwAvailVirtual', DWORDLONG),
-                ('ullAvailExtendedVirtual', DWORDLONG),
-                ]
-            memoryStatus = MEMORYSTATUS()
-            memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
-            kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
-
-            totalRam = int(memoryStatus.dwTotalPhys / 1048576.) # M
-            freeRam = int(memoryStatus.dwAvailPhys / 1048576.) # M
-        except:
-            pass
-    elif sys.platform.startswith('linux'):
-        try:
-            so,se = core.shellCall('free', stderr=True)
-            lines = so.splitlines()
-            freeRAM = int(int(lines[1].split()[3]) / 1024.)  # M
-            totalRAM = int(int(lines[1].split()[1]) / 1024.)
-        except:
-            pass
-    else: # bsd, works on mac too
-        try:
-            total = core.shellCall('sysctl -n hw.memsize')
-            totalRAM = int(int(total) * int(pagesize) / 1048576.)
-            # not sure how to get available phys mem
-        except:
-            pass
-    return totalRAM, freeRAM
