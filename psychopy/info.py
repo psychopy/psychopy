@@ -381,10 +381,13 @@ class RunTimeInfo(dict):
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
         
+        # CPU speed (will depend on system busy-ness)
+        d = numpy.array(numpy.linspace(0., 1., 1000000))
         t0 = core.getTime()
-        for i in range(2000000):
-            pass
-        self['systemTimeForIinRange2000000pass_sec'] = "%.3f" % (core.getTime() - t0)
+        numpy.std(d)
+        t = core.getTime() - t0
+        del d
+        self['systemTimeNumpySD1000000_sec'] = t
     
     def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info

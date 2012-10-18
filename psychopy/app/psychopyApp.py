@@ -134,14 +134,17 @@ class PsychoPyApp(wx.App):
         self.urls=urls.urls
         self.quitting=False
         #check compatibility with last run version (before opening windows)
+        self.firstRun = False
+        if '--firstrun' in sys.argv:
+            del sys.argv[sys.argv.index('--firstrun')]
+            self.firstRun = True
         if 'lastVersion' not in self.prefs.appData.keys():
             last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
-            sys.argv.append('--firstrun')  # to trigger firstrun configuration
+            self.firstRun = True
         else:
             last=self.prefs.appData['lastVersion']
-        if '--firstrun' in sys.argv:  # command line or no last-run version
-            del sys.argv[sys.argv.index('--firstrun')]
-            self.configWizard()
+        if self.firstRun:
+            self.configWizard(firstrun=True)
         
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
@@ -208,7 +211,7 @@ class PsychoPyApp(wx.App):
             connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
-        if not ok:#tell the user what has changed
+        if not ok and not self.firstRun:  #tell the user what has changed
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
@@ -225,9 +228,9 @@ class PsychoPyApp(wx.App):
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
-    def configWizard(self, evt=None):
+    def configWizard(self, evt=None, firstrun=False):
         from psychopy.app import firstRun
-        firstRun.ConfigWizard(self)
+        firstRun.ConfigWizard(self, firstrun=firstrun)
         
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
