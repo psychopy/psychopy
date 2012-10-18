@@ -2418,7 +2418,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName=='conditionsFile':
                 container=wx.BoxSizer(wx.HORIZONTAL)
                 ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
+                self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile, ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
@@ -2587,6 +2587,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         if newType==self.currentType:
             return
         self.setCtrls(newType)
+        
+    def onChooseTrialsFile(self, event):
+        dialog = resource_pool.ResourceChooserDialog(self, self.exp.resourcePool)
+        dialog.ShowModal()
+    
     def onBrowseTrialsFile(self, event):
         self.conditionsFileOrig = self.conditionsFile
         self.conditionsOrig = self.conditions
