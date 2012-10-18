@@ -363,7 +363,6 @@ class ConfigWizard(object):
         if fatal:
             # fatal is a list of strings:
             htmlDoc += '<h2><font color="red">Configuration problem</font></h2><hr>'
-            print len(fatal), fatal
             for item in fatal:
                 item = item.replace('Critical issue', '<p><strong>Critical issue</strong>')
                 htmlDoc += item + "<hr>"
