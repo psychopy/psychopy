@@ -714,7 +714,7 @@ def getRAM():
     else: # bsd, works on mac too
         try:
             total = core.shellCall('sysctl -n hw.memsize')
-            totalRAM = int(int(total) * int(pagesize) / 1048576.)
+            totalRAM = int(int(total) / 1048576.)
             # not sure how to get available phys mem
         except:
             pass
