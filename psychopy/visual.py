@@ -1391,6 +1391,8 @@ class _BaseVisualStim:
             x0, y0 = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x0, y0 = x[0], x[1]
+        else:
+            (x0, y0) = (x, y)
         if self.units in ['deg','degs']:
             x0, y0 = psychopy.misc.deg2pix(numpy.array((x0,y0)), self.win.monitor)
         elif self.units == 'cm':
