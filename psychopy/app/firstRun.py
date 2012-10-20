@@ -84,13 +84,14 @@ class ConfigWizard(object):
             dlg.addText('Optional: For best results, please quit all email programs, web-browsers, ')
             dlg.addText('Dropbox, backup or sync services, and the like.')
             dlg.addText('')
-            proceedMsg = 'Click OK to start, or Cancel to skip.'
+            dlg.addText('Click OK to start, or Cancel to skip.')
+            if not self.firstrun:
+                dlg.addField(label='Full details', initial=self.prefs.app['debugMode'])
         else:
             dlg.addText('')
-            proceedMsg = 'Click OK for more information, or Cancel to skip.'
+            dlg.addText('Click OK for more information, or Cancel to skip.')
         
         # show the first dialog:
-        dlg.addText(proceedMsg)
         dlg.addText('')
         dlg.Center()
         dlg.show()
@@ -106,14 +107,17 @@ class ConfigWizard(object):
         if not dlg.OK:
             return  # no configuration tests run
         
-        itemsList = self.runDiagnostics()  # sets self.warnings
+        # run the diagnostics:
+        verbose = not self.firstrun and dlg.data[0]
+        itemsList = self.runDiagnostics(verbose)  # sets self.warnings
         self.htmlReport(itemsList)
         self.save()
         
+        # display summary & options:
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         dlg.addText('Configuration testing complete!')
-        summary = self.summary(items=itemsList)  # can change self.warnings
+        summary = self.summary(items=itemsList)
         numWarn = len(self.warnings)
         if numWarn == 0:
             msg = 'All values seem reasonable (no warnings).'
@@ -148,7 +152,7 @@ class ConfigWizard(object):
             # as root: sync; echo 3 > /proc/sys/vm/drop_caches
             pass
 
-    def runDiagnostics(self):
+    def runDiagnostics(self, verbose=False):
         """Return list of (key, val, msg) tuple, set self.warnings
         
         All tuple elements will be of <type str>.
@@ -195,7 +199,7 @@ class ConfigWizard(object):
         if not bits.startswith('32'):
             msg = 'Warning: 32-bit python required; ' + msg
         report.append(('python version', items['pythonVersion'] + ' &nbsp;(%s)' % bits, msg))
-        if self.prefs.app['debugMode']:
+        if verbose:
             msg = ''
             if items['pythonWxVersion'] < '2.8.10':
                 msg = 'Warning: wx 2.8.10 or higher required'
@@ -251,7 +255,7 @@ class ConfigWizard(object):
         except: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', 'Warning: could not import avbin; playing movies will not work'))
         
-        if self.prefs.app['debugMode']:
+        if verbose:
             report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), ''))
             keyList = ['GL_ARB_multitexture', 'GL_EXT_framebuffer_object', 'GL_ARB_fragment_program',
                 'GL_ARB_shader_objects', 'GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two',
@@ -303,7 +307,7 @@ class ConfigWizard(object):
         if not 'systemFlacVersion' in items:
             msg = 'Warning: flac is needed for using %s features.' % s2t
             items['systemFlacVersion'] = '(missing)'
-        if self.prefs.app['debugMode']:
+        if verbose:
             report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg))
         # TO-DO: add microphone + playback as sound test
         
@@ -311,7 +315,7 @@ class ConfigWizard(object):
         report.append(('Numeric', '', ''))
         report.append(('numpy', items['pythonNumpyVersion'], 'vector-based (fast) calculations'))
         report.append(('scipy', items['pythonScipyVersion'], 'scientific / numerical'))
-        report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting'))
+        report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting, polygon intersection'))
         
         # ----- SYSTEM: -----
         report.append(('System', '', ''))
@@ -330,7 +334,7 @@ class ConfigWizard(object):
         self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
         msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
         report.append(('background processes', self.badBgProc[0]+' ...', msg))
-        if self.prefs.app['debugMode'] and 'systemSec.OpenSSLVersion' in items:
+        if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))
             report.append(('CPU speed test', "%.3f s" % items['systemTimeNumpySD1000000_sec'], 'numpy.std() of a million data points'))
             # TO-DO: more speed benchmarks
@@ -338,7 +342,7 @@ class ConfigWizard(object):
             # - transfer image to GPU
 
         # ----- IMPORTS (relevant for developers & non-StandAlone): -----
-        if self.prefs.app['debugMode']:  # always False for a real first-run
+        if verbose:  # always False for a real first-run
             report.append(('Packages', '', ''))
             packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest', 'sphinx',
                         'psignifit', 'pyserial', 'pp',
@@ -366,8 +370,9 @@ class ConfigWizard(object):
                 except ImportError:
                     report.append((pkg, '&nbsp;&nbsp--', 'could not import %s' % pkg))
 
-        # on first-run, debugMode defaults to False, so packages are not warned about
         self.warnings = list(set([key for key, val, msg in report if msg.startswith('Warning')]))
+        if  self.firstrun and 'background processes' in self.warnings:
+            del self.warnings[self.warnings.index('background processes')]
         return report
 
     def summary(self, items=None):
@@ -377,22 +382,21 @@ class ConfigWizard(object):
             config[item[0]] = [item[1], item[2]]
         green = '#009933'
         red = '#CC3300'
-        summary = [(u"\u2713   video card drivers", green)]
-        ofInterest = ['python version', 'available memory',
-            'openGL version', 'visual sync (refresh)', 'refresh stability (SD)', 'no dropped frames', 'pyglet avbin',
-            'microphone latency', 'speakers latency',
+        check = u"\u2713   "
+        summary = [(check + "video card drivers", green)]
+        ofInterest = ['python version', 'available memory', 'openGL version',
+            'visual sync (refresh)', 'refresh stability (SD)', 'no dropped frames',
+            'pyglet avbin', 'microphone latency', 'speakers latency',
             'internet access']
-        if  self.firstrun and 'background processes' in self.warnings:
-            del self.warnings[self.warnings.index('background processes')]
         if not self.firstrun:
             ofInterest.append('background processes')
         for item in ofInterest:
             if not item in config:
                 continue  # eg, microphone latency
             if config[item][1].startswith('Warning:'):
-                summary.append(("x   " + item, red))
+                summary.append(("X   " + item, red))
             else:
-                summary.append((u"\u2713   " + item, green))
+                summary.append((check + item, green))
         return summary
     
     def htmlReport(self, items=None, fatal=False):
