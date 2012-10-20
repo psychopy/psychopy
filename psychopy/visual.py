@@ -1388,9 +1388,17 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
-            x,y = x.getPos()
+            x0, y0 = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
-            x, y = x[0], x[1]
+            x0, y0 = x[0], x[1]
+        if self.units in ['deg','degs']:
+            x0, y0 = psychopy.misc.deg2pix(numpy.array((x0,y0)), self.win.monitor)
+        elif self.units == 'cm':
+            x0, y0 = psychopy.misc.cm2pix(numpy.array((x0,y0)), self.win.monitor)
+        
+        x = numpy.cos(self.ori/180.0*numpy.pi)*x0 - numpy.sin(self.ori/180.0*numpy.pi)*y0
+        y = numpy.sin(self.ori/180.0*numpy.pi)*x0 + numpy.cos(self.ori/180.0*numpy.pi)*y0
+        
         return pointInPolygon(x, y, self)
     def overlaps(self, polygon):
         """Determines if this stimulus intersects another one. If `polygon` is
