@@ -1388,9 +1388,21 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
-            x,y = x.getPos()
+            x, y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
+        if self.units in ['deg','degs']:
+            x, y = psychopy.misc.deg2pix(numpy.array((x, y)), self.win.monitor)
+        elif self.units == 'cm':
+            x, y = psychopy.misc.cm2pix(numpy.array((x, y)), self.win.monitor)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(oriRadians)
+            cosOri = numpy.cos(oriRadians)
+            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
+            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
+            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
+        
         return pointInPolygon(x, y, self)
     def overlaps(self, polygon):
         """Determines if this stimulus intersects another one. If `polygon` is
@@ -1407,7 +1419,15 @@ class _BaseVisualStim:
         """
         if self.needVertexUpdate:
             self._calcVerticesRendered()
-        return polygonsOverlap(self, polygon)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(-oriRadians)
+            cosOri = numpy.cos(-oriRadians)
+            x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+            y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+            return polygonsOverlap(numpy.column_stack((x,y)) + self._posRendered, polygon)
+        else:
+            return polygonsOverlap(self, polygon)
 
 class DotStim(_BaseVisualStim):
     """
