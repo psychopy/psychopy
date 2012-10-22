@@ -93,7 +93,6 @@ class ConfigWizard(object):
         
         # show the first dialog:
         dlg.addText('')
-        dlg.Center()
         dlg.show()
         if fatalItemsList:
             self.htmlReport(fatal=fatalItemsList)
@@ -123,7 +122,7 @@ class ConfigWizard(object):
             msg = 'All values seem reasonable (no warnings).'
         elif numWarn == 1:
             msg = '1 suboptimal value was detected (%s)' % self.warnings[0]
-        elif numWarn > 1:
+        else:
             msg = '%i suboptimal values were detected (%s, ...)' % (len(self.warnings), self.warnings[0])
         dlg.addText(msg)
         for item in summary:
@@ -315,7 +314,7 @@ class ConfigWizard(object):
         report.append(('Numeric', '', ''))
         report.append(('numpy', items['pythonNumpyVersion'], 'vector-based (fast) calculations'))
         report.append(('scipy', items['pythonScipyVersion'], 'scientific / numerical'))
-        report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting, polygon intersection'))
+        report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting; fast contains(), overlaps()'))
         
         # ----- SYSTEM: -----
         report.append(('System', '', ''))
@@ -354,7 +353,8 @@ class ConfigWizard(object):
             for pkg in packages:
                 try:
                     if pkg == 'PIL':
-                        exec('import PIL.Image; ver = PIL.Image.VERSION')
+                        exec('import PIL.Image')
+                        ver = PIL.Image.VERSION
                     #elif pkg == 'lxml':
                     #
                     elif pkg == 'pp':
@@ -362,6 +362,9 @@ class ConfigWizard(object):
                     elif pkg == 'pynetstation':
                         exec('from psychopy.hardware import egi')
                         ver = 'import ok'
+                    elif pkg == 'pyserial':
+                        exec('import serial')
+                        ver = '.'.join(serial.version)
                     else:
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
