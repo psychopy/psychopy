@@ -1388,18 +1388,20 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
-            x0, y0 = x.getPos()
+            x, y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
-            x0, y0 = x[0], x[1]
-        else:
-            (x0, y0) = (x, y)
+            x, y = x[0], x[1]
         if self.units in ['deg','degs']:
-            x0, y0 = psychopy.misc.deg2pix(numpy.array((x0,y0)), self.win.monitor)
+            x, y = psychopy.misc.deg2pix(numpy.array((x, y)), self.win.monitor)
         elif self.units == 'cm':
-            x0, y0 = psychopy.misc.cm2pix(numpy.array((x0,y0)), self.win.monitor)
-        
-        x = numpy.cos(self.ori/180.0*numpy.pi)*x0 - numpy.sin(self.ori/180.0*numpy.pi)*y0
-        y = numpy.sin(self.ori/180.0*numpy.pi)*x0 + numpy.cos(self.ori/180.0*numpy.pi)*y0
+            x, y = psychopy.misc.cm2pix(numpy.array((x, y)), self.win.monitor)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(oriRadians)
+            cosOri = numpy.cos(oriRadians)
+            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
+            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
+            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
         
         return pointInPolygon(x, y, self)
     def overlaps(self, polygon):
