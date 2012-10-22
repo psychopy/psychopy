@@ -6,6 +6,7 @@ Created on 04-09-2012
 import time
 import wx
 from _base import BaseComponent
+from StringIO import StringIO
 
 class Resource(object):
     def __init__(self, date=None, description="", content=""):
@@ -24,6 +25,9 @@ class Resource(object):
     
     def get_content(self):
         return self.content
+    
+    def get_content_file(self):
+        return StringIO(self.content)
     
     def get_description(self):
         return self.description

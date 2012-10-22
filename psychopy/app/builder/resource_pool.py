@@ -120,6 +120,7 @@ class ResourceChooserDialog(wx.Dialog):
     def __init__(self, parent, pool=None):
         super(ResourceChooserDialog, self).__init__(parent, title="Choose resource")
         self.pool = pool
+        self.resource_name = None
         self.chooser = ResourceChooserPanel(self, pool)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.chooser, proportion=1, flag=wx.EXPAND)
@@ -130,6 +131,7 @@ class ResourceChooserDialog(wx.Dialog):
     def Validate(self):
         resource_name = self.chooser.resource_name_box.GetValue()
         if self.pool.get_resource(resource_name):
+            self.resource_name = resource_name
             return True
         else:
             return False

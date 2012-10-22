@@ -2590,7 +2590,24 @@ class DlgLoopProperties(_BaseParamsDlg):
         
     def onChooseTrialsFile(self, event):
         dialog = resource_pool.ResourceChooserDialog(self, self.exp.resourcePool)
-        dialog.ShowModal()
+        if dialog.ShowModal() == wx.ID_OK:
+            resourceName = dialog.resource_name
+            try:
+                newConditions, conditionNames = data.importConditions(resourceName, True)
+            except DataImportError as error:
+                self.constantsCtrls['conditions'].setValue(str(error))
+                return
+            
+            # TODO: validate loaded resource
+
+            self.conditionsFile = resourceName
+            self.conditions = newConditions
+            self.condNamesInFile = conditionNames
+            
+            # set controls
+            self.constantsCtrls['conditionsFile'].setValue(resourceName)
+            self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+            
     
     def onBrowseTrialsFile(self, event):
         self.conditionsFileOrig = self.conditionsFile

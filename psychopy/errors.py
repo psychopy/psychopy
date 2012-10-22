@@ -15,3 +15,7 @@ class ExperimentException(Exception):
 class DataImportError(Exception):
     '''Error when working with data files'''
     pass
+
+class DataFormatError(Exception):
+    '''Error raised when file does not seem to be in expected format.'''
+    pass
