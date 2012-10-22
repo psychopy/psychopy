@@ -1314,6 +1314,9 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
+        self.toolsMenu.Append(self.IDs.configWizard, "Configuration wizard", "Check software & hardware, generate report")
+        wx.EVT_MENU(self, self.IDs.configWizard,  self.app.configWizard)
+
         if self.appPrefs['debugMode']:
             self.toolsMenu.Append(self.IDs.unitTests, "Unit &testing...\tCtrl-T",
                 "Show dialog to run unit tests")
