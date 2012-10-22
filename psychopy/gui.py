@@ -51,8 +51,7 @@ class Dlg(wx.Dialog):
         #prepare a frame in which to hold objects
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         #self.addText('')#insert some space at top of dialogue
-        if pos==None:
-            self.Center()
+        self.pos = pos
     def addText(self, text, color=''):
         textLength = wx.Size(8*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
@@ -134,6 +133,8 @@ class Dlg(wx.Dialog):
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
 
         self.SetSizerAndFit(self.sizer)
+        if self.pos == None:
+            self.Center()
         if self.ShowModal() == wx.ID_OK:
             self.data=[]
             #get data from input fields

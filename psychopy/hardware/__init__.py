@@ -1,10 +1,7 @@
 import sys, glob, collections
 from itertools import imap,chain
-
 from psychopy import logging
 __all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
-
-
 
 
 def getSerialPorts():
@@ -79,11 +76,6 @@ def getPhotometerByName(name):
         # longName is used from the GUI and driverFor is for coders
         if name.lower() in photom.driverFor or name == photom.longName:
             return photom
-
-
-        
-
-    
 
 def findPhotometer(ports=None, device=None):
     """Try to find a connected photometer/photospectrometer! 
@@ -163,3 +155,4 @@ def findPhotometer(ports=None, device=None):
         logging.info('...nope!\n\t'); logging.flush()
             
     return None
+

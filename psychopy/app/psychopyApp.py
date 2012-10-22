@@ -6,10 +6,10 @@
 
 import sys, psychopy
 import copy
-if sys.argv[-1] in ['-v', '--version']:
+if '-v' in sys.argv or '--version' in sys.argv:
     print 'PsychoPy2, version %s (c)Jonathan Peirce, 2012, GNU GPL license' %psychopy.__version__
     sys.exit()
-if sys.argv[-1] in ['-h', '--help']:
+if '-h' in sys.argv or '--help' in sys.argv:
     print """Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
@@ -26,8 +26,11 @@ Options:
     -c, --coder, coder       opens coder view only
     -b, --builder, builder   opens builder view only
 
-    --version        prints version and exits
+    -v, --version    prints version and exits
     -h, --help       prints this help and exit
+    
+    --firstrun       launches configuration wizard
+    --nosplash       suppresses splash screen
 
 """
     sys.exit()
@@ -131,10 +134,18 @@ class PsychoPyApp(wx.App):
         self.urls=urls.urls
         self.quitting=False
         #check compatibility with last run version (before opening windows)
+        self.firstRun = False
+        if '--firstrun' in sys.argv:
+            del sys.argv[sys.argv.index('--firstrun')]
+            self.firstRun = True
         if 'lastVersion' not in self.prefs.appData.keys():
             last=self.prefs.appData['lastVersion']='1.73.04'#must be before 1.74.00
+            self.firstRun = True
         else:
             last=self.prefs.appData['lastVersion']
+        if self.firstRun:
+            self.configWizard(firstrun=True)
+        
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -200,7 +211,7 @@ class PsychoPyApp(wx.App):
             connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
-        if not ok:#tell the user what has changed
+        if not ok and not self.firstRun:  #tell the user what has changed
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
@@ -217,6 +228,10 @@ class PsychoPyApp(wx.App):
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
+    def configWizard(self, evt=None, firstrun=False):
+        from psychopy.app import firstRun
+        firstRun.ConfigWizard(self, firstrun=firstrun)
+        
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
         if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update
@@ -376,6 +391,7 @@ class PsychoPyApp(wx.App):
 PsychoPy depends on your feedback. If something doesn't work then
 let me/us know at psychopy-users@googlegroups.com"""
         info = wx.AboutDialogInfo()
+        #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
         info.SetName('PsychoPy')
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)

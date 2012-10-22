@@ -12,8 +12,13 @@ from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
 from pyglet.gl import *
 import numpy, scipy, matplotlib, pyglet
-try: import ctypes
-except: pass
+try:
+    import ctypes
+    haveCtypes = True
+    DWORD = ctypes.c_ulong  # for getRAM() on win
+    DWORDLONG = ctypes.c_ulonglong
+except ImportError:
+    haveCtypes = False
 import hashlib
 import random
 import wx
@@ -97,7 +102,7 @@ class RunTimeInfo(dict):
             self['psychopyGitHead'] = githash
         
         self._setExperimentInfo(author, version, verbose, randomSeed)
-        self._setSystemInfo() # current user, other software
+        self._setSystemInfo() # current user, locale, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
         
         # need a window for frame-timing, and some openGL drivers want a window open
@@ -198,6 +203,15 @@ class RunTimeInfo(dict):
         # machine name
         self['systemHostName'] = platform.node()
         
+        self['systemMemTotalRAM'], self['systemMemFreeRAM'] = getRAM()
+        
+        # locale information:
+        import locale
+        loc = '.'.join(map(str,locale.getlocale()))  # (None, None) -> str
+        if loc == 'None.None':
+            loc = locale.setlocale(locale.LC_ALL,'')
+        self['systemLocale'] = loc  # == the locale in use, from OS or user-pref
+        
         # platform name, etc
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
@@ -275,7 +289,14 @@ class RunTimeInfo(dict):
         try:
             import pyo
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
-        except:
+            try:
+                # requires pyo svn r1024 or higher:
+                inp, out = pyo.pa_get_devices_infos()
+                self['systemPyo.InputDevices'] = inp
+                self['systemPyo.OutputDevices'] = out
+            except AttributeError:
+                pass
+        except ImportError:
             pass
         
         # flac (free lossless audio codec) for google-speech:
@@ -302,7 +323,7 @@ class RunTimeInfo(dict):
         profileInfo = ''
         appFlagList = [# flag these apps if active, case-insensitive match:
             'Firefox','Safari','Explorer','Netscape', 'Opera', 'Google Chrome', # web browsers can burn CPU cycles
-            'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
+            'Dropbox', 'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
             'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
             'VirtualBox','VBoxClient', # virtual machine as host or client
@@ -360,16 +381,17 @@ class RunTimeInfo(dict):
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
         
+        # CPU speed (will depend on system busy-ness)
+        d = numpy.array(numpy.linspace(0., 1., 1000000))
         t0 = core.getTime()
-        for i in range(2000000):
-            pass
-        self['systemTimeForIinRange2000000pass_sec'] = "%.3f" % (core.getTime() - t0)
+        numpy.std(d)
+        t = core.getTime() - t0
+        del d
+        self['systemTimeNumpySD1000000_sec'] = t
     
     def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
-        
-        self['windowHaveShaders'] = win._haveShaders
 
         if refreshTest in ['grating', True]:
             msPFavg, msPFstd, msPFmd6 = visual.getMsPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
@@ -426,7 +448,7 @@ class RunTimeInfo(dict):
         self['pythonScipyVersion'] = scipy.__version__
         self['pythonWxVersion'] = wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
-        self['pythonPygletVersion'] = pyglet.__version__
+        self['pythonPygletVersion'] = pyglet.version
         try: from pygame import __version__ as pygameVersion
         except: pygameVersion = '(no pygame)'
         self['pythonPygameVersion'] = pygameVersion
@@ -602,18 +624,12 @@ def _getUserNameUID():
     except KeyError:
         user = os.environ['USERNAME']
     uid = '-1' 
-    try:
-        if sys.platform not in ['win32']:
-            uid = shellCall('id -u')
-        else:
-            try:
-                uid = '1000'
-                if ctypes.windll.shell32.IsUserAnAdmin():
-                    uid = '0'
-            except:
-                raise
-    except:
-        pass
+    if sys.platform not in ['win32']:
+        uid = shellCall('id -u')
+    else:
+        uid = '1000'
+        if haveCtypes and ctypes.windll.shell32.IsUserAnAdmin():
+            uid = '0'
     return str(user), int(uid)
 
 def _getSha1hexDigest(thing, file=False):
@@ -640,4 +656,66 @@ def _getSha1hexDigest(thing, file=False):
     else:
         digester.update(str(thing))
     return digester.hexdigest()
-        
+
+
+def getRAM():
+    """Return system's physical RAM & available RAM, in M.
+    
+    Slow on Mac and Linux; fast on Windows. psutils is good but another dep."""
+    freeRAM = 'unknown'
+    totalRAM = 'unknown'
+    
+    if sys.platform == 'darwin':
+        so,se = core.shellCall('vm_stat', stderr=True)
+        lines = so.splitlines()
+        pageIndex = lines[0].find('page size of ')
+        if  pageIndex > -1:
+            pagesize = int(lines[0][pageIndex + len('page size of '):].split()[0])
+            free = float(lines[1].split()[-1])
+            freeRAM = int(free * pagesize / 1048576.)  # M
+            pieces = [lines[i].split()[-1] for i in range(1,6)]
+            total = sum(map(float, pieces))
+            totalRAM = int(total * pagesize / 1048576.)  # M
+    elif sys.platform == 'win32':
+        if not haveCtypes:
+            return 'unknown', 'unknown'
+        try:
+            # http://code.activestate.com/recipes/511491/
+            # modified by Sol Simpson for 64-bit systems (also ok for 32-bit)
+            kernel32 = ctypes.windll.kernel32
+            class MEMORYSTATUS(ctypes.Structure):
+                _fields_ = [
+                ('dwLength', DWORD),
+                ('dwMemoryLoad', DWORD),
+                ('dwTotalPhys', DWORDLONG), # ctypes.c_ulonglong for 64-bit
+                ('dwAvailPhys', DWORDLONG),
+                ('dwTotalPageFile', DWORDLONG),
+                ('dwAvailPageFile', DWORDLONG),
+                ('dwTotalVirtual', DWORDLONG),
+                ('dwAvailVirtual', DWORDLONG),
+                ('ullAvailExtendedVirtual', DWORDLONG),
+                ]
+            memoryStatus = MEMORYSTATUS()
+            memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
+            kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
+
+            totalRam = int(memoryStatus.dwTotalPhys / 1048576.) # M
+            freeRam = int(memoryStatus.dwAvailPhys / 1048576.) # M
+        except:
+            pass
+    elif sys.platform.startswith('linux'):
+        try:
+            so,se = core.shellCall('free', stderr=True)
+            lines = so.splitlines()
+            freeRAM = int(int(lines[1].split()[3]) / 1024.)  # M
+            totalRAM = int(int(lines[1].split()[1]) / 1024.)
+        except:
+            pass
+    else: # bsd, works on mac too
+        try:
+            total = core.shellCall('sysctl -n hw.memsize')
+            totalRAM = int(int(total) / 1048576.)
+            # not sure how to get available phys mem
+        except:
+            pass
+    return totalRAM, freeRAM
