@@ -108,7 +108,9 @@ class ConfigWizard(object):
         
         # run the diagnostics:
         verbose = not self.firstrun and dlg.data[0]
-        itemsList = self.runDiagnostics(verbose)  # sets self.warnings
+        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        itemsList = self.runDiagnostics(win, verbose)  # sets self.warnings
+        win.close()
         self.htmlReport(itemsList)
         self.save()
         
@@ -135,23 +137,7 @@ class ConfigWizard(object):
         if dlg.OK:
             self.app.followLink(url='file://' + self.reportPath)
 
-    def _prepare(self):
-        """Prep for bench-marking; currently just RAM-related on mac"""
-        if platform == 'darwin':
-            try:
-                core.shellCall('purge')  # free up physical memory if possible
-            except OSError:
-                pass
-        elif platform == 'win32':
-            # This will run in background, perhaps best to launch it to run overnight the day before benchmarking:
-            # %windir%\system32\rundll32.exe advapi32.dll,ProcessIdleTasks
-            # rundll32.exe advapi32.dll,ProcessIdleTasks
-            pass
-        else:
-            # as root: sync; echo 3 > /proc/sys/vm/drop_caches
-            pass
-
-    def runDiagnostics(self, verbose=False):
+    def runDiagnostics(self, win, verbose=False):
         """Return list of (key, val, msg) tuple, set self.warnings
         
         All tuple elements will be of <type str>.
@@ -161,11 +147,7 @@ class ConfigWizard(object):
         Hyperlinks can be embedded as <a href="...">
         """
         
-        self._prepare()  # things to do prior to benchmarks
         report = []  # add item tuples in display order
-        
-        # get a window first:
-        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
         
         # get lots of info and do quick-to-render visual (want no frames drop):
         #     for me, grating draw times are: mean 0.53 ms, SD 0.77 ms
@@ -250,7 +232,8 @@ class ConfigWizard(object):
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal), msg))
         try:
             from pyglet.media import avbin
-            report.append(('pyglet avbin', 'import ok', 'for movies'))
+            ver = avbin.get_version()
+            report.append(('pyglet avbin', str(ver), 'for movies'))
         except: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', 'Warning: could not import avbin; playing movies will not work'))
         
@@ -264,7 +247,6 @@ class ConfigWizard(object):
                 if not val:
                     val = '<strong>' + str(val) + '</strong>'
                 report.append((key, str(val), ''))
-        win.close()
         
         # ----- AUDIO: -----
         report.append(('Audio', '', ''))
@@ -318,6 +300,7 @@ class ConfigWizard(object):
         
         # ----- SYSTEM: -----
         report.append(('System', '', ''))
+        report.append(('platform', items['systemPlatform'], ''))
         msg = 'for online help, usage statistics, software updates, and google-speech'
         if items['systemHaveInternetAccess'] is not True:
             items['systemHaveInternetAccess'] = 'False'
@@ -326,6 +309,8 @@ class ConfigWizard(object):
         val = str(items['systemHaveInternetAccess'])
         report.append(('internet access', val, msg))
         report.append(('auto proxy', str(self.prefs.connections['autoProxy']), 'try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'))
+        if not self.prefs.connections['proxy'].strip():
+            self.prefs.connections['proxy'] = '&nbsp;&nbsp--'
         report.append(('proxy setting', str(self.prefs.connections['proxy']), 'current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'))
 
         msg = ''
