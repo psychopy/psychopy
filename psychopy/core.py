@@ -55,20 +55,16 @@ class Clock:
     """A convenient class to keep track of time in your experiments.
     You can have as many independent clocks as you like (e.g. one
     to time responses, one to keep track of stimuli...)
-    The clock is a sub-millisecond timer on most machines. i.e. the times reported will be more
-    accurate than you need! (based onpython.time.time() or python.time.clock())
+    The clock is based on python.time.time() which is a sub-millisec
+    timer on most machines. i.e. the times reported will be more
+    accurate than you need!
     """
     def __init__(self):
         self.timeAtLastReset=getTime()#this is sub-millisec timer in python
-    def getTime(self, absolute=False):
+    def getTime(self):
         """Returns the current time on this clock in secs (sub-ms precision)
-        if absolute=False (default), returns time relative to initiation or reset.
-        if absolute=True, returns system time
         """
-        if absolute:
-            return getTime()
-        else:
-            return getTime()-self.timeAtLastReset
+        return getTime()-self.timeAtLastReset
     def reset(self, newT=0.0):
         """Reset the time on the clock. With no args time will be
         set to zero. If a float is received this will be the new
