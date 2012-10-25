@@ -4116,9 +4116,7 @@ class BuilderFrame(wx.Frame):
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
             self.experiment_contact = runAmpDialog.get_experiment_contact()
-            print 'ok!'
         else:
-            print 'not ok'
             return
         
         try:

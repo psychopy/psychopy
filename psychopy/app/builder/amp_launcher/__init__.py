@@ -92,7 +92,6 @@ class AmpLauncherDialog(wx.Dialog):
         self.init_panels()
         self.init_sizer()
         self.init_buttons()
-        #self.disable_editing()
 
     def init_info(self, retriever):
         self.retriever = retriever
@@ -117,7 +116,6 @@ class AmpLauncherDialog(wx.Dialog):
         flags1 = wx.SizerFlags().Border(wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
         sizer.AddF(self.amp_list_panel, flags0.Proportion(1).Expand())
         sizer.AddF(self.amp_config, flags1.Proportion(1).Expand())
-        #sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
         sizer.AddF(self.CreateButtonSizer(wx.OK | wx.CANCEL), flags1.Proportion(0))
         self.SetSizer(sizer)
 
@@ -158,46 +156,48 @@ class AmpLauncherDialog(wx.Dialog):
             },
             'path': exec_path
         }
-        tag_saver = {
-            'config': {},
-            'config_sources': {'signal_saver': 'signal_saver'},
-             'launch_dependencies': {'signal_saver': 'signal_saver'},
-            'path': 'acquisition/tag_saver_peer.py'
-        }
-        info_saver = {
-            'config': {},
-            'config_sources': {
-                'amplifier': 'amplifier',
-                'signal_saver': 'signal_saver'
-            },
-            'launch_dependencies': {
-                'amplifier': 'amplifier',
-                'signal_saver': 'signal_saver'
-            },
-            'path': 'acquisition/info_saver_peer.py'
-        }
-        signal_saver = {
-            'config': {
-                'config_sources': {'amplifier': ''},
-                'external_params': {},
-                'launch_dependencies': {'amplifier': ''},
-                'local_params': {
-                    'save_file_name': 'psychopy_signal_' + str(int(time.time()))
-                }
-            },
-            'config_sources': {'amplifier': 'amplifier'},
-            'launch_dependencies': {'amplifier': 'amplifier'},
-            'path': 'acquisition/signal_saver_peer.py'
-        }
-        peers = {
-            'amplifier': amplifier_peer,
-            'tag_saver': tag_saver,
-            'info_save': info_saver,
-            'signal_saver': signal_saver,
-            'scenario_dir': '',
-            'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
-            'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
-        }
+        save_signal = self.GetParent().exp.settings.params['saveSignal'].val
+        if save_signal:
+            peers = {
+                'amplifier': amplifier_peer,
+                'scenario_dir': '',
+                'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
+                'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
+            }
+            tag_saver = {
+                'config': {},
+                'config_sources': {'signal_saver': 'signal_saver'},
+                 'launch_dependencies': {'signal_saver': 'signal_saver'},
+                'path': 'acquisition/tag_saver_peer.py'
+            }
+            info_saver = {
+                'config': {},
+                'config_sources': {
+                    'amplifier': 'amplifier',
+                    'signal_saver': 'signal_saver'
+                },
+                'launch_dependencies': {
+                    'amplifier': 'amplifier',
+                    'signal_saver': 'signal_saver'
+                },
+                'path': 'acquisition/info_saver_peer.py'
+            }
+            signal_saver = {
+                'config': {
+                    'config_sources': {'amplifier': ''},
+                    'external_params': {},
+                    'launch_dependencies': {'amplifier': ''},
+                    'local_params': {
+                        'save_file_name': 'psychopy_signal_' + str(int(time.time()))
+                    }
+                },
+                'config_sources': {'amplifier': 'amplifier'},
+                'launch_dependencies': {'amplifier': 'amplifier'},
+                'path': 'acquisition/signal_saver_peer.py'
+            }
+            peers['tag_saver'] = tag_saver
+            peers['info_saver'] = info_saver
+            peers['signal_saver'] = signal_saver
         return {'peers': peers}
 
     def run_click(self, event):
