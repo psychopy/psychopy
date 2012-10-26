@@ -40,6 +40,9 @@ class AmplifierInfoEntry(object):
     
     def get_launch_file(self):
         return self.entry_dict['experiment_info']['launch_file_path']
+    
+    def get_exec_file(self):
+        return self.entry_dict['amplifier_peer_info']['path']
 
     def get_server(self):
         return self.server

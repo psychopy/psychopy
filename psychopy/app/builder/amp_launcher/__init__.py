@@ -9,8 +9,9 @@ from psychopy.app.builder.amp_launcher.amplifier_panels import ChannelsPanel,\
     ParametersPanel, AmpConfigPanel
 from obci.obci_control.common.message import OBCIMessageTool
 from obci.obci_control.launcher import launcher_messages
-from psychopy.app.builder.amp_launcher.obci_connection import OBCIConnection
+import obci_connection
 from psychopy.app.builder.amp_launcher.retriever import AmplifierInfo
+import time
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
@@ -78,20 +79,19 @@ class SavingConfigPanel(wx.Panel):
 
         self.SetSizer(sizer)
 
-
 class AmpLauncherDialog(wx.Dialog):
+    
     """Main amplifier laucher dialog."""
     def __init__(self, parent, retriever = None):
         super(AmpLauncherDialog, self).__init__(
                 parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
-        self.connection = OBCIConnection(("127.0.0.1", 12012))
+        self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
         if not retriever:
             retriever = AmpListRetriever(self.connection)
         self.init_info(retriever)
         self.init_panels()
         self.init_sizer()
         self.init_buttons()
-        #self.disable_editing()
 
     def init_info(self, retriever):
         self.retriever = retriever
@@ -99,7 +99,6 @@ class AmpLauncherDialog(wx.Dialog):
             self.amp_info = self.retriever.fetch_amp_list()
         except Exception as e:
             self.amp_info = AmplifierInfo()
-            print e
 
     def init_panels(self):
         self.amp_list_panel = AmpListPanel(self, self.amp_info)
@@ -117,7 +116,6 @@ class AmpLauncherDialog(wx.Dialog):
         flags1 = wx.SizerFlags().Border(wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
         sizer.AddF(self.amp_list_panel, flags0.Proportion(1).Expand())
         sizer.AddF(self.amp_config, flags1.Proportion(1).Expand())
-        #sizer.Add(self.saving_config, proportion=0, flag=wx.EXPAND | wx.ALL, border=8)
         sizer.AddF(self.CreateButtonSizer(wx.OK | wx.CANCEL), flags1.Proportion(0))
         self.SetSizer(sizer)
 
@@ -140,25 +138,85 @@ class AmpLauncherDialog(wx.Dialog):
     def get_experiment_contact(self):
         return self.experiment_contact
 
+    def get_scenario(self):
+        exec_path = self.amp_config.get_exec_file()
+        sampling_rate = self.amp_config.get_param("sampling_rate") or 16
+        active_channels = self.amp_config.get_active_channels()
+        channel_names = self.amp_config.get_channel_names()
+        amplifier_peer = {
+            'config': {
+                'config_sources': {},
+                'external_params': {},
+                'launch_dependencies': {},
+                'local_params': {
+                    'active_channels': active_channels,
+                    'channel_names': channel_names,
+                    'sampling_rate': str(sampling_rate)
+                }
+            },
+            'path': exec_path
+        }
+        save_signal = self.GetParent().exp.settings.params['saveSignal'].val
+        if save_signal:
+            peers = {
+                'amplifier': amplifier_peer,
+                'scenario_dir': '',
+                'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
+                'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
+            }
+            tag_saver = {
+                'config': {},
+                'config_sources': {'signal_saver': 'signal_saver'},
+                 'launch_dependencies': {'signal_saver': 'signal_saver'},
+                'path': 'acquisition/tag_saver_peer.py'
+            }
+            info_saver = {
+                'config': {},
+                'config_sources': {
+                    'amplifier': 'amplifier',
+                    'signal_saver': 'signal_saver'
+                },
+                'launch_dependencies': {
+                    'amplifier': 'amplifier',
+                    'signal_saver': 'signal_saver'
+                },
+                'path': 'acquisition/info_saver_peer.py'
+            }
+            signal_saver = {
+                'config': {
+                    'config_sources': {'amplifier': ''},
+                    'external_params': {},
+                    'launch_dependencies': {'amplifier': ''},
+                    'local_params': {
+                        'save_file_name': 'psychopy_signal_' + str(int(time.time()))
+                    }
+                },
+                'config_sources': {'amplifier': 'amplifier'},
+                'launch_dependencies': {'amplifier': 'amplifier'},
+                'path': 'acquisition/signal_saver_peer.py'
+            }
+            peers['tag_saver'] = tag_saver
+            peers['info_saver'] = info_saver
+            peers['signal_saver'] = signal_saver
+        return {'peers': peers}
+
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
         server = self.amp_config.get_server()
-        sampling_rate = self.amp_config.get_param("sampling_rate")
-        active_channels = self.amp_config.get_active_channels()
-        channel_names = self.amp_config.get_channel_names()
-        launch_file = self.amp_config.get_launch_file()
-        name = "Psychopy Experiment"
-        amplifier_params = {
-            "channel_names": channel_names, "active_channels": active_channels,
-            "sampling_rate": sampling_rate, "additional_params": {}
-        }
-        remote_connection = OBCIConnection((server, 12012))
-        contact_uuid = remote_connection.start_eeg_signal(name, launch_file, amplifier_params)
-        remote_connection.get_experiment_contact(contact_uuid)
-        self.experiment_contact = remote_connection
-        print "End modal -- OK"
-        self.EndModal(wx.OK)
+        launch_file_path = self.amp_config.get_launch_file()
+        # TODO read port from server list
+        client = obci_connection.ObciClient("tcp://" + server + ":54654")
+        experiment = client.create_experiment("Psychopy Experiment")
+        experiment_address = experiment['rep_addrs'][-1]
+        experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
+        scenario = self.get_scenario()
+        experiment_manager.set_experiment_scenario(launch_file_path, scenario)
+        experiment_manager.start_experiment()
+        experiment_manager.close()
+        client.uuid = experiment["uuid"]
+        self.experiment_contact = client
+        event.Skip()
 
 if __name__ == "__main__":
     app = wx.App()

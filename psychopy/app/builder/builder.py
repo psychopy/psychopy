@@ -4156,7 +4156,8 @@ class BuilderFrame(wx.Frame):
         """The script/exp has finished running
         """
         if self.experiment_contact:
-            self.experiment_contact.stop_experiment()
+            self.experiment_contact.kill_experiment()
+            self.experiment_contact.close()
             self.experiment_contact = None
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)

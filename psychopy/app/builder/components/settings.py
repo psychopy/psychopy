@@ -9,7 +9,8 @@ DEFAULT_PARAM_VALUES = {
   'sendTags': False,
   'saveTags': True,
   'doSignal': False,
-  'serialTriggerDevice': '/dev/ttyUSB0'
+  'serialTriggerDevice': '/dev/ttyUSB0',
+  'saveSignal': False
 }
 
 class SettingsComponent:
@@ -80,10 +81,12 @@ class SettingsComponent:
         self.params['saveTags'] = Param(
             paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="save tags")
         self.params["doSignal"] = Param(
-            paramValues['doSignal'], valType="bool", hint="Should signal be sent?", label="do trigger")
+            paramValues['doSignal'], valType="bool", hint="Should trigger used?", label="do trigger")
         self.params['serialTriggerDevice'] = Param(
             paramValues['serialTriggerDevice'], valType='str', hint="To which serial port is trigger connected?",
             label="device name for trigger")
+        self.params["saveSignal"] = Param(
+            paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="save signal")
 
     def getType(self):
         return self.__class__.__name__
