@@ -1086,6 +1086,8 @@ class CoderFrame(wx.Frame):
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+        if self.appData['winY'] < 20:
+            self.appData['winY'] = 20
         wx.Frame.__init__(self, parent, ID, title,
                          (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']))
