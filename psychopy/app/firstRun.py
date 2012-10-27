@@ -10,11 +10,12 @@
 # Author: Jeremy Gray, Oct 2012
 
 from pyglet.gl import gl_info
-from psychopy import info, data, visual, gui, core, __version__
+from psychopy import info, data, visual, gui, core, __version__, web
 import os, sys, time
 import wx
 import numpy as np
 import platform
+import tempfile, pickle
 
 
 class ConfigWizard(object):
@@ -446,6 +447,142 @@ class ConfigWizard(object):
         f = open(self.reportPath, 'w+b')
         f.write(self.reportText)
         f.close()
+
+class BenchmarkWizard(ConfigWizard):
+    """Class to get system info, run benchmarks, optional upload to psychopy.org"""
+    def __init__(self, app):
+        self.app = app
+        self.firstrun = False
+        self.prefs = self.app.prefs
+        self.appName = self.app.GetAppName()
+        self.name = self.appName + ' Benchmark Wizard'
+        
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText('Benchmarking takes ~20 seconds to gather')
+        dlg.addText('configuration and performance data. Begin?')
+        dlg.addText('')
+        dlg.show()
+        if not dlg.OK:
+            return
+        
+        self._prepare()
+        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        itemsList = self.runDiagnostics(win, verbose=True)
+        for itm in itemsList:
+            if itm[0] == 'visual sync (refresh)':
+                baselineFps = itm[1]
+                break
+        start = 100
+        for shape in ['circle', 'square']:  # order matters
+            dotsList = self.runLotsOfDots(win, baselineFps, fieldShape=shape, starting=start)
+            best = (dotsList[-1][0] + '_' + str(shape), dotsList[-1][1])
+            itemsList.append(best)
+            start = int(dotsList[-1][1])  # start square where circle breaks down
+        itemsList.append(('benchmark version', '0.1', ''))
+        win.close()
+        
+        itemsDict = {}
+        for itm in itemsList:
+            if itm[0].find('proxy setting') > -1 or not itm[1]:
+                continue
+            itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
+            print itm[0]+': ' + itemsDict[itm[0]]
+        
+        # present dialog, upload only if opt-in:
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText('Benchmark complete! (See the Coder output window.)')
+        dlg.addText('Are you willing to share your data at psychopy.org?')
+        dlg.addText('Only configuration and performance data are shared;')
+        dlg.addText('No personally identifying information is sent.')
+        dlg.addText('(Sharing requires an internet connection.)')
+        dlg.show()
+        if dlg.OK:
+            status = self.uploadReport(itemsDict)
+            dlg = gui.Dlg(title=self.name + ' result')
+            dlg.addText('')
+            if status.startswith('success good_upload'):
+                dlg.addText('Configutation data were successfully uploaded to')
+                dlg.addText('http://upload.psychopy.org/benchmark/report.html')
+                dlg.addText('Thanks for participating!')
+            else:
+                dlg.addText('Upload error: maybe no internet access?')
+            dlg.show()
+
+    def _prepare(self):
+        """Prep for bench-marking; currently just RAM-related on mac"""
+        if sys.platform == 'darwin':
+            try:
+                core.shellCall('purge')  # free up physical memory if possible
+            except OSError:
+                pass
+        elif sys.platform == 'win32':
+            # This will run in background, perhaps best to launch it to run overnight the day before benchmarking:
+            # %windir%\system32\rundll32.exe advapi32.dll,ProcessIdleTasks
+            # rundll32.exe advapi32.dll,ProcessIdleTasks
+            pass
+        elif sys.platform.startswith('linux'):
+            # as root: sync; echo 3 > /proc/sys/vm/drop_caches
+            pass
+        else:
+            pass
+
+    def runLotsOfDots(self, win, baseline, fieldShape, starting=100):
+        """DotStim stress test: draw increasingly many dots until drop frames"""
+        
+        win.setRecordFrameIntervals(True)
+        # define dots to be drawn:
+        dots = range(starting // 100, 12)
+        dotPatch = [visual.DotStim(win, fieldShape=fieldShape,
+                        color=(1.0, 1.0, 1.0), dotSize=5, nDots=i * 100)
+                    for i in dots]
+        secs = 1  # how long to draw them for, at least 1s
+        baseline = round(1000. / 16.66667)
+        
+        dotsList = []
+        i = 0
+        win.flip()
+        win.fps() # reset
+        trialClock = core.Clock()
+        bestDots = 0
+        while True:
+            dotPatch[i].draw()
+            win.flip()
+            if trialClock.getTime() >= secs:
+                fps = win.fps()
+                frames_dropped = round(baseline-fps)
+                if not frames_dropped:
+                    bestDots = dotPatch[i].nDots
+                dotsList.append(('dots_'+str(dotPatch[i].nDots), str(frames_dropped),''))
+                i += 1
+                if i >= len(dotPatch):
+                    del dotPatch[0]
+                    dotPatch.insert(0, 1)
+                    dotPatch.append(visual.DotStim(win, color=(1.0, 1.0, 1.0), 
+                        fieldShape=fieldShape,
+                        nDots=dotPatch[i-1].nDots + 100))
+                if fps < baseline * 0.6:
+                    dotsList.append(('best_dots', str(bestDots),''))
+                    break
+                trialClock.reset()
+                win.fps()  # reset
+        return dotsList
+
+    def uploadReport(self, itemsList):
+        """Pickle & upload data to psychopy.org"""
+        tmp = tempfile.NamedTemporaryFile()
+        pickle.dump(itemsList, tmp)
+        tmp.flush()
+        tmp.seek(0)
+        
+        # Upload the data:
+        selector = 'http://upload.psychopy.org/benchmark/'
+        basicAuth = 'psychopy:open-sourc-ami'
+        status = web.upload(selector, tmp.name, basicAuth)
+        tmp.close()  # vanishes
+        
+        return status
 
 def driversOkay():
     """Returns True if drivers should be okay for PsychoPy"""

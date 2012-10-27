@@ -231,6 +231,9 @@ class PsychoPyApp(wx.App):
     def configWizard(self, evt=None, firstrun=False):
         from psychopy.app import firstRun
         firstRun.ConfigWizard(self, firstrun=firstrun)
+    def benchmarkWizard(self, evt=None):
+        from psychopy.app import firstRun
+        firstRun.BenchmarkWizard(self)
         
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
