@@ -3323,6 +3323,8 @@ class BuilderFrame(wx.Frame):
             usingDefaultSize=True
         else:
             usingDefaultSize=False
+        if self.frameData['winY'] < 20:
+            self.frameData['winY'] = 20
         wx.Frame.__init__(self, parent=parent, id=id, title=title,
                             pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
                             size=(int(self.frameData['winW']),int(self.frameData['winH'])),
