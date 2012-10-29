@@ -35,15 +35,21 @@ Start PsychoPy, and be sure to be in the Builder view.
 * Click on a Text component
     .. image:: ../../psychopy/app/Builder/components/text.png
   
-  and the dialog box for text stimuli will pop up. (In a dialog, you can click the help icon---its at the bottom, near the OK button.)
-  
-* In the `Text` field, replace the default text with your message. The text you type here will be shown on the screen. What is your message?
-* Click OK (near the botton of the dialog box).
+  and a Text Properties dialog will pop up.
+    .. image:: images/textdialog.png
+      :width: 220
+
+* In the `Text` field, replace the default text with your message. When you run the program, the text you type here will be shown on the screen.
+* Click OK (near the botton of the dialog box). (Properties dialogs have a link to online help---an icon at the bottom, near the OK button.)
 * Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/builder>`.)
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
     .. image:: ../../psychopy/app/Resources/run32.png
 
-What happens? If nothing happens or it looks wrong, recheck all the steps above; be sure to start from a new Builder view.
+Assuming you typed in "Hello world!", your screen should have looked this this (briefly):
+      .. image:: images/helloworld.png
+        :width: 220
+
+If nothing happens or it looks wrong, recheck all the steps above; be sure to start from a new Builder view.
 
 What if you wanted to display your cheerful greeting for longer than the default time?
 
@@ -86,7 +92,7 @@ Coder
 
 Being able to inspect Builder-generated code is nice, but its possible to write code yourself, directly. With the Coder and various libraries, you can do virtually anything that your computer is capable of doing, using a full-featured modern programming language (python).
 
-For variety, lets say hello to the Spanish-speaking world (mostly just to show off unicode).
+For variety, lets say hello to the Spanish-speaking world. PsychoPy knows Unicode (UTF-8).
 
 If you are not in the Coder, switch to it now.
 
