@@ -44,7 +44,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
-from psychopy.app import connections
+#from psychopy.app import connections
 import sys, os, threading
 
 """
@@ -195,9 +195,10 @@ class PsychoPyApp(wx.App):
         #please don't disable this - it's important for PsychoPy's development
         self._latestAvailableVersion=None
         self.updater=None
-        if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
-            connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
-            connectThread.start()
+        # connections are disabled for now
+        #if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
+        #    connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
+        #    connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
         if not ok:#tell the user what has changed
@@ -212,10 +213,10 @@ class PsychoPyApp(wx.App):
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
-        if self.prefs.connections['checkForUpdates']:
-            self.Bind(wx.EVT_IDLE, self.checkUpdates)
-        else:
-            self.Bind(wx.EVT_IDLE, self.onIdle)
+        #if self.prefs.connections['checkForUpdates']:
+        #    self.Bind(wx.EVT_IDLE, self.checkUpdates)
+        #else:
+        self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
