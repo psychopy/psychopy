@@ -89,15 +89,15 @@
     maxFavorites = integer(default=10)
 
 # Settings for connections
-[connections]
+#[connections]
     # the http proxy for usage stats and auto-updating; format is 000.000.000.000:0000
-    proxy = string(default="")
+    #proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
-    autoProxy = boolean(default=True)
+    #autoProxy = boolean(default=True)
     # allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development
-    allowUsageStats = boolean(default=True)
+    #allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
-    checkForUpdates = boolean(default=True)
+    #checkForUpdates = boolean(default=True)
 
 # KeyBindings; new key bindings only take effect on restart; Ctrl not available on Mac (use Cmd)
 [keyBindings]
