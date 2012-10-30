@@ -1,3 +1,10 @@
+psychopy-openbci (1.75.01.0.5-1) precise; urgency=low
+
+  * New versioning introduced.
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 30 Oct 2012 13:52:23 +0100
+
 psychopy-openbci (1.75.01-openbci-0.4-1) precise; urgency=low
 
   * New upstream release.
