@@ -557,8 +557,8 @@ class BenchmarkWizard(ConfigWizard):
                 dotsList.append(('dots_'+str(dotPatch[i].nDots), str(frames_dropped),''))
                 i += 1
                 if i >= len(dotPatch):
-                    del dotPatch[0]
-                    dotPatch.insert(0, 1)
+                    #del dotPatch[0]
+                    #dotPatch.insert(0, 1)
                     dotPatch.append(visual.DotStim(win, color=(1.0, 1.0, 1.0), 
                         fieldShape=fieldShape,
                         nDots=dotPatch[i-1].nDots + 100))
