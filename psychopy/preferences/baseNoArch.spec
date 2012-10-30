@@ -44,11 +44,13 @@
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # will reset site & key prefs to defaults immediately
-    resetSitePrefs = boolean(default='False')
+    resetPrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
+    # locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale
+    locale = string(default='')
 
 # Settings for the Coder window
 [coder]
@@ -82,7 +84,6 @@
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
-    topFlow = boolean(default=False)
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
     alwaysShowReadme = boolean(default=True)
