@@ -67,13 +67,13 @@ To do more, you can try things out and see what happens. You may want to consult
 
 A good way to develop your own first PsychoPy experiment is to base it on the Builder demo that seems closest. Copy it, and then adapt it step by step to become more and more like the program you have in mind. Being familiar with the Builder demos can only help this process.
 
-You could stop here, and just use the Builder for creating your experiments. It provides a lot of the key features that people need to run a wide variety of studies. But it does have its limitations. When you want to have more complex designs or features, you'll want to investigate the Coder.
+You could stop here, and just use the Builder for creating your experiments. It provides a lot of the key features that people need to run a wide variety of studies. But it does have its limitations. When you want to have more complex designs or features, you'll want to investigate the Coder. As a segue to the Coder, lets start from the Builder, and see how Builder programs work.
 
 
 Builder-to-coder
 =========================
 
-Whenever you run a Builder experiment, PsychoPy will first translate it into python code, and then execute that code. As a segue to the Coder, lets start from the Builder, and see how Builder programs work.
+Whenever you run a Builder experiment, PsychoPy will first translate it into python code, and then execute that code.
 
 To get a better feel for what was happening "behind the scenes" in the Builder program above:
 
