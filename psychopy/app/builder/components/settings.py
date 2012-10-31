@@ -175,7 +175,9 @@ class SettingsComponent:
             # TODO move import to anothe place
             buff.writeIndented("import psychopy.contrib.obci\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
+            buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
             # TODO pass real obci context instead of None
+            buff.writeIndented("helper = exps_helper.ExpsHelper(config_module=sys.modules[__name__])\n")
             buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
             buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
