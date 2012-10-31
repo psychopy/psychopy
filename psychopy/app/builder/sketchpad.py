@@ -8,6 +8,7 @@ import OpenGL.GL as gl
 import pygame.font
 import numpy
 import logging
+from psychopy import preferences
 
 class RoutinePreview(glcanvas.GLCanvas):
     def __init__(self, parent):
@@ -73,6 +74,10 @@ class SketchpadWindow(wx.Dialog):
         self._haveShaders = False
         self.winType = "wxglcanvas"
         self.size = (128, 128)
+        self.exp = parent.exp
+        self.units = self.exp.settings.params["Units"].val
+        if self.units == "use prefs":
+            self.units = preferences.Preferences().general["units"]
         pygame.font.init()
         self.canvas = RoutinePreview(self)
         self.canvas.update_routine(self.routine)
