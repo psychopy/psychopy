@@ -105,7 +105,7 @@ class _SoundBase:
     def setSound(self, value, secs=0.5, octave=4):
         """Set the sound to be played.
 
-        Often this is not needed byt the user - it is called implicitly during
+        Often this is not needed by the user - it is called implicitly during
         initialisation.
 
         :parameters:
@@ -123,6 +123,8 @@ class _SoundBase:
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
         """
+        self._snd = None  # Re-init sound to ensure bad values will raise RuntimeError during setting
+        
         try:#could be '440' meaning 440
             value = float(value)
         except:
