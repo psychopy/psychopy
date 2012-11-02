@@ -10,11 +10,12 @@
 # Author: Jeremy Gray, Oct 2012
 
 from pyglet.gl import gl_info
-from psychopy import info, data, visual, gui, core, __version__
+from psychopy import info, data, visual, gui, core, __version__, web
 import os, sys, time
 import wx
 import numpy as np
 import platform
+import tempfile, pickle
 
 
 class ConfigWizard(object):
@@ -219,6 +220,7 @@ class ConfigWizard(object):
         dots100 = visual.DotStim(win, nDots=100, speed=0.005, dotLife=12, dir=90,
             coherence=0.2, dotSize=8, fieldShape='circle')
         win.setRecordFrameIntervals(True)
+        win.frameIntervals = []
         win.flip()
         for i in xrange(180):
             dots100.draw()
@@ -230,6 +232,7 @@ class ConfigWizard(object):
         if nDropped:
             msg = 'Warning: could not keep up during <a href="http://www.psychopy.org/api/visual/dotstim.html">DotStim</a> with 100 random dots.'
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal), msg))
+        win.setRecordFrameIntervals(False)
         try:
             from pyglet.media import avbin
             ver = avbin.get_version()
@@ -409,11 +412,7 @@ class ConfigWizard(object):
                 htmlDoc += item + "<hr>"
         else:
             # items is a list of tuples:
-            if not self.prefs.app['debugMode']:
-                htmlDoc += '<h2><font color="green">Brief configuration report</font></h2>\n'
-                htmlDoc += '<p>For a more verbose report, set debugMode = True in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a></p>\n'
-            else:
-                htmlDoc += '<h2><font color="green">Full configuration report</font></h2>\n'
+            htmlDoc += '<h2><font color="green">Configuration report</font></h2>\n'
             numWarn = len(self.warnings)
             if numWarn == 0:
                 htmlDoc += '<p>All values seem reasonable (no warnings, but there might still be room for improvement).</p>\n'
@@ -421,12 +420,14 @@ class ConfigWizard(object):
                 htmlDoc += '<p><font color="red">1 suboptimal value was detected</font>, see details below (%s).</p>\n' % (self.warnings[0])
             elif numWarn > 1:
                 htmlDoc += '<p><font color="red">%i suboptimal values were detected</font>, see details below (%s).</p>\n' % (numWarn, ', '.join(self.warnings))
-            htmlDoc += '''<p>Resources: <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>\n
+            htmlDoc += '''<p>Resources:
+                  Contributed <a href="http://upload.psychopy.org/benchmark/report.html">benchmarks</a>
+                | <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>
                 | Download <a href="http://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
                 | <a href="http://groups.google.com/group/psychopy-users">Search the user-group archives</a>
                 </p>'''
             htmlDoc += '<hr><p></p>    <table>\n'
-            htmlDoc += '    <tr><td><font size=+1><strong>Configuration</strong></font></td><td><font size=+1><strong>Version or value</strong></font></td><td><font size=+1><strong>Notes</strong></font></td>'
+            htmlDoc += '    <tr><td></td><td><font size=+1><strong>Version or value</strong></font></td><td><font size=+1><strong>Notes</strong></font></td>'
             for (key, val, msg) in items:
                 if val == msg == '':
                     key = '<font color="darkblue" size="+1"><strong>' + key + '</strong></font>'
@@ -446,6 +447,158 @@ class ConfigWizard(object):
         f = open(self.reportPath, 'w+b')
         f.write(self.reportText)
         f.close()
+
+class BenchmarkWizard(ConfigWizard):
+    """Class to get system info, run benchmarks, optional upload to psychopy.org"""
+    def __init__(self, app):
+        self.app = app
+        self.firstrun = False
+        self.prefs = self.app.prefs
+        self.appName = self.app.GetAppName()
+        self.name = self.appName + ' Benchmark Wizard'
+        
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText('Benchmarking takes ~20 seconds to gather')
+        dlg.addText('configuration and performance data. Begin?')
+        dlg.addText('')
+        dlg.show()
+        if not dlg.OK:
+            return
+        
+        self._prepare()
+        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        itemsList = [('Benchmark', '', '')]
+        itemsList.append(('benchmark version', '0.1', 'dots & configuration'))
+        start = 100
+        for shape in ['circle', 'square']:  # order matters
+            dotsList = self.runLotsOfDots(win, fieldShape=shape, starting=start)
+            #best = (dotsList[-1][0] + '_' + str(shape), dotsList[-1][1], '')
+            itemsList.append(dotsList[-1])
+            start = int(dotsList[-1][1])  # start square where circle breaks down
+        itemsList.extend(self.runDiagnostics(win, verbose=True))
+        win.close()
+        
+        itemsDict = {}
+        for itm in itemsList:
+            if itm[0].find('proxy setting') > -1 or not itm[1]:
+                continue
+            itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
+            print itm[0]+': ' + itemsDict[itm[0]]
+        
+        # present dialog, upload only if opt-in:
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText('Benchmark complete! (See the Coder output window.)')
+        dlg.addText('Are you willing to share your data at psychopy.org?')
+        dlg.addText('Only configuration and performance data are shared;')
+        dlg.addText('No personally identifying information is sent.')
+        dlg.addText('(Sharing requires an internet connection.)')
+        dlg.show()
+        if dlg.OK:
+            status = self.uploadReport(itemsDict)
+            dlg = gui.Dlg(title=self.name + ' result')
+            dlg.addText('')
+            if status.startswith('success good_upload'):
+                dlg.addText('Configutation data were successfully uploaded to')
+                dlg.addText('http://upload.psychopy.org/benchmark/report.html')
+                dlg.addText('Thanks for participating!')
+            else:
+                dlg.addText('Upload error: maybe no internet access?')
+            dlg.show()
+        
+        self.htmlReport(itemsList)
+        self.reportPath = os.path.join(self.app.prefs.paths['userPrefsDir'], 'configurationReport.html')
+        self.save()
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText('Click OK to view full configuration and benchmark data.')
+        dlg.addText('Click Cancel to stay in PsychoPy.')
+        dlg.addText('')
+        dlg.show()
+        if dlg.OK:
+            self.app.followLink(url='file://' + self.reportPath)
+
+    def _prepare(self):
+        """Prep for bench-marking; currently just RAM-related on mac"""
+        if sys.platform == 'darwin':
+            try:
+                core.shellCall('purge')  # free up physical memory if possible
+            except OSError:
+                pass
+        elif sys.platform == 'win32':
+            # This will run in background, perhaps best to launch it to run overnight the day before benchmarking:
+            # %windir%\system32\rundll32.exe advapi32.dll,ProcessIdleTasks
+            # rundll32.exe advapi32.dll,ProcessIdleTasks
+            pass
+        elif sys.platform.startswith('linux'):
+            # as root: sync; echo 3 > /proc/sys/vm/drop_caches
+            pass
+        else:
+            pass
+
+    def runLotsOfDots(self, win, fieldShape, starting=100):
+        """DotStim stress test: draw increasingly many dots until drop frames"""
+        
+        win.setRecordFrameIntervals(True)
+        # define dots to be drawn:
+        dots = range(starting // 100, 12)
+        dotPatch = [visual.DotStim(win, fieldShape=fieldShape, 
+                        color=(1.0, 1.0, 1.0), dotSize=5, nDots=i * 100)
+                    for i in dots]
+        secs = 1  # how long to draw them for, at least 1s
+        
+        # baseline fps:
+        for i in xrange(5):
+            win.flip() # wake things up
+        win.fps() # reset
+        for i in xrange(60):
+            win.flip()
+        baseline = win.fps()
+        
+        dotsList = []
+        i = 0
+        win.flip()
+        win.fps() # reset
+        trialClock = core.Clock()
+        bestDots = 0
+        while True:
+            dotPatch[i].draw()
+            win.flip()
+            if trialClock.getTime() >= secs:
+                fps = win.fps()
+                frames_dropped = round(baseline-fps)
+                if not frames_dropped:
+                    bestDots = dotPatch[i].nDots
+                dotsList.append(('dots_'+str(dotPatch[i].nDots), str(frames_dropped), ''))
+                i += 1
+                if i >= len(dotPatch):
+                    dotPatch.append(visual.DotStim(win, color=(1.0, 1.0, 1.0), 
+                        fieldShape=fieldShape, 
+                        nDots=dotPatch[i-1].nDots + 100))
+                if fps < baseline * 0.6:
+                    dotsList.append(('best_dots_' + fieldShape, str(bestDots), ''))
+                    break
+                trialClock.reset()
+                win.fps()  # reset
+        win.setRecordFrameIntervals(False)
+        win.flip()
+        return dotsList
+
+    def uploadReport(self, itemsList):
+        """Pickle & upload data to psychopy.org"""
+        tmp = tempfile.NamedTemporaryFile()
+        pickle.dump(itemsList, tmp)
+        tmp.flush()
+        tmp.seek(0)
+        
+        # Upload the data:
+        selector = 'http://upload.psychopy.org/benchmark/'
+        basicAuth = 'psychopy:open-sourc-ami'
+        status = web.upload(selector, tmp.name, basicAuth)
+        tmp.close()  # vanishes
+        
+        return status
 
 def driversOkay():
     """Returns True if drivers should be okay for PsychoPy"""
