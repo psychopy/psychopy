@@ -326,6 +326,7 @@ class RunTimeInfo(dict):
             'Dropbox', 'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
             'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
+            'Skype',
             'VirtualBox','VBoxClient', # virtual machine as host or client
             'Parallels', 'Coherence', 'prl_client_app','prl_tools_service',
             'VMware'] # just a guess
