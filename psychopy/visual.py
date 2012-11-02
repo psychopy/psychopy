@@ -1234,7 +1234,7 @@ class _BaseVisualStim:
                     self.setText(self.text)
                 if self.__class__.__name__ == 'ImageStim':
                     self.setImage(self._imName)
-                if self.__class__.__name__ == 'GratingStim':
+                if self.__class__.__name__ in ('GratingStim', 'RadialStim'):
                     self.setTex(self._texName)
                 if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
