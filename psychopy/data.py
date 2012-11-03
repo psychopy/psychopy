@@ -422,7 +422,7 @@ class _BaseTrialHandler(object):
 
         dataArray = self._createOutputArray(stimOut=[],
             dataOut=dataOut,
-            matrixOnly=False,)
+            matrixOnly=matrixOnly)
 
         #set default delimiter if none given
         if delim==None:
@@ -525,7 +525,7 @@ class _BaseTrialHandler(object):
         #create the data array to be sent to the Excel file
         dataArray = self._createOutputArray(stimOut=[],
             dataOut=dataOut,
-            matrixOnly=False,)
+            matrixOnly=matrixOnly)
 
         #import necessary subpackages - they are small so won't matter to do it here
         from openpyxl.workbook import Workbook
@@ -2394,7 +2394,7 @@ class MultiStairHandler(_BaseTrialHandler):
             #make a filename
             label = thisStair.condition['label']
             thisStair.saveAsExcel(fileName=fileName, sheetName=label,
-                matrixOnly=False, appendFile=append)
+                matrixOnly=matrixOnly, appendFile=append)
     def saveAsText(self,fileName,
                    delim='\t',
                    matrixOnly=False):

@@ -81,7 +81,7 @@ class SettingsComponent:
         return saveToDir
     def writeStartCode(self,buff):
         buff.writeIndented("# Store info about the experiment session\n")
-        buff.writeIndented("expName = '%s'  # from the Builder filename that created this script\n" %(self.exp.name))
+        buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')

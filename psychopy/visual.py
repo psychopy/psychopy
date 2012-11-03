@@ -1259,14 +1259,6 @@ class _BaseVisualStim:
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
                     log=log)
-    def setContr(self, newContr, operation='', log=True):
-        """Set the contrast of the stimulus
-        """
-        self._set('contr', newContr, operation, log)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            if hasattr(self,'_texName'): self.setTex(self._texName)
-            elif hasattr(self,'_imName'): self.setIm(self._imName)
     def _set(self, attrib, val, op='', log=True):
         """
         Deprecated. Use methods specific to the parameter you want to set
@@ -1396,9 +1388,21 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
-            x,y = x.getPos()
+            x, y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
+        if self.units in ['deg','degs']:
+            x, y = psychopy.misc.deg2pix(numpy.array((x, y)), self.win.monitor)
+        elif self.units == 'cm':
+            x, y = psychopy.misc.cm2pix(numpy.array((x, y)), self.win.monitor)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(oriRadians)
+            cosOri = numpy.cos(oriRadians)
+            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
+            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
+            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
+        
         return pointInPolygon(x, y, self)
     def overlaps(self, polygon):
         """Determines if this stimulus intersects another one. If `polygon` is
@@ -1415,7 +1419,15 @@ class _BaseVisualStim:
         """
         if self.needVertexUpdate:
             self._calcVerticesRendered()
-        return polygonsOverlap(self, polygon)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(-oriRadians)
+            cosOri = numpy.cos(-oriRadians)
+            x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+            y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+            return polygonsOverlap(numpy.column_stack((x,y)) + self._posRendered, polygon)
+        else:
+            return polygonsOverlap(self, polygon)
 
 class DotStim(_BaseVisualStim):
     """
@@ -1454,6 +1466,7 @@ class DotStim(_BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity =1.0,
+                 contrast =1.0,
                  depth  =0,
                  element=None,
                  signalDots='same',
@@ -1546,6 +1559,7 @@ class DotStim(_BaseVisualStim):
         self.dir = dir
         self.speed = speed
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.element = element
         self.dotLife = dotLife
         self.signalDots = signalDots
@@ -3751,6 +3765,7 @@ class MovieStim(_BaseVisualStim):
                  flipVert = False,
                  flipHoriz = False,
                  opacity=1.0,
+                 contrast = 1.0,
                  name='',
                  loop=False,
                  autoLog=True,
@@ -3809,6 +3824,7 @@ class MovieStim(_BaseVisualStim):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.loop = loop
         self.status=NOT_STARTED
 
@@ -3834,7 +3850,11 @@ class MovieStim(_BaseVisualStim):
         """
         # Over-rides _BaseVisualStim.setOpacity
         self._set('opacity', newOpacity, operation, log=log)
-
+    def setContrast(self,value,operation='', log=True):
+        self._set('contrast', value, operation, log=log)
+        #if we don't have shaders we need to rebuild the texture
+        if not self._useShaders:
+            self.setMovie(self._movie, log=False)
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -3987,6 +4007,7 @@ class TextStim(_BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity=1.0,
+                 contrast=1.0,
                  units="",
                  ori=0.0,
                  height=None,
@@ -4056,7 +4077,7 @@ class TextStim(_BaseVisualStim):
         else: self._useShaders=False
         self.needUpdate =1
         self.opacity= opacity
-        self.contrast= 1.0
+        self.contrast= float(contrast)
         self.alignHoriz = alignHoriz
         self.alignVert = alignVert
         self.antialias = antialias
@@ -4589,6 +4610,7 @@ class ShapeStim(_BaseVisualStim):
                  size=1,
                  ori=0.0,
                  opacity=1.0,
+                 contrast=1.0,
                  depth  =0,
                  interpolate=True,
                  lineRGB=None,
@@ -4668,6 +4690,7 @@ class ShapeStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
         self.opacity = opacity
+        self.contrast = float(contrast)
         self.pos = numpy.array(pos, float)
         self.closeShape=closeShape
         self.lineWidth=lineWidth
@@ -4734,7 +4757,7 @@ class ShapeStim(_BaseVisualStim):
         """
         self._set('size', numpy.asarray(value), operation, log=log)
         self.needVertexUpdate=True
-
+        
     def setVertices(self,value=None, operation='', log=True):
         """Set the xy values of the vertices (relative to the centre of the field).
         Values should be:
@@ -5359,7 +5382,7 @@ class ImageStim(_BaseVisualStim):
         self._set('contrast', value, operation, log=log)
         #if we don't have shaders we need to rebuild the texture
         if not self._useShaders:
-            self.setIm(self._imName)
+            self.setImage(self._imName)
     def setImage(self, value, log=True):
         """Set the image to be used for the stimulus to this new value
         """
