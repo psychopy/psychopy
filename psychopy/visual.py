@@ -1889,8 +1889,6 @@ class SimpleImageStim:
                  image     ="",
                  units   ="",
                  pos     =(0.0,0.0),
-                 contrast=1.0,
-                 opacity=1.0,
                  flipHoriz=False,
                  flipVert=False,
                  name='', autoLog=True):
@@ -1912,12 +1910,6 @@ class SimpleImageStim:
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be position beyond the
                 window!
-            contrast :
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus)
-            opacity :
-                1.0 is opaque, 0.0 is transparent
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -1937,8 +1929,6 @@ class SimpleImageStim:
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
 
-        self.contrast = float(contrast)
-        self.opacity = float(opacity)
         self.pos = numpy.array(pos, float)
         self.setImage(image)
         #check image size against window size
