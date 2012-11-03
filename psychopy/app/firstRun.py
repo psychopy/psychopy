@@ -289,7 +289,7 @@ class ConfigWizard(object):
         s2t = '<a href="http://www.psychopy.org/api/microphone.html?highlight=Speech2Text">speech-to-text</a>'
         msg = 'audio codec for %s' % s2t
         if not 'systemFlacVersion' in items:
-            msg = 'Warning: flac is needed for using %s features.' % s2t
+            msg = 'Warning: flac is needed for using %s features. <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].' % s2t
             items['systemFlacVersion'] = '(missing)'
         if verbose:
             report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg))
@@ -313,8 +313,10 @@ class ConfigWizard(object):
         report.append(('internet access', val, msg))
         report.append(('auto proxy', str(self.prefs.connections['autoProxy']), 'try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'))
         if not self.prefs.connections['proxy'].strip():
-            self.prefs.connections['proxy'] = '&nbsp;&nbsp--'
-        report.append(('proxy setting', str(self.prefs.connections['proxy']), 'current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'))
+            prx = '&nbsp;&nbsp--'
+        else:
+            prx = str(self.prefs.connections['proxy'])
+        report.append(('proxy setting', prx, 'current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'))
 
         msg = ''
         items['systemUserProcFlagged'].sort()
@@ -352,13 +354,13 @@ class ConfigWizard(object):
                         ver = 'import ok'
                     elif pkg == 'pyserial':
                         exec('import serial')
-                        ver = '.'.join(serial.version)
+                        ver = serial.VERSION
                     else:
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
                         except: ver = 'import ok'
                     report.append((pkg, ver, ''))
-                except ImportError:
+                except (ImportError, AttributeError):
                     report.append((pkg, '&nbsp;&nbsp--', 'could not import %s' % pkg))
 
         self.warnings = list(set([key for key, val, msg in report if msg.startswith('Warning')]))
@@ -459,7 +461,7 @@ class BenchmarkWizard(ConfigWizard):
         
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
-        dlg.addText('Benchmarking takes ~20 seconds to gather')
+        dlg.addText('Benchmarking takes ~20-30 seconds to gather')
         dlg.addText('configuration and performance data. Begin?')
         dlg.addText('')
         dlg.show()
@@ -468,15 +470,26 @@ class BenchmarkWizard(ConfigWizard):
         
         self._prepare()
         win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        
+        # lots of system and package info:
+        diagnostics = self.runDiagnostics(win, verbose=True) # add to list later so benchmark appears first
+        info = {}
+        for k, v, m in diagnostics:
+            info[k] = v
+        fps = 1000./float(info['visual sync (refresh)'].split()[0])
+        
         itemsList = [('Benchmark', '', '')]
         itemsList.append(('benchmark version', '0.1', 'dots & configuration'))
-        start = 100
-        for shape in ['circle', 'square']:  # order matters
-            dotsList = self.runLotsOfDots(win, fieldShape=shape, starting=start)
-            #best = (dotsList[-1][0] + '_' + str(shape), dotsList[-1][1], '')
-            itemsList.append(dotsList[-1])
+        
+        if int(info['no dropped frames'].split('/')[0]) != 0:
+            start = 50
+        else:
+            start = 200
+        for shape in ['circle', 'square']:  # order matters: circle crashes first
+            dotsList = self.runLotsOfDots(win, fieldShape=shape, starting=start, baseline=fps)
+            itemsList.extend(dotsList)
             start = int(dotsList[-1][1])  # start square where circle breaks down
-        itemsList.extend(self.runDiagnostics(win, verbose=True))
+        itemsList.extend(diagnostics)
         win.close()
         
         itemsDict = {}
@@ -537,53 +550,68 @@ class BenchmarkWizard(ConfigWizard):
         else:
             pass
 
-    def runLotsOfDots(self, win, fieldShape, starting=100):
-        """DotStim stress test: draw increasingly many dots until drop frames"""
+    def runLotsOfDots(self, win, fieldShape, starting=100, baseline=None):
+        """DotStim stress test: draw increasingly many dots until drop lots of frames
+        
+        report best dots as the highest dot count at which drop no frames at all
+        fieldShape = circle or square
+        starting = initial dot count; increases until failure
+        baseline = already measured frames per second; leave as none to measure it
+        """
         
         win.setRecordFrameIntervals(True)
-        # define dots to be drawn:
-        dots = range(starting // 100, 12)
-        dotPatch = [visual.DotStim(win, fieldShape=fieldShape, 
-                        color=(1.0, 1.0, 1.0), dotSize=5, nDots=i * 100)
-                    for i in dots]
         secs = 1  # how long to draw them for, at least 1s
         
-        # baseline fps:
-        for i in xrange(5):
-            win.flip() # wake things up
-        win.fps() # reset
-        for i in xrange(60):
-            win.flip()
-        baseline = win.fps()
+        # baseline frames per second:
+        if not baseline:
+            for i in xrange(5):
+                win.flip() # wake things up
+            win.fps() # reset
+            for i in xrange(60):
+                win.flip()
+            baseline = round(win.fps())
         
-        dotsList = []
-        i = 0
+        dotsInfo = []
         win.flip()
+        bestDots = starting
+        dotCount = starting
+        count = visual.TextStim(win, text=str(dotCount))
+        count.draw()
+        win.flip()
+        dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
+                        fieldShape=fieldShape, nDots=dotCount)
         win.fps() # reset
         trialClock = core.Clock()
-        bestDots = 0
         while True:
-            dotPatch[i].draw()
+            dots.draw()
             win.flip()
             if trialClock.getTime() >= secs:
-                fps = win.fps()
+                fps = win.fps()  # get frames per sec
+                if fps < baseline * 0.6:
+                    # only break when start dropping a LOT of frames (80% or more)
+                    dotsInfo.append(('dots_' + fieldShape, str(bestDots), ''))
+                    break
                 frames_dropped = round(baseline-fps)
                 if not frames_dropped:
-                    bestDots = dotPatch[i].nDots
-                dotsList.append(('dots_'+str(dotPatch[i].nDots), str(frames_dropped), ''))
-                i += 1
-                if i >= len(dotPatch):
-                    dotPatch.append(visual.DotStim(win, color=(1.0, 1.0, 1.0), 
-                        fieldShape=fieldShape, 
-                        nDots=dotPatch[i-1].nDots + 100))
-                if fps < baseline * 0.6:
-                    dotsList.append(('best_dots_' + fieldShape, str(bestDots), ''))
-                    break
+                    # only set best if no dropped frames:
+                    bestDots = dotCount
+                # but do allow to continue in case do better with more dots:
+                dotCount += 100
+                if dotCount > 1200:
+                    dotCount += 100
+                if dotCount > 2400:
+                    dotCount += 100
+                # show the dot count:
+                count.setText(str(dotCount))
+                count.draw()
+                win.flip()
+                dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
+                        fieldShape=fieldShape, nDots=dotCount)
                 trialClock.reset()
                 win.fps()  # reset
         win.setRecordFrameIntervals(False)
         win.flip()
-        return dotsList
+        return tuple(dotsInfo)
 
     def uploadReport(self, itemsList):
         """Pickle & upload data to psychopy.org"""
