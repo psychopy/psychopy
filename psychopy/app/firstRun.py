@@ -620,42 +620,23 @@ class BenchmarkWizard(ConfigWizard):
     def uploadReport(self, itemsList):
         """Pickle & upload data to psychopy.org
         
-        Windows compatibility added by Sol Simpson
+        Windows compatibility added by Sol Simpson (need a closed file)
         """
         
-        # On windows you cannot open a file that is already open, or you get
-        #   IOError: [Errno 13] Permission denied: ...
-        # So the temp file needs to be created with delete=False, always
-        # close the file before web.upload, then delete the file.
-        
-        tmp = tempfile.NamedTemporaryFile(delete=bool(sys.platform != 'win32'))
+        tmp = tempfile.NamedTemporaryFile(delete=False)
         pickle.dump(itemsList, tmp)
-        tmp.flush()
-        tmp.seek(0)
+        tmp.close()
         
         # Upload the data:
         selector = 'http://upload.psychopy.org/benchmark/'
         basicAuth = 'psychopy:open-sourc-ami'
         status = None
         try:
-            if sys.platform == 'win32':
-                tmp.close()                 
             status = web.upload(selector, tmp.name, basicAuth)
         except:
-            # something went wrong
-            if status is None:
-                status = "Exception occurred during web.upload"
+            status = "Exception occurred during web.upload"
         finally:
-            # try to make sure tmp is closed and deleted under all situations
-            try:
-                tmp.close()  # file vanishes on non-win32
-            except:
-                pass
-            try:
-                tmp.delete()
-            except:
-                pass
-                
+            os.unlink(tmp.name)
         return status
 
 def driversOkay():
