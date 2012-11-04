@@ -452,7 +452,7 @@ class ConfigWizard(object):
 
 class BenchmarkWizard(ConfigWizard):
     """Class to get system info, run benchmarks, optional upload to psychopy.org"""
-    def __init__(self, app):
+    def __init__(self, app, fullscr=True):
         self.app = app
         self.firstrun = False
         self.prefs = self.app.prefs
@@ -469,20 +469,22 @@ class BenchmarkWizard(ConfigWizard):
             return
         
         self._prepare()
-        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        win = visual.Window(fullscr=fullscr, allowGUI=False, monitor='testMonitor')
         
-        # lots of system and package info:
-        diagnostics = self.runDiagnostics(win, verbose=True) # add to list later so benchmark appears first
+        # do system info etc first to get fps, add to list later because
+        # its nicer for benchmark results to appears at top of the report:
+        diagnostics = self.runDiagnostics(win, verbose=True)
         info = {}
-        for k, v, m in diagnostics:
+        for k, v, m in diagnostics:  # list of tuples --> dict, ignore msg m
             info[k] = v
         fps = 1000./float(info['visual sync (refresh)'].split()[0])
         
         itemsList = [('Benchmark', '', '')]
         itemsList.append(('benchmark version', '0.1', 'dots & configuration'))
+        itemsList.append(('full-screen', str(fullscr), 'visual window for drawing'))
         
-        if int(info['no dropped frames'].split('/')[0]) != 0:
-            start = 50
+        if int(info['no dropped frames'].split('/')[0]) != 0:  # eg, "0 / 180"
+            start = 50  # if 100 dots had problems earlier, here start lower
         else:
             start = 200
         for shape in ['circle', 'square']:  # order matters: circle crashes first
@@ -556,7 +558,7 @@ class BenchmarkWizard(ConfigWizard):
         report best dots as the highest dot count at which drop no frames at all
         fieldShape = circle or square
         starting = initial dot count; increases until failure
-        baseline = already measured frames per second; leave as none to measure it
+        baseline = known frames per second; None means measure it here
         """
         
         win.setRecordFrameIntervals(True)
@@ -570,10 +572,11 @@ class BenchmarkWizard(ConfigWizard):
             for i in xrange(60):
                 win.flip()
             baseline = round(win.fps())
+        maxFrame = round(baseline * secs)
         
         dotsInfo = []
         win.flip()
-        bestDots = starting
+        bestDots = starting  # this might over-estimate the actual best
         dotCount = starting
         count = visual.TextStim(win, text=str(dotCount))
         count.draw()
@@ -581,18 +584,19 @@ class BenchmarkWizard(ConfigWizard):
         dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
                         fieldShape=fieldShape, nDots=dotCount)
         win.fps() # reset
-        trialClock = core.Clock()
+        frameCount = 0
         while True:
             dots.draw()
             win.flip()
-            if trialClock.getTime() >= secs:
+            frameCount += 1
+            if frameCount > maxFrame:
                 fps = win.fps()  # get frames per sec
                 if fps < baseline * 0.6:
                     # only break when start dropping a LOT of frames (80% or more)
                     dotsInfo.append(('dots_' + fieldShape, str(bestDots), ''))
                     break
-                frames_dropped = round(baseline-fps)
-                if not frames_dropped:
+                frames_dropped = round(baseline-fps)  # can be negative
+                if frames_dropped < 1:  # can be negative
                     # only set best if no dropped frames:
                     bestDots = dotCount
                 # but do allow to continue in case do better with more dots:
@@ -607,15 +611,24 @@ class BenchmarkWizard(ConfigWizard):
                 win.flip()
                 dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
                         fieldShape=fieldShape, nDots=dotCount)
-                trialClock.reset()
+                frameCount = 0
                 win.fps()  # reset
         win.setRecordFrameIntervals(False)
         win.flip()
         return tuple(dotsInfo)
 
     def uploadReport(self, itemsList):
-        """Pickle & upload data to psychopy.org"""
-        tmp = tempfile.NamedTemporaryFile()
+        """Pickle & upload data to psychopy.org
+        
+        Windows compatibility added by Sol Simpson
+        """
+        
+        # On windows you cannot open a file that is already open, or you get
+        #   IOError: [Errno 13] Permission denied: ...
+        # So the temp file needs to be created with delete=False, always
+        # close the file before web.upload, then delete the file.
+        
+        tmp = tempfile.NamedTemporaryFile(delete=bool(sys.platform != 'win32'))
         pickle.dump(itemsList, tmp)
         tmp.flush()
         tmp.seek(0)
@@ -623,9 +636,26 @@ class BenchmarkWizard(ConfigWizard):
         # Upload the data:
         selector = 'http://upload.psychopy.org/benchmark/'
         basicAuth = 'psychopy:open-sourc-ami'
-        status = web.upload(selector, tmp.name, basicAuth)
-        tmp.close()  # vanishes
-        
+        status = None
+        try:
+            if sys.platform == 'win32':
+                tmp.close()                 
+            status = web.upload(selector, tmp.name, basicAuth)
+        except:
+            # something went wrong
+            if status is None:
+                status = "Exception occurred during web.upload"
+        finally:
+            # try to make sure tmp is closed and deleted under all situations
+            try:
+                tmp.close()  # file vanishes on non-win32
+            except:
+                pass
+            try:
+                tmp.delete()
+            except:
+                pass
+                
         return status
 
 def driversOkay():
