@@ -42,23 +42,25 @@ class _baseVisualTest:
             assert stim.status==visual.STOPPED
     def test_gabor(self):
         win = self.win
-        contextName=self.contextName
         #using init
         gabor = visual.PatchStim(win, mask='gauss', ori=-45,
             pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
             sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
             interpolate=True)
         gabor.draw()
-        utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
+        
         #using .set()
         gabor.setOri(45)
         gabor.setSize(0.2*self.scaleFactor, '-')
         gabor.setColor([45,30,0.3], colorSpace='dkl')
         gabor.setSF(0.2/self.scaleFactor, '+')
         gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
+        gabor.setContrast(0.8)
+        gabor.setOpacity(0.8)
         gabor.draw()
-        utils.compareScreenshot('gabor2_%s.png' %(contextName), win)
+        utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
     #    win=self.win
@@ -80,7 +82,6 @@ class _baseVisualTest:
     #    utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
     def test_text(self):
         win = self.win
-        contextName=self.contextName
         #set font
         fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
@@ -89,7 +90,7 @@ class _baseVisualTest:
             fontFiles=[fontFile])
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text1_%s.png' %(contextName), win, crit=20)
+        utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
         win.flip()#AFTER compare screenshot
         #using set
         stim.setText('y')
@@ -101,16 +102,17 @@ class _baseVisualTest:
         stim.setHeight(1.0*self.scaleFactor)
         stim.setColor([0.1,-1,0.8], colorSpace='rgb')
         stim.setPos([-0.5,0.5],'+')
+        stim.setContrast(0.8)
+        stim.setOpacity(0.8)
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text2_%s.png' %(contextName), win, crit=20)
+        utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
     def test_mov(self):
         win = self.win
         if self.win.winType=='pygame':
             pytest.skip("movies only available for pyglet backend")
         win.flip()
-        contextName=self.contextName
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
         #check if present
@@ -124,7 +126,6 @@ class _baseVisualTest:
 
     def test_shape(self):
         win = self.win
-        contextName=self.contextName
 
         shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
             fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
@@ -132,29 +133,42 @@ class _baseVisualTest:
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(contextName), win, crit=12.0)
+        utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.0)
+        win.flip()
+        
+        # Using .set()
+        shape.setContrast(0.8)
+        shape.setOpacity(0.8)
+        shape.draw()
+        utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.0)
     def test_radial(self):
         win = self.win
-        contextName=self.contextName
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
+        utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
-        wedge.draw()
-        utils.compareScreenshot('wedge1_%s.png' %(contextName), win, crit=10.0)
-        win.flip()#AFTER compare screenshot
+        
         #using .set()
         wedge.setOri(180)
         wedge.setContrast(0.8)
+        wedge.setOpacity(0.8)
         wedge.setRadialPhase(0.1,operation='+')
         wedge.setAngularPhase(0.1)
         wedge.draw()
-        utils.compareScreenshot('wedge2_%s.png' %(contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+    def test_simpleimage(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        if not os.path.isfile(fileName):
+            raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
+        image = visual.SimpleImageStim(win, image=fileName, flipHoriz=True, flipVert=True)
+        image.draw()
+        utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
     def test_dots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
-        contextName=self.contextName
         #using init
         dots =visual.DotStim(win, color=(1.0,1.0,1.0), dir=270,
             nDots=500, fieldShape='circle', fieldPos=(0.0,0.0),fieldSize=1*self.scaleFactor,
@@ -164,6 +178,7 @@ class _baseVisualTest:
             speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
+        
         #using .set() and check the underlying variable changed
         prevDirs = copy.copy(dots._dotsDir)
         prevSignals = copy.copy(dots._signalDots)
@@ -172,6 +187,8 @@ class _baseVisualTest:
         dots.setFieldCoherence(0.5)
         dots.setFieldPos([-0.5,0.5])
         dots.setSpeed(0.1*self.scaleFactor)
+        dots.setOpacity(0.8)
+        dots.setContrast(0.8)
         dots.draw()
         #check that things changed
         assert (prevDirs-dots._dotsDir).sum()!=0, \
@@ -182,7 +199,6 @@ class _baseVisualTest:
             "dots._fieldPosRendered failed to change after dots.setPos()"
     def test_element_array(self):
         win = self.win
-        contextName=self.contextName
         if not win._haveShaders:
             pytest.skip("ElementArray requires shaders, which aren't available")
         #using init
@@ -196,13 +212,12 @@ class _baseVisualTest:
         spiral.draw()
         win.flip()
         spiral.draw()
-        utils.compareScreenshot('elarray1_%s.png' %(contextName), win)
+        utils.compareScreenshot('elarray1_%s.png' %(self.contextName), win)
         win.flip()
     def test_aperture(self):
         win = self.win
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        contextName=self.contextName
         grating = visual.PatchStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
         aperture.disable()
@@ -211,7 +226,7 @@ class _baseVisualTest:
         grating.setOri(90)
         grating.setColor('black')
         grating.draw()
-        utils.compareScreenshot('aperture1_%s.png' %(contextName), win)
+        utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
@@ -249,7 +264,7 @@ class TestPygletNormNoShaders(_baseVisualTest):
     def setup_class(self):
         self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
         self.win._haveShaders=False
-        self.contextName='norm'
+        self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
