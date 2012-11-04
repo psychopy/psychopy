@@ -1198,9 +1198,9 @@ class _BaseVisualStim:
         self._set('opacity', newOpacity, operation, log=log)
 
         #opacity is coded by the texture, if not using shaders
-        if hasattr(self, '_useShaders') and not self._useShaders and hasattr(self,'setMask'):
-            #update mask with new opacity
-            self.setMask(self._maskName, log=False)
+        if hasattr(self, '_useShaders') and not self._useShaders:
+            if hasattr(self,'setMask'):
+                self.setMask(self._maskName, log=False)
 
     def setContrast(self, newContrast, operation='', log=True):
         """"
@@ -2954,7 +2954,7 @@ class RadialStim(GratingStim):
         """
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
-        GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
+        GL.glColor4f(1.0,1.0,1.0,self.opacity)#glColor can interfere with multitextures
 
         #assign vertex array
         GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
