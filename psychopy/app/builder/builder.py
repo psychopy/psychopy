@@ -1648,10 +1648,12 @@ class ParamCtrls:
 
         if label in ['text', 'customize_everything', 'Text']:
             #for text input we need a bigger (multiline) box
-            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
+            self.valueCtrl = wx.stc.StyledTextCtrl(parent,-1,
                 style=wx.TE_MULTILINE,
                 size=wx.Size(self.valueWidth,-1))
-            if label == 'text':
+            if len(param.val):
+                self.valueCtrl.AddText(unicode(param.val))
+            if label in ['text', 'Text']:
                 self.valueCtrl.SetFocus()
             #expando seems like a nice idea - but probs with pasting in text and with resizing
             #self.valueCtrl = ExpandoTextCtrl(parent,-1,str(param.val),
