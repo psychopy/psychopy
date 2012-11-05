@@ -173,6 +173,7 @@ class SettingsComponent:
             size=self.params['Window size (pixels)']
         if self.params['saveTags'].val or self.params['storeTags']:
             # TODO move import to anothe place
+            buff.writeIndented("import sys\n")
             buff.writeIndented("import psychopy.contrib.obci\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
             buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
