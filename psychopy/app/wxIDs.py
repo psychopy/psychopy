@@ -45,6 +45,7 @@ stopFile=wx.NewId()
 monitorCenter=wx.NewId()
 openUpdater=wx.NewId()
 unitTests=wx.NewId()
+benchmarkWizard=wx.NewId()
 
 #help menu
 #these should be assigned to the relevant buttons/menu items in the app

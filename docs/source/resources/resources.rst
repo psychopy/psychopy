@@ -3,12 +3,12 @@ Resources (e.g. for teaching)
 
 There are a number of further resources to help learn/teach about PsychoPy.
 
-.. _youtube:
-
-P4N: Python for Neuroscience (and psychology) workshop
+:ref:`P4N`
 ---------------------------------------------------------------
 
-There will (very likely) be a 3-day workshop in March 2013 at Nottingham University, taught by Jon Peirce. It won't be /only/ about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. The cost will likely be roughly £300 plus accommodation costs. Details will be posted here as they are finalised.
+There will be a 3-day workshop in March 2013 at Nottingham University, taught by Jon Peirce. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. You can see further information :ref:`here <P4N>`
+
+.. _youtube:
 
 Youtube tutorials
 ---------------------

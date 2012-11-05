@@ -608,7 +608,7 @@ class FlowPanel(wx.ScrolledWindow):
             component = component.loop
         if op=='remove':
             self.removeComponent(component, compID)
-            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'].val)
+            self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
@@ -3401,6 +3401,8 @@ class BuilderFrame(wx.Frame):
             usingDefaultSize=True
         else:
             usingDefaultSize=False
+        if self.frameData['winY'] < 20:
+            self.frameData['winY'] = 20
         wx.Frame.__init__(self, parent=parent, id=id, title=title,
                             pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
                             size=(int(self.frameData['winW']),int(self.frameData['winH'])),
@@ -3617,6 +3619,8 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
+        self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
+        wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
@@ -4049,11 +4053,11 @@ class BuilderFrame(wx.Frame):
         if expPath==None or expPath.startswith('untitled'):
             ok = self.fileSave()
             if not ok: return#save file before compiling script
-        expPath = os.path.abspath(expPath)
+        self.exp.expPath = os.path.abspath(expPath)
         #make new pathname for script file
         fullPath = self.filename.replace('.psyexp','_lastrun.py')
-        
-        script = self.generateScript(expPath)
+
+        script = self.generateScript(self.exp.expPath)
         if not script:
             return
 
@@ -4085,7 +4089,8 @@ class BuilderFrame(wx.Frame):
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            pythonExec = sys.executable.replace(' ','\ ')#for unix this signifis a space in a filename
+            command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
@@ -4300,10 +4305,13 @@ class ReadmeFrame(wx.Frame):
         #check we can read
         if filename==None:#check if we can write to the directory
             return False
+        elif not os.path.exists(filename):
+            self.filename = None
+            return False
         elif not os.access(filename, os.R_OK):
             logging.warning("Found readme file (%s) no read permissions" %filename)
             return False
-            #attempt to open
+        #attempt to open
         try:
             f=codecs.open(filename, 'r', 'utf-8')
         except IOError, err:

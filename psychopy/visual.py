@@ -1190,11 +1190,63 @@ class _BaseVisualStim:
         """
         self._set('ori',val=newOri, op=operation, log=log)
     def setOpacity(self,newOpacity,operation='', log=True):
-        self._set('opacity', newOpacity, operation)
+        """Set the opacity of the stimulus.
+        :parameters:
+            newOpacity: float between 0 (transparent) and 1 (opaque).
+
+            operation: one of '+','-','*','/', or '' for no operation (simply replace value)
+        """
+        if not 0 <= newOpacity <= 1 and log:
+            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
+
+        self._set('opacity', newOpacity, operation, log=log)
+
         #opacity is coded by the texture, if not using shaders
-        if not self._useShaders and hasattr(self,'setMask'):
-            #update mask with new opacity
-            self.setMask(self._maskName, log=False)
+        if hasattr(self, '_useShaders') and not self._useShaders:
+            if hasattr(self,'setMask'):
+                self.setMask(self._maskName, log=False)
+
+    def setContrast(self, newContrast, operation='', log=True):
+        """"
+        Set the contrast of the stimulus.
+
+        :Parameters:
+
+        newContrast : float
+            The contrast of the stimulus::
+
+                # 0.0 to 1.0 decreases contrast #Here
+                # 1.0 means unchanged
+
+                # 0.0 to -1.0 inverts with decreased contrast
+                # -1.0 means exactly inverted.
+
+                # >1.0 increases contrast. (See warning below)
+                # <-1.0 inverts with increased contrast (See warning below)
+
+            WARNING. Setting contrast below -1 og above 1 will produce strange results if this forces the stimulus to blacker-than-black or whiter-than-white.
+
+        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
+        """
+
+        self._set('contrast', newContrast, operation, log=log)
+
+        # If we don't have shaders we need to rebuild the stimulus
+        if hasattr(self, '_useShaders'):
+            if not self._useShaders:
+                if self.__class__.__name__ == 'TextStim':
+                    self.setText(self.text)
+                if self.__class__.__name__ == 'ImageStim':
+                    self.setImage(self._imName)
+                if self.__class__.__name__ in ('GratingStim', 'RadialStim'):
+                    self.setTex(self._texName)
+                if self.__class__.__name__ in ('ShapeStim','DotStim'):
+                    pass # They work fine without shaders?
+                elif log:
+                    logging.warning('Called setContrast while _useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
+        elif log:
+            logging.warning('Called setContrast() on class where _useShaders was undefined. Contrast might remain unchanged')
+
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
         """
@@ -1233,14 +1285,14 @@ class _BaseVisualStim:
 
             You can also provide a triplet of values, which refer to the coordinates
             in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.
+            space most recently used for this stimulus is used again.::
 
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
                 myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
                 myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
 
             Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].
+            [x,x,x].::
 
                 myStim.setColor(255, 'rgb255') #all guns o max
 
@@ -1253,7 +1305,7 @@ class _BaseVisualStim:
         operation : one of '+','-','*','/', or '' for no operation (simply replace value)
 
             for colors specified as a triplet of values (or single intensity value)
-            the new value will perform this operation on the previous color
+            the new value will perform this operation on the previous color::
 
                 thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
                 thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
@@ -1263,14 +1315,6 @@ class _BaseVisualStim:
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
                     log=log)
-    def setContr(self, newContr, operation='', log=True):
-        """Set the contrast of the stimulus
-        """
-        self._set('contr', newContr, operation, log)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            if hasattr(self,'_texName'): self.setTex(self._texName)
-            elif hasattr(self,'_imName'): self.setIm(self._imName)
     def _set(self, attrib, val, op='', log=True):
         """
         Deprecated. Use methods specific to the parameter you want to set
@@ -1400,9 +1444,21 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if hasattr(x, 'getPos'):
-            x,y = x.getPos()
+            x, y = x.getPos()
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
+        if self.units in ['deg','degs']:
+            x, y = psychopy.misc.deg2pix(numpy.array((x, y)), self.win.monitor)
+        elif self.units == 'cm':
+            x, y = psychopy.misc.cm2pix(numpy.array((x, y)), self.win.monitor)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(oriRadians)
+            cosOri = numpy.cos(oriRadians)
+            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
+            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
+            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
+        
         return pointInPolygon(x, y, self)
     def overlaps(self, polygon):
         """Determines if this stimulus intersects another one. If `polygon` is
@@ -1419,7 +1475,33 @@ class _BaseVisualStim:
         """
         if self.needVertexUpdate:
             self._calcVerticesRendered()
-        return polygonsOverlap(self, polygon)
+        if self.ori:
+            oriRadians = numpy.radians(self.ori)
+            sinOri = numpy.sin(-oriRadians)
+            cosOri = numpy.cos(-oriRadians)
+            x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+            y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+            return polygonsOverlap(numpy.column_stack((x,y)) + self._posRendered, polygon)
+        else:
+            return polygonsOverlap(self, polygon)
+
+    def _getDesiredRGB(self, rgb, colorSpace, contrast):
+        """ Convert color to RGB while adding contrast
+        Requires self.rgb, self.colorSpace and self.contrast"""
+        # Ensure that we work on 0-centered color (to make negative contrast values work)
+        if colorSpace not in ['rgb','dkl','lms','hsv']:
+            rgb = (rgb/255.0)*2-1
+
+
+        # Convert to RGB in range 0:1 and scaled for contrast
+        desiredRGB = (rgb*contrast+1)/2.0
+
+        # Check that boundaries are not exceeded
+        if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
+            logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
+            desiredRGB=[0.0,0.0,1.0]
+
+        return desiredRGB
 
 class DotStim(_BaseVisualStim):
     """
@@ -1457,7 +1539,8 @@ class DotStim(_BaseVisualStim):
                  rgb    =None,
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
-                 opacity =1.0,
+                 opacity = 1.0,
+                 contrast = 1.0,
                  depth  =0,
                  element=None,
                  signalDots='same',
@@ -1514,8 +1597,14 @@ class DotStim(_BaseVisualStim):
                 The color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
 
-            opacity : float
+            opacity : float (default= *1.0* )
                 1.0 is opaque, 0.0 is transparent
+
+            contrast: float (default= *1.0* )
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus).
+
             depth:
 
                 The depth argument is deprecated and may be removed in future versions.
@@ -1549,11 +1638,12 @@ class DotStim(_BaseVisualStim):
         self.fieldShape = fieldShape
         self.dir = dir
         self.speed = speed
-        self.opacity = opacity
         self.element = element
         self.dotLife = dotLife
         self.signalDots = signalDots
         self.noiseDots = noiseDots
+        self.opacity = float(opacity)
+        self.contrast = float(contrast)
 
         #'rendered' coordinates represent the stimuli in the scaled coords of the window
         #(i.e. norm for units==norm, but pix for all other units)
@@ -1694,10 +1784,9 @@ class DotStim(_BaseVisualStim):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
-            if self.colorSpace in ['rgb','dkl','lms','hsv']:
-                GL.glColor4f(self.rgb[0]/2.0+0.5, self.rgb[1]/2.0+0.5, self.rgb[2]/2.0+0.5, 1.0)
-            else:
-                GL.glColor4f(self.rgb[0]/255.0, self.rgb[1]/255.0, self.rgb[2]/255.0, 1.0)
+            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+
+            GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2], self.opacity)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
@@ -1824,8 +1913,6 @@ class SimpleImageStim:
                  image     ="",
                  units   ="",
                  pos     =(0.0,0.0),
-                 contrast=1.0,
-                 opacity=1.0,
                  flipHoriz=False,
                  flipVert=False,
                  name='', autoLog=True):
@@ -1847,12 +1934,6 @@ class SimpleImageStim:
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be position beyond the
                 window!
-            contrast :
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus)
-            opacity :
-                1.0 is opaque, 0.0 is transparent
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -1872,8 +1953,6 @@ class SimpleImageStim:
         if win._haveShaders: self._useShaders=True#by default, this is a good thing
         else: self._useShaders=False
 
-        self.contrast = float(contrast)
-        self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.setImage(image)
         #check image size against window size
@@ -2180,12 +2259,12 @@ class GratingStim(_BaseVisualStim):
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
 
-            contrast:
+            contrast: float (default= *1.0* )
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus).
 
-            opacity:
+            opacity: float (default= *1.0* )
                 1.0 is opaque, 0.0 is transparent
 
             depth:
@@ -2213,7 +2292,7 @@ class GratingStim(_BaseVisualStim):
         self.ori = float(ori)
         self.texRes = texRes #must be power of 2
         self.contrast = float(contrast)
-        self.opacity = opacity
+        self.opacity = float(opacity)
         self.interpolate=interpolate
         self.origSize=None#if an image texture is loaded this will be updated
 
@@ -2325,13 +2404,6 @@ class GratingStim(_BaseVisualStim):
     def setPhase(self,value, operation='', log=True):
         self._set('phase', value, operation, log=log)
         self.needUpdate = 1
-
-    def setContrast(self,value,operation='', log=True):
-        self._set('contrast', value, operation, log=log)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            self.setTex(self._texName, log=False)
-
     def setTex(self,value, log=True):
         self._texName = value
         createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
@@ -2371,13 +2443,7 @@ class GratingStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -2626,12 +2692,12 @@ class RadialStim(GratingStim):
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
-            contrast : (default= *1.0* )
+            contrast : float (default= *1.0* )
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus)
-            opacity :
-                1.0 is opaque, 0.0 is transparent
+            opacity : float (default=*1.0*)
+                Between 0.0 and 1.0. 1.0 is opaque, 0.0 is transparent
             depth:
                 The depth argument is deprecated and may be removed in future versions.
                 Depth is controlled simply by drawing order.
@@ -2654,7 +2720,7 @@ class RadialStim(GratingStim):
         self.angularCycles = angularCycles
         self.angularPhase = angularPhase
         self.contrast = float(contrast)
-        self.opacity = opacity
+        self.opacity = float(opacity)
         self.pos = numpy.array(pos, float)
         self.interpolate=interpolate
 
@@ -2764,11 +2830,7 @@ class RadialStim(GratingStim):
 
         if self._useShaders:
             #setup color
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-
+            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
             #assign vertex array
@@ -2916,7 +2978,7 @@ class RadialStim(GratingStim):
         """
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
-        GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
+        GL.glColor4f(1.0,1.0,1.0,self.opacity)#glColor can interfere with multitextures
 
         #assign vertex array
         GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
@@ -3754,6 +3816,8 @@ class MovieStim(_BaseVisualStim):
                  ori     =0.0,
                  flipVert = False,
                  flipHoriz = False,
+                 color=(1.0,1.0,1.0),
+                 colorSpace='rgb',
                  opacity=1.0,
                  name='',
                  loop=False,
@@ -3781,6 +3845,23 @@ class MovieStim(_BaseVisualStim):
             size :
                 Size of the stimulus in units given. If not specified then the movie will take its
                 original dimensions.
+            color:
+                Modified the weight of the colors in the movie. E,g, color="red"
+                will only display the red parts of the movie and make all other
+                things black. white (color=(1,1,1)) is the original colors.
+                
+                Could be a:
+
+                    - web name for a color (e.g. 'FireBrick');
+                    - hex value (e.g. '#FF0047');
+                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
+
+                If the last three are used then the color space should also be given
+                See :ref:`colorspaces`
+
+            colorSpace:
+                the color space controlling the interpretation of the `color`
+                See :ref:`colorspaces`
             opacity :
                 the movie can be made transparent by reducing this
             name : string
@@ -3812,7 +3893,9 @@ class MovieStim(_BaseVisualStim):
         self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
-        self.opacity = opacity
+        self.colorSpace=colorSpace
+        self.setColor(color, colorSpace=colorSpace, log=False)
+        self.opacity = float(opacity)
         self.loop = loop
         self.status=NOT_STARTED
 
@@ -3832,13 +3915,6 @@ class MovieStim(_BaseVisualStim):
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
-    def setOpacity(self,newOpacity,operation='', log=True):
-        """
-        Sets the opacity of the movie to `newOpacity`
-        """
-        # Over-rides _BaseVisualStim.setOpacity
-        self._set('opacity', newOpacity, operation, log=log)
-
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -3936,7 +4012,9 @@ class MovieStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         frameTexture = self._player.get_texture()
-        GL.glColor4f(1,1,1,self.opacity)
+        
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
+        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
         GL.glPushMatrix()
         #do scaling
         #scale the viewport to the appropriate size
@@ -3953,6 +4031,10 @@ class MovieStim(_BaseVisualStim):
                 height=self._sizeRendered[1]*flipBitY,
                 z=0)
         GL.glPopMatrix()
+
+    def setContrast(self):
+        """"Not yet implemented for MovieStim"""
+        pass
 
     def _onEos(self):
         if self.loop:
@@ -3991,6 +4073,7 @@ class TextStim(_BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity=1.0,
+                 contrast=1.0,
                  units="",
                  ori=0.0,
                  height=None,
@@ -4024,7 +4107,11 @@ class TextStim(_BaseVisualStim):
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
-            opacity:
+            contrast: float (default= *1.0* )
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus).
+            opacity: float (default= *1.0* )
                 How transparent the object will be (0 for transparent, 1 for opaque)
             units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
@@ -4059,8 +4146,8 @@ class TextStim(_BaseVisualStim):
         if win._haveShaders: self._useShaders=True
         else: self._useShaders=False
         self.needUpdate =1
-        self.opacity= opacity
-        self.contrast= 1.0
+        self.opacity = float(opacity)
+        self.contrast = float(contrast)
         self.alignHoriz = alignHoriz
         self.alignVert = alignVert
         self.antialias = antialias
@@ -4202,21 +4289,21 @@ class TextStim(_BaseVisualStim):
             self.win.logOnFlip("Set %s font=%s" %(self.name, self.fontname),
                 level=logging.EXP,obj=self)
 
-    def setText(self,value=None, log=True):
+    def setText(self,text=None, log=True):
         """Set the text to be rendered using the current font
         """
-        if value!=None:#make sure we have unicode object to render
-            value = unicode(value)
+        if text!=None:#make sure we have unicode object to render
+            self.text = unicode(text)
         if self._useShaders:
-            self._setTextShaders(value)
+            self._setTextShaders(text)
         else:
-            self._setTextNoShaders(value)
+            self._setTextNoShaders(text)
         self._needSetText=False
         if log and self.autoLog:
-            self.win.logOnFlip("Set %s text=%s" %(self.name, value),
+            self.win.logOnFlip("Set %s text=%s" %(self.name, text),
                 level=logging.EXP,obj=self)
-    def setRGB(self,value, operation='', log=True):
-        self._set('rgb', value, operation, log=log)
+    def setRGB(self, text, operation='', log=True):
+        self._set('rgb', text, operation, log=log)
         if not self._useShaders:
             self._needSetText=True
     def setColor(self, color, colorSpace=None, operation='', log=True):
@@ -4276,9 +4363,6 @@ class TextStim(_BaseVisualStim):
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        if value!=None:
-            self.text = value
-
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
                                                        halign=self.alignHoriz, valign=self.alignVert,
@@ -4381,15 +4465,7 @@ class TextStim(_BaseVisualStim):
     def _setTextNoShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
-        if value!=None:
-            self.text = value
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
 
         if self.win.winType=="pyglet":
             self._pygletTextObj = pyglet.font.Text(self._font, self.text,
@@ -4500,14 +4576,7 @@ class TextStim(_BaseVisualStim):
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
-            if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-                desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-                if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                    logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                    desiredRGB=[0.0,0.0,1.0]
-                GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
-            else:
-                desiredRGB = (self.rgb*self.contrast)/255.0
+            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
             GL.glUseProgram(self.win._progSignedTexFont)#self.win._progSignedTex)
@@ -4593,6 +4662,7 @@ class ShapeStim(_BaseVisualStim):
                  size=1,
                  ori=0.0,
                  opacity=1.0,
+                 contrast=1.0,
                  depth  =0,
                  interpolate=True,
                  lineRGB=None,
@@ -4653,8 +4723,13 @@ class ShapeStim(_BaseVisualStim):
             ori : float or int
                 the shape can be rotated around the anchor
 
-            opacity : float
+            opacity : float (default= *1.0* )
                 1.0 is opaque, 0.0 is transparent
+
+            contrast: float (default= *1.0* )
+                How far the stimulus deviates from the middle grey.
+                Contrast can vary -1:1 (this is a multiplier for the
+                values given in the color description of the stimulus).
 
             depth:
                 The depth argument is deprecated and may be removed in future versions.
@@ -4671,7 +4746,8 @@ class ShapeStim(_BaseVisualStim):
 
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
-        self.opacity = opacity
+        self.contrast = float(contrast)
+        self.opacity = float(opacity)
         self.pos = numpy.array(pos, float)
         self.closeShape=closeShape
         self.lineWidth=lineWidth
@@ -4800,17 +4876,12 @@ class ShapeStim(_BaseVisualStim):
         if nVerts>2: #draw a filled polygon first
             if self.fillRGB!=None:
                 #convert according to colorSpace
-                if self.fillColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-                    fillRGB = (self.fillRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
-                else:fillRGB = self.fillRGB/255.0
+                fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
                 #then draw
                 GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
         if self.lineRGB!=None:
-                #convert according to colorSpace
-            if self.lineColorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-                lineRGB = (self.lineRGB+1)/2.0#RGB in range 0:1 and scaled for contrast
-            else:lineRGB = self.lineRGB/255.0
+            lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace, self.contrast)
             #then draw
             GL.glLineWidth(self.lineWidth)
             GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
@@ -5103,12 +5174,12 @@ class ImageStim(_BaseVisualStim):
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
 
-            contrast:
+            contrast: float (default= *1.0* )
                 How far the stimulus deviates from the middle grey.
                 Contrast can vary -1:1 (this is a multiplier for the
                 values given in the color description of the stimulus).
 
-            opacity:
+            opacity: float (default= *1.0* )
                 1.0 is opaque, 0.0 is transparent
 
             texRes:
@@ -5138,7 +5209,7 @@ class ImageStim(_BaseVisualStim):
 
         self.ori = float(ori)
         self.contrast = float(contrast)
-        self.opacity = opacity
+        self.opacity = float(opacity)
         self.interpolate=interpolate
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
@@ -5345,13 +5416,7 @@ class ImageStim(_BaseVisualStim):
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (self.rgb*self.contrast+1)/2.0#RGB in range 0:1 and scaled for contrast
-            if numpy.any(desiredRGB>1.0) or numpy.any(desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-                desiredRGB=[0.0,0.0,1.0]
-        else:
-            desiredRGB = (self.rgb*self.contrast)/255.0
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self.needUpdate: self._updateList()
@@ -5359,11 +5424,6 @@ class ImageStim(_BaseVisualStim):
 
         #return the view to previous state
         GL.glPopMatrix()
-    def setContrast(self,value,operation='', log=True):
-        self._set('contrast', value, operation, log=log)
-        #if we don't have shaders we need to rebuild the texture
-        if not self._useShaders:
-            self.setIm(self._imName)
     def setImage(self, value, log=True):
         """Set the image to be used for the stimulus to this new value
         """
@@ -5511,14 +5571,7 @@ class BufferImageStim(GratingStim):
         #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
-        if self.colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            self.desiredRGB = (self.rgb * self.contrast + 1) / 2.0 #RGB in range 0:1 and scaled for contrast
-            if numpy.any(self.desiredRGB>1.0) or numpy.any(self.desiredRGB<0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%self.desiredRGB) #AOH
-                self.desiredRGB=[0.0,0.0,1.0]
-        else:
-            self.desiredRGB = (self.rgb * self.contrast)/255.0
-
+        self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         self.thisScale = 2.0/numpy.array(self.win.size)
 
     def setTex(self, tex, interpolate=True, log=True):
