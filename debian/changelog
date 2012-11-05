@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.01.0.5-2) precise; urgency=low
+
+  * Version number bugfix.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 05 Nov 2012 11:05:57 +0100
+
 psychopy-openbci (1.75.01.0.5-1) precise; urgency=low
 
   * New versioning introduced.
