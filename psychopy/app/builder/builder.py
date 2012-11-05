@@ -16,7 +16,7 @@ from psychopy import data, logging, misc, gui
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
-    Param
+    Param, CodeGenerationException
 
 from psychopy.constants import *
 from psychopy.errors import DataImportError
@@ -4257,13 +4257,23 @@ class BuilderFrame(wx.Frame):
     def generateScript(self, experimentPath):
         try:
             script = self.exp.writeScript(expPath=experimentPath)
-        except Exception as e:
+        except CodeGenerationException as e:
             try:
                 self.stdoutFrame.getText()
             except:
                 self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
             self.stdoutFrame.write("Error when generating experiment script:\n")
             self.stdoutFrame.write(str(e) + "\n")
+            self.stdoutFrame.Show()
+            self.stdoutFrame.Raise()
+            return None
+        except Exception as e:
+            try:
+                self.stdoutFrame.getText()
+            except:
+                self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
+            self.stdoutFrame.write("Unhandled exception when generating experiment script (see stderr).\n")
+            traceback.print_exc()
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
             return None

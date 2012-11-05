@@ -171,7 +171,10 @@ class SettingsComponent:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size=self.params['Window size (pixels)']
-        if self.params['saveTags'].val or self.params['storeTags']:
+        if self.params['saveTags'].val or self.params['sendTags'].val:
+            buff.writeIndented("import psychopy.contrib.obci\n")
+            buff.writeIndented("import psychopy.contrib as contrib\n")
+        if self.params['sendTags'].val:
             # TODO move import to anothe place
             buff.writeIndented("import sys\n")
             buff.writeIndented("import psychopy.contrib.obci\n")
@@ -200,7 +203,7 @@ class SettingsComponent:
         buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
-        if self.params['saveTags']:
+        if self.params['saveTags'].val:
             buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
             buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
             buff.writeIndented("    tagWriter.tag_received(tag)\n")
