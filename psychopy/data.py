@@ -17,6 +17,8 @@ import weakref
 import re
 from psychopy.errors import DataImportError
 from psychopy.data_import import haveOpenpyxl, _getExcelCellName
+from StringIO import StringIO
+import base64
 
 _experiments=weakref.WeakValueDictionary()
 
@@ -1186,7 +1188,7 @@ def importTrialTypes(fileName, returnFieldNames=False):
     logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
-def importConditions(resourceName, returnFieldNames=False):
+def importConditions(filePath, returnFieldNames=False):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
@@ -1206,21 +1208,45 @@ def importConditions(resourceName, returnFieldNames=False):
         - contain no spaces or other punctuation (underscores are permitted)
 
     """
-    extension = os.path.splitext(resourceName)[1].lower()
+    extension = os.path.splitext(filePath)[1].lower()
     if extension in data_import.FORMATS.keys():
-        dataFile = None
-        trialList, fieldNames = data_import.FORMATS[extension](dataFile)
+        dataFile = open(filePath)
+        trialList, fieldNames = importConditionsFile(dataFile, extension)
     else:
         print extension
         print data_import.FORMATS.keys()
         raise DataImportError("Unknown extension")
     
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
+                 (filePath, len(trialList), len(fieldNames)))
+    if returnFieldNames:
+        return (trialList,fieldNames)
+    else:
+        return trialList
+
+def importConditionsResource(resource, resourceName, returnFieldNames=False):
+    # TODO: resource is a "foreign" object
+    extension = os.path.splitext(resourceName)[1].lower()
+    if extension in data_import.FORMATS.keys():
+        encodedResource = resource.get_content_file()
+        resourceBytes = StringIO()
+        base64.decode(encodedResource, resourceBytes)
+        resourceBytes.seek(0)
+        trialList, fieldNames = importConditionsFile(resourceBytes, extension)
+    else:
+        print extension
+        print data_import.FORMATS.keys()
+        raise DataImportError("Unknown extension")
+    logging.exp('Imported %s as conditions, %d conditions, %d params' %
                  (resourceName, len(trialList), len(fieldNames)))
     if returnFieldNames:
         return (trialList,fieldNames)
     else:
         return trialList
+
+def importConditionsFile(conditionsFile, extension):
+    # TODO: try other extensions if suggested fails?
+    return data_import.FORMATS[extension](conditionsFile)
 
 def createFactorialTrialList(factors):
     """Create a trialList by entering a list of factors with names (keys) and levels (values)

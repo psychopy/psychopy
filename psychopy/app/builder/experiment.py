@@ -166,9 +166,9 @@ class Experiment:
     def save_resource_pool(self):
         poolNode = etree.SubElement(self.xmlRoot, 'Pool')
         resourcesNode = etree.SubElement(poolNode, 'Resources')
-        for resource in self.resourcePool.params['resources'].val:
+        for resourceName, resource in self.resourcePool.params['resources'].val.items():
             resourceNode = etree.SubElement(resourcesNode, 'Resource')
-            resourceNode.set("name", resource.get_name())
+            resourceNode.set("name", resourceName)
             resourceNode.set("date", str(resource.get_date()))
             resourceNode.set("description", resource.get_description())
             resourceNode.text = resource.get_content()
@@ -609,7 +609,11 @@ class TrialHandler:
         #import conditions from file
         if self.params['conditionsFile'].val in ['None',None,'none','']:
             condsStr="[None]"
-        else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
+        elif self.params['conditionsFile'].val[0] == '@':
+            extension = os.path.splitext(self.params['conditionsFile'].val)[1].lower()
+            condsStr="data.importConditionsFile('%s', '%s')" % (self.params['conditionsFile'].val[1:], extension)
+        else:
+            condsStr="data.importConditions(%s)" % self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code

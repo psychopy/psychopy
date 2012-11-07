@@ -14,12 +14,6 @@ class Resource(object):
         self.description = description
         self.content = content
 
-    def set_content_base64(self, base64_content):
-        pass
-
-    def get_content_base64(self):
-        return ""
-
     def get_date(self):
         return self.date
     
@@ -60,10 +54,10 @@ class ResourcePoolComponent(BaseComponent):
         b.writeIndented("resources = {\n")
         b.setIndentLevel(1, relative=True)
         writeSeparator = False
-        for resource in self.params["resources"].val:
+        for resourceName, resource in self.params["resources"].val.items():
             if writeSeparator:
                 b.writeIndented(",\n")
-            b.writeIndented("\"%s\":\n" % resource.get_name())
+            b.writeIndented("\"%s\":\n" % resourceName)
             b.writeIndented("StringIO(base64.decodestring(\"\"\"%s\"\"\"))" % resource.get_content())
         b.writeIndented("}\n")
         b.setIndentLevel(-1, relative=True)

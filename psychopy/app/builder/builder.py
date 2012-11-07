@@ -2593,8 +2593,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         dialog = resource_pool.ResourceChooserDialog(self, self.exp.resourcePool)
         if dialog.ShowModal() == wx.ID_OK:
             resourceName = dialog.resource_name
+            resource = self.exp.resourcePool.get_resource(resourceName)
             try:
-                newConditions, conditionNames = data.importConditions(resourceName, True)
+                newConditions, conditionNames = data.importConditionsResource(resource, resourceName, True)
             except DataImportError as error:
                 self.constantsCtrls['conditions'].setValue(str(error))
                 return
@@ -2606,7 +2607,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.condNamesInFile = conditionNames
             
             # set controls
-            self.constantsCtrls['conditionsFile'].setValue(resourceName)
+            self.constantsCtrls['conditionsFile'].setValue('@' + resourceName)
             self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
             
     
