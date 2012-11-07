@@ -581,9 +581,9 @@ class Window:
 
         """
         if buffer=='left':
-            GL.glDrawBuffer(GL.GL_LEFT)
+            GL.glDrawBuffer(GL.GL_BACK_LEFT)
         elif buffer=='right':
-            GL.glDrawBuffer(GL.GL_RIGHT)
+            GL.glDrawBuffer(GL.GL_BACK_RIGHT)
         else:
             raise "Unknown buffer '%s' requested in Window.setBuffer" %buffer
         if clear:
