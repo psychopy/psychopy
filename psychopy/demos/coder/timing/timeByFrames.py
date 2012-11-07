@@ -40,10 +40,11 @@ win.close()
 intervalsMS = pylab.array(win.frameIntervals[1:])*1000
 m=pylab.mean(intervalsMS)
 sd=pylab.std(intervalsMS)
-distString= "Mean=%.1fms,    s.d.=%.1f,    99%%CI=%.1f-%.1f" %(m,sd,m-3*sd,m+3*sd)
+# se=sd/pylab.sqrt(len(intervalsMS)) # for CI of the mean
+distString= "Mean=%.1fms, s.d.=%.1f, 99%%CI(frame)=%.2f-%.2f" %(m,sd,m-2.58*sd,m+2.58*sd)
 nTotal=len(intervalsMS)
 nDropped=sum(intervalsMS>(1.5*m))
-droppedString = "Dropped/Frames = %i/%i = %.3f%%" %(nDropped,nTotal,nDropped/float(nTotal))
+droppedString = "Dropped/Frames = %i/%i = %.3f%%" %(nDropped,nTotal, 100*nDropped/float(nTotal))
 
 #plot the frameintervals
 pylab.figure(figsize=[20,10])

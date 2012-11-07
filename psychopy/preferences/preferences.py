@@ -99,7 +99,7 @@ class Preferences:
         self.app = self.userPrefsCfg['app']
         self.coder=self.userPrefsCfg['coder']
         self.builder=self.userPrefsCfg['builder']
-        self.connections=self.userPrefsCfg['connections']
+        #self.connections=self.userPrefsCfg['connections']
         self.keys=self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg
 

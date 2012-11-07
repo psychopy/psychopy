@@ -44,11 +44,13 @@
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # will reset site & key prefs to defaults immediately
-    resetSitePrefs = boolean(default='False')
+    resetPrefs = boolean(default='False')
     # save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
+    # locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale
+    locale = string(default='')
 
 # Settings for the Coder window
 [coder]
@@ -82,22 +84,21 @@
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
-    topFlow = boolean(default=False)
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
     alwaysShowReadme = boolean(default=True)
     maxFavorites = integer(default=10)
 
 # Settings for connections
-[connections]
+#[connections]
     # the http proxy for usage stats and auto-updating; format is 000.000.000.000:0000
-    proxy = string(default="")
+    #proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
-    autoProxy = boolean(default=True)
+    #autoProxy = boolean(default=True)
     # allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development
-    allowUsageStats = boolean(default=True)
+    #allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
-    checkForUpdates = boolean(default=True)
+    #checkForUpdates = boolean(default=True)
 
 # KeyBindings; new key bindings only take effect on restart; Ctrl not available on Mac (use Cmd)
 [keyBindings]

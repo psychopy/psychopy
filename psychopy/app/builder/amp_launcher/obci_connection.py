@@ -8,6 +8,8 @@ import socket
 from obci.obci_control.launcher import launcher_messages
 from obci.obci_control.common.message import OBCIMessageTool
 from StringIO import StringIO
+import zmq
+import json
 
 class NetstringCodec(object):
     def __init__(self, separator = ":", delimiter=","):
@@ -36,6 +38,9 @@ class NetstringCodec(object):
 
 
 class OBCIConnection(object):
+    """
+    Synchronous OBCI connection.
+    """
     def __init__(self, address):
         templates = launcher_messages.message_templates
         self.msg_factory = OBCIMessageTool(msg_templates=templates)
@@ -98,6 +103,68 @@ class OBCIConnection(object):
         response = self.msg_factory.decode_msg(response_text)
         return response
     
+    def create_experiment(self, name="unnamed"):
+        message = self.msg_factory.fill_msg("create_experiment", name=name)
+        message_text = self.netstring_codec.encode(message)
+        self.open()
+        self.connection.send(message_text)
+        response_text = self.netstring_codec.decode(self.connection)
+        self.close()
+        return self.msg_factory.decode_msg(response_text)
+    
+    def set_experiment_scenario(self, launch_file_path="", scenario=""):
+        return self.send_recv("set_experiment_scenario", launch_file_path=launch_file_path, scenario=scenario)
+    
+    def start_experiment(self):
+        return self.send_recv("start_experiment")
+    
     def get_nearby_servers(self):
         response = self.send_recv("list_nearby_machines")
         return response
+    
+class ObciBaseClient(object):
+    """
+    Base class for communicating with OBCI peers.
+    """
+    def __init__(self, address):
+        self.context = zmq.Context.instance()
+        templates = launcher_messages.message_templates
+        self.msg_factory = OBCIMessageTool(msg_templates=templates)
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect(address)
+        self.open = True
+
+    def close(self):
+        if self.open:
+            self.socket.close()
+            self.open = False
+
+    def send_recv(self, message_name, **kwargs):
+        data = self.msg_factory.fill_msg(message_name, **kwargs)
+        self.socket.send(data)
+        response = self.socket.recv()
+        return json.loads(response)
+
+
+class ObciClient(ObciBaseClient):
+    """
+    Client for OBCI Server.
+    """
+    def create_experiment(self, name="unnamed"):
+        return self.send_recv("create_experiment", name=name)
+
+    def kill_experiment(self, experiment_uuid=None):
+        experiment_uuid = experiment_uuid or self.uuid
+        return self.send_recv("kill_experiment", strname=experiment_uuid)
+
+
+class ObciExperimentClient(ObciBaseClient):
+    """
+    Class which sends request to experiment manager.
+    """
+    def set_experiment_scenario(self, launch_file_path, scenario):
+        scenario_json=json.dumps(scenario)
+        return self.send_recv("set_experiment_scenario", launch_file_path=launch_file_path, scenario=scenario_json)
+
+    def start_experiment(self):
+        return self.send_recv("start_experiment")

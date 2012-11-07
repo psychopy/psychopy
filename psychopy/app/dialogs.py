@@ -1,4 +1,5 @@
-import wx
+import wx.grid
+
 """This is for general purpose dialogs/widgets, not related to particular functionality
 
 MessageDialog:
@@ -438,37 +439,50 @@ class ListWidget(GlobSizer):
         GlobSizer.__init__(self, hgap=2,vgap=2)
         self.parent = parent
         self.value=value
-        if type(value)!=list or len(value)<1:
+        if type(value) != list or len(value) < 0:
             raise AttributeError, 'The initial value for a ListWidget needs to be a list of dicts'
         #sort fieldNames using order information where possible
-        allNames = value[0].keys()
+        #allNames = value[0].keys()
         self.fieldNames=[]
         for name in order:
-            if name not in allNames:
-                logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionay' %name)
-                continue
-            allNames.remove(name)
-            self.fieldNames.append(name)
-        self.fieldNames.extend(allNames)#extend list by the remaining (no explicit order)
+            fieldOk = True
+            for row in value:
+                if name not in row.keys():
+                    logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionay' %name)
+                    fieldOk = False
+                    break
+            if fieldOk:
+                self.fieldNames.append(name)
+            
+        #for name in order:
+        #    if name not in allNames:
+        #        logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionay' %name)
+        #        continue
+        #    allNames.remove(name)
+        #    self.fieldNames.append(name)
+        #self.fieldNames.extend(allNames)#extend list by the remaining (no explicit order)
         #set up controls
         self.createGrid()
     def createGrid(self):
-        row=0
         for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1, label=field), (row,col), flag=wx.ALL)
+            self.Add(wx.StaticText(self.parent, -1, label=field), (0, col), flag=wx.ALL)
+        row = 1
         for entry in self.value:
-            row+=1
             self.addEntryCtrls(row, entry)
+            row += 1
+        plusButton = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
+        self.Add(plusButton, (row, 0), flag=wx.ALL)
+        plusButton.Bind(wx.EVT_BUTTON, self.onAddElement)
         self.Layout()
     def addEntryCtrls(self, row, entry):
         for col, field in enumerate(self.fieldNames):
             c = wx.TextCtrl(self.parent, -1, unicode(entry[field]))
-            self.Add(c, (row,col), flag=wx.ALL )
+            self.Add(c, (row,col), flag=wx.ALL)
         plusBtn = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
-        self.Add(plusBtn, (row,col+1), flag=wx.ALL )
+        self.Add(plusBtn, (row,col+1), flag=wx.ALL)
         plusBtn.Bind(wx.EVT_BUTTON, self.onAddElement)
         minusBtn = wx.Button(self.parent, -1, '-', style=wx.BU_EXACTFIT)
-        self.Add(minusBtn, (row,col+2), flag=wx.ALL )
+        self.Add(minusBtn, (row,col+2), flag=wx.ALL)
         minusBtn.Bind(wx.EVT_BUTTON, self.onRemoveElement)
     def onAddElement(self, event):
         """The plus button has been pressed
@@ -494,7 +508,7 @@ class ListWidget(GlobSizer):
         """Retrieve the current list of dicts from the grid
         """
         currValue = []
-        for rowN in range(self.GetRows())[1:]: #skipping the irst row (headers)
+        for rowN in range(self.GetRows())[1:-1]: #skipping the irst row (headers)
             thisEntry = {}
             for colN, fieldName in enumerate(self.fieldNames):
                 ctrl = self.FindItemAtPosition((rowN,colN)).GetWindow()
@@ -510,6 +524,8 @@ class ListWidget(GlobSizer):
         """This isn't implemented yet - set every control to have the same tooltip?
         """
         pass
+
+
 if __name__=='__main__':
     app = wx.PySimpleApp()
     dlg = wx.Dialog(None)

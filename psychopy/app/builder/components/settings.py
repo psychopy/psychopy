@@ -9,7 +9,8 @@ DEFAULT_PARAM_VALUES = {
   'sendTags': False,
   'saveTags': True,
   'doSignal': False,
-  'serialTriggerDevice': '/dev/ttyUSB0'
+  'serialTriggerDevice': '/dev/ttyUSB0',
+  'saveSignal': False
 }
 
 class SettingsComponent:
@@ -80,10 +81,12 @@ class SettingsComponent:
         self.params['saveTags'] = Param(
             paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="save tags")
         self.params["doSignal"] = Param(
-            paramValues['doSignal'], valType="bool", hint="Should signal be sent?", label="do trigger")
+            paramValues['doSignal'], valType="bool", hint="Should trigger used?", label="do trigger")
         self.params['serialTriggerDevice'] = Param(
             paramValues['serialTriggerDevice'], valType='str', hint="To which serial port is trigger connected?",
             label="device name for trigger")
+        self.params["saveSignal"] = Param(
+            paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="save signal")
 
     def getType(self):
         return self.__class__.__name__
@@ -101,7 +104,7 @@ class SettingsComponent:
         buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
         
         buff.writeIndented("# Store info about the experiment session\n")
-        buff.writeIndented("expName = '%s'  # from the Builder filename that created this script\n" %(self.exp.name))
+        buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
@@ -168,11 +171,17 @@ class SettingsComponent:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size=self.params['Window size (pixels)']
-        if self.params['saveTags'].val or self.params['storeTags']:
-            # TODO move import to anothe place
+        if self.params['saveTags'].val or self.params['sendTags'].val:
             buff.writeIndented("import psychopy.contrib.obci\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
+        if self.params['sendTags'].val:
+            # TODO move import to anothe place
+            buff.writeIndented("import sys\n")
+            buff.writeIndented("import psychopy.contrib.obci\n")
+            buff.writeIndented("import psychopy.contrib as contrib\n")
+            buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
             # TODO pass real obci context instead of None
+            buff.writeIndented("helper = exps_helper.ExpsHelper(config_module=sys.modules[__name__])\n")
             buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
             buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
@@ -194,7 +203,7 @@ class SettingsComponent:
         buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
-        if self.params['saveTags']:
+        if self.params['saveTags'].val:
             buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
             buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
             buff.writeIndented("    tagWriter.tag_received(tag)\n")

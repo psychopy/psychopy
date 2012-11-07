@@ -1,108 +1,142 @@
 Installation
 ===============
 
-Like many python modules PsychoPy is built and dependent on a number of other libraries (OpenGL, numpy...). Details on how to install those are below.
+Overview
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. warning: **Python versions.** If you are downloading and installing python manually, note that you should use **Python 2.5**. PsychoPy may work with Python 2.6 will work, but it's untested. Certainly Python 3.0 will not work for now. This version is a complete rewrite of the language and will require substantial rewriting of both the PsychoPy code and the code of the dependencies.
+PsychoPy can be installed in three main ways:
+
+* **As an application**: The "Stand Alone" versions include everything you need to create and run experiments. When in doubt, choose this option.
+
+* **As libraries**: PsychoPy and the libraries it depends on can also be installed individually, providing greater flexibility. This option requires managing a python environment.
+
+* **As source code**: If you want to customize how PsychoPy works, consult the :ref:`developer's guide` for installation and work-flow suggestions. 
+
+When you start PsychoPy for the first time, a **Configuration Wizard** will retrieve and summarize key system settings. Based on the summary, you may want to adjust some preferences to better reflect your environment. In addition, this is a good time to unpack the Builder demos to a location of your choice. (See the Demo menu in the Builder.)
+
+If you get stuck or have questions, please `email the mailing list <http://groups.google.com/group/psychopy-users>`_.
+
+If all goes well, at this point your installation will be complete! See the next section of the manual, Getting started.
+
+.. _hardware:
 
 Recommended hardware
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The bare minimum requirements for PsychoPy are a graphics card that supports OpenGL (most graphics cards do, but on windows you should install new drivers from the graphics card the windows-supplied drivers are buggy and sometimes don't support OpenGL at all).
+The minimum requirement for PsychoPy is a computer with a graphics card that supports OpenGL. Many newer graphics cards will work well. Ideally the graphics card should support OpenGL version 2.0 or higher. Certain visual functions run much faster if OpenGL 2.0 is available, and some require it (e.g. ElementArrayStim). 
 
-Ideally OpenGL 2.0 should be supported - certain functions run much faster with where it is available and some stimuli (e.g. ElementArrayStim) even requires it. 
+If you already have a computer, you can install PsychoPy and the Configuration Wizard will auto-detect the card and drivers, and provide more information. It is inexpensive to upgrade most desktop computers to an adequate graphics card. High-end graphics cards can be very expensive but are only needed for vision research (and high-end gaming).
 
-If you're thinking of buying a laptop for running experiments, *avoid the built-in intel graphics chips (e.g. GMA 950)*. The drivers are crummy and performance is poor. Get something with nVidia or ATI chips instead.
+If you're thinking of buying a laptop for running experiments, **avoid the built-in Intel graphics chips (e.g. GMA 950)**. The drivers are crummy and performance is poor; graphics cards on laptops are more difficult to exchange. Get something with nVidia or ATI chips instead. Some graphics cards that are known to work with PsychoPy `can be found here <http://upload.psychopy.org/benchmark/report.html>`_; that list is not exhaustive, many cards will also work.
 
-Windows:
+Windows
 ~~~~~~~~~~~~~~~~~~~~~~
 
-If you're new to python then you probably want to install the standalone package. This includes a copy of python and all the dependent libraries (if you do have python already installed, that won't be touched by this installation). Once installed, you'll now find a link to the PsychoPy application in >Start>Progams>PsychoPy2. Click that and then on the demos menu to get going.
+Once installed, you'll now find a link to the PsychoPy application in > Start > Progams > PsychoPy2. Click that and the Configuration Wizard should start. 
 
-You should **make sure you have reasonably current drivers for your graphics card** (download the latest from the vendor, rather than using the pre-installed windows drivers). 
+The wizard will try to make sure you have reasonably current drivers for your graphics card. You may be directed to download the latest drivers from the vendor, rather than using the pre-installed windows drivers. If necessary, get new drivers directly from the graphics card vendor; don't rely on Windows updates. The windows-supplied drivers are buggy and sometimes don't support OpenGL at all.
 
-The standalone installer adds the PsychoPy folder to your path, so you can run the included version of python from the command line etc. If you have your own version of python installed as well then you need to check which one is run by default, and change your path according to your personal preferences.
+The StandAlone installer adds the PsychoPy folder to your path, so you can run the included version of python from the command line. If you have your own version of python installed as well then you need to check which one is run by default, and change your path according to your personal preferences.
 
-Mac OS X:
+
+Mac OS X
 ~~~~~~~~~~~~~~~~~~~~~~
 
-There are different ways to install PsychoPy on a mac that will suit different users
+There are different ways to install PsychoPy on a Mac that will suit different users. Almost all Mac's come with a suitable video card by default.
 
-* Intel Mac users (with OS X v10.5) can simply `download`_ the standalone application bundle (the *dmg* file) and drag it to their Applications folder. The app bundle contains its own independent python and all the dependencies and will not interact with anything else on your system (except its own preferences).
+* Intel Mac users (with OS X v10.7 or higher; 10.5 and 10.6 might still work) can simply `download`_ the standalone application bundle (the **dmg** file) and drag it to their Applications folder. (Installing it elsewhere should work fine too.)
 
-* Users of `macports <http://www.macports.org/>`_ can install PsychoPy and all its dependencies simply with:
-    ``sudo port install py25-psychopy``
+* Users of `macports <http://www.macports.org/>`_ can install PsychoPy and all its dependencies simply with::
     
-    (thanks James Kyles for that).
-
-* For PPC macs (or for intel mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution <http://www.enthought.com>`_. `It's free for academic use <http://www.enthought.com/products/edudownload.php>`_ and the only things it misses are `avbin <http://code.google.com/p/avbin/>`_ (if you want to play movies) and `pygame`_ (for sound reproduction). You could alternatively manually install the 'framework build' of python and download all the dependencies below. One advantage to this is that you can then upgrade versions with::
+    sudo port install py25-psychopy
     
-    sudo /usr/local/bin/easy_install-2.5 -N -Z -U psychopy
+  (Thanks to James Kyles.)
 
-Linux:
+* For PPC Macs (or for Intel Mac users that want their own custom python for running PsychoPy) you need to install the dependencies and PsychoPy manually. The easiest way is to use the `Enthought Python Distribution` (see Dependencies, below).
+
+* You could alternatively manually install the 'framework build' of python and the dependencies (see below). One advantage to this is that you can then upgrade versions with::
+    
+    sudo easy_install -N -Z -U psychopy
+
+Linux
 ~~~~~~~~~~~~~~~~~~~~~~
-For **Debian** users, PsychoPy is in the Debian packages index so you can simply do::
+**Debian** systems:
+  PsychoPy is in the Debian packages index so you can simply do::
     
     sudo apt-get install psychopy
 
-For **Debian-based** distributions (e.g. Ubuntu):
+**Ubuntu** (and other Debian-based distributions):
 	
-	#. Add the following sources in Synaptic, in the Configuration>Repository dialog box, under "Other software"::
+#. Add the following sources in Synaptic, in the Configuration > Repository dialog box, under "Other software"::
 	
-	    deb http://neuro.debian.net/debian karmic main contrib non-free 
-	    deb-src http://neuro.debian.net/debian karmic main contrib non-free 
+    deb http://neuro.debian.net/debian karmic main contrib non-free 
+    deb-src http://neuro.debian.net/debian karmic main contrib non-free 
 	
-	#. Then follow the 'Package authentification' procedure described in http://neuro.debian.net/ 
-	#. Then install the psychopy package under Synaptic or through `sudo apt-get install psychopy` which will install all dependencies. 
+#. Then follow the 'Package authentification' procedure described in http://neuro.debian.net/ 
+#. Then install the psychopy package under Synaptic or through `sudo apt-get install psychopy` which will install all dependencies. 
 
-For **non-Debian** systems you need to install the dependencies below manually and then PsychoPy (with easy_install?). 
+  (Thanks to Yaroslav Halchenko for the Debian and NeuroDebian package.)
 
-Thanks to Yaroslav Halchenko for his work on the Debian package.
+**non-Debian** systems:
+  You need to install the dependencies below. Then install PsychoPy::
+
+    $ sudo easy_install psychopy
+    ...
+    Downloading http://psychopy.googlecode.com/files/PsychoPy-1.75.01-py2.7.egg
 
 .. _dependencies:
 
 Dependencies
+===============
+
+Like many open-source programs, PsychoPy depends on the work of many other people in the form of libraries.
+
+Essential packages
 ~~~~~~~~~~~~~~~~~~~~~~
+**Python**: If you need to install python, or just want to, the easiest way is to use the `Enthought Python Distribution <http://www.enthought.com>`_, which is `free for academic use <http://www.enthought.com/products/edudownload.php>`_. Be sure to get a 32-bit version. The only things it misses are `avbin`, `pyo`, and `flac`.
 
-If you want to install each library individually rather than use the simple distributions of packages above then you can download the following. Make sure you get the correct version for your OS and your version of Python.
+If you want to install each library individually rather than use the simpler distributions of packages above then you can download the following. Make sure you get the correct version for your OS and your version of Python. easy_install will work for many of these, but some require compiling from source.
 
-* `Python <http://www.python.org/download/>`_ (2.5.x-2.7.x, NOT version 3)
+* `python <http://www.python.org/download/>`_ (32-bit only, version 2.6 or 2.7; 2.5 might work, 3.x will not)
+* `avbin <http://code.google.com/p/avbin/>`_ (movies)
 * `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
-* `pyglet <http://www.pyglet.org>`_ (version 1.1.4, not version 1.2?)
-* `pygame <http://www.pygame.org>`_ (for playing sounds and/or as an alternative to pyglet. Must be version 1.8 or greater)
-* `pywin32 <https://sourceforge.net/projects/pywin32/>`_ (only needed for *Windows*)
-* `wxPython <http://www.wxpython.org>`_ (version 2.8, not 2.9)
-* `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (easier to install with setuptools/easy_install)
-* `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting stuff)
-* `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port, win32 only)
+* `pyglet <http://www.pyglet.org>`_ (version 1.1.4, not version 1.2)
+* `wxPython <http://www.wxpython.org>`_ (version 2.8.10 ro 2.8.11, not 2.9)
+* `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (`sudo easy_install PIL`)
+* `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting and fast polygon routines)
 * `lxml <http://lxml.de/>`_ (needed for loading/saving builder experiment files)
 * `openpyxl <https://bitbucket.org/ericgazoni/openpyxl/downloads>`_ (for loading params from xlsx files)
+* `pyo <http://code.google.com/p/pyo/>`_ (sound, version 0.6.2 or higher, compile with `----no-messages`)
+
+These packages are only needed for Windows:
+
+* `pywin32 <https://sourceforge.net/projects/pywin32/>`_
+* `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port)
 
 .. _suggestedPackages:
 
 Suggested packages
 ~~~~~~~~~~~~~~~~~~~~~~
-In addition to the required packages above, there are numerous other additional packages that are useful to PsychoPy users, e.g. for controlling hardware and performing specific tasks. These are packaged with the Standalone versions of `PsychoPy` but users with their own custom Python environment need to install these manually to use them. Most of these can be installed with easy_install
+In addition to the required packages above, additional packages can be useful to PsychoPy users, e.g. for controlling hardware and performing specific tasks. These are packaged with the Standalone versions of PsychoPy but users with their own custom Python environment need to install these manually. Most of these can be installed with `easy_install`.
 
 General packages:
 
-    - psignifit for bootsrtapping and other resampling tests
-    - pyserial for interfacing with the serial port
-    - parallel python (aka pp) for parallel processing
+- psignifit for bootstrapping and other resampling tests
+- pyserial for interfacing with the serial port
+- parallel python (aka pp) for parallel processing
+- `flac <http://flac.sourceforge.net>`_ audio codec, for working with google-speech
 
 Specific hardware interfaces:
 
-    - `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
-    - ioLabs toolbox
-    - labjack tolbox
+- `pynetstation <http://code.google.com/p/pynetstation/>`_ to communicate with EGI netstation. See notes on using :ref:`egi` 
+- ioLabs toolbox
+- labjack toolbox
 
 For developers:
 
-    - `nose` and `coverage` for running unit tests (if this means nothing to you don't worry)
-    - `sphinx` for documentation
-
-Please send feedback to the mailing list.
+- `pytest` and `coverage` for running unit tests
+- `sphinx` for building documentation
 
 .. _download : http://code.google.com/p/psychopy
