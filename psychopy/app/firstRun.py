@@ -236,7 +236,11 @@ class ConfigWizard(object):
         try:
             from pyglet.media import avbin
             ver = avbin.get_version()
-            report.append(('pyglet avbin', str(ver), 'for movies'))
+            if ver < 5 or ver >= 6:
+                msg = 'Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]'
+            else:
+                msg = 'for movies'
+            report.append(('pyglet avbin', str(ver), msg))
         except: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', 'Warning: could not import avbin; playing movies will not work'))
         
@@ -533,12 +537,15 @@ class BenchmarkWizard(ConfigWizard):
             status = self.uploadReport(itemsDict)
             dlg = gui.Dlg(title=self.name + ' result')
             dlg.addText('')
-            if status.startswith('success good_upload'):
+            if status and status.startswith('success good_upload'):
                 dlg.addText('Configutation data were successfully uploaded to')
                 dlg.addText('http://upload.psychopy.org/benchmark/report.html')
                 dlg.addText('Thanks for participating!')
             else:
-                dlg.addText('Upload error: maybe no internet access?')
+                if not eval(info['internet access']):
+                    dlg.addText('Upload error: maybe no internet access?')
+                else:
+                    dlg.addText('Upload error status: %s' % status[:20])
             dlg.show()
         
         self.htmlReport(itemsList)
