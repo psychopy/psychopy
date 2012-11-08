@@ -203,10 +203,10 @@ class AmpLauncherDialog(wx.Dialog):
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
-        server = self.amp_config.get_server()
+        self.server = self.amp_config.get_server()
         launch_file_path = self.amp_config.get_launch_file()
         # TODO read port from server list
-        client = obci_connection.ObciClient("tcp://" + server + ":54654")
+        client = obci_connection.ObciClient("tcp://" + self.server + ":54654")
         experiment = client.create_experiment("Psychopy Experiment")
         experiment_address = experiment['rep_addrs'][-1]
         experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
