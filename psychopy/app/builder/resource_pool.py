@@ -117,7 +117,7 @@ class ResourceChooserPanel(wx.Panel):
     
 
 class ResourceChooserDialog(wx.Dialog):
-    def __init__(self, parent, pool=None):
+    def __init__(self, parent, pool):
         super(ResourceChooserDialog, self).__init__(parent, title="Choose resource")
         self.pool = pool
         self.resource_name = None
@@ -145,7 +145,7 @@ class ResourceChooserDialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App()
-    dialog = ResourceChooserDialog(None)
+    dialog = ResourceChooserDialog(None, None)
     dialog.Show()
     app.SetTopWindow(dialog)
     app.MainLoop()

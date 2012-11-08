@@ -1698,8 +1698,8 @@ class ParamCtrls:
 #                size=wx.Size(self.valueWidth*2,160))
         elif param.valType=='bool':
             #only True or False - use a checkbox
-             self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
-             self.valueCtrl.SetValue(param.val)
+            self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
+            self.valueCtrl.SetValue(param.val)
         elif len(param.allowedVals)>1:
             #there are limitted options - use a Choice control
             self.valueCtrl = wx.Choice(parent, choices=param.allowedVals, size=wx.Size(self.valueWidth,-1))
@@ -1712,6 +1712,8 @@ class ParamCtrls:
             self.valueCtrl = wx.TextCtrl(parent,-1,val,size=wx.Size(self.valueWidth,-1))
             if label in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
                 self.valueCtrl.SetFocus()
+        if param.valType == 'resource':
+            browse = True
         self.valueCtrl.SetToolTipString(param.hint)
         if len(param.allowedVals)==1:
             self.valueCtrl.Disable()#visible but can't be changed
@@ -1912,7 +1914,6 @@ class _BaseParamsDlg(wx.Dialog):
             for fieldName in self.advParams:
                 self.addParam(fieldName, advanced=True)
 
-
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
@@ -1989,6 +1990,14 @@ class _BaseParamsDlg(wx.Dialog):
         return remaining
 
 
+    def browserHandler(self, value_ctrl):
+        def handler(event):
+            dialog = resource_pool.ResourceChooserDialog(self, self.frame.exp.resourcePool)
+            if dialog.ShowModal() == wx.ID_OK:
+                value_ctrl.SetValue("$resources['%s']" % dialog.resource_name)
+        return handler
+    
+    
     def addParamToSizer(self, fieldName, sizer, parent):
         param = self.params[fieldName]
         if param.label not in [None, '']:
@@ -2007,6 +2016,10 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.updateCtrl, (currRow, 2))
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow, 3))
+        if ctrls.browseCtrl:
+            handler = self.browserHandler(ctrls.valueCtrl)
+            ctrls.browseCtrl.Bind(wx.EVT_BUTTON, handler)
+            sizer.Add(ctrls.browseCtrl, (currRow, 4))
         if fieldName in ['text', 'Text']:
             sizer.AddGrowableRow(currRow) #doesn't seem to work though
         elif fieldName in ['color', 'Color']:
@@ -2028,8 +2041,7 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             sizer = self.ctrlSizer
             parent = self
-        self.addParamToSizer(fieldName, sizer, parent)
-        
+        self.addParamToSizer(fieldName, sizer, parent)        
 
     def openMonitorCenter(self,event):
         self.app.openMonitorCenter(event)

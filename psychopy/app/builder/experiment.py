@@ -510,7 +510,7 @@ class Param:
                 return str(float(self.val))#will work if it can be represented as a float
             except:#might be an array
                 return "asarray(%s)" %(self.val)
-        elif self.valType == 'str':
+        elif self.valType in ['str', 'resource']:
             # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
