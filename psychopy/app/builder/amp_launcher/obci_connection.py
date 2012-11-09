@@ -165,6 +165,15 @@ class ObciExperimentClient(ObciBaseClient):
     def set_experiment_scenario(self, launch_file_path, scenario):
         scenario_json=json.dumps(scenario)
         return self.send_recv("set_experiment_scenario", launch_file_path=launch_file_path, scenario=scenario_json)
+    
+    def get_experiment_info(self):
+        return self.send_recv("get_experiment_info")
+    
+    def get_peer_info(self, peer_id):
+        return self.send_recv("get_peer_info", peer_id=peer_id)
+    
+    def join_experiment(self, peer_id):
+        return self.send_recv("join_experiment", peer_id=peer_id, peer_type="obci_peer")
 
     def start_experiment(self):
         return self.send_recv("start_experiment")

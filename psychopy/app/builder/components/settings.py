@@ -162,9 +162,9 @@ class SettingsComponent:
         allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val) #if fullscreen then hide the mouse, unless its requested explicitly
         allowStencil = False
         for thisRoutine in self.exp.routines.values(): #NB routines is a dict
-           for thisComp in thisRoutine: #a single routine is a list of components
-               if thisComp.type=='Aperture': allowStencil = True
-               if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
+            for thisComp in thisRoutine: #a single routine is a list of components
+                if thisComp.type=='Aperture': allowStencil = True
+                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
         if fullScr:
@@ -181,8 +181,8 @@ class SettingsComponent:
             buff.writeIndented("import psychopy.contrib.obci.mx\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
             buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
-            buff.writeIndented("server = sys.argv[1] if len(sys.argv) >= 2 else '127.0.0.1'\n")
-            buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(server)\n")
+            buff.writeIndented("mx_address = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) >= 2 else ('127.0.0.1', 1980)\n")
+            buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
             buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
             buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))

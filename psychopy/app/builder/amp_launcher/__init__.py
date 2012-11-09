@@ -12,6 +12,8 @@ from obci.obci_control.launcher import launcher_messages
 import obci_connection
 from psychopy.app.builder.amp_launcher.retriever import AmplifierInfo
 import time
+import zmq
+import json
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
@@ -156,14 +158,13 @@ class AmpLauncherDialog(wx.Dialog):
             },
             'path': exec_path
         }
-        save_signal = self.GetParent().exp.settings.params['saveSignal'].val
-        if save_signal:
-            peers = {
-                'amplifier': amplifier_peer,
-                'scenario_dir': '',
-                'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
-                'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
-            }
+        peers = {
+            'amplifier': amplifier_peer,
+            'scenario_dir': '',
+            'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
+            'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
+        }
+        if self.GetParent().exp.settings.params['saveSignal'].val:
             tag_saver = {
                 'config': {},
                 'config_sources': {'signal_saver': 'signal_saver'},
@@ -200,19 +201,38 @@ class AmpLauncherDialog(wx.Dialog):
             peers['signal_saver'] = signal_saver
         return {'peers': peers}
 
+
+    def wait_for_status_change(self, experiment_manager):
+        context = zmq.Context().instance()
+        sub_socket = context.socket(zmq.SUB)
+        sub_socket.connect("tcp://" + self.amp_config.get_server() + ":34234")
+        sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+        experiment_manager.start_experiment()
+        while True:
+            published = json.loads(sub_socket.recv())
+            if published.get("peers") and published['peers'].has_key("mx"):
+                return
+    
+    
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
-        self.server = self.amp_config.get_server()
         launch_file_path = self.amp_config.get_launch_file()
         # TODO read port from server list
-        client = obci_connection.ObciClient("tcp://" + self.server + ":54654")
+        client = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
         experiment = client.create_experiment("Psychopy Experiment")
         experiment_address = experiment['rep_addrs'][-1]
         experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
         scenario = self.get_scenario()
         experiment_manager.set_experiment_scenario(launch_file_path, scenario)
-        experiment_manager.start_experiment()
+        
+        #wait until MX starts
+        self.wait_for_status_change(experiment_manager)
+        
+        #get MX address
+        peer_invitation = experiment_manager.join_experiment("psychopy")
+        self.mx_address = peer_invitation["params"]["mx_addr"].split(':')
+        
         experiment_manager.close()
         client.uuid = experiment["uuid"]
         self.experiment_contact = client

@@ -4188,7 +4188,7 @@ class BuilderFrame(wx.Frame):
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
             self.experiment_contact = runAmpDialog.get_experiment_contact()
-            self.server = runAmpDialog.server
+            mx_address = runAmpDialog.mx_address
         else:
             return
         
@@ -4209,12 +4209,12 @@ class BuilderFrame(wx.Frame):
         self.scriptProcess.Redirect()#builder will receive the stdout/stdin
 
         if sys.platform=='win32':
-            command = '"%s" -u "%s" %s' %(sys.executable, fullPath, self.server)# the quotes allow file paths with spaces
+            command = '"%s" -u "%s" %s %s' %(sys.executable, fullPath, mx_address[0], mx_address[1])# the quotes allow file paths with spaces
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            command = '%s -u %s %s' %(sys.executable, fullPath, self.server)# the quotes would break a unix system command
+            command = '%s -u %s %s %s' %(sys.executable, fullPath, mx_address[0], mx_address[1])# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
