@@ -142,7 +142,7 @@ class AmpLauncherDialog(wx.Dialog):
 
     def get_scenario(self):
         exec_path = self.amp_config.get_exec_file()
-        sampling_rate = self.amp_config.get_param("sampling_rate") or 16
+        sampling_rate = self.amp_config.get_param("sampling_rate") or 128
         active_channels = self.amp_config.get_active_channels()
         channel_names = self.amp_config.get_channel_names()
         amplifier_peer = {
