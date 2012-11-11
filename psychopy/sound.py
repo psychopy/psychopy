@@ -47,8 +47,7 @@ audioAPI=None
 try:
     import pyo
     havePyo = True
-    global pyoSndServer
-    pyoSndServer = None
+    pyoSndServerStarted = False
 except ImportError:
     havePyo = False
 
@@ -360,7 +359,8 @@ class SoundPyo(_SoundBase):
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised)
         """
-        if pyoSndServer==None:
+        global pyoSndServerStarted
+        if pyoSndServerStarted==False:
             initPyo()
         self.sampleRate=sampleRate
         self.format = bits
@@ -461,20 +461,22 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 def initPyo(rate=44100, stereo=True, buffer=256):
     """setup the pyo (sound) server
     """
-    global pyoSndServer
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         def __del__(self):
-            from psychopy import core
             self.shutdown()
             core.wait(0.25)#make sure enough time passes for the server to shutdown
+            print 'pyo server deleted'
+            #sys.stdout.flush()
+    print 'got here1'
     #create the instance of the server
     pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio='coreaudio', jackname='pyo')
     pyoSndServer.boot()
     pyoSndServer.start()
-    core.pyoServers.append(pyoSndServer)#so we can kill/quit server thread on exit
-    print core.pyoServers
-
+    print 'got here'
+    global pyoSndServerStarted
+    pyoSndServerStarted = True
+    #sys.stdout.flush()
 def setAudioAPI(api):
     """Change the API used for the presentation of sounds
 
