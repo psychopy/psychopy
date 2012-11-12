@@ -104,7 +104,7 @@ class SettingsComponent:
         buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
         
         buff.writeIndented("# Store info about the experiment session\n")
-        buff.writeIndented("expName = '%s'  # from the Builder filename that created this script\n" %(self.exp.name))
+        buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')
@@ -162,21 +162,28 @@ class SettingsComponent:
         allowGUI = (not bool(fullScr)) or bool(self.params['Show mouse'].val) #if fullscreen then hide the mouse, unless its requested explicitly
         allowStencil = False
         for thisRoutine in self.exp.routines.values(): #NB routines is a dict
-           for thisComp in thisRoutine: #a single routine is a list of components
-               if thisComp.type=='Aperture': allowStencil = True
-               if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
+            for thisComp in thisRoutine: #a single routine is a list of components
+                if thisComp.type=='Aperture': allowStencil = True
+                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
         screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size=self.params['Window size (pixels)']
-        if self.params['saveTags'].val or self.params['storeTags']:
-            # TODO move import to anothe place
+        if self.params['saveTags'].val or self.params['sendTags'].val:
             buff.writeIndented("import psychopy.contrib.obci\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
-            # TODO pass real obci context instead of None
-            buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+        if self.params['sendTags'].val:
+            # TODO move import to anothe place
+            buff.writeIndented("import sys\n")
+            buff.writeIndented("import psychopy.contrib.obci\n")
+            buff.writeIndented("import psychopy.contrib.obci.mx\n")
+            buff.writeIndented("import psychopy.contrib as contrib\n")
+            buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
+            buff.writeIndented("mx_address = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) >= 2 else ('127.0.0.1', 1980)\n")
+            buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
+            buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
             buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
         else:
@@ -197,7 +204,7 @@ class SettingsComponent:
         buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
-        if self.params['saveTags']:
+        if self.params['saveTags'].val:
             buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
             buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
             buff.writeIndented("    tagWriter.tag_received(tag)\n")

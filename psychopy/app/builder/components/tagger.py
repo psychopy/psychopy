@@ -69,6 +69,7 @@ class TagOnFlipComponent(BaseComponent):
         }
         self.writeStartTestCode(buff)
         self.writeParamUpdates(buff, "frame")
-        buff.writeIndented("%(name)s.schedule()\n" % codeEntries);
+        buff.writeIndented("%(name)s.schedule()\n" % codeEntries)
+        buff.writeIndented("%(name)s.status = FINISHED\n" % codeEntries)
         buff.setIndentLevel(-1, relative = True)
 

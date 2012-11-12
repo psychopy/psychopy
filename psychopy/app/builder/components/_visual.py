@@ -168,6 +168,9 @@ class VisualComponent(_base.BaseComponent):
         for previewParam in VisualComponent.BASE_PREVIEW_PARAMS.items() + self.PREVIEW_PARAMS.items():
             componentParam = self.params[previewParam[0]]
             kwargs[previewParam[1].kwargKey] = previewParam[1].converter(componentParam)
+        # units from experiment settings
+        if kwargs.get("units") == "from exp settings":
+            del kwargs["units"]
         stimulus = self.PREVIEW_STIMULUS(window, **kwargs)
         return stimulus
 

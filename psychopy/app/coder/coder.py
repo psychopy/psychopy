@@ -1086,6 +1086,8 @@ class CoderFrame(wx.Frame):
         if self.appData['winH']==0 or self.appData['winW']==0:#we didn't have the key or the win was minimized/invalid
             self.appData['winH'], self.appData['winW'] =wx.DefaultSize
             self.appData['winX'],self.appData['winY'] =wx.DefaultPosition
+        if self.appData['winY'] < 20:
+            self.appData['winY'] = 20
         wx.Frame.__init__(self, parent, ID, title,
                          (self.appData['winX'], self.appData['winY']),
                          size=(self.appData['winW'],self.appData['winH']))
@@ -1314,6 +1316,10 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
+        # bug: benchmark freezes if run from Coder
+        #self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
+        #wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
+
         if self.appPrefs['debugMode']:
             self.toolsMenu.Append(self.IDs.unitTests, "Unit &testing...\tCtrl-T",
                 "Show dialog to run unit tests")
@@ -1947,8 +1953,9 @@ class CoderFrame(wx.Frame):
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            fullPath= fullPath.replace(' ','\ ')
-            command = '%s -u %s' %(sys.executable, fullPath)# the quotes would break a unix system command
+            fullPath = fullPath.replace(' ','\ ')
+            pythonExec = sys.executable.replace(' ','\ ')
+            command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbStop,True)

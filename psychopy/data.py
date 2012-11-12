@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, logging, trial_sequence
+from psychopy import misc, gui, logging, trial_sequence, data_import
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -16,17 +16,11 @@ import codecs, locale
 import weakref
 import re
 from psychopy.errors import DataImportError
-
-try:
-    import openpyxl
-    from openpyxl.cell import get_column_letter
-    from openpyxl.reader.excel import load_workbook
-    haveOpenpyxl=True
-except:
-    haveOpenpyxl=False
+from psychopy.data_import import haveOpenpyxl, _getExcelCellName
+from StringIO import StringIO
+import base64
 
 _experiments=weakref.WeakValueDictionary()
-_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
@@ -423,7 +417,7 @@ class _BaseTrialHandler(object):
 
         dataArray = self._createOutputArray(stimOut=[],
             dataOut=dataOut,
-            matrixOnly=False,)
+            matrixOnly=matrixOnly)
 
         #set default delimiter if none given
         if delim==None:
@@ -526,7 +520,7 @@ class _BaseTrialHandler(object):
         #create the data array to be sent to the Excel file
         dataArray = self._createOutputArray(stimOut=[],
             dataOut=dataOut,
-            matrixOnly=False,)
+            matrixOnly=matrixOnly)
 
         #import necessary subpackages - they are small so won't matter to do it here
         from openpyxl.workbook import Workbook
@@ -1194,7 +1188,7 @@ def importTrialTypes(fileName, returnFieldNames=False):
     logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
-def importConditions(fileName, returnFieldNames=False):
+def importConditions(filePath, returnFieldNames=False):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
@@ -1214,110 +1208,45 @@ def importConditions(fileName, returnFieldNames=False):
         - contain no spaces or other punctuation (underscores are permitted)
 
     """
-    def _assertValidVarNames(fieldNames, fileName):
-        """screens a list of names as candidate variable names. if all names are
-        OK, return silently; else raise ImportError with msg
-        """
-        if not all(fieldNames):
-            raise DataImportError, 'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName
-        for name in fieldNames:
-            
-            #OK, msg = isValidVariableName(name)
-            OK, msg = isValidVariableName(name)
-            if not OK: #tailor message to importConditions
-                msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise DataImportError, 'Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name)
-
-    fileName = os.path.expanduser(fileName)
-    if fileName in ['None','none',None]:
-        if returnFieldNames:
-            return [], []
-        return []
-    if not os.path.isfile(fileName):
-        raise ImportError, 'Conditions file not found: %s' %os.path.abspath(fileName)
-
-    if fileName.endswith('.csv'):
-        #use csv import library to fetch the fieldNames
-        f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
-        #lines = f.read().split(os.linesep)#csv module is temperamental with line endings
-        try:
-            reader = csv.reader(f)#.split(os.linesep))
-        except:
-            raise DataImportError, 'Could not open %s as conditions' % fileName
-        fieldNames = reader.next() # first row
-        _assertValidVarNames(fieldNames, fileName)
-        #use matplotlib to import data and intelligently check for data types
-        #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-        trialsArr = mlab.csv2rec(f) # data = non-header row x col
-        f.close()
-        #convert the record array into a list of dicts
-        trialList = []
-        for trialN, trialType in enumerate(trialsArr):
-            thisTrial ={}
-            for fieldN, fieldName in enumerate(fieldNames):
-                val = trialsArr[trialN][fieldN]
-                if type(val)==numpy.string_:
-                    val = unicode(val.decode('utf-8'))
-                    #if it looks like a list, convert it:
-                    if val.startswith('[') and val.endswith(']'):
-                        #exec('val=%s' %unicode(val.decode('utf8')))
-                        val = eval(val)
-                thisTrial[fieldName] = val
-            trialList.append(thisTrial)
-    elif fileName.endswith('.pkl'):
-        f = open(fileName, 'rU') # is U needed?
-        try:
-            trialsArr = cPickle.load(f)
-        except:
-            raise DataImportError, 'Could not open %s as conditions' % fileName
-        f.close()
-        trialList = []
-        fieldNames = trialsArr[0] # header line first
-        _assertValidVarNames(fieldNames, fileName)
-        for row in trialsArr[1:]:
-            thisTrial = {}
-            for fieldN, fieldName in enumerate(fieldNames):
-                thisTrial[fieldName] = row[fieldN] # type is correct, being .pkl
-            trialList.append(thisTrial)
+    extension = os.path.splitext(filePath)[1].lower()
+    if extension in data_import.FORMATS.keys():
+        dataFile = open(filePath)
+        trialList, fieldNames = importConditionsFile(dataFile, extension)
     else:
-        if not haveOpenpyxl:
-            raise ImportError, 'openpyxl is required for loading excel format files, but it was not found.'
-        try:
-            wb = load_workbook(filename = fileName)
-        except: # InvalidFileException(unicode(e)): # this fails
-            raise DataImportError, 'Could not open %s as conditions' % fileName
-        ws = wb.worksheets[0]
-        nCols = ws.get_highest_column()
-        nRows = ws.get_highest_row()
-
-        #get parameter names from the first row header
-        fieldNames = []
-        for colN in range(nCols):
-            fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
-            fieldNames.append(fieldName)
-        _assertValidVarNames(fieldNames, fileName)
-
-        #loop trialTypes
-        trialList = []
-        for rowN in range(1, nRows):#skip header first row
-            thisTrial={}
-            for colN in range(nCols):
-                val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
-                #if it looks like a list, convert it
-                if type(val) in [unicode, str] and (
-                        val.startswith('[') and val.endswith(']') or
-                        val.startswith('(') and val.endswith(')') ):
-                    val = eval(val)
-                fieldName = fieldNames[colN]
-                thisTrial[fieldName] = val
-            trialList.append(thisTrial)
-
+        print extension
+        print data_import.FORMATS.keys()
+        raise DataImportError("Unknown extension")
+    
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
-                 (fileName, len(trialList), len(fieldNames)))
+                 (filePath, len(trialList), len(fieldNames)))
     if returnFieldNames:
         return (trialList,fieldNames)
     else:
         return trialList
+
+def importConditionsResource(resource, resourceName, returnFieldNames=False):
+    # TODO: resource is a "foreign" object
+    extension = os.path.splitext(resourceName)[1].lower()
+    if extension in data_import.FORMATS.keys():
+        encodedResource = resource.get_content_file()
+        resourceBytes = StringIO()
+        base64.decode(encodedResource, resourceBytes)
+        resourceBytes.seek(0)
+        trialList, fieldNames = importConditionsFile(resourceBytes, extension)
+    else:
+        print extension
+        print data_import.FORMATS.keys()
+        raise DataImportError("Unknown extension")
+    logging.exp('Imported %s as conditions, %d conditions, %d params' %
+                 (resourceName, len(trialList), len(fieldNames)))
+    if returnFieldNames:
+        return (trialList,fieldNames)
+    else:
+        return trialList
+
+def importConditionsFile(conditionsFile, extension):
+    # TODO: try other extensions if suggested fails?
+    return data_import.FORMATS[extension](conditionsFile)
 
 def createFactorialTrialList(factors):
     """Create a trialList by entering a list of factors with names (keys) and levels (values)
@@ -2402,7 +2331,7 @@ class MultiStairHandler(_BaseTrialHandler):
             #make a filename
             label = thisStair.condition['label']
             thisStair.saveAsExcel(fileName=fileName, sheetName=label,
-                matrixOnly=False, appendFile=append)
+                matrixOnly=matrixOnly, appendFile=append)
     def saveAsText(self,fileName,
                    delim='\t',
                    matrixOnly=False):
@@ -3014,53 +2943,4 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
 
     return now_dec
 
-def isValidVariableName(name):
-    """Checks whether a certain string could be used as a valid variable.
-
-    Usage::
-
-        OK, msg = isValidVariableName(name)
-
-    >>> isValidVariableName('name')
-    (True, '')
-    >>> isValidVariableName('0name')
-    (False, 'Variables cannot begin with numeric character')
-    >>> isValidVariableName('first second')
-    (False, 'Variables cannot contain punctuation or spaces')
-    >>> isValidVariableName('')
-    (False, "Variables cannot be missing, None, or ''")
-    >>> isValidVariableName(None)
-    (False, "Variables cannot be missing, None, or ''")
-    >>> isValidVariableName(23)
-    (False, "Variables must be string-like")
-    >>> isValidVariableName('a_b_c')
-    (True, '')
-    """
-    if not name:
-        return False, "Variables cannot be missing, None, or ''"
-    if not type(name) in [str, unicode, numpy.string_, numpy.unicode_]:
-        return False, "Variables must be string-like"
-    try:
-        name=str(name)#convert from unicode if possible
-    except:
-        if type(name) in [unicode, numpy.unicode_]:
-            raise AttributeError, "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name))
-        else:
-            raise AttributeError, "name %s (type %s) could not be converted to a string" % (name, type(name))
-
-    if name[0].isdigit():
-        return False, "Variables cannot begin with numeric character"
-    if _nonalphanumeric_re.search(name):
-        return False, "Variables cannot contain punctuation or spaces"
-    return True, ""
-
-def _getExcelCellName(col, row):
-    """Returns the excel cell name for a row and column (zero-indexed)
-
-    >>> _getExcelCellName(0,0)
-    'A1'
-    >>> _getExcelCellName(2,1)
-    'C2'
-    """
-    return "%s%i" %(get_column_letter(col+1), row+1)#BEWARE - openpyxl uses indexing at 1, to fit with Excel
 

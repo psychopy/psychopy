@@ -15,11 +15,15 @@ import numpy; print "numpy", numpy.__version__
 import scipy; print "scipy", scipy.__version__
 import matplotlib; print "matplotlib", matplotlib.__version__
 import pyglet; print "pyglet", pyglet.version
-import pyo; print "pyo", '.'.join(map(str, pyo.getVersion()))
+# pyo is a new dependency, for sound:
+try: import pyo; print "pyo", '%i.%i.%i' % pyo.getVersion()
+except: print 'pyo [not installed]'
+
 from psychopy import __version__
-print "PsychoPy", __version__
+print "\nPsychoPy", __version__
 
 win = visual.Window([100,100])#some drivers want a window open first
+print "have shaders:", win._haveShaders
 print "\nOpenGL info:"
 #get info about the graphics card and drivers
 print "vendor:", gl_info.get_vendor()

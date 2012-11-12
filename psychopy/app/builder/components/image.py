@@ -43,7 +43,7 @@ class ImageComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         #params
         self.params['advancedParams']=['color', 'colorSpace','texture resolution','interpolate']
-        self.params['image']=Param(image, valType='str', allowedTypes=[],
+        self.params['image']=Param(image, valType='resource', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - a filename, including path",
             label="Image")
