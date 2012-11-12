@@ -1,9 +1,15 @@
+psychopy-openbci (1.75.01.0.6-2) precise; urgency=low
+
+  * Fix timeout problem in first launch.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 12 Nov 2012 13:51:57 +0100
+
 psychopy-openbci (1.75.01.0.6-1) precise; urgency=low
 
   * New upstream release.
   * Resize startup icon.
 
- -- Karol Auguštin <karolaug@dell>  Mon, 12 Nov 2012 09:13:38 +0100
+ -- Karol Auguštin <karolaug@dell>  Mon, 12 Nov 2012 13:51:48 +0100
 
 psychopy-openbci (1.75.01.0.5-2) precise; urgency=low
 
