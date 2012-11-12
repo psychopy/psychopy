@@ -1317,8 +1317,9 @@ class CoderFrame(wx.Frame):
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
         # bug: benchmark freezes if run from Coder
-        #self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
-        #wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
+        #if hasattr(self.app, 'benchmarkWizard'):
+        #    self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
+        #    wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
 
         if self.appPrefs['debugMode']:
             self.toolsMenu.Append(self.IDs.unitTests, "Unit &testing...\tCtrl-T",
