@@ -1,8 +1,9 @@
 psychopy-openbci (1.75.01.0.6-1) precise; urgency=low
 
   * New upstream release.
+  * Resize startup icon.
 
- -- Karol Auguštin <karol@augustin.pl>  Mon, 12 Nov 2012 09:12:42 +0100
+ -- Karol Auguštin <karolaug@dell>  Mon, 12 Nov 2012 09:13:38 +0100
 
 psychopy-openbci (1.75.01.0.5-2) precise; urgency=low
 
