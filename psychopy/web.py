@@ -18,7 +18,8 @@ from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import preferences
 prefs = preferences.Preferences()
 
-TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
+#TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
+TIMEOUT = 20.0
 socket.setdefaulttimeout(TIMEOUT)
 
 global proxies
