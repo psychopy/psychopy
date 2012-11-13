@@ -6822,7 +6822,7 @@ class CustomMouse():
         else:
             #self.pointer = TextStim(win, text='+')
             self.pointer = ImageStim(win,
-                    tex=os.path.join(os.path.split(__file__)[0], 'pointer.png'))
+                    image=os.path.join(os.path.split(__file__)[0], 'pointer.png'))
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
 
