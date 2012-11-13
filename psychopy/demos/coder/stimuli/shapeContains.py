@@ -12,6 +12,9 @@ msg = visual.TextStim(win, text=' ', pos=(0,-.4))
 shape = visual.ShapeStim(win, fillColor='darkblue', lineColor=None,
     vertices=[(-0.02, -0.0), (-.8,.2), (0,.6), (.1,0.06), (.8, .3), (.6,-.4)])
 
+cross = visual.ShapeStim(win, lineColor='darkred',
+    vertices=[(0,0), (-0.02, 0), (0,0), (0, .02), (0,0), (.02, 0), (0,0), (0, -0.02), (0,0)])
+
 # define a buffer zone around the mouse for proximity detection:
 bufzone = visual.Circle(win, radius=0.15, edges=13)
 
@@ -22,6 +25,10 @@ while not any(mouse.getPressed()) or not inside:
     # dynamic buffer zone around mouse pointer:
     bufzone.setPos(mouse.getPos())  # follow the mouse
     bufzone.setSize(mouse.getWheelRel()[1]/20., '+')  # vert scroll adjusts radius, can go negative
+    
+    # draw cross at centroid -- could just use .pos for a circle:
+    cross.setPos(bufzone.centroid())
+    cross.draw()
     # is the mouse inside the shape?
     inside = shape.contains(mouse)
     if inside:
