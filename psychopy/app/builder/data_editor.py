@@ -3,11 +3,11 @@ Module contains editor for conditions data.
 '''
 
 import os.path
-from psychopy import data
+from psychopy import data_import
 import json
 import wx.grid
 import collections
-import pickle
+import cPickle as pickle
 import itertools
 
 class ConditionsValueError(Exception):
@@ -69,6 +69,7 @@ class TypeLoaderDict(dict):
         self["boolean"] = self.load_boolean
         self["json"] = self.load_json
 
+
 class ConditionsGrid(wx.grid.Grid):
     ERROR_COLOR = wx.Color(0xFF, 0xCC, 0xCC)
     TYPE_PARSER_DICT = TypeParserDict()
@@ -96,15 +97,15 @@ class ConditionsGrid(wx.grid.Grid):
 
     def get_all_selected_cells(self):
         """
-        Get cell from all possibilities of selection.
+        Get cells from all possibilities of selection.
         """
         #all rows
         for row_pos in self.GetSelectedRows():
-            for col_pos in self.GetNumberCols():
+            for col_pos in range(self.GetNumberCols()):
                 yield (row_pos, col_pos)
         #all columns
         for col_pos in self.GetSelectedCols():
-            for row_pos in self.GetNumberRows():
+            for row_pos in range(self.GetNumberRows()):
                 yield (row_pos, col_pos)
         #all blocks
         blocks = zip(self.GetSelectionBlockTopLeft(), self.GetSelectionBlockBottomRight())
@@ -115,7 +116,61 @@ class ConditionsGrid(wx.grid.Grid):
         #all single cells
         for (row_pos, col_pos) in self.GetSelectedCells():
             yield (row_pos, col_pos)
-        
+
+    def get_selected_rectangle(self):
+        """
+        Get selected cells in a rectangular shape.
+        """
+        cells = set(self.get_all_selected_cells())
+        if len(cells):
+            r1 = self.GetNumberRows()
+            c1 = self.GetNumberCols()
+            r2 = 0
+            c2 = 0
+            for row_pos, col_pos in cells:
+                r1 = min(r1, row_pos)
+                r2 = max(r2, row_pos)
+                c1 = min(c1, col_pos)
+                c2 = max(c2, col_pos)
+            if len(cells) == (c2 - c1 + 1) * (r2 - r1 + 1):
+                return ((r1, c1), (r2, c2))
+            else:
+                return None
+        else:
+            selected = (self.GetGridCursorRow(), self.GetGridCursorCol())
+            return (selected, selected)
+    
+    def command_copy(self):
+        copy_range = self.get_selected_rectangle()
+        if copy_range:
+            (r1, c1), (r2, c2) = copy_range
+            selection_rows = [[self.GetCellValue(row_pos, col_pos) for col_pos in range(c1, c2 + 1)] for row_pos in range(r1, r2 + 1)]
+            selection_data = wx.CustomDataObject(wx.CustomDataFormat("grid"))
+            selection_data.SetData(pickle.dumps(selection_rows))
+            if wx.TheClipboard.Open():
+                wx.TheClipboard.SetData(selection_data)
+                wx.TheClipboard.Close()
+        return copy_range
+    
+    def command_cut(self):
+        clear_range = self.command_copy()
+        if clear_range:
+            (r1, c1), (r2, c2) = clear_range
+            for row_pos in range(r1, r2 + 1):
+                for col_pos in range(c1, c2 + 1):
+                    self.SetCellValue(row_pos, col_pos, "")
+    
+    def command_paste(self):
+        if wx.TheClipboard.Open():
+            if wx.TheClipboard.IsSupported(wx.CustomDataFormat("grid")):
+                data_object = wx.CustomDataObject(wx.CustomDataFormat("grid"))
+                wx.TheClipboard.GetData(data_object)
+                pasted_rows = pickle.loads(data_object.GetData())
+                base_row, base_col = self.GetGridCursorRow(), self.GetGridCursorCol()
+                for row_pos, row in enumerate(pasted_rows):
+                    for col_pos, cell in enumerate(row):
+                        self.SetCellValue(base_row + row_pos, base_col + col_pos, cell)
+            wx.TheClipboard.Close()
 
     def init_column_types(self):
         self.column_types = {}
@@ -153,7 +208,7 @@ class ConditionsGrid(wx.grid.Grid):
             header = self.GetCellValue(0, col_pos)
             if not header:
                 self.add_data_error((0, col_pos), "Empty header")
-            elif not data.isValidVariableName(header)[0]:
+            elif not data_import.isValidVariableName(header)[0]:
                 self.add_data_error((0, col_pos), "Invalid header")
             elif headers.has_key(header):
                 self.add_data_error((0, col_pos), "Duplicate header")
@@ -237,6 +292,11 @@ class ConditionsGrid(wx.grid.Grid):
             for dirty_col_pos in range(col_pos, self.GetNumberCols()):
                 self.set_column_type(dirty_col_pos, self.column_types[dirty_col_pos + 1])
         return handler
+    
+    def rename_column_handler(self, col_pos):
+        def handler(hevent):
+            pass
+        return handler
 
     def column_options(self, event):
         def type_name_handler(type_name):
@@ -247,7 +307,8 @@ class ConditionsGrid(wx.grid.Grid):
             for type_name in self.TYPE_PARSER_DICT.keys()]
         items2 = [
             ("add column", self.add_column_handler(col_pos)),
-            ("remove column", self.remove_column_handler(col_pos))
+            ("remove column", self.remove_column_handler(col_pos)),
+            ("rename", self.rename_column_handler(col_pos))
         ]
         for item in items1:
             item_id = menu.Append(-1, item[0]).GetId()
@@ -368,6 +429,74 @@ class ConditionsGrid(wx.grid.Grid):
 
 
 class ConditionsEditor(wx.Dialog):
+    def __init__(self, parent, file_name=None):
+        self.TOOLBAR_BUTTONS = [
+            ("New", "filenew", self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
+            ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
+            ("Copy", wx.ART_COPY, self.command_copy), ("Paste", wx.ART_PASTE, self.command_paste),
+            (), ("Product", wx.ART_MISSING_IMAGE, self.product)
+        ]
+        super(ConditionsEditor, self).__init__(parent, title="Conditions editor", size=(600, 375))
+        self.app = parent.app
+        self.file_name = file_name
+        self.create_toolbar()
+        self.message_sink = wx.StaticText(self)
+        self.data_grid = ConditionsGrid(self, self.message_sink)
+        self.init_sizer()
+        if self.file_name:
+            self.load_data_from_file()
+
+    def create_toolbar(self):
+        self.toolbar = wx.ToolBar(self)
+        self.tool_ids = []
+        for button in self.TOOLBAR_BUTTONS:
+            if button == ():
+                self.toolbar.AddSeparator()
+            else:
+                bitmap = wx.ArtProvider.GetBitmap(button[1], wx.ART_TOOLBAR)
+                tool_id = self.toolbar.AddLabelTool(-1, button[0], bitmap, wx.NullBitmap, wx.ITEM_NORMAL).GetId()
+                self.tool_ids.append(tool_id)
+                self.Bind(wx.EVT_TOOL, button[2], id=tool_id)
+
+        self.toolbar.Realize()
+        #self.paste_timer = wx.Timer(self)
+        #self.Bind(wx.EVT_TIMER, self.poll_clipboard, self.paste_timer)
+        #self.paste_timer.Start(1500, wx.TIMER_CONTINUOUS)
+    
+    def poll_clipboard(self, event):
+        paste_tool = self.toolbar.FindById(self.tool_ids[5]) # paste tool
+        wx.TheClipboard.Close()
+        if wx.TheClipboard.Open():
+            paste_tool.Enable(wx.TheClipboard.IsSupported(wx.CustomDataFormat("grid")))
+            print paste_tool.IsEnabled()
+            wx.TheClipboard.Close()
+
+    def init_sizer(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.toolbar, flag=wx.EXPAND)
+        sizer.Add(self.data_grid, proportion=1, flag=wx.EXPAND)
+        sizer.Add(self.message_sink, flag=wx.EXPAND | wx.ALL, border=8)
+        sizer.Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), flag=wx.EXPAND | wx.ALL, border=8)
+        self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
+        self.SetSizer(sizer)
+
+    def load_data_from_file(self):
+        pickle_file = open(self.file_name, "r")
+        self.data_grid.set_data(pickle.load(pickle_file))
+
+    def save_data_to_file(self):
+        pickle_file = open(self.file_name, "w")
+        pickle.dump(self.data_grid.get_data(), pickle_file)
+        pickle_file.close()
+
+    def save_data_as(self):
+        self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
+        if self.file_name:
+            self.save_data_to_file()
+            return True
+        else:
+            return False
+
     def file_new(self, event):
         self.file_name = None
         self.data_grid.DeleteCols(numCols=self.data_grid.GetNumberCols())
@@ -414,61 +543,14 @@ class ConditionsEditor(wx.Dialog):
                 self.data_grid.SetCellValue(row_pos, col_pos, value)
             row_pos = row_pos + 1
 
-    def __init__(self, parent, file_name=None):
-        self.TOOLBAR_BUTTONS = [
-            ("New", "filenew", self.file_new), ("Open", "fileopen", self.file_open),
-            ("Save as", "filesave", self.file_save_as), (), ("Product", "product", self.product)
-        ]
-        super(ConditionsEditor, self).__init__(parent, title="Conditions editor", size=(600, 375))
-        self.app = parent.app
-        self.file_name = file_name
-        self.create_toolbar()
-        self.message_sink = wx.StaticText(self)
-        self.data_grid = ConditionsGrid(self, self.message_sink)
-        self.init_sizer()
-        if self.file_name:
-            self.load_data_from_file()
+    def command_copy(self, event):
+        self.data_grid.command_copy()
+    
+    def command_paste(self, event):
+        self.data_grid.command_paste()
 
-    def create_toolbar(self):
-        resource_path = self.app.prefs.paths['resources']
-        self.toolbar = wx.ToolBar(self)
-
-        for button in self.TOOLBAR_BUTTONS:
-            if button == ():
-                self.toolbar.AddSeparator()
-            else:
-                bitmap_path = os.path.join(resource_path, button[1] + "32.png")
-                bitmap = wx.Bitmap(bitmap_path)
-                tool_id = self.toolbar.AddSimpleTool(-1, bitmap, button[0]).GetId()
-                self.Bind(wx.EVT_TOOL, button[2], id=tool_id)
-
-        self.toolbar.Realize()
-
-    def init_sizer(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.toolbar, flag=wx.EXPAND)
-        sizer.Add(self.data_grid, proportion=1, flag=wx.EXPAND)
-        sizer.Add(self.message_sink, flag=wx.EXPAND | wx.ALL, border=8)
-        sizer.Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), flag=wx.EXPAND | wx.ALL, border=8)
-        self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
-        self.SetSizer(sizer)
-
-    def load_data_from_file(self):
-        pickle_file = open(self.file_name, "r")
-        self.data_grid.set_data(pickle.load(pickle_file))
-
-    def save_data_to_file(self):
-        pickle_file = open(self.file_name, "w")
-        pickle.dump(self.data_grid.get_data(), pickle_file)
-        pickle_file.close()
-
-    def save_data_as(self):
-        self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
-        if self.file_name:
-            self.save_data_to_file()
-            return True
-        else:
-            return False
+    def command_cut(self, event):
+        self.data_grid.command_cut()
 
     def onOK(self, event):
         self.data_grid.validate_data()

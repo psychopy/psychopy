@@ -21,8 +21,8 @@ class PreferencesDlg(wx.Dialog):
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
         #notebook, flatnotebook or something else?
-
-        self.nb = fnb.FlatNotebook(self, style=fnb.FNB_NO_X_BUTTON|fnb.FNB_NO_NAV_BUTTONS)
+        nbStyle = fnb.FNB_NO_X_BUTTON | fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_NODRAG
+        self.nb = fnb.FlatNotebook(self, agwStyle = nbStyle)
         #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
 
         self.ctrls={}

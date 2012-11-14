@@ -51,13 +51,11 @@ class ChannelsPanel(wx.Panel):
         Build semicolon-separated list of values corresponding with selected channels.
         """
         ret = StringIO()
-        if self.channel_grid.GetCellValue(0, 1):
-            ret.write(info_fun(0))
-        for pos in xrange(1, self.channel_grid.GetNumberRows()):
+        for pos in xrange(0, self.channel_grid.GetNumberRows()):
             if self.channel_grid.GetCellValue(pos, 1):
                 ret.write(";")
                 ret.write(info_fun(pos))
-        return ret.getvalue()
+        return ret.getvalue()[1:] # skip first semicolon
     
     def get_active_channels(self):
         """

@@ -3445,6 +3445,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
+        self.mx_address = None
         self.experiment_contact = None
 
         if fileName in self.appData['frames'].keys():
@@ -4188,7 +4189,8 @@ class BuilderFrame(wx.Frame):
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
             self.experiment_contact = runAmpDialog.get_experiment_contact()
-            mx_address = runAmpDialog.mx_address
+            self.mx_address = runAmpDialog.mx_address
+            mx_address = self.mx_address
         else:
             return
         
@@ -4229,6 +4231,8 @@ class BuilderFrame(wx.Frame):
         """The script/exp has finished running
         """
         if self.experiment_contact:
+            from acquisition import acquisition_control
+            acquisition_control.finish_saving([(self.mx_address[0], int(self.mx_address[1]))])
             self.experiment_contact.kill_experiment()
             self.experiment_contact.close()
             self.experiment_contact = None
