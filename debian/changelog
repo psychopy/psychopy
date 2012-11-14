@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.01.0.7-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 14 Nov 2012 15:27:34 +0100
+
 psychopy-openbci (1.75.01.0.6-2) precise; urgency=low
 
   * Fix timeout problem in first launch.
