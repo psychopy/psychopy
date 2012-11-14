@@ -10,6 +10,7 @@ import psychoParser
 import introspect, py_compile
 from psychopy.app import stdOutRich, dialogs
 from psychopy import logging
+from wx.html import HtmlEasyPrinting
 
 #advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -41,6 +42,34 @@ def fromPickle(filename):
     contents = cPickle.load(f)
     f.close()
     return contents
+
+class Printer(HtmlEasyPrinting):
+    """bare-bones printing, no control over anything
+
+    from http://wiki.wxpython.org/Printing
+    """
+    def __init__(self):
+        HtmlEasyPrinting.__init__(self)
+
+    def GetHtmlText(self, text):
+        "Simple conversion of text."
+
+        text = text.replace('&', '&amp;')
+        text = text.replace('<P>', '&#60;P&#62;')
+        text = text.replace('<BR>', '&#60;BR&#62;')
+        text = text.replace('<HR>', '&#60;HR&#62;')
+        text = text.replace('<p>', '&#60;p&#62;')
+        text = text.replace('<br>', '&#60;br&#62;')
+        text = text.replace('<hr>', '&#60;hr&#62;')
+        text = text.replace('\n\n', '<P>')
+        text = text.replace('\t', '    ')  # tabs -> 4 spaces
+        text = text.replace(' ', '&nbsp;')  # preserve indentation
+        html_text = text.replace('\n', '<BR>')
+        return html_text
+
+    def Print(self, text, doc_name):
+        self.SetHeader(doc_name)
+        self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
 
 class ScriptThread(threading.Thread):
     """A subclass of threading.Thread, with a kill()
@@ -1242,12 +1271,14 @@ class CoderFrame(wx.Frame):
         self.fileMenu.AppendSubMenu(self.recentFilesMenu,"Open &Recent")
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.app.keys['save'])
         self.fileMenu.Append(wx.ID_SAVEAS,  "Save &as...\t%s" %self.app.keys['saveAs'])
+        self.fileMenu.Append(self.IDs.filePrint,  "Print\t%s" %self.app.keys['print'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close file\t%s" %self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
+        wx.EVT_MENU(self, self.IDs.filePrint,  self.filePrint)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
@@ -1644,6 +1675,12 @@ class CoderFrame(wx.Frame):
         self.app.allFrames.remove(self)
         self.Destroy()
         self.app.coder=None
+
+    def filePrint(self, event=None):
+        pr = Printer()
+        docName = self.currentDoc.filename
+        text = open(docName, 'r').read()
+        pr.Print(text, docName)
 
     def fileNew(self, event=None, filepath=""):
         self.setCurrentDoc(filepath)

@@ -1456,6 +1456,17 @@ class _BaseVisualStim:
             y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
         
         return pointInPolygon(x, y, self)
+
+    def _getPolyAsRendered(self):
+        """return a list of vertices as rendered; used by overlaps(), centroid()
+        """
+        oriRadians = numpy.radians(self.ori)
+        sinOri = numpy.sin(-oriRadians)
+        cosOri = numpy.cos(-oriRadians)
+        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+        return numpy.column_stack((x,y)) + self._posRendered
+
     def overlaps(self, polygon):
         """Determines if this stimulus intersects another one. If `polygon` is
         another stimulus instance, then the vertices and location of that stimulus
@@ -1464,7 +1475,7 @@ class _BaseVisualStim:
 
         Note that, if your stimulus uses a mask (such as a Gaussian blob) then
         this is not accounted for by the `overlaps` method; the extent of the
-        stmulus is determined purely by the size, pos and orientation settings
+        stimulus is determined purely by the size, pos, and orientation settings
         (and by the vertices for shape stimuli).
 
         See coder demo, shapeContains.py
@@ -1472,12 +1483,8 @@ class _BaseVisualStim:
         if self.needVertexUpdate:
             self._calcVerticesRendered()
         if self.ori:
-            oriRadians = numpy.radians(self.ori)
-            sinOri = numpy.sin(-oriRadians)
-            cosOri = numpy.cos(-oriRadians)
-            x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
-            y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
-            return polygonsOverlap(numpy.column_stack((x,y)) + self._posRendered, polygon)
+            polyRendered = self._getPolyAsRendered()
+            return polygonsOverlap(polyRendered, polygon)
         else:
             return polygonsOverlap(self, polygon)
 
@@ -7290,6 +7297,7 @@ def polygonsOverlap(poly1, poly2):
         if pointInPolygon(p2[0], p2[1], poly1):
             return True
     return False
+
 
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
