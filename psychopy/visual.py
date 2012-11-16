@@ -5743,7 +5743,7 @@ class RatingScale:
                 lowAnchorText=None,
                 highAnchorText=None,
                 tickMarks=None,
-                labels=None,
+                labels=False,
                 precision=1,
                 textSizeFactor=1.0,
                 textColor='LightGray',
@@ -5758,6 +5758,7 @@ class RatingScale:
                 leftKeys='left',
                 rightKeys='right',
                 lineColor='White',
+                ticksAboveLine=True,
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
@@ -5785,27 +5786,30 @@ class RatingScale:
             string, explanation of the numbers to display to the subject, shown above the line;
             default = '<low>=not at all, <high>=extremely'
             to suppress all text above the line, set `showScale=False`, 
-            if choices or tickMarks are present, default is False.
+            if `labels` is not `False` and `choices` or `tickMarks` exists, 
+            `showScale` defaults to `False`.
         choices :
             a list of items which the subject can choose among;
-            (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`)
+            (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`,
+            `tickMarks`)
         low :
             lowest numeric rating / low anchor (integer, default = 1)
         high :
             highest numeric rating / high anchor (integer, default = 7; at least low+1)
         lowAnchorText :
-            text to dsiplay for the low end of the scale (default = numeric low value), 
-            ignored if either choices or tickMarks
+            text to dsiplay for the low end of the scale (default = numeric low value)
         highAnchorText :
-            text to display for the high end of the scale (default = numeric high value),
-            ignored if either choices or tickMarks
+            text to display for the high end of the scale (default = numeric high value)
         tickMarks :
             positions at which tick marks should be placed (low and high need to be included 
             if tick marks should be at the edges of the scale).
-            Overwrites the automatic placing of tick marks, ignored when choices are present.
-            Default is None
+            Overwrites the automatic placing of tick marks. Default is None
         labels :
-            text to be placed at each tick mark as placed by tickMarks. Ignored if tickMarks is None.
+            text to be placed at each tick mark as placed by tickMarks. 
+            If False (currently the default), suppress plotting of labels.
+            If `None` and `choices`:  choices will be plotted at ticks and 
+            `showAnchors=False`, but `scale` can be used for plotting above the line.
+            If `None` and  `tickMarks`: `tickMarks` will be used and `showAnchors=False`.
         precision :
             portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
@@ -5844,6 +5848,8 @@ class RatingScale:
             a key or list of keys that mean "move rightwards", default = ['right']
         lineColor :
             color to use for the scale line, default = 'White'
+        ticksAboveLine :
+            should the tick marks be displayed above the line (the default) or below
         markerStyle :
             'triangle' (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
         markerColor :
@@ -5927,7 +5933,8 @@ class RatingScale:
         # Generally make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
                         markerStart, low, high, precision, choices,
-                        lowAnchorText, highAnchorText, scale, showScale, showAnchors, tickMarks, labels)
+                        lowAnchorText, highAnchorText, scale, showScale, showAnchors, 
+                        tickMarks, labels, ticksAboveLine)
         self._initMisc(minTime, maxTime)
 
         # Set scale & position, key-bindings:
@@ -5959,7 +5966,8 @@ class RatingScale:
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    markerStart, low, high, precision, choices,
-                   lowAnchorText, highAnchorText, scale, showScale, showAnchors, tickMarks, labels):
+                   lowAnchorText, highAnchorText, scale, showScale, showAnchors, 
+                   tickMarks, labels, ticksAboveLine):
         """some sanity checking; various things are set, especially those that are
         used later; choices, anchors, markerStart settings are handled here
         """
@@ -5970,6 +5978,7 @@ class RatingScale:
         self.precision = precision
         self.showAnchors = bool(showAnchors)
         self.labelTexts = None
+        self.ticksAboveLine = ticksAboveLine
 
         if not self.showAccept:
             # the accept button is the mouse-based way to accept the current response
@@ -5991,12 +6000,22 @@ class RatingScale:
         if choices and len(list(choices)) >= 2:
             low = 0
             high = len(list(choices)) - 1 
-            # anchor text is ignored when choices are present (HS, 16/11/2012)
-            self.showAnchors = False
-            self.labelTexts = choices
-            self.choices = choices
-            if self.scale == "<default>":
-                self.scale = False
+            if labels is False:
+                # anchor text defaults to blank, unless low or highAnchorText is requested explicitly:
+                if lowAnchorText is None and highAnchorText is None:
+                    self.showAnchors = False
+                else:
+                    self.lowAnchorText = unicode(lowAnchorText)
+                    self.highAnchorText = unicode(highAnchorText)
+                self.scale = '  '.join(map(unicode, choices)) # unicode for display
+                self.choices = choices
+            else: 
+                # anchor text is ignored when choices are present (HS, 16/11/2012)
+                self.showAnchors = False
+                self.labelTexts = choices
+                self.choices = choices
+                if self.scale == "<default>":
+                    self.scale = False
         else:
             self.choices = False
 
@@ -6014,16 +6033,17 @@ class RatingScale:
             self.precision = 100
         
         if tickMarks:
-            self.showAnchors = False # To avoid overplotting.
-            if labels is None:
-                self.labelTexts = tickMarks
-            else:
-                self.labelTexts = labels
-            if len(self.labelTexts) != len(tickMarks):
-                logging.warning("RatingScale %s: len(labels) not equal to len(tickMarks), using tickMarcks as labels" % self.name)
-                self.labelTexts = tickMarks
-            if self.scale == "<default>":
-                self.scale = False
+            if not(labels is False):
+                self.showAnchors = False # To avoid overplotting.
+                if labels is None:
+                    self.labelTexts = tickMarks
+                else:
+                    self.labelTexts = labels
+                if len(self.labelTexts) != len(tickMarks):
+                    logging.warning("RatingScale %s: len(labels) not equal to len(tickMarks), using tickMarcks as labels" % self.name)
+                    self.labelTexts = tickMarks
+                if self.scale == "<default>":
+                    self.scale = False
 
         # Marker preselected and valid? [do after anchors]
         if ( (type(markerStart) == float and self.precision > 1 or
@@ -6199,7 +6219,12 @@ class RatingScale:
         self.lineColor = lineColor
         self.lineColorSpace = 'rgb'
         
+        
         self.tickSize = 0.04 # vertical height of each tick, norm units
+        if self.ticksAboveLine:
+            tickSide = 1
+        else:
+            tickSide = -1
 
         self.tickMarks = float(self.high - self.low)
 
@@ -6230,7 +6255,7 @@ class RatingScale:
         if not(tickMarks):
             for t in range(int(self.tickMarks) + 1):
                 vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
-                        (-0.5 + t / self.tickMarks), self.tickSize * self.displaySizeFactor + self.offsetVert])
+                        (-0.5 + t / self.tickMarks), tickSide * self.tickSize * self.displaySizeFactor + self.offsetVert])
                 vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
                         (-0.5 + t / self.tickMarks), self.offsetVert])
                 if t < self.tickMarks: # extend the line to the next tick mark, t + 1
@@ -6241,7 +6266,7 @@ class RatingScale:
             lineLength = self.lineRightEnd - self.lineLeftEnd
             
             for c, t in enumerate(tmpTicks):
-                vertices.append([self.lineLeftEnd + lineLength * t, self.tickSize * self.displaySizeFactor + self.offsetVert])
+                vertices.append([self.lineLeftEnd + lineLength * t, tickSide * self.tickSize * self.displaySizeFactor + self.offsetVert])
                 vertices.append([self.lineLeftEnd + lineLength * t, self.offsetVert])
                 if c < (len(tmpTicks) - 1):
                     vertices.append([self.lineLeftEnd + lineLength * tmpTicks[c+1], self.offsetVert])
@@ -6394,7 +6419,7 @@ class RatingScale:
         if self.labelTexts:
             for c, lab in enumerate(self.labelTexts):
                 self.labels.append(TextStim(win = self.win, text = unicode(lab),
-                            pos = [self.tickPositions[c], -1.5 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace, name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
+                            pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace, name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
         self.setDescription(scale) # do after having set the relevant things
     def setDescription(self, scale):
         """Method to set the description that appears above the line, (e.g., "1=not at all...extremely=7")
@@ -6420,10 +6445,15 @@ class RatingScale:
 
         self.acceptLineColor = [-.2, -.2, -.2]
         self.acceptFillColor = [.2, .2, .2]
+        
+        if self.labelTexts:
+            boxVert = [0.3, 0.47]
+        else:
+            boxVert = [0.2, 0.37]
 
         # define self.acceptBox:
-        self.acceptBoxtop  = acceptBoxtop  = self.offsetVert - 0.2 * self.displaySizeFactor * textSizeFactor
-        self.acceptBoxbot  = acceptBoxbot  = self.offsetVert - 0.37 * self.displaySizeFactor * textSizeFactor
+        self.acceptBoxtop  = acceptBoxtop  = self.offsetVert - boxVert[0] * self.displaySizeFactor * textSizeFactor
+        self.acceptBoxbot  = acceptBoxbot  = self.offsetVert - boxVert[1] * self.displaySizeFactor * textSizeFactor
         self.acceptBoxleft = acceptBoxleft = self.offsetHoriz - 0.2 * self.displaySizeFactor * textSizeFactor
         self.acceptBoxright = acceptBoxright = self.offsetHoriz + 0.2 * self.displaySizeFactor * textSizeFactor
 
