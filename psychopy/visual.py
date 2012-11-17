@@ -5803,8 +5803,8 @@ class RatingScale:
         tickMarks :
             list of positions at which tick marks should be placed 
             (low and high need to be included if tick marks should be at the edges of the scale).
-            If None (the default), tick marks are placed automatically equally spaced. 
-            One per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
+            If None (the default), tick marks are placed automatically equally spaced, 
+            one per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
         labels :
             text to be placed at each tick mark as placed by tickMarks. 
             If False (currently the default), suppress plotting of labels.
