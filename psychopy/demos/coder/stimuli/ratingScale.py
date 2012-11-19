@@ -26,7 +26,7 @@ if 'escape' in event.waitKeys():
 # Example 1 --------(almost as simple as possible)--------
 # create a default RatingScale object, plus choices[]:
 #myRatingScale = visual.RatingScale(myWin) # = almost as simple as possible: defaults to 1-7 scale, not at all to extremely
-myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'], labels = None)
+myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'])
 
 # item to-be-rated:
 question = "How cool was that?"

@@ -5743,7 +5743,7 @@ class RatingScale:
                 lowAnchorText=None,
                 highAnchorText=None,
                 tickMarks=None,
-                labels=False,
+                labels=None,
                 precision=1,
                 textSizeFactor=1.0,
                 textColor='LightGray',
@@ -5787,7 +5787,7 @@ class RatingScale:
             default = '<low>=not at all, <high>=extremely'
             to suppress all text above the line, set `showScale=False`, 
             if `labels` is not `False` and `choices` or `tickMarks` exists, 
-            `showScale` defaults to `False`.
+            `scale` defaults to `False`.
         choices :
             a list of items which the subject can choose among;
             (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`,
@@ -5806,11 +5806,12 @@ class RatingScale:
             If None (the default), tick marks are placed automatically equally spaced, 
             one per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
         labels :
-            text to be placed at each tick mark as placed by tickMarks. 
-            If False (currently the default), suppress plotting of labels.
+            text to be placed at each tick mark as placed by tickMarks and controls where labels 
+            of choices are displayed. Default is `None`.
             If `None` and `choices`:  choices will be plotted at ticks and 
             `showAnchors=False`, but `scale` can be used for plotting above the line.
             If `None` and  `tickMarks`: `tickMarks` will be used and `showAnchors=False`.
+            If False, no labels are plotted at ticj marks (i.e., restores old behavior of `choices`).
         precision :
             portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
