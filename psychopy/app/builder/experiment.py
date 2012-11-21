@@ -953,9 +953,12 @@ class Routine(list):
         list.__init__(self, components)
     def __repr__(self):
         return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" %(self.name,self.exp,str(list(self)))
-    def addComponent(self,component):
+    def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
+        namespace = self.exp.namespace
+        component.params['name'].val = namespace.makeValid(component.params['name'].val)
+        namespace.add(component.params['name'].val)
     def removeComponent(self,component):
         """Remove a component from the end of the routine"""
         self.remove(component)

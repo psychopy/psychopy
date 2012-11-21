@@ -1546,9 +1546,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         compName = newComp.params['name']
         if dlg.OK:
             currRoutine.addComponent(newComp)#add to the actual routing
-            namespace = self.frame.exp.namespace
-            newComp.params['name'].val = namespace.makeValid(newComp.params['name'].val)
-            namespace.add(newComp.params['name'].val)
             currRoutinePage.redrawRoutine()#update the routine's view with the new component too
             self.frame.addToUndoStack("ADD `%s` to `%s`" %(compName, currRoutine.name))
             wasNotInFavs = (not newClassStr in self.favorites.getFavorites())
