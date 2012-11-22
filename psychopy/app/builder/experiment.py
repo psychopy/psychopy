@@ -37,7 +37,7 @@ class CodeGenerationException(Exception):
     settings.SettingsComponent.writeStartCode()
     experiment.Flow.writeCode()
         which will call .writeCode() bits from each component
-    settings.SettingsComponent.writeStartCode()
+    settings.SettingsComponent.writeEndCode()
 """
 
 class IndentingBuffer(StringIO.StringIO):
