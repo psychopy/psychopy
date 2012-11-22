@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """ demo for the class psychopy.visual.RatingScale()
+author: Jeremy Gray, modified by Henrik Singmann
 """
-__author__ = 'Jeremy Gray, modified by Henrik Singmann'
 
 from psychopy import visual, event, core, logging
 import os
