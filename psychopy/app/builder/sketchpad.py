@@ -17,7 +17,14 @@ class AbstractTool(object):
         self.stop_pos = None
         self.active = False
         self.window = window
-    
+
+    def pixel_to_norm(self, pos):
+        pos = numpy.array(pos, float)
+        size = numpy.array(self.window.GetSize(), float)
+        offset = numpy.array([-1.0, 1.0])
+        pos = offset + [2, -2] * (pos) / size
+        return pos.tolist()
+
     def start(self, pos):
         self.start_pos = pos
         self.active = True
@@ -144,11 +151,7 @@ class ImageTool(ExtentVisualTool):
 
 class TextTool(AbstractTool):
     def stop_pos_to_norm(self):
-        stop_pos = numpy.array(self.stop_pos, float)
-        size = numpy.array(self.window.GetSize(), float)
-        offset = numpy.array([-1.0, 1.0])
-        pos = offset + [2, -2] * (stop_pos) / size
-        return pos.tolist()
+        return self.pixel_to_norm(self.stop_pos)
     
     def stop(self, pos):
         super(TextTool, self).stop(pos)
@@ -156,6 +159,17 @@ class TextTool(AbstractTool):
         component = components.text.TextComponent(
             self.window.routine.exp, self.window.routine.name, units='norm', pos=pos, text='Hello!')
         return component
+
+
+class SelectionTool(AbstractTool):
+    def point_activate(self, pos):
+        for component in self.window.routine:
+            preview_window = self.window.GetParent()
+            builder_frame = preview_window.GetParent()
+            stimulus = component.getStimulus(preview_window)
+            if hasattr(stimulus, "contains") and stimulus.contains(self.pixel_to_norm(pos)):
+                builder_frame.routinePanel.getCurrentPage().editComponentProperties(component=component)
+                self.window.stimuli = None
 
 
 class ToolHandler(object):
@@ -183,10 +197,16 @@ class ToolHandler(object):
 
     def stop(self, pos):
         component = self.tool.stop(pos)
-        self.routine.addComponent(component)
-        self.frame.routinePanel.getCurrentPage().redrawRoutine()
-        self.stringify_params(component) #fix for inconsistent param typing
+        if component:
+            self.routine.addComponent(component)
+            self.stringify_params(component) #fix for inconsistent param typing
+            self.frame.routinePanel.getCurrentPage().redrawRoutine()
         return component
+    
+    def point_activate(self, pos):
+        # not all tool implement this
+        if hasattr(self.tool, "point_activate"):
+            self.tool.point_activate(pos)
 
     def update(self, pos):
         self.tool.update(pos)
@@ -203,7 +223,7 @@ class RoutinePreview(glcanvas.GLCanvas):
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_LEFT_DOWN, self.start_tool)
-        #self.Bind(wx.EVT_LEFT_UP, self.stop_tool)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.point_activate_tool)
 
     def init_gl(self):
         gl.glClearColor(0.67, 0.67, 0.67, 0.0)
@@ -252,6 +272,10 @@ class RoutinePreview(glcanvas.GLCanvas):
     def update_tool(self, event):
         pos = (event.GetX(), event.GetY())
         self.tool_handler.update(pos)
+    
+    def point_activate_tool(self, event):
+        pos = (event.GetX(), event.GetY())
+        self.tool_handler.point_activate(pos)
 
     def draw_components(self):
         for stimulus in self.stimuli:
@@ -363,6 +387,7 @@ class SketchpadWindow(wx.Dialog):
 
     def init_toolbar(self):
         TOOLS = [
+            ("Select", "Select component to edits its properties", wx.ART_MISSING_IMAGE, SelectionTool),
             ("Ellipse", "Draw ellipse", "sketchpad-ellipse", EllipseTool),
             ("Rectangle", "Draw rectangle", "sketchpad-rectangle", RectangleTool),
             ("Arrow", "Draw arrow", "sketchpad-arrow", ArrowTool),
