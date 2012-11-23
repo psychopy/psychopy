@@ -6803,6 +6803,14 @@ class Aperture:
         if log and self.autoLog:
              self.win.logOnFlip("Set %s size=%s" %(self.name, size),
                  level=logging.EXP,obj=self)
+    def setOri(self, ori, needReset=True, log=True):
+        """Set the orientation of the Aperture
+        """
+        self.ori = ori
+        if needReset: self._reset()
+        if log and self.autoLog:
+             self.win.logOnFlip("Set %s ori=%s" %(self.name, ori),
+                 level=logging.EXP,obj=self)
     def setPos(self, pos, needReset=True, log=True):
         """Set the pos (centre) of the Aperture
         """
