@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """ demo for the class psychopy.visual.RatingScale()
+author: Jeremy Gray, modified by Henrik Singmann
 """
-__author__ = 'Jeremy Gray'
 
 from psychopy import visual, event, core, logging
 import os
@@ -25,7 +25,7 @@ if 'escape' in event.waitKeys():
 
 # Example 1 --------(almost as simple as possible)--------
 # create a default RatingScale object, plus choices[]:
-#myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
+#myRatingScale = visual.RatingScale(myWin) # = almost as simple as possible: defaults to 1-7 scale, not at all to extremely
 myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'])
 
 # item to-be-rated:
@@ -131,5 +131,39 @@ core.wait(1)
 
 print 'Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT()
 print '  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT()
+
+
+# Example 4 --------(using tickMarks argument)--------
+instr = visual.TextStim(myWin,text="""Example 4. 
+
+In this example we will use acustim tick marks and custom labels for a scale from 0 too 100.
+
+Press any key to start Example 4 (or escape to quit).""")
+event.clearEvents()
+instr.draw()
+myWin.flip()
+if 'escape' in event.waitKeys():
+    core.quit()
+
+
+# create a default RatingScale object, plus choices[]:
+#myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
+myRatingScale = visual.RatingScale(myWin, low = 0, high = 100, tickMarks = [0, 25, 50, 80, 100], labels = ["0%", "1/4", "half/half", "kinda", "100%"])
+
+# item to-be-rated:
+question = "How probable is it that you will use this functionality in your next experiment?"
+myItem = visual.TextStim(myWin, text=question, height=.08, units='norm')
+
+# note that anything with a frame-by-frame method for being drawn in a visual.Window() should work:
+#myItem = visual.MovieStim(myWin, 'jwpIntro.mov', pos=(0,120))
+
+event.clearEvents()
+while myRatingScale.noResponse: # show & update until a response has been made
+    myItem.draw()
+    myRatingScale.draw()
+    myWin.flip()
+
+rating = myRatingScale.getRating() # get the value indicated by the subject, 'None' if skipped 
+print 'Example 4: rating =', rating
 
 core.quit()
