@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Tools for app first-run, including configuration wizard."""
+"""Libraries for wizards, currently firstrun configuration and benchmark."""
 
 # Part of the PsychoPy library
 # Copyright (C) 2012 Jonathan Peirce

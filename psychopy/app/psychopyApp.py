@@ -230,13 +230,13 @@ class PsychoPyApp(wx.App):
         return True
     def configWizard(self, evt=None, firstrun=''):
         from psychopy import core
-        wizard = os.path.join(self.prefs.paths['appDir'], 'firstrun.py')
+        wizard = os.path.join(self.prefs.paths['psychopy'], 'wizard.py')
         so, se = core.shellCall([sys.executable, wizard, '--config', firstrun], stderr=True)
         if se and self.prefs.app['debugMode']:
             print se  # stderr but not necessarily an error
     def benchmarkWizard(self, evt=None):
         from psychopy import core
-        wizard = os.path.join(self.prefs.paths['appDir'], 'firstrun.py')
+        wizard = os.path.join(self.prefs.paths['psychopy'], 'wizard.py')
         so, se = core.shellCall([sys.executable, wizard, '--benchmark'], stderr=True)
         if se and self.prefs.app['debugMode']:
             print se  # stderr but not necessarily an error
