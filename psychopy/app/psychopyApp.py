@@ -144,7 +144,7 @@ class PsychoPyApp(wx.App):
         else:
             last=self.prefs.appData['lastVersion']
         if self.firstRun:
-            self.configWizard(firstrun=True)
+            self.configWizard(firstrun='--firstrun')
         
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
@@ -228,12 +228,18 @@ class PsychoPyApp(wx.App):
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
-    def configWizard(self, evt=None, firstrun=False):
-        from psychopy.app import firstRun
-        firstRun.ConfigWizard(self, firstrun=firstrun)
+    def configWizard(self, evt=None, firstrun=''):
+        from psychopy import core
+        wizard = os.path.join(self.prefs.paths['appDir'], 'firstrun.py')
+        so, se = core.shellCall([sys.executable, wizard, '--config', firstrun], stderr=True)
+        if se and self.prefs.app['debugMode']:
+            print se  # stderr but not necessarily an error
     def benchmarkWizard(self, evt=None):
-        from psychopy.app import firstRun
-        firstRun.BenchmarkWizard(self)
+        from psychopy import core
+        wizard = os.path.join(self.prefs.paths['appDir'], 'firstrun.py')
+        so, se = core.shellCall([sys.executable, wizard, '--benchmark'], stderr=True)
+        if se and self.prefs.app['debugMode']:
+            print se  # stderr but not necessarily an error
         
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
