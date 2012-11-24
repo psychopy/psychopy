@@ -237,13 +237,14 @@ class PsychoPyApp(wx.App):
     def firstrunWizard(self):
         self._wizard('--config', '--firstrun')
         reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
-        if (os.path.exists(reportPath) and
-            'Configuration problem' in open(reportPath, 'r').read() ):
-            # fatal error was encountered (currently only if bad drivers)
-            # before psychopy shuts down, ensure wizard will be triggered again:
-            del self.prefs.appData['lastVersion']
-            self.prefs.saveAppData()
-            sys.exit()
+        if os.path.exists(reportPath):
+            report = open(reportPath, 'r').read()
+            if 'Configuration problem' in report:
+                # fatal error was encountered (currently only if bad drivers), so
+                # before psychopy shuts down, ensure wizard will be triggered again:
+                del self.prefs.appData['lastVersion']
+                self.prefs.saveAppData()
+                sys.exit()
     def benchmarkWizard(self, evt=None):
         self._wizard('--benchmark')
     def checkUpdates(self, evt):

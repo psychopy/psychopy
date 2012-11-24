@@ -100,7 +100,7 @@ class ConfigWizard(object):
             # user ends up in browser:
             url='file://' + self.reportPath
             wx.LaunchDefaultBrowser(url)
-            sys.exit()
+            sys.exit('Fatal configuration problem.')
         if not dlg.OK:
             return  # no configuration tests run
         
@@ -683,8 +683,9 @@ def cardOkay():
         return False
 
 if __name__ == '__main__':
-    first = '--firstrun' in sys.argv
     if '--config' in sys.argv:
-        ConfigWizard(firstrun=first)
+        ConfigWizard(firstrun=bool('--firstrun' in sys.argv))
     elif '--benchmark' in sys.argv:
         BenchmarkWizard()
+    else:
+        print "need to specify a wizard in sys.argv, e.g., --benchmark"
