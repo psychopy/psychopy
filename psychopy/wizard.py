@@ -100,9 +100,6 @@ class ConfigWizard(object):
             # user ends up in browser:
             url='file://' + self.reportPath
             wx.LaunchDefaultBrowser(url)
-            #  before psychopy shuts down, ensure wizard will be triggered again:
-            del self.prefs.appData['lastVersion']
-            self.prefs.saveAppData()
             sys.exit()
         if not dlg.OK:
             return  # no configuration tests run
@@ -462,7 +459,7 @@ class ConfigWizard(object):
                 htmlDoc += key + '</td><td>' + val + '</td><td><em>' + msg + '</em></td></tr>\n'
             htmlDoc += '    </table><hr>'
         htmlDoc += self.footer
-        if numWarn:
+        if not fatal and numWarn:
             htmlDoc += """<script type="text/javascript">toggle('ok', 'none'); </script>"""
         htmlDoc += '</html>'
         
@@ -618,6 +615,8 @@ class BenchmarkWizard(ConfigWizard):
             frameCount += 1
             if frameCount > maxFrame:
                 fps = win.fps()  # get frames per sec
+                if len(event.getKeys(['escape'])):
+                    sys.exit()
                 if fps < baseline * 0.6:
                     # only break when start dropping a LOT of frames (80% or more)
                     dotsInfo.append(('dots_' + fieldShape, str(bestDots), ''))
