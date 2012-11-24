@@ -30,7 +30,7 @@ class RatingScaleComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
                  disappear=False,
-                 storeRating=True, storeRatingTime=True,
+                 storeRating=True, storeRatingTime=True, choiceLabelsAboveLine=False,
                  lowAnchorText='', highAnchorText='',
                  customize_everything=''
                  ):
@@ -44,7 +44,7 @@ class RatingScaleComponent(BaseComponent):
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {}
         self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size', 'disappear',
-                        'pos', 'storeRatingTime', 'storeRating', 'lowAnchorText', 'highAnchorText', 'customize_everything']
+                        'pos', 'storeRatingTime', 'storeRating', 'choiceLabelsAboveLine', 'lowAnchorText', 'highAnchorText', 'customize_everything']
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
@@ -97,6 +97,8 @@ class RatingScaleComponent(BaseComponent):
         self.params['storeRating'] = Param(storeRating, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="store the rating")
+        self.params['choiceLabelsAboveLine'] = Param(choiceLabelsAboveLine, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[], hint="restores the old behavior for choices (i.e., labels above the line)")
         self.params['storeRatingTime'] = Param(storeRatingTime, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="store the time taken to make the choice (in seconds)")
@@ -155,6 +157,8 @@ class RatingScaleComponent(BaseComponent):
                     ch_list = choices.split(' ')
                 ch_list = [c.strip().strip(',').lstrip().lstrip(',') for c in ch_list]
                 init_str += ', choices=' + str(ch_list)
+                if self.params['choiceLabelsAboveLine'].val:
+                    init_str += ', labels=False'
             else:
                 # low/lowAnchorText
                 if len(self.params['lowAnchorText'].val):

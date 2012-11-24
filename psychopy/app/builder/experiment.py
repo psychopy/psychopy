@@ -77,7 +77,7 @@ class Experiment:
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self, prefs=None):
-        self.name=None
+        self.name=''
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #get prefs (from app if poss or from cfg files)
@@ -340,6 +340,10 @@ class Experiment:
                 component=getAllComponents()[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
+                # check for components that were absent in older versions of the builder and change the default behavior (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                if componentType=='RatingScaleComponent':
+                    if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
+                        component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
@@ -393,8 +397,9 @@ class Experiment:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
 
     def setExpName(self, name):
-        self.name=name
         self.settings.params['expName'].val=name
+    def getExpName(self):
+        return self.settings.params['expName'].val
 
 class Param:
     """Defines parameters for Experiment Components

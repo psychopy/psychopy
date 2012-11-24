@@ -3530,8 +3530,9 @@ class BuilderFrame(wx.Frame):
         self.toolsMenu.AppendSeparator()
         self.toolsMenu.Append(self.IDs.openUpdater, "PsychoPy updates...", "Update PsychoPy to the latest, or a specific, version")
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
-        self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
-        wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
+        if hasattr(self.app, 'benchmarkWizard'):
+            self.toolsMenu.Append(self.IDs.benchmarkWizard, "Benchmark wizard", "Check software & hardware, generate report")
+            wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
 
         #---_view---#000000#FFFFFF--------------------------------------------------
         self.viewMenu = wx.Menu()
@@ -3671,10 +3672,14 @@ class BuilderFrame(wx.Frame):
     def fileSaveAs(self,event=None, filename=None):
         """
         """
-        origFilename = self.filename
-        origShortname = os.path.splitext(os.path.split(origFilename)[1])[0]
-        defaultName = (origShortname==self.exp.name)
-        if filename==None: filename = self.filename
+        shortFilename = self.getShortFilename()
+        expName = self.exp.getExpName()
+        if (not expName) or (shortFilename==expName):
+            usingDefaultName=True
+        else:
+            usingDefaultName=False
+        if filename==None:
+            filename = self.filename
         initPath, filename = os.path.split(filename)
 
         os.getcwd()
@@ -3690,20 +3695,27 @@ class BuilderFrame(wx.Frame):
             newPath = dlg.GetPath()
             #update exp name
             # if the file already exists, query whether it should be overwritten (default = yes)
-            dlg2 = dialogs.MessageDialog(self,
-                        message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
-                        type='Warning')
-            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
+            okToSave=True
+            if os.path.exists(newPath):
+                dlg2 = dialogs.MessageDialog(self,
+                            message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                            type='Warning')
+                ok = dlg2.ShowModal()
+                if ok != wx.ID_YES:
+                    okToSave = False
+                try:
+                    dlg2.destroy()
+                except:
+                    pass
+            if okToSave:
                 #if user has not manually renamed experiment
-                if defaultName:
+                if usingDefaultName:
                     newShortName = os.path.splitext(os.path.split(newPath)[1])[0]
                     self.exp.setExpName(newShortName)
                 #actually save
                 self.fileSave(event=None, filename=newPath)
                 self.filename = newPath
                 returnVal = 1
-                try: dlg2.destroy()
-                except: pass
             else:
                 print "'Save-as' canceled; existing file NOT overwritten.\n"
         try: #this seems correct on PC, but not on mac
@@ -3712,6 +3724,10 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+    def getShortFilename(self):
+        """returns the filename without path or extension
+        """
+        return os.path.splitext(os.path.split(self.filename)[1])[0]
 
 
     def updateReadme(self):
@@ -4080,7 +4096,7 @@ class BuilderFrame(wx.Frame):
         if hasattr(component, 'url'):helpUrl=component.url
         else:helpUrl=None
         dlg = DlgExperimentProperties(frame=self,
-            title='%s Properties' %self.exp.name,
+            title='%s Properties' %self.exp.getExpName(),
             params = component.params,helpUrl=helpUrl,
             order = component.order)
         if dlg.OK:
@@ -4136,7 +4152,7 @@ class ReadmeFrame(wx.Frame):
         self.SetMenuBar(menuBar)
     def setFile(self, filename):
         self.filename=filename
-        self.expName = self.parent.exp.name
+        self.expName = self.parent.exp.getExpName()
         #check we can read
         if filename==None:#check if we can write to the directory
             return False

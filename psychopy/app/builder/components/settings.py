@@ -7,7 +7,7 @@ from psychopy import logging
 
 class SettingsComponent:
     """This component stores general info about how to run the experiment"""
-    def __init__(self, parentName, exp, fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
+    def __init__(self, parentName, exp, expName='', fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
@@ -23,7 +23,7 @@ class SettingsComponent:
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
-        self.params['expName']=Param(exp.name, valType='str', allowedTypes=[],
+        self.params['expName']=Param(expName, valType='str', allowedTypes=[],
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
@@ -81,7 +81,10 @@ class SettingsComponent:
         return saveToDir
     def writeStartCode(self,buff):
         buff.writeIndented("# Store info about the experiment session\n")
-        buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
+        if self.params['expName'].val in [None,'']:
+            expName = ''
+        else:
+            buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
         if not len(expInfo): expInfo = '{}'
         try: eval('dict('+expInfo+')')

@@ -16,12 +16,16 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
-PsychoPy 1.75
+PsychoPy 1.76
 ------------------------------
 
-PsychoPy 1.75.02
+PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The compatibility changes in this release below are likely to affect very few users; certainly only those that are writing custom code.
+
+* FIXED: problem with unset exp.name (was causing wx.Dialog error "TypeError: String or Unicode type required" on new experiments)
+* :blue: `CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
 * FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
 * FIXED: Fix to setContrast for certain visual stimuli (Jonas Lindeløv)
 * FIXED: inability to launch scripts/experiments if the Mac Standalone was in a folder with a space in it
