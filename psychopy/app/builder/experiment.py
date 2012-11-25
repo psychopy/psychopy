@@ -37,7 +37,7 @@ class CodeGenerationException(Exception):
     settings.SettingsComponent.writeStartCode()
     experiment.Flow.writeCode()
         which will call .writeCode() bits from each component
-    settings.SettingsComponent.writeStartCode()
+    settings.SettingsComponent.writeEndCode()
 """
 
 class IndentingBuffer(StringIO.StringIO):
@@ -1075,37 +1075,41 @@ class NameSpace():
         2011 Jeremy Gray
     """
     def __init__(self, exp):
-        """ set-up a given experiment's namespace: known reserved words, plus empty 'user' space list"""
+        """Set-up an experiment's namespace: reserved words and user space"""
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 
         self.numpy = _numpy_imports + _numpy_random_imports + ['np']
-        self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or',
-                        'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
-                        'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'finally',
-                        'is', 'return', 'def', 'for', 'lambda', 'try',
-
-                         'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
-                         'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp', 'coerce',
-                         'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir',
-                         'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
-                         'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash',
-                         'help', 'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'issubclass',
-                         'iter', 'len', 'license', 'list', 'locals', 'long', 'map', 'max', 'memoryview',
-                         'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'property',
-                         'quit', 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round',
-                         'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super',
-                         'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange', 'zip',
-                         'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems', 'iterkeys',
-                         'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values',
-                         'viewitems', 'viewkeys', 'viewvalues',
-
-                         '__builtins__', '__doc__', '__file__', '__name__', '__package__']
+        self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif',
+            'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
+            'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'or',
+            'finally', 'is', 'return', 'def', 'for', 'lambda', 'try', 'global',
+            'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
+            'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp',
+            'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict',
+            'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
+            'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr',
+            'help', 'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'hash',
+            'iter', 'len', 'license', 'list', 'locals', 'long', 'map', 'max',
+            'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'dir',
+            'quit', 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed',
+            'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum',
+            'super', 'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange',
+            'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems',
+            'iterkeys', 'round', 'memoryview', 'issubclass', 'property', 'zip',
+            'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update',
+            'values', 'viewitems', 'viewkeys', 'viewvalues', 'coerce',
+             '__builtins__', '__doc__', '__file__', '__name__', '__package__']
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event', 'gui','sound','misc','log',
-            'NOT_STARTED','STARTED','FINISHED','PAUSED','STOPPED']
-        self.builder = ['KeyResponse', 'buttons', 'continueTrial', 'dlg', 'expInfo', 'expName', 'filename',
-            'logFile', 't', 'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
+        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event',
+            'gui', 'sound', 'misc', 'logging', 'microphone',
+            'NOT_STARTED', 'STARTED', 'FINISHED', 'PAUSED', 'STOPPED',
+            'PLAYING', 'FOREVER', 'PSYCHOPY_USERAGENT']
+        self.builder = ['KeyResponse', 'key_resp', 'buttons', 'continueRoutine',
+            'expInfo', 'expName', 'thisExp', 'filename', 'logFile', 'paramName',
+            't', 'frameN', 'currentLoop', 'dlg',
+            'globalClock', 'routineTimer',
+            'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
 
