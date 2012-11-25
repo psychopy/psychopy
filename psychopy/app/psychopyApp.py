@@ -236,6 +236,7 @@ class PsychoPyApp(wx.App):
             print se  # stderr contents; sometimes meaningless
     def firstrunWizard(self):
         self._wizard('--config', '--firstrun')
+        # wizard typically creates html report file, but user can manually skip
         reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
             report = open(reportPath, 'r').read()

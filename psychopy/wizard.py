@@ -555,7 +555,7 @@ class BenchmarkWizard(ConfigWizard):
         dlg.addText('')
         dlg.show()
         if dlg.OK:
-            url='file://' + self.reportPath
+            url = 'file://' + self.reportPath
             wx.LaunchDefaultBrowser(url)
 
     def _prepare(self):
