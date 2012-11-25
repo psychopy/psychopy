@@ -144,7 +144,7 @@ class PsychoPyApp(wx.App):
         else:
             last=self.prefs.appData['lastVersion']
         if self.firstRun:
-            self.configWizard(firstrun=True)
+            self.firstrunWizard()
         
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
@@ -228,13 +228,26 @@ class PsychoPyApp(wx.App):
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
-    def configWizard(self, evt=None, firstrun=False):
-        from psychopy.app import firstRun
-        firstRun.ConfigWizard(self, firstrun=firstrun)
+    def _wizard(self, selector, arg=''):
+        from psychopy import core
+        wizard = os.path.join(self.prefs.paths['psychopy'], 'wizard.py')
+        so, se = core.shellCall([sys.executable, wizard, selector, arg], stderr=True)
+        if se and self.prefs.app['debugMode']:
+            print se  # stderr contents; sometimes meaningless
+    def firstrunWizard(self):
+        self._wizard('--config', '--firstrun')
+        # wizard typically creates html report file, but user can manually skip
+        reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
+        if os.path.exists(reportPath):
+            report = open(reportPath, 'r').read()
+            if 'Configuration problem' in report:
+                # fatal error was encountered (currently only if bad drivers), so
+                # before psychopy shuts down, ensure wizard will be triggered again:
+                del self.prefs.appData['lastVersion']
+                self.prefs.saveAppData()
+                sys.exit()
     def benchmarkWizard(self, evt=None):
-        from psychopy.app import firstRun
-        firstRun.BenchmarkWizard(self)
-        
+        self._wizard('--benchmark')
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
         if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update
