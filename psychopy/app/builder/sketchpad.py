@@ -10,8 +10,12 @@ import numpy
 import logging
 from psychopy import preferences
 from psychopy.app.builder import components
+from psychopy.app.builder.components._visual import MissingParamsException
 
 class AbstractTool(object):
+    """
+    Base class for graphical editor tools.
+    """
     def __init__(self, window):
         self.start_pos = None
         self.stop_pos = None
@@ -23,7 +27,7 @@ class AbstractTool(object):
         size = numpy.array(self.window.GetSize(), float)
         offset = numpy.array([-1.0, 1.0])
         pos = offset + [2, -2] * (pos) / size
-        return pos.tolist()
+        return pos.round(5).tolist()
 
     def start(self, pos):
         self.start_pos = pos
@@ -38,6 +42,9 @@ class AbstractTool(object):
 
 
 class VisualTool(AbstractTool):
+    """
+    Abstract tool which uses visualization by drawing on canvas DC.
+    """
     def start(self, pos):
         super(VisualTool, self).start(pos)
         self.dc = wx.WindowDC(self.window)
@@ -57,6 +64,9 @@ class VisualTool(AbstractTool):
 
 
 class ExtentVisualTool(VisualTool):
+    """
+    Visual tool which bases its visualization on rectangular extent described by position and size.
+    """
     def visualize(self, pos, dc):
         x, y = self.start_pos[0], self.start_pos[1]
         w, h = pos[0] - x, pos[1] - y
@@ -73,10 +83,13 @@ class ExtentVisualTool(VisualTool):
         offset = numpy.array([-1.0, 1.0])
         pos = offset + [1, -1] * (stop_pos + start_pos) / size
         size = 2.0 * (stop_pos - start_pos) / size
-        return pos.tolist(), size.tolist()
+        return pos.round(5).tolist(), size.round(5).tolist()
 
 
 class EllipseTool(ExtentVisualTool):
+    """
+    Tool which creates ellipse shape.
+    """
     def draw_extent(self, (x, y), (w, h), dc):
         dc.DrawEllipse(x, y, w, h)
         
@@ -91,6 +104,9 @@ class EllipseTool(ExtentVisualTool):
 
 
 class RectangleTool(ExtentVisualTool):
+    """
+    Tool which creates rectangle shape.
+    """
     def draw_extent(self, (x, y), (w, h), dc):
         dc.DrawRectangle(x, y, w, h)
 
@@ -104,6 +120,9 @@ class RectangleTool(ExtentVisualTool):
         return component
 
 class ArrowTool(ExtentVisualTool):
+    """
+    Tool which creates arrow.
+    """
     def draw_extent(self, (x1, y1), (w, h), dc):
         x2, y2 = x1 + w, y1 + h
         a = numpy.arctan2(h, w)
@@ -125,6 +144,9 @@ class ArrowTool(ExtentVisualTool):
 
 
 class GratingTool(ExtentVisualTool):
+    """
+    Tool which adds grating component.
+    """
     def draw_extent(self, (x, y), (w, h), dc):
         dc.DrawEllipse(x, y, w, h)
     
@@ -138,6 +160,9 @@ class GratingTool(ExtentVisualTool):
 
 
 class ImageTool(ExtentVisualTool):
+    """
+    Tool which adds image component.
+    """
     def draw_extent(self, (x, y), (w, h), dc):
         dc.DrawRectangle(x, y, w, h)
     
@@ -150,6 +175,9 @@ class ImageTool(ExtentVisualTool):
 
 
 class TextTool(AbstractTool):
+    """
+    Graphical editor tool which adds text.
+    """
     def stop_pos_to_norm(self):
         return self.pixel_to_norm(self.stop_pos)
     
@@ -162,14 +190,20 @@ class TextTool(AbstractTool):
 
 
 class SelectionTool(AbstractTool):
+    """
+    Tool which opens properties dialog of selected component.
+    """
     def point_activate(self, pos):
         for component in self.window.routine:
             preview_window = self.window.GetParent()
             builder_frame = preview_window.GetParent()
-            stimulus = component.getStimulus(preview_window)
-            if hasattr(stimulus, "contains") and stimulus.contains(self.pixel_to_norm(pos)):
-                builder_frame.routinePanel.getCurrentPage().editComponentProperties(component=component)
-                self.window.stimuli = None
+            try:
+                stimulus = component.getStimulus(preview_window)
+                if hasattr(stimulus, "contains") and stimulus.contains(self.pixel_to_norm(pos)):
+                    builder_frame.routinePanel.getCurrentPage().editComponentProperties(component=component)
+                    self.window.stimuli = None
+            except MissingParamsException:
+                continue
 
 
 class ToolHandler(object):
@@ -286,14 +320,17 @@ class RoutinePreview(glcanvas.GLCanvas):
 
     def add_stimulus(self, component):
         self.SetCurrent(self.context)
-        stimulus = component.getStimulus(self.GetParent())
-        if stimulus is not None:
+        try:
+            stimulus = component.getStimulus(self.GetParent())
             self.stimuli.append(stimulus)
+            self.GetParent().add_visible_component(component)
+        except MissingParamsException as e:
+            self.GetParent().add_invisible_component(component, e.missing_params)
 
     def generate_stimuli(self):
         self.stimuli = []
         for component in self.routine:
-            if hasattr(component, "getStimulus"):
+            if hasattr(component, "PREVIEW_STIMULUS"):
                 self.add_stimulus(component)
 
     def update_routine(self, routine):
@@ -315,7 +352,13 @@ class SidePanel(wx.Panel):
         super(SidePanel, self).__init__(parent)
         self.SetSizer(wx.BoxSizer())
         self.list_panel = ComponentListPanel(self)
-        self.GetSizer().Add(self.list_panel)
+        self.GetSizer().Add(self.list_panel, proportion=1, flag=wx.EXPAND)
+
+    def add_visible_component(self, component):
+        self.list_panel.add_visible_component(component)
+
+    def add_invisible_component(self, component, params):
+        self.list_panel.add_invisible_component(component, params)
 
 
 class PropertiesPanel(wx.Panel):
@@ -331,9 +374,75 @@ class ComponentListPanel(wx.Panel):
     """
     def __init__(self, parent):
         super(ComponentListPanel, self).__init__(parent)
+        self.item_data = {}
+        self.init_visible_list()
+        self.init_invisible_list()
+        self.init_sizer()
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.invisible_edit, self.invisible_list)
+
+    def init_sizer(self):
         self.SetSizer(wx.BoxSizer(wx.VERTICAL))
-        self.visible_list_label = wx.StaticText(self, label="Visible Components")
-        self.GetSizer().Add(self.visible_list_label)
+        self.GetSizer().Add(wx.StaticText(self, label="Visible Components"))
+        self.GetSizer().Add(self.visible_list, flag=wx.EXPAND, proportion=1)
+        self.GetSizer().Add(wx.StaticText(self, label="Invisible Components"))
+        self.GetSizer().Add(self.invisible_list, flag=wx.EXPAND, proportion=1)
+
+    def init_invisible_list(self):
+        self.invisible_list = wx.ListView(self)
+        self.invisible_list.InsertColumn(0, "name")
+        self.invisible_list.InsertColumn(1, "type")
+
+
+    def init_visible_list(self):
+        self.visible_list = wx.ListView(self)
+        self.visible_list.InsertColumn(0, "name")
+        self.visible_list.InsertColumn(1, "type")
+
+    def add_visible_component(self, component):
+        self.visible_list.Append([component.params["name"], "?"])
+
+    def add_invisible_component(self, component, param_names):
+        index = self.invisible_list.InsertStringItem(self.invisible_list.GetItemCount(), component.params["name"].val)
+        self.invisible_list.SetStringItem(index, 1, "?")
+        self.item_data[index] = (component, param_names)
+    
+    def invisible_edit(self, event):
+        component, param_names = self.item_data[event.GetIndex()]
+        dialog = EstimatedParamsDialog(self, component, param_names)
+        dialog.ShowModal()
+
+
+class EstimatedParamsDialog(wx.Dialog):
+    def __init__(self, parent, component, param_names):
+        super(EstimatedParamsDialog, self).__init__(parent)
+        self.component = component
+        self.param_names = param_names
+        self.init_sizer()
+        self.init_params()
+        self.init_buttons()
+    
+    def init_sizer(self):
+        self.SetSizer(wx.BoxSizer(wx.VERTICAL))
+        self.param_sizer = wx.FlexGridSizer(rows=0, cols=3, vgap=8, hgap=8)
+        self.param_sizer.AddGrowableCol(0, proportion=1)
+        self.param_sizer.AddGrowableCol(1, proportion=3)
+        self.param_sizer.AddGrowableCol(2, proportion=2)
+        self.GetSizer().Add(self.param_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
+    
+    def init_params(self):
+        self.param_sizer.Add(wx.StaticText(self, label="Param"))
+        self.param_sizer.Add(wx.StaticText(self, label="Value"))
+        self.param_sizer.Add(wx.StaticText(self, label="Estimation"))
+        for param_name in self.param_names:
+            self.param_sizer.Add(wx.StaticText(self, label=param_name))
+            valueCtrl = wx.TextCtrl(self)
+            valueCtrl.SetValue(self.component.params[param_name].val)
+            valueCtrl.SetEditable(False)
+            self.param_sizer.Add(valueCtrl, flag=wx.EXPAND)
+            self.param_sizer.Add(wx.TextCtrl(self), flag=wx.EXPAND)
+    
+    def init_buttons(self):
+        self.GetSizer().Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), flag=wx.EXPAND | wx.ALL, border=8)
 
 
 class SketchpadWindow(wx.Dialog):
@@ -355,14 +464,20 @@ class SketchpadWindow(wx.Dialog):
         self.workspaceSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(sizer)
         self.init_toolbar()
+        self.side_panel = SidePanel(self)
         sizer.Add(self.toolbar, flag=wx.EXPAND)
         sizer.Add(self.workspaceSizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
         self.workspaceSizer.Add(self.canvas, proportion=3, flag=wx.EXPAND)
-        #self.workspaceSizer.Add(SidePanel(self), proportion=1, flag=wx.EXPAND)
-        
+        self.workspaceSizer.Add(self.side_panel, proportion=1, flag=wx.EXPAND)
         sizer.Add(self.CreateButtonSizer(wx.OK), flag=wx.EXPAND | wx.ALL, border=8)
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
 
+    def add_visible_component(self, component):
+        self.side_panel.add_visible_component(component)
+    
+    def add_invisible_component(self, component, params):
+        self.side_panel.add_invisible_component(component, params)
+    
     def ellipse_tool_event(self, event):
         print "ellipse"
     
