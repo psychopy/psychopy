@@ -235,6 +235,7 @@ class ToolHandler(object):
             self.routine.addComponent(component)
             self.stringify_params(component) #fix for inconsistent param typing
             self.frame.routinePanel.getCurrentPage().redrawRoutine()
+            self.frame.addToUndoStack("ADD `%s` to `%s`" % (component.params["name"].val, self.routine.name))
         return component
     
     def point_activate(self, pos):
