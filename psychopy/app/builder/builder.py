@@ -4127,8 +4127,11 @@ class BuilderFrame(wx.Frame):
 
     def showPreview(self, event):
         routine = self.routinePanel.getCurrentRoutine()
-        dialog = sketchpad.SketchpadWindow(self, routine)
-        dialog.ShowModal()
+        if routine:
+            dialog = sketchpad.SketchpadWindow(self, routine)
+            dialog.ShowModal()
+        else:
+            wx.MessageBox("You need to create a routine before opening a preview.", "Routine preview", wx.ICON_INFORMATION | wx.OK)
 
     def runFile(self, event=None):
         #get abs path of expereiment so it can be stored with data at end of exp
