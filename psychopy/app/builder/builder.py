@@ -4127,7 +4127,7 @@ class BuilderFrame(wx.Frame):
 
     def showPreview(self, event):
         routine = self.routinePanel.getCurrentRoutine()
-        if routine:
+        if routine is not None:
             dialog = sketchpad.SketchpadWindow(self, routine)
             dialog.ShowModal()
         else:
