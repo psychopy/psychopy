@@ -111,7 +111,14 @@ class KeyboardComponent(BaseComponent):
         else:
             val = self.params['allowedKeys'].val
             if _valid_var_re.match(val):
-                # the variable named in val might not be in the exp's namespace
+                # check the variable named in val is suitable to eval at run-time
+                buff.writeIndented("if not '%s' in locals():\n" % val)
+                buff.writeIndented("    logging.error('AllowedKeys variable `%s` is not defined.')\n" % val)
+                buff.writeIndented("if not type(%s) in [list, tuple, np.ndarray]:\n" % val)
+                buff.writeIndented("    if not isinstance(%s, basestring):\n" % val)
+                buff.writeIndented("        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % val)
+                buff.writeIndented("    elif not ',' in %s: %s = (%s,)\n" % (val, val, val))
+                buff.writeIndented("    else:  %s = eval(%s)\n" % (val, val)) # this could fail...
                 keyListStr = "keyList=list(%s)" % val  # eval() at run time
             else:
                 try:
