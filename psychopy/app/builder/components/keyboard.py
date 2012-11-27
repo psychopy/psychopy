@@ -5,7 +5,7 @@
 from _base import *
 from os import path
 
-from psychopy.app.builder.experiment import CodeGenerationException
+from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
@@ -109,15 +109,20 @@ class KeyboardComponent(BaseComponent):
         #do we need a list of keys?
         if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
         else:
-            try:
-                keyList = eval(self.params['allowedKeys'].val)
-            except:
-                raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
-            if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
-                keyList=list(keyList)
-            elif type(keyList) in [str,unicode]: #a single string value
-                keyList=[keyList]
-            keyListStr= "keyList=%s" %(repr(keyList))
+            val = self.params['allowedKeys'].val
+            if _valid_var_re.match(val):
+                # the variable named in val might not be in the exp's namespace
+                keyListStr = "keyList=list(%s)" % val  # eval() at run time
+            else:
+                try:
+                    keyList = eval(val)
+                except:
+                    raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
+                if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
+                    keyList=list(keyList)
+                elif type(keyList) in [str,unicode]: #a single string value
+                    keyList=[keyList]
+                keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
 
