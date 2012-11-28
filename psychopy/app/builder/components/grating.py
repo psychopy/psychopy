@@ -77,5 +77,5 @@ class GratingComponent(VisualComponent):
         return visual.GratingStim(
                 window, tex=self.params["tex"].val, mask=self.params["mask"].val,
                 units="norm", pos=eval(self.params["pos"].val), size=eval(self.params["size"].val),
-                sf=eval(self.params["sf"].val), ori=eval(self.params["ori"].val), phase=eval(self.params["phase"].val))
+                sf=eval(str(self.params["sf"])), ori=eval(str(self.params["ori"])), phase=eval(str(self.params["phase"])))
 

@@ -1,7 +1,7 @@
 Most dialogs have a help button that takes you to the relevant online documentation
 You can use "Ctrl + [" or "Ctrl + ]" to indent/outdent a block of code in Coder view
 Both in the Coder and Builder views have a demos menu with plenty of demos
-From Builder you can generate and customise the python script that controls your experiment (might be a good way to learn a bit of programming).
+From Builder you can use "Compile" to generate the python script that controls your experiment, and view or edit it in the Coder. (Any edits are not reflected back in the Builder, however.)
 Avoid snorting Pepsi
 Most buttons have tooltips if you hover over them
 PsychoPy can handle many different units (degrees of visual angle, cm...) for your stimuli. But you need to tell it about your monitor first (see the online documentation on General > Units)
@@ -48,3 +48,4 @@ Beware the Ides of March
 
 In Builder you can control what appears in the 'Experiment Info' dialog box in the Experiment Settings
 If you like PsychoPy spread the word
+You can use the Benchmark wizard (from the Builder Tools menu) to see how your hardware compares with other platforms, see http://upload.psychopy.org/benchmark/report.html

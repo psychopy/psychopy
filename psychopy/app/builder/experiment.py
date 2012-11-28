@@ -79,7 +79,7 @@ class Experiment:
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self, prefs=None):
-        self.name=None
+        self.name=''
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #get prefs (from app if poss or from cfg files)
@@ -422,8 +422,9 @@ class Experiment:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
 
     def setExpName(self, name):
-        self.name=name
         self.settings.params['expName'].val=name
+    def getExpName(self):
+        return self.settings.params['expName'].val
 
 class Param:
     """Defines parameters for Experiment Components
@@ -952,9 +953,12 @@ class Routine(list):
         list.__init__(self, components)
     def __repr__(self):
         return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" %(self.name,self.exp,str(list(self)))
-    def addComponent(self,component):
+    def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
+        namespace = self.exp.namespace
+        component.params['name'].val = namespace.makeValid(component.params['name'].val)
+        namespace.add(component.params['name'].val)
     def removeComponent(self,component):
         """Remove a component from the end of the routine"""
         self.remove(component)

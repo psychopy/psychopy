@@ -32,13 +32,19 @@ class PreviewParam(object):
             self.converter = converter
 
 
+class MissingParamsException(Exception):
+    
+    def __init__(self, missing_params):
+        self.missing_params = missing_params
+
+
 class VisualComponent(_base.BaseComponent):
     """Base class for most visual stimuli
     """
     
     BASE_PREVIEW_PARAMS = {
-        "color": PreviewParam("color", "interpret"),
-        "colorSpace": PreviewParam("colorSpace", "verbatim"),
+        #"color": PreviewParam("color", "interpret"),
+        #"colorSpace": PreviewParam("colorSpace", "verbatim"),
         "opacity": PreviewParam("opacity", "eval"),
         "pos": PreviewParam("pos", "eval"),
         #"size": PreviewParam("size", "eval"),
@@ -165,10 +171,16 @@ class VisualComponent(_base.BaseComponent):
         if not hasattr(self, "PREVIEW_STIMULUS"):
             return None
         kwargs = {}
+        missing_params = []
         for previewParam in VisualComponent.BASE_PREVIEW_PARAMS.items() + self.PREVIEW_PARAMS.items():
-            componentParam = self.params[previewParam[0]]
-            kwargs[previewParam[1].kwargKey] = previewParam[1].converter(componentParam)
+            try:
+                componentParam = self.params[previewParam[0]]
+                kwargs[previewParam[1].kwargKey] = previewParam[1].converter(componentParam)
+            except Exception:
+                missing_params.append(previewParam[0])
         # units from experiment settings
+        if missing_params:
+            raise MissingParamsException(missing_params)
         if kwargs.get("units") == "from exp settings":
             del kwargs["units"]
         stimulus = self.PREVIEW_STIMULUS(window, **kwargs)

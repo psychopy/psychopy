@@ -2,7 +2,6 @@
 Module contains editor for conditions data.
 '''
 
-import os.path
 from psychopy import data_import
 import json
 import wx.grid
@@ -73,24 +72,13 @@ class TypeLoaderDict(dict):
 class ConditionsGrid(wx.grid.Grid):
     ERROR_COLOR = wx.Color(0xFF, 0xCC, 0xCC)
     TYPE_PARSER_DICT = TypeParserDict()
-
-    @staticmethod
-    def column_name(col_pos):
-        ret = chr(ord('A') + (col_pos % 26))
-        col_pos = col_pos / 26
-        while col_pos > 0:
-            col_pos = col_pos - 1
-            ret = chr(ord('A') + (col_pos % 26)) + ret
-            col_pos = col_pos / 26
-        return ret
     
     def __init__(self, parent, message_sink):
         super(ConditionsGrid, self).__init__(parent)
         self.message_sink = message_sink
         self.data = None
-        self.data_errors = {}
-        self.CreateGrid(5, 4)
-        self.init_column_types()
+        self.CreateGrid(0, 0)
+        self.file_new()
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.cell_change)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.select_cell)
         self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.label_options)
@@ -171,15 +159,19 @@ class ConditionsGrid(wx.grid.Grid):
                     for col_pos, cell in enumerate(row):
                         self.SetCellValue(base_row + row_pos, base_col + col_pos, cell)
             wx.TheClipboard.Close()
-
-    def init_column_types(self):
-        self.column_types = {}
-        for col_pos in range(4):
-            self.set_column_type(col_pos, "text")
     
     def set_column_type(self, col_pos, column_type):
         self.column_types[col_pos] = column_type
-        self.SetColLabelValue(col_pos, self.column_name(col_pos) + ": " + str(column_type))
+        self.update_column_label(col_pos)
+    
+    def set_column_name(self, col_pos, column_name):
+        self.column_names[col_pos] = column_name
+        self.update_column_label(col_pos)
+
+    def update_column_label(self, col_pos):
+        column_type = self.column_types[col_pos]
+        column_name = self.column_names[col_pos]
+        self.SetColLabelValue(col_pos, column_name + ": " + column_type)
 
     def grid_cell_to_data(self, row_pos, col_pos):
         cell_value = self.GetCellValue(row_pos, col_pos)
@@ -203,9 +195,7 @@ class ConditionsGrid(wx.grid.Grid):
 
     def validate_headers(self, columns):
         headers = {}
-        header_list = []
-        for col_pos in columns:
-            header = self.GetCellValue(0, col_pos)
+        for col_pos, header in enumerate(self.column_names):
             if not header:
                 self.add_data_error((0, col_pos), "Empty header")
             elif not data_import.isValidVariableName(header)[0]:
@@ -214,8 +204,7 @@ class ConditionsGrid(wx.grid.Grid):
                 self.add_data_error((0, col_pos), "Duplicate header")
             else:
                 headers[header] = col_pos
-                header_list.append(header)
-        return header_list
+        return self.column_names
 
     def validate_row(self, columns, row_pos):
         row = []
@@ -232,7 +221,7 @@ class ConditionsGrid(wx.grid.Grid):
 
     def validate_rows(self, columns):
         rows = []
-        for row_pos in range(1, self.GetNumberRows()):
+        for row_pos in range(self.GetNumberRows()):
             if self.is_row_empty(columns, row_pos):
                 continue
             else:
@@ -276,26 +265,35 @@ class ConditionsGrid(wx.grid.Grid):
             self.message_sink.SetLabel("")
         event.Skip()
         
+    def add_column(self, col_pos):
+        self.InsertCols(col_pos)
+        self.column_types.insert(col_pos, "text")
+        self.column_names.insert(col_pos, "col_" + str(col_pos))
+        for dirty_col_pos in range(col_pos, self.GetNumberCols()):
+            self.update_column_label(dirty_col_pos)
+    
+    def remove_column(self, col_pos):
+        self.DeleteCols(col_pos)
+        self.column_types[col_pos]
+        self.column_names[col_pos]
+        for dirty_col_pos in range(col_pos, self.GetNumberCols()):
+            self.update_column_label(dirty_col_pos)
+    
     def add_column_handler(self, col_pos):
         def handler(event):
-            self.InsertCols(col_pos + 1)
-            for dirty_col_pos in range(self.GetNumberCols() - 1, col_pos + 1, -1):
-                self.set_column_type(dirty_col_pos, self.column_types[dirty_col_pos - 1])
-            self.set_column_type(col_pos + 1, "text")
+            self.add_column(col_pos + 1)
         return handler
     
     def remove_column_handler(self, col_pos):
         def handler(event):
-            self.DeleteCols(col_pos)
-            del self.column_types[col_pos]
-            # shift column types by 1
-            for dirty_col_pos in range(col_pos, self.GetNumberCols()):
-                self.set_column_type(dirty_col_pos, self.column_types[dirty_col_pos + 1])
+            self.remove_column(col_pos)
         return handler
     
     def rename_column_handler(self, col_pos):
         def handler(hevent):
-            pass
+            dialog = wx.TextEntryDialog(self, "New column name:", "Rename column", self.column_names[col_pos])
+            if dialog.ShowModal() == wx.ID_OK:
+                self.set_column_name(col_pos, dialog.GetValue())
         return handler
 
     def column_options(self, event):
@@ -371,6 +369,9 @@ class ConditionsGrid(wx.grid.Grid):
         return rows
 
     def set_data(self, data):
+        """
+        Fill grid cells with data.
+        """
         def pad_data(headers, rows, width):
             new_headers = [headers[i] if i < len(headers) else u"" for i in range(width)]
             new_rows = [[row[i] if i < len(row) else None for i in range(width)] for row in rows]
@@ -415,23 +416,33 @@ class ConditionsGrid(wx.grid.Grid):
         (headers, rows) = pad_data(headers, rows, row_len)
         # insert columns
         self.InsertCols(numCols=row_len)
-        self.InsertRows(numRows=len(rows) + 1)
+        self.InsertRows(numRows=len(rows))
         for col_pos in range(row_len):
             column_type = detect_column_type(rows, col_pos)
             self.set_column_type(col_pos, column_type)
-            self.SetCellValue(0, col_pos, headers[col_pos])
+            self.set_column_name(col_pos, headers[col_pos])
 
         loader_dict = TypeLoaderDict()
         for row_pos in range(len(rows)):
             for col_pos in range(row_len):
                 cell_value = loader_dict[self.column_types[col_pos]](rows[row_pos][col_pos])
-                self.SetCellValue(row_pos + 1, col_pos, cell_value)
+                self.SetCellValue(row_pos, col_pos, cell_value)
+
+    def file_new(self):
+        self.DeleteCols(numCols=self.GetNumberCols())
+        self.DeleteRows(numRows=self.GetNumberRows())
+        self.InsertRows(numRows=5)
+        self.data_errors = {}
+        self.column_names = []
+        self.column_types = []
+        for col_pos in range(4):
+            self.add_column(col_pos)
 
 
 class ConditionsEditor(wx.Dialog):
     def __init__(self, parent, file_name=None):
         self.TOOLBAR_BUTTONS = [
-            ("New", "filenew", self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
+            ("New", wx.ART_NEW, self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
             ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
             ("Copy", wx.ART_COPY, self.command_copy), ("Paste", wx.ART_PASTE, self.command_paste),
             (), ("Product", wx.ART_MISSING_IMAGE, self.product)
@@ -490,6 +501,7 @@ class ConditionsEditor(wx.Dialog):
         pickle_file.close()
 
     def save_data_as(self):
+        self.Validate()
         self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
         if self.file_name:
             self.save_data_to_file()
@@ -499,13 +511,7 @@ class ConditionsEditor(wx.Dialog):
 
     def file_new(self, event):
         self.file_name = None
-        self.data_grid.DeleteCols(numCols=self.data_grid.GetNumberCols())
-        self.data_grid.DeleteRows(numRows=self.data_grid.GetNumberRows())
-        self.data_grid.InsertCols(numCols=4)
-        self.data_grid.InsertRows(numRows=5)
-        self.data_grid.data_errors = {}
-        for col_pos in range(4):
-            self.data_grid.set_column_type(col_pos, "json")
+        self.data_grid.file_new()
 
     def file_open(self, event):
         file_name = wx.LoadFileSelector("conditions file", "pkl", parent=self)
@@ -524,8 +530,6 @@ class ConditionsEditor(wx.Dialog):
         column_selection = collections.OrderedDict()
         processed = set()
         for (row_pos, col_pos) in selection:
-            if row_pos == 0:
-                continue
             if (row_pos, col_pos) in processed:
                 continue
             if not column_selection.has_key(col_pos):

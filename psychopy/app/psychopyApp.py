@@ -128,10 +128,14 @@ class PsychoPyApp(wx.App):
         if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy import compatibility
         from psychopy.app import coder, builder, dialogs, wxIDs, urls #import coder and builder here but only use them later
+        from psychopy.app import resources
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.urls=urls.urls
+        # add psychopy-specifi art providers
+        wx.ArtProvider.Push(resources.ArtProvider())
+        wx.ArtProvider.Push(resources.ComponentArtProvider())
         self.quitting=False
         #check compatibility with last run version (before opening windows)
         self.firstRun = False
