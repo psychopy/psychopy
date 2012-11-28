@@ -11,6 +11,7 @@ import logging
 from psychopy import preferences
 from psychopy.app.builder import components
 from psychopy.app.builder.components._visual import MissingParamsException
+import time
 
 class AbstractTool(object):
     """
@@ -56,7 +57,7 @@ class VisualTool(AbstractTool):
 
     def update(self, pos):
         super(VisualTool, self).update(pos)
-        dc = wx.BufferedDC(wx.WindowDC(self.window))
+        dc = wx.BufferedDC(wx.ClientDC(self.window))
         dc.BeginDrawing()
         dc.Blit(0, 0, self.blit_w, self.blit_h, self.window.temp_dc, 0, 0)
         self.visualize(pos, dc)
@@ -249,7 +250,8 @@ class ToolHandler(object):
 
 class RoutinePreview(glcanvas.GLCanvas):
     def __init__(self, parent, tool_handler):
-        super(RoutinePreview, self).__init__(parent)
+        attrib_list = [glcanvas.WX_GL_DOUBLEBUFFER]
+        super(RoutinePreview, self).__init__(parent, attribList=attrib_list)
         self.routine = []
         self.stimuli = None
         self.context = glcanvas.GLContext(self)
@@ -261,34 +263,46 @@ class RoutinePreview(glcanvas.GLCanvas):
         self.Bind(wx.EVT_LEFT_DCLICK, self.point_activate_tool)
 
     def init_gl(self):
-        gl.glClearColor(0.67, 0.67, 0.67, 0.0)
+        gl.glClearColor(0.67, 0.67, 0.67, 1.0)
+        gl.glClearDepth(1.0)
+
+        size = self.GetClientSize()
+        gl.glViewport(0, 0, size.width, size.height)
+
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
+        gl.glOrtho(-1, 1, -1, 1, -1, 1)
+
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadIdentity()
+
+        gl.glDisable(gl.GL_DEPTH_TEST)
         gl.glEnable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glEnable(gl.GL_TEXTURE_2D)
+
         gl.glShadeModel(gl.GL_SMOOTH)
+        gl.glEnable(gl.GL_POINT_SMOOTH)
+        gl.glEnable(gl.GL_TEXTURE_2D)
+
         self.gl_inited = True
 
     def on_size(self, event):
-        if not self.context:
-            self.context = glcanvas.GLContext(self)
-        self.SetCurrent(self.context)
         size = self.GetClientSize()
         self.GetParent().setSize((size.width, size.height))
-        gl.glViewport(0, 0, size.width, size.height)
-        width, height = self.GetSize()
-        self.temp_bitmap = wx.EmptyBitmap(width, height)
+        self.temp_bitmap = wx.EmptyBitmap(size.width, size.height)
         self.temp_dc = wx.MemoryDC(self.temp_bitmap)
 
     def on_paint(self, event):
+        paint_dc = wx.PaintDC(self)
         self.SetCurrent(self.context)
         if not self.gl_inited:
             self.init_gl()
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         if self.stimuli is None:
             self.generate_stimuli()
         self.draw_components()
         self.SwapBuffers()
-    
+
     def start_tool(self, event):
         pos = (event.GetX(), event.GetY())
         if self.tool_handler.start(pos):
@@ -314,13 +328,13 @@ class RoutinePreview(glcanvas.GLCanvas):
 
     def draw_components(self):
         for stimulus in self.stimuli:
+            self.SetCurrent(self.context)
             stimulus.draw()
 
     def add_component(self, component):
         self.components.append(component)
 
     def add_stimulus(self, component):
-        self.SetCurrent(self.context)
         try:
             stimulus = component.getStimulus(self.GetParent())
             self.stimuli.append(stimulus)
@@ -465,22 +479,21 @@ class SketchpadWindow(wx.Dialog):
         self.workspaceSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(sizer)
         self.init_toolbar()
-        self.side_panel = SidePanel(self)
+        #self.side_panel = SidePanel(self)
         sizer.Add(self.toolbar, flag=wx.EXPAND)
         sizer.Add(self.workspaceSizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
         self.workspaceSizer.Add(self.canvas, proportion=3, flag=wx.EXPAND)
-        self.workspaceSizer.Add(self.side_panel, proportion=1, flag=wx.EXPAND)
+        #self.workspaceSizer.Add(self.side_panel, proportion=1, flag=wx.EXPAND)
         sizer.Add(self.CreateButtonSizer(wx.OK), flag=wx.EXPAND | wx.ALL, border=8)
         self.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
 
     def add_visible_component(self, component):
-        self.side_panel.add_visible_component(component)
+        #self.side_panel.add_visible_component(component)
+        pass
     
     def add_invisible_component(self, component, params):
-        self.side_panel.add_invisible_component(component, params)
-    
-    def ellipse_tool_event(self, event):
-        print "ellipse"
+        #self.side_panel.add_invisible_component(component, params)
+        pass
     
     def untoggle_current_tool(self):
         self.toolbar.ToggleTool(self.current_tool, False)
