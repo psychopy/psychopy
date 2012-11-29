@@ -52,7 +52,7 @@ class OBCIConnection(object):
         self.connection.close()
     
     def open(self):
-        self.connection = socket.create_connection(self.address, timeout=5)
+        self.connection = socket.create_connection(self.address, timeout=30)
     
     def send_recv(self, message_name, **kwargs):
         message_json = self.msg_factory.fill_msg(message_name, **kwargs)
