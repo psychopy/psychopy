@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.02.0.8-2) precise; urgency=low
+
+  * Fix timeout in server connection error.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 29 Nov 2012 13:06:30 +0100
+
 psychopy-openbci (1.75.02.0.8-1) precise; urgency=low
 
   * New upstream release.
