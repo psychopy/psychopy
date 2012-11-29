@@ -4245,12 +4245,14 @@ class BuilderFrame(wx.Frame):
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
         self.onProcessEnded(event=None)
+
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
         if self.experiment_contact:
-            from acquisition import acquisition_control
-            acquisition_control.finish_saving([(self.mx_address[0], int(self.mx_address[1]))])
+            if self.exp.settings.params["saveSignal"].val:
+                from obci.acquisition import acquisition_control
+                acquisition_control.finish_saving([(self.mx_address[0], int(self.mx_address[1]))])
             self.experiment_contact.kill_experiment()
             self.experiment_contact.close()
             self.experiment_contact = None
