@@ -100,10 +100,12 @@ class AmpLauncherDialog(wx.Dialog):
         try:
             self.amp_info = self.retriever.fetch_amp_list()
         except Exception as e:
-            self.amp_info = AmplifierInfo()
+            wx.MessageBox("Failed to fetch a list of amplifiers:\n", "Amp Launcher", wx.ICON_WARNING)
+            self.amp_info = AmplifierInfo() # empty amp list
 
     def init_panels(self):
         self.amp_list_panel = AmpListPanel(self, self.amp_info)
+        print "Hello 1"
         self.amp_config = AmpConfigPanel(self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_amplifier, self.amp_list_panel.amp_list)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.channel_update)

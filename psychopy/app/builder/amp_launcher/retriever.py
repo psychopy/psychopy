@@ -6,6 +6,9 @@ Created on 22-08-2012
 from psychopy.app.builder.amp_launcher.obci_connection import OBCIConnection
 import os.path
 
+class AmpListRetrieverException(Exception):
+    pass
+
 class AmplifierInfo(object):
     """Contains all interesting data about an amplifier discovered by AmpListRetriever
     """
@@ -79,7 +82,7 @@ class AmpListRetriever(object):
                 remote_amp_list = remote_connection.get_amp_list()
                 amp_list.extend([(server, entry) for entry in remote_amp_list])
             except Exception:
-                print "problems with sever: " + str(server)
+                raise AmpListRetrieverException("problems with sever: " + str(server))
         return AmplifierInfo(amp_list)
 
 if __name__ == "__main__":
