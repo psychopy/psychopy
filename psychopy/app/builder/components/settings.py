@@ -177,18 +177,22 @@ class SettingsComponent:
         if self.params['saveTags'].val or self.params['sendTags'].val:
             buff.writeIndented("import psychopy.contrib.obci\n")
             buff.writeIndented("import psychopy.contrib as contrib\n")
-        if self.params['sendTags'].val:
-            # TODO move import to anothe place
-            buff.writeIndented("import sys\n")
-            buff.writeIndented("import psychopy.contrib.obci\n")
-            buff.writeIndented("import psychopy.contrib.obci.mx\n")
-            buff.writeIndented("import psychopy.contrib as contrib\n")
-            buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
-            buff.writeIndented("mx_address = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) >= 2 else ('127.0.0.1', 1980)\n")
-            buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
-            buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
-                           (size, fullScr, screenNumber, allowGUI, allowStencil))
-            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+            if self.params['sendTags'].val:
+                # TODO move import to anothe place
+                buff.writeIndented("import sys\n")
+                buff.writeIndented("import psychopy.contrib.obci\n")
+                buff.writeIndented("import psychopy.contrib.obci.mx\n")
+                buff.writeIndented("import psychopy.contrib as contrib\n")
+                buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
+                buff.writeIndented("mx_address = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) >= 2 else ('127.0.0.1', 1980)\n")
+                buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
+                buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+                               (size, fullScr, screenNumber, allowGUI, allowStencil))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+            else:
+                buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
+                               (size, fullScr, screenNumber, allowGUI, allowStencil))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
         else:
             buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
