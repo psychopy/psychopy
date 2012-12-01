@@ -20,10 +20,12 @@ from wx.lib import throbber
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
+    COLUMN_PROPORTIONS = [1, 2, 2, 1]
     def __init__(self, parent):
         super(AmpListPanel, self).__init__(parent, wx.ID_ANY)
         self.amp_info = None
-        self.init_controls()         
+        self.proportions_sum = reduce(lambda x, y: x + y, self.COLUMN_PROPORTIONS)
+        self.init_controls()
         self.init_sizer()
 
     def init_controls(self):
@@ -69,7 +71,9 @@ class AmpListPanel(wx.Panel):
                 self.amp_list.SetStringItem(pos, 2, entry[2])
                 self.amp_list.SetStringItem(pos, 3, entry[3])
             for column in xrange(4):
-                self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+                min_width = self.GetClientSize().width * self.COLUMN_PROPORTIONS[column] / self.proportions_sum
+                self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE)
+                self.amp_list.SetColumnWidth(column, max(min_width, self.amp_list.GetColumnWidth(column)))
 
 
 class SavingConfigPanel(wx.Panel):
