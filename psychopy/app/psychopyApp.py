@@ -418,7 +418,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Jeremy Gray')
-        info.AddDeveloper('Erik Kastner')
+        info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')

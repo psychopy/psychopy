@@ -301,14 +301,14 @@ class RunTimeInfo(dict):
         
         # flac (free lossless audio codec) for google-speech:
         flacv = ''
-        if sys.platform != ['win32']:
-            flac, se = core.shellCall('which flac', stderr=True)
-            if not se and flac and not flac.find('Command not found') > -1:
-                flacv = core.shellCall('flac --version')
-        else:
+        if sys.platform == 'win32':
             flacexe = 'C:\\Program Files\\FLAC\\flac.exe'
             if os.path.exists(flacexe):
                 flacv = core.shellCall(flacexe + ' --version')
+        else:
+            flac, se = core.shellCall('which flac', stderr=True)
+            if not se and flac and not flac.find('Command not found') > -1:
+                flacv = core.shellCall('flac --version')
         if flacv:
             self['systemFlacVersion'] = flacv
         
