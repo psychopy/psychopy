@@ -137,9 +137,11 @@ class PresetsPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.preset_list = wx.ComboBox(self)
         self.Bind(wx.EVT_TEXT, self.on_name_update, self.preset_list)
+        self.Bind(wx.EVT_COMBOBOX, self.on_name_select)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_name_select)
         sizer = wx.BoxSizer()
         sizer.Add(self.preset_list, proportion=1, flag=wx.EXPAND)
-        buttons = [("load", self.on_load_click), ("save", self.on_add_click), ("remove", self.on_remove_click)]
+        buttons = [("+", self.on_add_click), ("-", self.on_remove_click)]
         self.buttons = {}
         for (label, handler) in buttons:
             self.buttons[label] = wx.Button(self, label=label)
@@ -190,31 +192,27 @@ class PresetsPanel(wx.Panel):
         self.load_presets()
         self.clear_name()
     
-    def on_load_click(self, event):
-        """
-        Handler for the load button.
-        @param event: associated event
-        """
-        name = self.get_preset_name()
-        preset = self.preset_manager.get_preset(name)
-        self.GetParent().load_preset(preset)
-    
     def on_name_update(self, event):
         self.update_buttons()
     
+    def on_name_select(self, event):
+        name = self.get_preset_name()
+        if name in self.preset_manager.get_preset_names():
+            preset = self.preset_manager.get_preset(name)
+            self.GetParent().load_preset(preset)
+            self.GetParent().GetParent().channel_update(None)
+    
     def update_buttons(self):
         if len(self.get_preset_name()) == 0:
-            self.buttons["load"].Disable()
-            self.buttons["save"].Disable()
-            self.buttons["remove"].Disable()
+            self.buttons["+"].Disable()
+            self.buttons["-"].Disable()
         elif self.get_preset_name() in self.preset_manager.get_preset_names():
-            self.buttons["load"].Enable()
-            self.buttons["save"].Disable()
-            self.buttons["remove"].Enable()
+            self.buttons["+"].Disable()
+            self.buttons["-"].Enable()
         else:
-            self.buttons["load"].Disable()
-            self.buttons["save"].Enable()
-            self.buttons["remove"].Disable()
+            self.buttons["+"].Enable()
+            self.buttons["-"].Disable()
+
 
 class ChannelListValidator(wx.PyValidator):
     def __init__(self):

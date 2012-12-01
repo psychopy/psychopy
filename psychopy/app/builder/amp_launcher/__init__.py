@@ -114,6 +114,7 @@ class AmpLauncherDialog(wx.Dialog):
         super(AmpLauncherDialog, self).__init__(
                 parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
         self.amp_info = None
+        self.old_index = None
         self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
@@ -128,8 +129,8 @@ class AmpLauncherDialog(wx.Dialog):
         wx.PostEvent(self, retriever.RetrieverStartedEvent())
         try:
             amp_info = self.retriever.fetch_amp_list()
-        except Exception as e:
-            wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
+        except Exception as _:
+            #wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
             amp_info = retriever.AmplifierInfo() # empty amp list
         wx.PostEvent(self, retriever.RetrieverFinishedEvent(amp_info=amp_info))
 
@@ -167,9 +168,12 @@ class AmpLauncherDialog(wx.Dialog):
             self.FindWindowById(wx.ID_OK).Disable()
 
     def select_amplifier(self, event):
-        index = event.GetIndex()
-        amp_entry = self.amp_info.get_entry(index)
-        self.amp_config.select_amplifier(amp_entry)
+        new_index = event.GetIndex()
+        if new_index != self.old_index:
+            amp_entry = self.amp_info.get_entry(new_index)
+            self.amp_config.select_amplifier(amp_entry)
+            self.amp_config.presets_panel.on_name_select(None) #reload preset if it is active
+            self.old_index =  new_index
 
     def disable_editing(self):
         self.amp_list_panel.disable_editing()
