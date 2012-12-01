@@ -63,8 +63,11 @@ class AmpListPanel(wx.Panel):
 
     def refresh_amp_info(self):
         if self.amp_info:
-            for entry in self.amp_info.get_summary():
-                self.amp_list.Append(entry)        
+            for pos, entry in enumerate(self.amp_info.get_summary()):
+                self.amp_list.InsertStringItem(pos, entry[0][1])
+                self.amp_list.SetStringItem(pos, 1, entry[1])
+                self.amp_list.SetStringItem(pos, 2, entry[2])
+                self.amp_list.SetStringItem(pos, 3, entry[3])
             for column in xrange(4):
                 self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
 
@@ -106,6 +109,7 @@ class AmpLauncherDialog(wx.Dialog):
     def __init__(self, parent, retriever_instance=None):
         super(AmpLauncherDialog, self).__init__(
                 parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
+        self.amp_info = None
         self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
@@ -129,6 +133,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_list_panel.lock_list()
     
     def retriever_finished(self, event):
+        self.amp_info = event.amp_info
         self.amp_list_panel.set_amp_info(event.amp_info)
         self.amp_list_panel.unlock_list()
 

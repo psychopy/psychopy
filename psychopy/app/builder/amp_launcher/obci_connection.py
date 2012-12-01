@@ -70,7 +70,6 @@ class OBCIConnection(object):
         self.open()
         self.connection.send(message)
         response_text = self.netstring_codec.decode(self.connection)
-        print response_text
         response = self.msg_factory.decode_msg(response_text)
         self.close()
         amp_list = response["amplifier_list"]

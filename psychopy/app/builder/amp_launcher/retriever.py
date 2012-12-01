@@ -36,7 +36,7 @@ class AmplifierInfo(object):
 class AmplifierInfoEntry(object):
     def __init__(self, entry):
         self.entry_dict = entry[1]
-        self.server = entry[0]
+        self.server = entry[0] # ip and hostname
 
     def get_channels(self):
         for entry in self.entry_dict["amplifier_params"]["channels_info"]["channels"]:
@@ -52,7 +52,7 @@ class AmplifierInfoEntry(object):
         return self.entry_dict['amplifier_peer_info']['path']
 
     def get_server(self):
-        return self.server
+        return self.server[0] # only ip address
     
     def load_preset(self, name):
         raise NotImplementedError("load_preset")
@@ -69,10 +69,7 @@ class AmpListRetriever(object):
     def get_server_list(self):
         response = self.obci_connection.get_nearby_servers()
         contacts_dict = response["nearby_machines"]
-        ret = []
-        for contact in contacts_dict.itervalues():
-            ret.append(contact["ip"])
-        return ret
+        return [(contact["ip"], contact["hostname"]) for contact in contacts_dict.itervalues()]
     
     def fetch_amp_list(self):
         """
@@ -82,7 +79,7 @@ class AmpListRetriever(object):
         amp_list = []
         for server in server_list:
             try:
-                remote_connection = OBCIConnection((server, 12012))
+                remote_connection = OBCIConnection((server[0], 12012))
                 remote_amp_list = remote_connection.get_amp_list()
                 amp_list.extend([(server, entry) for entry in remote_amp_list])
             except Exception:
