@@ -38,7 +38,7 @@ class ChannelsPanel(wx.Panel):
         self.channel_grid.DeleteRows(0, self.grid_rows)
         for channel_entry in channels:
             self.channel_grid.InsertRows(pos)
-            self.channel_grid.SetRowLabelValue(pos, str(pos))
+            self.channel_grid.SetRowLabelValue(pos, str(pos + 1))
             self.channel_grid.SetCellValue(pos, 0, str(channel_entry))
             pos += 1
         self.grid_rows = pos
