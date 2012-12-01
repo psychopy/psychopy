@@ -96,12 +96,17 @@ class ChannelsPanel(wx.Panel):
 class ParametersPanel(wx.Panel):
     def __init__(self, parent):
         super(ParametersPanel, self).__init__(parent)
+        self.SetValidator(ParametersValidator())
         self.init_controls()
         self.init_sizer()
+        self.Bind(wx.EVT_COMBOBOX, self.rate_change)
 
     def init_controls(self):
         self.sampling_rate_label = wx.StaticText(self, label="sampling rate")
-        self.sampling_rate = wx.TextCtrl(self, value="128")
+        self.sampling_rate = wx.ComboBox(self, style=wx.CB_READONLY)
+    
+    def rate_change(self, event):
+        self.GetParent().GetParent().channel_update(None)
 
     def init_sizer(self):
         sizer = wx.GridBagSizer()
@@ -112,22 +117,37 @@ class ParametersPanel(wx.Panel):
         
         self.SetSizer(sizer)
     
-    def fill(self, parameters):
-        pass
+    def fill(self, parameter_choices):
+        self.sampling_rate.SetValue("")
+        self.sampling_rate.SetItems([str(rate) for rate in parameter_choices["sampling_rate"]])
     
     def get_param(self, param_name):
-        if param_name == "samplingRate":
+        if param_name == "sampling_rate":
             return self.sampling_rate.GetValue()
         else:
             return None
     
     def get_preset_params(self):
-        return {"params": {"samplingRate": self.get_param("samplingRate")}}
+        return {"params": {"sampling_rate": self.get_param("sampling_rate")}}
 
     
     def set_preset_params(self, params):
-        self.sampling_rate.SetValue(str(params["samplingRate"]))
+        self.sampling_rate.SetValue(str(params["sampling_rate"]))
 
+
+class ParametersValidator(wx.PyValidator):
+    def __init__(self):
+        super(ParametersValidator, self).__init__()
+
+    def Clone(self):
+        return ParametersValidator()
+
+    def Validate(self, parent):
+        window = self.GetWindow()
+        try:
+            return int(window.get_param("sampling_rate")) > 0
+        except Exception:
+            return False
 
 class PresetsPanel(wx.Panel):
     """
@@ -200,7 +220,7 @@ class PresetsPanel(wx.Panel):
         if name in self.preset_manager.get_preset_names():
             preset = self.preset_manager.get_preset(name)
             self.GetParent().load_preset(preset)
-            self.GetParent().GetParent().channel_update(None)
+        self.GetParent().GetParent().channel_update(None)
     
     def update_buttons(self):
         if len(self.get_preset_name()) == 0:
@@ -250,7 +270,7 @@ class AmpConfigPanel(wx.Panel):
         # fill channel & parameter lists
         self.amp_entry = amp_entry
         self.channels_panel.fill(amp_entry.get_channels())
-        self.parameters_panel.fill(amp_entry.get_parameters())
+        self.parameters_panel.fill(amp_entry.get_parameter_choices())
 
     def get_active_channels(self):
         return self.channels_panel.get_active_channels()

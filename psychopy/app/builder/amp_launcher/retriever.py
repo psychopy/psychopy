@@ -42,8 +42,8 @@ class AmplifierInfoEntry(object):
         for entry in self.entry_dict["amplifier_params"]["channels_info"]["channels"]:
             yield str(entry["name"])
 
-    def get_parameters(self):
-        yield ("sampling_rate", "128")
+    def get_parameter_choices(self):
+        return {"sampling_rate": self.entry_dict['amplifier_params']['channels_info']['sampling_rates']}
     
     def get_launch_file(self):
         return self.entry_dict['experiment_info']['launch_file_path']
@@ -53,12 +53,6 @@ class AmplifierInfoEntry(object):
 
     def get_server(self):
         return self.server[0] # only ip address
-    
-    def load_preset(self, name):
-        raise NotImplementedError("load_preset")
-
-    def save_preset(self, name):
-        raise NotImplementedError("save_preset")
 
 
 class AmpListRetriever(object):

@@ -129,6 +129,7 @@ class AmpLauncherDialog(wx.Dialog):
         wx.PostEvent(self, retriever.RetrieverStartedEvent())
         try:
             amp_info = self.retriever.fetch_amp_list()
+            print amp_info.amplifier_list
         except Exception as _:
             #wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
             amp_info = retriever.AmplifierInfo() # empty amp list
@@ -185,7 +186,7 @@ class AmpLauncherDialog(wx.Dialog):
 
     def get_scenario(self):
         exec_path = self.amp_config.get_exec_file()
-        sampling_rate = self.amp_config.get_param("sampling_rate") or 128
+        sampling_rate = self.amp_config.get_param("sampling_rate")
         active_channels = self.amp_config.get_active_channels()
         channel_names = self.amp_config.get_channel_names()
         amplifier_peer = {
@@ -196,7 +197,7 @@ class AmpLauncherDialog(wx.Dialog):
                 'local_params': {
                     'active_channels': active_channels,
                     'channel_names': channel_names,
-                    'sampling_rate': str(sampling_rate)
+                    'sampling_rate': sampling_rate
                 }
             },
             'path': exec_path
