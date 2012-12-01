@@ -10,16 +10,19 @@ from psychopy.app.builder.amp_launcher.amplifier_panels import ChannelsPanel,\
 from obci.obci_control.common.message import OBCIMessageTool
 from obci.obci_control.launcher import launcher_messages
 import obci_connection
-from psychopy.app.builder.amp_launcher.retriever import AmplifierInfo
+from psychopy.app.builder.amp_launcher import retriever
 import time
 import zmq
 import json
+import threading
+from wx.lib import throbber
+
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
-    def __init__(self, parent, amp_info):
+    def __init__(self, parent):
         super(AmpListPanel, self).__init__(parent, wx.ID_ANY)
-        self.amp_info = amp_info
+        self.amp_info = None
         self.init_controls()         
         self.init_sizer()
 
@@ -27,28 +30,43 @@ class AmpListPanel(wx.Panel):
         self.label = wx.StaticText(self, wx.ID_ANY, "Amplifier list:")
         #self.refresh_button = wx.Button(self, wx.ID_ANY, label="refresh")
         #self.refresh_button.SetSizeWH(2, 2)
+        throbber_bitmap = wx.Bitmap("/home/piwaniuk/repo/psychopy/psychopy/app/Resources/throbber.png", wx.BITMAP_TYPE_PNG)
+        self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=4, frameWidth=43)
         self.amp_list = wx.ListView(self, wx.ID_ANY)
         self.amp_list.InsertColumn(0, "address")
         self.amp_list.InsertColumn(1, "experiment")
         self.amp_list.InsertColumn(2, "amplifier")
         self.amp_list.InsertColumn(3, "status")
-        for entry in self.amp_info.get_summary():
-            self.amp_list.Append(entry)
-        for column in xrange(4):
-            self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+        self.refresh_amp_info()
 
-    def disable_editing(self):
-        self.refresh_button.Hide()
+    def lock_list(self):
         self.amp_list.Disable()
+        self.throbber.Start()
+    
+    def unlock_list(self):
+        self.amp_list.Enable()
+        self.throbber.Rest()
 
     def init_sizer(self):
         sizer = wx.GridBagSizer()
         sizer.AddGrowableCol(0)
         sizer.AddGrowableRow(1)
         sizer.Add(self.label, (0, 0))
+        sizer.Add(self.throbber, (0, 1))
         #sizer.Add(self.refresh_button, (0, 1))
         sizer.Add(self.amp_list, (1, 0), (1, 2), flag=wx.EXPAND, border=8)
         self.SetSizer(sizer)
+        
+    def set_amp_info(self, amp_info):
+        self.amp_info = amp_info
+        self.refresh_amp_info()
+
+    def refresh_amp_info(self):
+        if self.amp_info:
+            for entry in self.amp_info.get_summary():
+                self.amp_list.Append(entry)        
+            for column in xrange(4):
+                self.amp_list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
 
 
 class SavingConfigPanel(wx.Panel):
@@ -81,30 +99,41 @@ class SavingConfigPanel(wx.Panel):
 
         self.SetSizer(sizer)
 
+
 class AmpLauncherDialog(wx.Dialog):
     
     """Main amplifier laucher dialog."""
-    def __init__(self, parent, retriever = None):
+    def __init__(self, parent, retriever_instance=None):
         super(AmpLauncherDialog, self).__init__(
                 parent, size=(760, 640), title="Amp Launcher", style=wx.DEFAULT_DIALOG_STYLE)
         self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
-        if not retriever:
-            retriever = AmpListRetriever(self.connection)
-        self.init_info(retriever)
+        self.retriever = retriever_instance or AmpListRetriever(self.connection)
+        self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
         self.init_panels()
         self.init_sizer()
         self.init_buttons()
+        self.Bind(retriever.EVT_RETRIEVER_STARTED, self.retriever_started)
+        self.Bind(retriever.EVT_RETRIEVER_FINISHED, self.retriever_finished)
+        self.retriever_thread.start()
 
-    def init_info(self, retriever):
-        self.retriever = retriever
+    def init_info(self):
+        wx.PostEvent(self, retriever.RetrieverStartedEvent())
         try:
-            self.amp_info = self.retriever.fetch_amp_list()
+            amp_info = self.retriever.fetch_amp_list()
         except Exception as e:
             wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
-            self.amp_info = AmplifierInfo() # empty amp list
+            amp_info = retriever.AmplifierInfo() # empty amp list
+        wx.PostEvent(self, retriever.RetrieverFinishedEvent(amp_info=amp_info))
+
+    def retriever_started(self, event):
+        self.amp_list_panel.lock_list()
+    
+    def retriever_finished(self, event):
+        self.amp_list_panel.set_amp_info(event.amp_info)
+        self.amp_list_panel.unlock_list()
 
     def init_panels(self):
-        self.amp_list_panel = AmpListPanel(self, self.amp_info)
+        self.amp_list_panel = AmpListPanel(self)
         self.amp_config = AmpConfigPanel(self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_amplifier, self.amp_list_panel.amp_list)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.channel_update)

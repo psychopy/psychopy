@@ -5,9 +5,13 @@ Created on 22-08-2012
 '''
 from psychopy.app.builder.amp_launcher.obci_connection import OBCIConnection
 import os.path
+from wx.lib import newevent
 
 class AmpListRetrieverException(Exception):
     pass
+
+RetrieverStartedEvent, EVT_RETRIEVER_STARTED = newevent.NewEvent()
+RetrieverFinishedEvent, EVT_RETRIEVER_FINISHED = newevent.NewEvent()
 
 class AmplifierInfo(object):
     """Contains all interesting data about an amplifier discovered by AmpListRetriever
