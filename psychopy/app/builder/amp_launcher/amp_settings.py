@@ -75,7 +75,7 @@ class Preset(dict):
         self["channelNames"] = []
         active_channels = set()
         self["params"] = {}
-        self["params"]["samplingRate"] = preset_dict["params"]["samplingRate"]
+        self["params"]["sampling_rate"] = preset_dict["params"]["sampling_rate"]
         for channel_name in preset_dict["channelNames"]:
             self["channelNames"].append(channel_name)
         for channel in preset_dict["activeChannels"]:

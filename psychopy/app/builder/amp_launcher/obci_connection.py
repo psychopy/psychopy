@@ -5,8 +5,8 @@ Created on 28-08-2012
 '''
 
 import socket
-from obci.obci_control.launcher import launcher_messages
-from obci.obci_control.common.message import OBCIMessageTool
+from obci.control.launcher import launcher_messages
+from obci.control.common.message import OBCIMessageTool
 from StringIO import StringIO
 import zmq
 import json
@@ -70,7 +70,6 @@ class OBCIConnection(object):
         self.open()
         self.connection.send(message)
         response_text = self.netstring_codec.decode(self.connection)
-        print response_text
         response = self.msg_factory.decode_msg(response_text)
         self.close()
         amp_list = response["amplifier_list"]
