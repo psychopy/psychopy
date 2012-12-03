@@ -930,7 +930,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         #create the frame loop for this routine
-        buff.writeIndentedLines('\n#------Prepare to start Routine"%s"-------\n' %(self.name))
+        buff.writeIndentedLines('\n#------Prepare to start Routine "%s"-------\n' %(self.name))
 
         buff.writeIndented('t = 0\n')
         buff.writeIndented('%s.reset()  # clock \n' %(self._clockName))

@@ -86,11 +86,26 @@ class KeyboardComponent(BaseComponent):
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
         forceEnd=self.params['forceEndRoutine'].val
+        allowedKeys = self.params['allowedKeys'].val.strip()
 
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.status = STARTED\n" %(self.params))
+        allowedKeysIsVar = _valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None'
+        if allowedKeysIsVar:
+            # if it looks like a variable, check that the variable is suitable to eval at run-time
+            buff.writeIndented("# AllowedKeys looks like a variable named `%s`\n" % allowedKeys)
+            buff.writeIndented("if not '%s' in locals():\n" % allowedKeys)
+            buff.writeIndented("    logging.error('AllowedKeys variable `%s` is not defined.')\n" % allowedKeys)
+            buff.writeIndented("    core.quit()\n")
+            buff.writeIndented("if not type(%s) in [list, tuple, np.ndarray]:\n" % allowedKeys)
+            buff.writeIndented("    if not isinstance(%s, basestring):\n" % allowedKeys)
+            buff.writeIndented("        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % allowedKeys)
+            buff.writeIndented("        core.quit()\n")
+            buff.writeIndented("    elif not ',' in %s: %s = (%s,)\n" % (allowedKeys, allowedKeys, allowedKeys))
+            buff.writeIndented("    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+            keyListStr = "keyList=list(%s)" % allowedKeys  # eval() at run time
         buff.writeIndented("# keyboard checking is just starting\n")
         if store != 'nothing':
             buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
@@ -103,33 +118,22 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("%(name)s.status = STOPPED\n" %(self.params))
             buff.setIndentLevel(-1, relative=True)#to get out of the if statement
 
-        buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
+        buff.writeIndented("if %(name)s.status == STARTED:\n" %(self.params))
         buff.setIndentLevel(1, relative=True)#to get out of the if statement
         dedentAtEnd=1#keep track of how far to dedent later
-        #do we need a list of keys?
-        if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
-        else:
-            val = self.params['allowedKeys'].val
-            if _valid_var_re.match(val):
-                # check the variable named in val is suitable to eval at run-time
-                buff.writeIndented("if not '%s' in locals():\n" % val)
-                buff.writeIndented("    logging.error('AllowedKeys variable `%s` is not defined.')\n" % val)
-                buff.writeIndented("if not type(%s) in [list, tuple, np.ndarray]:\n" % val)
-                buff.writeIndented("    if not isinstance(%s, basestring):\n" % val)
-                buff.writeIndented("        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % val)
-                buff.writeIndented("    elif not ',' in %s: %s = (%s,)\n" % (val, val, val))
-                buff.writeIndented("    else:  %s = eval(%s)\n" % (val, val)) # this could fail...
-                keyListStr = "keyList=list(%s)" % val  # eval() at run time
-            else:
-                try:
-                    keyList = eval(val)
-                except:
-                    raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
-                if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
-                    keyList=list(keyList)
-                elif type(keyList) in [str,unicode]: #a single string value
-                    keyList=[keyList]
-                keyListStr= "keyList=%s" %(repr(keyList))
+        #do we need a list of keys? (variable case is already handled)
+        if allowedKeys in [None, "none", "None", "", "[]", "()"]:
+            keyListStr=""
+        elif not allowedKeysIsVar:
+            try:
+                keyList = eval(allowedKeys)
+            except:
+                raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
+            if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
+                keyList=list(keyList)
+            elif isinstance(keyList, basestring): #a single string/key
+                keyList=[keyList]
+            keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
 
@@ -157,7 +161,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
 
         if forceEnd==True:
-            buff.writeIndented("# abort routine on response\n" %self.params)
+            buff.writeIndented("# a response ends the routine\n" %self.params)
             buff.writeIndented("continueRoutine = False\n")
 
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
