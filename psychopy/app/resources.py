@@ -11,7 +11,8 @@ class ArtProvider(wx.ArtProvider):
     IMAGE_FILES = {
         "sketchpad-ellipse": "ellipse.png",
         "sketchpad-rectangle": "rectangle.png",
-        "sketchpad-arrow": "arrow.png" 
+        "sketchpad-arrow": "arrow.png",
+        "amp-launcher-throbber": "throbber.png"
     }
     
     def __init__(self):
