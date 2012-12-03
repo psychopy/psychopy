@@ -32,7 +32,7 @@ class AmpListPanel(wx.Panel):
         self.label = wx.StaticText(self, wx.ID_ANY, "Amplifier list:")
         #self.refresh_button = wx.Button(self, wx.ID_ANY, label="refresh")
         #self.refresh_button.SetSizeWH(2, 2)
-        throbber_bitmap = wx.Bitmap("/home/piwaniuk/repo/psychopy/psychopy/app/Resources/throbber.png", wx.BITMAP_TYPE_PNG)
+        throbber_bitmap = wx.ArtProvider.GetBitmap("amp-launcher-throbber", wx.ART_OTHER)
         self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=4, frameWidth=43)
         self.amp_list = wx.ListView(self, wx.ID_ANY)
         self.amp_list.InsertColumn(0, "address")
