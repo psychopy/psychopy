@@ -5,8 +5,8 @@ Created on 28-08-2012
 '''
 
 import socket
-from obci.obci_control.launcher import launcher_messages
-from obci.obci_control.common.message import OBCIMessageTool
+from obci.control.launcher import launcher_messages
+from obci.control.common.message import OBCIMessageTool
 from StringIO import StringIO
 import zmq
 import json

@@ -7,8 +7,8 @@ import wx.grid
 from retriever import AmpListRetriever
 from psychopy.app.builder.amp_launcher.amplifier_panels import ChannelsPanel,\
     ParametersPanel, AmpConfigPanel
-from obci.obci_control.common.message import OBCIMessageTool
-from obci.obci_control.launcher import launcher_messages
+from obci.control.common.message import OBCIMessageTool
+from obci.control.launcher import launcher_messages
 import obci_connection
 from psychopy.app.builder.amp_launcher import retriever
 import time
@@ -197,34 +197,49 @@ class AmpLauncherDialog(wx.Dialog):
                 'local_params': {
                     'active_channels': active_channels,
                     'channel_names': channel_names,
-                    'sampling_rate': sampling_rate
+                    'sampling_rate': sampling_rate,
+                    "console_log_level": "info",
+                    "file_log_level": "debug",
+                    "mx_log_level": "info",
+                    "log_dir": "~/.obci/logs"
                 }
             },
             'path': exec_path
         }
+        local_log_params = {                    
+            "console_log_level": "info",
+            "file_log_level": "debug",
+            "mx_log_level": "info",
+            "log_dir": "~/.obci/logs"
+        }
         peers = {
             'amplifier': amplifier_peer,
             'scenario_dir': '',
-            'config_server': {'config':{}, 'path':'obci_control/peer/config_server.py'},
-            'mx': {'config': {}, u'path': 'multiplexer-install/bin/mxcontrol'}
+            'config_server': {'config':{"local_params": local_log_params, 'external_params': {}, 'config_sources': {}, "launch_dependencies": {}}, 'path':'control/peer/config_server.py'},
+            'mx': {'config': {'external_params': {}, 'config_sources': {}, 'launch_dependencies': {}, 'local_params': {}}, u'path': 'multiplexer-install/bin/mxcontrol'}
         }
         if self.GetParent().exp.settings.params['saveSignal'].val:
+            print "Save signal!"
             tag_saver = {
-                'config': {},
+                'config': {
+                    "local_params": local_log_params,
+                    'external_params': {},
+                    'config_sources': {'signal_saver': ''},
+                    'launch_dependencies': {'signal_saver': ''}
+                },
                 'config_sources': {'signal_saver': 'signal_saver'},
-                 'launch_dependencies': {'signal_saver': 'signal_saver'},
+                'launch_dependencies': {'signal_saver': 'signal_saver'},
                 'path': 'acquisition/tag_saver_peer.py'
             }
             info_saver = {
-                'config': {},
-                'config_sources': {
-                    'amplifier': 'amplifier',
-                    'signal_saver': 'signal_saver'
+                'config': {
+                    "local_params": local_log_params,
+                    'external_params': {},
+                    'config_sources': {'amplifier': '', 'signal_saver': ''},
+                    'launch_dependencies': {'amplifier': '', 'signal_saver': ''}
                 },
-                'launch_dependencies': {
-                    'amplifier': 'amplifier',
-                    'signal_saver': 'signal_saver'
-                },
+                'config_sources': {'amplifier': 'amplifier', 'signal_saver': 'signal_saver'},
+                'launch_dependencies': {'amplifier': 'amplifier', 'signal_saver': 'signal_saver'},
                 'path': 'acquisition/info_saver_peer.py'
             }
             signal_saver = {
@@ -233,7 +248,11 @@ class AmpLauncherDialog(wx.Dialog):
                     'external_params': {},
                     'launch_dependencies': {'amplifier': ''},
                     'local_params': {
-                        'save_file_name': 'psychopy_signal_' + str(int(time.time()))
+                        'save_file_name': 'psychopy_signal_' + str(int(time.time())),
+                        "console_log_level": "info",
+                        "file_log_level": "debug",
+                        "mx_log_level": "info",
+                        "log_dir": "~/.obci/logs"
                     }
                 },
                 'config_sources': {'amplifier': 'amplifier'},
@@ -264,7 +283,7 @@ class AmpLauncherDialog(wx.Dialog):
         launch_file_path = self.amp_config.get_launch_file()
         # TODO read port from server list
         client = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
-        experiment = client.create_experiment("Psychopy Experiment")
+        experiment = client.create_experiment("Trololololo Experiment")
         experiment_address = experiment['rep_addrs'][-1]
         experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
         scenario = self.get_scenario()
