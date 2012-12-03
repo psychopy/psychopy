@@ -77,16 +77,16 @@ class SettingsComponent:
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
             label="Logging level")
         self.params['sendTags'] = Param(
-           paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?", label="send tags")
+           paramValues['sendTags'], valType='bool', hint="Send tags to OBCI Server?", label="Send tags to OBCI")
         self.params['saveTags'] = Param(
-            paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="save tags")
+            paramValues['saveTags'], valType='bool', hint="Save tags to file?", label="Save tags in Psychopy")
         self.params["doSignal"] = Param(
-            paramValues['doSignal'], valType="bool", hint="Should trigger used?", label="do trigger")
+            paramValues['doSignal'], valType="bool", hint="Should trigger used?", label="Send trigger to amplifier")
         self.params['serialTriggerDevice'] = Param(
             paramValues['serialTriggerDevice'], valType='str', hint="To which serial port is trigger connected?",
-            label="device name for trigger")
+            label="Device name for trigger")
         self.params["saveSignal"] = Param(
-            paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="save signal")
+            paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="Save signal and tags in OBCI")
 
     def getType(self):
         return self.__class__.__name__
