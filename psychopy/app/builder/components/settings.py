@@ -212,7 +212,7 @@ class SettingsComponent:
         
         # Save tags
         if self.params['saveTags'].val:
-            buff.writeIndented("tagWriter = TagsFileWriter(filename + \".tag\")\n")
+            buff.writeIndented("tagWriter = TagsFileWriter(filename + \".psychopy.tag\")\n")
             buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
             buff.writeIndented("    tagWriter.tag_received(tag)\n")
             buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")

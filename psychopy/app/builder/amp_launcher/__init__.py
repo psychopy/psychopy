@@ -283,7 +283,7 @@ class AmpLauncherDialog(wx.Dialog):
         launch_file_path = self.amp_config.get_launch_file()
         # TODO read port from server list
         client = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
-        experiment = client.create_experiment("Trololololo Experiment")
+        experiment = client.create_experiment("Psychopy Experiment")
         experiment_address = experiment['rep_addrs'][-1]
         experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
         scenario = self.get_scenario()
