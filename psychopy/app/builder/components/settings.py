@@ -65,7 +65,8 @@ class SettingsComponent:
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
-            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
+            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
+            label="Psychopy data folder")
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)")
         self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
@@ -87,6 +88,8 @@ class SettingsComponent:
             label="Device name for trigger")
         self.params["saveSignal"] = Param(
             paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="Save signal and tags in OBCI")
+        self.params["obciDataDirectory"] = Param(
+            "~", valType="str", hint="Remote directory in which OBCI will save experiment data", label="OBCI data folder")
 
     def getType(self):
         return self.__class__.__name__

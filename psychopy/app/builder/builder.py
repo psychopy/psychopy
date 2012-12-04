@@ -2784,7 +2784,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         'Save psydat file': 'data', 'Saved data folder': 'data', 'Show info dlg': 'general',
         'Enable Escape': 'general', 'Experiment info': 'general', 'logging level': 'general',
         'sendTags': 'OBCI', 'saveTags': 'OBCI', 'doSignal': 'OBCI', 'serialTriggerDevice': 'OBCI',
-        'saveSignal': 'OBCI'
+        'saveSignal': 'OBCI', 'obciDataDirectory': 'OBCI'
     }   
     
     def __init__(self,frame,title,params,order,suppressTitles=False,
