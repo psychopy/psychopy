@@ -11,11 +11,12 @@ from obci.control.common.message import OBCIMessageTool
 from obci.control.launcher import launcher_messages
 import obci_connection
 from psychopy.app.builder.amp_launcher import retriever
-import time
+import os.path
 import zmq
 import json
 import threading
 from wx.lib import throbber
+import time
 
 
 class AmpListPanel(wx.Panel):
@@ -219,7 +220,9 @@ class AmpLauncherDialog(wx.Dialog):
             'mx': {'config': {'external_params': {}, 'config_sources': {}, 'launch_dependencies': {}, 'local_params': {}}, u'path': 'multiplexer-install/bin/mxcontrol'}
         }
         if self.GetParent().exp.settings.params['saveSignal'].val:
-            print "Save signal!"
+            save_file_name = 'psychopy_signal_' + str(int(time.time()))
+            save_file_dir = self.GetParent().exp.settings.params['obciDataDirectory'].val
+            print save_file_name, save_file_dir
             tag_saver = {
                 'config': {
                     "local_params": local_log_params,
@@ -248,7 +251,8 @@ class AmpLauncherDialog(wx.Dialog):
                     'external_params': {},
                     'launch_dependencies': {'amplifier': ''},
                     'local_params': {
-                        'save_file_name': 'psychopy_signal_' + str(int(time.time())),
+                        'save_file_name': save_file_name,
+                        'save_file_path': save_file_dir,
                         "console_log_level": "info",
                         "file_log_level": "debug",
                         "mx_log_level": "info",
