@@ -135,7 +135,7 @@ class SettingsComponent:
         level=self.params['logging level'].val.upper()
 
         buff.writeIndentedLines("\n# Setup files for saving\n")
-        buff.writeIndented("dataDavingDir = os.path.expanduser('%s')" % self.getSaveDataDir())
+        buff.writeIndented("dataDavingDir = os.path.expanduser('%s')\n" % self.getSaveDataDir())
         buff.writeIndented("if not os.path.isdir(dataDavingDir):\n")
         buff.writeIndented("    os.makedirs(dataDavingDir)  # if this fails (e.g. permissions) we will get error\n")
         if 'participant' in self.params['Experiment info'].val:
