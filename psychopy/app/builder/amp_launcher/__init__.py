@@ -281,8 +281,7 @@ class AmpLauncherDialog(wx.Dialog):
             if published.get("peers") and "mx" in published['peers']:
                 wx.PostEvent(self.launching_dialog, MxAliveEvent())
                 return
-    
-    
+
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
@@ -297,8 +296,8 @@ class AmpLauncherDialog(wx.Dialog):
 
     def start_amplifier(self):
         launch_file_path = self.amp_config.get_launch_file() # TODO read port from server list
-        client = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
-        experiment = client.create_experiment("Psychopy Experiment")
+        self.experiment_contact = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
+        experiment = self.experiment_contact.create_experiment("Psychopy Experiment")
         experiment_address = experiment['rep_addrs'][-1]
         experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
         scenario = self.get_scenario()
@@ -309,8 +308,7 @@ class AmpLauncherDialog(wx.Dialog):
         peer_invitation = experiment_manager.join_experiment("psychopy")
         self.mx_address = peer_invitation["params"]["mx_addr"].split(':')
         experiment_manager.close()
-        client.uuid = experiment["uuid"]
-        self.experiment_contact = client
+        self.experiment_contact.uuid = experiment["uuid"]
 
 
 class LaunchingDialog(wx.Dialog):
@@ -333,6 +331,7 @@ class LaunchingDialog(wx.Dialog):
     def on_mx_alive(self, event):
         self.Unbind(EVT_MX_ALIVE)
         self.mx_alive = True
+        
         self.check_if_ready()
         
     def on_t1_passed(self, event):
@@ -350,6 +349,15 @@ class LaunchingDialog(wx.Dialog):
         if self.t1_passed and self.mx_alive:
             self.Unbind(wx.EVT_TIMER)
             self.EndModal(wx.OK)
+
+    def set_experiment_manager(self, experiment_manager):
+        self.experiment_manager = experiment_manager
+
+
+class AmpLaunchHandler(wx.EvtHandler):
+    def __init__(self, dialog):
+        self.dialog = dialog
+
 
 if __name__ == "__main__":
     app = wx.App()

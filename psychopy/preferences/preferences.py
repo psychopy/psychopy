@@ -75,6 +75,7 @@ class Preferences:
         else:#platform.system gives nicer names, but no good on standalone vista/win7
             self.paths['prefsSpecFile']= join(prefSpecDir,platform.system()+'.spec')
             self.paths['userPrefsDir']= join(os.environ['HOME'],'.psychopy2')
+        #self.paths['userPrefsDir'] = wx.StandardPaths.Get().GetUserDataDir()
 
     def loadAll(self):
         """Load the user prefs and the application data
