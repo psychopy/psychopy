@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
-from wx.lib import platebtn, scrolledpanel
+from wx.lib import platebtn, scrolledpanel, newevent
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
@@ -22,6 +22,9 @@ from psychopy.constants import *
 from psychopy.errors import DataImportError
 from psychopy.app.builder import amp_launcher, resource_pool, validators,\
     sketchpad, data_editor
+import json
+import subprocess
+import threading
 
 
 canvasColor=[200,200,200]#in prefs? ;-)
@@ -3430,6 +3433,9 @@ class DlgConditions(wx.Dialog):
         """
         wx.LaunchDefaultBrowser(self.helpUrl)
 
+
+SubprocessFinishedEvent, EVT_SUBPROCESS_FINISHED = newevent.NewEvent()
+
 class BuilderFrame(wx.Frame):
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None,frameData=None,
@@ -3549,7 +3555,7 @@ class BuilderFrame(wx.Frame):
 
         #self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.Bind(EVT_SUBPROCESS_FINISHED, self.onProcessEnded)
     def makeToolbar(self):
         #---toolbar---#000000#FFFFFF----------------------------------------------
         self.toolbar = self.CreateToolBar( (wx.TB_HORIZONTAL
@@ -4146,41 +4152,34 @@ class BuilderFrame(wx.Frame):
         script = self.generateScript(self.exp.expPath)
         if not script:
             return
-
+        
         #set the directory and add to path
-        folder, scriptName = os.path.split(fullPath)
+        folder, _ = os.path.split(fullPath)
         if len(folder)>0: os.chdir(folder)#otherwise this is unsaved 'untitled.psyexp'
         f = codecs.open(fullPath, 'w', 'utf-8')
         f.write(script.getvalue())
         f.close()
+        
+        expInfo = eval(self.exp.settings.params['Experiment info'].val)
+        dlg = gui.DlgFromDict(dictionary=expInfo, title=self.exp.settings.params['expName'].val)
+        if not dlg.OK:
+            return
+        expInfo['date'] = data.getDateStr()
+        expInfoString = json.dumps(expInfo)
+        
         try:
             self.stdoutFrame.getText()
         except:
             self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
 
-        # redirect standard streams to log window
-        sys.stdout = self.stdoutFrame
-        sys.stderr = self.stdoutFrame
-
         #provide a running... message
-        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
-        self.scriptProcess.Redirect()#builder will receive the stdout/stdin
-
-        if sys.platform=='win32':
-            command = '"%s" -u "%s"' %(sys.executable, fullPath)# the quotes allow file paths with spaces
-            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
-        else:
-            fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            pythonExec = sys.executable.replace(' ','\ ')#for unix this signifis a space in a filename
-            command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
-        self.toolbar.EnableTool(self.IDs.tbRun,False)
-        self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
-        self.toolbar.EnableTool(self.IDs.tbStop,True)
+        
+        command = [sys.executable, '-u', fullPath, expInfoString]
+        self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
+        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.expMonitorThread.start()
     
     def runFileAmp(self, event):        
         #get abs path of expereiment so it can be stored with data at end of exp
@@ -4203,7 +4202,15 @@ class BuilderFrame(wx.Frame):
         f.write(script.getvalue())
         f.close()
         
-        runAmpDialog = amp_launcher.AmpLauncherDialog(self)
+        expInfo = eval(self.exp.settings.params['Experiment info'].val)
+        dlg = gui.DlgFromDict(dictionary=expInfo, title=self.exp.settings.params['expName'].val)
+        if not dlg.OK:
+            return
+        expInfo['date'] = data.getDateStr()
+        expInfoString = json.dumps(expInfo)
+        
+        data_file_name = '%s_%s' % (expInfo['participant'], expInfo['date']) # file name base fpr ex[eriment output
+        runAmpDialog = amp_launcher.AmpLauncherDialog(self, data_file_name=data_file_name)
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
             self.experiment_contact = runAmpDialog.get_experiment_contact()
@@ -4217,36 +4224,26 @@ class BuilderFrame(wx.Frame):
         except:
             self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
 
-        # redirect standard streams to log window
-        sys.stdout = self.stdoutFrame
-        sys.stderr = self.stdoutFrame
-
         #provide a running... message
-        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
-        self.scriptProcess.Redirect()#builder will receive the stdout/stdin
-
-        if sys.platform=='win32':
-            command = '"%s" -u "%s" %s %s' %(sys.executable, fullPath, mx_address[0], mx_address[1])# the quotes allow file paths with spaces
-            #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
-        else:
-            fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            command = '%s -u %s %s %s' %(sys.executable, fullPath, mx_address[0], mx_address[1])# the quotes would break a unix system command
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
-        self.toolbar.EnableTool(self.IDs.tbRun,False)
-        self.toolbar.EnableTool(self.IDs.tbRunAmp, False)
-        self.toolbar.EnableTool(self.IDs.tbStop,True)
+        
+        command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
+        self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
+        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.expMonitorThread.start()
+        
+    def monitorExperiment(self):
+        self.expProcess.wait()
+        wx.PostEvent(self, SubprocessFinishedEvent())
 
     def stopFile(self, event=None):
         success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
-        self.onProcessEnded(event=None)
+        wx.PostEvent(self, SubprocessFinishedEvent())
 
-    def onProcessEnded(self, event=None):
+    def onProcessEnded(self, event):
         """The script/exp has finished running
         """
         if self.experiment_contact:
@@ -4259,26 +4256,17 @@ class BuilderFrame(wx.Frame):
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbRunAmp, True)
-        self.toolbar.EnableTool(self.IDs.tbStop,False)
-        #update the output window and show it
-        text=""
-        if self.scriptProcess.IsInputAvailable():
-            stream = self.scriptProcess.GetInputStream()
-            text += stream.read()
-        if self.scriptProcess.IsErrorAvailable():
-            stream = self.scriptProcess.GetErrorStream()
-            text += stream.read()
-        if len(text):self.stdoutFrame.write(text) #if some text hadn't yet been written (possible?)
+        self.toolbar.EnableTool(self.IDs.tbStop, False)
+        
+        self.stdoutFrame.write(self.expProcess.stdout.read())
+        
         if len(self.stdoutFrame.getText())>self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
-
+        
         #provide a finished... message
-        msg = "\n"+" Finished ".center(80,"#")#80 chars padded with #
+        self.stdoutFrame.write("\n" + " Finished ".center(72, "#") + "\n\n")
 
-        #then return stdout to its org location
-        sys.stdout=self.stdoutOrig
-        sys.stderr=self.stderrOrig
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel to self.app.copiedRoutine
         """
@@ -4320,7 +4308,7 @@ class BuilderFrame(wx.Frame):
     def compileScript(self, event=None):
         script = self.generateScript(None) #leave the experiment path blank
         if not script:
-           return
+            return
         name = os.path.splitext(self.filename)[0]+".py"#remove .psyexp and add .py
         self.app.showCoder()#make sure coder is visible
         self.app.coder.fileNew(filepath=name)

@@ -105,6 +105,7 @@ class SettingsComponent:
     def writeStartCode(self,buff):
         # TODO move it somewhere else
         buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
+        buff.writeIndented("import json, sys")
         
         buff.writeIndented("# Store info about the experiment session\n")
         if self.params['expName'].val in [None,'']:
@@ -118,10 +119,20 @@ class SettingsComponent:
             logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
             raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
         buff.writeIndented("expInfo = %s\n" % expInfo)
-        if self.params['Show info dlg'].val:
-            buff.writeIndented("dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n")
-            buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
-        buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
+        
+        buff.writeIndented("externalExpInfo = json.loads(sys.argv[1])\n")
+        buff.writeIndented("expInfo.update(externalExpInfo)\n")
+        
+        buff.writeIndented("if 'participant' not in expInfo:\n")
+        buff.writeIndented("    expInfo['participant'] = ''\n")
+        buff.writeIndented("if 'date' not in expInfo:\n")
+        buff.writeIndented("    expInfo['date'] = data.getDateStr()\n")
+        
+        # experiment info dialog moved to psychopy
+        #if self.params['Show info dlg'].val:
+        #    buff.writeIndented("dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n")
+        #    buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
+        #buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
         saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
@@ -187,7 +198,7 @@ class SettingsComponent:
                 buff.writeIndented("import psychopy.contrib.obci.mx\n")
                 buff.writeIndented("import psychopy.contrib as contrib\n")
                 buff.writeIndented("import obci.exps.exps_helper as exps_helper\n")
-                buff.writeIndented("mx_address = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) >= 2 else ('127.0.0.1', 1980)\n")
+                buff.writeIndented("mx_address = (sys.argv[2], int(sys.argv[3])) if len(sys.argv) >= 3 else ('127.0.0.1', 1980)\n")
                 buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
                 buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                                (size, fullScr, screenNumber, allowGUI, allowStencil))

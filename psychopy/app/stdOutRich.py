@@ -5,15 +5,19 @@ class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
     """
     def __init__(self, parent, style, size=None, font=None, fontSize=None):
-        if size==None:
-            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
+        if size is None:
+            wx.richtext.RichTextCtrl.__init__(self, parent=parent, style=style)
         else:
-            wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
-            
+            wx.richtext.RichTextCtrl.__init__(self, parent=parent, style=style, size=size)
+        
         if font and fontSize: 
             currFont = self.GetFont()
             currFont.SetFaceName(font)
             currFont.SetPointSize(fontSize)
+            self.BeginFont(currFont)
+        else:
+            currFont = self.GetFont()
+            currFont.SetFaceName("monospace")
             self.BeginFont(currFont)
         
         self.parent=parent
@@ -54,8 +58,8 @@ class StdOutRich(wx.richtext.RichTextCtrl):
             else:
                 #line to write as simple text
                 self.WriteText(thisLine)
-        self.MoveEnd()#go to end of stdout so user can see updated text
-        self.ShowPosition(self.GetLastPosition() )
+        self.MoveEnd() #go to end of stdout so user can see updated text
+        self.ShowPosition(self.GetLastPosition())
 
     def flush(self):
         pass#we need this so that stdout has a flush method, but can't do much with it
@@ -65,12 +69,6 @@ class StdOutFrame(wx.Frame):
     """
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, ID, title, size=size)
-        panel = wx.Panel(self)
-        
-        self.parent=parent#e.g. the builder frame
-        self.app=app
-        self.stdoutOrig=sys.stdout
-        self.stderrOrig=sys.stderr
         self.lenLastRun=0
         
         self.menuBar = wx.MenuBar()
@@ -85,26 +83,22 @@ class StdOutFrame(wx.Frame):
 
         self.menuBar.Append(self.fileMenu, "&File")
         self.SetMenuBar(self.menuBar)
-        
         self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)
-        
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.stdoutCtrl)
         self.SetSizerAndFit(self.mainSizer)
         self.Center()
+
     def quit(self, event=None):
-        """quit entire app
+        """
+        Quit entire application.
         """
         self.Destroy()
-        self.app.quit()
+        wx.GetApp().quit()
+
     def checkSave(self):
         return 1
     def closeFrame(self, checkSave=False):
-        #the app (or frame of the app) should control the redirection of stdout,
-        #but just in case the user closes the window while it is receiving input
-        #we should direct it back to orig
-        sys.stdout=self.stdoutOrig
-        sys.stderr=self.stderrOrig
         self.Hide()
     def saveAs(self):
         pass
