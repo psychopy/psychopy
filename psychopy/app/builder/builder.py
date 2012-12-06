@@ -2,7 +2,6 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import wx
 from wx.lib import platebtn, scrolledpanel, newevent
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
@@ -18,7 +17,7 @@ import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
     Param, CodeGenerationException
 
-from psychopy.constants import *
+#from psychopy.constants import *
 from psychopy.errors import DataImportError
 from psychopy.app.builder import amp_launcher, resource_pool, validators,\
     sketchpad, data_editor
@@ -4230,7 +4229,7 @@ class BuilderFrame(wx.Frame):
         
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
-        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.expMonitorThread.start()
         
     def monitorExperiment(self):
