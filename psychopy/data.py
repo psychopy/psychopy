@@ -1246,6 +1246,7 @@ def importConditionsResource(resource, resourceName, returnFieldNames=False):
 
 def importConditionsFile(conditionsFile, extension):
     # TODO: try other extensions if suggested fails?
+    conditionsFile.seek(0)
     return data_import.FORMATS[extension](conditionsFile)
 
 def createFactorialTrialList(factors):

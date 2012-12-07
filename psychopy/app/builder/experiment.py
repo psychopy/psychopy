@@ -612,7 +612,7 @@ class TrialHandler:
             condsStr="[None]"
         elif self.params['conditionsFile'].val[0] == '@':
             extension = os.path.splitext(self.params['conditionsFile'].val)[1].lower()
-            condsStr="data.importConditionsFile('%s', '%s')" % (self.params['conditionsFile'].val[1:], extension)
+            condsStr="data.importConditionsFile(resources['%s'], '%s')[0]" % (self.params['conditionsFile'].val[1:], extension)
         else:
             condsStr="data.importConditions(%s)" % self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"

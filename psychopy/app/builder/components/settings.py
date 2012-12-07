@@ -95,13 +95,13 @@ class SettingsComponent:
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
+
     def getSaveDataDir(self):
-        saveToDir = self.params['Saved data folder'].val.strip()
-        if not saveToDir:
-            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-            if not saveToDir:
-                saveToDir = 'data'
-        return saveToDir
+        experimentDir = self.params['Saved data folder'].val.strip()
+        preferencesDir = self.exp.prefsBuilder['savedDataFolder'].strip()
+        usedDir = experimentDir or preferencesDir or 'data'
+        return usedDir
+
     def writeStartCode(self,buff):
         # TODO move it somewhere else
         buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
@@ -123,8 +123,6 @@ class SettingsComponent:
         buff.writeIndented("externalExpInfo = json.loads(sys.argv[1])\n")
         buff.writeIndented("expInfo.update(externalExpInfo)\n")
         
-        buff.writeIndented("if 'participant' not in expInfo:\n")
-        buff.writeIndented("    expInfo['participant'] = ''\n")
         buff.writeIndented("if 'date' not in expInfo:\n")
         buff.writeIndented("    expInfo['date'] = data.getDateStr()\n")
         
@@ -134,22 +132,22 @@ class SettingsComponent:
         #    buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
         #buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
-        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
 
         buff.writeIndentedLines("\n# Setup files for saving\n")
-        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-        buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
+        buff.writeIndented("dataDavingDir = os.path.expanduser('%s')\n" % self.getSaveDataDir())
+        buff.writeIndented("if not os.path.isdir(dataDavingDir):\n")
+        buff.writeIndented("    os.makedirs(dataDavingDir)  # if this fails (e.g. permissions) we will get error\n")
         if 'participant' in self.params['Experiment info'].val:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
+            buff.writeIndented("filename = dataDavingDir + os.path.sep + '%s_%s' % (expInfo['participant'], expInfo['date'])\n")
         elif 'Participant' in self.params['Experiment info'].val:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
+            buff.writeIndented("filename = dataDavingDir + os.path.sep + '%s_%s' % (expInfo['Participant'], expInfo['date'])\n")
         elif 'Subject' in self.params['Experiment info'].val:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
+            buff.writeIndented("filename = dataDavingDir + os.path.sep + '%s_%s' % (expInfo['Subject'], expInfo['date'])\n")
         elif 'Observer' in self.params['Experiment info'].val:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
+            buff.writeIndented("filename = dataDavingDir + os.path.sep + '%s_%s' % (expInfo['Observer'], expInfo['date'])\n")
         else:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+            buff.writeIndented("filename = dataDavingDir + os.path.sep + '%s' % (expInfo['date'])\n")
 
         if self.params['Save log file'].val:
             buff.writeIndented("logFile = logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
