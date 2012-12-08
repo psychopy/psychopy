@@ -31,7 +31,8 @@ class TagOnFlipComponent(BaseComponent):
         self.params["durationEstim"] = Param(durationEstim, valType = "code", allowedVals = [0.02], allowedTypes = [],
             hint = "One-shot")
         self.params["tagName"] = Param(
-            tagName, valType="str", hint="Name of tag to be sent", label="tag name")
+            tagName, valType="code", updates="experiment", allowedUpdates=["experiment", "routine", "frame"],
+            hint="Name of tag to be sent", label="tag name")
         self.params["tagDescription"] = Param(
             tagDescription, valType="code", updates="experiment", allowedUpdates=["experiment", "routine", "frame"],
             label="tag description", hint="A dictionary of parameters attached to the tag.")
