@@ -89,7 +89,3 @@ class AmpListRetriever(object):
             except Exception:
                 print "even localhost is not working!"
         return AmplifierInfo(amp_list)
-
-if __name__ == "__main__":
-    retriever = AmpListRetriever(OBCIConnection(("192.168.50.104", 12012)))
-    print retriever.get_server_list()
