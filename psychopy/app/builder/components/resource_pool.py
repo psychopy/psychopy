@@ -59,6 +59,7 @@ class ResourcePoolComponent(BaseComponent):
                 b.writeIndented(",\n")
             b.writeIndented("\"%s\":\n" % resourceName)
             b.writeIndented("StringIO(base64.decodestring(\"\"\"%s\"\"\"))" % resource.get_content())
+            writeSeparator = True
         b.writeIndented("}\n")
         b.setIndentLevel(-1, relative=True)
         b.writeIndented("#### Embedded resource definitions end ####\n\n")
