@@ -274,8 +274,8 @@ class ConditionsGrid(wx.grid.Grid):
     
     def remove_column(self, col_pos):
         self.DeleteCols(col_pos)
-        self.column_types[col_pos]
-        self.column_names[col_pos]
+        del self.column_types[col_pos]
+        del self.column_names[col_pos]
         for dirty_col_pos in range(col_pos, self.GetNumberCols()):
             self.update_column_label(dirty_col_pos)
     
@@ -440,7 +440,7 @@ class ConditionsGrid(wx.grid.Grid):
 
 
 class ConditionsEditor(wx.Dialog):
-    def __init__(self, parent, file_name=None):
+    def __init__(self, parent, conditions=None, file_name=None):
         self.TOOLBAR_BUTTONS = [
             ("New", wx.ART_NEW, self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
             ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
@@ -454,7 +454,9 @@ class ConditionsEditor(wx.Dialog):
         self.message_sink = wx.StaticText(self)
         self.data_grid = ConditionsGrid(self, self.message_sink)
         self.init_sizer()
-        if self.file_name:
+        if conditions:
+            self.load_data_from_conditions(conditions)
+        elif self.file_name:
             self.load_data_from_file()
 
     def create_toolbar(self):
@@ -473,6 +475,18 @@ class ConditionsEditor(wx.Dialog):
         #self.paste_timer = wx.Timer(self)
         #self.Bind(wx.EVT_TIMER, self.poll_clipboard, self.paste_timer)
         #self.paste_timer.Start(1500, wx.TIMER_CONTINUOUS)
+    
+    def load_data_from_conditions(self, conditions):
+        # convert conditions to data
+        if not conditions:
+            data = [[]]
+        else:
+            headers = conditions[0].keys()
+            rows = [condition.values() for condition in conditions]
+            data = [headers]
+            data.extend(rows)
+        # set data
+        self.data_grid.set_data(data)
     
     def poll_clipboard(self, event):
         paste_tool = self.toolbar.FindById(self.tool_ids[5]) # paste tool
@@ -501,8 +515,7 @@ class ConditionsEditor(wx.Dialog):
         pickle_file.close()
 
     def save_data_as(self):
-        self.Validate()
-        self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
+        self.file_name = self.file_name or wx.SaveFileSelector("Save PKL file", "pkl", parent=self)
         if self.file_name:
             self.save_data_to_file()
             return True
@@ -520,7 +533,9 @@ class ConditionsEditor(wx.Dialog):
             self.load_data_from_file()
 
     def file_save_as(self, event):
-        self.save_data_as()
+        self.data_grid.validate_data()
+        if not self.data_grid.data_errors:
+            self.save_data_as()
 
     def product(self, event):
         """
@@ -559,7 +574,8 @@ class ConditionsEditor(wx.Dialog):
     def onOK(self, event):
         self.data_grid.validate_data()
         if self.data_grid.data_errors:
-            self.data_grid
+            # TODO: show errors
+            return
         else:
             if self.save_data_as():
                 self.EndModal(wx.OK)

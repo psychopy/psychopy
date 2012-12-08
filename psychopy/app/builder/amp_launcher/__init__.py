@@ -133,7 +133,6 @@ class AmpLauncherDialog(wx.Dialog):
         wx.PostEvent(self, retriever.RetrieverStartedEvent())
         try:
             amp_info = self.retriever.fetch_amp_list()
-            print amp_info.amplifier_list
         except Exception as _:
             #wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
             amp_info = retriever.AmplifierInfo() # empty amp list

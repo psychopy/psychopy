@@ -2529,24 +2529,15 @@ class DlgLoopProperties(_BaseParamsDlg):
         make new if no self.conditionsFile is set
         """
         self.refreshConditions()
-        conditions = self.conditions # list of dict
         if self.conditionsFile:
-            # get name + dir, like BART/trialTypes.xlsx
-            fileName = os.path.abspath(self.conditionsFile)
-            fileName = fileName.rsplit(os.path.sep,2)[1:]
-            fileName = os.path.join(*fileName)
-            if fileName.endswith('.pkl'):
-                # edit existing .pkl file, loading from file
-                #gridGUI = DlgConditions(fileName=self.conditionsFile,
-                #                            parent=self, title=fileName)
-                grid_dialog = data_editor.ConditionsEditor(self, file_name=self.conditionsFile)
+            if self.conditionsFile[0] == '@' or not self.conditionsFile('.pkl'):
+                grid_dialog = data_editor.ConditionsEditor(self, conditions = self.conditions)
                 grid_dialog.ShowModal()
-                    
             else:
-                # preview existing .csv or .xlsx file that has already been loaded -> conditions
-                # better to reload file, get fieldOrder as well
-                gridGUI = DlgConditions(conditions, parent=self,
-                                        title=fileName, fixed=True)
+                # edit existing .pkl file, loading from file
+                fileName = os.path.abspath(self.conditionsFile)
+                grid_dialog = data_editor.ConditionsEditor(self, file_name=fileName)
+                grid_dialog.ShowModal()
         else: # edit new empty .pkl file
             grid_dialog = data_editor.ConditionsEditor(self)
             if grid_dialog.ShowModal() == wx.OK:
@@ -2712,11 +2703,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditionsFile = val
             if self.conditions:
                 self.exp.namespace.remove(self.conditions[0].keys())
-            if os.path.isfile(self.conditionsFile):
+            if self.conditionsFile[0] == '@':
+                resourceName = self.conditionsFile[1:]
+                self.conditions = data.importConditionsResource(self.exp.resourcePool.get_resource(resourceName), resourceName)
+                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+            elif os.path.isfile(self.conditionsFile):
                 try:
                     self.conditions = data.importConditions(self.conditionsFile)
                     self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-                except ImportError, msg:
+                except DataImportError, msg:
                     self.constantsCtrls['conditions'].setValue(
                         'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
                         '.\nNeed to be legal as var name; edit file, try again.')
