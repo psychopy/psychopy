@@ -97,7 +97,7 @@ def importCSVFromFile(dataFile):
     _assertValidVarNames(fieldNames)
     #use matplotlib to import data and intelligently check for data types
     #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-    trialsArr = mlab.csv2rec(dataFile, names=fieldNames) # data = non-header row x col
+    trialsArr = mlab.csv2rec(dataFile, names=fieldNames)[1:] # data = non-header row x col
     dataFile.close()
     #convert the record array into a list of dicts
     trialList = []

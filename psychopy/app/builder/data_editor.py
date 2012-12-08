@@ -440,7 +440,7 @@ class ConditionsGrid(wx.grid.Grid):
 
 
 class ConditionsEditor(wx.Dialog):
-    def __init__(self, parent, file_name=None):
+    def __init__(self, parent, conditions=None, file_name=None):
         self.TOOLBAR_BUTTONS = [
             ("New", wx.ART_NEW, self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
             ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
@@ -454,7 +454,9 @@ class ConditionsEditor(wx.Dialog):
         self.message_sink = wx.StaticText(self)
         self.data_grid = ConditionsGrid(self, self.message_sink)
         self.init_sizer()
-        if self.file_name:
+        if conditions:
+            self.load_data_from_conditions(conditions)
+        elif self.file_name:
             self.load_data_from_file()
 
     def create_toolbar(self):
@@ -473,6 +475,18 @@ class ConditionsEditor(wx.Dialog):
         #self.paste_timer = wx.Timer(self)
         #self.Bind(wx.EVT_TIMER, self.poll_clipboard, self.paste_timer)
         #self.paste_timer.Start(1500, wx.TIMER_CONTINUOUS)
+    
+    def load_data_from_conditions(self, conditions):
+        # convert conditions to data
+        if not conditions:
+            data = [[]]
+        else:
+            headers = conditions[0].keys()
+            rows = [condition.values() for condition in conditions]
+            data = [headers]
+            data.extend(rows)
+        # set data
+        self.data_grid.set_data(data)
     
     def poll_clipboard(self, event):
         paste_tool = self.toolbar.FindById(self.tool_ids[5]) # paste tool
