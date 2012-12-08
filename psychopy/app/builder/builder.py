@@ -2530,7 +2530,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         """
         self.refreshConditions()
         if self.conditionsFile:
-            if self.conditionsFile[0] == '@' or not self.conditionsFile('.pkl'):
+            if self.conditionsFile.startswith('@') or not self.conditionsFile.endswith('.pkl'):
                 grid_dialog = data_editor.ConditionsEditor(self, conditions = self.conditions)
                 grid_dialog.ShowModal()
             else:
@@ -2703,7 +2703,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditionsFile = val
             if self.conditions:
                 self.exp.namespace.remove(self.conditions[0].keys())
-            if self.conditionsFile[0] == '@':
+            if self.conditionsFile.startswith('@'):
                 resourceName = self.conditionsFile[1:]
                 self.conditions = data.importConditionsResource(self.exp.resourcePool.get_resource(resourceName), resourceName)
                 self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))

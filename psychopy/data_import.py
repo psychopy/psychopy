@@ -89,17 +89,13 @@ def importPickleFromFile(dataFile):
     return trialList, fieldNames
 
 def importCSVFromFile(dataFile):
-    try:
-        reader = csv.reader(dataFile)#.split(os.linesep))
-    except:
-        raise DataFormatError, 'Could not load CSV file'
-    fieldNames = reader.next() # first row
-    _assertValidVarNames(fieldNames)
     #use matplotlib to import data and intelligently check for data types
     #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-    trialsArr = mlab.csv2rec(dataFile)# data = non-header row x col
-    dataFile.close()
     #convert the record array into a list of dicts
+    trialsArr = mlab.csv2rec(dataFile)# data = non-header row x col
+    fieldNames = trialsArr.dtype.names
+    dataFile.close()
+    _assertValidVarNames(fieldNames)
     trialList = []
     for trialN, _ in enumerate(trialsArr):
         thisTrial ={}

@@ -4300,7 +4300,11 @@ class TextStim(_BaseVisualStim):
         """Set the text to be rendered using the current font
         """
         if text!=None:#make sure we have unicode object to render
-            self.text = unicode(text)
+            try:
+                t = unicode(text, 'utf-8')
+            except:
+                t = text
+            self.text = t
         if self._useShaders:
             self._setTextShaders(text)
         else:
