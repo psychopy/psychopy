@@ -274,8 +274,8 @@ class ConditionsGrid(wx.grid.Grid):
     
     def remove_column(self, col_pos):
         self.DeleteCols(col_pos)
-        self.column_types[col_pos]
-        self.column_names[col_pos]
+        del self.column_types[col_pos]
+        del self.column_names[col_pos]
         for dirty_col_pos in range(col_pos, self.GetNumberCols()):
             self.update_column_label(dirty_col_pos)
     
@@ -501,8 +501,7 @@ class ConditionsEditor(wx.Dialog):
         pickle_file.close()
 
     def save_data_as(self):
-        self.Validate()
-        self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
+        self.file_name = self.file_name or wx.SaveFileSelector("Save PKL file", "pkl", parent=self)
         if self.file_name:
             self.save_data_to_file()
             return True
@@ -520,7 +519,9 @@ class ConditionsEditor(wx.Dialog):
             self.load_data_from_file()
 
     def file_save_as(self, event):
-        self.save_data_as()
+        self.data_grid.validate_data()
+        if not self.data_grid.data_errors:
+            self.save_data_as()
 
     def product(self, event):
         """
@@ -559,7 +560,8 @@ class ConditionsEditor(wx.Dialog):
     def onOK(self, event):
         self.data_grid.validate_data()
         if self.data_grid.data_errors:
-            self.data_grid
+            # TODO: show errors
+            return
         else:
             if self.save_data_as():
                 self.EndModal(wx.OK)
