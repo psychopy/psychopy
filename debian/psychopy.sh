@@ -28,5 +28,6 @@
 #
 #-----------------\____________________________________/------------------
 
-python -c 'import runpy; runpy.run_module("psychopy.app.psychopyApp", run_name="__main__");' $*
+#python -c 'import runpy; runpy.run_module("psychopy.app.psychopyApp", run_name="__main__");' $*
 
+exec python /usr/share/pyshared/psychopy/app/psychopyApp.py $*
