@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.02.0.14-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karolaug@dell>  Sat, 08 Dec 2012 20:17:35 +0100
+
 psychopy-openbci (1.75.02.0.13-2) precise; urgency=low
 
   * Change of psychopy invocation.
