@@ -19,6 +19,7 @@ Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
           python-numpy, python-scipy, python-matplotlib,
           python-lxml,
           python-configobj,
+	  python-pyo,
 	  openbci-core (>=1.8.4)
 Recommends: python-wxgtk2.8,
             python-pyglet, python-pygame,
