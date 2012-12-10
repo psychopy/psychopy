@@ -8,6 +8,7 @@ import wx.grid
 import collections
 import cPickle as pickle
 import itertools
+import os.path
 
 class ConditionsValueError(Exception):
     pass
@@ -518,6 +519,8 @@ class ConditionsEditor(wx.Dialog):
     def save_data_as(self):
         self.file_name = self.file_name or wx.SaveFileSelector("Save PKL file", "pkl", parent=self)
         if self.file_name:
+            if os.path.splitext(self.file_name)[1].lower() != ".pkl":
+                self.file_name = self.file_name + ".pkl"
             self.save_data_to_file()
             return True
         else:
