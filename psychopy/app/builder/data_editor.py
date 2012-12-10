@@ -285,50 +285,85 @@ class ConditionsGrid(wx.grid.Grid):
             self.add_column(col_pos + 1)
         return handler
     
-    def remove_column_handler(self, col_pos):
+    def remove_column_handler(self, selected_columns):
         def handler(event):
-            self.remove_column(col_pos)
+            for removed, col_pos in enumerate(sorted(selected_columns)):
+                self.remove_column(col_pos - removed) # need to apply an offset
         return handler
     
     def rename_column_handler(self, col_pos):
-        def handler(hevent):
+        def handler(event):
             dialog = wx.TextEntryDialog(self, "New column name:", "Rename column", self.column_names[col_pos])
             if dialog.ShowModal() == wx.ID_OK:
                 self.set_column_name(col_pos, dialog.GetValue())
         return handler
+    
+    def type_name_handler(self, type_name, selected_columns):
+        def handler(event):
+            for col_pos in selected_columns:
+                self.set_column_type(col_pos, type_name)
+        return handler
 
     def column_options(self, event):
-        def type_name_handler(type_name):
-            return lambda event: self.set_column_type(col_pos, type_name)
         col_pos = event.GetCol()
+        selected_columns = self.adjust_column_selection(col_pos)
         menu = wx.Menu()
-        items1 = [(type_name, type_name_handler(type_name))
+        items1 = [(type_name, self.type_name_handler(type_name, selected_columns))
             for type_name in self.TYPE_PARSER_DICT.keys()]
         items2 = [
+            (),
             ("add column", self.add_column_handler(col_pos)),
-            ("remove column", self.remove_column_handler(col_pos)),
+            ("remove column", self.remove_column_handler(selected_columns)),
             ("rename", self.rename_column_handler(col_pos))
         ]
-        for item in items1:
-            item_id = menu.Append(-1, item[0]).GetId()
-            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
-        menu.AppendSeparator()
-        for item in items2:
-            item_id = menu.Append(-1, item[0]).GetId()
-            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
+        items = items1 + items2
+        for item in items:
+            if item == ():
+                menu.AppendSeparator()
+            else:
+                item_id = menu.Append(-1, item[0]).GetId()
+                menu.Bind(wx.EVT_MENU, item[1], id=item_id)
         self.PopupMenu(menu)
+    
+    def adjust_column_selection(self, col_pos):
+        """
+        Check if given column has any selected cells. If it has not, change selection to the column. 
+        """
+        selected_cols = set([selected_col_pos for _, selected_col_pos in self.get_all_selected_cells()])
+        if col_pos not in selected_cols:
+            self.ClearSelection()
+            self.SelectCol(col_pos)
+            selected_cols = set([col_pos])
+        return selected_cols
         
     def row_options(self, event):
+        def delete_row_handler(selected_rows):
+            def handler(event):
+                for removed, row_pos in enumerate(sorted(selected_rows)):
+                    self.DeleteRows(row_pos - removed)
+            return handler
         row_pos = event.GetRow()
+        selected_rows = self.adjust_row_selection(row_pos)
         items = [
             ("add row", lambda event: self.InsertRows(row_pos + 1)),
-            ("remove row", lambda event: self.DeleteRows(row_pos))
+            ("remove row", delete_row_handler(selected_rows))
         ]
         menu = wx.Menu()
         for item in items:
             item_id = menu.Append(-1, item[0]).GetId()
             menu.Bind(wx.EVT_MENU, item[1], id=item_id)
         self.PopupMenu(menu)
+    
+    def adjust_row_selection(self, row_pos):
+        """
+        Check if given row has any selected cells. If it has not, change selection to the row. 
+        """
+        selected_rows = set([selected_row_pos for selected_row_pos, _ in self.get_all_selected_cells()])
+        if row_pos not in selected_rows:
+            self.ClearSelection()
+            self.SelectRow(row_pos)
+            selected_rows = set([row_pos])
+        return selected_rows
 
     def grid_options(self, event):
         items = [
