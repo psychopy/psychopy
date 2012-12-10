@@ -445,7 +445,8 @@ class ConditionsEditor(wx.Dialog):
             ("New", wx.ART_NEW, self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
             ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
             ("Copy", wx.ART_COPY, self.command_copy), ("Paste", wx.ART_PASTE, self.command_paste),
-            (), ("Product", wx.ART_MISSING_IMAGE, self.product)
+            (), ("Simple product", wx.ART_MISSING_IMAGE, self.product_simple),
+            ("No-repeat product", wx.ART_MISSING_IMAGE, self.product_no_repeat)
         ]
         super(ConditionsEditor, self).__init__(parent, title="Conditions editor", size=(600, 375))
         self.app = parent.app
@@ -467,7 +468,7 @@ class ConditionsEditor(wx.Dialog):
                 self.toolbar.AddSeparator()
             else:
                 bitmap = wx.ArtProvider.GetBitmap(button[1], wx.ART_TOOLBAR)
-                tool_id = self.toolbar.AddLabelTool(-1, button[0], bitmap, wx.NullBitmap, wx.ITEM_NORMAL).GetId()
+                tool_id = self.toolbar.AddLabelTool(-1, button[0], bitmap, wx.NullBitmap, wx.ITEM_NORMAL, shortHelp=button[0]).GetId()
                 self.tool_ids.append(tool_id)
                 self.Bind(wx.EVT_TOOL, button[2], id=tool_id)
 
@@ -537,14 +538,25 @@ class ConditionsEditor(wx.Dialog):
         if not self.data_grid.data_errors:
             self.save_data_as()
 
-    def product(self, event):
+    def product_simple(self, event):        
         """
-        Calculate column-wise product of selected cells.
+        Calculate simple column-wise product of selected cells.
         """
+        tuples = self.selection_product()
+        self.insert_tuples_simple(tuples)
+
+    def product_no_repeat(self, event):
+        """
+        Calculate column-wise product of selected cells without repeating any rows in selection.
+        """
+        tuples = self.selection_product()
+        self.insert_tuples_no_repeat(tuples)
+
+    def selection_product(self):
         selection = self.data_grid.get_all_selected_cells()
         column_selection = collections.OrderedDict()
         processed = set()
-        for (row_pos, col_pos) in selection:
+        for row_pos, col_pos in selection:
             if (row_pos, col_pos) in processed:
                 continue
             if not column_selection.has_key(col_pos):
@@ -552,12 +564,26 @@ class ConditionsEditor(wx.Dialog):
             else:
                 column_selection[col_pos].append((row_pos, col_pos))
             processed.add((row_pos, col_pos))
-        product_size = reduce(lambda a, x: a * x, [len(column) for column in column_selection.values()], 1)
+        
         tuples = itertools.product(*column_selection.values())
+        return tuples
+    
+    def insert_tuples_simple(self, tuples):
         row_pos = self.data_grid.GetNumberRows()
-        self.data_grid.InsertRows(self.data_grid.GetNumberRows(), product_size)
-        for pos_tuple in tuples:
-            for (src_row_pos, col_pos) in pos_tuple:
+        for pos_tuple in tuples: # check if cells come from 1 row
+            self.data_grid.InsertRows(self.data_grid.GetNumberRows(), 1)
+            for src_row_pos, col_pos in pos_tuple:
+                value = self.data_grid.GetCellValue(src_row_pos, col_pos)
+                self.data_grid.SetCellValue(row_pos, col_pos, value)
+            row_pos = row_pos + 1    
+    
+    def insert_tuples_no_repeat(self, tuples):
+        row_pos = self.data_grid.GetNumberRows()
+        for pos_tuple in tuples: # check if cells come from 1 row
+            if reduce(lambda a, x: a and x[0] == pos_tuple[0][0], pos_tuple[1:], True):
+                continue
+            self.data_grid.InsertRows(self.data_grid.GetNumberRows(), 1)
+            for src_row_pos, col_pos in pos_tuple:
                 value = self.data_grid.GetCellValue(src_row_pos, col_pos)
                 self.data_grid.SetCellValue(row_pos, col_pos, value)
             row_pos = row_pos + 1
