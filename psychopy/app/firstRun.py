@@ -324,9 +324,10 @@ class ConfigWizard(object):
 
         msg = ''
         items['systemUserProcFlagged'].sort()
-        self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
-        msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
-        report.append(('background processes', self.badBgProc[0]+' ...', msg))
+        self.badBgProc = [p for p, _ in items['systemUserProcFlagged']]
+        if self.badBgProc:
+            msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
+            report.append(('background processes', self.badBgProc[0]+' ...', msg))
         if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))
             report.append(('CPU speed test', "%.3f s" % items['systemTimeNumpySD1000000_sec'], 'numpy.std() of a million data points'))
