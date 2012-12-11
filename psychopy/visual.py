@@ -906,11 +906,12 @@ class Window:
         config = GL.Config(depth_size=8, double_buffer=True,
             stencil_size=stencil_size, stereo=self.stereo) #options that the user might want
         allScrs = pyglet.window.get_platform().get_default_display().get_screens()
-        if len(allScrs)>self.screen:
+        if len(allScrs)<int(self.screen)+1:  # Screen (from Exp Settings) is 1-indexed, so the second screen is Screen 1
+            logging.warn("Requested an unavailable screen number - using first available.")
+            thisScreen = allScrs[0]
+        else:
             thisScreen = allScrs[self.screen]
             logging.info('configured pyglet screen %i' %self.screen)
-        else:
-            logging.error("Requested an unavailable screen number")
         #if fullscreen check screen size
         if self._isFullScr:
             self._checkMatchingSizes(self.size,[thisScreen.width, thisScreen.height])
