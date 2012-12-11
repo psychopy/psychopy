@@ -137,7 +137,14 @@ class SettingsComponent:
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
-        screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
+        
+        requestedScreenNumber = int(self.params['Screen'].val)
+        if requestedScreenNumber > wx.Display.GetCount():
+            logging.warn("Requested screen can't be found. Writing script using first available screen.")
+            screenNumber = 0
+        else:
+            screenNumber = requestedScreenNumber-1 #computer has 1 as first screen
+        
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
