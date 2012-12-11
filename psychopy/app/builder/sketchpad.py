@@ -11,7 +11,6 @@ import logging
 from psychopy import preferences
 from psychopy.app.builder import components
 from psychopy.app.builder.components._visual import MissingParamsException
-import time
 
 class AbstractTool(object):
     """
@@ -316,7 +315,8 @@ class RoutinePreview(glcanvas.GLCanvas):
         component = self.tool_handler.stop(pos)
         if component:
             self.add_stimulus(component)
-            self.Refresh()
+            wx.CallAfter(self.Refresh) # ugly hack to make drawing work
+            wx.CallLater(1, self.Refresh) # try to remove this line
 
     def update_tool(self, event):
         pos = (event.GetX(), event.GetY())

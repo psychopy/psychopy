@@ -57,6 +57,9 @@ class TagOnFlip(object):
     def setTagdescription(self, description):
         self.tagDescription = description
 
+    def setTagname(self, name):
+        self.tagName = name
+
     def schedule(self):
         self.status = constants.STARTED
         if self.doSignal:

@@ -8,6 +8,7 @@ import wx.grid
 import collections
 import cPickle as pickle
 import itertools
+import os.path
 
 class ConditionsValueError(Exception):
     pass
@@ -274,8 +275,8 @@ class ConditionsGrid(wx.grid.Grid):
     
     def remove_column(self, col_pos):
         self.DeleteCols(col_pos)
-        self.column_types[col_pos]
-        self.column_names[col_pos]
+        del self.column_types[col_pos]
+        del self.column_names[col_pos]
         for dirty_col_pos in range(col_pos, self.GetNumberCols()):
             self.update_column_label(dirty_col_pos)
     
@@ -284,50 +285,85 @@ class ConditionsGrid(wx.grid.Grid):
             self.add_column(col_pos + 1)
         return handler
     
-    def remove_column_handler(self, col_pos):
+    def remove_column_handler(self, selected_columns):
         def handler(event):
-            self.remove_column(col_pos)
+            for removed, col_pos in enumerate(sorted(selected_columns)):
+                self.remove_column(col_pos - removed) # need to apply an offset
         return handler
     
     def rename_column_handler(self, col_pos):
-        def handler(hevent):
+        def handler(event):
             dialog = wx.TextEntryDialog(self, "New column name:", "Rename column", self.column_names[col_pos])
             if dialog.ShowModal() == wx.ID_OK:
                 self.set_column_name(col_pos, dialog.GetValue())
         return handler
+    
+    def type_name_handler(self, type_name, selected_columns):
+        def handler(event):
+            for col_pos in selected_columns:
+                self.set_column_type(col_pos, type_name)
+        return handler
 
     def column_options(self, event):
-        def type_name_handler(type_name):
-            return lambda event: self.set_column_type(col_pos, type_name)
         col_pos = event.GetCol()
+        selected_columns = self.adjust_column_selection(col_pos)
         menu = wx.Menu()
-        items1 = [(type_name, type_name_handler(type_name))
+        items1 = [(type_name, self.type_name_handler(type_name, selected_columns))
             for type_name in self.TYPE_PARSER_DICT.keys()]
         items2 = [
+            (),
             ("add column", self.add_column_handler(col_pos)),
-            ("remove column", self.remove_column_handler(col_pos)),
+            ("remove column", self.remove_column_handler(selected_columns)),
             ("rename", self.rename_column_handler(col_pos))
         ]
-        for item in items1:
-            item_id = menu.Append(-1, item[0]).GetId()
-            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
-        menu.AppendSeparator()
-        for item in items2:
-            item_id = menu.Append(-1, item[0]).GetId()
-            menu.Bind(wx.EVT_MENU, item[1], id=item_id)
+        items = items1 + items2
+        for item in items:
+            if item == ():
+                menu.AppendSeparator()
+            else:
+                item_id = menu.Append(-1, item[0]).GetId()
+                menu.Bind(wx.EVT_MENU, item[1], id=item_id)
         self.PopupMenu(menu)
+    
+    def adjust_column_selection(self, col_pos):
+        """
+        Check if given column has any selected cells. If it has not, change selection to the column. 
+        """
+        selected_cols = set([selected_col_pos for _, selected_col_pos in self.get_all_selected_cells()])
+        if col_pos not in selected_cols:
+            self.ClearSelection()
+            self.SelectCol(col_pos)
+            selected_cols = set([col_pos])
+        return selected_cols
         
     def row_options(self, event):
+        def delete_row_handler(selected_rows):
+            def handler(event):
+                for removed, row_pos in enumerate(sorted(selected_rows)):
+                    self.DeleteRows(row_pos - removed)
+            return handler
         row_pos = event.GetRow()
+        selected_rows = self.adjust_row_selection(row_pos)
         items = [
             ("add row", lambda event: self.InsertRows(row_pos + 1)),
-            ("remove row", lambda event: self.DeleteRows(row_pos))
+            ("remove row", delete_row_handler(selected_rows))
         ]
         menu = wx.Menu()
         for item in items:
             item_id = menu.Append(-1, item[0]).GetId()
             menu.Bind(wx.EVT_MENU, item[1], id=item_id)
         self.PopupMenu(menu)
+    
+    def adjust_row_selection(self, row_pos):
+        """
+        Check if given row has any selected cells. If it has not, change selection to the row. 
+        """
+        selected_rows = set([selected_row_pos for selected_row_pos, _ in self.get_all_selected_cells()])
+        if row_pos not in selected_rows:
+            self.ClearSelection()
+            self.SelectRow(row_pos)
+            selected_rows = set([row_pos])
+        return selected_rows
 
     def grid_options(self, event):
         items = [
@@ -440,12 +476,13 @@ class ConditionsGrid(wx.grid.Grid):
 
 
 class ConditionsEditor(wx.Dialog):
-    def __init__(self, parent, file_name=None):
+    def __init__(self, parent, conditions=None, file_name=None):
         self.TOOLBAR_BUTTONS = [
             ("New", wx.ART_NEW, self.file_new), ("Open", wx.ART_FILE_OPEN, self.file_open),
             ("Save as", wx.ART_FILE_SAVE_AS, self.file_save_as), (), ("Cut", wx.ART_CUT, self.command_cut),
             ("Copy", wx.ART_COPY, self.command_copy), ("Paste", wx.ART_PASTE, self.command_paste),
-            (), ("Product", wx.ART_MISSING_IMAGE, self.product)
+            (), ("Simple product", wx.ART_MISSING_IMAGE, self.product_simple),
+            ("No-repeat product", wx.ART_MISSING_IMAGE, self.product_no_repeat)
         ]
         super(ConditionsEditor, self).__init__(parent, title="Conditions editor", size=(600, 375))
         self.app = parent.app
@@ -454,7 +491,9 @@ class ConditionsEditor(wx.Dialog):
         self.message_sink = wx.StaticText(self)
         self.data_grid = ConditionsGrid(self, self.message_sink)
         self.init_sizer()
-        if self.file_name:
+        if conditions:
+            self.load_data_from_conditions(conditions)
+        elif self.file_name:
             self.load_data_from_file()
 
     def create_toolbar(self):
@@ -465,7 +504,7 @@ class ConditionsEditor(wx.Dialog):
                 self.toolbar.AddSeparator()
             else:
                 bitmap = wx.ArtProvider.GetBitmap(button[1], wx.ART_TOOLBAR)
-                tool_id = self.toolbar.AddLabelTool(-1, button[0], bitmap, wx.NullBitmap, wx.ITEM_NORMAL).GetId()
+                tool_id = self.toolbar.AddLabelTool(-1, button[0], bitmap, wx.NullBitmap, wx.ITEM_NORMAL, shortHelp=button[0]).GetId()
                 self.tool_ids.append(tool_id)
                 self.Bind(wx.EVT_TOOL, button[2], id=tool_id)
 
@@ -473,6 +512,18 @@ class ConditionsEditor(wx.Dialog):
         #self.paste_timer = wx.Timer(self)
         #self.Bind(wx.EVT_TIMER, self.poll_clipboard, self.paste_timer)
         #self.paste_timer.Start(1500, wx.TIMER_CONTINUOUS)
+    
+    def load_data_from_conditions(self, conditions):
+        # convert conditions to data
+        if not conditions:
+            data = [[]]
+        else:
+            headers = conditions[0].keys()
+            rows = [condition.values() for condition in conditions]
+            data = [headers]
+            data.extend(rows)
+        # set data
+        self.data_grid.set_data(data)
     
     def poll_clipboard(self, event):
         paste_tool = self.toolbar.FindById(self.tool_ids[5]) # paste tool
@@ -501,9 +552,10 @@ class ConditionsEditor(wx.Dialog):
         pickle_file.close()
 
     def save_data_as(self):
-        self.Validate()
-        self.file_name = self.file_name or wx.SaveFileSelector("wat?", "pkl", parent=self)
+        self.file_name = self.file_name or wx.SaveFileSelector("Save PKL file", "pkl", parent=self)
         if self.file_name:
+            if os.path.splitext(self.file_name)[1].lower() != ".pkl":
+                self.file_name = self.file_name + ".pkl"
             self.save_data_to_file()
             return True
         else:
@@ -520,16 +572,29 @@ class ConditionsEditor(wx.Dialog):
             self.load_data_from_file()
 
     def file_save_as(self, event):
-        self.save_data_as()
+        self.data_grid.validate_data()
+        if not self.data_grid.data_errors:
+            self.save_data_as()
 
-    def product(self, event):
+    def product_simple(self, event):        
         """
-        Calculate column-wise product of selected cells.
+        Calculate simple column-wise product of selected cells.
         """
+        tuples = self.selection_product()
+        self.insert_tuples_simple(tuples)
+
+    def product_no_repeat(self, event):
+        """
+        Calculate column-wise product of selected cells without repeating any rows in selection.
+        """
+        tuples = self.selection_product()
+        self.insert_tuples_no_repeat(tuples)
+
+    def selection_product(self):
         selection = self.data_grid.get_all_selected_cells()
         column_selection = collections.OrderedDict()
         processed = set()
-        for (row_pos, col_pos) in selection:
+        for row_pos, col_pos in selection:
             if (row_pos, col_pos) in processed:
                 continue
             if not column_selection.has_key(col_pos):
@@ -537,12 +602,26 @@ class ConditionsEditor(wx.Dialog):
             else:
                 column_selection[col_pos].append((row_pos, col_pos))
             processed.add((row_pos, col_pos))
-        product_size = reduce(lambda a, x: a * x, [len(column) for column in column_selection.values()], 1)
+        
         tuples = itertools.product(*column_selection.values())
+        return tuples
+    
+    def insert_tuples_simple(self, tuples):
         row_pos = self.data_grid.GetNumberRows()
-        self.data_grid.InsertRows(self.data_grid.GetNumberRows(), product_size)
-        for pos_tuple in tuples:
-            for (src_row_pos, col_pos) in pos_tuple:
+        for pos_tuple in tuples: # check if cells come from 1 row
+            self.data_grid.InsertRows(self.data_grid.GetNumberRows(), 1)
+            for src_row_pos, col_pos in pos_tuple:
+                value = self.data_grid.GetCellValue(src_row_pos, col_pos)
+                self.data_grid.SetCellValue(row_pos, col_pos, value)
+            row_pos = row_pos + 1    
+    
+    def insert_tuples_no_repeat(self, tuples):
+        row_pos = self.data_grid.GetNumberRows()
+        for pos_tuple in tuples: # check if cells come from 1 row
+            if reduce(lambda a, x: a and x[0] == pos_tuple[0][0], pos_tuple[1:], True):
+                continue
+            self.data_grid.InsertRows(self.data_grid.GetNumberRows(), 1)
+            for src_row_pos, col_pos in pos_tuple:
                 value = self.data_grid.GetCellValue(src_row_pos, col_pos)
                 self.data_grid.SetCellValue(row_pos, col_pos, value)
             row_pos = row_pos + 1
@@ -559,7 +638,8 @@ class ConditionsEditor(wx.Dialog):
     def onOK(self, event):
         self.data_grid.validate_data()
         if self.data_grid.data_errors:
-            self.data_grid
+            # TODO: show errors
+            return
         else:
             if self.save_data_as():
                 self.EndModal(wx.OK)

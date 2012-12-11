@@ -3,7 +3,7 @@ Module for Psychopy and Multiplexer integration.
 '''
 import multiplexer
 from multiplexer import multiplexer_constants
-from obci.obci_utils.tags_helper import pack_tag
+from obci.utils.tags_helper import pack_tag
 
 class MXAdapter(object):
     def __init__(self, address):

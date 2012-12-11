@@ -12,7 +12,8 @@ class ArtProvider(wx.ArtProvider):
         "sketchpad-ellipse": "ellipse.png",
         "sketchpad-rectangle": "rectangle.png",
         "sketchpad-arrow": "arrow.png",
-        "amp-launcher-throbber": "throbber.png"
+        "amp-launcher-throbber": "throbber.png",
+        "pop-tart-throbber": "poptart.png"
     }
     
     def __init__(self):

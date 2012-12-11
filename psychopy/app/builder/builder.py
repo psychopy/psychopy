@@ -2,7 +2,6 @@
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import wx
 from wx.lib import platebtn, scrolledpanel, newevent
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
@@ -18,7 +17,7 @@ import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
     Param, CodeGenerationException
 
-from psychopy.constants import *
+#from psychopy.constants import *
 from psychopy.errors import DataImportError
 from psychopy.app.builder import amp_launcher, resource_pool, validators,\
     sketchpad, data_editor
@@ -2530,24 +2529,15 @@ class DlgLoopProperties(_BaseParamsDlg):
         make new if no self.conditionsFile is set
         """
         self.refreshConditions()
-        conditions = self.conditions # list of dict
         if self.conditionsFile:
-            # get name + dir, like BART/trialTypes.xlsx
-            fileName = os.path.abspath(self.conditionsFile)
-            fileName = fileName.rsplit(os.path.sep,2)[1:]
-            fileName = os.path.join(*fileName)
-            if fileName.endswith('.pkl'):
-                # edit existing .pkl file, loading from file
-                #gridGUI = DlgConditions(fileName=self.conditionsFile,
-                #                            parent=self, title=fileName)
-                grid_dialog = data_editor.ConditionsEditor(self, file_name=self.conditionsFile)
+            if self.conditionsFile.startswith('@') or not self.conditionsFile.endswith('.pkl'):
+                grid_dialog = data_editor.ConditionsEditor(self, conditions = self.conditions)
                 grid_dialog.ShowModal()
-                    
             else:
-                # preview existing .csv or .xlsx file that has already been loaded -> conditions
-                # better to reload file, get fieldOrder as well
-                gridGUI = DlgConditions(conditions, parent=self,
-                                        title=fileName, fixed=True)
+                # edit existing .pkl file, loading from file
+                fileName = os.path.abspath(self.conditionsFile)
+                grid_dialog = data_editor.ConditionsEditor(self, file_name=fileName)
+                grid_dialog.ShowModal()
         else: # edit new empty .pkl file
             grid_dialog = data_editor.ConditionsEditor(self)
             if grid_dialog.ShowModal() == wx.OK:
@@ -2713,11 +2703,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditionsFile = val
             if self.conditions:
                 self.exp.namespace.remove(self.conditions[0].keys())
-            if os.path.isfile(self.conditionsFile):
+            if self.conditionsFile.startswith('@'):
+                resourceName = self.conditionsFile[1:]
+                self.conditions = data.importConditionsResource(self.exp.resourcePool.get_resource(resourceName), resourceName)
+                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+            elif os.path.isfile(self.conditionsFile):
                 try:
                     self.conditions = data.importConditions(self.conditionsFile)
                     self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-                except ImportError, msg:
+                except DataImportError, msg:
                     self.constantsCtrls['conditions'].setValue(
                         'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
                         '.\nNeed to be legal as var name; edit file, try again.')
@@ -4230,7 +4224,7 @@ class BuilderFrame(wx.Frame):
         
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
-        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.expMonitorThread.start()
         
     def monitorExperiment(self):

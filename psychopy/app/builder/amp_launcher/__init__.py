@@ -133,7 +133,6 @@ class AmpLauncherDialog(wx.Dialog):
         wx.PostEvent(self, retriever.RetrieverStartedEvent())
         try:
             amp_info = self.retriever.fetch_amp_list()
-            print amp_info.amplifier_list
         except Exception as _:
             #wx.MessageBox("Failed to fetch a list of amplifiers:\n" + str(e), "Amp Launcher", wx.ICON_WARNING)
             amp_info = retriever.AmplifierInfo() # empty amp list
@@ -325,8 +324,13 @@ class LaunchingDialog(wx.Dialog):
         self.Bind(EVT_MX_ALIVE, self.on_mx_alive)
         self.Bind(wx.EVT_TIMER, self.on_t1_passed)
         self.timer.Start(self.T1, wx.TIMER_ONE_SHOT)
-        self.SetSizer(wx.BoxSizer())
-        self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."))
+        self.SetSizer(wx.BoxSizer(wx.VERTICAL))
+        throbber_bitmap = wx.ArtProvider.GetBitmap("pop-tart-throbber", wx.ART_OTHER)
+        self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=12, frameWidth=400)
+        self.throbber.Start()
+        self.GetSizer().Add(self.throbber)
+        self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."), flag=wx.ALL | wx.ALIGN_CENTER, border=8)
+        self.Fit()
     
     def on_mx_alive(self, event):
         self.Unbind(EVT_MX_ALIVE)

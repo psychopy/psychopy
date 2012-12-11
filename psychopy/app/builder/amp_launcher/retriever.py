@@ -77,9 +77,15 @@ class AmpListRetriever(object):
                 remote_amp_list = remote_connection.get_amp_list()
                 amp_list.extend([(server, entry) for entry in remote_amp_list])
             except Exception:
-                raise AmpListRetrieverException("problems with sever: " + str(server))
+                print "problems with server: " + str(server)
+                #raise AmpListRetrieverException("problems with sever: " + str(server))
+        # if all servers failed, try localhost
+        if not amp_list:
+            server = ("127.0.0.1", "localhost")
+            try:
+                remote_connection = OBCIConnection((server[0], 12012))
+                remote_amp_list = remote_connection.get_amp_list()
+                amp_list.extend([(server, entry) for entry in remote_amp_list])
+            except Exception:
+                print "even localhost is not working!"
         return AmplifierInfo(amp_list)
-
-if __name__ == "__main__":
-    retriever = AmpListRetriever(OBCIConnection(("192.168.50.104", 12012)))
-    print retriever.get_server_list()
