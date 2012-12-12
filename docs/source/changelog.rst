@@ -37,6 +37,7 @@ The compatibility changes in this release below are likely to affect very few us
 * ADDED: a first-run wizard to check the system, report as html (somewhat experimental) (Jeremy Gray)
 * ADDED: a benchmark wizard (Tools menu) to test hardware & software, option to share on psychopy.org (Jeremy Gray)
 * ADDED: info.getRAM() (Jeremy Gray)
+* FIXED: Fall back to primary display if a secondary one is specified but unavailable. (Erik Kastman)
 
 PsychoPy 1.75.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
