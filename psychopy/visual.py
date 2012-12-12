@@ -6314,7 +6314,7 @@ class RatingScale:
                 markerColor = customMarker.color
                 if not hasattr(self.marker, 'name'):
                     self.marker.name = 'customMarker'
-        elif self.markerStyle == 'triangle': # and sys.platform in ['linux2', 'darwin']):
+        elif self.markerStyle == 'triangle':
             vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
                     [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
             if markerColor == None:
@@ -6472,7 +6472,7 @@ class RatingScale:
             [acceptBoxright-3*delta2,acceptBoxbot+delta2], [acceptBoxright-delta,acceptBoxbot],
             [acceptBoxleft+delta,acceptBoxbot], [acceptBoxleft+3*delta2,acceptBoxbot+delta2],
             [acceptBoxleft+delta2,acceptBoxbot+3*delta2], [acceptBoxleft,acceptBoxbot+delta] ]
-        if sys.platform not in ['linux2']:
+        if not sys.platform.startswith('linux'):
             self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
                             fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
                             name=self.name+'.accept')
