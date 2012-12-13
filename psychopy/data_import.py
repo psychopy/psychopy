@@ -77,7 +77,6 @@ def importPickleFromFile(dataFile):
         trialsArr = cPickle.load(dataFile)
     except:
         raise DataFormatError, 'Could not load pickle file'
-    dataFile.close()
     trialList = []
     fieldNames = trialsArr[0] # header line first
     _assertValidVarNames(fieldNames)
@@ -94,7 +93,6 @@ def importCSVFromFile(dataFile):
     #convert the record array into a list of dicts
     trialsArr = mlab.csv2rec(dataFile)# data = non-header row x col
     fieldNames = trialsArr.dtype.names
-    dataFile.close()
     _assertValidVarNames(fieldNames)
     trialList = []
     for trialN, _ in enumerate(trialsArr):

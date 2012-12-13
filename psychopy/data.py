@@ -1247,7 +1247,11 @@ def importConditionsResource(resource, resourceName, returnFieldNames=False):
 def importConditionsFile(conditionsFile, extension):
     # TODO: try other extensions if suggested fails?
     conditionsFile.seek(0)
-    return data_import.FORMATS[extension](conditionsFile)
+    temporaryFile = StringIO(conditionsFile.read())
+    try:
+        return data_import.FORMATS[extension](temporaryFile)
+    finally:
+        temporaryFile.close()
 
 def createFactorialTrialList(factors):
     """Create a trialList by entering a list of factors with names (keys) and levels (values)
