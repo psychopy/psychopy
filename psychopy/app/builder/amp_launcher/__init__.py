@@ -20,6 +20,7 @@ import time
 
 
 MxAliveEvent, EVT_MX_ALIVE = newevent.NewEvent()
+PeerFailedEvent, EVT_PEER_FAILED = newevent.NewEvent()
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
@@ -119,6 +120,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.data_file_name = data_file_name
         self.amp_info = None
         self.old_index = None
+        self.amp_manager = None
         self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
@@ -184,10 +186,167 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_config.Disable()
         self.launch_button.Disable()
 
+    def run_click(self, event):
+        if not self.amp_config.Validate():
+            return
+        launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
+        self.launching_dialog = LaunchingDialog(self)
+        launching_thread.start()
+        self.launching_dialog.ShowModal()
+        launching_thread.join()
+        if self.launching_dialog.GetReturnCode() != wx.OK:
+            self.amp_manager.interrupt_monitor()
+            return
+        event.Skip()
+    
+    def start_amplifier(self):
+        self.amp_manager = AmplifierManager(self.amp_config, self.GetParent().exp.settings, self.data_file_name, self.launching_dialog)
+        self.amp_manager.start_experiment()
+
+"""
+self.amp_config.get_launch_file()
+self.amp_config.get_server()
+self.amp_config.get_exec_file()
+sampling_rate = self.amp_config.get_param("sampling_rate")
+active_channels = self.amp_config.get_active_channels()
+channel_names = self.amp_config.get_channel_names()
+self.GetParent().exp.settings.params['saveSignal'].val
+self.GetParent().exp.settings.params['obciDataDirectory'].val
+"""
+
+class LaunchingDialog(wx.Dialog):
+    # timeouts
+    T1 = 9000
+    T2 = 11000
+    
+    def __init__(self, parent):
+        super(LaunchingDialog, self).__init__(parent, style=0)
+        self.t1_passed = False
+        self.mx_alive = False
+        self.failed = True
+        self.timer = wx.Timer(self)
+        self.Bind(EVT_MX_ALIVE, self.on_mx_alive)
+        self.Bind(EVT_PEER_FAILED, self.on_peer_failed)
+        self.Bind(wx.EVT_TIMER, self.on_t1_passed)
+        self.timer.Start(self.T1, wx.TIMER_ONE_SHOT)
+        self.SetSizer(wx.BoxSizer(wx.VERTICAL))
+        throbber_bitmap = wx.ArtProvider.GetBitmap("pop-tart-throbber", wx.ART_OTHER)
+        self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=12, frameWidth=400)
+        self.throbber.Start()
+        self.GetSizer().Add(self.throbber)
+        self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."), flag=wx.ALL | wx.ALIGN_CENTER, border=8)
+        self.Fit()
+    
+    def on_mx_alive(self, event):
+        self.Unbind(EVT_MX_ALIVE)
+        self.mx_alive = True
+        
+        self.check_if_ready()
+    
+    def on_peer_failed(self, event):
+        self.Unbind(EVT_PEER_FAILED)
+        self.failed = True
+        self.EndModal(wx.CANCEL)
+        
+    def on_t1_passed(self, event):
+        self.Unbind(wx.EVT_TIMER)
+        self.Bind(wx.EVT_TIMER, self.on_t2_passed)
+        self.t1_passed = True
+        self.timer.Start(self.T2, wx.TIMER_ONE_SHOT)
+        self.check_if_ready()
+        
+    def on_t2_passed(self, event):
+        self.failed = True
+        self.EndModal(wx.CANCEL)
+    
+    def check_if_ready(self):
+        if self.t1_passed and self.mx_alive:
+            self.Unbind(wx.EVT_TIMER)
+            self.EndModal(wx.OK)
+
+    def set_experiment_manager(self, experiment_manager):
+        self.experiment_manager = experiment_manager
+
+
+class AmplifierManager(object):
+    """
+    Class which handles running a scenario on an amplifier
+    """
+    def __init__(self, amp_config, exp_settings, data_file_name, listener):
+        self.amp_config = amp_config
+        self.exp_settings = exp_settings
+        self.data_file_name = data_file_name
+        self.listener = listener
+        
+        self.experiment_contact = None
+        self.mx_address = None
+        self.ok = True
+        self.monitor_pipe = os.pipe()
+    
+    def is_ok(self):
+        return self.ok
+    
     def get_experiment_contact(self):
         return self.experiment_contact
+    
+    def get_mx_address(self):
+        return self.mx_address
+    
+    def interrupt_monitor(self):
+        """
+        Interrupt the thread which monitors experiment status. 
+        """
+        os.write(self.monitor_pipe[1], "\13")
+    
+    def wait_for_status_change(self):
+        context = zmq.Context().instance()
+        sub_socket = context.socket(zmq.SUB)
+        sub_socket.connect("tcp://" + self.amp_config.get_server() + ":34234")
+        sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+        while True:
+            readable, _, _ = zmq.core.poll.select([sub_socket, self.monitor_pipe[0]], [], [])
+            if self.monitor_pipe[0] in readable:
+                os.close(self.monitor_pipe[1])
+                os.close(self.monitor_pipe[0])
+                return
+            published = json.loads(sub_socket.recv())
+            if published.get("uuid") != self.experiment["uuid"]:
+                print "filtered", self.experiment["uuid"], published
+                continue
+            elif published.get("status_name") == "failed":
+                self.ok = False
+                wx.PostEvent(self.listener, PeerFailedEvent())
+            elif published.get("peers") and "mx" in published['peers']:
+                if self.mx_address is None:
+                    peer_invitation = self.experiment_manager.join_experiment("psychopy")
+                    self.mx_address = peer_invitation["params"]["mx_addr"].split(':')
+                    self.experiment_manager.close()
+                wx.PostEvent(self.listener, MxAliveEvent())
 
-    def get_scenario(self):
+    def start_experiment(self):
+        #set up data
+        scenario = self.create_scenario()
+        launch_file_path = self.amp_config.get_launch_file()
+        obci_server_address = "tcp://" + self.amp_config.get_server() + ":54654"
+        
+        # create connection
+        self.experiment_contact = obci_connection.ObciClient(obci_server_address)
+        self.experiment = self.experiment_contact.create_experiment("Psychopy Experiment")
+        experiment_address = self.experiment['rep_addrs'][-1]
+        self.experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
+        self.experiment_manager.set_experiment_scenario(launch_file_path, scenario)
+        
+        #start experiment
+        self.waiting_thread = threading.Thread(group=None, target=self.wait_for_status_change, name="amplifier-wait-thread")
+        print "uuid", self.experiment["uuid"]
+        self.experiment_contact.uuid = self.experiment["uuid"]
+        self.waiting_thread.start()
+        self.experiment_manager.start_experiment()
+        
+    def create_scenario(self):
+        """
+        Generate OBCI experimen scenario from amp & experiment config.
+        """
         exec_path = self.amp_config.get_exec_file()
         sampling_rate = self.amp_config.get_param("sampling_rate")
         active_channels = self.amp_config.get_active_channels()
@@ -221,8 +380,8 @@ class AmpLauncherDialog(wx.Dialog):
             'config_server': {'config':{"local_params": local_log_params, 'external_params': {}, 'config_sources': {}, "launch_dependencies": {}}, 'path':'control/peer/config_server.py'},
             'mx': {'config': {'external_params': {}, 'config_sources': {}, 'launch_dependencies': {}, 'local_params': {}}, u'path': 'multiplexer-install/bin/mxcontrol'}
         }
-        if self.GetParent().exp.settings.params['saveSignal'].val:
-            save_file_dir = self.GetParent().exp.settings.params['obciDataDirectory'].val
+        if self.exp_settings.params['saveSignal'].val:
+            save_file_dir = self.exp_settings.params['obciDataDirectory'].val
             tag_saver = {
                 'config': {
                     "local_params": local_log_params,
@@ -267,106 +426,3 @@ class AmpLauncherDialog(wx.Dialog):
             peers['info_saver'] = info_saver
             peers['signal_saver'] = signal_saver
         return {'peers': peers}
-
-
-    def wait_for_status_change(self, experiment_manager):
-        context = zmq.Context().instance()
-        sub_socket = context.socket(zmq.SUB)
-        sub_socket.connect("tcp://" + self.amp_config.get_server() + ":34234")
-        sub_socket.setsockopt(zmq.SUBSCRIBE, "")
-        experiment_manager.start_experiment()
-        while True:
-            published = json.loads(sub_socket.recv())
-            if published.get("peers") and "mx" in published['peers']:
-                wx.PostEvent(self.launching_dialog, MxAliveEvent())
-                return
-
-    def run_click(self, event):
-        if not self.amp_config.Validate():
-            return
-        launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
-        self.launching_dialog = LaunchingDialog(self)
-        launching_thread.start()
-        self.launching_dialog.ShowModal()
-        launching_thread.join()
-        if self.launching_dialog.GetReturnCode() != wx.OK:
-            return
-        event.Skip()
-
-    def start_amplifier(self):
-        launch_file_path = self.amp_config.get_launch_file() # TODO read port from server list
-        self.experiment_contact = obci_connection.ObciClient("tcp://" + self.amp_config.get_server() + ":54654")
-        experiment = self.experiment_contact.create_experiment("Psychopy Experiment")
-        experiment_address = experiment['rep_addrs'][-1]
-        experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
-        scenario = self.get_scenario()
-        experiment_manager.set_experiment_scenario(launch_file_path, scenario)
-        #wait until MX starts
-        self.wait_for_status_change(experiment_manager)
-        #get MX address
-        peer_invitation = experiment_manager.join_experiment("psychopy")
-        self.mx_address = peer_invitation["params"]["mx_addr"].split(':')
-        experiment_manager.close()
-        self.experiment_contact.uuid = experiment["uuid"]
-
-
-class LaunchingDialog(wx.Dialog):
-    # timeouts
-    T1 = 9000
-    T2 = 11000
-    
-    def __init__(self, parent):
-        super(LaunchingDialog, self).__init__(parent, style=0)
-        self.t1_passed = False
-        self.mx_alive = False
-        self.failed = True
-        self.timer = wx.Timer(self)
-        self.Bind(EVT_MX_ALIVE, self.on_mx_alive)
-        self.Bind(wx.EVT_TIMER, self.on_t1_passed)
-        self.timer.Start(self.T1, wx.TIMER_ONE_SHOT)
-        self.SetSizer(wx.BoxSizer(wx.VERTICAL))
-        throbber_bitmap = wx.ArtProvider.GetBitmap("pop-tart-throbber", wx.ART_OTHER)
-        self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=12, frameWidth=400)
-        self.throbber.Start()
-        self.GetSizer().Add(self.throbber)
-        self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."), flag=wx.ALL | wx.ALIGN_CENTER, border=8)
-        self.Fit()
-    
-    def on_mx_alive(self, event):
-        self.Unbind(EVT_MX_ALIVE)
-        self.mx_alive = True
-        
-        self.check_if_ready()
-        
-    def on_t1_passed(self, event):
-        self.Unbind(wx.EVT_TIMER)
-        self.Bind(wx.EVT_TIMER, self.on_t2_passed)
-        self.t1_passed = True
-        self.timer.Start(self.T2, wx.TIMER_ONE_SHOT)
-        self.check_if_ready()
-        
-    def on_t2_passed(self, event):
-        self.failed = True
-        self.EndModal(wx.CANCEL)
-    
-    def check_if_ready(self):
-        if self.t1_passed and self.mx_alive:
-            self.Unbind(wx.EVT_TIMER)
-            self.EndModal(wx.OK)
-
-    def set_experiment_manager(self, experiment_manager):
-        self.experiment_manager = experiment_manager
-
-
-class AmpLaunchHandler(wx.EvtHandler):
-    def __init__(self, dialog):
-        self.dialog = dialog
-
-
-if __name__ == "__main__":
-    app = wx.App()
-    dialog = AmpLauncherDialog(None)
-    dialog.Show()
-    app.SetExitOnFrameDelete(True)
-    app.SetTopWindow(dialog)
-    app.MainLoop()

@@ -3444,8 +3444,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
-        self.mx_address = None
-        self.experiment_contact = None
+        self.amp_manager = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -4207,9 +4206,7 @@ class BuilderFrame(wx.Frame):
         runAmpDialog = amp_launcher.AmpLauncherDialog(self, data_file_name=data_file_name)
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
-            self.experiment_contact = runAmpDialog.get_experiment_contact()
-            self.mx_address = runAmpDialog.mx_address
-            mx_address = self.mx_address
+            self.amp_manager = runAmpDialog.amp_manager
         else:
             return
         
@@ -4222,6 +4219,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
         
+        mx_address = self.amp_manager.get_mx_address()
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
         self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -4240,13 +4238,18 @@ class BuilderFrame(wx.Frame):
     def onProcessEnded(self, event):
         """The script/exp has finished running
         """
-        if self.experiment_contact:
-            if self.exp.settings.params["saveSignal"].val:
-                from obci.acquisition import acquisition_control
-                acquisition_control.finish_saving([(self.mx_address[0], int(self.mx_address[1]))])
-            self.experiment_contact.kill_experiment()
-            self.experiment_contact.close()
-            self.experiment_contact = None
+        if self.amp_manager:
+            if self.amp_manager.is_ok():
+                if self.exp.settings.params["saveSignal"].val:
+                    from obci.acquisition import acquisition_control
+                    mx_address = self.amp_manager.get_mx_address()
+                    acquisition_control.finish_saving([(mx_address[0], int(mx_address[1]))])
+            else:
+                logging.error("Failed amplifier scenario (expect incomplete data)")
+            self.amp_manager.get_experiment_contact().kill_experiment()
+            self.amp_manager.interrupt_monitor()
+            self.amp_manager.get_experiment_contact().close()
+            self.amp_manager = None
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbRunAmp, True)
