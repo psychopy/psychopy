@@ -4324,8 +4324,7 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
 
     def showResourcePool(self, event=None):
-        component = self.exp.resourcePool
-        dlg = resource_pool.ResourcePoolDialog(self, pool=component)
+        dlg = resource_pool.ResourcePoolDialog(self, pool=self.exp.resourcePool)
         dlg.Show()
 
     def addRoutine(self, event=None):
