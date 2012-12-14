@@ -92,7 +92,7 @@ class ResourcePoolDialog(wx.Frame):
         if name:
             file_name = wx.FileSelector("Export file", flags=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT, parent=self)
             exported_file = open(file_name, "wb")
-            exported_file.write(self.pool.get_content(name))
+            exported_file.write(self.pool.get_resource(name).get_content())
             exported_file.close()
             print file_name
 
