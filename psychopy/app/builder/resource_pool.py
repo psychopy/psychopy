@@ -17,7 +17,10 @@ class ResourceList(wx.ListView):
     """
     def __init__(self, parent, pool=None, name_filter=None):
         super(ResourceList, self).__init__(parent, style=wx.LC_ICON)
-        self.InsertColumn(0, "name")
+        icon_list = wx.ImageList(32, 32)
+        icon_list.AddIcon(wx.ArtProvider.GetIcon(wx.ART_NORMAL_FILE, wx.ART_OTHER, (32, 32)))
+        self.AssignImageList(icon_list, wx.IMAGE_LIST_NORMAL)
+        #self.InsertColumn(0, "name")
         if pool:
             self.fill_resources(pool, name_filter)
     
@@ -25,8 +28,8 @@ class ResourceList(wx.ListView):
         name_filter = str(name_filter or "")
         resource_names = (pool.params["resources"].val.keys())
         resource_entries = [[name] for name in filter(lambda s: name_filter in s, resource_names)]
-        for entry in resource_entries:
-            self.Append(entry)
+        for pos, entry in enumerate(resource_entries):
+            self.InsertImageStringItem(pos, entry[0], 0)
     
     def update_resources(self, pool, name_filter=None):
         self.ClearAll()
