@@ -3783,7 +3783,7 @@ class BuilderFrame(wx.Frame):
         """Open a FileDialog, then load the file if possible.
         """
         if filename==None:
-            dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+            dlg = wx.FileDialog(self, message="Open file ...", style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST,
                 wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
