@@ -1386,22 +1386,32 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
-                self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
+                self.panels[categ] = wx.FlexGridSizer(cols=1)
             else:
                 self.panels[categ]=wx.FlexGridSizer(cols=2)
             self.sizer.Add(sectionBtn, flag=wx.EXPAND)
             self.sizerList.append(sectionBtn)
-            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_RIGHT)
+            self.sizer.Add(self.panels[categ])
             self.sizerList.append(self.panels[categ])
         self.makeComponentButtons()
         self._rightClicked=None
         #start all except for Favorites collapsed
         for section in categories[1:]:
             self.toggleSection(self.panels[section])
+        
+        self.Bind(wx.EVT_SIZE, self.on_resize)
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDropTarget(FileDropTarget(builder = self.frame))
+
+    def on_resize(self, event):
+        if self.app.prefs.app['largeIcons']:
+            cols = self.GetClientSize()[0] / 58
+        else:
+            cols = self.GetClientSize()[0] / 34
+        for panel in self.panels.values():
+            panel.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
         #add a copy of each favorite to that panel first
