@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Tools for app first-run, including configuration wizard."""
+"""Libraries for wizards, currently firstrun configuration and benchmark."""
 
 # Part of the PsychoPy library
 # Copyright (C) 2012 Jonathan Peirce
@@ -10,7 +10,7 @@
 # Author: Jeremy Gray, Oct 2012
 
 from pyglet.gl import gl_info
-from psychopy import info, data, visual, gui, core, __version__, web
+from psychopy import info, data, visual, gui, core, __version__, web, preferences, event
 import os, sys, time
 import wx
 import numpy as np
@@ -20,15 +20,15 @@ import tempfile, pickle
 
 class ConfigWizard(object):
     """Walk through configuration diagnostics & generate report."""
-    def __init__(self, app, firstrun=False):
+    def __init__(self, firstrun=False):
         """Check drivers, show GUIs, run diagnostics, show report."""
         self.app = app
         self.firstrun = firstrun
-        self.prefs = self.app.prefs
-        self.appName = self.app.GetAppName()
+        self.prefs = preferences.Preferences()
+        self.appName = 'PsychoPy2'
         self.name = self.appName + ' Configuration Wizard'
-        self.reportPath = os.path.join(self.app.prefs.paths['userPrefsDir'], 'configurationReport.html')
-        #self.iconfile = os.path.join(self.app.prefs.paths['resources'], 'psychopy.png')
+        self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
+        #self.iconfile = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
         #dlg.SetIcon(wx.Icon(self.iconfile, wx.BITMAP_TYPE_PNG)) # no error but no effect
         
         dlg = gui.Dlg(title=self.name)
@@ -99,11 +99,9 @@ class ConfigWizard(object):
             self.htmlReport(fatal=fatalItemsList)
             self.save()
             # user ends up in browser:
-            self.app.followLink(url='file://' + self.reportPath)
-            #  before psychopy shuts down, ensure wizard will be triggered again:
-            del self.prefs.appData['lastVersion']
-            self.prefs.saveAppData()
-            sys.exit()
+            url='file://' + self.reportPath
+            wx.LaunchDefaultBrowser(url)
+            sys.exit('Fatal configuration problem.')
         if not dlg.OK:
             return  # no configuration tests run
         
@@ -136,7 +134,8 @@ class ConfigWizard(object):
         dlg.addText('')
         dlg.show()
         if dlg.OK:
-            self.app.followLink(url='file://' + self.reportPath)
+            url = 'file://' + self.reportPath
+            wx.LaunchDefaultBrowser(url)
 
     def runDiagnostics(self, win, verbose=False):
         """Return list of (key, val, msg) tuple, set self.warnings
@@ -173,9 +172,9 @@ class ConfigWizard(object):
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
             msg = 'Warning: python 2.5, 2.6, or 2.7 required; 2.5 is iffy'
-        if items['pythonFullVersion'].find('EPD') > -1:
+        if 'EPD' in items['pythonFullVersion']:
             msg += ' Enthought Python Distribution'
-        elif items['pythonExecutable'].find('PsychoPy2.app') > -1:
+        elif 'PsychoPy2.app' in items['pythonExecutable']:
             msg += ' (PsychoPy StandAlone)'
         bits, linkage = platform.architecture()
         if not bits.startswith('32'):
@@ -324,10 +323,10 @@ class ConfigWizard(object):
 
         msg = ''
         items['systemUserProcFlagged'].sort()
-        self.badBgProc = [p for p, _ in items['systemUserProcFlagged']]
-        if self.badBgProc:
-            msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
-            report.append(('background processes', self.badBgProc[0]+' ...', msg))
+        self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
+        val = ("%s ..." % self.badBgProc[0]) if len(self.badBgProc) else 'No bad background processes found.'
+        msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
+        report.append(('background processes', val, msg))
         if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))
             report.append(('CPU speed test', "%.3f s" % items['systemTimeNumpySD1000000_sec'], 'numpy.std() of a million data points'))
@@ -402,7 +401,7 @@ class ConfigWizard(object):
                          val == msg == '' -> use key as section heading
         """
         
-        imgfile = os.path.join(self.app.prefs.paths['resources'], 'psychopySplash.png')
+        imgfile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
         self.header = '<html><head></head><a href="http://www.psychopy.org"><image src="%s" width=396 height=156></a>' % imgfile
         #self.iconhtml = '<a href="http://www.psychopy.org"><image src="%s" width=48 height=48></a>' % self.iconfile
         self.footer = '<font size=-1><center>This page auto-generated by the PsychoPy configuration wizard on %s</center></font>' % data.getDateStr(format="%Y-%m-%d, %H:%M")
@@ -462,7 +461,7 @@ class ConfigWizard(object):
                 htmlDoc += key + '</td><td>' + val + '</td><td><em>' + msg + '</em></td></tr>\n'
             htmlDoc += '    </table><hr>'
         htmlDoc += self.footer
-        if numWarn:
+        if not fatal and numWarn:
             htmlDoc += """<script type="text/javascript">toggle('ok', 'none'); </script>"""
         htmlDoc += '</html>'
         
@@ -476,11 +475,10 @@ class ConfigWizard(object):
 
 class BenchmarkWizard(ConfigWizard):
     """Class to get system info, run benchmarks, optional upload to psychopy.org"""
-    def __init__(self, app, fullscr=True):
-        self.app = app
+    def __init__(self, fullscr=True):
         self.firstrun = False
-        self.prefs = self.app.prefs
-        self.appName = self.app.GetAppName()
+        self.prefs = preferences.Preferences()
+        self.appName = 'PsychoPy2'
         self.name = self.appName + ' Benchmark Wizard'
         
         dlg = gui.Dlg(title=self.name)
@@ -550,7 +548,7 @@ class BenchmarkWizard(ConfigWizard):
             dlg.show()
         
         self.htmlReport(itemsList)
-        self.reportPath = os.path.join(self.app.prefs.paths['userPrefsDir'], 'configurationReport.html')
+        self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'benchmarkReport.html')
         self.save()
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
@@ -559,7 +557,8 @@ class BenchmarkWizard(ConfigWizard):
         dlg.addText('')
         dlg.show()
         if dlg.OK:
-            self.app.followLink(url='file://' + self.reportPath)
+            url = 'file://' + self.reportPath
+            wx.LaunchDefaultBrowser(url)
 
     def _prepare(self):
         """Prep for bench-marking; currently just RAM-related on mac"""
@@ -618,6 +617,8 @@ class BenchmarkWizard(ConfigWizard):
             frameCount += 1
             if frameCount > maxFrame:
                 fps = win.fps()  # get frames per sec
+                if len(event.getKeys(['escape'])):
+                    sys.exit()
                 if fps < baseline * 0.6:
                     # only break when start dropping a LOT of frames (80% or more)
                     dotsInfo.append(('dots_' + fieldShape, str(bestDots), ''))

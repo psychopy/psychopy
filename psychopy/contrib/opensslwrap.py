@@ -196,8 +196,8 @@ def _getMetaData(datafile, dataEncFile, pubkey, encMethod):
     if sys.platform in ['darwin']:
         OSXver, _, architecture = platform.mac_ver()
         platInfo = 'darwin ' + OSXver + ' ' + architecture
-    elif sys.platform in ['linux2']:
-        platInfo = 'linux2 '+platform.release()
+    elif sys.platform.startswith('linux'):
+        platInfo = 'linux '+platform.release()
     elif sys.platform in ['win32']:
         platInfo = 'windowsversion=' + repr(sys.getwindowsversion())
     else:
