@@ -1439,7 +1439,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             cols = self.GetClientSize()[0] / 34
         for panel in self.panels.values():
-            panel.SetCols(cols)
+            panel.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
         #add a copy of each favorite to that panel first
