@@ -351,6 +351,7 @@ class AmplifierManager(object):
         sampling_rate = self.amp_config.get_param("sampling_rate")
         active_channels = self.amp_config.get_active_channels()
         channel_names = self.amp_config.get_channel_names()
+        additional_params = self.amp_config.get_additional_params()
         amplifier_peer = {
             'config': {
                 'config_sources': {},
@@ -368,6 +369,17 @@ class AmplifierManager(object):
             },
             'path': exec_path
         }
+
+        try:
+            amplifier_peer['config']['local_params']['usb_device'] = additional_params['usb_device']
+        except KeyError:
+            pass
+
+        try:
+            amplifier_peer['config']['local_params']['bluetooth_device'] = additional_params['bluetooth_device']
+        except KeyError:
+            pass
+
         local_log_params = {                    
             "console_log_level": "info",
             "file_log_level": "debug",
