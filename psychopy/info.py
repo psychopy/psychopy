@@ -700,8 +700,8 @@ def getRAM():
             memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
             kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
 
-            totalRam = int(memoryStatus.dwTotalPhys / 1048576.) # M
-            freeRam = int(memoryStatus.dwAvailPhys / 1048576.) # M
+            totalRAM = int(memoryStatus.dwTotalPhys / 1048576.) # M
+            freeRAM = int(memoryStatus.dwAvailPhys / 1048576.) # M
         except:
             pass
     elif sys.platform.startswith('linux'):
