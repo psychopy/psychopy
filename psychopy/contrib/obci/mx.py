@@ -13,6 +13,6 @@ class MXAdapter(object):
     def close(self):
         self.client = None
     
-    def send_tag(self, timestamp, name, description):
-        packed_tag = pack_tag(timestamp, timestamp, name, description)
+    def send_tag(self, start_timestamp, stop_timestamp, name, description):
+        packed_tag = pack_tag(start_timestamp, stop_timestamp, name, description)
         self.client.send_message(message=packed_tag, type=multiplexer_constants.types.TAG, flush=True)
