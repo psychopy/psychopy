@@ -104,8 +104,9 @@ class SettingsComponent:
 
     def writeStartCode(self,buff):
         # TODO move it somewhere else
-        buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
-        buff.writeIndented("import json, sys")
+        if self.params['saveTags'].val:
+            buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
+        buff.writeIndented("import json, sys\n")
         
         buff.writeIndented("# Store info about the experiment session\n")
         if self.params['expName'].val in [None,'']:
