@@ -3995,7 +3995,7 @@ class MovieStim(_BaseVisualStim):
         """
         self._player.seek(float(timestamp))
         if log and self.autoLog:
-            self.win.logOnFlip("Set %s seek=" %(self.name,timestamp),
+            self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
                 level=logging.EXP,obj=self)
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
