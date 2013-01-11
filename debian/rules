@@ -9,7 +9,7 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 
 debian/psychopy-openbci.1: debian/psychopy.sh
 	chmod +x $^
-	PYTHONPATH=. help2man -N -n "Creating psychology stimuli in Python" $^ > $@
+	PYTHONPATH=. help2man --no-discard-stderr -N -n "Creating psychology stimuli in Python" $^ > $@
 ## cleanup
 	rm -f psychopy/__init__.pyc
 
