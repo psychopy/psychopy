@@ -513,7 +513,6 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
         logging.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
     else: cones_to_rgb=conversionMatrix
 
-    rgb_to_cones = numpy.linalg.pinv(cones_to_rgb)#get inverse
     rgb = numpy.dot(cones_to_rgb, lms_3xN)
     return numpy.transpose(rgb)#return in the shape we received it
 

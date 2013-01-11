@@ -1455,7 +1455,7 @@ class _BaseVisualStim:
             x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
             x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
             y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
-        
+
         return pointInPolygon(x, y, self)
 
     def _getPolyAsRendered(self):
@@ -3853,7 +3853,7 @@ class MovieStim(_BaseVisualStim):
                 Modified the weight of the colors in the movie. E,g, color="red"
                 will only display the red parts of the movie and make all other
                 things black. white (color=(1,1,1)) is the original colors.
-                
+
                 Could be a:
 
                     - web name for a color (e.g. 'FireBrick');
@@ -4016,7 +4016,7 @@ class MovieStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         frameTexture = self._player.get_texture()
-        
+
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
         GL.glPushMatrix()
@@ -5786,8 +5786,8 @@ class RatingScale:
         scale :
             string, explanation of the numbers to display to the subject, shown above the line;
             default = '<low>=not at all, <high>=extremely'
-            to suppress all text above the line, set `showScale=False`, 
-            if `labels` is not `False` and `choices` or `tickMarks` exists, 
+            to suppress all text above the line, set `showScale=False`,
+            if `labels` is not `False` and `choices` or `tickMarks` exists,
             `scale` defaults to `False`.
         choices :
             a list of items which the subject can choose among;
@@ -5802,14 +5802,14 @@ class RatingScale:
         highAnchorText :
             text to display for the high end of the scale (default = numeric high value)
         tickMarks :
-            list of positions at which tick marks should be placed 
+            list of positions at which tick marks should be placed
             (low and high need to be included if tick marks should be at the edges of the scale).
-            If None (the default), tick marks are placed automatically equally spaced, 
+            If None (the default), tick marks are placed automatically equally spaced,
             one per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
         labels :
-            text to be placed at each tick mark as placed by tickMarks and controls where labels 
+            text to be placed at each tick mark as placed by tickMarks and controls where labels
             of choices are displayed. Default is `None`.
-            If `None` and `choices`:  choices will be plotted at ticks and 
+            If `None` and `choices`:  choices will be plotted at ticks and
             `showAnchors=False`, but `scale` can be used for plotting above the line.
             If `None` and  `tickMarks`: `tickMarks` will be used and `showAnchors=False`.
             If False, no labels are plotted at ticj marks (i.e., restores old behavior of `choices`).
@@ -5936,7 +5936,7 @@ class RatingScale:
         # Generally make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
                         markerStart, low, high, precision, choices,
-                        lowAnchorText, highAnchorText, scale, showScale, showAnchors, 
+                        lowAnchorText, highAnchorText, scale, showScale, showAnchors,
                         tickMarks, labels, ticksAboveLine)
         self._initMisc(minTime, maxTime)
 
@@ -5958,10 +5958,10 @@ class RatingScale:
         if self.showAnchors: self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
         if self.showAccept:  self.visualDisplayElements += [self.acceptBox, self.accept]
         if self.labelTexts:
-            for text in self.labels: 
+            for text in self.labels:
                 self.visualDisplayElements.append(text)
         self.visualDisplayElements += [self.line] # last b/c win xp had display issues for me in a VM
- 
+
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
         self.reset() # sets .status
@@ -5969,7 +5969,7 @@ class RatingScale:
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    markerStart, low, high, precision, choices,
-                   lowAnchorText, highAnchorText, scale, showScale, showAnchors, 
+                   lowAnchorText, highAnchorText, scale, showScale, showAnchors,
                    tickMarks, labels, ticksAboveLine):
         """some sanity checking; various things are set, especially those that are
         used later; choices, anchors, markerStart settings are handled here
@@ -6002,7 +6002,7 @@ class RatingScale:
             logging.warning("RatingScale %s: ignoring choices=[ ]; it requires 2 or more list elements" % self.name)
         if choices and len(list(choices)) >= 2:
             low = 0
-            high = len(list(choices)) - 1 
+            high = len(list(choices)) - 1
             if labels is False:
                 # anchor text defaults to blank, unless low or highAnchorText is requested explicitly:
                 if lowAnchorText is None and highAnchorText is None:
@@ -6012,7 +6012,7 @@ class RatingScale:
                     self.highAnchorText = unicode(highAnchorText)
                 self.scale = '  '.join(map(unicode, choices)) # unicode for display
                 self.choices = choices
-            else: 
+            else:
                 # anchor text is ignored when choices are present (HS, 16/11/2012)
                 self.showAnchors = False
                 self.labelTexts = choices
@@ -6034,7 +6034,7 @@ class RatingScale:
         if self.high <= self.low:
             self.high = self.low + 1
             self.precision = 100
-        
+
         if tickMarks:
             if not(labels is False):
                 self.showAnchors = False # To avoid overplotting.
@@ -6212,17 +6212,17 @@ class RatingScale:
         adjust the scaling around the default by setting displaySizeFactor, stretchHoriz, or both.
         This means that the user / experimenter can just think of > 1 being expansion (and < 1 == contraction)
         relative to the default (internal) scaling, and not worry about the internal scaling.
-        
+
         ### Notes (HS November 2012)
         To allow for labels at the ticks, the positions of the tick marks are saved in self.tickPositions.
         If tickMarks, those positions are used instead of the automatic positions.
-        
+
         """
 
         self.lineColor = lineColor
         self.lineColorSpace = 'rgb'
-        
-        
+
+
         self.tickSize = 0.04 # vertical height of each tick, norm units
         if self.ticksAboveLine:
             tickSide = 1
@@ -6238,7 +6238,7 @@ class RatingScale:
             self.tickMarks /= self.autoRescaleFactor
         if tickMarks:
             tmpTicks = (numpy.asarray(tickMarks, dtype=numpy.float32) - self.low) / (self.high - self.low)
-            
+
 
         # ends of the rating line, in norm units:
         self.lineLeftEnd  = self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor
@@ -6267,7 +6267,7 @@ class RatingScale:
                 self.tickPositions.append(self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor * (-0.5 + t / self.tickMarks))
         else:
             lineLength = self.lineRightEnd - self.lineLeftEnd
-            
+
             for c, t in enumerate(tmpTicks):
                 vertices.append([self.lineLeftEnd + lineLength * t, tickSide * self.tickSize * self.displaySizeFactor + self.offsetVert])
                 vertices.append([self.lineLeftEnd + lineLength * t, self.offsetVert])
@@ -6448,7 +6448,7 @@ class RatingScale:
 
         self.acceptLineColor = [-.2, -.2, -.2]
         self.acceptFillColor = [.2, .2, .2]
-        
+
         if self.labelTexts:
             boxVert = [0.3, 0.47]
         else:
@@ -7479,14 +7479,20 @@ def _setColor(self, color, colorSpace=None, operation='',
     newColor=getattr(self, colorAttrib)
     if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
-        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):dkl_rgb=None
-        else: dkl_rgb=win.dkl_rgb
+        if numpy.all(win.dkl_rgb==numpy.ones([3,3])):
+            dkl_rgb=None
+        else:
+            dkl_rgb=win.dkl_rgb
         setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms':
-        logging.error("The automated calibration routine for LMS space in PsychoPy is currently suspect." +\
-                      " We would STRONGLY recommend you don't use this space for now (contact Jon for further info)")
-        if numpy.all(win.lms_rgb==numpy.ones([3,3])):lms_rgb=None
-        else: lms_rgb=win.lms_rgb
+        if numpy.all(win.lms_rgb==numpy.ones([3,3])):
+            lms_rgb=None
+        elif win.monitor.getPsychopyVersion()<'1.76.00':
+            logging.error("The LMS calibration for this monitor was carried out before version 1.76.00." +\
+                      " We would STRONGLY recommend that you repeat the color calibration before using this color space (contact Jon for further info)")
+            lms_rgb=win.lms_rgb
+        else:
+            lms_rgb=win.lms_rgb
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
