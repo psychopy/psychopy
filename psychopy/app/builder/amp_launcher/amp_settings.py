@@ -10,6 +10,7 @@ class PresetManager(object):
     Manages a collection of presets. Assumes permanent storage in a file.
     """
     FILENAME = "ampPresets.json"
+    
     instance = None
     
     @classmethod
@@ -24,8 +25,7 @@ class PresetManager(object):
         @return: existing directory where config will be saved
         """
         # get location of config files
-        paths = wx.StandardPaths.Get()
-        presets_dir = paths.GetUserDataDir()
+        presets_dir = wx.GetApp().prefs.paths["userPrefsDir"]
         # ensure it exists
         if not os.path.exists(presets_dir):
             os.makedirs(presets_dir, 0775)

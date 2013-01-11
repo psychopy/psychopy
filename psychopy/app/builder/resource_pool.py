@@ -7,7 +7,6 @@ import wx
 from StringIO import StringIO
 import base64
 import os.path
-from psychopy.app.builder.components.resource_pool import Resource
 
 class ResourceList(wx.ListView):
     """
@@ -18,7 +17,10 @@ class ResourceList(wx.ListView):
     """
     def __init__(self, parent, pool=None, name_filter=None):
         super(ResourceList, self).__init__(parent, style=wx.LC_ICON)
-        self.InsertColumn(0, "name")
+        icon_list = wx.ImageList(32, 32)
+        icon_list.AddIcon(wx.ArtProvider.GetIcon(wx.ART_NORMAL_FILE, wx.ART_OTHER, (32, 32)))
+        self.AssignImageList(icon_list, wx.IMAGE_LIST_NORMAL)
+        #self.InsertColumn(0, "name")
         if pool:
             self.fill_resources(pool, name_filter)
     
@@ -26,8 +28,8 @@ class ResourceList(wx.ListView):
         name_filter = str(name_filter or "")
         resource_names = (pool.params["resources"].val.keys())
         resource_entries = [[name] for name in filter(lambda s: name_filter in s, resource_names)]
-        for entry in resource_entries:
-            self.Append(entry)
+        for pos, entry in enumerate(resource_entries):
+            self.InsertImageStringItem(pos, entry[0], 0)
     
     def update_resources(self, pool, name_filter=None):
         self.ClearAll()
@@ -48,19 +50,16 @@ class ResourcePoolDialog(wx.Frame):
         self.GetSizer().Add(self.resource_list, 1, wx.EXPAND)
             
     def init_toolbar(self):
+        toolbar_template = [
+            ("add", wx.ART_FILE_OPEN, "Add file", self.show_file_add),
+            ("remove", wx.ART_CROSS_MARK, "Remove file", self.remove_file),
+            ("export", wx.ART_FILE_SAVE_AS, "Export to file", self.show_file_export)
+        ]
         toolbar = self.CreateToolBar()
-        add_tool_id = wx.NewId()
-        remove_tool_id = wx.NewId()
-        
-        self.Bind(wx.EVT_TOOL, self.show_file_add, id=add_tool_id)
-        self.Bind(wx.EVT_TOOL, self.remove_file, id=remove_tool_id)
-        bitmap_add_path = os.path.join(self.app.prefs.paths['resources'], "fileopen32.png")
-        bitmap_add = wx.Bitmap(bitmap_add_path)
-        bitmap_remove_path = os.path.join(self.app.prefs.paths['resources'], "delete32.png")
-        bitmap_remove = wx.Bitmap(bitmap_remove_path)
-        toolbar.AddLabelTool(add_tool_id, "add file", bitmap_add)
-        toolbar.AddLabelTool(remove_tool_id, "remove file", bitmap_remove)
-        
+        for label, bitmap_name, tip, handler in toolbar_template:
+            bitmap = wx.ArtProvider.GetBitmap(bitmap_name, wx.ART_TOOLBAR)
+            tool_id = toolbar.AddLabelTool(wx.ID_ANY, label, bitmap, shortHelp=tip).GetId()
+            self.Bind(wx.EVT_TOOL, handler, id=tool_id)
         toolbar.Realize()
 
     def add_to_pool(self, file_name):
@@ -79,12 +78,26 @@ class ResourcePoolDialog(wx.Frame):
             self.add_to_pool(file_name)
             self.list_added()
 
-    def remove_file(self, event):
-        #get selection
+    def get_selected_resource(self):
         index = self.resource_list.GetFirstSelected()
         name = self.resource_list.GetItem(index, 0).GetText()
-        self.pool.remove_resource(name)
-        self.resource_list.update_resources(self.pool)
+        return name
+
+    def remove_file(self, event):
+        #get selection
+        name = self.get_selected_resource()
+        if name:
+            self.pool.remove_resource(name)
+            self.resource_list.update_resources(self.pool)
+    
+    def show_file_export(self, event):
+        name = self.get_selected_resource()
+        if name:
+            file_name = wx.FileSelector("Export file", flags=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT, parent=self)
+            exported_file = open(file_name, "wb")
+            exported_file.write(self.pool.get_resource(name).get_content())
+            exported_file.close()
+            print file_name
 
 
 class ResourceChooserPanel(wx.Panel):
@@ -113,8 +126,7 @@ class ResourceChooserPanel(wx.Panel):
     def item_selected(self, event):
         resource_name = event.GetItem().GetText()
         self.resource_name_box.SetValue(resource_name)
-    
-    
+
 
 class ResourceChooserDialog(wx.Dialog):
     def __init__(self, parent, pool):

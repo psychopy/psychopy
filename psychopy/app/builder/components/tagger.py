@@ -20,18 +20,18 @@ class TagOnFlipComponent(BaseComponent):
         self.params["name"] = Param(name, valType = "code", hint = "A name for this object", label = "Name")
         self.params["startType"]=Param(startType, valType = "str", allowedVals = ["time (s)", "frame N", "condition"],
             hint = "How to specify the start time", label = "")
-        self.params["stopType"] = Param(stopType, valType = "str", allowedVals = ["duration (frames)"],
+        self.params["stopType"] = Param(stopType, valType = "str", allowedVals = ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
             hint = "How duration is defined")
         self.params["startVal"] = Param(startVal, valType = "code", allowedTypes = [],
             hint = "Time of tag timestamp")
-        self.params["stopVal"] = Param(stopVal, allowedVals = [1], valType= "code", allowedTypes = [],
-            updates = 'constant', allowedUpdates = [], hint = "One-shot")
+        self.params["stopVal"] = Param(stopVal, valType= "code", allowedTypes = [],
+            updates = 'constant', allowedUpdates = [], hint = "Tagged event duration")
         self.params['startEstim'] = Param(startEstim, valType = 'code', allowedTypes = [],
             hint = "(Optional) expected start (s), purely for representing in the timeline")
         self.params["durationEstim"] = Param(durationEstim, valType = "code", allowedVals = [0.02], allowedTypes = [],
             hint = "One-shot")
         self.params["tagName"] = Param(
-            tagName, valType="code", updates="experiment", allowedUpdates=["experiment", "routine", "frame"],
+            tagName, valType="str", updates="experiment", allowedUpdates=["experiment", "routine", "frame"],
             hint="Name of tag to be sent", label="tag name")
         self.params["tagDescription"] = Param(
             tagDescription, valType="code", updates="experiment", allowedUpdates=["experiment", "routine", "frame"],
@@ -70,7 +70,11 @@ class TagOnFlipComponent(BaseComponent):
         }
         self.writeStartTestCode(buff)
         self.writeParamUpdates(buff, "frame")
-        buff.writeIndented("%(name)s.schedule()\n" % codeEntries)
+        buff.writeIndented("%(name)s.scheduleStart()\n" % codeEntries)
+        buff.writeIndented("%(name)s.status = STARTED\n" % codeEntries)
+        buff.setIndentLevel(-1, relative = True)
+        self.writeStopTestCode(buff)
+        buff.writeIndented("%(name)s.scheduleStop()\n" % codeEntries)
         buff.writeIndented("%(name)s.status = FINISHED\n" % codeEntries)
         buff.setIndentLevel(-1, relative = True)
 

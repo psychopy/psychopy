@@ -287,6 +287,9 @@ class AmpConfigPanel(wx.Panel):
     def get_exec_file(self):
         return self.amp_entry.get_exec_file()
 
+    def get_additional_params(self):
+        return self.amp_entry.get_additional_params()
+
     def get_server(self):
         return self.amp_entry and self.amp_entry.get_server()
 

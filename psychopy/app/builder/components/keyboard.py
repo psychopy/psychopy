@@ -5,7 +5,7 @@
 from _base import *
 from os import path
 
-from psychopy.app.builder.experiment import CodeGenerationException
+from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
@@ -86,11 +86,26 @@ class KeyboardComponent(BaseComponent):
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
         forceEnd=self.params['forceEndRoutine'].val
+        allowedKeys = self.params['allowedKeys'].val.strip()
 
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.status = STARTED\n" %(self.params))
+        allowedKeysIsVar = _valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None'
+        if allowedKeysIsVar:
+            # if it looks like a variable, check that the variable is suitable to eval at run-time
+            buff.writeIndented("# AllowedKeys looks like a variable named `%s`\n" % allowedKeys)
+            buff.writeIndented("if not '%s' in locals():\n" % allowedKeys)
+            buff.writeIndented("    logging.error('AllowedKeys variable `%s` is not defined.')\n" % allowedKeys)
+            buff.writeIndented("    core.quit()\n")
+            buff.writeIndented("if not type(%s) in [list, tuple, np.ndarray]:\n" % allowedKeys)
+            buff.writeIndented("    if not isinstance(%s, basestring):\n" % allowedKeys)
+            buff.writeIndented("        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % allowedKeys)
+            buff.writeIndented("        core.quit()\n")
+            buff.writeIndented("    elif not ',' in %s: %s = (%s,)\n" % (allowedKeys, allowedKeys, allowedKeys))
+            buff.writeIndented("    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+            keyListStr = "keyList=list(%s)" % allowedKeys  # eval() at run time
         buff.writeIndented("# keyboard checking is just starting\n")
         if store != 'nothing':
             buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
@@ -103,19 +118,20 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("%(name)s.status = STOPPED\n" %(self.params))
             buff.setIndentLevel(-1, relative=True)#to get out of the if statement
 
-        buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
+        buff.writeIndented("if %(name)s.status == STARTED:\n" %(self.params))
         buff.setIndentLevel(1, relative=True)#to get out of the if statement
         dedentAtEnd=1#keep track of how far to dedent later
-        #do we need a list of keys?
-        if self.params['allowedKeys'].val in [None,"none","None", "", "[]"]: keyListStr=""
-        else:
+        #do we need a list of keys? (variable case is already handled)
+        if allowedKeys in [None, "none", "None", "", "[]", "()"]:
+            keyListStr=""
+        elif not allowedKeysIsVar:
             try:
-                keyList = eval(self.params['allowedKeys'].val)
+                keyList = eval(allowedKeys)
             except:
                 raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
             if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
                 keyList=list(keyList)
-            elif type(keyList) in [str,unicode]: #a single string value
+            elif isinstance(keyList, basestring): #a single string/key
                 keyList=[keyList]
             keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
@@ -145,7 +161,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
 
         if forceEnd==True:
-            buff.writeIndented("# abort routine on response\n" %self.params)
+            buff.writeIndented("# a response ends the routine\n" %self.params)
             buff.writeIndented("continueRoutine = False\n")
 
         buff.setIndentLevel(-(dedentAtEnd), relative=True)

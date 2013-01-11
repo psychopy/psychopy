@@ -5,6 +5,7 @@ from psychopy.errors import ExperimentException
 
 class Window(visual.Window):
     def __init__(self, mx_adapter, *args, **kwargs):
+        self._tagsToStart = []
         self._tagsToSend = []
         self._tagsToSave = []
         self.mx_adapter = mx_adapter
@@ -13,11 +14,14 @@ class Window(visual.Window):
         self.isTrigged = False
         super(Window, self).__init__(*args, **kwargs)
     
-    def sendTagOnFlip(self, name, description):
-        self._tagsToSend.append((str(name), description))
+    def startTagOnFlip(self, tagger):
+        self._tagsToStart.append(tagger)
+    
+    def sendTagOnFlip(self, tagger):
+        self._tagsToSend.append(tagger)
         
-    def saveTagOnFlip(self, name, description):
-        self._tagsToSave.append((str(name), description))
+    def saveTagOnFlip(self, tagger):
+        self._tagsToSave.append(tagger)
     
     def enableTrig(self):
         self.trigOnFlip = True
@@ -29,16 +33,20 @@ class Window(visual.Window):
             raise ExperimentException(e)
     
     def doFlipLogging(self, now):
+        # start tag
+        for tagger in self._tagsToStart:
+            tagger.startTime = now
         # send signal
         if self.trigOnFlip:
             self.triggerPort.send_next()
             self.trigOnFlip = False
         # send tags
-        for tagEntry in self._tagsToSend:
-            self.mx_adapter.send_tag(now, tagEntry[0], tagEntry[1])
-        for tagEntry in self._tagsToSave:
-            TagOnFlip.tags.append({"name": tagEntry[0], "start_timestamp": now,
-                "end_timestamp": now, "desc": tagEntry[1]})
+        for tagger in self._tagsToSend:
+            self.mx_adapter.send_tag(tagger.startTime, now, tagger.tagName, tagger.tagDescription)
+        for tagger in self._tagsToSave:
+            TagOnFlip.tags.append({"name": tagger.tagName, "start_timestamp": tagger.startTime,
+                "end_timestamp": now, "desc": tagger.tagDescription})
+        self._tagsToStart = []
         self._tagsToSend = []
         self._tagsToSave = []
 
@@ -48,7 +56,8 @@ class TagOnFlip(object):
             doSignal=False, sendTags=False, saveTags=False):
         self.window = window
         self.status = None
-        self.tagName = tagName
+        self.startTime = None
+        self.tagName = str(tagName)
         self.doSignal = doSignal
         self.sendTags = sendTags
         self.saveTags = saveTags
@@ -60,13 +69,15 @@ class TagOnFlip(object):
     def setTagname(self, name):
         self.tagName = name
 
-    def schedule(self):
-        self.status = constants.STARTED
+    def scheduleStart(self):
         if self.doSignal:
             self.window.enableTrig()
-        
+        if self.sendTags or self.saveTags:
+            self.window.startTagOnFlip(self)
+
+    def scheduleStop(self):
         if self.sendTags:
-            self.window.sendTagOnFlip(self.tagName, self.tagDescription)
+            self.window.sendTagOnFlip(self)
         if self.saveTags:
-            self.window.saveTagOnFlip(self.tagName, self.tagDescription)
+            self.window.saveTagOnFlip(self)
 

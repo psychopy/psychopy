@@ -217,8 +217,8 @@ class RunTimeInfo(dict):
             OSXver, junk, architecture = platform.mac_ver()
             platInfo = 'darwin '+OSXver+' '+architecture
             # powerSource = ...
-        elif sys.platform in ['linux2']:
-            platInfo = 'linux2 '+platform.release()
+        elif sys.platform.startswith('linux'):
+            platInfo = 'linux '+platform.release()
             # powerSource = ...
         elif sys.platform in ['win32']:
             platInfo = 'windowsversion='+repr(sys.getwindowsversion())
@@ -301,14 +301,14 @@ class RunTimeInfo(dict):
         
         # flac (free lossless audio codec) for google-speech:
         flacv = ''
-        if sys.platform != ['win32']:
-            flac, se = core.shellCall('which flac', stderr=True)
-            if not se and flac and not flac.find('Command not found') > -1:
-                flacv = core.shellCall('flac --version')
-        else:
+        if sys.platform == 'win32':
             flacexe = 'C:\\Program Files\\FLAC\\flac.exe'
             if os.path.exists(flacexe):
                 flacv = core.shellCall(flacexe + ' --version')
+        else:
+            flac, se = core.shellCall('which flac', stderr=True)
+            if not se and flac and not flac.find('Command not found') > -1:
+                flacv = core.shellCall('flac --version')
         if flacv:
             self['systemFlacVersion'] = flacv
         
@@ -562,7 +562,7 @@ def _getSvnVersion(file):
     if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.svn'))):
         return None, None, None
     svnRev, svnLastChangedRev, svnUrl = None, None, None
-    if sys.platform in ['darwin', 'linux2', 'freebsd']:
+    if sys.platform in ['darwin', 'freebsd'] or sys.platform.startswith('linux'):
         try:
             svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
         except:
@@ -700,8 +700,8 @@ def getRAM():
             memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
             kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
 
-            totalRam = int(memoryStatus.dwTotalPhys / 1048576.) # M
-            freeRam = int(memoryStatus.dwAvailPhys / 1048576.) # M
+            totalRAM = int(memoryStatus.dwTotalPhys / 1048576.) # M
+            freeRAM = int(memoryStatus.dwAvailPhys / 1048576.) # M
         except:
             pass
     elif sys.platform.startswith('linux'):

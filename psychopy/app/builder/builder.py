@@ -1414,22 +1414,32 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
-                self.panels[categ]=wx.BoxSizer(wx.VERTICAL)
+                self.panels[categ] = wx.FlexGridSizer(cols=1)
             else:
                 self.panels[categ]=wx.FlexGridSizer(cols=2)
             self.sizer.Add(sectionBtn, flag=wx.EXPAND)
             self.sizerList.append(sectionBtn)
-            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_RIGHT)
+            self.sizer.Add(self.panels[categ])
             self.sizerList.append(self.panels[categ])
         self.makeComponentButtons()
         self._rightClicked=None
         #start all except for Favorites collapsed
         for section in categories[1:]:
             self.toggleSection(self.panels[section])
+        
+        self.Bind(wx.EVT_SIZE, self.on_resize)
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDropTarget(FileDropTarget(builder = self.frame))
+
+    def on_resize(self, event):
+        if self.app.prefs.app['largeIcons']:
+            cols = self.GetClientSize()[0] / 58
+        else:
+            cols = self.GetClientSize()[0] / 34
+        for panel in self.panels.values():
+            panel.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
         #add a copy of each favorite to that panel first
@@ -3444,8 +3454,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
-        self.mx_address = None
-        self.experiment_contact = None
+        self.amp_manager = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -3784,7 +3793,7 @@ class BuilderFrame(wx.Frame):
         """Open a FileDialog, then load the file if possible.
         """
         if filename==None:
-            dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+            dlg = wx.FileDialog(self, message="Open file ...", style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST,
                 wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
@@ -4207,9 +4216,7 @@ class BuilderFrame(wx.Frame):
         runAmpDialog = amp_launcher.AmpLauncherDialog(self, data_file_name=data_file_name)
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
-            self.experiment_contact = runAmpDialog.get_experiment_contact()
-            self.mx_address = runAmpDialog.mx_address
-            mx_address = self.mx_address
+            self.amp_manager = runAmpDialog.amp_manager
         else:
             return
         
@@ -4222,6 +4229,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
         
+        mx_address = self.amp_manager.get_mx_address()
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
         self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -4240,13 +4248,18 @@ class BuilderFrame(wx.Frame):
     def onProcessEnded(self, event):
         """The script/exp has finished running
         """
-        if self.experiment_contact:
-            if self.exp.settings.params["saveSignal"].val:
-                from obci.acquisition import acquisition_control
-                acquisition_control.finish_saving([(self.mx_address[0], int(self.mx_address[1]))])
-            self.experiment_contact.kill_experiment()
-            self.experiment_contact.close()
-            self.experiment_contact = None
+        if self.amp_manager:
+            if self.amp_manager.is_ok():
+                if self.exp.settings.params["saveSignal"].val:
+                    from obci.acquisition import acquisition_control
+                    mx_address = self.amp_manager.get_mx_address()
+                    acquisition_control.finish_saving([(mx_address[0], int(mx_address[1]))])
+            else:
+                logging.error("Failed amplifier scenario (expect incomplete data)")
+            self.amp_manager.get_experiment_contact().kill_experiment()
+            self.amp_manager.interrupt_monitor()
+            self.amp_manager.get_experiment_contact().close()
+            self.amp_manager = None
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbRunAmp, True)
@@ -4321,8 +4334,7 @@ class BuilderFrame(wx.Frame):
             self.setIsModified(True)
 
     def showResourcePool(self, event=None):
-        component = self.exp.resourcePool
-        dlg = resource_pool.ResourcePoolDialog(self, pool=component)
+        dlg = resource_pool.ResourcePoolDialog(self, pool=self.exp.resourcePool)
         dlg.Show()
 
     def addRoutine(self, event=None):

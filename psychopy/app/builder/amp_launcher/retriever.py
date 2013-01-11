@@ -51,6 +51,9 @@ class AmplifierInfoEntry(object):
     def get_exec_file(self):
         return self.entry_dict['amplifier_peer_info']['path']
 
+    def get_additional_params(self):
+        return self.entry_dict['amplifier_params']['additional_params']
+
     def get_server(self):
         return self.server[0] # only ip address
 

@@ -104,8 +104,9 @@ class SettingsComponent:
 
     def writeStartCode(self,buff):
         # TODO move it somewhere else
-        buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
-        buff.writeIndented("import json, sys")
+        if self.params['saveTags'].val:
+            buff.writeIndented("from obci.analysis.obci_signal_processing.tags.tags_file_writer import TagsFileWriter\n")
+        buff.writeIndented("import json, sys\n")
         
         buff.writeIndented("# Store info about the experiment session\n")
         if self.params['expName'].val in [None,'']:
@@ -181,7 +182,14 @@ class SettingsComponent:
                 if thisComp.type=='Aperture': allowStencil = True
                 if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
-        screenNumber = int(self.params['Screen'].val)-1 #computer has 1 as first screen
+        
+        requestedScreenNumber = int(self.params['Screen'].val)
+        if requestedScreenNumber > wx.Display.GetCount():
+            logging.warn("Requested screen can't be found. Writing script using first available screen.")
+            screenNumber = 0
+        else:
+            screenNumber = requestedScreenNumber-1 #computer has 1 as first screen
+        
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
