@@ -27,7 +27,7 @@ pyaudio:
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy, threading, time
+import numpy, time
 from os import path
 from string import capitalize
 from sys import platform, exit, stdout
@@ -463,20 +463,25 @@ def initPyo(rate=44100, stereo=True, buffer=256):
     """
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
+        core=core #make libs class variables so they don't get deleted first
+        logging=logging
         def __del__(self):
+            self.stop()
+            self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.shutdown()
-            core.wait(0.25)#make sure enough time passes for the server to shutdown
-            print 'pyo server deleted'
-            #sys.stdout.flush()
-    print 'got here1'
+            self.logging.debug('pyo sound server shutdown')#this may never get printed
+
     #create the instance of the server
-    pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio='coreaudio', jackname='pyo')
-    pyoSndServer.boot()
+    pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1).boot()
+
+    core.wait(0.25)
     pyoSndServer.start()
-    print 'got here'
+    core.wait(0.25)
+    logging.debug('pyo sound server started')
+    logging.flush()
     global pyoSndServerStarted
     pyoSndServerStarted = True
-    #sys.stdout.flush()
+
 def setAudioAPI(api):
     """Change the API used for the presentation of sounds
 
