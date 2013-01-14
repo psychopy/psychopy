@@ -142,12 +142,13 @@ class PreferencesDlg(wx.Dialog):
                         # key-bindings were displayed as 'Cmd+O', revert to 'Ctrl+O' internally
                         thisPref = re_cmd2ctrl.sub('Ctrl+', thisPref)
                 self.prefsCfg[sectionName][prefName]=thisPref
-                if prefName=='paths':
-                    paths = eval(thisPref)
-                    if type(paths)!=list:
-                        self.prefsCfg[sectionName][prefName]=[paths]
+                #make sure list values are converted back to being lists (from strings)
+                if self.prefsSpec[sectionName][prefName].startswith('list'):
+                    newVal = eval(thisPref)
+                    if type(newVal)!=list:
+                        self.prefsCfg[sectionName][prefName]=[newVal]
                     else:
-                        self.prefsCfg[sectionName][prefName]=paths
+                        self.prefsCfg[sectionName][prefName]=newVal
         self.app.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
 
