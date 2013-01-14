@@ -34,6 +34,8 @@
     version = string(default='')
     # Add paths here to your custom Python modules
     paths=list(default=list())
+    #choice of audio library
+    audio = list(default=list('pyo', 'pygame'))
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

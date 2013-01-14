@@ -12,19 +12,23 @@ drivers (e.g. CoreAudio, DirectSound, ASIO), but for now, pygame will have to do
 
 """
 import sys
-from psychopy import sound,core, visual
+from psychopy import logging
+logging.console.setLevel(logging.DEBUG)#get messages about the sound lib as it loads
 
-highA = sound.Sound('A',octave=3, sampleRate=22050, secs=0.8, bits=8)
+from psychopy import sound,core, visual
+print 'Using %s for sounds' %sound.audioAPI
+
+highA = sound.Sound('A',octave=3, sampleRate=44100, secs=0.8, bits=8)
 highA.setVolume(0.8)
 tick = sound.Sound(800,secs=0.01,sampleRate=44100, bits=8)#sample rate ignored because already set
-tock = sound.Sound('600',secs=0.01)
+tock = sound.Sound('600',secs=0.01, sampleRate=44100)
 
 highA.play()
 core.wait(0.8)
 tick.play()
 core.wait(0.4)
 tock.play()
-core.wait(0.2)
+core.wait(0.6)
 
 if sys.platform=='win32':
     ding = sound.Sound('ding')
