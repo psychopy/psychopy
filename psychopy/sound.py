@@ -1,37 +1,30 @@
 """Load and play sounds
 
-There are various APIs for this, none of which are perfect. By default PsychoPy will
-look for and use, in this order: ['pygame','pyglet','pyaudio']
-The API chosen will be stored as a string under::
+By default PsychoPy will try to use the following APIs, in this order, for
+sound reproduction but you can alter the order in preferences:
+    ['pyo', 'pygame']
 
-    sound.audioAPI
+The API being used will be stored as::
+    psychopy.sound.audioAPI
 
-and can be set using, e.g.::
-
-    sound.setAudioAPI('pyglet')
+pyo (a wrapper for portaudio):
+    pros: low latency where drivers support it (on windows you may want to fetch ASIO4ALL)
+    cons: new in PsychoPy 1.76.00
 
 pygame (must be version 1.8 or above):
     pros: The most robust of the API options so far - it works consistently on all platforms
     cons: needs an additional download, poor latencies
-
-pyglet:
-    pros: comes with enthought python and is already the main API for drawing in PsychoPy
-    cons: complex model using event_dispatch, dodgy timing (just on win32?)
-
-pyaudio:
-    pros: relatively low-level wrapper around portAudio
-    cons: needs another download, rather buggy.
 
 """
 # Part of the PsychoPy library
 # Copyright (C) 2012 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy, time
+import numpy, time, sys
 from os import path
 from string import capitalize
 from sys import platform, exit, stdout
-from psychopy import event, core, logging
+from psychopy import event, core, logging, preferences
 from psychopy.constants import *
 
 if platform=='win32':
@@ -39,27 +32,34 @@ if platform=='win32':
 else:
     mediaLocation=""
 
-preferredAPI = ['pyo','pygame']
 global audioAPI, Sound
 global pyoSndServer
 pyoSndServer=None
 Sound = None
 audioAPI=None
 
-try:
-    import pyo
-    havePyo = True
-except ImportError:
-    havePyo = False
-
-if not havePyo:
+import pygame
+from pygame import mixer, sndarray
+preferredAPIs = preferences.Preferences().general['audio']
+for thisLibName in preferredAPIs:
     try:
-        import pygame
-        from pygame import mixer, sndarray
-        havePygame=True
-    except ImportError:
-        havePygame=False
-        raise "No sound library found - install either pyo or pygme"
+        if thisLibName=='pyo':
+            import pyo
+            havePyo = True
+        elif thisLibName=='pygame':
+            import pygame
+            from pygame import mixer, sndarray
+        else:
+            raise ValueError("Audio lib options are currently only 'pyo' or 'pyglet', not '%'" %thisLibName)
+    except:
+        logging.warning('%s audio lib was requested but not loaded: %s' %(thisLibName, sys.exc_info()[1]))
+        continue #to try next audio lib
+    #if we got this far we were sucessful in loading the lib
+    audioAPI=thisLibName
+    break
+
+if audioAPI==None:
+    logging.warning('No audio lib could be loaded. Sounds will not be available.')
 
 class _SoundBase:
     """Create a sound object, from one of many ways.
@@ -446,6 +446,8 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 
     For more details see pygame help page for the mixer.
     """
+    global Sound
+    Sound = SoundPygame
     if stereo==True: stereoChans=2
     else:   stereoChans=0
     if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
@@ -462,7 +464,8 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 def initPyo(rate=44100, stereo=True, buffer=256):
     """setup the pyo (sound) server
     """
-    global pyoSndServer
+    global pyoSndServer, Sound
+    Sound = SoundPyo
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
@@ -475,38 +478,21 @@ def initPyo(rate=44100, stereo=True, buffer=256):
 
     #create the instance of the server
     pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1).boot()
-
     core.wait(0.25)
     pyoSndServer.start()
     core.wait(0.25)
     logging.debug('pyo sound server started')
     logging.flush()
 
-
 def setAudioAPI(api):
-    """Change the API used for the presentation of sounds
-
-        usage:
-            setAudioAPI(api)
-
-        where:
-            api is one of 'pygame','pyglet', pyaudio'
-
-    """
-    global audioAPI, Sound
-    exec('haveThis=have%s' %api.title())
-    if haveThis:
-        audioAPI=api
-        exec('init%s()' %(API.title()))
-        exec('thisSound= Sound%s' %(API.title()))
-        Sound= thisSound
-    return haveThis
+    """DEPCRECATED: please use preferences>general>audio to determine which audio lib to use"""
+    raise
 
 #initialise it and keep track
-for API in preferredAPI:
-    if setAudioAPI(API):
-        audioAPI=API
-        break#we found one so stop looking
 if audioAPI is None:
     logging.error('No audio API found. Try installing pygame 1.8+')
+elif audioAPI=='pyo':
+    initPyo()
+elif audioAPI=='pygame':
+    initPygame()
 
