@@ -41,13 +41,14 @@ else:
 
 preferredAPI = ['pyo','pygame']
 global audioAPI, Sound
+global pyoSndServer
+pyoSndServer=None
 Sound = None
 audioAPI=None
 
 try:
     import pyo
     havePyo = True
-    pyoSndServerStarted = False
 except ImportError:
     havePyo = False
 
@@ -359,8 +360,8 @@ class SoundPyo(_SoundBase):
             Only used for sounds using pyglet. Pygame uses the same
             sample rate for all sounds (once initialised)
         """
-        global pyoSndServerStarted
-        if pyoSndServerStarted==False:
+        global pyoSndServer
+        if pyoSndServer==None:
             initPyo()
         self.sampleRate=sampleRate
         self.format = bits
@@ -421,7 +422,7 @@ class SoundPyo(_SoundBase):
             return False
         #load the file
         self._sndTable = pyo.SndTable(self.fileName)
-        self._snd = pyo.Osc(self._sndTable, freq=self._sndTable.getRate())
+        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
         return True
 
     def _fromArray(self, thisArray):
@@ -431,7 +432,7 @@ class SoundPyo(_SoundBase):
         else:
             channels=1
         self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(), chnls=channels)
-        self._snd = pyo.Osc(self._sndTable, freq=self._sndTable.getRate())
+        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
         return True
 
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
@@ -461,6 +462,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 def initPyo(rate=44100, stereo=True, buffer=256):
     """setup the pyo (sound) server
     """
+    global pyoSndServer
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
@@ -479,8 +481,7 @@ def initPyo(rate=44100, stereo=True, buffer=256):
     core.wait(0.25)
     logging.debug('pyo sound server started')
     logging.flush()
-    global pyoSndServerStarted
-    pyoSndServerStarted = True
+
 
 def setAudioAPI(api):
     """Change the API used for the presentation of sounds
