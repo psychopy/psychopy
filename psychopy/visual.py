@@ -7342,7 +7342,13 @@ def pointInPolygon(x, y, poly):
 
     # faster if have matplotlib.nxutils:
     if haveNxutils:
-        return bool(nxutils.pnpoly(x, y, poly))
+        try:
+            return bool(nxutils.pnpoly(x, y, poly))
+            # has failed with matplotlib 1.2.0-r1
+            #   transform = transform.frozen()
+            # AttributeError: 'numpy.float64' object has no attribute 'frozen'
+        except:
+            pass
 
     # fall through to pure python:
     # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
@@ -7379,9 +7385,11 @@ def polygonsOverlap(poly1, poly2):
 
     # faster if have matplotlib.nxutils:
     if haveNxutils:
-        if any(nxutils.points_inside_poly(poly1, poly2)):
-            return True
-        return any(nxutils.points_inside_poly(poly2, poly1))
+        try: # has failed with matplotlib 1.2.0-r1
+            if any(nxutils.points_inside_poly(poly1, poly2)):
+                return True
+            return any(nxutils.points_inside_poly(poly2, poly1))
+        except: pass
 
     # fall through to pure python:
     for p1 in poly1:
