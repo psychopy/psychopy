@@ -46,7 +46,7 @@ elif platform=='posix':
 
 setup(name="PsychoPy",
     packages=packages,
-    scripts = ['psychopy_post_inst.py'],
+    scripts = ['psychopy_post_inst.py','psychopy/app/psychopyApp.py'],
     include_package_data =True,
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
