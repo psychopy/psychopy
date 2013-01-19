@@ -10,7 +10,7 @@ building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette ar
 very heavily based on his code).
 """
 from psychopy import logging
-import string, time, tempfile, os, glob
+import string, time, tempfile, os, glob, random
 import Image, ImageChops
 from GifImagePlugin import getheader, getdata #part of PIL
 try:
@@ -18,11 +18,6 @@ try:
     havePyMedia=True
 except:
     havePyMedia=False
-try:
-    import QTKit, AppKit
-    haveQT=True
-except:
-    haveQT=False
 
 import numpy
 
@@ -299,95 +294,15 @@ qtCodecQuality= {
 
 
 class QuicktimeMovie(object):
-    """A class to allow creation of Quicktime movies (OS X only).
+    """DEPRECATED: the making of Quicktime movies is not possible in PsychoPy as of version 1.76+
+    due to problems with the apple QTKit library under python 2.7
 
-    These might be from frames provided by a PsychoPy `psychopy.visual.Window`, by
-    sequences of numpy arrays or from image frames (jpg, png etc.) on a disk.
+    Hopefully support for cross-platform movie outputs will return in future
+    releases with the addition of direct support for the ffmpeg library.
 
+    For now you need to save your frames as individual images and then
     """
     def __init__(self, filename=None, fps=30):
+        """Deprecated
         """
-        :Parameters:
-
-            filename: a string giving the name of the file. If None then you can set a filename during save()
-
-            fps: the number of frames per second, to be used throughout the movie
-
-        """
-        if not haveQT:
-            raise ImportError("Quicktime movies can only be created under OSX and require QTKit and AppKit to be installed")
-        self.frameN = 1
-        self.filename = filename
-        self.movie = None
-        self.fps = fps
-        self._movTmpFileName=None#we need a physical temp file to build the frames up?
-    def addFrame(self, frame, duration=1):
-        """Add a frame to the movie, from an image filename (anything that PIL can read)
-
-        :Parameters:
-
-            frame: can be;
-
-                - an image filename (including path)
-                - a numpy array
-                - a PIL image
-                - a `psychopy.visual.Window` movie frame (from win.getMovieFrame())
-
-            duration: the length of time this frame should be displayed (in units of frame)
-
-        """
-        if self.movie is None:
-            self._movTmpFileName=os.path.join(tempfile.gettempdir(), 'psychopyTmp.mov')#could this line fail if no permissions?
-            #self._movTmpFileName='tmpMov'#this is handy if we want to inspect the temp file
-            try:
-                self.movie, err=QTKit.QTMovie.alloc().initToWritableFile_error_(self._movTmpFileName,None)#
-            except:
-                self.movie, err=QTKit.QTMovie.alloc().initToWritableFile_error_(self._movTmpFileName)#under some versions (10.5?) this call is different
-            if err is not None:
-                print str(err)
-            self.movie.setEditable_(True)
-#            self.movie.setLoops_(True)#makes no difference - probably needs to be set in the export settings
-
-        #we now have an NSImage of the frame, so add it
-        frameAttrs =  {QTKit.QTAddImageCodecType:'jpeg',# see QTKitdefines.h for compression options. These affect the size of the temp file
-                                QTKit.QTAddImageCodecQuality:qtCodecQuality['max']}
-        duration = QTKit.QTMakeTime(duration,self.fps)
-        #for image filenames load file
-        if type(frame)==numpy.ndarray:#convert to an image and let it go through the image pipeline below
-            frame=Image.fromarray(frame).rotate(90)
-        if isinstance(frame, Image.Image):#don't use elif here because of above
-            #can't seem to make this work to remove the need for writing tmp.png files for each frame
-            #            imgBuff=StringIO.StringIO()#a fake buffer to store the image (like tmpfile without disk access)
-            #            pilIm = Image.fromarray(frame)#.save(imgBuff, 'png')
-            #            img = NSImage.alloc().initWithContentsOfFile_(imgBuff)
-            #                or:
-            #            img = NSImage.alloc().initWithData_(AppKit.NSData.dataWithData_(frame.data))
-            handle, tmpFileName=tempfile.mkstemp('.psychopyTmp.png')#could this line fail if no permissions?
-            frame.save(tmpFileName)
-            img = AppKit.NSImage.alloc().initByReferencingFile_(tmpFileName)
-            self.movie.addImage_forDuration_withAttributes_(img, duration, frameAttrs)
-        elif type(frame)==str and os.path.isfile(frame):
-            img = AppKit.NSImage.alloc().initByReferencingFile_(frame)
-        else:
-            raise TypeError("Frames in QuicktimeMovie.addFrame() should be filenames, PIL images or numpy arrays. " +\
-                "Got a %s" %type(frame))
-        self.movie.addImage_forDuration_withAttributes_(img, duration, frameAttrs)
-        del img
-        os.remove(tmpFileName)
-        self.frameN += 1
-
-    def save(self, filename=None, compressed=True):
-        """Save the movie to the self.filename or to a new one if given
-        """
-        if filename==None: filename = self.filename
-        self.movie.writeToFile_withAttributes_(filename,
-            {QTKit.QTMovieFlatten:(not compressed)})#if True then there is no inter-frame compression
-        #self.movie.updateMovieFile()#this doesn't use QTExport settings and you end up with large files (uncompressed in time)
-    def __del__(self):
-        """Remove any tmp files if possible (including any from previous runs that garbage collection wasn't able to collect)
-        """
-        tmpFolder=tempfile.gettempdir()
-        #would be nice also to remove self._movTmpFileName, but this fouls up movie writing (even deleting afterwards!?)
-        files=glob.glob(os.path.join(tmpFolder,'*.psychopyTmp.png'))
-        for thisFile in files:
-            os.remove(thisFile)
+        raise NotImplementedError, "Support for Quicktime movies has been removed (at least for now). You need to export your frames as images (e.g. png files) and combine them yourself (e.g. with ffmpeg)"

@@ -677,13 +677,7 @@ class Window:
                     ' You can use quicktime movies (.mov) instead though.')
             makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
         elif fileExt in ['.mov', '.MOV']:
-            if sys.platform!='darwin':
-                raise IOError('Quicktime movies are only currently available under OSX.'+\
-                    ' Try using mpeg compression instead (.mpg).')
-            mov = makeMovies.QuicktimeMovie(fileName, fps=fps)
-            for frame in self.movieFrames:
-                mov.addFrame(frame)
-            mov.save()
+            raise NotImplementedError, "Support for Quicktime movies has been removed (at least for now). You need to export your frames as images (e.g. png files) and combine them yourself (e.g. with ffmpeg)"
         elif len(self.movieFrames)==1:
             self.movieFrames[0].save(fileName)
         else:
