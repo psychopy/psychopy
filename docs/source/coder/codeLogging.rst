@@ -56,7 +56,7 @@ For stimulus changes you probably want the log message to be timestamped based o
     win = visual.Window([400,400])
     win.flip()
     logging.log(level=logging.EXP, msg='sent immediately')
-    logging.logOnFlip(level=logging.EXP, msg='sent on actual flip')
+    win.logOnFlip(level=logging.EXP, msg='sent on actual flip')
     win.flip()
     
 Using a custom clock for logs
