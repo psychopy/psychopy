@@ -463,7 +463,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     if setStereo!=2 and stereo==True:
         logging.warn('Requested stereo setting was not possible')
 
-def initPyo(rate=44100, stereo=True, buffer=128):
+def initPyo(rate=44100, stereo=True, buffer=48):
     """setup the pyo (sound) server
     """
     global pyoSndServer, Sound
