@@ -170,3 +170,9 @@ instead (or as well as) of
                          '..',
                          'Frameworks',
                          libname))
+
+To build a 32-bit ffmpeg dylib
+--------------------------------
+configure --disable-static --enable-shared --disable-outdev=sdl --enable-runtime-cpudetect --disable-indev=jack --enable-zlib  --enable-libx264 --cc="clang -m32" --enable-gpl
+make
+sudo make install

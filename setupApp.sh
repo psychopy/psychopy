@@ -3,6 +3,8 @@
 #shouldn't need sudo for any of this - if so remove the dist, build and PsychoPy.egg-info
 
 echo DID YOU UPDATE THE CHANGELOG?
+sudo rm -r build
+
 python setup.py sdist --format=zip
 python setup.py egg_info
 python setup.py bdist_egg
@@ -10,7 +12,6 @@ python setup.py bdist_egg
 rm psychopy/demos/*.pyc
 rm psychopy/prefSite.cfg
 
-rm -r build
 rm -r dist/PsychoPy2.app
 rm -r ../dist/PsychoPy2.app
 python setupApp.py py2app #shouldn't need sudo for this
