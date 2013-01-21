@@ -116,7 +116,7 @@ class _SoundBase:
                 octave (8) is generally painful
         """
         self._snd = None  # Re-init sound to ensure bad values will raise RuntimeError during setting
-        
+
         try:#could be '440' meaning 440
             value = float(value)
         except:
@@ -463,11 +463,12 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     if setStereo!=2 and stereo==True:
         logging.warn('Requested stereo setting was not possible')
 
-def initPyo(rate=44100, stereo=True, buffer=256):
+def initPyo(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
     """
     global pyoSndServer, Sound
     Sound = SoundPyo
+
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
@@ -478,11 +479,26 @@ def initPyo(rate=44100, stereo=True, buffer=256):
             self.shutdown()
             self.logging.debug('pyo sound server shutdown')#this may never get printed
 
-    #create the instance of the server
-    pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=1).boot()
-    core.wait(0.25)
+    #check if we already have a server and kill it
+    if hasattr(pyoSndServer,'shutdown'):
+        #this doesn't appear to work!
+        pyoSndServer.stop()
+        core.wait(0.5)#make sure enough time passes for the server to shutdown
+        pyoSndServer.shutdown()
+        pyoSndServer.reinit(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio='coreaudio')
+        pyoSndServer.boot()
+    else:
+        #create the instance of the server
+        if platform=='darwin':
+            driver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
+        else:
+            driver='portaudio'
+        pyoSndServer = Server(sr=rate, nchnls=4, buffersize=buffer, audio=driver)
+        pyoSndServer.setVerbosity(1)
+        #do other config here as needed (setDuplex? setOutputDevice?)
+        pyoSndServer.boot()
+    core.wait(0.5)#wait for server to boot before starting te sound stream
     pyoSndServer.start()
-    core.wait(0.25)
     logging.debug('pyo sound server started')
     logging.flush()
 
