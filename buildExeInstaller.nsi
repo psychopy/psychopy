@@ -65,7 +65,7 @@ Section "PsychoPy" PsychoPy
   
   ;Store installation folder
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayName" "PsychoPy2 (Standalone)"  
-  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.50.00"   
+  WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayVersion" "1.76.00"   
   WriteRegStr HKLM "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\app\Resources\psychopy.ico" 
   WriteRegStr HKLM "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
   
