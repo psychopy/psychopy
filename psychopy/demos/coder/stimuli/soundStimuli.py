@@ -16,7 +16,8 @@ from psychopy import logging
 logging.console.setLevel(logging.DEBUG)#get messages about the sound lib as it loads
 
 from psychopy import sound,core, visual
-print 'Using %s for sounds' %sound.audioAPI
+sound.init(44100,buffer=128)
+print 'Using %s(%s) for sounds' %(sound.audioLib, sound.audioDriver)
 
 highA = sound.Sound('A',octave=3, sampleRate=44100, secs=0.8, bits=8)
 highA.setVolume(0.8)

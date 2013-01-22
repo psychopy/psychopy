@@ -1,13 +1,25 @@
 """Load and play sounds
 
-By default PsychoPy will try to use the following APIs, in this order, for
-sound reproduction but you can alter the order in preferences:
-    ['pyo', 'pygame']
+By default PsychoPy will try to use the following Libs, in this order, for
+sound reproduction but you can alter the order in preferences>general>audioLib:
+    ['pygame', 'pyo']
+If the lib is `pyo` then there is also a choice of the underlying sound driver.
+Under OSX this is currently set to use coreaudio (rather than portaudio) and on
+windows it will attempt to use an ASIO-based driver if found and fall back to
+DirectSound if not. These settings are not currently configurable but let the
+team know if you need that.
 
-The API being used will be stored as::
-    psychopy.sound.audioAPI
+The sound lib and driver (if lib==pyo) being used will be stored as::
+    `psychopy.sound.audioLib`
 
-pyo (a wrapper for portaudio):
+For control of bitrate and buffer size you can call psychopy.sound.init before
+creating your first Sound object::
+
+    from psychopy import sound
+    sound.init(rate=44100, stereo=True, buffer=128)
+    s1 = sound.Sound('ding.wav')
+
+pyo (a wrapper for portaudio and coreaudio):
     pros: low latency where drivers support it (on windows you may want to fetch ASIO4ALL)
     cons: new in PsychoPy 1.76.00
 
@@ -32,16 +44,14 @@ if platform=='win32':
 else:
     mediaLocation=""
 
-global audioAPI, Sound
+global audioLib, Sound, init
 global pyoSndServer
 pyoSndServer=None
 Sound = None
-audioAPI=None
+audioLib=None
 
-import pygame
-from pygame import mixer, sndarray
-preferredAPIs = preferences.Preferences().general['audio']
-for thisLibName in preferredAPIs:
+prefs = preferences.Preferences()
+for thisLibName in prefs.general['audioLib']:
     try:
         if thisLibName=='pyo':
             import pyo
@@ -50,15 +60,15 @@ for thisLibName in preferredAPIs:
             import pygame
             from pygame import mixer, sndarray
         else:
-            raise ValueError("Audio lib options are currently only 'pyo' or 'pyglet', not '%'" %thisLibName)
+            raise ValueError("Audio lib options are currently only 'pyo' or 'pygame', not '%'" %thisLibName)
     except:
         logging.warning('%s audio lib was requested but not loaded: %s' %(thisLibName, sys.exc_info()[1]))
         continue #to try next audio lib
     #if we got this far we were sucessful in loading the lib
-    audioAPI=thisLibName
+    audioLib=thisLibName
     break
 
-if audioAPI==None:
+if audioLib==None:
     logging.warning('No audio lib could be loaded. Sounds will not be available.')
 
 class _SoundBase:
@@ -294,7 +304,7 @@ class SoundPygame(_SoundBase):
         """Sets the current volume of the sound (0.0:1.0)"""
         self._snd.set_volume(newVol)
         if log and self.autoLog:
-            logging.exp("Set Sound %s volume=%.3f" %(self.name, value), obj=self)
+            logging.exp("Set Sound %s volume=%.3f" %(self.name, newVol), obj=self)
 
     def _fromFile(self, fileName):
 
@@ -464,8 +474,9 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 
     For more details see pygame help page for the mixer.
     """
-    global Sound
+    global Sound, audioDriver
     Sound = SoundPygame
+    audioDriver='n/a'
     if stereo==True: stereoChans=2
     else:   stereoChans=0
     if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
@@ -482,23 +493,29 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
-    outputID=None
-    driver=None
-    for devN, devString in enumerate(devNames):
-        print devString
-        if 'ASIO' in devString:
-            driver=devString
-            outputID=devIDs[devN]
-        elif 'Primary Sound' in devString:
-            driver=devString
-            outputID=devIDs[devN]
-            return driver, outputID #we found an asio driver don'w look for others
-    return driver, outputID
+    if platform=='win32':
+        preferredDrivers = ['ASIO','Primary Sound'] #primary sound= DirectSound
+    elif platform=='darwin':
+        preferredDrivers = ['coreaudio','portaudio']
+    else:
+        preferredDrivers = ['portaudio']
 
-def initPyo(rate=44100, stereo=True, buffer=48):
+    outputID=None
+    audioDriver=None
+    for prefDriver in preferredDrivers:
+        if prefDriver.lower()=='directsound':
+            prefDriver = 'Primary Sound'
+        #look for that driver in available devices
+        for devN, devString in enumerate(devNames):
+            if prefDriver in devString:
+                audioDriver=devString
+                outputID=devIDs[devN]
+                return audioDriver, outputID #we found an asio driver don'w look for others
+
+def initPyo(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
     """
-    global pyoSndServer, Sound, driver
+    global pyoSndServer, Sound, audioDriver
     Sound = SoundPyo
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
@@ -522,16 +539,16 @@ def initPyo(rate=44100, stereo=True, buffer=48):
     else:
         #create the instance of the server
         if platform=='darwin':
-            audioLib=driver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
+            audioLib=audioDriver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
         else:
             audioLib='portaudio'
         #in win32 we need to check for a valid device
         if platform=='win32':
             #check for valid output (speakers)
             devNames, devIDs=pyo.pa_get_output_devices()
-            driver,outputID=_bestDriver(devNames, devIDs)
+            audioDriver,outputID=_bestDriver(devNames, devIDs)
             if outputID:
-                logging.info('Using sound driver: %s (ID=%i)' %(driver, outputID))
+                logging.info('Using sound driver: %s (ID=%i)' %(audioDriver, outputID))
             else:
                 logging.warning('No audio outputs found (no speakers connected?')
                 return -1
@@ -558,14 +575,16 @@ def initPyo(rate=44100, stereo=True, buffer=48):
     logging.flush()
 
 def setAudioAPI(api):
-    """DEPCRECATED: please use preferences>general>audio to determine which audio lib to use"""
+    """DEPCRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise
 
 #initialise it and keep track
-if audioAPI is None:
+if audioLib is None:
     logging.error('No audio API found. Try installing pygame 1.8+')
-elif audioAPI=='pyo':
-    initPyo()
-elif audioAPI=='pygame':
-    initPygame()
+elif audioLib=='pyo':
+    init=initPyo
+    Sound=SoundPyo
+elif audioLib=='pygame':
+    init=initPygame
+    Sound=SoundPygame
 

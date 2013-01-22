@@ -18,6 +18,7 @@ win = visual.Window([800,800], monitor='testMonitor')
 win.setRecordFrameIntervals(False)
 stim = visual.PatchStim(win, color=-1, sf=0)
 
+sound.init(rate=44100, buffer=128)
 timeWithLabjack=True
 maxReps=100
 
@@ -66,11 +67,11 @@ while True:#run the repeats for this sound server
         while ports.readRegister(FIO6)==startVal and timer.getTime()<0.5:
             pass
         if timer.getTime()>0.5:
-            print 'failed to detec osund on FIO6'
+            print 'failed to detect sound on FIO6 (either inconsistent sound or needs to be louder)'
         t1 = timer.getTime()*1000
         sys.stdout.flush()
         delays.append(t1)
-        core.wait(0.3)#ensure sound has finished
+        core.wait(0.5)#ensure sound has finished
     #set color back to black and set FIO4 to low again
     stim.setColor(-1)
     stim.draw()
@@ -91,15 +92,20 @@ elif sys.platform.startswith('linux'):
 else:
     sysName = sysVer = 'n/a'
 
-audioAPI = sound.audioAPI
-if audioAPI=='pyo':
+audioLib = sound.audioLib
+if audioLib=='pyo':
     #for pyo we also want the undrelying driver (ASIO, windows etc)
     audioAPI = "%s_%s" %(audioAPI, sound.driver)
+    rate = sound.pyoSndServer.getSamplingRate()
+    buffer = sound.pyoSndServer.getBufferSize()
+else:
+    rate=sound.pygame.mixer.get_init()[0]
+    buffer=0
     
 #print 'OS\tOSver\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax'
 if timeWithLabjack:
-    print "%s\t%s\t%s\t%s"%(sysName, sysVer, audioAPI, psychopy.__version__),
-    print "\t%i\t%i" %(sound.pyoSndServer.getSamplingRate(),sound.pyoSndServer.getBufferSize()),
+    print "%s\t%s\t%s\t%s"%(sysName, sysVer, audioLib, psychopy.__version__),
+    print "\t%i\t%i" %(rate,buffer),
     print "\t%.3f\t%.3f" %(numpy.mean(delays), numpy.std(delays)),
     print "\t%.3f\t%.3f" %(numpy.min(delays), numpy.max(delays)),
      
