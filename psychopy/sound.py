@@ -463,12 +463,27 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     if setStereo!=2 and stereo==True:
         logging.warn('Requested stereo setting was not possible')
 
+def _bestDriver(devNames, devIDs):
+    """Find ASIO or Windows sound drivers
+    """
+    outputID=None
+    driver=None
+    for devN, devString in enumerate(devNames):
+        print devString
+        if 'ASIO' in devString:
+            driver=devString
+            outputID=devIDs[devN]
+        elif 'Primary Sound' in devString:
+            driver=devString
+            outputID=devIDs[devN]
+            return driver, outputID #we found an asio driver don'w look for others
+    return driver, outputID
+
 def initPyo(rate=44100, stereo=True, buffer=48):
     """setup the pyo (sound) server
     """
-    global pyoSndServer, Sound
+    global pyoSndServer, Sound, driver
     Sound = SoundPyo
-
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
@@ -477,6 +492,7 @@ def initPyo(rate=44100, stereo=True, buffer=48):
             self.stop()
             self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.shutdown()
+            self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.logging.debug('pyo sound server shutdown')#this may never get printed
 
     #check if we already have a server and kill it
@@ -490,11 +506,34 @@ def initPyo(rate=44100, stereo=True, buffer=48):
     else:
         #create the instance of the server
         if platform=='darwin':
-            driver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
+            audioLib=driver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
         else:
-            driver='portaudio'
-        pyoSndServer = Server(sr=rate, nchnls=4, buffersize=buffer, audio=driver)
+            audioLib='portaudio'
+        #in win32 we need to check for a valid device
+        if platform=='win32':
+            #check for valid output (speakers)
+            devNames, devIDs=pyo.pa_get_output_devices()
+            driver,outputID=_bestDriver(devNames, devIDs)
+            if outputID:
+                logging.info('Using sound driver: %s (ID=%i)' %(driver, outputID))
+            else:
+                logging.warning('No audio outputs found (no speakers connected?')
+                return -1
+            #check for valid input (mic)
+            devNames, devIDs = pyo.pa_get_input_devices()
+            junk, inputID=_bestDriver(devNames, devIDs)
+            if inputID:
+                duplex=True
+            else:
+                duplex=False
+        else:#for other platforms set duplex to True
+            duplex=True
+        pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, audio=audioLib,duplex=duplex)
         pyoSndServer.setVerbosity(1)
+        if platform=='win32':
+            pyoSndServer.setOutputDevice(outputID)
+            if inputID:
+                pyoSndServer.setInputDevice(inputID)
         #do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.boot()
     core.wait(0.5)#wait for server to boot before starting te sound stream
