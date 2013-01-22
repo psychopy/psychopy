@@ -27,7 +27,7 @@ proxies = None #if this is populated then it has been set up already
 # selector for tests and demos:
 SELECTOR_FOR_TEST_UPLOAD = 'http://upload.psychopy.org/test/up.php'
 BASIC_AUTH_CREDENTIALS = 'psychopy:open-sourc-ami'
-    
+
 
 def haveInternetAccess():
     """Detect active internet connection or fail quickly"""
@@ -46,7 +46,7 @@ def haveInternetAccess():
 def testProxy(handler, URL=None):
     """
     Test whether we can connect to a URL with the current proxy settings.
-    
+
     `handler` can be typically `web.proxies`, if `web.setupProxy()` has been run.
 
     :Returns:
@@ -246,7 +246,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
         BOUNDARY = u'----------ThIs_Is_tHe_bouNdaRY_$'
         CRLF = u'\r\n'
         L = []
-    
+
         for (key, value) in fields:
             L.append(u'--' + BOUNDARY)
             L.append(u'Content-Disposition: form-data; name="%s"' % key)
@@ -254,7 +254,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
             L.append(u'Content-Transfer-Encoding: 8bit')
             L.append(u'')
             L.append(value)
-    
+
         for (key, filename, value) in files:
             L.append(u'--' + BOUNDARY)
             L.append(u'Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
@@ -262,20 +262,20 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
             L.append(u'Content-Transfer-Encoding: base64')
             L.append(u'')
             L.append(base64.b64encode(value).decode())
-    
+
         L.append(u'--' + BOUNDARY + u'--')
         L.append(u'')
         body = CRLF.join(L)
         content_type = u'multipart/form-data; boundary=%s' % BOUNDARY
-    
+
         return content_type, body
-    
+
     def _get_content_type(filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-    
-    # start of _post_multipart main code: 
+
+    # start of _post_multipart main code:
     content_type, body = _encode_multipart_formdata(fields, files)
-    
+
     # select https -- note there's NO verification of the server’s certificate
     if https is True:
         conn = httplib.HTTPSConnection(host, timeout=timeout)
@@ -289,12 +289,12 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')
         headers.update({u"Authorization": u"Basic %s" % user_cred})
-    
+
     try:
         conn.request(u'POST', selector, body, headers)
     except: # ? don't seem to get a proper exception
         return -1, 'connection error (possible timeout after %ss)' % str(timeout), 'timeout or error'
-    
+
     try:
         result = conn.getresponse()
     except:
@@ -302,47 +302,47 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     return result.status, result.reason, result.read()
 
     ## end of http://code.activestate.com/recipes/146306/ }}}
-    
+
 def upload(selector, filename, basicAuth=None, host=None, https=False):
     """Upload a local file over the internet to a configured http server.
-    
+
     This method handshakes with a php script on a remote server to transfer a local
     file to another machine via http (using POST).
-    
+
     Returns "success" plus a sha256 digest of the file on the server and a byte count.
     If the upload was not successful, an error code is returned (eg, "too_large" if the
     file size exceeds the limit specified server-side in up.php, or "no_file" if there
     was no POST attachment).
-    
+
     .. note::
         The server that receives the files needs to be configured before uploading
         will work. php files and notes for a sys-admin are included in `psychopy/contrib/http/`.
         In particular, the php script `up.php` needs to be copied to the server's
         web-space, with appropriate permissions and directories, including apache
         basic auth and https (if desired). The maximum size for an upload can be configured within up.php
-    
+
         A configured test-server is available; see the Coder demo for details
         (upload size is limited to ~1500 characters for the demo).
-    
+
     **Parameters:**
-    
+
         `selector` : (required, string)
             a standard URL of the form `http://host/path/to/up.php`, e.g., `http://upload.psychopy.org/test/up.php`
-            
+
             .. note::
                 Limited https support is provided (see below).
-            
+
         `filename` : (required, string)
             the path to the local file to be transferred. The file can be any format:
             text, utf-8, binary. All files are hex encoded while in transit (increasing
             the effective file size).
-        
+
             .. note::
                 Encryption (*beta*) is available as a separate step. That is,
                 first :mod:`~psychopy.contrib.opensslwrap.encrypt()` the file,
                 then :mod:`~psychopy.web.upload()` the encrypted file in the same
                 way that you would any other file.
-        
+
         `basicAuth` : (optional)
             apache 'user:password' string for basic authentication. If a `basicAuth`
             value is supplied, it will be sent as the auth credentials (in cleartext);
@@ -351,10 +351,10 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
             The default process is to extract host information from the `selector`. The `host` option
             allows you to specify a host explicitly (i.e., if it differs from the `selector`).
         `https` : (optional)
-            If the remote server is configured to use https, passing the parameter 
+            If the remote server is configured to use https, passing the parameter
             `https=True` will encrypt the transmission including all data and `basicAuth`
             credentials. It is approximately as secure as using a self-signed X.509 certificate.
-            
+
             An important caveat is that the authenticity of the certificate returned from the
             server is not checked, and so the certificate could potentially be spoofed
             (see the warning under HTTPSConnection http://docs.python.org/library/httplib.html).
@@ -362,13 +362,13 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
             The encryption is good, but that of itself does not eliminate all risk.
             Importantly, it is not as secure as one might expect, given that all major web browsers
             do check certificate authenticity. The idea behind this parameter is to require people
-            to explicitly indicate that they want to proceed anyway, in effect saying 
-            "I know what I am doing and accept the risks (of using un-verified certificates)". 
-    
+            to explicitly indicate that they want to proceed anyway, in effect saying
+            "I know what I am doing and accept the risks (of using un-verified certificates)".
+
     **Example:**
-    
+
         See Coder demo / misc / http_upload.py
-    
+
     Author: Jeremy R. Gray, 2012
     """
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
@@ -406,7 +406,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
     except urllib2.URLError as ex:
         logging.error('upload: URL Error. (no internet connection?)')
         raise ex
-    
+
     # process the result:
     if status == 200:
         result_fields = result.split()
@@ -425,7 +425,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
         outcome = '400 Bad request: failed, possible config error'
     else:
         outcome = str(status) + ' ' + reason
-    
+
     if status == -1 or status > 299 or type(status) == str:
         logging.error('upload: ' + outcome[:102])
     else:
@@ -441,7 +441,7 @@ def _test_upload():
         """
         selector = SELECTOR_FOR_TEST_UPLOAD
         basicAuth = BASIC_AUTH_CREDENTIALS
-        
+
         # make a tmp dir just for testing:
         tmp = mkdtemp()
         filename = 'test.txt'
@@ -449,16 +449,16 @@ def _test_upload():
         f = open(tmp_filename, 'w+')
         f.write(stuff)
         f.close()
-        
+
         # get local sha256 before cleanup:
         digest = hashlib.sha256()
         digest.update(open(tmp_filename).read())
         dgst = digest.hexdigest()
-        
+
         # upload:
         status = upload(selector, tmp_filename, basicAuth)
         shutil.rmtree(tmp) # cleanup; do before asserts
-        
+
         # test
         good_upload = True
         disgest_match = False
@@ -469,19 +469,19 @@ def _test_upload():
             digest_match = True
         else:
             logging.error('digest mismatch')
-        
+
         logging.flush()
         assert good_upload # remote server FAILED to report success
         assert digest_match # sha256 mismatch local vs remote file
-        
+
         return int(status.split()[3]) # bytes
-        
+
     # test upload: normal text, binary:
     msg = PSYCHOPY_USERAGENT # can be anything
     print 'text:   '
     bytes = _upload(msg) #normal text
     assert (bytes == len(msg)) # FAILED to report len() bytes
-    
+
     print 'binary: '
     digest = hashlib.sha256()  # to get binary, 256 bits
     digest.update(msg)
@@ -492,9 +492,9 @@ def _test_upload():
 if __name__ == '__main__':
     """unit-tests for this module"""
     logging.console.setLevel(logging.DEBUG)
-    
+
     t0=time.time()
     print setupProxy()
     print 'setup proxy took %.2fs' %(time.time()-t0)
-    
+
     _test_upload()
