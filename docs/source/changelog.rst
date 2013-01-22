@@ -24,7 +24,14 @@ PsychoPy 1.76.00
 
 The compatibility changes in this release below are likely to affect very few users
 
-* CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution and the libraries to create .mov files using Window.saveMovieFrames(). If you need those features use the 1.75 Standalone and then update to 1.76 using the auto-update system.
+* ADDED: support for lower latency sound with the pyo library. For now pygame remains the default but this can be changed by setting the order in preferences>general>audio
+* CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution, as have the libraries to create .mov files using Window.saveMovieFrames(). If you need those features then install the 1.75 Standalone and then update to 1.76 using the auto-update system.
+* FIXED: a bug in the generation of the LMS color space conversion matrix. It seems nobody was actually using this for real, but if you were contact Jon for details!
+* CHANGED: various changes to RatingScale (thanks Henrik Singman):
+   * CHANGED: choices are now displayed at the tick marks by default (instead of above the line). To restore the old behavior set labels=False. This does not affect experiments created in older versions of the builder.
+   * ADDED: check box "choiceLabelsAboveLines" to the RatingScale component of the builder (advanced tab) to still have the choice labels above the line.
+   * ADDED: arguments tickMarks and labels to RatingScale class to control where tick marks (for quantitative rating scales) should be placed at the line and how these should be labeled.
+   * ADDED: argument ticksAboveLine to RatingScale class. Controls where the tick marks should be plotted (above or below the line).
 * FIXED: problem with unset exp.name (was causing wx.Dialog error "TypeError: String or Unicode type required" on new experiments)
 * :blue:`CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
 * FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
