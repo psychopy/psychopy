@@ -94,7 +94,7 @@ class _SoundBase:
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def setSound(self, value, secs=0.5, octave=4):
+    def setSound(self, value, secs=0.5, octave=4, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -135,11 +135,15 @@ class _SoundBase:
         elif type(value) in [list,numpy.ndarray]:
             #create a sound from the input array/list
             self._fromArray(value)
+        #did we succeed?
         if self._snd is None:
             raise RuntimeError, "I dont know how to make a "+value+" sound"
-        self.status=NOT_STARTED
+        else:
+            if log and self.autoLog:
+                logging.exp("Set %s sound=%s" %(self.name, value), obj=self)
+            self.status=NOT_STARTED
 
-    def play(self, fromStart=True):
+    def play(self, fromStart=True, log=True):
         """Starts playing the sound on an available channel.
         If no sound channels are available, it will not play and return None.
 
@@ -151,7 +155,7 @@ class _SoundBase:
         """
         pass #should be overridden
 
-    def stop(self):
+    def stop(self, log=True):
         """Stops the sound immediately"""
         pass #should be overridden
 
@@ -162,7 +166,7 @@ class _SoundBase:
         """Returns the current volume of the sound (0.0:1.0)"""
         pass #should be overridden
 
-    def setVolume(self,newVol):
+    def setVolume(self,newVol, log=True):
         """Sets the current volume of the sound (0.0:1.0)"""
         pass #should be overridden
     def _fromFile(self, fileName):
@@ -251,7 +255,7 @@ class SoundPygame(_SoundBase):
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def play(self, fromStart=True):
+    def play(self, fromStart=True, log=True):
         """Starts playing the sound on an available channel.
         If no sound channels are available, it will not play and return None.
 
@@ -263,10 +267,14 @@ class SoundPygame(_SoundBase):
         """
         self._snd.play()
         self.status=STARTED
-    def stop(self):
+        if log and self.autoLog:
+            logging.exp("Sound %s started" %(self.name), obj=self)
+    def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
         self.status=STOPPED
+        if log and self.autoLog:
+            logging.exp("Sound %s stopped" %(self.name), obj=self)
     def fadeOut(self,mSecs):
         """fades out the sound (when playing) over mSecs.
         Don't know why you would do this in psychophysics but it's easy
@@ -282,9 +290,11 @@ class SoundPygame(_SoundBase):
         """Returns the current volume of the sound (0.0:1.0)"""
         return self._snd.get_volume()
 
-    def setVolume(self,newVol):
+    def setVolume(self,newVol, log=True):
         """Sets the current volume of the sound (0.0:1.0)"""
         self._snd.set_volume(newVol)
+        if log and self.autoLog:
+            logging.exp("Set Sound %s volume=%.3f" %(self.name, value), obj=self)
 
     def _fromFile(self, fileName):
 
@@ -331,7 +341,7 @@ class SoundPygame(_SoundBase):
 class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
-    def __init__(self,value="C",secs=0.5,octave=4, stereo=True, sampleRate=44100, bits=16):
+    def __init__(self,value="C",secs=0.5,octave=4, stereo=True, sampleRate=44100, bits=16, name='', autoLog=True):
         """
         value: can be a number, string or an array.
 
@@ -369,12 +379,14 @@ class SoundPyo(_SoundBase):
         self.format = bits
         self.isStereo = stereo
         self.secs=secs
+        self.autoLog=autoLog
+        self.name=name
 
         #try to create sound
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def play(self, fromStart=True):
+    def play(self, fromStart=True, log=True):
         """Starts playing the sound on an available channel.
         If no sound channels are available, it will not play and return None.
 
@@ -386,16 +398,20 @@ class SoundPyo(_SoundBase):
         """
         self._snd.out()
         self.status=STARTED
+        if log and self.autoLog:
+            logging.exp("Sound %s started" %(self.name), obj=self)
 
     def _onEOS(self):
         #ToDo: is an EOS callback supported by pyo?
         self.status=FINISHED
         return True
 
-    def stop(self):
+    def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
         self.status=STOPPED
+        if log and self.autoLog:
+            logging.exp("Sound %s stopped" %(self.name), obj=self)
 
     def getDuration(self):
         """Return the duration of the sound file
@@ -407,7 +423,7 @@ class SoundPyo(_SoundBase):
         #ToDo : get volume for pyo
         return volume
 
-    def setVolume(self,newVol):
+    def setVolume(self,newVol, log=True):
         """Sets the current volume of the sound (0.0:1.0)"""
         #ToDo : set volume for pyo
         pass
