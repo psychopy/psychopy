@@ -337,7 +337,7 @@ class Experiment:
             for componentNode in routineNode:
                 componentType=componentNode.tag
                 #create an actual component of that type
-                component=getAllComponents()[componentType](\
+                component=getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior (currently only the new behavior of choices for RatingScale, HS, November 2012)
