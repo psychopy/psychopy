@@ -5507,7 +5507,8 @@ class BufferImageStim(GratingStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, vertMirror=False, name='', autoLog=True):
+        stim=(), interpolate=True, vertMirror=False, horizMirror=False,
+        name='', autoLog=True):
         """
         :Parameters:
 
@@ -5531,9 +5532,11 @@ class BufferImageStim(GratingStim):
                 - False (default) = use rect for size if OpenGL = 2.1+
                 - True = use square, power-of-two image sizes
             vertMirror :
-                whether to vertically flip (mirror) the captured image; default = False
+                vertically flip (mirror) the captured image; default = False
+            horizMirror :
+                horizontally flip (mirror) the captured image, default = False
             name : string
-                The name of the object to be using during logged messages about this stim
+                The name of the object to be using in log messages about this stim
         """
         # depends on: window._getRegionOfFrame
 
@@ -5549,8 +5552,6 @@ class BufferImageStim(GratingStim):
                         logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
-
-        self.vertMirror = vertMirror # used in .draw()
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
@@ -5570,7 +5571,12 @@ class BufferImageStim(GratingStim):
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+
         self.thisScale = 2.0/numpy.array(self.win.size)
+        if horizMirror:
+            self.thisScale *= [-1,1]
+        if vertMirror:
+            self.thisScale *= [1,-1]
 
     def setTex(self, tex, interpolate=True, log=True):
         # setTex is called only once
@@ -5580,10 +5586,7 @@ class BufferImageStim(GratingStim):
         useShaders = self._useShaders
         self.interpolate = interpolate
 
-        if self.vertMirror:
-            im = tex # looks backwards, but is correct
-        else:
-            im = tex.transpose(Image.FLIP_TOP_BOTTOM)
+        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self.origSize=im.size
 
         #im = im.convert("RGBA") # should be RGBA because win._getRegionOfFrame() returns RGBA
