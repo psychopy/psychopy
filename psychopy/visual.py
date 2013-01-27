@@ -5529,9 +5529,11 @@ class BufferImageStim(GratingStim):
                 which is the area to capture from the screen, given in norm units.
                 default is fullscreen: [-1, 1, 1, -1]
             stim :
-                a list of item(s) to be drawn to the buffer in order, then captured.
-                each item needs to have its own .draw() method, and have the same
-                window as win
+                a list of item(s) to be drawn to the back buffer (in order). The back
+                buffer is first cleared (without the win being flip()ed), then stim items
+                are drawn, and finally the buffer (or part of it) is captured.
+                Each item needs to have its own .draw() method, and have the same
+                window as win.
             interpolate :
                 whether to use interpolation (default = True, generally good,
                 especially if you change the orientation)
