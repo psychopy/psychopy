@@ -5499,10 +5499,10 @@ class BufferImageStim(GratingStim):
         myTextStim = ...
         stimList = [mySimpleImageStim, myTextStim]
 
-        # draw stim list items & capture everything (slow):
+        # draw stim list items & capture (slow; see EXP log for time required):
         screenshot = visual.BufferImageStim(myWin, stim=stimList)
 
-        # render to screen (fast):
+        # render to screen (very fast, except for the first draw):
         while <conditions>:
             screenshot.draw()  # fast; can vary .ori, ._position, .opacity
             other_stuff.draw() # dynamic
@@ -5549,6 +5549,7 @@ class BufferImageStim(GratingStim):
         """
         # depends on: window._getRegionOfFrame
 
+        _clock = core.Clock()
         if len(list(stim)) > 0: # draw all stim to the back buffer
             win.clearBuffer()
             logging.debug('BufferImageStim.__init__: clearing back buffer')
@@ -5587,7 +5588,10 @@ class BufferImageStim(GratingStim):
         if vertMirror:
             self.thisScale *= [1,-1]
 
+        logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+
     def setTex(self, tex, interpolate=True, log=True):
+        """(This is not typically called directly.)"""
         # setTex is called only once
         self._texName = tex
         id = self.texID
