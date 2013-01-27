@@ -4082,6 +4082,7 @@ class TextStim(_BaseVisualStim):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
+                 horizMirror=False, vertMirror=False,
                  name='', autoLog=True):
         """
         :Parameters:
@@ -4132,6 +4133,10 @@ class TextStim(_BaseVisualStim):
                 A list of additional files if the font is not in the standard system location (include the full path)
             wrapWidth:
                 The width the text should run before wrapping
+            horizMirror : boolean
+                Mirror-reverse the text in the left-right direction
+            vertMirror : boolean
+                Mirror-reverse the text in the up-down direction
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -4155,6 +4160,7 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self.wrapWidth=wrapWidth
+        self.mirror = [(1,-1)[horizMirror], (1,-1)[vertMirror], 1] # x, y, z
         self._pygletTextObj=None
 
         self.pos= numpy.array(pos, float)
@@ -4571,6 +4577,7 @@ class TextStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)#NB depth is set already
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
+        GL.glScalef(*self.mirror)
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
