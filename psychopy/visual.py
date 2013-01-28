@@ -6410,29 +6410,35 @@ class RatingScale:
 
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
-                                    color=self.textColor, colorSpace=self.textColorSpace,
-                                    pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
-                                    name=self.name+'.scale')
+            color=self.textColor, colorSpace=self.textColorSpace,
+            pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
+            wrapWidth=2 * self.stretchHoriz * self.displaySizeFactor,
+            name=self.name+'.scale')
         self.scaleDescription.setFont(textFont)
         self.lowAnchor = TextStim(win=self.win,
-                            pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
-                            name=self.name+'.lowAnchor')
+            pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+            height=self.textSizeSmall,
+            color=self.textColor, colorSpace=self.textColorSpace,
+            name=self.name+'.lowAnchor')
         self.lowAnchor.setFont(textFont)
         self.lowAnchor.setText(lowText)
         self.highAnchor = TextStim(win=self.win,
-                            pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
-                            name=self.name+'.highAnchor')
+            pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+            height=self.textSizeSmall,
+            color=self.textColor, colorSpace=self.textColorSpace,
+            name=self.name+'.highAnchor')
         self.highAnchor.setFont(textFont)
         self.highAnchor.setText(highText)
         self.labels = []
         if self.labelTexts:
             for c, lab in enumerate(self.labelTexts):
                 self.labels.append(TextStim(win = self.win, text = unicode(lab),
-                            pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace, name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
+                    pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+                    height=self.textSizeSmall,
+                    color=self.textColor, colorSpace=self.textColorSpace,
+                    name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
         self.setDescription(scale) # do after having set the relevant things
     def setDescription(self, scale):
         """Method to set the description that appears above the line, (e.g., "1=not at all...extremely=7")
