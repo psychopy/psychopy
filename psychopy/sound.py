@@ -11,6 +11,7 @@ team know if you need that.
 
 The sound lib and driver (if lib==pyo) being used will be stored as::
     `psychopy.sound.audioLib`
+    `psychopy.sound.audioDriver`
 
 For control of bitrate and buffer size you can call psychopy.sound.init before
 creating your first Sound object::
@@ -44,11 +45,12 @@ if platform=='win32':
 else:
     mediaLocation=""
 
-global audioLib, Sound, init
+global audioLib, audioDriver, Sound, init
 global pyoSndServer
 pyoSndServer=None
 Sound = None
 audioLib=None
+audioDriver=None
 
 prefs = preferences.Preferences()
 for thisLibName in prefs.general['audioLib']:
@@ -490,13 +492,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
-    if platform=='win32':
-        preferredDrivers = ['Primary Sound','ASIO',] #primary sound= DirectSound
-    elif platform=='darwin':
-        preferredDrivers = ['coreaudio','portaudio']
-    else:
-        preferredDrivers = ['portaudio']
-
+    preferredDrivers = prefs.general['audioDriver']
     outputID=None
     audioDriver=None
     for prefDriver in preferredDrivers:
@@ -572,7 +568,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     logging.flush()
 
 def setaudioLib(api):
-    """DEPCRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
+    """DEPRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise
 
 #initialise it and keep track

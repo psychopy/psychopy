@@ -36,6 +36,7 @@
     paths=list(default=list())
     #choice of audio library
     audioLib = list(default=list('pygame', 'pyo'))
+    audioDriver = list(default=list('portaudio'))
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

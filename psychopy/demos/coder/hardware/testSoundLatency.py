@@ -2,7 +2,7 @@
 
 """This demo allows for automated testing of the sound latency on your system.
 To use it you need a labjack (or adapt for a similar device) and a cable to 
-connect the earphones jack to the FIO6 (and GND) pins of the labjack.
+connect the earphones jack to the AIN0 (and GND) pins of the labjack.
 
 (The PsychoPy team would be interested to hear how your measurements go)
 
@@ -18,20 +18,19 @@ win = visual.Window([800,800], monitor='testMonitor')
 win.setRecordFrameIntervals(False)
 stim = visual.PatchStim(win, color=-1, sf=0)
 
-sound.init(rate=44100, buffer=128)
+sound.init(rate=48000, buffer=48)
+print 'Using %s(with %s) for sounds' %(sound.audioLib, sound.audioDriver)
 timeWithLabjack=True
-maxReps=500
+maxReps=100
 
 #setup labjack U3
 ports = u3.U3()
 ports.__del__=ports.close#try to autoclose the ports if script crashes (not working?)
 
-FIO4 = 6004 #use as trigger (to view on scope if desired)
-FIO6 = 6006 #use to read in microphone
 #get zero value of FIO6
-startVal = ports.readRegister(FIO6)
-print 'FIO6 is at', startVal
-
+startVal = ports.getFIOState(6) #is FIO6 high or low?
+print 'FIO6 is at', startVal, 
+print 'AIN0 is at', ports.getAIN(0)
 if timeWithLabjack:
     print 'OS\tOSver\taudioAPI\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax'
 
@@ -44,7 +43,7 @@ while True:#run the repeats for this sound server
         core.quit()
     nReps+=1
     #do this repeatedly for timing tests
-    ports.writeRegister(FIO4,0)#start low
+    ports.setFIOState(4,0)#start FIO4 low
 
     #draw black square
     stim.draw()
@@ -58,17 +57,23 @@ while True:#run the repeats for this sound server
     stim.setColor(1)
     stim.draw()
     win.flip()
-    ports.writeRegister(FIO4,1)
+    
+    startVal=ports.getAIN(0)
+#    print 'AIN0 is at', startVal
+    ports.setFIOState(4,1)
     
     timer=core.Clock()
     snd.play()
     
     if timeWithLabjack:
-        while ports.readRegister(FIO6)==startVal and timer.getTime()<0.5:
+        while abs(ports.getAIN(0)-startVal)<0.1 and timer.getTime()<1.0:
             pass
-        if timer.getTime()>0.5:
-            print 'failed to detect sound on FIO6 (either inconsistent sound or needs to be louder)'
         t1 = timer.getTime()*1000
+        if timer.getTime()>1.0:
+            print 'failed to detect sound on FIO6 (either inconsistent sound or needs to be louder)'
+#        for n in range(5):
+#            core.wait(0.001)
+#            print 'AIN0 now', ports.getAIN(0)
         sys.stdout.flush()
         delays.append(t1)
         core.wait(0.5)#ensure sound has finished
@@ -76,7 +81,7 @@ while True:#run the repeats for this sound server
     stim.setColor(-1)
     stim.draw()
     win.flip()
-    ports.writeRegister(FIO4,0)
+    ports.setFIOState(4,0) #set FIO4 to low again
     if nReps>=maxReps:
         break
 
@@ -95,7 +100,7 @@ else:
 audioLib = sound.audioLib
 if audioLib=='pyo':
     #for pyo we also want the undrelying driver (ASIO, windows etc)
-    audioAPI = "%s_%s" %(audioAPI, sound.driver)
+    audioLib = "%s_%s" %(sound.audioLib, sound.audioDriver)
     rate = sound.pyoSndServer.getSamplingRate()
     buffer = sound.pyoSndServer.getBufferSize()
 else:
