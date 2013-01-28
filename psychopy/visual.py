@@ -4160,7 +4160,7 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self.wrapWidth=wrapWidth
-        self.mirror = [(1,-1)[horizMirror], (1,-1)[vertMirror], 1] # x, y, z
+        self.setMirror(horizMirror, vertMirror)
         self._pygletTextObj=None
 
         self.pos= numpy.array(pos, float)
@@ -4557,6 +4557,24 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
+    def setMirror(self, horiz=False, vert=False):
+        """takes horiz and vert as boolean, sets mirroring on (if True) or off
+        """
+        # returns (x,y,z) tuple: 1 normal, -1 mirrored; see glScalef() in draw
+        try:
+            # this complexity is intended to make Text components easier.
+            # if "var = (False, True)" is in a code component
+            # then '$var' in Mirror box --> text.setMirror(var) in code
+            if type(horiz) in [list, tuple] and len(horiz) > 1:
+                vert = horiz[1]
+                horiz = horiz[0]
+        except:
+            pass
+        try:
+            self.mirror = ((1,-1)[bool(horiz)], (1,-1)[bool(vert)], 1)
+        except:
+            self.mirror = (1, 1, 1)  # no mirroring if unclear what is wanted
+            logging.warning('TextStim.setMirror failed %s' % self.name)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
