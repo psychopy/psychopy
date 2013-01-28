@@ -5,7 +5,7 @@ or emulate sync pulses and user responses. Emulation is to allow debugging scrip
 offline, without requiring either a scanner or a hardware sync pulse emulator.
 """
 
-__author__ = 'Jeremy Gray'
+# Author: Jeremy R. Gray
 
 from psychopy import visual, event, core, gui
 from psychopy.hardware.emulator import launchScan

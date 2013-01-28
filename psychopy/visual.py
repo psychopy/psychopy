@@ -4082,6 +4082,7 @@ class TextStim(_BaseVisualStim):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
+                 horizMirror=False, vertMirror=False,
                  name='', autoLog=True):
         """
         :Parameters:
@@ -4132,6 +4133,10 @@ class TextStim(_BaseVisualStim):
                 A list of additional files if the font is not in the standard system location (include the full path)
             wrapWidth:
                 The width the text should run before wrapping
+            horizMirror : boolean
+                Mirror-reverse the text in the left-right direction
+            vertMirror : boolean
+                Mirror-reverse the text in the up-down direction
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -4155,6 +4160,7 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self.wrapWidth=wrapWidth
+        self.mirror = [(1,-1)[horizMirror], (1,-1)[vertMirror], 1] # x, y, z
         self._pygletTextObj=None
 
         self.pos= numpy.array(pos, float)
@@ -4571,6 +4577,7 @@ class TextStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)#NB depth is set already
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
+        GL.glScalef(*self.mirror)
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -5492,10 +5499,10 @@ class BufferImageStim(GratingStim):
         myTextStim = ...
         stimList = [mySimpleImageStim, myTextStim]
 
-        # draw stim list items & capture everything (slow):
+        # draw stim list items & capture (slow; see EXP log for time required):
         screenshot = visual.BufferImageStim(myWin, stim=stimList)
 
-        # render to screen (fast):
+        # render to screen (very fast, except for the first draw):
         while <conditions>:
             screenshot.draw()  # fast; can vary .ori, ._position, .opacity
             other_stuff.draw() # dynamic
@@ -5507,7 +5514,8 @@ class BufferImageStim(GratingStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, vertMirror=False, name='', autoLog=True):
+        stim=(), interpolate=True, vertMirror=False, horizMirror=False,
+        name='', autoLog=True):
         """
         :Parameters:
 
@@ -5521,9 +5529,11 @@ class BufferImageStim(GratingStim):
                 which is the area to capture from the screen, given in norm units.
                 default is fullscreen: [-1, 1, 1, -1]
             stim :
-                a list of item(s) to be drawn to the buffer in order, then captured.
-                each item needs to have its own .draw() method, and have the same
-                window as win
+                a list of item(s) to be drawn to the back buffer (in order). The back
+                buffer is first cleared (without the win being flip()ed), then stim items
+                are drawn, and finally the buffer (or part of it) is captured.
+                Each item needs to have its own .draw() method, and have the same
+                window as win.
             interpolate :
                 whether to use interpolation (default = True, generally good,
                 especially if you change the orientation)
@@ -5531,12 +5541,15 @@ class BufferImageStim(GratingStim):
                 - False (default) = use rect for size if OpenGL = 2.1+
                 - True = use square, power-of-two image sizes
             vertMirror :
-                whether to vertically flip (mirror) the captured image; default = False
+                vertically flip (mirror) the captured image; default = False
+            horizMirror :
+                horizontally flip (mirror) the captured image, default = False
             name : string
-                The name of the object to be using during logged messages about this stim
+                The name of the object to be using in log messages about this stim
         """
         # depends on: window._getRegionOfFrame
 
+        _clock = core.Clock()
         if len(list(stim)) > 0: # draw all stim to the back buffer
             win.clearBuffer()
             logging.debug('BufferImageStim.__init__: clearing back buffer')
@@ -5549,8 +5562,6 @@ class BufferImageStim(GratingStim):
                         logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
                 except AttributeError:
                     logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
-
-        self.vertMirror = vertMirror # used in .draw()
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
@@ -5570,9 +5581,17 @@ class BufferImageStim(GratingStim):
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+
         self.thisScale = 2.0/numpy.array(self.win.size)
+        if horizMirror:
+            self.thisScale *= [-1,1]
+        if vertMirror:
+            self.thisScale *= [1,-1]
+
+        logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
     def setTex(self, tex, interpolate=True, log=True):
+        """(This is not typically called directly.)"""
         # setTex is called only once
         self._texName = tex
         id = self.texID
@@ -5580,10 +5599,7 @@ class BufferImageStim(GratingStim):
         useShaders = self._useShaders
         self.interpolate = interpolate
 
-        if self.vertMirror:
-            im = tex # looks backwards, but is correct
-        else:
-            im = tex.transpose(Image.FLIP_TOP_BOTTOM)
+        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self.origSize=im.size
 
         #im = im.convert("RGBA") # should be RGBA because win._getRegionOfFrame() returns RGBA
@@ -6394,29 +6410,35 @@ class RatingScale:
 
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
-                                    color=self.textColor, colorSpace=self.textColorSpace,
-                                    pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
-                                    name=self.name+'.scale')
+            color=self.textColor, colorSpace=self.textColorSpace,
+            pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
+            wrapWidth=2 * self.stretchHoriz * self.displaySizeFactor,
+            name=self.name+'.scale')
         self.scaleDescription.setFont(textFont)
         self.lowAnchor = TextStim(win=self.win,
-                            pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
-                            name=self.name+'.lowAnchor')
+            pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+            height=self.textSizeSmall,
+            color=self.textColor, colorSpace=self.textColorSpace,
+            name=self.name+'.lowAnchor')
         self.lowAnchor.setFont(textFont)
         self.lowAnchor.setText(lowText)
         self.highAnchor = TextStim(win=self.win,
-                            pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                            -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                            height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace,
-                            name=self.name+'.highAnchor')
+            pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
+                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+            height=self.textSizeSmall,
+            color=self.textColor, colorSpace=self.textColorSpace,
+            name=self.name+'.highAnchor')
         self.highAnchor.setFont(textFont)
         self.highAnchor.setText(highText)
         self.labels = []
         if self.labelTexts:
             for c, lab in enumerate(self.labelTexts):
                 self.labels.append(TextStim(win = self.win, text = unicode(lab),
-                            pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert], height=self.textSizeSmall, color=self.textColor, colorSpace=self.textColorSpace, name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
+                    pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
+                    height=self.textSizeSmall,
+                    color=self.textColor, colorSpace=self.textColorSpace,
+                    name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
         self.setDescription(scale) # do after having set the relevant things
     def setDescription(self, scale):
         """Method to set the description that appears above the line, (e.g., "1=not at all...extremely=7")
