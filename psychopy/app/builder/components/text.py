@@ -19,6 +19,7 @@ class TextComponent(VisualComponent):
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
+                mirrorHoriz=False, mirrorVert=False,
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, exp, parentName, name=name, units=units,
@@ -51,6 +52,15 @@ class TextComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint="How wide should the text get when it wraps? (in the specified units)",
             label="Wrap width")
+        self.params['mirrorHoriz']=Param(mirrorHoriz, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
+            hint="Display the text as if seen in a mirror (left-right reversed)",
+            label="Mirror left-right")
+        self.params['mirrorVert']=Param(mirrorVert, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
+            hint="Display the text as if seen in a mirror (up-down reversed)",
+            label="Mirror up-down")
+
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""
@@ -65,4 +75,5 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
         depth=-self.getPosInRoutine()
+        buff.writeIndented("    horizMirror=%(mirrorHoriz)s, vertMirror=%(mirrorVert)s," % inits)
         buff.writeIndented("    depth=%.1f)\n" %(depth))

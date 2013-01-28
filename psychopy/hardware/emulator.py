@@ -223,7 +223,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     mode = mode.capitalize()
     if mode not in ['Scan', 'Test']:
         run_type = visual.RatingScale(win, choices=['Scan', 'Test'], markerStyle='circle',
-            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.95),
+            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.9),
             markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray')
         while run_type.noResponse: 
             instr.draw()
