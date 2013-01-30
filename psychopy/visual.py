@@ -1215,7 +1215,7 @@ class _BaseVisualStim:
                 # >1.0 increases contrast. (See warning below)
                 # <-1.0 inverts with increased contrast (See warning below)
 
-            WARNING. Setting contrast below -1 og above 1 will produce strange results if this forces the stimulus to blacker-than-black or whiter-than-white.
+            WARNING. Setting contrast below -1 or above 1 will produce strange results if this forces the stimulus to blacker-than-black or whiter-than-white.
 
         operation : one of '+','-','*','/', or '' for no operation (simply replace value)
         """

@@ -239,12 +239,9 @@ class SoundPygame(_SoundBase):
             output sounds in the bottom octave (1) and the top
             octave (8) is generally painful
 
-        sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
-            sample rate for all sounds (once initialised)
+        sampleRate(=44100): If a sound has already been created or if the
 
-        bits(=16): Only 8- and 16-bits supported so far.
-            Only used for sounds using pyglet. Pygame uses the same
-            sample rate for all sounds (once initialised)
+        bits(=16):  Pygame uses the same bit depth for all sounds once initialised
     """
     def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16, name='', autoLog=True):
         """
@@ -375,17 +372,17 @@ class SoundPyo(_SoundBase):
             output sounds in the bottom octave (1) and the top
             octave (8) is generally painful
 
-        sampleRate(=44100): only used for sounds using pyglet. Pygame uses one rate for all sounds
-            sample rate for all sounds (once initialised)
+        sampleRate(=44100): if the psychopy.sound.init() function has been called
+            or if another sound has already been created then this argument will be
+            ignored and the previous setting will be used
 
-        bits(=16): Only 8- and 16-bits supported so far.
-            Only used for sounds using pyglet. Pygame uses the same
-            sample rate for all sounds (once initialised)
+        bits: has no effect for the pyo backend
         """
         global pyoSndServer
         if pyoSndServer==None:
-            initPyo()
-        self.sampleRate=sampleRate
+            initPyo(rate=sampleRate)
+
+        self.sampleRate=pyoSndServer.getSamplingRate()
         self.format = bits
         self.isStereo = stereo
         self.secs=secs
@@ -494,7 +491,7 @@ def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
     if platform=='win32':
-        preferredDrivers = ['ASIO','Primary Sound'] #primary sound= DirectSound
+        preferredDrivers = ['Primary Sound','ASIO',] #primary sound= DirectSound
     elif platform=='darwin':
         preferredDrivers = ['coreaudio','portaudio']
     else:
@@ -574,7 +571,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     logging.debug('pyo sound server started')
     logging.flush()
 
-def setAudioAPI(api):
+def setaudioLib(api):
     """DEPCRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise
 

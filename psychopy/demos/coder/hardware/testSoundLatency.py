@@ -20,7 +20,7 @@ stim = visual.PatchStim(win, color=-1, sf=0)
 
 sound.init(rate=44100, buffer=128)
 timeWithLabjack=True
-maxReps=100
+maxReps=500
 
 #setup labjack U3
 ports = u3.U3()
