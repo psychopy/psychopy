@@ -41,7 +41,7 @@ longSentence = visual.TextStim(myWin,
                         pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom') 
 mirror = visual.TextStim(myWin, text="mirror mirror",
                         units='norm', height=0.12, color='Silver',
-                        pos=[0, -0.5], alignHoriz='center', horizMirror=True) 
+                        pos=[0, -0.5], alignHoriz='center', flipHoriz=True)
 trialClock = core.Clock()
 t=lastFPSupdate=0;
 while t < 20 and not 'escape' in event.getKeys():#quits after 20 secs

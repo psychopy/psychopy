@@ -19,7 +19,7 @@ class TextComponent(VisualComponent):
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
-                mirrorHoriz=False, mirrorVert=False,
+                flip='',
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, exp, parentName, name=name, units=units,
@@ -52,14 +52,10 @@ class TextComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint="How wide should the text get when it wraps? (in the specified units)",
             label="Wrap width")
-        self.params['mirrorHoriz']=Param(mirrorHoriz, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Display the text as if seen in a mirror (left-right reversed)",
-            label="Mirror left-right")
-        self.params['mirrorVert']=Param(mirrorVert, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Display the text as if seen in a mirror (up-down reversed)",
-            label="Mirror up-down")
+        self.params['flip']=Param(flip, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
+            hint="'horiz' = left-right reversed; 'vert' = up-down reversed; $var = variable",
+            label="Flip (mirror)")
 
     def writeInitCode(self,buff):
         #do we need units code?
@@ -70,10 +66,16 @@ class TextComponent(VisualComponent):
         if self.params['wrapWidth'].val in ['','None','none']:
             inits['wrapWidth']='None'
         buff.writeIndented("%(name)s = visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
-        buff.writeIndented("    text=%(text)s,\n" %inits)
+        buff.writeIndented("    text=%(text)s," %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
+        flip = self.params['flip'].val
+        if flip == 'horiz':
+            buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
+        elif flip == 'vert':
+            buff.writeIndented("    flipVert=%s," % bool(flip == 'vert') )
+        elif '$' in flip and self.params['flip'].updates == 'constant':
+            print 'Warning: %s Flip appears to be variable, but updates are constant' % self.params['name']
         depth=-self.getPosInRoutine()
-        buff.writeIndented("    horizMirror=%(mirrorHoriz)s, vertMirror=%(mirrorVert)s," % inits)
         buff.writeIndented("    depth=%.1f)\n" %(depth))
