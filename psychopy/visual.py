@@ -4570,10 +4570,16 @@ class TextStim(_BaseVisualStim):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
-        set.flipVert = newVal
+        self.flipVert = newVal
         if log and self.autoLog:
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
                 level=logging.EXP, obj=self)
+    def setFlip(self, direction, log=True):
+        """(used by Builder to simplify the dialog)"""
+        if direction == 'vert':
+            self.setFlipVert(True, log=log)
+        elif direction == 'horiz':
+            self.setFlipHoriz(True, log=log)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -5621,7 +5627,6 @@ class BufferImageStim(GratingStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
                 level=logging.EXP, obj=self)
-
     def setTex(self, tex, interpolate=True, log=True):
         """(This is not typically called directly.)"""
         # setTex is called only once

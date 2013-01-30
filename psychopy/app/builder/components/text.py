@@ -19,7 +19,7 @@ class TextComponent(VisualComponent):
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
-                mirror='',
+                flip='',
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, exp, parentName, name=name, units=units,
@@ -52,10 +52,10 @@ class TextComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint="How wide should the text get when it wraps? (in the specified units)",
             label="Wrap width")
-        self.params['mirror']=Param(mirror, valType='str', allowedTypes=[],
+        self.params['flip']=Param(flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
-            hint="'horiz' = left-right reversed; 'vert' = up-down reversed; $var = dynamic",
-            label="Mirror")
+            hint="'horiz' = left-right reversed; 'vert' = up-down reversed; $var = variable",
+            label="Flip (mirror)")
 
     def writeInitCode(self,buff):
         #do we need units code?
@@ -70,34 +70,12 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    font=%(font)s,\n" %inits)
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
-        mirror = self.params['mirror'].val
-        if len(mirror) and not '$' in mirror: # $ for code
-            mirrorHoriz = bool(mirror == 'horiz')
-            mirrorVert = bool(mirror == 'vert')
-            if mirrorHoriz or mirrorVert:
-                buff.writeIndented("    horizMirror=%s, vertMirror=%s,\n" % (mirrorHoriz, mirrorVert) )
+        flip = self.params['flip'].val
+        if flip == 'horiz':
+            buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
+        elif flip == 'vert':
+            buff.writeIndented("    flipVert=%s," % bool(flip == 'vert') )
+        elif '$' in flip and self.params['flip'].updates == 'constant':
+            print 'Warning: %s Flip appears to be variable, but updates are constant' % self.params['name']
         depth=-self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" %(depth))
-
-    def writeFrameCode(self,buff):
-        """Write the code that will be called every frame
-        """
-        buff.writeIndented("\n")
-        buff.writeIndented("# *%s* updates\n" %(self.params['name']))
-        if '$' in self.params['mirror'].val:
-            buff.writeIndented("%s.setMirror(%s)\n" % (self.params['name'], str(self.params['mirror'])))
-
-        self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%(name)s.setAutoDraw(True)\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
-        #test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
-            self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
-            buff.writeIndented("%(name)s.setAutoDraw(False)\n" %(self.params))
-            buff.setIndentLevel(-1, relative=True)#to get out of the if statement
-        #set parameters that need updating every frame
-        if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
-            buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
-            buff.setIndentLevel(+1, relative=True)#to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)#to exit the if block
