@@ -7213,6 +7213,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         #try to simply feed it to PIL, whatever it is
         loaded = True
         try:
+            tex.seek(0)
             im = Image.open(tex)
             im = im.transpose(Image.FLIP_TOP_BOTTOM) # images are flipped on display
         except Exception:
