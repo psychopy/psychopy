@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.02.0.18-1) unstable; urgency=low
+
+  * Fixed error when reusing files in experiments.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 31 Jan 2013 18:51:00 +0100
+
 psychopy-openbci (1.75.02.0.17-1) unstable; urgency=low
 
   * New upstream release.
