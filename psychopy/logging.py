@@ -21,7 +21,7 @@ messages, (which PsychoPy doesn't use) using the commands::
 
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 #Much of the code below is based conceptually, if not syntactically, on the
