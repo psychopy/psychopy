@@ -3,7 +3,7 @@
 
 """Basic file encryption for psych & human neuro research, using openssl."""
 
-# Copyright (c) Jonathan Peirce, 2012
+# Copyright (c) Jonathan Peirce, 2013
 # released under the GPLv3 licence with an additional exemption
 # (following the advice here: http://www.openssl.org/support/faq.html#LEGAL2):
 # This program is released under the GPL with the additional exemption that
