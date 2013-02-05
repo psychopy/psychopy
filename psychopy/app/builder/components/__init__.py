@@ -147,6 +147,9 @@ def getInitVals(params):
         elif name == 'text':
             inits[name].val="nonsense"
             inits[name].valType='str'
+        elif name == 'flip':
+            inits[name].val=""
+            inits[name].valType='str'
         elif name == 'sound':
             inits[name].val="A"
             inits[name].valType='str'

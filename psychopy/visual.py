@@ -4082,7 +4082,7 @@ class TextStim(_BaseVisualStim):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
-                 horizMirror=False, vertMirror=False,
+                 flipHoriz=False, flipVert=False,
                  name='', autoLog=True):
         """
         :Parameters:
@@ -4133,9 +4133,9 @@ class TextStim(_BaseVisualStim):
                 A list of additional files if the font is not in the standard system location (include the full path)
             wrapWidth:
                 The width the text should run before wrapping
-            horizMirror : boolean
+            flipHoriz : boolean
                 Mirror-reverse the text in the left-right direction
-            vertMirror : boolean
+            flipVert : boolean
                 Mirror-reverse the text in the up-down direction
             name : string
                 The name of the object to be using during logged messages about
@@ -4160,7 +4160,8 @@ class TextStim(_BaseVisualStim):
         self.depth=depth
         self.ori=ori
         self.wrapWidth=wrapWidth
-        self.mirror = [(1,-1)[horizMirror], (1,-1)[vertMirror], 1] # x, y, z
+        self.flipHoriz = flipHoriz
+        self.flipVert = flipVert
         self._pygletTextObj=None
 
         self.pos= numpy.array(pos, float)
@@ -4557,6 +4558,28 @@ class TextStim(_BaseVisualStim):
         GL.glEndList()
         self.needUpdate=0
 
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the text will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the text will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipVert = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlip(self, direction, log=True):
+        """(used by Builder to simplify the dialog)"""
+        if direction == 'vert':
+            self.setFlipVert(True, log=log)
+        elif direction == 'horiz':
+            self.setFlipHoriz(True, log=log)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -4577,7 +4600,7 @@ class TextStim(_BaseVisualStim):
         GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)#NB depth is set already
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
-        GL.glScalef(*self.mirror)
+        GL.glScalef((1,-1)[self.flipHoriz], (1,-1)[self.flipVert], 1)  # x,y,z; -1=flipped
 
         if self._useShaders: #then rgb needs to be set as glColor
             #setup color
@@ -5514,7 +5537,7 @@ class BufferImageStim(GratingStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, vertMirror=False, horizMirror=False,
+        stim=(), interpolate=True, flipHoriz=False, flipVert=False,
         name='', autoLog=True):
         """
         :Parameters:
@@ -5540,10 +5563,10 @@ class BufferImageStim(GratingStim):
             sqPower2 :
                 - False (default) = use rect for size if OpenGL = 2.1+
                 - True = use square, power-of-two image sizes
-            vertMirror :
-                vertically flip (mirror) the captured image; default = False
-            horizMirror :
+            flipHoriz :
                 horizontally flip (mirror) the captured image, default = False
+            flipVert :
+                vertically flip (mirror) the captured image; default = False
             name : string
                 The name of the object to be using in log messages about this stim
         """
@@ -5583,13 +5606,27 @@ class BufferImageStim(GratingStim):
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
 
         self.thisScale = 2.0/numpy.array(self.win.size)
-        if horizMirror:
-            self.thisScale *= [-1,1]
-        if vertMirror:
-            self.thisScale *= [1,-1]
+        self.flipHoriz = flipHoriz
+        self.flipVert = flipVert
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the image will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        set.flipVert = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
     def setTex(self, tex, interpolate=True, log=True):
         """(This is not typically called directly.)"""
         # setTex is called only once
@@ -5653,7 +5690,7 @@ class BufferImageStim(GratingStim):
     def draw(self):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
-        Allows dynamic position, size, rotation, color, and opacity.
+        Allows dynamic position, size, rotation, mirroring, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
         # this is copy & pasted from old GratingStim, then had stuff taken out for speed
@@ -5664,7 +5701,8 @@ class BufferImageStim(GratingStim):
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
 
-        GL.glScalef(self.thisScale[0], self.thisScale[1], 1.0)
+        GL.glScalef(self.thisScale[0] * (1,-1)[self.flipHoriz],
+                    self.thisScale[1] * (1,-1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
         GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
