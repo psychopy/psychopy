@@ -37,7 +37,7 @@ import numpy, time, sys
 from os import path
 from string import capitalize
 from sys import platform, exit, stdout
-from psychopy import event, core, logging, preferences
+from psychopy import event, core, logging, prefs
 from psychopy.constants import *
 
 if platform=='win32':
@@ -52,7 +52,6 @@ Sound = None
 audioLib=None
 audioDriver=None
 
-prefs = preferences.Preferences()
 for thisLibName in prefs.general['audioLib']:
     try:
         if thisLibName=='pyo':
@@ -508,7 +507,7 @@ def _bestDriver(devNames, devIDs):
 def initPyo(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
     """
-    global pyoSndServer, Sound, audioDriver
+    global pyoSndServer, Sound, audioDriver, duplex
     Sound = SoundPyo
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
@@ -527,17 +526,12 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()
-        pyoSndServer.reinit(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio='coreaudio')
+        pyoSndServer.reinit(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio=audioDriver)
         pyoSndServer.boot()
     else:
         #create the instance of the server
-        if platform=='darwin':
-            audioLib=audioDriver='coreaudio'#portaudio had longer latencies than coreaudio when JWP tested (Jan 2013)
-        else:
-            audioLib='portaudio'
-        #in win32 we need to check for a valid device
         if platform=='win32':
-            #check for valid output (speakers)
+            #check for output device/driver
             devNames, devIDs=pyo.pa_get_output_devices()
             audioDriver,outputID=_bestDriver(devNames, devIDs)
             if outputID:
@@ -553,8 +547,14 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             else:
                 duplex=False
         else:#for other platforms set duplex to True
+            audioDriver = prefs.general['audioDriver'][0]
             duplex=True
-        pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, audio=audioLib,duplex=duplex)
+        if platform=='darwin':
+            #for mac we set the backend using the server audio param
+            pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, audio=audioDriver, duplex=duplex)
+        else:
+            #with others we just use portaudio and then set the OutputDevice below
+            pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=duplex)
         pyoSndServer.setVerbosity(1)
         if platform=='win32':
             pyoSndServer.setOutputDevice(outputID)

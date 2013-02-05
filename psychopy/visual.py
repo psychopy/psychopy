@@ -17,7 +17,7 @@ if sys.platform=='win32':
         haveAvbin=False#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
 
 import psychopy #so we can get the __path__
-from psychopy import core, platform_specific, logging, preferences, monitors, event
+from psychopy import core, platform_specific, logging, prefs, monitors, event
 import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
@@ -34,7 +34,6 @@ from numpy import sin, cos, pi
 
 from core import rush
 
-prefs = preferences.Preferences()#load the site/user config files
 reportNDroppedFrames=5#stop raising warning after this
 reportNImageResizes=5
 global _nImageResizes

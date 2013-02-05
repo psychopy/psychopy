@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 import sys, os, copy
-from psychopy import visual, misc, monitors, filters, preferences
+from psychopy import visual, misc, monitors, filters, prefs
 from psychopy.tests import utils
 import numpy
 import pytest
-prefs = preferences.Preferences()
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -50,7 +49,7 @@ class _baseVisualTest:
         gabor.draw()
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
-        
+
         #using .set()
         gabor.setOri(45)
         gabor.setSize(0.2*self.scaleFactor, '-')
@@ -135,7 +134,7 @@ class _baseVisualTest:
         #NB shape rendering can differ a little, depending on aliasing
         utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.0)
         win.flip()
-        
+
         # Using .set()
         shape.setContrast(0.8)
         shape.setOpacity(0.8)
@@ -149,7 +148,7 @@ class _baseVisualTest:
         wedge.draw()
         utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=10.0)
         win.flip()#AFTER compare screenshot
-        
+
         #using .set()
         wedge.setOri(180)
         wedge.setContrast(0.8)
@@ -178,7 +177,7 @@ class _baseVisualTest:
             speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
-        
+
         #using .set() and check the underlying variable changed
         prevDirs = copy.copy(dots._dotsDir)
         prevSignals = copy.copy(dots._signalDots)

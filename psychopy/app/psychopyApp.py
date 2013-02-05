@@ -28,7 +28,7 @@ Options:
 
     -v, --version    prints version and exits
     -h, --help       prints this help and exit
-    
+
     --firstrun       launches configuration wizard
     --nosplash       suppresses splash screen
 
@@ -108,7 +108,7 @@ class PsychoPyApp(wx.App):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and prefs
-        self.prefs = preferences.Preferences() #from preferences.py
+        self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
 
@@ -145,7 +145,7 @@ class PsychoPyApp(wx.App):
             last=self.prefs.appData['lastVersion']
         if self.firstRun:
             self.firstrunWizard()
-        
+
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':

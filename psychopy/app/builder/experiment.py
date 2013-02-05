@@ -4,7 +4,8 @@
 
 import StringIO, sys, codecs
 from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__, logging
+import psychopy
+from psychopy import data, __version__, logging
 from psychopy.constants import *
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
@@ -82,7 +83,7 @@ class Experiment:
         self.routines={}
         #get prefs (from app if poss or from cfg files)
         if prefs==None:
-            prefs = preferences.Preferences()
+            prefs = psychopy.prefs
         #deepCopy doesn't like the full prefs object to be stored, so store each subset
         self.prefsAppDataCfg=prefs.appDataCfg
         self.prefsGeneral=prefs.general

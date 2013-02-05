@@ -30,9 +30,8 @@ if __git_sha__=='n/a':
     if repo_commit:
         __git_sha__=repo_commit.strip()#remove final linefeed
 
-from psychopy.preferences import Preferences
+from psychopy.preferences import prefs
 import sys
-prefs = Preferences()
 for pathName in prefs.general['paths']:
     sys.path.append(pathName)
 

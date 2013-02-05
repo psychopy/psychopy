@@ -202,6 +202,6 @@ class PrefCtrls:
 if __name__=='__main__':
     import preferences
     app = wx.PySimpleApp()
-    app.prefs=preferences.Preferences()
+    app.prefs=preferences.Preferences()#don't do this normally - use the existing psychopy.prefs instance
     dlg = PreferencesDlg(app)
     dlg.ShowModal()

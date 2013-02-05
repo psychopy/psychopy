@@ -15,8 +15,7 @@ import shutil # for testing
 from tempfile import mkdtemp
 from psychopy import logging
 from psychopy.constants import PSYCHOPY_USERAGENT
-from psychopy import preferences
-prefs = preferences.Preferences()
+from psychopy import prefs
 
 TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
 socket.setdefaulttimeout(TIMEOUT)
