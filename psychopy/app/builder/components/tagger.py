@@ -78,3 +78,7 @@ class TagOnFlipComponent(BaseComponent):
         buff.writeIndented("%(name)s.status = FINISHED\n" % codeEntries)
         buff.setIndentLevel(-1, relative = True)
 
+    def getStartAndDuration(self):
+        """Always return nonSlipSafe as False, so that FrameCode including .scheduleStop() will always fire."""
+        startTime, duration, nonSlipSafe = super(TagOnFlipComponent, self).getStartAndDuration()
+        return startTime, duration, False

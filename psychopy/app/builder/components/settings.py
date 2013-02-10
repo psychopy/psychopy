@@ -10,7 +10,11 @@ DEFAULT_PARAM_VALUES = {
   'saveTags': True,
   'doSignal': False,
   'serialTriggerDevice': '/dev/ttyUSB0',
-  'saveSignal': False
+  'saveSignal': False,
+  'applianceType':'', 
+  'applianceDevicePath':'/dev/ttyUSB0', 
+  'applianceIntensity':'250'
+
 }
 
 class SettingsComponent:
@@ -19,7 +23,7 @@ class SettingsComponent:
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', paramValues=DEFAULT_PARAM_VALUES):
+                 savedDataFolder='~', paramValues=DEFAULT_PARAM_VALUES):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -90,6 +94,18 @@ class SettingsComponent:
             paramValues['saveSignal'], valType="bool", hint="Should amp signal be saved?", label="Save signal and tags in OBCI")
         self.params["obciDataDirectory"] = Param(
             "~", valType="str", hint="Remote directory in which OBCI will save experiment data", label="OBCI data folder")
+
+        self.params['applianceType'] = Param(
+            paramValues['applianceType'], valType='str', hint="Appliance type eg. dummy, appliance1, appliance2. Leave empty to try to detect automatically.",
+            label="Appliance Type")
+        self.params['applianceDevicePath'] = Param(
+            paramValues['applianceDevicePath'], valType='str', hint="To which serial port is appliance connected?",
+            label="Appliance Device Path")
+        self.params['applianceIntensity'] = Param(
+            paramValues['applianceIntensity'], valType='int', hint="Appliance flickering intensity.",
+            label="Appliance Intensity")
+
+
 
     def getType(self):
         return self.__class__.__name__

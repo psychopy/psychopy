@@ -1,0 +1,123 @@
+<PsychoPy2experiment version="1.75.02" encoding="utf-8">
+  <Settings>
+    <Param name="saveTags" val="True" valType="bool" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Experiment info" val="{u'session': u'001', u'participant': u''}" valType="code" updates="None"/>
+    <Param name="sendTags" val="True" valType="bool" updates="None"/>
+    <Param name="Units" val="use prefs" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="doSignal" val="False" valType="bool" updates="None"/>
+    <Param name="saveSignal" val="True" valType="bool" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="Window size (pixels)" val="[1024, 768]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="obciDataDirectory" val="~" valType="str" updates="None"/>
+    <Param name="serialTriggerDevice" val="/dev/ttyUSB0" valType="str" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="applianceDevicePath" val="/dev/ttyUSB0" valType="str" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="applianceIntensity" val="250" valType="int" updates="None"/>
+    <Param name="Saved data folder" val="~" valType="code" updates="None"/>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="applianceType" val="" valType="str" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="expName" val="appliance" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial2">
+      <CodeComponent name="code">
+        <Param name="Begin Experiment" val="counter = 0" valType="code" updates="constant"/>
+        <Param name="name" val="code" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="counter += 1" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+      </CodeComponent>
+      <ApplianceComponent name="appliance_2">
+        <Param name="endValues" val="" valType="code" updates="set every repeat"/>
+        <Param name="endIndex" val="" valType="code" updates="set every repeat"/>
+        <Param name="name" val="appliance_2" valType="code" updates="None"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="1.0" valType="code" updates="None"/>
+        <Param name="startValue" val="0" valType="code" updates="set every repeat"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="startIndex" val="0" valType="code" updates="set every repeat"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="endValue" val="" valType="code" updates="set every repeat"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="startValues" val="8*[10*counter]" valType="code" updates="set every repeat"/>
+      </ApplianceComponent>
+    </Routine>
+    <Routine name="trial">
+      <ApplianceComponent name="appliance">
+        <Param name="endValues" val="[-1, -1, -1, -1, -1, -1, -1, -1]" valType="code" updates="set every repeat"/>
+        <Param name="endIndex" val="0" valType="code" updates="set every repeat"/>
+        <Param name="name" val="appliance" valType="code" updates="None"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="1.0" valType="code" updates="None"/>
+        <Param name="startValue" val="$val" valType="code" updates="set every repeat"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="startIndex" val="$ind" valType="code" updates="set every repeat"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="endValue" val="0" valType="code" updates="set every repeat"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="startValues" val="[]" valType="code" updates="set every repeat"/>
+      </ApplianceComponent>
+      <TextComponent name="text">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="text" valType="code" updates="None"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="Any text&#10;&#10;including line breaks" valType="str" updates="constant"/>
+        <Param name="stopVal" val="1.5" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="advancedParams"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="conditionsFile" val="/home/mati/nic.pkl" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="random seed" val="" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="None" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+    <LoopInitiator loopType="TrialHandler" name="trials_2">
+      <Param name="conditionsFile" val="" valType="str" updates="None"/>
+      <Param name="name" val="trials_2" valType="code" updates="None"/>
+      <Param name="random seed" val="" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="5" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="None" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial2"/>
+    <LoopTerminator name="trials_2"/>
+  </Flow>
+  <Pool>
+    <Resources/>
+  </Pool>
+</PsychoPy2experiment>
