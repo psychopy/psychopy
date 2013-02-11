@@ -453,6 +453,8 @@ class ConditionsGrid(wx.grid.Grid):
         # insert columns
         self.InsertCols(numCols=row_len)
         self.InsertRows(numRows=len(rows))
+        self.column_types = ["unknown" for _ in xrange(row_len)]
+        self.column_names = ["unknown" for _ in xrange(row_len)]
         for col_pos in range(row_len):
             column_type = detect_column_type(rows, col_pos)
             self.set_column_type(col_pos, column_type)
