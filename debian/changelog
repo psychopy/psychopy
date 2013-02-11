@@ -1,3 +1,9 @@
+psychopy-openbci (1.75.02.0.20-1) unstable; urgency=low
+
+  * Fixed error when trying to edit conditions file with more than 4 columns
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 15:23:09 +0100
+
 psychopy-openbci (1.75.02.0.19-1) unstable; urgency=low
 
   * New upstream release.
