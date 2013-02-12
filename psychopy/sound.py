@@ -521,7 +521,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             self.logging.debug('pyo sound server shutdown')#this may never get printed
 
     #check if we already have a server and kill it
-    if hasattr(pyoSndServer,'shutdown'):
+    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'): #if it exists and isn't None!
         #this doesn't appear to work!
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
@@ -566,7 +566,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     pyoSndServer.start()
     logging.debug('pyo sound server started')
     logging.flush()
-
+    
 def setaudioLib(api):
     """DEPRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise
