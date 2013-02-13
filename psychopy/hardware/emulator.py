@@ -83,7 +83,7 @@ class SyncGenerator(threading.Thread):
         self.skip = skip
         self.playSound = sound
         if self.playSound:
-            self.sound = Sound(secs=self.TR-.08, octave=6, autoLog=False)
+            self.sound = Sound(secs=self.TR-.12, octave=6, autoLog=False)
             self.sound.setVolume(0.15)
         
         self.clock = core.Clock()
@@ -93,9 +93,10 @@ class SyncGenerator(threading.Thread):
     def run(self):
         self.running = True
         if self.skip:
-            if self.playSound:
-                self.sound.play()
-            core.wait(self.TR * self.skip) # emulate T1 stabilization without data collection
+            for i in range(int(self.skip)):
+                if self.playSound:
+                    self.sound.play()
+                core.wait(self.TR) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
             if self.playSound:
