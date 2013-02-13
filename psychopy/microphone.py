@@ -201,20 +201,12 @@ class AudioCapture(object):
             logging.error(msg)
             raise ValueError(msg)
 
-        # prepare a player for this file:
-        t0 = core.getTime()
-        self.sfplayer = SfPlayer(self.savedFile, speed=1, loop=False)
-        self.sfplayer2 = self.sfplayer.mix(2) # mix(2) -> 2 outputs -> 2 speakers
-        self.sfplayer2.out()
-        logging.exp('%s: Playback: prep %.3fs' % (self.loggingId, core.getTime()-t0))
-
-        # play the file; sfplayer was created during record:
-        t0 = core.getTime()
-        self.sfplayer.play()
+        # play this file:
+        self.player = sound.Sound(self.savedFile)
+        self.player.play()
         core.wait(self.duration) # set during record()
-        t1 = core.getTime()
 
-        logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, t1-t0, self.savedFile))
+        logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
 
     def resample(self, newRate=16000, keep=True):
         """Re-sample the saved file to a new rate, return the full path.
