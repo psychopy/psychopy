@@ -128,8 +128,5 @@ except: pass
 
 print '\nFinal score: %d / %d' % (score, i+1)
 
-# shut-down the pyo sound server:
-microphone.switchOff()
-
 core.quit()
 

@@ -163,8 +163,5 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndentedLines("\n# Shutting down:\n")
-        if 'microphone' in self.exp.psychopyLibs:
-            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

@@ -19,7 +19,7 @@ from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
 # downside: to make this work requires some trickiness with globals
 
 global haveMic
-haveMic = False # goes True in switchOn, if can import pyo; goes False in switchOff
+haveMic = False # goes True in switchOn, if can import pyo
 
 class AudioCapture(object):
     """Capture a sound sample from the default sound input, and save to a file.
@@ -48,8 +48,6 @@ class AudioCapture(object):
             while mic.recorder.running:
                 if 'q' in event.getKeys():
                     mic.stop()
-
-            microphone.switchOff()  # do once
 
         Also see Builder Demo "voiceCapture".
 
@@ -611,8 +609,6 @@ class BatchSpeech2Text(list):
 def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     """You need to switch on the microphone before use, which can take several seconds.
     The only time you can specify the sample rate (in Hz) is during switchOn().
-    You can switchOff() and switchOn() with a different rate, and can `resample()`
-    a given an `AudioCapture()` object (if one has been recorded).
 
     Considerations on the default sample rate 48kHz::
 
@@ -654,62 +650,49 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
 
 def switchOff():
-    """Its good to explicitly switch off the microphone when done (in order to avoid
-    a segmentation fault). core.quit() also tries to switchOff if needed, but best to
-    do so explicitly.
+    """No longer needed; maintained for backwards compatibility only
     """
-    t0 = core.getTime()
-    global haveMic
-    haveMic = False
-    if serverBooted():
-        sound.pyoSndServer.stop() #what happens if we stop the server and the sound output is needed?
-        core.wait(.25) # give it a chance to stop before shutdown(), avoid seg fault
-    logging.exp('%s: switch off took %.3fs' % (__file__.strip('.py'), core.getTime() - t0))
+    return
 
 if __name__ == '__main__':
     print ('\nMicrophone command-line testing\n')
     core.checkPygletDuringWait = False # don't dispatch events during a wait
     logging.console.setLevel(logging.DEBUG)
-    switchOn()
-    switchOff()
     switchOn(16000) # import pyo, create a server
-    print ('\nsuccessful switchOn, Off, and back On.')
-    try:
-        mic = AudioCapture()
-        if len(sys.argv) > 1: # stability test using argv[1] iterations
-            for i in xrange(int(sys.argv[1])):
-                print i, mic.record(2)
-                mic.resample(8000, keep=False) # removes orig file
-                os.remove(mic.savedFile) # removes downsampled file
-        else: # two interactive record + playback tests
-            testDuration = 2  # sec
-            raw_input('testing record and playback, press <return> to start: ')
-            print "say something:",
-            sys.stdout.flush()
-            # tell it to record for 10s:
-            mic.record(testDuration * 5, block=False) # block False returns immediately
-                # which you want if you might need to stop a recording early
-            core.wait(testDuration)  # we'll stop the record after 2s, not 10
-            mic.stop()
-            print
-            print 'record stopped; sleeping 1s'
-            sys.stdout.flush()
-            core.wait(1)
-            print 'start playback ',
-            sys.stdout.flush()
-            mic.playback()
-            print 'end.', mic.savedFile
-            sys.stdout.flush()
-            os.remove(mic.savedFile)
-            mic.reset()
 
-            # do another record, fixed duration, use block=True
-            raw_input('<ret> for another: ')
-            print "say something else:",
-            sys.stdout.flush()
-            mic.record(testDuration, file='m') # block=True by default; here use explicit file name
-            mic.playback()
-            print mic.savedFile
-            os.remove(mic.savedFile)
-    finally:
-        switchOff()
+    mic = AudioCapture()
+    if len(sys.argv) > 1: # stability test using argv[1] iterations
+        for i in xrange(int(sys.argv[1])):
+            print i, mic.record(2)
+            mic.resample(8000, keep=False) # removes orig file
+            os.remove(mic.savedFile) # removes downsampled file
+    else: # two interactive record + playback tests
+        testDuration = 2  # sec
+        raw_input('testing record and playback, press <return> to start: ')
+        print "say something:",
+        sys.stdout.flush()
+        # tell it to record for 10s:
+        mic.record(testDuration * 5, block=False) # block False returns immediately
+            # which you want if you might need to stop a recording early
+        core.wait(testDuration)  # we'll stop the record after 2s, not 10
+        mic.stop()
+        print
+        print 'record stopped; sleeping 1s'
+        sys.stdout.flush()
+        core.wait(1)
+        print 'start playback ',
+        sys.stdout.flush()
+        mic.playback()
+        print 'end.', mic.savedFile
+        sys.stdout.flush()
+        os.remove(mic.savedFile)
+        mic.reset()
+
+        # do another record, fixed duration, use block=True
+        raw_input('<ret> for another: ')
+        print "say something else:",
+        sys.stdout.flush()
+        mic.record(testDuration, file='m') # block=True by default; here use explicit file name
+        mic.playback()
+        print mic.savedFile
+        os.remove(mic.savedFile)
