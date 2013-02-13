@@ -202,8 +202,7 @@ class AudioCapture(object):
             raise ValueError(msg)
 
         # play this file:
-        self.player = sound.Sound(self.savedFile)
-        self.player.play()
+        sound.Sound(self.savedFile).play()
         core.wait(self.duration) # set during record()
 
         logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
