@@ -277,6 +277,7 @@ class SoundPygame(_SoundBase):
         self.status=STARTED
         if log and self.autoLog:
             logging.exp("Sound %s started" %(self.name), obj=self)
+        return self
     def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
@@ -408,6 +409,7 @@ class SoundPyo(_SoundBase):
         self.status=STARTED
         if log and self.autoLog:
             logging.exp("Sound %s started" %(self.name), obj=self)
+        return self
 
     def _onEOS(self):
         #ToDo: is an EOS callback supported by pyo?

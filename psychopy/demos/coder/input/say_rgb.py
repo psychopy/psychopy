@@ -78,7 +78,6 @@ def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
         return None
     if default:
         return default # something was said, no idea what
-#microphone.switchOn(sampleRate=16000)
 
 microphone.switchOn(sampleRate=16000)
 # 16000 is a good rate for google speech recognition (16000 or 8000 only)
