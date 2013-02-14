@@ -85,7 +85,7 @@ Section "PsychoPy" SEC01
   Var /GLOBAL AppDir
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.7.egg\psychopy\app"
 
-  File /r "C:\python27\*.*"
+  File /r /x *.pyo /x *.chm /x Editra /x doc "C:\python27\*.*" 
   File /r "windlls\*.dll"
 ; avbin to system32
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
