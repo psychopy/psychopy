@@ -410,9 +410,9 @@ class Window:
     def callOnFlip(self,function, *args, **kwargs):
         """Call a function immediately after the next .flip() command.
 
-        The first argument should be the argument to call, the following args
+        The first argument should be the function to call, the following args
         should be used exactly as you would for your normal call to the function
-        (can use ordered arguments or keyword argumentsas normal).
+        (can use ordered arguments or keyword arguments as normal).
 
         e.g. If you have a function that you would normally call like this::
 
