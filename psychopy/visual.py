@@ -418,7 +418,8 @@ class Window:
 
             pingMyDevice(portToPing, channel=2, level=0)
 
-        then you could call to have the function call synchronized with the frame flip::
+        then you could call callOnFlip() to have the function call synchronized
+        with the frame flip like this::
 
             win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
 
