@@ -176,6 +176,7 @@ class Window:
 
         self._defDepth=0.0
         self._toLog=[]
+        self._toCall=[]
 
         #settings for the monitor: local settings (if available) override monitor
         #if we have a monitors.Monitor object (psychopy 0.54 onwards)
@@ -406,6 +407,23 @@ class Window:
         """
 
         self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
+    def callOnFlip(self,function, *args, **kwargs):
+        """Call a function immediately after the next .flip() command.
+
+        The first argument should be the argument to call, the following args
+        should be used exactly as you would for your normal call to the function
+        (can use ordered arguments or keyword argumentsas normal).
+
+        e.g. If you have a function that you would normally call like this::
+
+            pingMyDevice(portToPing, channel=2, level=0)
+
+        then you could call to have the function call synchronized with the frame flip::
+
+            win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
+
+        """
+        self._toCall.append({'function':function,'args':args,'kwargs':kwargs})
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -515,6 +533,10 @@ class Window:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
         self._toLog = []
+        #function calls
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        self._toCall = []
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise

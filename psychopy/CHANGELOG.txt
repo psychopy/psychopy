@@ -15,6 +15,7 @@ PsychoPy 1.76.00
 
 The compatibility changes in this release below are likely to affect very few users.
 
+* ADDED: Window.callOnFlip() function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
 * FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
 * ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
 * ADDED: support for lower latency sound with the pyo library. For now pygame remains the default but this can be changed by setting the order in preferences>general>audio
