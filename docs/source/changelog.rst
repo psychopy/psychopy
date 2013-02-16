@@ -24,6 +24,8 @@ PsychoPy 1.76.00
 
 The compatibility changes in this release below are likely to affect very few users
 
+* ADDED: RatingScale.getHistory() returns intermediate time-stamped ratings; allows "continuous" ratings
+* CHANGED: RatingScale.getRating() no longer returns False prior to an accepted rating (now returns the currently selected value)
 * ADDED: :func:`Window.callOnFlip() <psychopy.visual.Window.callOnFlip>` function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
 * FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
 * ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
