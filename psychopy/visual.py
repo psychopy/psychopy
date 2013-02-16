@@ -6624,6 +6624,7 @@ class RatingScale:
             self.firstDraw = False
             self.myClock.reset()
             self.status = STARTED
+            self.history = [(None, 0.0)]
 
         # timed out?
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
@@ -6752,13 +6753,19 @@ class RatingScale:
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
 
+        # build up response history:
+        tmpRating = self.getRating()
+        if self.history[-1][0] != tmpRating:
+            self.history.append((tmpRating, self.getRT()))  # tuple
+
         # restore user's units:
         self.win.units = self.savedWinUnits
 
     def reset(self):
-        """Restores the rating-scale to its post-creation state, status NOT_STARTED.
+        """Restores the rating-scale to its post-creation state.
 
-        Does not restore the scale text description (such reset is needed between
+        The history is cleared, and the status is set to NOT_STARTED. Does not
+        restore the scale text description (such reset is needed between
         items when rating multiple items)
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
@@ -6780,12 +6787,15 @@ class RatingScale:
             self.accept.setText(self.keyClick)
         logging.exp('RatingScale %s: reset()' % self.name)
         self.status = NOT_STARTED
+        self.history = None
 
     def getRating(self):
-        """Returns the numerical rating.
-        None if the subject skipped this item; False if not available.
+        """Returns the final, accepted rating, or the current (non-accepted) intermediate
+        selection. The rating is None if the subject skipped this item, or False
+        if not available. Returns the currently indicated rating even if it has
+        not been accepted yet (and so might change until accept is pressed).
         """
-        if self.noResponse:
+        if self.noResponse and self.status == FINISHED:
             return False
         if not type(self.markerPlacedAt) in [float, int]:
             return None # eg, if skipped a response
@@ -6802,13 +6812,26 @@ class RatingScale:
 
     def getRT(self):
         """Returns the seconds taken to make the rating (or to indicate skip).
-        Returns None if no rating available. or maxTime if the response timed out.
+        Returns None if no rating available, or maxTime if the response timed out.
+        Returns the time elapsed so far if no rating has been accepted yet (e.g.,
+        for continuous usage).
         """
+        if self.status != FINISHED:
+            return self.myClock.getTime()
         if self.noResponse:
             if self.timedOut:
                 return self.maximumTime
             return None
         return self.decisionTime
+
+    def getHistory(self):
+        """Return the subject's intermediate selection history, up to and including
+        the final accepted choice, as a list of (rating, time) tuples. The history
+        can be retrieved at any time, allowing for continuous ratings to be
+        obtained in real-time. Both numerical and categorical choices are stored
+        automatically in the history. The history will always start with `(None, 0.0)`.
+        """
+        return self.history
 
 class Aperture:
     """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)
