@@ -22,15 +22,27 @@ PsychoPy 1.76
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The compatibility changes in this release below are likely to affect very few users; certainly only those that are writing custom code.
+The compatibility changes in this release below are likely to affect very few users
 
+* ADDED: :func:`Window.callOnFlip() <psychopy.visual.Window.callOnFlip>` function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
+* FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
+* ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
+* ADDED: support for lower latency sound with the pyo library. For now pygame remains the default but this can be changed by setting the order in preferences>general>audio
+* CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution, as have the libraries to create .mov files using Window.saveMovieFrames(). If you need those features then install the 1.75 Standalone and then update to 1.76 using the auto-update system.
+* ADDED: sound objects (either pygame or pyo) now support autologging
+* FIXED: a bug in the generation of the LMS color space conversion matrix. It seems nobody was actually using this for real, but if you were contact Jon for details!
+* CHANGED: various changes to RatingScale (thanks Henrik Singman):
+   * CHANGED: choices are now displayed at the tick marks by default (instead of above the line). To restore the old behavior set labels=False. This does not affect experiments created in older versions of the builder.
+   * ADDED: check box "choiceLabelsAboveLines" to the RatingScale component of the builder (advanced tab) to still have the choice labels above the line.
+   * ADDED: arguments tickMarks and labels to RatingScale class to control where tick marks (for quantitative rating scales) should be placed at the line and how these should be labeled.
+   * ADDED: argument ticksAboveLine to RatingScale class. Controls where the tick marks should be plotted (above or below the line).
 * FIXED: problem with unset exp.name (was causing wx.Dialog error "TypeError: String or Unicode type required" on new experiments)
-* :blue: `CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
+* :blue:`CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
 * FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
 * FIXED: Fix to setContrast for certain visual stimuli (Jonas Lindeløv)
 * FIXED: inability to launch scripts/experiments if the Mac Standalone was in a folder with a space in it
 * FIXED: Aperture Component now honours the 'units' (Hiroyuki Sogo)
-* :blue: `FIXED: stimulus contains/overlaps functions now use stimulus 'units' and take stimulus orientation into account (Hiroyuki Sogo) NB if you had code in place to perform these corrections yourself you should now remove it!`
+* :blue:`FIXED: stimulus contains/overlaps functions now use stimulus 'units' and take stimulus orientation into account (Hiroyuki Sogo) NB if you had code in place to perform these corrections yourself you should now remove it!`
 * FIXED: some data outputs were not honouring the 'matrixOnly' option (Mike MacAskill)
 * FIXED: when loading a psydat file of an ExperimentHandler the file automatically saved new copies of its csv/excel outputs. This no longer occurs (if loaded using misc.fromFile)
 * ADDED: timestamp option to event.waitKeys() (Jonas Lindeløv)

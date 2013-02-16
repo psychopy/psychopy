@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import * #to get the template visual component
@@ -29,6 +29,7 @@ class TextComponent(VisualComponent):
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
+                flip='',
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
         VisualComponent.__init__(self, exp, parentName, name=name, units=units,
@@ -62,6 +63,11 @@ class TextComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint="How wide should the text get when it wraps? (in the specified units)",
             label="Wrap width")
+        self.params['flip']=Param(flip, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
+            hint="'horiz' = left-right reversed; 'vert' = up-down reversed; $var = variable",
+            label="Flip (mirror)")
+
     def writeInitCode(self,buff):
         #do we need units code?
         if self.params['units'].val=='from exp settings': unitsStr=""
@@ -71,9 +77,16 @@ class TextComponent(VisualComponent):
         if self.params['wrapWidth'].val in ['','None','none']:
             inits['wrapWidth']='None'
         buff.writeIndented("%(name)s = visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))
-        buff.writeIndented("    text=%(text)s,\n" %inits)
+        buff.writeIndented("    text=%(text)s," %inits)
         buff.writeIndented("    font=%(font)s,\n" %inits)
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
+        flip = self.params['flip'].val
+        if flip == 'horiz':
+            buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
+        elif flip == 'vert':
+            buff.writeIndented("    flipVert=%s," % bool(flip == 'vert') )
+        elif '$' in flip and self.params['flip'].updates == 'constant':
+            print 'Warning: %s Flip appears to be variable, but updates are constant' % self.params['name']
         depth=-self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" %(depth))

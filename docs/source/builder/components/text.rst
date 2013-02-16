@@ -15,11 +15,11 @@ start :
 stop : 
     The duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-colour :  
-    See :doc:`../../general/colours`
+color :
+    See :doc:`../../general/colors`
 
-colour space : rgb, dkl or lms
-    See :doc:`../../general/colours`
+color space : rgb, dkl or lms
+    See :doc:`../../general/colors`
 
 ori : degrees
     The orientation of the stimulus in degrees.
@@ -32,6 +32,13 @@ height : integer or float
 
 units : deg, cm, pix, norm, or inherit from window
     See :doc:`../../general/units`
+
+opacity :
+    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
+
+flip :
+    Whether to mirror-reverse the text: 'horiz' for left-right mirroring, 'vert' for up-down mirroring.
+    The flip can be set dynamically on a per-frame basis by using a variable, e.g., $mirror, as defined in a code component or conditions file and set to either 'horiz' or 'vert'.
 
 .. seealso::
 	

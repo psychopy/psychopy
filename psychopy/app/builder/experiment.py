@@ -84,7 +84,7 @@ class Experiment:
         self.routines={}
         #get prefs (from app if poss or from cfg files)
         if prefs==None:
-            prefs = preferences.Preferences()
+            prefs = psychopy.prefs
         #deepCopy doesn't like the full prefs object to be stored, so store each subset
         self.prefsAppDataCfg=prefs.appDataCfg
         self.prefsGeneral=prefs.general
@@ -93,7 +93,7 @@ class Experiment:
         self.prefsBuilder=prefs.builder
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyVersion=psychopy.__version__ #imported from components
+        self.psychopyVersion=psychopy.__version__
         self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=components.getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self.resourcePool=components.getAllComponents()['ResourcePoolComponent'](parentName='', exp=self)
@@ -207,7 +207,6 @@ class Experiment:
                 elementNode.set('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
                 elementNode.set('name', '%s' %element.params['name'])
-        self.save_resource_pool()
         #write to disk
         f=codecs.open(filename, 'wb', 'utf-8')
         f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
@@ -303,15 +302,6 @@ class Experiment:
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
-    
-    def load_resource_pool(self, root):
-        poolNode = root.find("Pool")
-        resourcesNode = poolNode.find("Resources")
-        for resourceNode in resourcesNode:
-            name = resourceNode.get("name")
-            description = resourceNode.get("description")
-            self.resourcePool.add_resource(name, description=description, content=resourceNode.text)
-    
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
@@ -1096,6 +1086,60 @@ class Routine(list):
             maxTime=10
             nonSlipSafe=False
         return maxTime, nonSlipSafe
+
+
+class ExpFile(list):
+    """An ExpFile is similar to a Routine except that it generates its code
+    from the Flow of a separate, complete psyexp file.
+    """
+    def __init__(self, name, exp, filename=''):
+        self.params={'name':name}
+        self.name=name
+        self.exp=exp #the exp we belong to
+        self.expObject = None #the experiment we represent on disk (see self.loadExp)
+        self.filename-filename
+        self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
+        self.type='ExpFile'
+        list.__init__(self, components)
+    def __repr__(self):
+        return "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')" %(self.name, self.exp, self.filename)
+    def writeStartCode(self,buff):
+        #tell each object on our flow to write its start code
+        for entry in self.flow:  #NB each entry is a routine or LoopInitiator/Terminator
+            self._currentRoutine=entry
+            if hasattr(entry, 'writeStartCode'):
+                entry.writeStartCode(script) # used by microphone comp to create a .wav directory once
+    def loadExp(self):
+        #fetch the file
+        self.expObject = Experiment()
+        self.expObject.loadFromXML(sel.filename)
+        self.flow = self.expObject.flow #extract the flow, which is the key part for us
+    def writeInitCode(self,buff):
+        #tell each object on our flow to write its init code
+        for entry in self.flow: #NB each entry is a routine or LoopInitiator/Terminator
+            self._currentRoutine=entry
+            entry.writeInitCode(script)
+    def writeMainCode(self,buff):
+        """This defines the code for the frames of a single routine
+        """
+        #tell each object on our flow to write its run code
+        for entry in self.flow:
+            self._currentRoutine=entry
+            entry.writeMainCode(script)
+    def writeExperimentEndCode(self,buff):
+        """This defines the code for the frames of a single routine
+        """
+        for entry in self.flow:
+            self._currentRoutine=entry
+            entry.writeExperimentEndCode(script)
+    def getType(self):
+        return 'ExpFile'
+    def getMaxTime(self):
+        """What the last (predetermined) stimulus time to be presented. If
+        there are no components or they have code-based times then will default
+        to 10secs
+        """
+        #todo
 
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.

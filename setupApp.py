@@ -75,6 +75,9 @@ else:
                                         'serial','IPython',
                                         'egi','labjack','pylink',#handy external science interfaces
                                         'pyxid','pycrsltd',
+                                        #'PIL','Image',
+                                        'pyolib',
+                                        'pandas','tables',
                                         ],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(
@@ -84,7 +87,7 @@ else:
                                       CFBundleGetInfoString      = "PsychoPy2 "+__version__,
                                       CFBundleExecutable         = "PsychoPy2",
                                       CFBundleIdentifier         = "org.psychopy.PsychoPy2",
-                                      CFBundleLicense            = "GNU GPLv3",
+                                      CFBundleLicense            = "GNU GPLv3+",
                                       CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],#CFBundleTypeName='Python Script',
                                                                  CFBundleTypeRole='Editor')],
                                       ),

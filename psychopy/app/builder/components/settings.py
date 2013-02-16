@@ -149,6 +149,7 @@ class SettingsComponent:
         #    buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
         #buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
+        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
 
         buff.writeIndentedLines("\n# Setup files for saving\n")
@@ -232,7 +233,7 @@ class SettingsComponent:
         else:
             buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
 
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
@@ -253,7 +254,5 @@ class SettingsComponent:
             buff.writeIndented("    tagWriter.tag_received(tag)\n")
             buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")
 
-        if 'microphone' in self.exp.psychopyLibs:
-            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

@@ -1,7 +1,7 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, threading
@@ -11,7 +11,6 @@ from psychopy import logging
 import subprocess, shlex
 
 runningThreads=[] # just for backwards compatibility?
-pyoServers = []
 
 try:
     import pyglet
@@ -32,12 +31,6 @@ def quit():
             thisThread.stop()
             while thisThread.running==0:
                 pass#wait until it has properly finished polling
-    # could check serverCreated() serverBooted() but then need to import pyo
-    # checking serverCreated() does not tell you whether it was shutdown or not
-    for ps in pyoServers: # should only ever be one Server instance...
-        ps.stop()
-        wait(.25)
-        ps.shutdown()
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism
