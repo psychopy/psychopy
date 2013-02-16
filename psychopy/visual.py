@@ -6630,6 +6630,7 @@ class RatingScale:
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
             self.noResponse = False
             self.timedOut = True
+            self.history.append((self.getRating(), self.getRT()))  # RT when timed-out
             logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
                          (self.name, unicode(self.getRating()), self.maximumTime) )
             logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
@@ -6724,6 +6725,7 @@ class RatingScale:
                                                   1. / self.autoRescaleFactor / self.precision)
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
+                    self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
                     logging.data('RatingScale %s: (key response) rating=%s' %
                                      (self.name, unicode(self.getRating())) )
 
@@ -6742,6 +6744,7 @@ class RatingScale:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
                         self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
+                    self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                                 (self.name, unicode(self.getRating())) )
 
