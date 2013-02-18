@@ -140,7 +140,7 @@ Additional changes:
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/)
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')

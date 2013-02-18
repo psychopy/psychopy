@@ -16,10 +16,10 @@ stop :
     The duration for which the stimulus is presented. See :ref:`startStop` for details.
 
 color :
-    See :doc:`../../general/colors`
+    See :ref:`colorspaces`
 
 color space : rgb, dkl or lms
-    See :doc:`../../general/colors`
+    See :ref:`colorspaces`
 
 ori : degrees
     The orientation of the stimulus in degrees.
