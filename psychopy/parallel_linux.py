@@ -6,102 +6,90 @@ Note that you must have the lp module removed and the ppdev module loaded
 to use this code::
     sudo rmmod lp
     sudo modprobe ppdev
-
-This API is limited to a single port at a time as we keep a global parallel
-port object - this is for compatibility with the win32 API which already
-existed
 """
+
+# We deliberately delay importing the inpout32 module until we try
+# to use it - this allows us to import the class on machines
+# which don't have it and then worry about dealing with
+# using the right one later
 
 # This is necessary to stop the local parallel.py masking the module
 # we actually want to find!
 from __future__ import absolute_import
-import parallel as pyp
 
-if not hasattr(pyp, 'Parallel'):
-    # We failed to import pyparallel properly
-    # We probably ended up with psychopy.parallel instead...
-    raise Exception('Failed to import pyparallel - is it installed?')
+# We duck-type the parallel port objects
+class PParallelLinux(object):
+    def __init__(self, address='/dev/parport0'):
+        """
+        Set the device node of your parallel port
 
-# I hate the use of this global PORT instead of a class instance but
-# to keep compatibility with the current psychopy.parallel API, I
-# don't see a way around it.
+        common port addresses::
 
-# If you want more flexibility, use pyparallel directly for now
-# although I should add a wrapper class to psychopy somewhere which
-# treats multiple parallel ports as different objects and abstracts
-# out the system specifics.
-PORT = None
+            LPT1 = /dev/parport0
+            LPT2 = /dev/parport1
+            LPT3 = /dev/parport2
+        """
+        import parallel as pyp
 
-def setPortAddress(address='/dev/parport0'):
-    """
-    Set the device node of your parallel port
+        if not hasattr(pyp, 'Parallel'):
+            # We failed to import pyparallel properly
+            # We probably ended up with psychopy.parallel instead...
+            raise Exception('Failed to import pyparallel - is it installed?')
 
-    common port addresses::
+        self.port = pyp.Parallel(address)
 
-        LPT1 = /dev/parport0
-        LPT2 = /dev/parport1
-        LPT3 = /dev/parport2
+    def setData(self, data):
+        """Set the data to be presented on the parallel port (one ubyte).
+        Alternatively you can set the value of each pin (data pins are pins
+        2-9 inclusive) using :func:`~psychopy.parallel.setPin`
 
-    """
-    global PORT
-    # Release the port if it's already open
-    if PORT is not None:
-        del PORT
+        examples::
 
-    PORT = pyp.Parallel(address)
+            p.setData(0) #sets all pins low
+            p.setData(255) #sets all pins high
+            p.setData(2) #sets just pin 3 high (remember that pin2=bit0)
+            p.setData(3) #sets just pins 2 and 3 high
 
-def setData(data):
-    """Set the data to be presented on the parallel port (one ubyte).
-    Alternatively you can set the value of each pin (data pins are pins
-    2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+        you can also convert base 2 to int v easily in python::
 
-    examples::
+            parallel.setData( int("00000011",2) )#pins 2 and 3 high
+            parallel.setData( int("00000101",2) )#pins 2 and 4 high
+        """
+        self.port.setData(data)
 
-        parallel.setData(0) #sets all pins low
-        parallel.setData(255) #sets all pins high
-        parallel.setData(2) #sets just pin 3 high (remember that pin2=bit0)
-        parallel.setData(3) #sets just pins 2 and 3 high
+    def setPin(self, pinNumber, state):
+        """Set a desired pin to be high(1) or low(0).
 
-    you can also convert base 2 to int v easily in python::
+        Only pins 2-9 (incl) are normally used for data output::
 
-        parallel.setData( int("00000011",2) )#pins 2 and 3 high
-        parallel.setData( int("00000101",2) )#pins 2 and 4 high
-
-    """
-    global PORT
-    PORT.setData(data)
-
-def setPin(pinNumber, state):
-    """Set a desired pin to be high(1) or low(0).
-
-    Only pins 2-9 (incl) are normally used for data output::
-
-        parallel.setPin(3, 1)#sets pin 3 high
-        parallel.setPin(3, 0)#sets pin 3 low
-    """
-    global PORT
-    # I can't see how to do this without reading and writing the data
-    if state:
-        PORT.setData(PORT.PPRDATA() | (2**(pinNumber-2)))
-    else:
-        PORT.setData(PORT.PPRDATA() & (255 ^ 2**(pinNumber-2)))
+            p.setPin(3, 1)#sets pin 3 high
+            p.setPin(3, 0)#sets pin 3 low
+        """
+        # I can't see how to do this without reading and writing the data
+        if state:
+            self.port.setData(self.port.PPRDATA() | (2**(pinNumber-2)))
+        else:
+            self.port.setData(self.port.PPRDATA() & (255 ^ 2**(pinNumber-2)))
 
 
-def readPin(pinNumber):
-    """
-    Determine whether a desired (input) pin is high(1) or low(0).
+    def readPin(self, pinNumber):
+        """
+        Determine whether a desired (input) pin is high(1) or low(0).
 
-    Only pins 'status' pins (10-14 and 15) are currently read here, although the data
-    pins (2-9) probably could be too.
-    """
-    global PORT
-    if pinNumber==10: return PORT.getInAcknowledge() #should then give 1 or 0 on pin 10
-    elif pinNumber==11: return PORT.getInBusy()
-    elif pinNumber==12: return PORT.getInPaperOut()
-    elif pinNumber==13: return PORT.getInSelected()
-    elif pinNumber==14: return
-    elif pinNumber==15: return PORT.getInError()
-    elif pinNumber>=2 and pinNumber <=9: return PORT.PPRDATA() & (2**(pinNumber-2))
-    else:
-        print 'Pin %i cannot be read (by the psychopy.parallel.readPin() yet)' %(pinNumber)
+        Pins 2-13 and 15 are currently read here
+        """
+        if pinNumber==10:
+            return self.port.getInAcknowledge()
+        elif pinNumber==11:
+            return self.port.getInBusy()
+        elif pinNumber==12:
+            return self.port.getInPaperOut()
+        elif pinNumber==13:
+            return self.port.getInSelected()
+        elif pinNumber==15:
+            return self.port.getInError()
+        elif pinNumber>=2 and pinNumber <=9:
+            return (self.port.PPRDATA() >> (pinNumber - 2)) & 1
+        else:
+            print 'Pin %i cannot be read (by PParallelLinux.readPin() yet)' % (pinNumber)
 
