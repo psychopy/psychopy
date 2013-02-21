@@ -533,11 +533,11 @@ class Window:
         for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._toLog = []
+        del self._toLog[:]
         #function calls
         for callEntry in self._toCall:
             callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        self._toCall = []
+        del self._toCall[:]
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
