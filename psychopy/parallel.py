@@ -54,7 +54,7 @@ def setPortAddress(address=0x0378):
     # the port object ensures that we're not longer holding the
     # device node open and that we won't error if we end up
     # re-opening it
-    if PORT is None:
+    if PORT is not None:
         del PORT
 
     tmp = None
