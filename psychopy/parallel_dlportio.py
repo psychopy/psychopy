@@ -1,17 +1,3 @@
-"""
-This module provides read/write access to the parallel port on a PC.
-
-This is a wrapper around Dincer Aydin's `winioport`_ for reading and writing to
-the parallel port, but adds the following additional functions for convenience.
-
-On windows `winioport`_ requires the `PortIO driver`_ to be installed.
-
-An alternative (e.g. on Linux) might be to install pyParallel and call that directly.
-
-.  _winioport: http://www.dinceraydin.com/python/indexeng.html
-.. _PortIO driver: http://www.winfordeng.com/support/download.php
-"""
-
 # This code is heavily based upon winioport.py
 # Provides hardware port access for Python under Windows 95/98/NT/2000
 #
@@ -48,8 +34,24 @@ An alternative (e.g. on Linux) might be to install pyParallel and call that dire
 #
 
 class PParallelDLPortIO(object):
+    """
+    This class provides read/write access to the parallel port on a PC.
+
+    This is a wrapper around Dincer Aydin's `winioport`_ for reading and writing to
+    the parallel port, but adds the following additional functions for convenience.
+
+    On windows `winioport`_ requires the `PortIO driver`_ to be installed.
+
+    An alternative on Linux might be to use PyParallel
+    An alternative on other versions of Windows might be to use inpout32.
+
+    .  _winioport: http://www.dinceraydin.com/python/indexeng.html
+    .. _PortIO driver: http://www.winfordeng.com/support/download.php
+    """
+
     def __init__(self, address=0x0378):
-        """Set the memory address of your parallel port, to be used in subsequent commands
+        """Set the memory address of your parallel port, to be used in
+        subsequent method calls on this class.
 
         common port addresses::
 
@@ -69,10 +71,9 @@ class PParallelDLPortIO(object):
         self.base = address
 
     def setData(self, data):
-        """
-        Set the data to be presented on the parallel port (one ubyte).
+        """Set the data to be presented on the parallel port (one ubyte).
         Alternatively you can set the value of each pin (data pins are pins
-        2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+        2-9 inclusive) using :func:`setPin`
 
         examples::
 
@@ -109,8 +110,7 @@ class PParallelDLPortIO(object):
         return (self.port.DlPortReadPortUchar( self.base ))
 
     def readPin(self, pinNumber):
-        """
-        Determine whether a desired (input) pin is high(1) or low(0).
+        """Determine whether a desired (input) pin is high(1) or low(0).
 
         Pins 2-13 and 15 are currently read here
         """

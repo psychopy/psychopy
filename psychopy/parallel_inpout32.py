@@ -1,17 +1,16 @@
-"""
-This module provides read/write access to the parallel port on a PC
-using inpout32 (for instance for Windows 7 64-bit)
-"""
-
 # We deliberately delay importing the inpout32 module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with
 # using the right one later
 
 class PParallelInpOut32(object):
+    """
+    This class provides read/write access to the parallel port on a PC
+    using inpout32 (for instance for Windows 7 64-bit)
+    """
     def __init__(self, address=0x0378):
-        """
-        Set the memory address of your parallel port, to be used in subsequent commands
+        """Set the memory address of your parallel port,
+        to be used in subsequent calls to this object
 
         common port addresses::
 
@@ -39,7 +38,7 @@ class PParallelInpOut32(object):
     def setData(self, data):
         """Set the data to be presented on the parallel port (one ubyte).
         Alternatively you can set the value of each pin (data pins are pins
-        2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+        2-9 inclusive) using :func:`setPin`
 
         examples::
 
@@ -74,8 +73,7 @@ class PParallelInpOut32(object):
         return (self.port.Inp32( self.base ))
 
     def readPin(self, pinNumber):
-        """
-        Determine whether a desired (input) pin is high(1) or low(0).
+        """Determine whether a desired (input) pin is high(1) or low(0).
 
         Pins 2-13 and 15 are currently read here
         """

@@ -1,5 +1,15 @@
 """
 This module provides read/write access to the parallel port for Linux or Windows.
+
+There is a legacy API which consists of the routines which are directly in this
+module.  This API assumes you only ever want to use a single parallel port at once.
+These routines will attempt to autodetect the method which should be used to
+access your parallel port from those available.
+
+There is also a newer, class-based API exposed in the classes
+:class:`PParallelLinux`, :class:`PParallelInpOut32` and
+:class:`PParallelDLPortIO`.  Each instance of these classes can be used to
+access a different parallel port.
 """
 
 import sys

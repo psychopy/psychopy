@@ -114,6 +114,12 @@ These packages are only needed for Windows:
 
 * `pywin32 <https://sourceforge.net/projects/pywin32/>`_
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port)
+* `inpout32 <http://logix4u.net/parallel-port/16-inpout32dll-for-windows-982000ntxp>`_ (an alternative method to using the parallel port on Windows)
+* `inpoutx64 <http://logix4u.net/parallel-port/26-inpoutx64dll-for-win-xp-64-bit>`_ (to use the parallel port on 64-bit Windows)
+
+These packages are only needed for Linux:
+
+* `pyparallel <http://pyserial.sourceforge.net/pyparallel.html>`_ (to use the parallel port)
 
 .. _suggestedPackages:
 

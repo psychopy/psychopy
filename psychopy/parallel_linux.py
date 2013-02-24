@@ -1,14 +1,4 @@
-"""
-This module provides read/write access to the parallel port for linux using
-pyparallel.
-
-Note that you must have the lp module removed and the ppdev module loaded
-to use this code::
-    sudo rmmod lp
-    sudo modprobe ppdev
-"""
-
-# We deliberately delay importing the inpout32 module until we try
+# We deliberately delay importing the pyparallel module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with
 # using the right one later
@@ -19,16 +9,23 @@ from __future__ import absolute_import
 
 # We duck-type the parallel port objects
 class PParallelLinux(object):
+    """
+    This class provides read/write access to the parallel port for linux using
+    pyparallel.
+
+    Note that you must have the lp module removed and the ppdev module loaded
+    to use this code::
+        sudo rmmod lp
+        sudo modprobe ppdev
+    """
     def __init__(self, address='/dev/parport0'):
-        """
-        Set the device node of your parallel port
+        """Set the device node of your parallel port
 
         common port addresses::
 
             LPT1 = /dev/parport0
             LPT2 = /dev/parport1
-            LPT3 = /dev/parport2
-        """
+            LPT3 = /dev/parport2"""
         import parallel as pyp
 
         if not hasattr(pyp, 'Parallel'):
@@ -76,11 +73,9 @@ class PParallelLinux(object):
         return (self.port.PPRDATA())
 
     def readPin(self, pinNumber):
-        """
-        Determine whether a desired (input) pin is high(1) or low(0).
+        """Determine whether a desired (input) pin is high(1) or low(0).
 
-        Pins 2-13 and 15 are currently read here
-        """
+        Pins 2-13 and 15 are currently read here """
         if pinNumber==10:
             return self.port.getInAcknowledge()
         elif pinNumber==11:
