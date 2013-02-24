@@ -69,6 +69,10 @@ class PParallelInpOut32(object):
         else:
             self.port.Out32( self.base, self.port.Inp32( self.base ) & (255 ^ 2**(pinNumber-2)) )
 
+    def readData(self):
+        """Return the value currently set on the data pins (2-9)"""
+        return (self.port.Inp32( self.base ))
+
     def readPin(self, pinNumber):
         """
         Determine whether a desired (input) pin is high(1) or low(0).

@@ -104,6 +104,9 @@ class PParallelDLPortIO(object):
         else:
             self.port.DlPortWritePortUchar( self.base, self.port.DlPortReadPortUchar( self.base ) & (255 ^ 2**(pinNumber-2)) )
 
+    def readData(self):
+        """Return the value currently set on the data pins (2-9)"""
+        return (self.port.DlPortReadPortUchar( self.base ))
 
     def readPin(self, pinNumber):
         """

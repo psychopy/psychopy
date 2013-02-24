@@ -71,6 +71,9 @@ class PParallelLinux(object):
         else:
             self.port.setData(self.port.PPRDATA() & (255 ^ 2**(pinNumber-2)))
 
+    def readData(self):
+        """Return the value currently set on the data pins (2-9)"""
+        return (self.port.PPRDATA())
 
     def readPin(self, pinNumber):
         """
