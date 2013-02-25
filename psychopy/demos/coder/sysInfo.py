@@ -1,8 +1,12 @@
 from pyglet.gl import *
-from psychopy import visual
+from psychopy import visual, preferences
 import sys, platform
 
-print "System info:"
+print "Paths to files on the system:"
+for key in ['userPrefsFile', 'appDataFile', 'demos', 'appFile']:
+    print "    %s: %s" % (key, preferences.prefs.paths[key])
+
+print "\nSystem info:"
 print platform.platform()
 if sys.platform=='darwin':
     OSXver, junk, architecture = platform.mac_ver()
