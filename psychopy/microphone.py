@@ -14,7 +14,7 @@ import tempfile, glob
 from psychopy import core, logging
 from psychopy import sound
 from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
-# import pyo is done within switchOn/Off to better encapsulate it, because it can be very slow
+# import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
 
@@ -245,13 +245,13 @@ class AudioCapture(object):
         if not ratio:
             logging.warn('%s: Re-sample by %sx is undefined, skipping' % (self.loggingId, str(ratio)))
         elif self.rate >= newRate:
-            t0 = time.time()
+            t0 = core.getTime()
             downsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))
+            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
         else:
-            t0 = time.time()
+            t0 = core.getTime()
             upsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))
+            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
 
         # clean-up:
         if not keep:
@@ -380,7 +380,7 @@ class Speech2Text(object):
             while resp.running:
                 print '.', # displays dots while waiting
                 sys.stdout.flush()
-                time.sleep(0.1)
+                core.wait(0.1)
             print resp.words
 
         d) Options: Set-up with a different language for the same speech clip; you'll get a different response (possibly having UTF-8 characters)::
@@ -472,22 +472,22 @@ class Speech2Text(object):
             if not os.path.isfile(FLAC_PATH):
                 sys.exit("failed to find flac")
             filetype = "x-flac"
-            tmp = 'tmp_guess%.6f' % time.time()+'.flac'
+            tmp = 'tmp_guess%.6f' % core.getTime()+'.flac'
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
             _, se = core.shellCall(flac_cmd, stderr=True)
             if se: logging.warn(se)
             while not os.path.isfile(tmp): # just try again
                 # ~2% incidence when recording for 1s, 650+ trials
-                # never got two in a row; time.sleep() does not help
+                # never got two in a row; core.wait() does not help
                 logging.warn('Failed to convert to tmp.flac; trying again')
                 _, se = core.shellCall(flac_cmd, stderr=True)
                 if se: logging.warn(se)
             file = tmp # note to self: ugly & confusing to switch up like this
         logging.info("Loading: %s as %s, audio/%s" % (self.file, lang, filetype))
         try:
-            c = 0 # occasional error; time.sleep(.1) is not always enough; better slow than fail
+            c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
             while not os.path.isfile(file) and c < 10:
-                time.sleep(.1)
+                core.wait(.1, hogCPUperiod=0)
                 c += 1
             audio = open(file, 'r+b').read()
         except:
@@ -512,7 +512,7 @@ class Speech2Text(object):
             self.request = urllib2.Request(url, audio, header)
         except: # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." % (file, self.file))
-            time.sleep(0.2)
+            core.wait(0.2, hogCPUperiod=0)
             self.request = urllib2.Request(url, audio, header)
     def _removeThread(self, gsqthread):
         del core.runningThreads[core.runningThreads.index(gsqthread)]
@@ -557,7 +557,7 @@ class Speech2Text(object):
         """
         gsqthread = self.getThread()
         while gsqthread.elapsed() < self.timeout:
-            time.sleep(0.1) # don't need precise timing to poll an http connection
+            core.wait(0.1, hogCPUperiod=0) # don't need precise timing to poll an http connection
             if not gsqthread.running:
                 break
         if gsqthread.running: # timed out
