@@ -664,16 +664,19 @@ if __name__ == '__main__':
         raw_input('testing record and playback, press <return> to start: ')
         print "say something:",
         sys.stdout.flush()
-        # tell it to record for 10s:
-        mic.record(10, block=False) # block False returns immediately
-            # which you want if you might need to stop a recording early
-        core.wait(2)  # we'll stop the record after 2s, not 10
-        mic.stop()
-        print
-        print 'record stopped; sleeping 1s'
-        sys.stdout.flush()
-        core.wait(1)
-        print 'start playback ',
-        sys.stdout.flush()
-        mic.playback()
-        print 'end.', mic.savedFile
+        try:
+            # tell it to record for 10s:
+            mic.record(10, block=False)  # returns immediately
+            core.wait(2)  # we'll stop the record after 2s
+            mic.stop()
+            print '\nrecord stopped; sleeping 1s'
+            sys.stdout.flush()
+            core.wait(1)
+            print 'start playback ',
+            sys.stdout.flush()
+            mic.playback()
+            print '\nend.', mic.savedFile
+        finally:
+            # delete the file even if Ctrl-C
+            try: os.unlink(mic.savedFile)
+            except: pass
