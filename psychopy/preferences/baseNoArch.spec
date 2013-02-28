@@ -25,7 +25,7 @@
     # which system to use as a backend for drawing
     winType = option('pyglet', 'pygame', default='pyglet')
     # the default units for windows and visual stimuli
-    units = option('deg', 'norm', 'cm', 'pix', default='norm')
+    units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing
     fullscr = boolean(default='False')
     # enable subjects to use the mouse and GUIs during experiments

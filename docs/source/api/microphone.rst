@@ -27,7 +27,6 @@ playback and manual onset determination (= the "gold standard" for RT).
 Audio Capture
 -------------
 .. autofunction:: psychopy.microphone.switchOn
-.. autofunction:: psychopy.microphone.switchOff 
 
 .. autoclass:: psychopy.microphone.AudioCapture
     :members:
