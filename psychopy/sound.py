@@ -424,9 +424,9 @@ class SoundPyo(_SoundBase):
             logging.exp("Sound %s stopped" %(self.name), obj=self)
 
     def getDuration(self):
-        """Return the duration of the sound file
+        """Return the duration of the sound
         """
-        return self._sndTable.getDur()
+        return self._snd.duration
 
     def getVolume(self):
         """Returns the current volume of the sound (0.0:1.0)"""
@@ -437,8 +437,8 @@ class SoundPyo(_SoundBase):
         """Sets the current volume of the sound (0.0:1.0)"""
         #ToDo : set volume for pyo
         pass
-    def _fromFile(self, fileName):
 
+    def _fromFile(self, fileName):
         #try finding the file
         self.fileName=None
         for filePath in ['', mediaLocation]:
@@ -451,6 +451,7 @@ class SoundPyo(_SoundBase):
         #load the file
         self._sndTable = pyo.SndTable(self.fileName)
         self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
+        self._snd.duration = self._sndTable.getDur()
         return True
 
     def _fromArray(self, thisArray):
@@ -461,6 +462,7 @@ class SoundPyo(_SoundBase):
             channels=1
         self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(), chnls=channels)
         self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
+        self._snd.duration = float(len(thisArray)) / self.sampleRate
         return True
 
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
