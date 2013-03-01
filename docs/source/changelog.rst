@@ -18,6 +18,7 @@ Changelog
 
 PsychoPy 1.76
 ------------------------------
+* ADDED: parallel module: support for Windows via inpout32 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports.
 
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
