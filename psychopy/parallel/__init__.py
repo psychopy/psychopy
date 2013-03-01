@@ -14,9 +14,9 @@ access a different parallel port.
 
 import sys
 
-from parallel_linux import PParallelLinux
-from parallel_inpout32 import PParallelInpOut32
-from parallel_dlportio import PParallelDLPortIO
+from _linux import PParallelLinux
+from _inpout32 import PParallelInpOut32
+from _dlportio import PParallelDLPortIO
 
 # In order to maintain API compatibility, we have to manage to deal with
 # the old, non-object-based, calls.  This necessitates keeping a
