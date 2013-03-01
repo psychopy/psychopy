@@ -35,6 +35,10 @@ class PParallelLinux(object):
 
         self.port = pyp.Parallel(address)
 
+    def __del__(self):
+        if hasattr(self, 'port'):
+            del self.port
+
     def setData(self, data):
         """Set the data to be presented on the parallel port (one ubyte).
         Alternatively you can set the value of each pin (data pins are pins
