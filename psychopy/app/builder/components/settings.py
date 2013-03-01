@@ -40,7 +40,7 @@ class SettingsComponent:
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
-            allowedVals=['use prefs', 'deg','pix','cm','norm'],
+            allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
             hint="Should the mouse be visible on screen?")

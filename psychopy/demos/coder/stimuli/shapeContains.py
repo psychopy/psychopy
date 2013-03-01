@@ -3,7 +3,7 @@ inherited by Polygon(), Circle(), and Rect()
 """
 from psychopy import visual, event
 
-win = visual.Window(size=(400,400), monitor='testMonitor', units='norm')
+win = visual.Window(size=(500,500), monitor='testMonitor', units='norm')
 mouse = event.Mouse(win=win)
 instr = visual.TextStim(win, text='click the shape to quit\nscroll to adjust circle', pos=(0,-.7), opacity=0.5)
 msg = visual.TextStim(win, text=' ', pos=(0,-.4))
@@ -16,15 +16,13 @@ shape = visual.ShapeStim(win, fillColor='darkblue', lineColor=None,
 bufzone = visual.Circle(win, radius=0.15, edges=13)
 
 # loop until detect a click inside the shape:
-inside = False
-while not any(mouse.getPressed()) or not inside:
+while not mouse.isPressedIn(shape):
     instr.draw()
     # dynamic buffer zone around mouse pointer:
     bufzone.setPos(mouse.getPos())  # follow the mouse
     bufzone.setSize(mouse.getWheelRel()[1]/20., '+')  # vert scroll adjusts radius, can go negative
-    # is the mouse inside the shape?
-    inside = shape.contains(mouse)
-    if inside:
+    # is the mouse inside the shape (hovering over it)?
+    if shape.contains(mouse):
         msg.setText('inside')
         shape.setOpacity(1)
         bufzone.setOpacity(1)
