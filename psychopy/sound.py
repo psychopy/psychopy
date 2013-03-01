@@ -400,11 +400,12 @@ class SoundPyo(_SoundBase):
         self.autoLog=autoLog
         self.name=name
 
-        #try to create sound
+        #try to create sound; set volume and loop before setSound (else needsUpdate=True)
         self._snd=None
         self.volume = min(1.0, max(0.0, volume))
         self.loop = bool(loop)
         self.setSound(value=value, secs=secs, octave=octave)
+        self.needsUpdate = False
 
     def play(self, fromStart=True, log=True):
         """Starts playing the sound on an available channel.
@@ -412,10 +413,12 @@ class SoundPyo(_SoundBase):
 
         This runs off a separate thread i.e. your code won't wait for the
         sound to finish before continuing. You need to use a
-        `psychopy.core.wait()` command if you want things to pause.
+        `psychopy.core.wait(mySound.getDuration())` if you want things to pause.
         If you call `play()` while something is already playing the sounds will
         be played over each other.
         """
+        if self.needsUpdate:
+            self._updateSnd()  # ~0.00015s, regardless of the size of self._sndTable
         self._snd.out()
         self.status=STARTED
         if log and self.autoLog:
@@ -435,14 +438,11 @@ class SoundPyo(_SoundBase):
             logging.exp("Sound %s stopped" %(self.name), obj=self)
 
     def getDuration(self):
-        """Return the duration of the sound
-        """
+        """Return the duration of the sound"""
         return self.duration
-
     def getVolume(self):
         """Returns the current volume of the sound (0.0 to 1.0, inclusive)"""
         return self.volume
-
     def getLoop(self):
         """Returns the current loop setting of the sound (True, False)"""
         return self.loop
@@ -450,10 +450,7 @@ class SoundPyo(_SoundBase):
     def setVolume(self, newVol, log=True):
         """Sets the current volume of the sound (0.0 to 1.0, inclusive)"""
         self.volume = min(1.0, max(0.0, newVol))
-        if self._snd:
-            del(self._snd)  # ? how to reset volume (mul) after initial table def
-            self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
-                                  loop=self.loop, mul=self.volume)
+        self.needsUpdate = True
         if log and self.autoLog:
             logging.exp("Sound %s set volume %.3f" % (self.name, self.volume), obj=self)
         return self.getVolume()
@@ -461,14 +458,15 @@ class SoundPyo(_SoundBase):
     def setLoop(self, newLoop, log=True):
         """Sets the current loop (True or False"""
         self.loop = (newLoop == True)
-        if self._snd:
-            del(self._snd)  # ? how to reset loop after initial table def
-            self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
-                                  loop=self.loop, mul=self.volume)
+        self.needsUpdate = True
         if log and self.autoLog:
             logging.exp("Sound %s set loop %s" % (self.name, self.loop), obj=self)
         return self.getLoop()
 
+    def _updateSnd(self):
+        self.needsUpdate = False
+        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+                                  loop=self.loop, mul=self.volume)
     def _fromFile(self, fileName):
         #try finding the file
         self.fileName=None
@@ -481,21 +479,18 @@ class SoundPyo(_SoundBase):
             return False
         #load the file
         self._sndTable = pyo.SndTable(self.fileName)
-        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
-                                  loop=self.loop, mul=self.volume)
-        self.duration = self._sndTable.getDur()  # sampleRate of the recording
+        self._updateSnd()
+        self.duration = self._sndTable.getDur()
         return True
 
     def _fromArray(self, thisArray):
-        #ToDo: create a pyo sound from an array
         if self.isStereo:
             channels=2
         else:
             channels=1
         self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(),
                                        chnls=channels)
-        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
-                                  loop=self.loop, mul=self.volume)
+        self._updateSnd()
         # a DataTable has no .getDur() method, so just store the duration:
         self.duration = float(len(thisArray)) / self.sampleRate
         return True
