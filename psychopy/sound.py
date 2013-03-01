@@ -350,7 +350,8 @@ class SoundPygame(_SoundBase):
 class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
-    def __init__(self,value="C",secs=0.5,octave=4, stereo=True, sampleRate=44100, bits=16, name='', autoLog=True):
+    def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
+                 loop=False, sampleRate=44100, bits=16, name='', autoLog=True):
         """
         value: can be a number, string or an array.
 
@@ -374,7 +375,15 @@ class SoundPyo(_SoundBase):
             output sounds in the bottom octave (1) and the top
             octave (8) is generally painful
 
-        sampleRate(=44100): if the psychopy.sound.init() function has been called
+        stereo: True (= default, two channels left and right), False (one channel)
+
+        volume: loudness to play the sound, from 0.0 (silent) to 1.0 (max).
+            Adjustments are not possible during playback, only before.
+
+        loop: False (= default, just play once), or True (repeat indefinitely,
+            until `.stop()`)
+
+        sampleRate (= 44100): if the psychopy.sound.init() function has been called
             or if another sound has already been created then this argument will be
             ignored and the previous setting will be used
 
@@ -393,6 +402,8 @@ class SoundPyo(_SoundBase):
 
         #try to create sound
         self._snd=None
+        self.volume = min(1.0, max(0.0, volume))
+        self.loop = bool(loop)
         self.setSound(value=value, secs=secs, octave=octave)
 
     def play(self, fromStart=True, log=True):
@@ -401,8 +412,8 @@ class SoundPyo(_SoundBase):
 
         This runs off a separate thread i.e. your code won't wait for the
         sound to finish before continuing. You need to use a
-        psychopy.core.wait() command if you want things to pause.
-        If you call play() whiles something is already playing the sounds will
+        `psychopy.core.wait()` command if you want things to pause.
+        If you call `play()` while something is already playing the sounds will
         be played over each other.
         """
         self._snd.out()
@@ -426,17 +437,37 @@ class SoundPyo(_SoundBase):
     def getDuration(self):
         """Return the duration of the sound
         """
-        return self._snd.duration
+        return self.duration
 
     def getVolume(self):
-        """Returns the current volume of the sound (0.0:1.0)"""
-        #ToDo : get volume for pyo
-        return volume
+        """Returns the current volume of the sound (0.0 to 1.0, inclusive)"""
+        return self.volume
 
-    def setVolume(self,newVol, log=True):
-        """Sets the current volume of the sound (0.0:1.0)"""
-        #ToDo : set volume for pyo
-        pass
+    def getLoop(self):
+        """Returns the current loop setting of the sound (True, False)"""
+        return self.loop
+
+    def setVolume(self, newVol, log=True):
+        """Sets the current volume of the sound (0.0 to 1.0, inclusive)"""
+        self.volume = min(1.0, max(0.0, newVol))
+        if self._snd:
+            del(self._snd)  # ? how to reset volume (mul) after initial table def
+            self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+                                  loop=self.loop, mul=self.volume)
+        if log and self.autoLog:
+            logging.exp("Sound %s set volume %.3f" % (self.name, self.volume), obj=self)
+        return self.getVolume()
+
+    def setLoop(self, newLoop, log=True):
+        """Sets the current loop (True or False"""
+        self.loop = (newLoop == True)
+        if self._snd:
+            del(self._snd)  # ? how to reset loop after initial table def
+            self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+                                  loop=self.loop, mul=self.volume)
+        if log and self.autoLog:
+            logging.exp("Sound %s set loop %s" % (self.name, self.loop), obj=self)
+        return self.getLoop()
 
     def _fromFile(self, fileName):
         #try finding the file
@@ -450,8 +481,9 @@ class SoundPyo(_SoundBase):
             return False
         #load the file
         self._sndTable = pyo.SndTable(self.fileName)
-        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
-        self._snd.duration = self._sndTable.getDur()
+        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+                                  loop=self.loop, mul=self.volume)
+        self.duration = self._sndTable.getDur()  # sampleRate of the recording
         return True
 
     def _fromArray(self, thisArray):
@@ -460,9 +492,12 @@ class SoundPyo(_SoundBase):
             channels=2
         else:
             channels=1
-        self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(), chnls=channels)
-        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(), loop=0)
-        self._snd.duration = float(len(thisArray)) / self.sampleRate
+        self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(),
+                                       chnls=channels)
+        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+                                  loop=self.loop, mul=self.volume)
+        # a DataTable has no .getDur() method, so just store the duration:
+        self.duration = float(len(thisArray)) / self.sampleRate
         return True
 
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
