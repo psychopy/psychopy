@@ -341,9 +341,13 @@ class Window:
         openWindows.append(self)
 
     def setRecordFrameIntervals(self, value=True):
-        """To provide accurate measures of frame intervals, to determine whether frames
-        are being dropped. Set this to False while the screen is not being updated
-        e.g. during event.waitkeys() and set to True during critical parts of the script
+        """To provide accurate measures of frame intervals, to determine whether
+        frames are being dropped. The intervals are the times between calls to `.flip()`.
+        Set to `True` only during the time-critical parts of the script.
+        Set this to `False` while the screen is not being
+        updated, i.e., during any slow, non-frame-time-critical sections of your code,
+        including inter-trial-intervals, `event.waitkeys()`, `core.wait()`, or
+        `image.setImage()`.
 
         see also:
             Window.saveFrameIntervals()
