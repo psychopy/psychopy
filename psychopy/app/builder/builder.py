@@ -4116,6 +4116,9 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.createNewRoutine()
 
     def generateScript(self, experimentPath):
+        if self.app.prefs.app['debugMode']:
+            return self.exp.writeScript(expPath=experimentPath)
+            # getting the track-back is very helpful when debugging the app
         try:
             script = self.exp.writeScript(expPath=experimentPath)
         except Exception as e:
