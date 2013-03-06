@@ -866,12 +866,29 @@ class Flow(list):
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
     def writeCode(self, script):
-        #initialise
-        # very few components need writeStartCode:
+        # detect all 'constant update' fields that seem intended to be dynamic:
+        constWarnings = []
+        for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
+            if type(entry) == Routine:
+                self._currentRoutine=entry
+                for component in self._currentRoutine:
+                    for field, key in _dubiousConstantUpdates(component):
+                        if field:
+                            constWarnings.append((field, key, component, entry))
+        if constWarnings:
+            warnings = []
+            msg = '"%s", in Routine %s (%s: %s)'
+            for field, key, component, routine in constWarnings:
+                warnings.append( msg % (field.val[:12], routine.params['name'],
+                                component.params['name'], key.capitalize()) )
+            print 'Note: Dynamic code seems intended but updating is "Constant":\n ',
+            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+        # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
+            # very few components need writeStartCode:
             if hasattr(entry, 'writeStartCode'):
-                entry.writeStartCode(script) # used by microphone comp to create a .wav directory once
+                entry.writeStartCode(script)
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(script)
@@ -1326,3 +1343,52 @@ def _XMLremoveWhitespaceNodes(parent):
             parent.removeChild(child)
         else:
             removeWhitespaceNodes(child)
+
+def _dubiousConstantUpdates(component):
+    """Return a list of fields in component that are set to be constant but seem intended to be dynamic
+    Many code fields will acutally be constant, and some denoted as code by $ will be constant.
+    """
+    def _isConst(string):
+        # guess at whether an expression is constant or intended to be dynamic
+        try:
+            val = eval(string)  # any leading $ already removed
+            return True  # constant (or string contains var(s) in the current namespace hmm)
+        except NameError, KeyError:
+            return False  # guess: probably contains variables --> dynamic
+        except:
+            return False  # parsing failed, so assume its dynamic
+    def _allConst(string):
+        # parse single items or comma-sep'd lists to see if all items are constant
+        items = string.lstrip('$[(').strip('])').split(',')
+        return all([_isConst(s) for s in items])
+
+    warnings = []
+    for key in component.params:
+        field = component.params[key]
+        if not hasattr(field, 'val') or not isinstance(field.val, basestring):
+            continue
+        if not (field.allowedUpdates and type(field.allowedUpdates)==list and
+                len(field.allowedUpdates) and field.updates=='constant'):
+            continue  # no warn
+        if not field.val.strip():
+            continue
+        # only non-empty, str/unicode, and 'constant' at this point
+        warn = False
+        if field.valType == 'str':
+            codeWanted = bool(re.search(r"^\$|[^\\]\$", field.val))  # "$" without "\$"
+            notDynamic = _allConst(field.val)
+            if notDynamic:  # $1 and $[1,1,1] are code but not dynamic
+                continue
+            if codeWanted: # and not constant code:
+                warn = True
+        elif field.valType == 'code':
+            notDynamic = _allConst(field.val)
+            # special case: treat expInfo as constant because its used that way:
+            if notDynamic or field.val.startswith('expInfo['):
+                continue
+            warn = True
+        if warn:
+            warnings.append( (field, key) )
+    if warnings:
+        return warnings
+    return [(None, None)]
