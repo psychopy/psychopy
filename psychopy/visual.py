@@ -6247,6 +6247,9 @@ class RatingScale:
         else:
             self.enableRespKeys = False
 
+        self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
+                        self.escapeKeys + self.skipKeys + self.respKeys)
+
     def _initLine(self, tickMarks, lineColor='White'):
         """define a ShapeStim to be a graphical line, with tick marks.
 
@@ -6704,7 +6707,7 @@ class RatingScale:
 
         # handle key responses:
         if not self.mouseOnly:
-            for key in event.getKeys():
+            for key in event.getKeys(self.allKeys):
                 if key in self.escapeKeys:
                     core.quit()
                 if key in self.skipKeys:
