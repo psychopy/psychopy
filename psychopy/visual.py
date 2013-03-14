@@ -962,7 +962,8 @@ class Window:
         if self.pos==None:
             #work out where the centre should be
             self.pos = [ (thisScreen.width-self.size[0])/2 , (thisScreen.height-self.size[1])/2 ]
-        self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
+        if not self._isFullScr:
+            self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
 
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'], 'psychopy.ico')
