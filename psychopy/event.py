@@ -510,7 +510,7 @@ class Mouse:
         for c in buttons:
             wanted[c] = 1
         pressed = self.getPressed()
-        return shape.contains(self) and any(wanted & pressed)
+        return any(wanted & pressed) and shape.contains(self)
     def _pix2windowUnits(self, pos):
         if self.win.units=='pix': return pos
         elif self.win.units=='norm': return pos*2.0/self.win.size
