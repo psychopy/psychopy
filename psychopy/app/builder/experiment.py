@@ -879,9 +879,9 @@ class Flow(list):
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in constWarnings:
-                warnings.append( msg % (field.val[:12], routine.params['name'],
+                warnings.append( msg % (field.val, routine.params['name'],
                                 component.params['name'], key.capitalize()) )
-            print 'Note: Dynamic code seems intended but updating is "Constant":\n ',
+            print 'Note: Dynamic code seems intended but updating is "constant":\n ',
             print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
         # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
@@ -1345,8 +1345,9 @@ def _XMLremoveWhitespaceNodes(parent):
             removeWhitespaceNodes(child)
 
 def _dubiousConstantUpdates(component):
-    """Return a list of fields in component that are set to be constant but seem intended to be dynamic
-    Many code fields will acutally be constant, and some denoted as code by $ will be constant.
+    """Return a list of fields in component that are set to be constant but seem
+    intended to be dynamic. Many code fields will actually be constant, and some
+    denoted as code by $ will be constant. The classification is not 100% correct.
     """
     def _isConst(string):
         # guess at whether an expression is constant or intended to be dynamic
@@ -1357,7 +1358,7 @@ def _dubiousConstantUpdates(component):
             return False  # guess: probably contains variables --> dynamic
         except:
             return False  # parsing failed, so assume its dynamic
-    def _allConst(string):
+    def allAreConstant(string):
         # parse single items or comma-sep'd lists to see if all items are constant
         items = string.lstrip('$[(').strip('])').split(',')
         return all([_isConst(s) for s in items])
@@ -1365,30 +1366,19 @@ def _dubiousConstantUpdates(component):
     warnings = []
     for key in component.params:
         field = component.params[key]
-        if not hasattr(field, 'val') or not isinstance(field.val, basestring):
+        if (not hasattr(field, 'val') or not isinstance(field.val, basestring) or
+            not field.val.strip() or not field.valType in ['code', 'str']):
+            continue  # continue == no problem, no warning
+        if not (field.allowedUpdates and type(field.allowedUpdates) == list and
+            len(field.allowedUpdates) and field.updates == 'constant'):
             continue
-        if not (field.allowedUpdates and type(field.allowedUpdates)==list and
-                len(field.allowedUpdates) and field.updates=='constant'):
-            continue  # no warn
-        if not field.val.strip():
+        # only non-empty, possibly-code, and 'constant' updating at this point
+        if field.valType == 'str' and not bool(re.search(r"^\$|[^\\]\$", field.val)):  # "$" without "\$"
             continue
-        # only non-empty, str/unicode, and 'constant' at this point
-        warn = False
-        if field.valType == 'str':
-            codeWanted = bool(re.search(r"^\$|[^\\]\$", field.val))  # "$" without "\$"
-            notDynamic = _allConst(field.val)
-            if notDynamic:  # $1 and $[1,1,1] are code but not dynamic
-                continue
-            if codeWanted: # and not constant code:
-                warn = True
-        elif field.valType == 'code':
-            notDynamic = _allConst(field.val)
-            # special case: treat expInfo as constant because its used that way:
-            if notDynamic or field.val.startswith('expInfo['):
-                continue
-            warn = True
-        if warn:
-            warnings.append( (field, key) )
+        # special case: treat expInfo as constant because its used that way
+        if allAreConstant(field.val) or 'expInfo[' in field.val:  # $1 and $[1,1,1] are code but not dynamic
+            continue
+        warnings.append( (field, key) )
     if warnings:
         return warnings
     return [(None, None)]
