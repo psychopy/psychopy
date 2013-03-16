@@ -87,6 +87,7 @@ from psychopy.constants import *
 
 #keep track of windows that have been opened
 openWindows=[]
+psychopy.event.visualOpenWindows = openWindows  # can provide a default window for mouse
 
 class Window:
     """Used to set up a context in which to draw objects,

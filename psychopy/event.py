@@ -308,7 +308,17 @@ class Mouse:
         self.visible=visible
         self.lastPos = None
         self.prevPos = None # used for motion detection and timing
-        self.win=win
+        if win:
+            self.win = win
+        else:
+            try:
+                # to avoid circular imports, visualOpenWindows is defined by visual.py
+                # to be the same object as visual.openWindows and is added by visual.py
+                # into event's namespace; it's circular to "import visual" here in event
+                self.win = visualOpenWindows[0]
+                logging.info('Mouse: using default window')
+            except NameError, IndexError:
+                logging.error('Mouse: failed to get a default visual.Window (need to create one first)')
         self.status=None#can be set to STARTED, NOT_STARTED etc for builder
         self.mouseClock=psychopy.core.Clock() # used for movement timing
         self.movedistance=0.0
