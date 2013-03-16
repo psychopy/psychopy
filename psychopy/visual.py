@@ -538,11 +538,11 @@ class Window:
         for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._toLog = []
+        del self._toLog[:]
         #function calls
         for callEntry in self._toCall:
             callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        self._toCall = []
+        del self._toCall[:]
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -967,7 +967,8 @@ class Window:
         if self.pos==None:
             #work out where the centre should be
             self.pos = [ (thisScreen.width-self.size[0])/2 , (thisScreen.height-self.size[1])/2 ]
-        self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
+        if not self._isFullScr:
+            self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
 
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'], 'psychopy.ico')
