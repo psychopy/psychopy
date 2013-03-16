@@ -87,6 +87,7 @@ from psychopy.constants import *
 
 #keep track of windows that have been opened
 openWindows=[]
+psychopy.event.visualOpenWindows = openWindows  # can provide a default window for mouse
 
 class Window:
     """Used to set up a context in which to draw objects,
@@ -341,9 +342,13 @@ class Window:
         openWindows.append(self)
 
     def setRecordFrameIntervals(self, value=True):
-        """To provide accurate measures of frame intervals, to determine whether frames
-        are being dropped. Set this to False while the screen is not being updated
-        e.g. during event.waitkeys() and set to True during critical parts of the script
+        """To provide accurate measures of frame intervals, to determine whether
+        frames are being dropped. The intervals are the times between calls to `.flip()`.
+        Set to `True` only during the time-critical parts of the script.
+        Set this to `False` while the screen is not being
+        updated, i.e., during any slow, non-frame-time-critical sections of your code,
+        including inter-trial-intervals, `event.waitkeys()`, `core.wait()`, or
+        `image.setImage()`.
 
         see also:
             Window.saveFrameIntervals()
@@ -6244,6 +6249,9 @@ class RatingScale:
         else:
             self.enableRespKeys = False
 
+        self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
+                        self.escapeKeys + self.skipKeys + self.respKeys)
+
     def _initLine(self, tickMarks, lineColor='White'):
         """define a ShapeStim to be a graphical line, with tick marks.
 
@@ -6701,7 +6709,7 @@ class RatingScale:
 
         # handle key responses:
         if not self.mouseOnly:
-            for key in event.getKeys():
+            for key in event.getKeys(self.allKeys):
                 if key in self.escapeKeys:
                     core.quit()
                 if key in self.skipKeys:

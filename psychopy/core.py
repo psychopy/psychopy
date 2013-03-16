@@ -85,26 +85,29 @@ class CountdownTimer(Clock):
 
     Typical usage::
 
-        timer = core.CountdownTimer()
-        timer.add(5)
-        while timer.getTime(): #after 5s will become negative
+        timer = core.CountdownTimer(5)
+        while timer.getTime() > 0:  # after 5s will become negative
             #do stuff
     """
+    def __init__(self, start=0):
+        Clock.__init__(self)
+        if start:
+            self.add(start)
     def getTime(self):
-        """Returns the current time on this clock in secs (sub-ms precision)
+        """Returns the current time left on this timer in secs (sub-ms precision)
         """
         return self.timeAtLastReset-getTime()
     def add(self,t):
-        """Add more time to the clock's 'start' time (t0).
+        """Add more time to the timer, increasing the time remaining.
 
-        Unlike the Clock.add() method this actually adds time to the apparent
-        current time. (It actually subtracts time from the stored t0)
+        Unlike the `Clock.add()` method, `Timer.add()` increases the time returned
+        by `Timer.getTime()`. (It actually subtracts time from the stored t0)
 
         e.g.::
 
-            timer = core.Clock()
+            timer = core.CountdownTimer()
             timer.add(5)
-            while timer.getTime()>0:
+            while timer.getTime() > 0:
                 #do something
         """
         self.timeAtLastReset += t
