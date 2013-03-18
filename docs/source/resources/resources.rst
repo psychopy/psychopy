@@ -15,6 +15,8 @@ Youtube tutorials
 
 There is now a `youtube PsychoPy <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ tutorial showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
 
+There's also a `subtitled version of the stroop video tutorial <https://www.universalsubtitles.org/en/videos/rBzTFjunIDB2>`_ (Thanks Kevin Cole for doing that!)
+
 .. _lectureMaterials:
 
 Lecture materials (Builder)

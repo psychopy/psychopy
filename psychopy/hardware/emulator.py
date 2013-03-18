@@ -3,7 +3,7 @@ both testing and online data acquisition. To debug timing, you can emulate sync
 pulses and user responses. Limitations: pyglet only; keyboard events only.
 """ 
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __author__ = 'Jeremy Gray'
@@ -83,7 +83,7 @@ class SyncGenerator(threading.Thread):
         self.skip = skip
         self.playSound = sound
         if self.playSound:
-            self.sound = Sound(secs=self.TR-.08, octave=6, autoLog=False)
+            self.sound = Sound(secs=self.TR-.12, octave=6, autoLog=False)
             self.sound.setVolume(0.15)
         
         self.clock = core.Clock()
@@ -93,9 +93,10 @@ class SyncGenerator(threading.Thread):
     def run(self):
         self.running = True
         if self.skip:
-            if self.playSound:
-                self.sound.play()
-            core.wait(self.TR * self.skip) # emulate T1 stabilization without data collection
+            for i in range(int(self.skip)):
+                if self.playSound:
+                    self.sound.play()
+                core.wait(self.TR) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
             if self.playSound:
@@ -223,7 +224,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     mode = mode.capitalize()
     if mode not in ['Scan', 'Test']:
         run_type = visual.RatingScale(win, choices=['Scan', 'Test'], markerStyle='circle',
-            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.95),
+            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.9),
             markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray')
         while run_type.noResponse: 
             instr.draw()

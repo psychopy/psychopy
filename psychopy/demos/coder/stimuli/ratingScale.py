@@ -43,6 +43,7 @@ while myRatingScale.noResponse: # show & update until a response has been made
 
 rating = myRatingScale.getRating() # get the value indicated by the subject, 'None' if skipped 
 print 'Example 1: rating =', rating
+print 'history =', myRatingScale.getHistory()
 
 # Example 2 --------(multiple items, multiple dimensions for each)--------
 instr = visual.TextStim(myWin, text="""Example 2. This example uses non-default settings for the visual display, skipping a rating is not possible, and it uses a list of images (two) to be rated on several dimensions (valence and arousal).

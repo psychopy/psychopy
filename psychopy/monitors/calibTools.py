@@ -1,7 +1,7 @@
 """Tools to help with calibrations
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from calibData import *
@@ -249,6 +249,7 @@ class Monitor:
         """sets the LMS->RGB conversion matrix for a chromatically
         calibrated monitor (matrix is a 3x3 num array)."""
         self.currentCalib['lms_rgb']=lms_rgb
+        self.setPsychopyVersion(__version__)
     def setPsychopyVersion(self, version):
         self.currentCalib['psychopyVersion'] = version
     def setNotes(self, notes):
@@ -507,10 +508,6 @@ class Monitor:
                     self._gammaInterpolator.append(interp1d(lumsPre[gun,:], levelsPre,kind='linear'))
                     #interpFunc = Interpolation.InterpolatingFunction((lumsPre[gun,:],), levelsPre)
                     #polyFunc = interpFunc.fitPolynomial(3)
-                    #print polyFunc.coeff
-                    #print polyFunc.derivative(0)
-                    #print polyFunc.derivative(0.5)
-                    #print polyFunc.derivative(1.0)
                     #self._gammaInterpolator2.append( [polyFunc.coeff])
             else:
                 #no way to do this! Calibrate the monitor
@@ -552,7 +549,6 @@ class Monitor:
                 for gun in range(3):
                     output[:,gun] = gammaInvFun(desiredLums[:,gun],
                         minLum, maxLum[gun], gamma[gun],eq=linMethod, b=b[gun])
-                #print gamma
             else:
                 output = gammaInvFun(desiredLums,
                     minLum, maxLumWhite, gammaWhite,eq=linMethod)
@@ -712,18 +708,7 @@ def makeLMS2RGB(nm,powerRGB):
     rgb_to_cones = numpy.dot(coneSens,numpy.transpose(powerRGB))
     cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
 
-    whiteLMS = numpy.dot(numpy.ones(3,'f'), rgb_to_cones)
-    #normalise each col by max
-    #cones_to_rgb[:,0] /= max(abs(cones_to_rgb[:,0]))
-    #cones_to_rgb[:,1] /= max(abs(cones_to_rgb[:,1]))
-    #cones_to_rgb[:,2] /= max(abs(cones_to_rgb[:,2]))
-
-    #normalise each col by whitepoint LMS
-    cones_to_rgb[:,0] *= whiteLMS
-    cones_to_rgb[:,1] *= whiteLMS
-    cones_to_rgb[:,2] *= whiteLMS
     return cones_to_rgb
-
 
 def getLumSeries(lumLevels=8,
     winSize=(800,600),

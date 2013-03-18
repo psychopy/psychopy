@@ -19,18 +19,37 @@ Changelog
 PsychoPy 1.76
 ------------------------------
 
+PsychoPy 1.76.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The compatibility changes in this release below are likely to affect very few users; certainly only those that are writing custom code.
+The compatibility changes in this release below are likely to affect very few users
 
+* ADDED: RatingScale.getHistory() returns intermediate time-stamped ratings; allows "continuous" ratings
+* CHANGED: RatingScale.getRating() no longer returns False prior to an accepted rating (now returns the currently selected value)
+* ADDED: :func:`Window.callOnFlip() <psychopy.visual.Window.callOnFlip>` function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
+* FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
+* ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
+* ADDED: support for lower latency sound with the pyo library. For now pygame remains the default but this can be changed by setting the order in preferences>general>audio
+* CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution, as have the libraries to create .mov files using Window.saveMovieFrames(). If you need those features then install the 1.75 Standalone and then update to 1.76 using the auto-update system.
+* ADDED: sound objects (either pygame or pyo) now support autologging
+* FIXED: a bug in the generation of the LMS color space conversion matrix. It seems nobody was actually using this for real, but if you were contact Jon for details!
+* CHANGED: various changes to RatingScale (thanks Henrik Singman):
+   * CHANGED: choices are now displayed at the tick marks by default (instead of above the line). To restore the old behavior set labels=False. This does not affect experiments created in older versions of the builder.
+   * ADDED: check box "choiceLabelsAboveLines" to the RatingScale component of the builder (advanced tab) to still have the choice labels above the line.
+   * ADDED: arguments tickMarks and labels to RatingScale class to control where tick marks (for quantitative rating scales) should be placed at the line and how these should be labeled.
+   * ADDED: argument ticksAboveLine to RatingScale class. Controls where the tick marks should be plotted (above or below the line).
 * FIXED: problem with unset exp.name (was causing wx.Dialog error "TypeError: String or Unicode type required" on new experiments)
-* :blue: `CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
+* :blue:`CHANGED: exp.name is no longer available from Builder scripts (use exp.getExpName() instead)`
 * FIXED: problem with tiling of depth values for ElementArrayStim (thanks Yuri Spitsyn)
 * FIXED: Fix to setContrast for certain visual stimuli (Jonas Lindeløv)
 * FIXED: inability to launch scripts/experiments if the Mac Standalone was in a folder with a space in it
 * FIXED: Aperture Component now honours the 'units' (Hiroyuki Sogo)
-* :blue: `FIXED: stimulus contains/overlaps functions now use stimulus 'units' and take stimulus orientation into account (Hiroyuki Sogo) NB if you had code in place to perform these corrections yourself you should now remove it!`
+* :blue:`FIXED: stimulus contains/overlaps functions now use stimulus 'units' and take stimulus orientation into account (Hiroyuki Sogo) NB if you had code in place to perform these corrections yourself you should now remove it!`
 * FIXED: some data outputs were not honouring the 'matrixOnly' option (Mike MacAskill)
 * FIXED: when loading a psydat file of an ExperimentHandler the file automatically saved new copies of its csv/excel outputs. This no longer occurs (if loaded using misc.fromFile)
 * ADDED: timestamp option to event.waitKeys() (Jonas Lindeløv)
@@ -128,7 +147,7 @@ Additional changes:
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/)
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')

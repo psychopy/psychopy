@@ -2,7 +2,7 @@
 - just handy things like conversion functions etc...
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy, random #this is imported by psychopy.core
@@ -511,7 +511,6 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
         logging.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
     else: cones_to_rgb=conversionMatrix
 
-    rgb_to_cones = numpy.linalg.pinv(cones_to_rgb)#get inverse
     rgb = numpy.dot(cones_to_rgb, lms_3xN)
     return numpy.transpose(rgb)#return in the shape we received it
 

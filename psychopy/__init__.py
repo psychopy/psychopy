@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 #--------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 #--------------------------------------------------------------------------
 
 #version info for PsychoPy
-__version__='1.75.02'
+__version__='1.76.00'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
@@ -30,9 +30,8 @@ if __git_sha__=='n/a':
     if repo_commit:
         __git_sha__=repo_commit.strip()#remove final linefeed
 
-from psychopy.preferences import Preferences
+from psychopy.preferences import prefs
 import sys
-prefs = Preferences()
 for pathName in prefs.general['paths']:
     sys.path.append(pathName)
 

@@ -98,7 +98,7 @@ Essential packages
 If you want to install each library individually rather than use the simpler distributions of packages above then you can download the following. Make sure you get the correct version for your OS and your version of Python. easy_install will work for many of these, but some require compiling from source.
 
 * `python <http://www.python.org/download/>`_ (32-bit only, version 2.6 or 2.7; 2.5 might work, 3.x will not)
-* `avbin <http://code.google.com/p/avbin/>`_ (movies)
+* `avbin <http://code.google.com/p/avbin/>`_ (movies) On mac: 1) Download version 5 `from google <http://code.google.com/p/avbin/>`_ (not a higher version). 2) Start terminal, type `sudo mkdir -p /usr/local/lib` . 3) `cd` to the unpacked avbin directory, type `sh install.sh` . 4) Start or restart PsychoPy, and from PsychoPy's coder view shell, this should work: `from pyglet.media import avbin` . If you run a script and get an error saying `'NoneType' object has no attribute 'blit'`, it probably means you did not install version 5.
 * `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
@@ -114,6 +114,12 @@ These packages are only needed for Windows:
 
 * `pywin32 <https://sourceforge.net/projects/pywin32/>`_
 * `winioport <http://www.geocities.com/dinceraydin/python/indexeng.html>`_ (to use the parallel port)
+* `inpout32 <http://logix4u.net/parallel-port/16-inpout32dll-for-windows-982000ntxp>`_ (an alternative method to using the parallel port on Windows)
+* `inpoutx64 <http://logix4u.net/parallel-port/26-inpoutx64dll-for-win-xp-64-bit>`_ (to use the parallel port on 64-bit Windows)
+
+These packages are only needed for Linux:
+
+* `pyparallel <http://pyserial.sourceforge.net/pyparallel.html>`_ (to use the parallel port)
 
 .. _suggestedPackages:
 
