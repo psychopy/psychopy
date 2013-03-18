@@ -52,7 +52,7 @@ class SettingsComponent:
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
-            allowedVals=['use prefs', 'deg','pix','cm','norm'],
+            allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
             hint="Should the mouse be visible on screen?")
@@ -149,7 +149,6 @@ class SettingsComponent:
         #    buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
         #buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
-        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
 
         buff.writeIndentedLines("\n# Setup files for saving\n")
@@ -233,7 +232,7 @@ class SettingsComponent:
         else:
             buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
 
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
@@ -245,7 +244,6 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
         if self.params['saveTags'].val:

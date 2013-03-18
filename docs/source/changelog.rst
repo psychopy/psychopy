@@ -19,11 +19,18 @@ Changelog
 PsychoPy 1.76
 ------------------------------
 
+PsychoPy 1.76.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The compatibility changes in this release below are likely to affect very few users
 
+* ADDED: RatingScale.getHistory() returns intermediate time-stamped ratings; allows "continuous" ratings
+* CHANGED: RatingScale.getRating() no longer returns False prior to an accepted rating (now returns the currently selected value)
 * ADDED: :func:`Window.callOnFlip() <psychopy.visual.Window.callOnFlip>` function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
 * FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
 * ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
@@ -140,7 +147,7 @@ Additional changes:
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/)
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')

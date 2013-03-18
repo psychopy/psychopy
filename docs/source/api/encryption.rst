@@ -1,9 +1,9 @@
 
 :mod:`psychopy.contrib.opensslwrap` Encryption *(beta)*
-=======================================================
+============================================================
 
 Overview
---------
+-----------
 
 **Aim:** Better protect psychology and neuroscience lab information from casual inspection
 or accidental disclosure, using public-key encryption for security and flexibility.
@@ -240,18 +240,18 @@ Installing OpenSSL
   Windows Vista and later will try to discover the installation path (not tested)
     
 Encryption *(beta)*
--------------------
+------------------------
 .. autofunction:: psychopy.contrib.opensslwrap.encrypt
 
 Decryption *(beta)*
--------------------
+-------------------------
 .. autofunction:: psychopy.contrib.opensslwrap.decrypt
 
 Key rotation *(beta)*
-------------
+--------------------------
 .. autofunction:: psychopy.contrib.opensslwrap.rotate
 
 Sign & verify *(beta)*
--------------
+---------------------------
 .. autofunction:: psychopy.contrib.opensslwrap.sign
 .. autofunction:: psychopy.contrib.opensslwrap.verify

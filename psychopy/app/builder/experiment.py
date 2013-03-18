@@ -1,10 +1,11 @@
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
 #from components import *#getComponents('') and getAllComponents([])
-from psychopy import data, preferences, __version__, logging
+import psychopy
+from psychopy import data, __version__, logging
 from psychopy.constants import *
 from lxml import etree
 import numpy, numpy.random # want to query their name-spaces
@@ -93,7 +94,7 @@ class Experiment:
         self.prefsBuilder=prefs.builder
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyVersion=psychopy.__version__
+        self.psychopyVersion=psychopy.__version__ #imported from components
         self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=components.getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self.resourcePool=components.getAllComponents()['ResourcePoolComponent'](parentName='', exp=self)
@@ -207,6 +208,7 @@ class Experiment:
                 elementNode.set('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
                 elementNode.set('name', '%s' %element.params['name'])
+        self.save_resource_pool()
         #write to disk
         f=codecs.open(filename, 'wb', 'utf-8')
         f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
@@ -302,11 +304,20 @@ class Experiment:
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
+    
+    def load_resource_pool(self, root):
+        poolNode = root.find("Pool")
+        resourcesNode = poolNode.find("Resources")
+        for resourceNode in resourcesNode:
+            name = resourceNode.get("name")
+            description = resourceNode.get("description")
+            self.resourcePool.add_resource(name, description=description, content=resourceNode.text)
+    
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
         #open the file using a parser that ignores prettyprint blank text
-        parser = etree.XMLParser(remove_blank_text=True)
+        parser = etree.XMLParser(remove_blank_text=True, huge_tree=True)
         f=open(filename)
         folder = os.path.split(filename)[0]
         if folder: #might be ''
@@ -354,7 +365,7 @@ class Experiment:
             for componentNode in routineNode:
                 componentType=componentNode.tag
                 #create an actual component of that type
-                component=components.getAllComponents()[componentType](\
+                component=components.getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior (currently only the new behavior of choices for RatingScale, HS, November 2012)

@@ -14,7 +14,7 @@ import tempfile, glob
 from psychopy import core, logging
 from psychopy import sound
 from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
-# import pyo is done within switchOn/Off to better encapsulate it, because it can be very slow
+# import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
 
@@ -193,8 +193,9 @@ class AudioCapture(object):
 
         return self.savedFile
 
-    def playback(self):
-        """Plays the saved .wav file, as just recorded or resampled
+    def playback(self, block=True):
+        """Plays the saved .wav file, as just recorded or resampled. Execution
+        blocks by default, but can return immediately with `block=False`.
         """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
@@ -203,7 +204,8 @@ class AudioCapture(object):
 
         # play this file:
         sound.Sound(self.savedFile).play()
-        core.wait(self.duration) # set during record()
+        if block:
+            core.wait(self.duration) # set during record()
 
         logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
 
@@ -243,13 +245,13 @@ class AudioCapture(object):
         if not ratio:
             logging.warn('%s: Re-sample by %sx is undefined, skipping' % (self.loggingId, str(ratio)))
         elif self.rate >= newRate:
-            t0 = time.time()
+            t0 = core.getTime()
             downsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))
+            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
         else:
-            t0 = time.time()
+            t0 = core.getTime()
             upsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), time.time()-t0, newFile))
+            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
 
         # clean-up:
         if not keep:
@@ -378,7 +380,7 @@ class Speech2Text(object):
             while resp.running:
                 print '.', # displays dots while waiting
                 sys.stdout.flush()
-                time.sleep(0.1)
+                core.wait(0.1)
             print resp.words
 
         d) Options: Set-up with a different language for the same speech clip; you'll get a different response (possibly having UTF-8 characters)::
@@ -470,22 +472,22 @@ class Speech2Text(object):
             if not os.path.isfile(FLAC_PATH):
                 sys.exit("failed to find flac")
             filetype = "x-flac"
-            tmp = 'tmp_guess%.6f' % time.time()+'.flac'
+            tmp = 'tmp_guess%.6f' % core.getTime()+'.flac'
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
             _, se = core.shellCall(flac_cmd, stderr=True)
             if se: logging.warn(se)
             while not os.path.isfile(tmp): # just try again
                 # ~2% incidence when recording for 1s, 650+ trials
-                # never got two in a row; time.sleep() does not help
+                # never got two in a row; core.wait() does not help
                 logging.warn('Failed to convert to tmp.flac; trying again')
                 _, se = core.shellCall(flac_cmd, stderr=True)
                 if se: logging.warn(se)
             file = tmp # note to self: ugly & confusing to switch up like this
         logging.info("Loading: %s as %s, audio/%s" % (self.file, lang, filetype))
         try:
-            c = 0 # occasional error; time.sleep(.1) is not always enough; better slow than fail
+            c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
             while not os.path.isfile(file) and c < 10:
-                time.sleep(.1)
+                core.wait(.1, hogCPUperiod=0)
                 c += 1
             audio = open(file, 'r+b').read()
         except:
@@ -510,7 +512,7 @@ class Speech2Text(object):
             self.request = urllib2.Request(url, audio, header)
         except: # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." % (file, self.file))
-            time.sleep(0.2)
+            core.wait(0.2, hogCPUperiod=0)
             self.request = urllib2.Request(url, audio, header)
     def _removeThread(self, gsqthread):
         del core.runningThreads[core.runningThreads.index(gsqthread)]
@@ -555,7 +557,7 @@ class Speech2Text(object):
         """
         gsqthread = self.getThread()
         while gsqthread.elapsed() < self.timeout:
-            time.sleep(0.1) # don't need precise timing to poll an http connection
+            core.wait(0.1, hogCPUperiod=0) # don't need precise timing to poll an http connection
             if not gsqthread.running:
                 break
         if gsqthread.running: # timed out
@@ -641,15 +643,16 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     logging.exp('%s: switch on (%dhz) took %.3fs' % (__file__.strip('.py'), sampleRate, core.getTime() - t0))
 
 def switchOff():
-    """No longer needed; maintained for backwards compatibility only
+    """(No longer needed as of v1.76.00; retained for backwards compatibility.)
     """
+    logging.exp("microphone.switchOff() is deprecated; no longer needed.")
     return
 
 if __name__ == '__main__':
     print ('\nMicrophone command-line testing\n')
     core.checkPygletDuringWait = False # don't dispatch events during a wait
     logging.console.setLevel(logging.DEBUG)
-    switchOn(16000) # import pyo, create a server
+    switchOn(48000) # import pyo, create a server
 
     mic = AudioCapture()
     if len(sys.argv) > 1: # stability test using argv[1] iterations
@@ -658,32 +661,22 @@ if __name__ == '__main__':
             mic.resample(8000, keep=False) # removes orig file
             os.remove(mic.savedFile) # removes downsampled file
     else: # two interactive record + playback tests
-        testDuration = 2  # sec
         raw_input('testing record and playback, press <return> to start: ')
         print "say something:",
         sys.stdout.flush()
-        # tell it to record for 10s:
-        mic.record(testDuration * 5, block=False) # block False returns immediately
-            # which you want if you might need to stop a recording early
-        core.wait(testDuration)  # we'll stop the record after 2s, not 10
-        mic.stop()
-        print
-        print 'record stopped; sleeping 1s'
-        sys.stdout.flush()
-        core.wait(1)
-        print 'start playback ',
-        sys.stdout.flush()
-        mic.playback()
-        print 'end.', mic.savedFile
-        sys.stdout.flush()
-        os.remove(mic.savedFile)
-        mic.reset()
-
-        # do another record, fixed duration, use block=True
-        raw_input('<ret> for another: ')
-        print "say something else:",
-        sys.stdout.flush()
-        mic.record(testDuration, file='m') # block=True by default; here use explicit file name
-        mic.playback()
-        print mic.savedFile
-        os.remove(mic.savedFile)
+        try:
+            # tell it to record for 10s:
+            mic.record(10, block=False)  # returns immediately
+            core.wait(2)  # we'll stop the record after 2s
+            mic.stop()
+            print '\nrecord stopped; sleeping 1s'
+            sys.stdout.flush()
+            core.wait(1)
+            print 'start playback ',
+            sys.stdout.flush()
+            mic.playback()
+            print '\nend.', mic.savedFile
+        finally:
+            # delete the file even if Ctrl-C
+            try: os.unlink(mic.savedFile)
+            except: pass

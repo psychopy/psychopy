@@ -407,13 +407,13 @@ class Window(object):
         """
 
         self._toLog.append({'msg':msg,'level':level,'obj':str(obj)})
-    
+        
     def callOnFlip(self,function, *args, **kwargs):
         """Call a function immediately after the next .flip() command.
 
-        The first argument should be the argument to call, the following args
+        The first argument should be the function to call, the following args
         should be used exactly as you would for your normal call to the function
-        (can use ordered arguments or keyword argumentsas normal).
+        (can use ordered arguments or keyword arguments as normal).
 
         e.g. If you have a function that you would normally call like this::
 
@@ -426,14 +426,14 @@ class Window(object):
 
         """
         self._toCall.append({'function':function,'args':args,'kwargs':kwargs})
-    
+
     def doFlipLogging(self, now):
         #log events
         for logEntry in self._toLog:
             #{'msg':msg,'level':level,'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
         self._toLog = []
-    
+	
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your frame.
         (This replaces the win.update() method, better reflecting what is happening underneath).
@@ -537,19 +537,14 @@ class Window(object):
                        logging.warning('t of last frame was %.2fms (=1/%i)' %(deltaT*1000, 1/deltaT), t=now)
                    elif self.nDroppedFrames==reportNDroppedFrames:
                        logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
-
-        #log events
-        for logEntry in self._toLog:
-            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
-            logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
-        self._toLog = []
-        #function calls
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        self._toCall = []
-
+                       
         # Emit logging entries if requested
         self.doFlipLogging(now + logging.defaultClock.timeAtLastReset)
+        
+		#function calls
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        del self._toCall[:]
         
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
@@ -973,7 +968,8 @@ class Window(object):
         if self.pos==None:
             #work out where the centre should be
             self.pos = [ (thisScreen.width-self.size[0])/2 , (thisScreen.height-self.size[1])/2 ]
-        self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
+        if not self._isFullScr:
+            self.winHandle.set_location(self.pos[0]+thisScreen.x, self.pos[1]+thisScreen.y)#add the necessary amount for second screen
 
         try: #to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'], 'psychopy.ico')
@@ -4331,7 +4327,11 @@ class TextStim(_BaseVisualStim):
         """Set the text to be rendered using the current font
         """
         if text!=None:#make sure we have unicode object to render
-            self.text = unicode(text)
+            try:
+                t = unicode(text, 'utf-8')
+            except:
+                t = text
+            self.text = t
         if self._useShaders:
             self._setTextShaders(text)
         else:
@@ -6635,11 +6635,13 @@ class RatingScale:
             self.firstDraw = False
             self.myClock.reset()
             self.status = STARTED
+            self.history = [(None, 0.0)]
 
         # timed out?
         if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
             self.noResponse = False
             self.timedOut = True
+            self.history.append((self.getRating(), self.getRT()))  # RT when timed-out
             logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
                          (self.name, unicode(self.getRating()), self.maximumTime) )
             logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
@@ -6734,6 +6736,7 @@ class RatingScale:
                                                   1. / self.autoRescaleFactor / self.precision)
                 if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
                     self.noResponse = False
+                    self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
                     logging.data('RatingScale %s: (key response) rating=%s' %
                                      (self.name, unicode(self.getRating())) )
 
@@ -6752,6 +6755,7 @@ class RatingScale:
                 if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
                         self.acceptBox.contains(mouseX, mouseY)):
                     self.noResponse = False # accept the currently marked value
+                    self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                                 (self.name, unicode(self.getRating())) )
 
@@ -6763,13 +6767,19 @@ class RatingScale:
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
 
+        # build up response history:
+        tmpRating = self.getRating()
+        if self.history[-1][0] != tmpRating:
+            self.history.append((tmpRating, self.getRT()))  # tuple
+
         # restore user's units:
         self.win.units = self.savedWinUnits
 
     def reset(self):
-        """Restores the rating-scale to its post-creation state, status NOT_STARTED.
+        """Restores the rating-scale to its post-creation state.
 
-        Does not restore the scale text description (such reset is needed between
+        The history is cleared, and the status is set to NOT_STARTED. Does not
+        restore the scale text description (such reset is needed between
         items when rating multiple items)
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
@@ -6791,12 +6801,15 @@ class RatingScale:
             self.accept.setText(self.keyClick)
         logging.exp('RatingScale %s: reset()' % self.name)
         self.status = NOT_STARTED
+        self.history = None
 
     def getRating(self):
-        """Returns the numerical rating.
-        None if the subject skipped this item; False if not available.
+        """Returns the final, accepted rating, or the current (non-accepted) intermediate
+        selection. The rating is None if the subject skipped this item, or False
+        if not available. Returns the currently indicated rating even if it has
+        not been accepted yet (and so might change until accept is pressed).
         """
-        if self.noResponse:
+        if self.noResponse and self.status == FINISHED:
             return False
         if not type(self.markerPlacedAt) in [float, int]:
             return None # eg, if skipped a response
@@ -6813,13 +6826,26 @@ class RatingScale:
 
     def getRT(self):
         """Returns the seconds taken to make the rating (or to indicate skip).
-        Returns None if no rating available. or maxTime if the response timed out.
+        Returns None if no rating available, or maxTime if the response timed out.
+        Returns the time elapsed so far if no rating has been accepted yet (e.g.,
+        for continuous usage).
         """
+        if self.status != FINISHED:
+            return self.myClock.getTime()
         if self.noResponse:
             if self.timedOut:
                 return self.maximumTime
             return None
         return self.decisionTime
+
+    def getHistory(self):
+        """Return the subject's intermediate selection history, up to and including
+        the final accepted choice, as a list of (rating, time) tuples. The history
+        can be retrieved at any time, allowing for continuous ratings to be
+        obtained in real-time. Both numerical and categorical choices are stored
+        automatically in the history. The history will always start with `(None, 0.0)`.
+        """
+        return self.history
 
 class Aperture:
     """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)

@@ -118,12 +118,14 @@ def wait(secs, hogCPUperiod=0.2):
     is used for greater precision.
 
     If you want to obtain key-presses during the wait, be sure to use pyglet and
-    to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
+    to hogCPU for the entire time, and then call :func:`psychopy.event.getKeys()` after calling :func:`~.psychopy.core.wait()`
 
-    If you want to suppress checking for pyglet events during the wait, do this once:
+    If you want to suppress checking for pyglet events during the wait, do this once::
         core.checkPygletDuringWait = False
-    and from then on you can do
+
+    and from then on you can do::
         core.wait(sec)
+
     This will preserve terminal-window focus during command line usage.
     """
     #initial relaxed period, using sleep (better for system resources etc)

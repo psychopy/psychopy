@@ -366,9 +366,9 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
             "I know what I am doing and accept the risks (of using un-verified certificates)".
 
     **Example:**
-    
+
         See Coder demo / misc / http_upload.py
-    
+
     Author: Jeremy R. Gray, 2012
     """
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]

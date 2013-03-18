@@ -98,7 +98,7 @@ class ExperimentHandler(object):
             if self.saveWideText==True:
                 self.saveAsWideText(self.dataFileName+'.csv', delim=',')
     def addLoop(self, loopHandler):
-        """Add a loop such as a `~psychopy.data.TrialHandler` or `~psychopy.data.StairHandler`
+        """Add a loop such as a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
         """
         self.loops.append(loopHandler)
@@ -280,7 +280,7 @@ class ExperimentHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
         """
         #otherwise use default location
         if not fileName.endswith('.psydat'):
@@ -356,7 +356,7 @@ class _BaseTrialHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to ~psychopy.misc._handleFileCollision
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
@@ -1064,10 +1064,11 @@ class TrialHandler(_BaseTrialHandler):
 
         In particular, if the trialHandler's 'extraInfo' exists, then each entry in there occurs in every row.
         In builder, this will include any entries in the 'Experiment info' field of the 'Experiment settings' dialog.
-        In Coder, this information can be set using something like:
+        In Coder, this information can be set using something like::
+
             myTrialHandler.extraInfo = {'SubjID':'Joan Smith', 'DOB':1970 Nov 16, 'Group':'Control'}
 
-         :Parameters:
+        :Parameters:
 
             fileName:
                 if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.txt' will be appended.
@@ -2124,7 +2125,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
             nTrials=50
                 Minimum trials to run (but may take more if the staircase hasn't
-                also met its minimal reversals. See `~psychopy.data.StairHandler`
+                also met its minimal reversals. See :class:`~psychopy.data.StairHandler`
 
         Example usage::
 
