@@ -316,7 +316,7 @@ class Experiment:
         """Loads an xml file and parses the builder Experiment from it
         """
         #open the file using a parser that ignores prettyprint blank text
-        parser = etree.XMLParser(remove_blank_text=True)
+        parser = etree.XMLParser(remove_blank_text=True, huge_tree=True)
         f=open(filename)
         folder = os.path.split(filename)[0]
         if folder: #might be ''
