@@ -473,7 +473,8 @@ class Window(object):
             for dispatcher in self._eventDispatchers:
                 dispatcher._dispatch_events()
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
-            pyglet.media.dispatch_events()#for sounds to be processed
+            #pyglet.media.dispatch_events()#for sounds to be processed
+            pyglet.clock.tick()
             self.winHandle.flip()
             #self.winHandle.clear()
             GL.glLoadIdentity()
@@ -3910,7 +3911,8 @@ class MovieStim(_BaseVisualStim):
             """
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
-        self._player._on_eos=self._onEos
+        #self._player._on_eos=self._onEos
+        self._player.set_handler("on_eos", self._onEos)
         self.filename=filename
         self.duration=None
         self.loadMovie( self.filename )
@@ -3927,11 +3929,12 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
-
-        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
-        else: self.size = numpy.array((size,size),float)
+        if size is None:
+            self.size = numpy.array([self.format.width, self.format.height], float)
+        elif type(size) in [tuple,list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size, size), float)
 
         self.ori = ori
 
@@ -3940,7 +3943,7 @@ class MovieStim(_BaseVisualStim):
 
         #check for pyglet
         if win.winType!='pyglet':
-            logging.Error('Movie stimuli can only be used with a pyglet window')
+            logging.error('Movie stimuli can only be used with a pyglet window')
             core.quit()
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
