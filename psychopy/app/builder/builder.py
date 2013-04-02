@@ -646,7 +646,12 @@ class FlowPanel(wx.ScrolledWindow):
         elif 'conditionsFile' in component.params.keys():
             conditionsFile = component.params['conditionsFile'].val
             if conditionsFile and conditionsFile not in ['None','']:
-                _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                if conditionsFile.startswith('@'):
+                    resourceName = conditionsFile[1:]
+                    resource = self.GetParent().exp.resourcePool.get_resource(resourceName)
+                    _, fieldNames = data.importConditionsResource(resource, resourceName, returnFieldNames=True)
+                else:
+                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                 for fname in fieldNames:
                     self.frame.exp.namespace.remove(fname)
             self.frame.exp.namespace.remove(component.params['name'].val)
