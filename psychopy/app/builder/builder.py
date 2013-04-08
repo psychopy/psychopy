@@ -4235,7 +4235,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
         
-        mx_address = self.amp_manager.get_mx_address()
+        mx_address = self.amp_manager.mx_address
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
         self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -4262,9 +4262,8 @@ class BuilderFrame(wx.Frame):
                     acquisition_control.finish_saving([(mx_address[0], int(mx_address[1]))])
             else:
                 logging.error("Failed amplifier scenario (expect incomplete data)")
-            self.amp_manager.get_experiment_contact().kill_experiment()
+            self.amp_manager.stop_experiment()
             self.amp_manager.interrupt_monitor()
-            self.amp_manager.get_experiment_contact().close()
             self.amp_manager = None
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)

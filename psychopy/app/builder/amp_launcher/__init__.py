@@ -17,6 +17,7 @@ import json
 import threading
 from wx.lib import throbber, newevent
 import time
+import obci_client
 
 
 MxAliveEvent, EVT_MX_ALIVE = newevent.NewEvent()
@@ -121,7 +122,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_info = None
         self.old_index = None
         self.amp_manager = None
-        self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
+        self.connection = obci_connection.OBCIConnection(("192.168.0.107", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
         self.init_panels()
@@ -186,21 +187,35 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_config.Disable()
         self.launch_button.Disable()
 
+    def get_persistent_config(self):
+        return {
+            "save_signal": self.GetParent().exp.settings.params['saveSignal'].val,
+            "obci_data_dir": self.GetParent().exp.settings.params['obciDataDirectory'].val 
+        }
+    
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
-        launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
+        #launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
         self.launching_dialog = LaunchingDialog(self)
-        launching_thread.start()
-        self.launching_dialog.ShowModal()
-        launching_thread.join()
-        if self.launching_dialog.GetReturnCode() != wx.OK:
-            self.amp_manager.interrupt_monitor()
-            return
+        #launching_thread.start()
+        #self.launching_dialog.ShowModal()
+        #launching_thread.join()
+        #if self.launching_dialog.GetReturnCode() != wx.OK:
+        #    self.amp_manager.interrupt_monitor()
+        #    return
+        #launcher = obci_client.ObciLauncher("tcp://" + self.amp_config.get_server() + ":54654")
+        #experiment = launcher.create_experiment("Psychopy Experiment")
+        #amp_config = obci_client.ExperimentSettings(self.amp_config.get_launch_file(), amp_config_dict)
+        #experiment.apply_config(amp_config)
+        #experiment.start()
+        self.start_amplifier()
         event.Skip()
     
     def start_amplifier(self):
-        self.amp_manager = AmplifierManager(self.amp_config, self.GetParent().exp.settings, self.data_file_name, self.launching_dialog)
+        amp_config_dict = self.amp_config.get_config()
+        amp_config_dict.update(self.get_persistent_config())
+        self.amp_manager = AmplifierManager(amp_config_dict, self.launching_dialog)
         self.amp_manager.start_experiment()
 
 """
@@ -272,13 +287,11 @@ class AmplifierManager(object):
     """
     Class which handles running a scenario on an amplifier
     """
-    def __init__(self, amp_config, exp_settings, data_file_name, listener):
+    def __init__(self, amp_config, listener):
         self.amp_config = amp_config
-        self.exp_settings = exp_settings
-        self.data_file_name = data_file_name
         self.listener = listener
         
-        self.experiment_contact = None
+        self.experiment = None
         self.mx_address = None
         self.ok = True
         self.monitor_pipe = os.pipe()
@@ -286,62 +299,23 @@ class AmplifierManager(object):
     def is_ok(self):
         return self.ok
     
-    def get_experiment_contact(self):
-        return self.experiment_contact
-    
-    def get_mx_address(self):
-        return self.mx_address
-    
     def interrupt_monitor(self):
         """
         Interrupt the thread which monitors experiment status. 
         """
-        os.write(self.monitor_pipe[1], "\13")
+        pass
+        # TODO: reimplement
     
-    def wait_for_status_change(self):
-        context = zmq.Context().instance()
-        sub_socket = context.socket(zmq.SUB)
-        sub_socket.connect("tcp://" + self.amp_config.get_server() + ":34234")
-        sub_socket.setsockopt(zmq.SUBSCRIBE, "")
-        while True:
-            readable, _, _ = zmq.core.poll.select([sub_socket, self.monitor_pipe[0]], [], [])
-            if self.monitor_pipe[0] in readable:
-                os.close(self.monitor_pipe[1])
-                os.close(self.monitor_pipe[0])
-                return
-            published = json.loads(sub_socket.recv())
-            if published.get("uuid") != self.experiment["uuid"]:
-                print "filtered", self.experiment["uuid"], published
-                continue
-            elif published.get("status_name") == "failed":
-                self.ok = False
-                wx.PostEvent(self.listener, PeerFailedEvent())
-            elif published.get("peers") and "mx" in published['peers']:
-                if self.mx_address is None:
-                    peer_invitation = self.experiment_manager.join_experiment("psychopy")
-                    self.mx_address = peer_invitation["params"]["mx_addr"].split(':')
-                    self.experiment_manager.close()
-                wx.PostEvent(self.listener, MxAliveEvent())
-
     def start_experiment(self):
-        #set up data
-        scenario = self.create_scenario()
-        launch_file_path = self.amp_config.get_launch_file()
-        obci_server_address = "tcp://" + self.amp_config.get_server() + ":54654"
+        launcher = obci_client.ObciLauncher(self.amp_config["server_address"])
+        self.experiment = launcher.create_experiment("Psychopy Experiment")
+        amp_config = obci_client.ExperimentSettings(self.amp_config["launch_file"], self.amp_config)
+        self.experiment.apply_config(amp_config)
+        self.experiment.start()
+        self.mx_address = self.experiment.mx_address
         
-        # create connection
-        self.experiment_contact = obci_connection.ObciClient(obci_server_address)
-        self.experiment = self.experiment_contact.create_experiment("Psychopy Experiment")
-        experiment_address = self.experiment['rep_addrs'][-1]
-        self.experiment_manager = obci_connection.ObciExperimentClient(experiment_address)
-        self.experiment_manager.set_experiment_scenario(launch_file_path, scenario)
-        
-        #start experiment
-        self.waiting_thread = threading.Thread(group=None, target=self.wait_for_status_change, name="amplifier-wait-thread")
-        print "uuid", self.experiment["uuid"]
-        self.experiment_contact.uuid = self.experiment["uuid"]
-        self.waiting_thread.start()
-        self.experiment_manager.start_experiment()
+    def stop_experiment(self):
+        self.experiment.stop()
         
     def create_scenario(self):
         """
