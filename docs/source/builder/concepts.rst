@@ -39,7 +39,7 @@ From this demo you should note:
 .. [1] Stroop, J.R. (1935). "Studies of interference in serial verbal reactions". Journal of Experimental Psychology 18: 643-662.
 
 Psychophysics Staircase demo
-===============
+==============================
 This is a mini psychophysics experiment, designed to find the contrast detection threshold of a gabor i.e. find the contrast where the observer can just see the stimulus.
 
 From this demo you should note:

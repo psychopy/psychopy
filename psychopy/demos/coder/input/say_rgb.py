@@ -79,61 +79,53 @@ def classifyRGB(utterance, conf=0, default='red', defaultConf=0.3):
     if default:
         return default # something was said, no idea what
 
-try:
-    microphone.switchOn(sampleRate=16000)
-    # 16000 is a good rate for google speech recognition (16000 or 8000 only)
-    # could record faster for archiving, then down-sample to 16K
+microphone.switchOn(sampleRate=16000)
+# 16000 is a good rate for google speech recognition (16000 or 8000 only)
+# could record faster for archiving, then down-sample to 16K
+
+mic = microphone.AudioCapture() # set things up
+captureTime = 2
+
+print "\nVoice capture with google speech recognition, needs a microphone and internet access."
+print "\nWhen you see a color word, say it out loud (before the '].' appears)."
+print "This will repeat 10 times. Your score increases +1 for every word said correctly."
+print "\nReady?"
+sys.stdout.flush() # not flush()ing reliably for me in Coder
+
+score = 0
+rgb = ['red', 'green', 'blue'] * 4
+random.shuffle(rgb)
+for i in xrange(10):
+    # show a random word:
+    word = rgb[i]
+    print '\n  "%s"  [  ' % word,
+    sys.stdout.flush()
     
-    mic = microphone.AudioCapture() # set things up
-    captureTime = 2
+    # get a voice sample:
+    wavFile = mic.record(captureTime)
+    print '].',
+    sys.stdout.flush()
     
-    print "\nVoice capture with google speech recognition, needs a microphone and internet access."
-    print "\nWhen you see a color word, say it out loud (before the '].' appears)."
-    print "This will repeat 10 times. Your score increases +1 for every word said correctly."
-    print "\nReady?"
-    sys.stdout.flush() # not flush()ing reliably for me in Coder
+    # get google's interpretation:
+    gs = microphone.Speech2Text(wavFile, **options) # prepare
+    guess = gs.getResponse() # query google, wait for response; data appear in guess
+    # connection lost if you get: WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>
     
-    score = 0
-    rgb = ['red', 'green', 'blue'] * 4
-    random.shuffle(rgb)
-    for i in xrange(10):
-        # show a random word:
-        word = rgb[i]
-        print '\n  "%s"  [  ' % word,
-        sys.stdout.flush()
-        
-        # get a voice sample:
-        wavFile = mic.record(captureTime)
-        print '].',
-        sys.stdout.flush()
-        
-        # get google's interpretation:
-        gs = microphone.Speech2Text(wavFile, **options) # prepare
-        guess = gs.getResponse() # query google, wait for response; data appear in guess
-        # connection lost if you get: WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>
-        
-        # classify as most likely to have been red, green, or blue:
-        likelyWord = classifyRGB(guess.words, guess.confidence)
-        
-        # update the score:
-        correct = [' 0', '+1'][word == likelyWord]
-        score += int(word == likelyWord)
-        print correct, likelyWord, guess.words, guess.confidence, 'score: %d / %d' % (score, i+1)
-        sys.stdout.flush()
-        os.remove(wavFile)
-finally:
-    # try-except is useful to prevent pyo from exploding with a bus error,
-    # which its prone to do if any exception is raised, eg KeyboardInterrupt.
-    # need to switchOff() before exiting
+    # classify as most likely to have been red, green, or blue:
+    likelyWord = classifyRGB(guess.words, guess.confidence)
     
-    # clean-up sound temp file if present:
-    try: os.remove(wavFile)
-    except: pass
-    
-    print '\nFinal score: %d / %d' % (score, i+1)
-    
-    # shut-down the pyo sound server:
-    microphone.switchOff()
+    # update the score:
+    correct = [' 0', '+1'][word == likelyWord]
+    score += int(word == likelyWord)
+    print correct, likelyWord, guess.words, guess.confidence, 'score: %d / %d' % (score, i+1)
+    sys.stdout.flush()
+    os.remove(wavFile)
+
+# clean-up sound temp file if present:
+try: os.remove(wavFile)
+except: pass
+
+print '\nFinal score: %d / %d' % (score, i+1)
 
 core.quit()
 

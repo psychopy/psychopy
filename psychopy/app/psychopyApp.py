@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, psychopy
 import copy
 if '-v' in sys.argv or '--version' in sys.argv:
-    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2012, GNU GPL license' %psychopy.__version__
+    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2013, GNU GPL license' %psychopy.__version__
     sys.exit()
 if '-h' in sys.argv or '--help' in sys.argv:
     print """Starts the PsychoPy2 application.
@@ -28,7 +28,7 @@ Options:
 
     -v, --version    prints version and exits
     -h, --help       prints this help and exit
-    
+
     --firstrun       launches configuration wizard
     --nosplash       suppresses splash screen
 
@@ -108,7 +108,7 @@ class PsychoPyApp(wx.App):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and prefs
-        self.prefs = preferences.Preferences() #from preferences.py
+        self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
 
@@ -149,7 +149,7 @@ class PsychoPyApp(wx.App):
             last=self.prefs.appData['lastVersion']
         if self.firstRun:
             self.firstrunWizard()
-        
+
         #setup links for URLs
         #on a mac, don't exit when the last frame is deleted, just show a menu
         if sys.platform=='darwin':
@@ -417,7 +417,7 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2012 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2013 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')

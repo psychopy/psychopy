@@ -1,7 +1,7 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, threading
@@ -11,7 +11,6 @@ from psychopy import logging
 import subprocess, shlex
 
 runningThreads=[] # just for backwards compatibility?
-pyoServers = []
 
 try:
     import pyglet
@@ -32,12 +31,6 @@ def quit():
             thisThread.stop()
             while thisThread.running==0:
                 pass#wait until it has properly finished polling
-    # could check serverCreated() serverBooted() but then need to import pyo
-    # checking serverCreated() does not tell you whether it was shutdown or not
-    for ps in pyoServers: # should only ever be one Server instance...
-        ps.stop()
-        wait(.25)
-        ps.shutdown()
     sys.exit(0)#quits the python session entirely
 
 #set the default timing mechanism
@@ -125,12 +118,14 @@ def wait(secs, hogCPUperiod=0.2):
     is used for greater precision.
 
     If you want to obtain key-presses during the wait, be sure to use pyglet and
-    to hogCPU for the entire time, and then call event.getKeys() after calling core.wait()
+    to hogCPU for the entire time, and then call :func:`psychopy.event.getKeys()` after calling :func:`~.psychopy.core.wait()`
 
-    If you want to suppress checking for pyglet events during the wait, do this once:
+    If you want to suppress checking for pyglet events during the wait, do this once::
         core.checkPygletDuringWait = False
-    and from then on you can do
+
+    and from then on you can do::
         core.wait(sec)
+
     This will preserve terminal-window focus during command line usage.
     """
     #initial relaxed period, using sleep (better for system resources etc)

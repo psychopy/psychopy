@@ -4,7 +4,7 @@
 """Libraries for wizards, currently firstrun configuration and benchmark."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012
@@ -24,13 +24,13 @@ class ConfigWizard(object):
         """Check drivers, show GUIs, run diagnostics, show report."""
         self.app = app
         self.firstrun = firstrun
-        self.prefs = preferences.Preferences()
+        self.prefs = prefs
         self.appName = 'PsychoPy2'
         self.name = self.appName + ' Configuration Wizard'
         self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         #self.iconfile = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
         #dlg.SetIcon(wx.Icon(self.iconfile, wx.BITMAP_TYPE_PNG)) # no error but no effect
-        
+
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         if firstrun:
@@ -38,7 +38,7 @@ class ConfigWizard(object):
             dlg.addText("This wizard will help you get started quickly and smoothly.")
         else:
             dlg.addText("Welcome to the configuration wizard.")
-        
+
         # test for fatal configuration errors:
         fatalItemsList = []
         if not driversOkay():
@@ -46,7 +46,7 @@ class ConfigWizard(object):
             dlg.addText('')
             dlg.addText("The first configuration check is your video card's drivers. The current", color='red')
             dlg.addText("drivers cannot support PsychoPy, so you'll need to update the drivers.", color='red')
-            msg = """<p>Critical issue:\n</p><p>Your video card (%s) has drivers 
+            msg = """<p>Critical issue:\n</p><p>Your video card (%s) has drivers
                 that cannot support the high-performance features that PsychoPy depends on.
                 Fortunately, its typically free and straightforward to get new drivers
                 directly from the manufacturer.</p>
@@ -56,7 +56,7 @@ class ConfigWizard(object):
                   - it can report that there are no updates available.
                 <li> If your card is made by NVIDIA, go to
                   <a href="http://www.nvidia.com/Drivers">the NVIDIA website</a>
-                  and use the 'auto detect' option. Try here for 
+                  and use the 'auto detect' option. Try here for
                   <a href="http://support.amd.com/">ATI / Radeon drivers</a>. Or try
                   <a href="http://www.google.com/search?q=download+drivers+%s">
                   this google search</a> [google.com].
@@ -91,7 +91,7 @@ class ConfigWizard(object):
         else:
             dlg.addText('')
             dlg.addText('Click OK for more information, or Cancel to skip.')
-        
+
         # show the first dialog:
         dlg.addText('')
         dlg.show()
@@ -104,7 +104,7 @@ class ConfigWizard(object):
             sys.exit('Fatal configuration problem.')
         if not dlg.OK:
             return  # no configuration tests run
-        
+
         # run the diagnostics:
         verbose = not self.firstrun and dlg.data[0]
         win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
@@ -112,7 +112,7 @@ class ConfigWizard(object):
         win.close()
         self.htmlReport(itemsList)
         self.save()
-        
+
         # display summary & options:
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
@@ -139,20 +139,20 @@ class ConfigWizard(object):
 
     def runDiagnostics(self, win, verbose=False):
         """Return list of (key, val, msg) tuple, set self.warnings
-        
+
         All tuple elements will be of <type str>.
-        
+
         msg can depend on val; msg starts with 'Warning:' to indicate a concern.
         Plain text is returned, expected to be used in html <table>.
         Hyperlinks can be embedded as <a href="...">
         """
-        
+
         report = []  # add item tuples in display order
-        
+
         # get lots of info and do quick-to-render visual (want no frames drop):
         #     for me, grating draw times are: mean 0.53 ms, SD 0.77 ms
         items = info.RunTimeInfo(win=win, refreshTest='grating', verbose=True, userProcsDetailed=True)
-        
+
         totalRAM, freeRAM = items['systemMemTotalRAM'], items['systemMemFreeRAM']
         if freeRAM == 'unknown':
             if totalRAM != 'unknown':
@@ -164,7 +164,7 @@ class ConfigWizard(object):
             if freeRAM < 300:  # in M
                 msg = 'Warning: low available physical RAM for configuration test (of %.1fG total)' % (totalRAM / 1024.)
             report.append(('available memory', str(freeRAM)+'M', msg))
-            
+
         # ----- PSYCHOPY: -----
         report.append(('PsychoPy', '', ''))
         report.append(('psychopy', __version__, 'avoid upgrading during an experiment'))
@@ -187,7 +187,7 @@ class ConfigWizard(object):
             report.append(('wx', items['pythonWxVersion'], ''))
             report.append(('pyglet', items['pythonPygletVersion'][:32], ''))
             report.append(('rush', str(items['psychopyHaveExtRush']), 'for high-priority threads'))
-        
+
         # ----- VISUAL: -----
         report.append(('Visual', '', ''))
         # openGL settings:
@@ -198,21 +198,21 @@ class ConfigWizard(object):
         report.append(('openGL vendor', items['openGLVendor'], ''))
         report.append(('screen size', ' x '.join(map(str, items['windowSize_pix'])), ''))
         #report.append(('wait blanking', str(items['windowWaitBlanking']), ''))
-        
+
         msg = ''
         if not items['windowHaveShaders']:
             msg = 'Warning: <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=shader">Rendering of complex stimuli will be slow</a>.'
         report.append(('have shaders', str(items['windowHaveShaders']), msg))
-        
+
         msg = 'during the drifting <a href="http://www.psychopy.org/api/visual/gratingstim.html">GratingStim</a>'
-        if items['windowRefreshTimeMedian_ms'] < 3.3333333: 
+        if items['windowRefreshTimeMedian_ms'] < 3.3333333:
             msg = """Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"""
         report.append(('visual sync (refresh)', "%.2f ms/frame" % items['windowRefreshTimeMedian_ms'], msg))
         msg = 'SD < 0.5 ms is ideal (want low variability)'
         if items['windowRefreshTimeSD_ms'] > .5:
             msg = 'Warning: the refresh rate has high frame-to-frame variability (SD > 0.5 ms)'
         report.append(('refresh stability (SD)', "%.2f ms" % items['windowRefreshTimeSD_ms'], msg))
-        
+
         # draw 100 dots as a minimally demanding visual test:
         # first get baseline frame-rate (safe as possible, no drawing):
         avg, sd, median = visual.getMsPerFrame(win)
@@ -242,7 +242,7 @@ class ConfigWizard(object):
             report.append(('pyglet avbin', str(ver), msg))
         except: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', 'Warning: could not import avbin; playing movies will not work'))
-        
+
         if verbose:
             report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), ''))
             keyList = ['GL_ARB_multitexture', 'GL_EXT_framebuffer_object', 'GL_ARB_fragment_program',
@@ -253,7 +253,7 @@ class ConfigWizard(object):
                 if not val:
                     val = '<strong>' + str(val) + '</strong>'
                 report.append((key, str(val), ''))
-        
+
         # ----- AUDIO: -----
         report.append(('Audio', '', ''))
         msg = ''
@@ -264,7 +264,7 @@ class ConfigWizard(object):
             msg = 'pyo 0.6.2 compiled with --no-messages will suppress start-up messages'
         report.append(('pyo', items['systemPyoVersion'], msg))
         # sound latencies from portaudio; requires pyo svn r1024
-        try: 
+        try:
             sndInputDevices = items['systemPyo.InputDevices']
             if len(sndInputDevices.keys()):
                 key = sndInputDevices.keys()[0]
@@ -297,13 +297,13 @@ class ConfigWizard(object):
         if verbose:
             report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg))
         # TO-DO: add microphone + playback as sound test
-        
+
         # ----- NUMERIC: -----
         report.append(('Numeric', '', ''))
         report.append(('numpy', items['pythonNumpyVersion'], 'vector-based (fast) calculations'))
         report.append(('scipy', items['pythonScipyVersion'], 'scientific / numerical'))
         report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting; fast contains(), overlaps()'))
-        
+
         # ----- SYSTEM: -----
         report.append(('System', '', ''))
         report.append(('platform', items['systemPlatform'], ''))
@@ -392,15 +392,15 @@ class ConfigWizard(object):
             else:
                 summary.append((check + item, green))
         return summary
-    
+
     def htmlReport(self, items=None, fatal=False):
         """Return an html report given a list of (key, val, msg) items.
-        
+
         format triggers: 'Critical issue' in fatal gets highlighted
                          'Warning:' in msg -> highlight key and val
                          val == msg == '' -> use key as section heading
         """
-        
+
         imgfile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
         self.header = '<html><head></head><a href="http://www.psychopy.org"><image src="%s" width=396 height=156></a>' % imgfile
         #self.iconhtml = '<a href="http://www.psychopy.org"><image src="%s" width=48 height=48></a>' % self.iconfile
@@ -464,9 +464,9 @@ class ConfigWizard(object):
         if not fatal and numWarn:
             htmlDoc += """<script type="text/javascript">toggle('ok', 'none'); </script>"""
         htmlDoc += '</html>'
-        
+
         self.reportText = htmlDoc
-        
+
     def save(self):
         """Save the html text as a file."""
         f = open(self.reportPath, 'w+b')
@@ -477,10 +477,10 @@ class BenchmarkWizard(ConfigWizard):
     """Class to get system info, run benchmarks, optional upload to psychopy.org"""
     def __init__(self, fullscr=True):
         self.firstrun = False
-        self.prefs = preferences.Preferences()
+        self.prefs = prefs
         self.appName = 'PsychoPy2'
         self.name = self.appName + ' Benchmark Wizard'
-        
+
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         dlg.addText('Benchmarking takes ~20-30 seconds to gather')
@@ -489,10 +489,10 @@ class BenchmarkWizard(ConfigWizard):
         dlg.show()
         if not dlg.OK:
             return
-        
+
         self._prepare()
         win = visual.Window(fullscr=fullscr, allowGUI=False, monitor='testMonitor')
-        
+
         # do system info etc first to get fps, add to list later because
         # its nicer for benchmark results to appears at top of the report:
         diagnostics = self.runDiagnostics(win, verbose=True)
@@ -500,11 +500,11 @@ class BenchmarkWizard(ConfigWizard):
         for k, v, m in diagnostics:  # list of tuples --> dict, ignore msg m
             info[k] = v
         fps = 1000./float(info['visual sync (refresh)'].split()[0])
-        
+
         itemsList = [('Benchmark', '', '')]
         itemsList.append(('benchmark version', '0.1', 'dots & configuration'))
         itemsList.append(('full-screen', str(fullscr), 'visual window for drawing'))
-        
+
         if int(info['no dropped frames'].split('/')[0]) != 0:  # eg, "0 / 180"
             start = 50  # if 100 dots had problems earlier, here start lower
         else:
@@ -515,14 +515,14 @@ class BenchmarkWizard(ConfigWizard):
             start = int(dotsList[-1][1])  # start square where circle breaks down
         itemsList.extend(diagnostics)
         win.close()
-        
+
         itemsDict = {}
         for itm in itemsList:
             if itm[0].find('proxy setting') > -1 or not itm[1]:
                 continue
             itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
             print itm[0]+': ' + itemsDict[itm[0]]
-        
+
         # present dialog, upload only if opt-in:
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
@@ -546,7 +546,7 @@ class BenchmarkWizard(ConfigWizard):
                 else:
                     dlg.addText('Upload error status: %s' % status[:20])
             dlg.show()
-        
+
         self.htmlReport(itemsList)
         self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'benchmarkReport.html')
         self.save()
@@ -580,16 +580,16 @@ class BenchmarkWizard(ConfigWizard):
 
     def runLotsOfDots(self, win, fieldShape, starting=100, baseline=None):
         """DotStim stress test: draw increasingly many dots until drop lots of frames
-        
+
         report best dots as the highest dot count at which drop no frames at all
         fieldShape = circle or square
         starting = initial dot count; increases until failure
         baseline = known frames per second; None means measure it here
         """
-        
+
         win.setRecordFrameIntervals(True)
         secs = 1  # how long to draw them for, at least 1s
-        
+
         # baseline frames per second:
         if not baseline:
             for i in xrange(5):
@@ -599,7 +599,7 @@ class BenchmarkWizard(ConfigWizard):
                 win.flip()
             baseline = round(win.fps())
         maxFrame = round(baseline * secs)
-        
+
         dotsInfo = []
         win.flip()
         bestDots = starting  # this might over-estimate the actual best
@@ -647,14 +647,14 @@ class BenchmarkWizard(ConfigWizard):
 
     def uploadReport(self, itemsList):
         """Pickle & upload data to psychopy.org
-        
+
         Windows compatibility added by Sol Simpson (need a closed file)
         """
-        
+
         tmp = tempfile.NamedTemporaryFile(delete=False)
         pickle.dump(itemsList, tmp)
         tmp.close()
-        
+
         # Upload the data:
         selector = 'http://upload.psychopy.org/benchmark/'
         basicAuth = 'psychopy:open-sourc-ami'
@@ -673,7 +673,7 @@ def driversOkay():
 
 def cardOkay():
     """Returns string: okay, maybe, bad"""
-    
+
     return True  # until we have a list of known-good cards
 
     card = gl_info.get_renderer()

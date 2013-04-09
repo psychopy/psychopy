@@ -3,7 +3,7 @@
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2012 Jonathan Peirce
+# Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -469,9 +469,9 @@ class Mouse:
             mouseTimes[c]=0.0
 
     def getPressed(self, getTime=False):
-        """Returns a 3-item list indicating whether or not buttons 1,2,3 are currently pressed
+        """Returns a 3-item list indicating whether or not buttons 0,1,2 are currently pressed
 
-        If `getTime=True` (False by default( then `getPressed` will return all buttons that
+        If `getTime=True` (False by default) then `getPressed` will return all buttons that
         have been pressed since the last call to `mouse.clickReset` as well as their
         time stamps::
 
@@ -495,6 +495,22 @@ class Mouse:
             if not getTime: return mouseButtons
             else: return mouseButtons, mouseTimes
 
+    def isPressedIn(self, shape, buttons=[0,1,2]):
+        """Returns `True` if the mouse is currently inside the shape and one of the
+        mouse buttons is pressed. The default is that any of the 3 buttons can indicate
+        a click; for only a left-click, specifiy `buttons=[0]`::
+
+            if mouse.isPressedIn(shape):
+            if mouse.isPressedIn(shape, buttons=[0]):  # left-clicks only
+
+        Ideally, `shape` can be anything that has a `.contains()` method, like
+        `ShapeStim` or `Polygon`. Not tested with `ImageStim`.
+        """
+        wanted = numpy.zeros(3, dtype=numpy.int)
+        for c in buttons:
+            wanted[c] = 1
+        pressed = self.getPressed()
+        return shape.contains(self) and any(wanted & pressed)
     def _pix2windowUnits(self, pos):
         if self.win.units=='pix': return pos
         elif self.win.units=='norm': return pos*2.0/self.win.size

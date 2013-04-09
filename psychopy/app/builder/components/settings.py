@@ -52,7 +52,7 @@ class SettingsComponent:
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
-            allowedVals=['use prefs', 'deg','pix','cm','norm'],
+            allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
             hint="Should the mouse be visible on screen?")
@@ -244,7 +244,6 @@ class SettingsComponent:
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
-        buff.writeIndentedLines("\n#Shutting down:\n")
         
         # Save tags
         if self.params['saveTags'].val:
@@ -253,7 +252,5 @@ class SettingsComponent:
             buff.writeIndented("    tagWriter.tag_received(tag)\n")
             buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")
 
-        if 'microphone' in self.exp.psychopyLibs:
-            buff.writeIndented("microphone.switchOff()\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

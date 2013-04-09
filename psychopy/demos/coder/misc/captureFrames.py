@@ -10,19 +10,18 @@ n=10
 for frameN in range(n): #for n frames
     myStim.setPhase(0.1, '+')
     myStim.draw()
-    #you can either read from the back buffer BEFORE win.flip() or 
+    #you can either read from the back buffer BEFORE win.flip() or
     #from the front buffer just AFTER the flip. The former has the
     #advantage that it won't be affected by other windows whereas
     #latter can be.
     myWin.getMovieFrame(buffer='back')
     myWin.flip()
-  
+
 #save the movie in the format of your choice
 myWin.saveMovieFrames('frame.png')
-#myWin.saveMovieFrames('frame.tif') #much like png files (but more compatible on win32)
+#myWin.saveMovieFrames('frame.tif') #much like png files (but used more on win32)
 #myWin.saveMovieFrames('frame.jpg') #lossy, but highly compressed images
 #myWin.saveMovieFrames('myMovie.gif')# for better results, make your gif in gimp
 #myWin.saveMovieFrames('myMovie.mpg')#only on win32 so far (requires pymedia)
-#myWin.saveMovieFrames('myMovie.mov')#only on OS X (requires pyobjc-framework-QTKit)
 
 myWin.close()

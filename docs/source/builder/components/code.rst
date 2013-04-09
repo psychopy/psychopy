@@ -57,7 +57,7 @@ As with the above there are many different ways to create noise, but a simple me
     noiseTexture = random.rand(128,128)*2.0-1
 
 3. Send a feedback message at the end of the experiment
-====================================================
+=================================================================
 Create a `Code Component` with this in the `Begin Experiment` field::
     
     expClock = core.Clock()
