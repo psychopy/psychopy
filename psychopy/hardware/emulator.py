@@ -71,7 +71,7 @@ class SyncGenerator(threading.Thread):
                          stabilization, no sync pulse. Not needed to test script
                          timing, but will give more accurate feel to start of run.
                          aka "discdacqs".
-                sound:   play a tone, slightly shorter duration than TR
+                sound:   simulate scanner noise
         """
         if TR < 0.1: 
             raise ValueError, 'SyncGenerator:  whole-brain TR < 0.1 not supported'
@@ -83,8 +83,8 @@ class SyncGenerator(threading.Thread):
         self.skip = skip
         self.playSound = sound
         if self.playSound:
-            self.sound = Sound(secs=self.TR-.12, octave=6, autoLog=False)
-            self.sound.setVolume(0.15)
+            self.sound1 = Sound(800, secs=self.TR-.08, volume=0.15, autoLog=False)
+            self.sound2 = Sound(813, secs=self.TR-.08, volume=0.15, autoLog=False)
         
         self.clock = core.Clock()
         self.stopflag = False
@@ -95,12 +95,14 @@ class SyncGenerator(threading.Thread):
         if self.skip:
             for i in range(int(self.skip)):
                 if self.playSound:
-                    self.sound.play()
-                core.wait(self.TR) # emulate T1 stabilization without data collection
+                    self.sound1.play()
+                    self.sound2.play()
+                core.wait(self.TR, hogCPUperiod=0) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
             if self.playSound:
-                self.sound.play()
+                self.sound1.play()
+                self.sound2.play()
             if self.stopflag:
                 break
             # "emit" a sync pulse by placing a key in the buffer:

@@ -23,6 +23,10 @@ PsychoPy 1.76.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+* ADDED: more sound.SoundPyo methods (get & set duration, volume, looping)
+* FIXED: event.Mouse() can obtain a default visual.Window(), if one has already been created
+* ADDED: Builder components generate a compile-time warning if a field's value looks dynamic but its updating is constant (Jeremy Gray)
+* ADDED: better simulated scanner-noise in launchScan (just for fun)
 
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
