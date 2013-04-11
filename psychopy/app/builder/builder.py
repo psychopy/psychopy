@@ -4255,7 +4255,7 @@ class BuilderFrame(wx.Frame):
         """The script/exp has finished running
         """
         if self.amp_manager:
-            if self.amp_manager.is_ok():
+            if not self.amp_manager.failed:
                 if self.exp.settings.params["saveSignal"].val:
                     from obci.acquisition import acquisition_control
                     mx_address = self.amp_manager.get_mx_address()

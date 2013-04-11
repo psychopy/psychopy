@@ -9,15 +9,13 @@ from psychopy.app.builder.amp_launcher.amplifier_panels import ChannelsPanel,\
     ParametersPanel, AmpConfigPanel
 from obci.control.common.message import OBCIMessageTool
 from obci.control.launcher import launcher_messages
-import obci_connection
-from psychopy.app.builder.amp_launcher import retriever
+from obci_client import obci_connection
+from psychopy.app.builder.amp_launcher import retriever, amp_manager
 import os.path
-import zmq
 import json
-import threading
 from wx.lib import throbber, newevent
 import time
-import obci_client
+import threading
 
 
 MxAliveEvent, EVT_MX_ALIVE = newevent.NewEvent()
@@ -122,7 +120,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_info = None
         self.old_index = None
         self.amp_manager = None
-        self.connection = obci_connection.OBCIConnection(("192.168.0.107", 12012))
+        self.connection = obci_connection.OBCIConnection(("192.168.0.106", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
         self.init_panels()
@@ -197,7 +195,6 @@ class AmpLauncherDialog(wx.Dialog):
         if not self.amp_config.Validate():
             return
         #launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
-        self.launching_dialog = LaunchingDialog(self)
         #launching_thread.start()
         #self.launching_dialog.ShowModal()
         #launching_thread.join()
@@ -209,41 +206,38 @@ class AmpLauncherDialog(wx.Dialog):
         #amp_config = obci_client.ExperimentSettings(self.amp_config.get_launch_file(), amp_config_dict)
         #experiment.apply_config(amp_config)
         #experiment.start()
-        self.start_amplifier()
+        self.amp_manager = self.start_amplifier()
+        self.show_progress_dialog()
         event.Skip()
+        
+    def show_progress_dialog(self):
+        self.launching_dialog = LaunchingDialog(self)
+        self.launching_dialog.ShowModal()
     
     def start_amplifier(self):
         amp_config_dict = self.amp_config.get_config()
         amp_config_dict.update(self.get_persistent_config())
-        self.amp_manager = AmplifierManager(amp_config_dict, self.launching_dialog)
-        self.amp_manager.start_experiment()
+        manager = amp_manager.AmplifierManager(self.start_handler, amp_config_dict)
+        manager.start_experiment()
+        return manager
+    
+    def start_handler(self, status):
+        """
+        This may be called from outside of wx context.
+        """
+        wx.CallAfter(self.start_handler_wx)
+    
+    def start_handler_wx(self):
+        self.launching_dialog.EndModal(wx.OK)
 
-"""
-self.amp_config.get_launch_file()
-self.amp_config.get_server()
-self.amp_config.get_exec_file()
-sampling_rate = self.amp_config.get_param("sampling_rate")
-active_channels = self.amp_config.get_active_channels()
-channel_names = self.amp_config.get_channel_names()
-self.GetParent().exp.settings.params['saveSignal'].val
-self.GetParent().exp.settings.params['obciDataDirectory'].val
-"""
 
 class LaunchingDialog(wx.Dialog):
-    # timeouts
-    T1 = 9000
-    T2 = 11000
-    
     def __init__(self, parent):
         super(LaunchingDialog, self).__init__(parent, style=0)
         self.t1_passed = False
         self.mx_alive = False
         self.failed = True
         self.timer = wx.Timer(self)
-        self.Bind(EVT_MX_ALIVE, self.on_mx_alive)
-        self.Bind(EVT_PEER_FAILED, self.on_peer_failed)
-        self.Bind(wx.EVT_TIMER, self.on_t1_passed)
-        self.timer.Start(self.T1, wx.TIMER_ONE_SHOT)
         self.SetSizer(wx.BoxSizer(wx.VERTICAL))
         throbber_bitmap = wx.ArtProvider.GetBitmap("pop-tart-throbber", wx.ART_OTHER)
         self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=12, frameWidth=400)
@@ -251,164 +245,3 @@ class LaunchingDialog(wx.Dialog):
         self.GetSizer().Add(self.throbber)
         self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."), flag=wx.ALL | wx.ALIGN_CENTER, border=8)
         self.Fit()
-    
-    def on_mx_alive(self, event):
-        self.Unbind(EVT_MX_ALIVE)
-        self.mx_alive = True
-        
-        self.check_if_ready()
-    
-    def on_peer_failed(self, event):
-        self.Unbind(EVT_PEER_FAILED)
-        self.failed = True
-        self.EndModal(wx.CANCEL)
-        
-    def on_t1_passed(self, event):
-        self.Unbind(wx.EVT_TIMER)
-        self.Bind(wx.EVT_TIMER, self.on_t2_passed)
-        self.t1_passed = True
-        self.timer.Start(self.T2, wx.TIMER_ONE_SHOT)
-        self.check_if_ready()
-        
-    def on_t2_passed(self, event):
-        self.failed = True
-        self.EndModal(wx.CANCEL)
-    
-    def check_if_ready(self):
-        if self.t1_passed and self.mx_alive:
-            self.Unbind(wx.EVT_TIMER)
-            self.EndModal(wx.OK)
-
-    def set_experiment_manager(self, experiment_manager):
-        self.experiment_manager = experiment_manager
-
-
-class AmplifierManager(object):
-    """
-    Class which handles running a scenario on an amplifier
-    """
-    def __init__(self, amp_config, listener):
-        self.amp_config = amp_config
-        self.listener = listener
-        
-        self.experiment = None
-        self.mx_address = None
-        self.ok = True
-        self.monitor_pipe = os.pipe()
-    
-    def is_ok(self):
-        return self.ok
-    
-    def interrupt_monitor(self):
-        """
-        Interrupt the thread which monitors experiment status. 
-        """
-        pass
-        # TODO: reimplement
-    
-    def start_experiment(self):
-        launcher = obci_client.ObciLauncher(self.amp_config["server_address"])
-        self.experiment = launcher.create_experiment("Psychopy Experiment")
-        amp_config = obci_client.ExperimentSettings(self.amp_config["launch_file"], self.amp_config)
-        self.experiment.apply_config(amp_config)
-        self.experiment.start()
-        self.mx_address = self.experiment.mx_address
-        
-    def stop_experiment(self):
-        self.experiment.stop()
-        
-    def create_scenario(self):
-        """
-        Generate OBCI experimen scenario from amp & experiment config.
-        """
-        exec_path = self.amp_config.get_exec_file()
-        sampling_rate = self.amp_config.get_param("sampling_rate")
-        active_channels = self.amp_config.get_active_channels()
-        channel_names = self.amp_config.get_channel_names()
-        additional_params = self.amp_config.get_additional_params()
-        amplifier_peer = {
-            'config': {
-                'config_sources': {},
-                'external_params': {},
-                'launch_dependencies': {},
-                'local_params': {
-                    'active_channels': active_channels,
-                    'channel_names': channel_names,
-                    'sampling_rate': sampling_rate,
-                    "console_log_level": "info",
-                    "file_log_level": "debug",
-                    "mx_log_level": "info",
-                    "log_dir": "~/.obci/logs"
-                }
-            },
-            'path': exec_path
-        }
-
-        try:
-            amplifier_peer['config']['local_params']['usb_device'] = additional_params['usb_device']
-        except KeyError:
-            pass
-
-        try:
-            amplifier_peer['config']['local_params']['bluetooth_device'] = additional_params['bluetooth_device']
-        except KeyError:
-            pass
-
-        local_log_params = {                    
-            "console_log_level": "info",
-            "file_log_level": "debug",
-            "mx_log_level": "info",
-            "log_dir": "~/.obci/logs"
-        }
-        peers = {
-            'amplifier': amplifier_peer,
-            'scenario_dir': '',
-            'config_server': {'config':{"local_params": local_log_params, 'external_params': {}, 'config_sources': {}, "launch_dependencies": {}}, 'path':'control/peer/config_server.py'},
-            'mx': {'config': {'external_params': {}, 'config_sources': {}, 'launch_dependencies': {}, 'local_params': {}}, u'path': 'multiplexer-install/bin/mxcontrol'}
-        }
-        if self.exp_settings.params['saveSignal'].val:
-            save_file_dir = self.exp_settings.params['obciDataDirectory'].val
-            tag_saver = {
-                'config': {
-                    "local_params": local_log_params,
-                    'external_params': {},
-                    'config_sources': {'signal_saver': ''},
-                    'launch_dependencies': {'signal_saver': ''}
-                },
-                'config_sources': {'signal_saver': 'signal_saver'},
-                'launch_dependencies': {'signal_saver': 'signal_saver'},
-                'path': 'acquisition/tag_saver_peer.py'
-            }
-            info_saver = {
-                'config': {
-                    "local_params": local_log_params,
-                    'external_params': {},
-                    'config_sources': {'amplifier': '', 'signal_saver': ''},
-                    'launch_dependencies': {'amplifier': '', 'signal_saver': ''}
-                },
-                'config_sources': {'amplifier': 'amplifier', 'signal_saver': 'signal_saver'},
-                'launch_dependencies': {'amplifier': 'amplifier', 'signal_saver': 'signal_saver'},
-                'path': 'acquisition/info_saver_peer.py'
-            }
-            signal_saver = {
-                'config': {
-                    'config_sources': {'amplifier': ''},
-                    'external_params': {},
-                    'launch_dependencies': {'amplifier': ''},
-                    'local_params': {
-                        'save_file_name': self.data_file_name,
-                        'save_file_path': save_file_dir,
-                        "console_log_level": "info",
-                        "file_log_level": "debug",
-                        "mx_log_level": "info",
-                        "log_dir": "~/.obci/logs"
-                    }
-                },
-                'config_sources': {'amplifier': 'amplifier'},
-                'launch_dependencies': {'amplifier': 'amplifier'},
-                'path': 'acquisition/signal_saver_peer.py'
-            }
-            peers['tag_saver'] = tag_saver
-            peers['info_saver'] = info_saver
-            peers['signal_saver'] = signal_saver
-        return {'peers': peers}
