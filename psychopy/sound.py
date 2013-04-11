@@ -61,7 +61,7 @@ for thisLibName in prefs.general['audioLib']:
             import pygame
             from pygame import mixer, sndarray
         else:
-            raise ValueError("Audio lib options are currently only 'pyo' or 'pygame', not '%'" %thisLibName)
+            raise ValueError("Audio lib options are currently only 'pyo' or 'pygame', not '%s'" %thisLibName)
     except:
         logging.warning('%s audio lib was requested but not loaded: %s' %(thisLibName, sys.exc_info()[1]))
         continue #to try next audio lib
@@ -543,6 +543,8 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     """
     global pyoSndServer, Sound, audioDriver, duplex
     Sound = SoundPyo
+    if not 'pyo' in locals():
+        import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
@@ -554,16 +556,25 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.logging.debug('pyo sound server shutdown')#this may never get printed
 
+    maxInputChnls = pyo.pa_get_input_max_channels(pyo.pa_get_default_input())
+    maxOutputChnls = pyo.pa_get_output_max_channels(pyo.pa_get_default_output())
+    maxChnls = min(maxInputChnls, maxOutputChnls)
+    if maxInputChnls < 1:
+        logging.warning('%s.initPyo could not find microphone hardware; recording not available' % __name__)
+        maxChnls = maxOutputChnls
+    if maxOutputChnls < 1:
+        logging.error('%s.initPyo could not find speaker hardware; sound not available' % __name__)
+        core.quit()
     #check if we already have a server and kill it
     if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'): #if it exists and isn't None!
         #this doesn't appear to work!
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()
-        pyoSndServer.reinit(sr=rate, nchnls=2, buffersize=buffer, duplex=1, audio=audioDriver)
+        core.wait(0.5)
+        pyoSndServer.reinit(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
         pyoSndServer.boot()
     else:
-        #create the instance of the server
         if platform=='win32':
             #check for output device/driver
             devNames, devIDs=pyo.pa_get_output_devices()
@@ -577,27 +588,38 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             devNames, devIDs = pyo.pa_get_input_devices()
             junk, inputID=_bestDriver(devNames, devIDs)
             if inputID:
-                duplex=True
+                duplex = bool(maxInputChnls > 0)
             else:
                 duplex=False
-        else:#for other platforms set duplex to True
+        else:#for other platforms set duplex to True (if microphone is available)
             audioDriver = prefs.general['audioDriver'][0]
-            duplex=True
+            duplex = bool(maxInputChnls > 0)
+        # create the instance of the server:
         if platform=='darwin':
             #for mac we set the backend using the server audio param
-            pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, audio=audioDriver, duplex=duplex)
+            pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
         else:
             #with others we just use portaudio and then set the OutputDevice below
-            pyoSndServer = Server(sr=rate, nchnls=2, buffersize=buffer, duplex=duplex)
+            pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer)
+
         pyoSndServer.setVerbosity(1)
         if platform=='win32':
             pyoSndServer.setOutputDevice(outputID)
             if inputID:
                 pyoSndServer.setInputDevice(inputID)
         #do other config here as needed (setDuplex? setOutputDevice?)
+        pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
     core.wait(0.5)#wait for server to boot before starting te sound stream
     pyoSndServer.start()
+    try:
+        Sound()  # test creation, no play
+    except pyo.PyoServerStateException:
+        msg = "Failed to start pyo sound Server"
+        if platform == 'darwin' and audioDriver != 'portaudio':
+            msg += "; maybe try prefs.general.audioDriver 'portaudio'?"
+        logging.error(msg)
+        core.quit()
     logging.debug('pyo sound server started')
     logging.flush()
     
