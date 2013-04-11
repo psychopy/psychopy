@@ -469,7 +469,7 @@ class Window:
             for dispatcher in self._eventDispatchers:
                 dispatcher._dispatch_events()
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
-            pyglet.media.dispatch_events()#for sounds to be processed
+            #pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
             #self.winHandle.clear()
             GL.glLoadIdentity()
@@ -4038,6 +4038,8 @@ class MovieStim(_BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
 
         frameTexture = self._player.get_texture()
+        if frameTexture==None:
+            return
 
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
