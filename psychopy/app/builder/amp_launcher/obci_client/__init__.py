@@ -82,12 +82,14 @@ class ExperimentMonitor(threading.Thread):
         sub_socket.connect("tcp://" + self.server_address + ":34234")
         sub_socket.setsockopt(zmq.SUBSCRIBE, "")
         
-        self.pipe = os.pipe()
+        listener = context.socket(zmq.PAIR)
+        print(str(id(self)))
+        listener.bind("inproc://" + str(id(self)))
         
         readable = []
-        while self.pipe[0] not in readable:
+        while listener not in readable:
             print "monitoring"
-            readable, _, _ = zmq.select([sub_socket, self.pipe[0]], [], [])
+            readable, _, _ = zmq.select([sub_socket, listener], [], [])
             print "selected", readable
             if sub_socket in readable:
                 print "status"
@@ -99,13 +101,20 @@ class ExperimentMonitor(threading.Thread):
                     elif not self.alive and published.get("peers") and "mx" in published['peers']:
                         self.alive = True
                         self.status_handler(self.alive, self.failed)
-        os.read(self.pipe[0], 1)
-        os.close(self.pipe[1])
-        os.close(self.pipe[0])
+        listener.recv()
+        listener.close()
         sub_socket.close()
     
+    def start(self):
+        super(ExperimentMonitor, self).start()
+        time.sleep(2)
+        context = zmq.Context().instance()
+        self.connector = context.socket(zmq.PAIR)
+        print(str(id(self)))
+        self.connector.connect("inproc://" + str(id(self)))
+    
     def interrupt(self):
-        os.write(self.pipe[1], "!")
+        self.connector.send("!")
 
 
 class ExperimentSettings(object):
