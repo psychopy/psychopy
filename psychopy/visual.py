@@ -34,6 +34,8 @@ from numpy import sin, cos, pi
 
 from core import rush
 
+global currWindow
+currWindow=None
 reportNDroppedFrames=5#stop raising warning after this
 reportNImageResizes=5
 global _nImageResizes
@@ -338,9 +340,9 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-
+        global currWindow
+        currWindow=self
         openWindows.append(self)
-
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine whether
         frames are being dropped. The intervals are the times between calls to `.flip()`.
@@ -437,6 +439,7 @@ class Window:
         win.flip(clearBuffer=True)#results in a clear screen after flipping
         win.flip(clearBuffer=False)#the screen is not cleared (so represent the previous screen)
         """
+        global currWindow
         for thisStim in self._toDraw:
             thisStim.draw()
 
@@ -462,7 +465,9 @@ class Window:
 
         if self.winType =="pyglet":
             #make sure this is current context
-            self.winHandle.switch_to()
+            if currWindow!=self:
+                self.winHandle.switch_to()
+                currWindow=self
 
             GL.glTranslatef(0.0,0.0,-5.0)
 
@@ -853,12 +858,13 @@ class Window:
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL
+        global GL, currWindow
         if type(newRGB) in [int, float]:
             self.rgb=[newRGB, newRGB, newRGB]
         else:
             self.rgb=newRGB
-        if self.winType=='pyglet': self.winHandle.switch_to()
+        if self.winType=='pyglet' and currWindow!=self:
+            self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
 
     def setScale(self, units, font='dummyFont', prevScale=(1.0,1.0)):
@@ -1376,6 +1382,12 @@ class _BaseVisualStim:
                 self.setIm(self._imName, log=False)
             self.setMask(self._maskName, log=False)
             self.needUpdate=True
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
 
     def _updateList(self):
         """
@@ -1788,7 +1800,7 @@ class DotStim(_BaseVisualStim):
         again.
         """
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         self._update_dotsXY()
 
@@ -2033,6 +2045,12 @@ class SimpleImageStim:
     def _updateImageStr(self):
         self._imStr=self.imArray.tostring()
         self._needStrUpdate=False
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -2040,9 +2058,8 @@ class SimpleImageStim:
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
         #push the projection matrix and set to orthorgaphic
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPushMatrix()
@@ -2458,9 +2475,8 @@ class GratingStim(_BaseVisualStim):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -2843,9 +2859,8 @@ class RadialStim(GratingStim):
 
         If win is specified then override the normal window of this stimulus.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -3318,6 +3333,12 @@ class ElementArrayStim:
         self._calcSizesRendered()
         self._calcXYsRendered()
 
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
 
     def setXYs(self,value=None, operation='', log=True):
         """Set the xy values of the element centres (relative to the centre of the field).
@@ -3639,9 +3660,8 @@ class ElementArrayStim:
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         if self.needVertexUpdate:
             self.updateElementVertices()
@@ -4030,9 +4050,8 @@ class MovieStim(_BaseVisualStim):
 
         if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
             self.play()
-        #set the window to draw to
         if win==None: win=self.win
-        win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -4618,9 +4637,8 @@ class TextStim(_BaseVisualStim):
 
         If win is specified then override the normal window of this stimulus.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         GL.glPushMatrix()
         GL.glLoadIdentity()#for PyOpenGL this is necessary despite pop/PushMatrix, (not for pyglet)
@@ -4902,9 +4920,8 @@ class ShapeStim(_BaseVisualStim):
         again.
         """
         if self.needVertexUpdate: self._calcVerticesRendered()
-
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         nVerts = self.vertices.shape[0]
 
@@ -5465,7 +5482,7 @@ class ImageStim(_BaseVisualStim):
         GL.glDeleteTextures(1, self.maskID)
     def draw(self, win=None):
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -5721,16 +5738,14 @@ class BufferImageStim(GratingStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
                 level=logging.EXP,obj=self)
-    def draw(self):
+    def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
         Allows dynamic position, size, rotation, mirroring, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        # this is copy & pasted from old GratingStim, then had stuff taken out for speed
-
-        if self.win.winType=='pyglet':
-            self.win.winHandle.switch_to()
+        if win==None: win=self.win
+        self._selectWindow(win)
 
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
@@ -7267,18 +7282,21 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         rad=makeRadialMatrix(res)
         intensity = (rad<=1)*2-1
         fromFile=0
+        wasLum=True
     elif tex == "gauss":
         rad=makeRadialMatrix(res)
         sigma = 1/3.0;
         intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
         fromFile=0
+        wasLum=True
     elif tex == "radRamp":#a radial ramp
         rad=makeRadialMatrix(res)
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
-
+        wasLum=True
     elif tex == "raisedCos": # A raised cosine
+        wasLum=True
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
 
         # If no user input was provided:
