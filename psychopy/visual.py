@@ -2444,8 +2444,9 @@ class GratingStim(_BaseVisualStim):
                 level=logging.EXP,obj=self)
     def setMask(self,value, log=True):
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
-        res=self.texRes, maskParams=self.maskParams)
+        createTexture(value, id=self.maskID, stim=self,
+            pixFormat=GL.GL_ALPHA,
+            res=self.texRes, maskParams=self.maskParams)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
@@ -5324,9 +5325,11 @@ class ImageStim(_BaseVisualStim):
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        if self.isLumImage:
+            GL.glUseProgram(self.win._progSignedTexMask)
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
@@ -5485,7 +5488,8 @@ class ImageStim(_BaseVisualStim):
         """
         self._imName = value
 
-        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
+        self.isLumImage = createTexture(value, id=self.texID, stim=self,
+            pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
@@ -5497,7 +5501,9 @@ class ImageStim(_BaseVisualStim):
         """Change the image to be used as an alpha-mask for the image
         """
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        createTexture(value, id=self.maskID,
+            pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
+            stim=self,
             res=self.texRes, maskParams=self.maskParams)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
@@ -7161,13 +7167,27 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True):
+def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True, dataType=None):
     """
-    id is the texture ID
-    pixFormat = GL.GL_ALPHA, GL.GL_RGB
-    useShaders is a bool
-    interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
-    res is the resolution of the texture (unless a bitmap image is used)
+    :params:
+
+        id:
+            is the texture ID
+
+        pixFormat:
+            GL.GL_ALPHA, GL.GL_RGB
+
+        useShaders:
+            bool
+
+        interpolate:
+            bool (determines whether texture will use GL_LINEAR or GL_NEAREST
+
+        res:
+            the resolution of the texture (unless a bitmap image is used)
+
+        dataType:
+            None, GL.GL_UNSIGNED_BYTE, GL_FLOAT. Only affects image files (numpy arrays will be float)
 
     For grating stimuli (anything that needs multiple cycles) forcePOW2 should
     be set to be True. Otherwise the wrapping of the texture will not work.
@@ -7179,8 +7199,15 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
     """
     global _nImageResizes
     notSqr=False #most of the options will be creating a sqr texture
+    wasImage=False #change this if image loading works
     useShaders = stim._useShaders
     interpolate = stim.interpolate
+    if dataType==None:
+        if useShaders and pixFormat==GL.GL_RGB:
+            dataType = GL.GL_FLOAT
+        else:
+            dataType = GL.GL_UNSIGNED_BYTE
+
     if type(tex) == numpy.ndarray:
         #handle a numpy array
         #for now this needs to be an NxN intensity array
@@ -7322,6 +7349,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                 raise AttributeError, "Couldn't make sense of requested image."#ensure we quit
         # at this point we have a valid im
         stim.origSize=im.size
+        wasImage=True
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
             logging.error("Only 2D textures are supported at the moment")
@@ -7341,25 +7369,26 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
             im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
             wasLum=False
+        if dataType==GL.GL_FLOAT:
+            #convert from ubyte to float
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
+        else:
+            intensity = numpy.array(im)
 
-    if pixFormat==GL.GL_RGB and wasLum and useShaders:
+    if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1
         if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
             #nvidia under win/linux might not support 32bit float
             internalFormat = GL.GL_RGB16F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         else:#we've got a mac or an ATI card and can handle 32bit float textures
             internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-        dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
@@ -7367,7 +7396,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
     elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
         if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
             rgb=stim.rgb
         else:
@@ -7379,23 +7407,18 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
         data = psychopy.misc.float_uint8(stim.contrast*data)
-    elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
+    elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT:#not wasLum
         internalFormat = GL.GL_RGB32F_ARB
-        dataType = GL.GL_FLOAT
         data = intensity
     elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
         internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA and useShaders:# a mask with no shader options
+        data = intensity #psychopy.misc.float_uint8(intensity)
+    elif pixFormat==GL.GL_ALPHA:
         internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA:# not wasLum, not useShaders  - a mask with no shader options
-        internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        #can't use float_uint8 - do it manually
-        data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
+        if wasImage:
+            data = intensity
+        else:
+            data = psychopy.misc.float_uint8(intensity)
     #check for RGBA textures
     if len(intensity.shape)>2 and intensity.shape[2] == 4:
         if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
@@ -7403,7 +7426,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
 
     texture = data.ctypes#serialise
-
     #bind the texture in openGL
     GL.glEnable(GL.GL_TEXTURE_2D)
     GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
@@ -7428,8 +7450,8 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                         data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                         pixFormat, dataType, texture)
-
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+    return wasLum
 
 def pointInPolygon(x, y, poly):
     """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.

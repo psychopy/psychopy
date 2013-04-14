@@ -3,7 +3,6 @@ from psychopy import core, visual, event
 
 #create a window to draw in
 myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, color=(-1,-1,-1))
-myWin._haveShaders=False
 
 #INITIALISE SOME STIMULI
 beach = visual.ImageStim(myWin, image='beach.jpg', flipVert=True, pos=(0,4.50), units='deg')
