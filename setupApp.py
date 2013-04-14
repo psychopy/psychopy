@@ -76,6 +76,7 @@ else:
                                         'egi','labjack','pylink',#handy external science interfaces
                                         'pyxid','pycrsltd',
                                         #'PIL','Image',
+                                        'objc','Quartz','AppKit','QTKit','Cocoa','Foundation','CoreFoundation',
                                         'pyolib',
                                         'pandas','tables',
                                         ],
