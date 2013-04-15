@@ -472,9 +472,10 @@ class Window:
             GL.glTranslatef(0.0,0.0,-5.0)
 
             for dispatcher in self._eventDispatchers:
-                dispatcher._dispatch_events()
+                dispatcher.dispatch_events()
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
-            #pyglet.media.dispatch_events()#for sounds to be processed
+            if pyglet.version<'1.2': #for pyglet 1.1.4 you needed to call media.dispatch for movie updating
+                pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
             #self.winHandle.clear()
             GL.glLoadIdentity()
@@ -3933,6 +3934,9 @@ class MovieStim(_BaseVisualStim):
         self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
+        self.loop = loop
+        if loop and pyglet.version>='1.2':
+            logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
         self.pos=pos
@@ -3943,7 +3947,6 @@ class MovieStim(_BaseVisualStim):
         self.colorSpace=colorSpace
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
-        self.loop = loop
         self.status=NOT_STARTED
 
         #size
@@ -4004,7 +4007,7 @@ class MovieStim(_BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
                 level=logging.EXP,obj=self)
-
+        
     def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance).  If play() is called again both will restart.
@@ -4048,15 +4051,21 @@ class MovieStim(_BaseVisualStim):
         This method should be called on every frame that the movie is meant to
         appear"""
 
-        if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
+        if self.status == PLAYING and not self._player.playing:
+            self.status = FINISHED
+        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
             self.play()
+        elif self.status == FINISHED and not self.loop:
+            return
+            
         if win==None: win=self.win
         self._selectWindow(win)
 
         #make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-
+        if pyglet.version>='1.2': #for pyglet 1.1.4 this was done via media.dispatch_events
+            self._player.update_texture()
         frameTexture = self._player.get_texture()
         if frameTexture==None:
             return
@@ -4108,7 +4117,9 @@ class MovieStim(_BaseVisualStim):
             self.pause(log=False)
         #add to drawing list and update status
         _BaseVisualStim.setAutoDraw(self, val, log=log)
-
+    def __del__(self):
+        self._clearTextures()
+        
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """

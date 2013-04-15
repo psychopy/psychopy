@@ -22,6 +22,9 @@ PsychoPy 1.76
 PsychoPy 1.76.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
+* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
+* ADDED: support for pyglet version 1.2
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
 * ADDED: more sound.SoundPyo methods (get & set duration, volume, looping)
 * FIXED: event.Mouse() can obtain a default visual.Window(), if one has already been created
