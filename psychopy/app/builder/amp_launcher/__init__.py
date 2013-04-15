@@ -18,8 +18,7 @@ import time
 import threading
 
 
-MxAliveEvent, EVT_MX_ALIVE = newevent.NewEvent()
-PeerFailedEvent, EVT_PEER_FAILED = newevent.NewEvent()
+ExperimentReady, EVT_EXPERIMENT_READY = newevent.NewEvent()
 
 class AmpListPanel(wx.Panel):
     """A panel control with a refreshable list of amplifiers"""
@@ -33,8 +32,6 @@ class AmpListPanel(wx.Panel):
 
     def init_controls(self):
         self.label = wx.StaticText(self, wx.ID_ANY, "Amplifier list:")
-        #self.refresh_button = wx.Button(self, wx.ID_ANY, label="refresh")
-        #self.refresh_button.SetSizeWH(2, 2)
         throbber_bitmap = wx.ArtProvider.GetBitmap("amp-launcher-throbber", wx.ART_OTHER)
         self.throbber = throbber.Throbber(self, -1, bitmap=throbber_bitmap, frames=4, frameWidth=43)
         self.amp_list = wx.ListView(self, wx.ID_ANY)
@@ -120,7 +117,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_info = None
         self.old_index = None
         self.amp_manager = None
-        self.connection = obci_connection.OBCIConnection(("192.168.0.106", 12012))
+        self.connection = obci_connection.OBCIConnection(("192.168.0.102", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
         self.init_panels()
@@ -194,18 +191,6 @@ class AmpLauncherDialog(wx.Dialog):
     def run_click(self, event):
         if not self.amp_config.Validate():
             return
-        #launching_thread = threading.Thread(group=None, target=self.start_amplifier, name="start-amplifier-thread")
-        #launching_thread.start()
-        #self.launching_dialog.ShowModal()
-        #launching_thread.join()
-        #if self.launching_dialog.GetReturnCode() != wx.OK:
-        #    self.amp_manager.interrupt_monitor()
-        #    return
-        #launcher = obci_client.ObciLauncher("tcp://" + self.amp_config.get_server() + ":54654")
-        #experiment = launcher.create_experiment("Psychopy Experiment")
-        #amp_config = obci_client.ExperimentSettings(self.amp_config.get_launch_file(), amp_config_dict)
-        #experiment.apply_config(amp_config)
-        #experiment.start()
         self.amp_manager = self.start_amplifier()
         self.show_progress_dialog()
         event.Skip()
@@ -225,10 +210,7 @@ class AmpLauncherDialog(wx.Dialog):
         """
         This may be called from outside of wx context.
         """
-        wx.CallAfter(self.start_handler_wx)
-    
-    def start_handler_wx(self):
-        self.launching_dialog.EndModal(wx.OK)
+        wx.PostEvent(self.launching_dialog, ExperimentReady())
 
 
 class LaunchingDialog(wx.Dialog):
@@ -245,3 +227,8 @@ class LaunchingDialog(wx.Dialog):
         self.GetSizer().Add(self.throbber)
         self.GetSizer().Add(wx.StaticText(self, label="Waiting for amplifier to start up..."), flag=wx.ALL | wx.ALIGN_CENTER, border=8)
         self.Fit()
+        self.Bind(EVT_EXPERIMENT_READY, self.on_experiment_ready)
+        
+    def on_experiment_ready(self, event):
+        self.EndModal(wx.OK)
+        event.Skip()

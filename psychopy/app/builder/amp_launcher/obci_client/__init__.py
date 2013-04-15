@@ -88,11 +88,8 @@ class ExperimentMonitor(threading.Thread):
         
         readable = []
         while listener not in readable:
-            print "monitoring"
             readable, _, _ = zmq.select([sub_socket, listener], [], [])
-            print "selected", readable
             if sub_socket in readable:
-                print "status"
                 published = json.loads(sub_socket.recv())
                 if published.get("uuid") == self.uuid:
                     if not self.failed and published.get("status_name") == "failed":
@@ -110,7 +107,6 @@ class ExperimentMonitor(threading.Thread):
         time.sleep(2)
         context = zmq.Context().instance()
         self.connector = context.socket(zmq.PAIR)
-        print(str(id(self)))
         self.connector.connect("inproc://" + str(id(self)))
     
     def interrupt(self):
