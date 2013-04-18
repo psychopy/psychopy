@@ -6667,10 +6667,11 @@ class RatingScale:
             self.firstDraw = False
             self.myClock.reset()
             self.status = STARTED
-            self.history = [(None, 0.0)]
+            self.history = [(self.markerStart, 0.0)]  # this will grow
 
-        # timed out?
-        if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
+        # timed out? max < min means never time-out
+        if self.minimumTime < self.maximumTime < self.myClock.getTime() and not self.timedOut:
+            # only do this stuff once
             self.noResponse = False
             self.timedOut = True
             self.history.append((self.getRating(), self.getRT()))  # RT when timed-out
@@ -6687,7 +6688,7 @@ class RatingScale:
         for visualElement in self.visualDisplayElements:
             visualElement.draw()
 
-        # if the subject is done but the scale is still being drawn:
+        # if the subject is done (or timed-out) but the scale is still being drawn:
         if self.noResponse == False:
             # fix the marker position on the line
             if not self.markerPosFixed:
@@ -6717,7 +6718,6 @@ class RatingScale:
                     self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
             # update position:
             if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
-                #self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
                 self.markerPlacedAt = False
@@ -6772,8 +6772,8 @@ class RatingScale:
                     logging.data('RatingScale %s: (key response) rating=%s' %
                                      (self.name, unicode(self.getRating())) )
 
-        # handle mouse:
-        if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
+        # handle mouse left-click:
+        if self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
             if pointInPolygon(mouseX, mouseY, self.nearLine): # if near the line, place the marker there:
                 self.markerPlaced = True
@@ -6875,7 +6875,7 @@ class RatingScale:
         the final accepted choice, as a list of (rating, time) tuples. The history
         can be retrieved at any time, allowing for continuous ratings to be
         obtained in real-time. Both numerical and categorical choices are stored
-        automatically in the history. The history will always start with `(None, 0.0)`.
+        automatically in the history.
         """
         return self.history
 
