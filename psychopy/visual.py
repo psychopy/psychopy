@@ -5,6 +5,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, os, glob, copy
+
+# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked up 
+# by the pyglet GL engine and have no effect.
+import pyglet
+pyglet.options['debug_gl'] = False 
+
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
@@ -43,8 +50,6 @@ _nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import ctypes
-import pyglet
-pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
 GL = pyglet.gl
 
 import psychopy.gamma
