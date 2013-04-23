@@ -114,15 +114,15 @@ def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons, mouseClick, mouseTimes
     if button == pyglet.window.mouse.LEFT:
         mouseButtons[0]=1
-        mouseTimes[0]= psychopy.core.getTime()-mouseClick[0].timeAtLastReset
+        mouseTimes[0]= psychopy.core.getTime()-mouseClick[0].getLastResetTime()
         label='Left'
     if button == pyglet.window.mouse.MIDDLE:
         mouseButtons[1]=1
-        mouseTimes[1]= psychopy.core.getTime()-mouseClick[1].timeAtLastReset
+        mouseTimes[1]= psychopy.core.getTime()-mouseClick[1].getLastResetTime()
         label='Middle'
     if button == pyglet.window.mouse.RIGHT:
         mouseButtons[2]=1
-        mouseTimes[2]= psychopy.core.getTime()-mouseClick[2].timeAtLastReset
+        mouseTimes[2]= psychopy.core.getTime()-mouseClick[2].getLastResetTime()
         label='Right'
     logging.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 
@@ -237,8 +237,8 @@ def getKeys(keyList=None, timeStamped=False):
     if timeStamped==False:
         keyNames = [k[0] for k in targets]
         return keyNames
-    elif hasattr(timeStamped, 'timeAtLastReset'):
-        relTuple = [(k[0],k[1]-timeStamped.timeAtLastReset) for k in targets]
+    elif hasattr(timeStamped, 'getLastResetTime'):
+        relTuple = [(k[0],k[1]-timeStamped.getLastResetTime()) for k in targets]
         return relTuple
     elif timeStamped==True:
         return targets
@@ -420,7 +420,7 @@ class Mouse:
     def mouseMoveTime(self):
         global mouseMove
         if mouseMove:
-                return psychopy.core.getTime()-mouseMove.timeAtLastReset
+                return psychopy.core.getTime()-mouseMove.getLastResetTime()
         else: return 0 # mouseMove clock not started
 
     def getRel(self):
@@ -469,7 +469,7 @@ class Mouse:
 
     def clickReset(self,buttons=[0,1,2]):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
-           The pyglet mouse-button-pressed handler uses their timeAtLastReset when a button is pressed
+           The pyglet mouse-button-pressed handler uses their clock.getLastResetTime() when a button is pressed
            so the user can reset them at stimulus onset or offset to measure RT.
            The default is to reset all, but they can be reset individually as specified in buttons list
         """
