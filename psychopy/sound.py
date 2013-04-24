@@ -533,15 +533,20 @@ def _bestDriver(devNames, devIDs):
             prefDriver = 'Primary Sound'
         #look for that driver in available devices
         for devN, devString in enumerate(devNames):
-            if prefDriver in devString:
-                audioDriver=devString
-                outputID=devIDs[devN]
-                return audioDriver, outputID #we found an asio driver don'w look for others
+            try:
+                if prefDriver.encode('utf-8') in devString.encode('utf-8'):
+                    audioDriver=devString
+                    outputID=devIDs[devN]
+                    return audioDriver, outputID #we found an asio driver don'w look for others
+            except UnicodeDecodeError, UnicodeEncodeError:
+                logging.warn('find best sound driver - could not interpret unicode in driver name')
+    else:
+        return None, None
 
 def initPyo(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
     """
-    global pyoSndServer, Sound, audioDriver, duplex
+    global pyoSndServer, Sound, audioDriver, duplex, maxChnls
     Sound = SoundPyo
     if not 'pyo' in locals():
         import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
@@ -556,18 +561,8 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.logging.debug('pyo sound server shutdown')#this may never get printed
 
-    maxInputChnls = pyo.pa_get_input_max_channels(pyo.pa_get_default_input())
-    maxOutputChnls = pyo.pa_get_output_max_channels(pyo.pa_get_default_output())
-    maxChnls = min(maxInputChnls, maxOutputChnls)
-    if maxInputChnls < 1:
-        logging.warning('%s.initPyo could not find microphone hardware; recording not available' % __name__)
-        maxChnls = maxOutputChnls
-    if maxOutputChnls < 1:
-        logging.error('%s.initPyo could not find speaker hardware; sound not available' % __name__)
-        core.quit()
-    #check if we already have a server and kill it
-    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'): #if it exists and isn't None!
-        #this doesn't appear to work!
+    # if we already have a server, just re-initialize it
+    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'):
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()
@@ -581,19 +576,33 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             audioDriver,outputID=_bestDriver(devNames, devIDs)
             if outputID:
                 logging.info('Using sound driver: %s (ID=%i)' %(audioDriver, outputID))
+                maxOutputChnls = pyo.pa_get_output_max_channels(outputID)
             else:
                 logging.warning('No audio outputs found (no speakers connected?')
                 return -1
             #check for valid input (mic)
             devNames, devIDs = pyo.pa_get_input_devices()
-            junk, inputID=_bestDriver(devNames, devIDs)
-            if inputID:
+            audioInputName, inputID = _bestDriver(devNames, devIDs)
+            if inputID is not None:
+                logging.info('Using sound-input driver: %s (ID=%i)' %(audioInputName, inputID))
+                maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
                 duplex=False
         else:#for other platforms set duplex to True (if microphone is available)
             audioDriver = prefs.general['audioDriver'][0]
+            maxInputChnls = pyo.pa_get_input_max_channels(pyo.pa_get_default_input())
+            maxOutputChnls = pyo.pa_get_output_max_channels(pyo.pa_get_default_output())
             duplex = bool(maxInputChnls > 0)
+
+        maxChnls = min(maxInputChnls, maxOutputChnls)
+        if maxInputChnls < 1:
+            logging.warning('%s.initPyo could not find microphone hardware; recording not available' % __name__)
+            maxChnls = maxOutputChnls
+        if maxOutputChnls < 1:
+            logging.error('%s.initPyo could not find speaker hardware; sound not available' % __name__)
+            return -1
+
         # create the instance of the server:
         if platform=='darwin':
             #for mac we set the backend using the server audio param
