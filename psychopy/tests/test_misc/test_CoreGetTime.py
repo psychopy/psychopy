@@ -5,15 +5,12 @@ Created on Tue Apr 23 11:18:47 2013
 Tests the psychopy.core.getTime Function:
 
   On Windows:
-    1) Checks that the QPC time implementation gives duration results
-       consistent with the Python high resolution timer implementation
-    2) Checks that the time between calls is never negative and never jumps
-       more than 3 sdev from the avaerge.
-       
-  On all platforms:
-    1) Tests the overhead in the getTime function call
-    2) Assesses the resolution of the underlying time base.
-    3) Tests MonotonicClock, Clock, CountdownTimer, wait
+    1) Checks that the currently used core.getTime() implementation gives duration results
+       consistent with directly using the Python high resolution timer.
+    2) Checks that the time between core.getTime calls is never negative.
+    3) Tests the overhead in the core.getTime function call
+    4) Tries to assess the resolution of the underlying core.getTime() time base and the Python high resolution timer.
+    5) Tests MonotonicClock, Clock, CountdownTimer, wait
 @author: Sol
 """
 import time

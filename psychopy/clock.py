@@ -46,11 +46,12 @@ if sys.platform == 'win32':
     _fcounter = c_int64()
     _qpfreq = c_int64()
     windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
+    _qpfreq=float(_qpfreq.value)
     _winQPC=windll.Kernel32.QueryPerformanceCounter
 
     def getTime():
         _winQPC(byref(_fcounter))
-        return  _fcounter.value/_qpfreq.value
+        return  _fcounter.value/_qpfreq
 else:
     cur_pyver = sys.version_info
     if cur_pyver[0]==2 and cur_pyver[1]<=6: 
@@ -65,8 +66,12 @@ class MonotonicClock:
     When a MonotonicClock is created, it stores the current time
     from getTime and uses this as an offset for psychopy times returned.
     """
-    def __init__(self):
-        self._timeAtLastReset=getTime()#this is sub-millisec timer in python
+    def __init__(self,start_time=None):
+        if start_time is None:
+            self._timeAtLastReset=getTime()#this is sub-millisec timer in python
+        else:
+            self._timeAtLastReset=start_time
+
     def getTime(self):
         """Returns the current time on this clock in secs (sub-ms precision)
         """
