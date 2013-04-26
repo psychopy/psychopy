@@ -551,7 +551,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     if not 'pyo' in locals():
         import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
-    class Server(pyo.Server):
+    class _Server(pyo.Server):
         core=core #make libs class variables so they don't get deleted first
         logging=logging
         def __del__(self):
@@ -560,6 +560,10 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             self.shutdown()
             self.core.wait(0.5)#make sure enough time passes for the server to shutdown
             self.logging.debug('pyo sound server shutdown')#this may never get printed
+    if '.'.join(map(str, pyo.getVersion())) < '0.6.4':
+        Server = _Server
+    else:
+        Server = pyo.Server
 
     # if we already have a server, just re-initialize it
     if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'):
