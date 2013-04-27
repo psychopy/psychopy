@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""This demo illustrates using hardware.emulator.launchScan() to either start a real scan, 
-or emulate sync pulses and user responses. Emulation is to allow debugging script timing
-offline, without requiring either a scanner or a hardware sync pulse emulator.
+"""This demo illustrates using hardware.emulator.launchScan() to either start a
+real scan, or emulate sync pulses. Emulation is to allow debugging script timing
+offline, without requiring a scanner (or a hardware sync pulse generator).
 """
 
 # Author: Jeremy R. Gray
@@ -21,25 +21,21 @@ MR_settings = {
 infoDlg = gui.DlgFromDict(MR_settings, title='fMRI parameters', order=['TR','volumes'])
 if not infoDlg.OK: core.quit()
 
-win = visual.Window(fullscr=True)
+win = visual.Window(fullscr=False)
 globalClock = core.Clock()
 
 # summary of run timing, for each key press:
-output = 'vol    onset key\n'
+output = u'vol    onset key\n'
 for i in range(-1 * MR_settings['skip'], 0):
-    output += '%d prescan skip (no sync)\n' % i
+    output += u'%d prescan skip (no sync)\n' % i
 
 key_code = MR_settings['sync']
 counter = visual.TextStim(win, height=.05, pos=(0,0), color=win.rgb+0.5)
-output += "  0    0.000 %s start of scanning run, vol 0\n" % key_code
-pause_during_delay = (MR_settings['TR'] > .4)
+output += u"  0    0.000 %s  [Start of scanning run, vol 0]\n" % key_code
 sync_now = False
 
-# can simulate user responses, here 3 key presses in order 'a', 'b', 'c' (they get sorted by time):
-simResponses = [(0.123, 'a'), (4.789, 'c'), (2.456, 'b')]
-
-# launch: operator selects Scan or Test (emulate); see API documentation
-vol = launchScan(win, MR_settings, globalClock=globalClock, simResponses=simResponses)
+# launch: operator selects Scan or Test (emulate); see API docuwmentation
+vol = launchScan(win, MR_settings, globalClock=globalClock)
 
 infer_missed_sync = False # best if your script timing works without this, but this might be useful sometimes
 max_slippage = 0.02 # how long to allow before treating a "slow" sync as missed
@@ -51,9 +47,9 @@ while globalClock.getTime() < duration:
     allKeys = event.getKeys()
     for key in allKeys:
         if key != MR_settings['sync']:
-            output += "%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), str(key))
+            output += u"%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), unicode(key))
     if 'escape' in allKeys:
-        output += 'user cancel, '
+        output += u'user cancel, '
         break
     # detect sync or infer it should have happened:
     if MR_settings['sync'] in allKeys:
@@ -63,18 +59,17 @@ while globalClock.getTime() < duration:
         expected_onset = vol * MR_settings['TR']
         now = globalClock.getTime()
         if now > expected_onset + max_slippage:
-            sync_now = '(inferred onset)' # flag
+            sync_now = u'(inferred onset)' # flag
             onset = expected_onset
     if sync_now:
         # do your experiment code at this point; for demo, just shows a counter & time
-        counter.setText("%d volumes\n%.3f seconds" % (vol, onset))
-        output += "%3d  %7.3f %s\n" % (vol, onset, sync_now)
+        counter.setText(u"%d volumes\n%.3f seconds" % (vol, onset))
+        output += u"%3d  %7.3f %s\n" % (vol, onset, sync_now)
         counter.draw()
         win.flip()
         vol += 1
         sync_now = False
 
-output += "end of scan (vol 0..%d = %d of %s). duration = %7.3f" % (vol - 1, vol, MR_settings['volumes'], globalClock.getTime())
+output += u"End of scan (vol 0..%d = %d of %s). Total duration = %7.3f sec" % (vol - 1, vol, MR_settings['volumes'], globalClock.getTime())
 print output
-print 'For the test, there should be 5 trials (vol 0..4, key 5), with three simulated subject responses (a, b, c)'
 core.quit()
