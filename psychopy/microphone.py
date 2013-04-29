@@ -265,6 +265,8 @@ class AdvAudioCapture(AudioCapture):
 
     Has method for retrieving the marker onset time from the file, to allow
     calculation of vocal RT (or other sound-based RT).
+
+    See Coder demo > input > latencyFromTone.py
     """
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
                  buffering=16, chnl=0):
