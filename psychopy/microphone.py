@@ -169,11 +169,12 @@ class AudioCapture(object):
         while self.recorder.running:
             pass
         self.duration = float(sec)
-        self.onset = core.getTime() # note: report onset time in log, and use in filename
-        logging.data('%s: Record: onset %.3f, capture %.3fs' %
-                     (self.loggingId, self.onset, self.duration) )
+        self.onset = core.getTime()  # for duration estimation, high precision
+        self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
+        logging.data('%s: Record: onset %d, capture %.3fs' %
+                     (self.loggingId, self.fileOnset, self.duration) )
         if not file:
-            onsettime = '-%.3f' % self.onset
+            onsettime = '-%d' % self.fileOnset
             self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
             self.savedFile = os.path.abspath(file).strip('.wav') + '.wav'
