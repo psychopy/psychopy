@@ -178,7 +178,7 @@ class RunTimeInfo(dict):
             pass
         
         # when was this run?
-        self['experimentRunTime.epoch'] = core.getTime() # basis for default random.seed()
+        self['experimentRunTime.epoch'] = core.getAbsTime()  # basis for default random.seed()
         self['experimentRunTime'] = data.getDateStr(format="%Y_%m_%d %H:%M (Year_Month_Day Hour:Min)")
         
         # random.seed -- record the value, and initialize random.seed() if 'set:'
