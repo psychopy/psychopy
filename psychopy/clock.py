@@ -178,3 +178,17 @@ def wait(secs, hogCPUperiod=0.2):
         except:
             pass #presumably not pyglet
 
+def getAbsTime():
+    """Return unix time (i.e., whole seconds elapsed since Jan 1, 1970).
+
+    This uses the same clock-base as the other timing features, like `getTime()`.
+    The time (in seconds) ignores the time-zone (like `time.time()` on linux).
+    To take the timezone into account, use `int(time.mktime(time.gmtime()))`.
+
+    Absolute times in seconds are especially useful to add to generated file
+    names for being unique, informative (= a meaningful time stamp), and because
+    the resulting files will always sort as expected when sorted in chronological,
+    alphabetical, or numerical order, regardless of locale and so on.
+    """
+    return int(time.mktime(time.localtime()))
+
