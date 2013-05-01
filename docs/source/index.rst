@@ -4,9 +4,7 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Python Programming 3 day workshop on 26-28th March** Are you just switching to PsychoPy from Matlab? Are you using the Builder but want to learn to code? Come to this `3 day Python for Neuroscience <http://www.psychopy.org/resources/P4N-workshop.html>`_ workshop run by Jon Peirce at the University of Nottingham. 
-
-**Latest version**: 1.75.01 was released Oct 2012. 1.74.00, which was a very major update with lots of new features, especially to the handling of data outputs. Check carefully that this works for you before deploying in your experiments and note that Builder experiments saved from 1.74.xx cannot be opened by older versions. See complete :doc:`changelog`
+**Latest version**: 1.76.00 was released Feb 2013. See complete :doc:`changelog`
 
 **Video tutorial**: You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing you how to build a simple experiment in the Builder interface
 
