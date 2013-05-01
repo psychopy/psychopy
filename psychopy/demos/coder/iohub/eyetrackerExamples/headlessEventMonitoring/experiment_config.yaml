@@ -1,0 +1,105 @@
+# experiment_config.yaml: S
+#
+# Settings related to the experiment being run when the experiment script is launched.
+#
+# Custom session variables you want displayed in a dialog for input at the start of the experiment
+# can be defined in the  session_defaults: user_variables: section.
+#
+# Configuration settings related to the local Experiment Process the Experiment
+# Processcan also be specified.
+#
+# Custom experiment preferences can also be added, as long as the prefernce name is not 
+# a standard ioHub experiment confiuration preference name. For example, adding:
+#
+#    maximum_experiment_session_time: 120
+#
+# creates an experiment preference called maximum_experiment_session_time that can be read
+# from the ioHubExperimentRuntime class using:
+#
+#    max_exp_time=self.getConfiguration().get('maximum_experiment_session_time', None)
+#    if max_exp_time is None:
+#        print 'Sorry, no experiment configuration variable called "maximum_experiment_session_time" was found.'
+#    else:
+#        print '>> Note: Maximum experiment duration will be ', max_exp_time
+#
+# You would also need to add the experiment logic to your script to enforce 
+# this custom experiment prefernce. ;)
+#
+# Not all preferences listed here are 'required' when creating an experiment_config.yaml,
+# all standard ioHub experiment preferences have default values that will be used
+# if the setting is not specified for in given experiments experiment_config.yaml.
+# Only fields marked FIELD REQUIRED are 'technically' needed in the experiment_config.
+  
+# Title you want to give the experiment. 48 char max length please. 
+title: Headless EM
+
+# The experiment code to use. Max 8 chars please. FIELD REQUIRED.
+code: headless
+
+# A version string to associate with the experiment. Max 6 chars please.
+version: '0.1'
+
+# The experiment description, in 256 characters or less. ;)
+description: Simple example of using psychopy and ioHub, with a fun gaussian mouse cursor
+
+# When using the ioHubExperimentRuntime class to create your experiment, do you want
+# the read-only experiment Info dialog to appear at the start of the experiment?
+display_experiment_dialog: False
+
+
+# When using the ioHubExperimentRuntime class to create your experiment, do you want
+# the Session Info dialog to appear at the start of the experiment? This is a way 
+# to enter a unique session code for each run of the experiment using the same DataStore file.
+# If False, the dialog will not be displayed, so your extension of the ioHubExperimentRuntime
+# class should include a prePostSessionVariableCallback(self,sessionVarDict) method
+# implementation that sets the sessionVarDict['code'] to a unique code value. See the
+# ioHubExperimentRuntime docs for more info.
+display_session_dialog: False
+
+session_defaults:
+    # The default name given to each session that is run for the experiment. A new
+    # session is created every time the experiment script is started. 16 char max.
+    name: Session Name
+    
+    # The code to give this session. Every session of the experiment must have a 
+    # unique session code. 8 char max. FIELD REQUIRED.
+    code: E1S01
+
+    # Any comments about the curent experiment session. 128 char max.
+    comments: None
+        
+# This defines the order you want all session metadata variables displayed in the 
+# New Session dialog. 
+session_variable_order: [ name, code, comments]
+
+# The maximum number of events that will be buffered on the Experiment Process, 
+# for all devices and events. When  the experiment calls the 
+# iohub.wait(duration,check_hub_interval) method,
+# the experiment logic waits for the number of seconds specified. During this 
+# wait period, the ioHub client is still getting events from the ioServer every
+# check_hub_interval seconds (default is 0.02 sec ) for any new events and stores them
+# in a local event buffer until the next call to getEvents()
+event_buffer_length: 1048
+
+# Sets the processor unit index list to use for the Experiment Process. An empty
+# list indicates to not change the process affinity. A list with length > 0 should
+# contain processor index values, between 0 and N-1, where N is the number of processing
+# units valaible on your computer. 
+process_affinity: []
+
+# Sets the processor unit index list to use for the all processes other than the
+# ioHub and Expriment processes. An empty list indicates to not change the process affinity.
+# A list with length > 0 should contain processor index values, between 0 and N-1, 
+# where N is the number of processing units valaible on your computer. Not all
+# processes on a computer will allow an application to change their affinity. 
+remaining_processes_affinity: []
+
+ioHub:
+    # Sets the processor unit index list to use for the ioHub Server Process. An empty
+    # list indicates to not change the process affinity. A list with length > 0 should
+    # contain processor index values, between 0 and N-1, where N is the number of processing
+    # units valaible on your computer. 
+    process_affinity: []
+    
+    # The name to give the ioDataStore hdf5 file for saving device events.
+    config: ioHub_config.yaml

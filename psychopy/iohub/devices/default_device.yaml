@@ -1,0 +1,44 @@
+DeviceClass:
+    enable: True
+    name: device
+    device_number: 0
+    save_events: True
+    stream_events: True
+    auto_report_events: False    
+    # IMPORTANT: device_time **must** only be present in the config file if the device 
+    # implementation uses polling to check for new native device events.
+    device_timer:
+        interval: 0.001
+    event_buffer_length: 256
+    monitor_event_types: [ DeviceEvent, ]
+    # The model_name setting allows the specification of the device model name being used.
+    # Some device implementations will use this value to determine 
+    # the appropriate logic to be run for a given device model supported by the ioHub Device class. 
+    model_name: N/A
+    # The model_number can be used to hold a string representation of the model number of the
+    # eye tracker being used, assuming a model number is provided by the manufacturer.
+    model_number: N/A
+    # manufacturer_name can be used to store the name of the maker of the
+    # device being used. This is for informational purposes only.
+    manufacturer_name: N/A
+    # serial_number can be used to store the unique serial number of the eye tracking
+    # device being used. This is for informational purposes only. The serial number should be in
+    # a string representation.
+    serial_number: N/A
+    # manufacture_date can be used to store the date of manufacture of the eye tracking
+    # device being used if it is provided by the eye tracker manufacturer.
+    # This is for informational purposes only. The serial number should be in
+    # a string representation using the format DD-MM-YYYY.
+    manufacture_date: DD-MM-YYYY
+    # software_version can be used to store the native device API / SDK interface
+    # being used by the ioHub common eye tracker interface on the back end.
+    # This is generally for informational purposes only.
+    software_version: N/A
+    # hardware_version can be used to store the native device's hardware version
+    # number if device models also include a version or revision number by the supplier.
+    # This is generally for informational purposes only.
+    hardware_version: N/A
+    # firmware_version can be used to store the native device's firmware version
+    # if a device provides such information.    
+    # This is generally for informational purposes only.
+    firmware_version: N/A

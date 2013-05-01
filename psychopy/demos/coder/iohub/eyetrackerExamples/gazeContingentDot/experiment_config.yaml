@@ -1,0 +1,26 @@
+# experiment_config.yaml: settings related to the experiment being run when the run.py script is launched,
+# any custom session variables you want displayed in a dialog for input at the start of the experiment,
+# and settings related to the local process the experiment simpleTrackerTest.py is launched in.
+
+title: GC Gaussian Demo
+code: gc_gauss_1
+version: '1.0'
+description: GC Gaussian example of using psychopy and ioHub
+session_defaults:
+    name: Session Name
+    code: E1S01
+    comments: None
+    user_variables:
+        participant_age: Unknown
+        participant_gender: [ Select, Male, Female ]
+        glasses: False
+        contacts: False
+        eye_color: Unknown
+session_variable_order: [ name, code, comments, participant_age, participant_gender, glasses, contacts, eye_color ]
+event_buffer_length: 2048
+process_affinity: []
+remaining_processes_affinity: []
+ioHub:
+    process_affinity: []
+    config: ioHub_config.yaml
+
