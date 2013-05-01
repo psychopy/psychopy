@@ -1,0 +1,59 @@
+ipcCoder: msgpack
+global_event_buffer: 2048
+udpPort: 9000
+monitor_devices:
+    - Display: 
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 500
+            height: 281
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+    - Keyboard:
+        name: keyboard
+        enable: True
+        save_events: False
+        stream_events: True
+        auto_report_events: True
+        event_buffer_length: 256
+    - Mouse:
+        name: mouse
+        enable: True
+        save_events: False
+        stream_events: True
+        auto_report_events: True
+        event_buffer_length: 256
+    - eyeTracker.HW.XXX.YYY.EyeTracker:
+        enable: False
+        name: tracker
+        save_events: True
+        stream_events: True
+        device_timer:
+            interval: 0.001
+        event_buffer_length: 1024
+        runtime_settings:
+            sampling_rate: 250
+            track_eyes: LEFT
+            default_calibration: HV9
+            auto_calibration: True
+            auto_calibration_speed: 1.5
+            runtime_filtering:
+                ALL: OFF
+            enable_api_without_connection: False
+            network_settings: 100.1.1.1
+            default_native_data_file_name: et_data
+            vog_settings:
+                pupil_measure_types: DIAMETER
+                tracking_mode: PUPIL-CR
+                pupil_center_algorithm: CENTROID
+data_store:
+    enable: False
+    filename: events
+    storage_type: pytables
+    multiple_experiments: True
+    flush_interval: 32

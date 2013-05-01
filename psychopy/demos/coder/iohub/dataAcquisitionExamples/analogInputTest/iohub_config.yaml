@@ -1,0 +1,63 @@
+# iohub_config.yaml: settings related to the iohub process and the device types that are to be enabled for the
+# experiment.
+
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 500
+            height: 281
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        origin: center
+    - Keyboard:
+        name: kb
+        save_events: True
+        stream_events: True
+    - Mouse:
+        name: mouse
+        save_events: True
+        stream_events: True
+    - Experiment:
+        name: experimentRuntime
+        save_events: True
+        stream_events: True
+    - daq.hw.labjack.AnalogInput:
+        name: ain
+        channel_sampling_rate: 1000
+        resolution_index: 1
+        settling_factor: 1
+        monitor_event_types: [MultiChannelAnalogInputEvent,]
+        save_events: True
+        stream_events: True
+        event_buffer_length: 1024
+        serial_number: N/A
+        model_number: N/A
+        manufacture_date: DD-MM-YYYY
+        software_version: N/A
+        hardware_version: N/A
+        firmware_version: N/A
+#    - daq.hw.mc.AnalogInput:
+#        name: ain
+#        device_number: 0
+#        channel_sampling_rate: 1000
+#        model_name: USB-1208FS
+#        manufacturer_name: Measurement Computing Corporation
+#        monitor_event_types: [ MultiChannelAnalogInputEvent,]
+#        save_events: True
+#        stream_events: True
+#        event_buffer_length: 1024
+#        device_timer:
+#            interval: 0.004
+#        model_number: N/A
+#        serial_number: N/A
+#        manufacture_date: DD-MM-YYYY
+#        software_version: N/A
+#        hardware_version: N/A
+#        firmware_version: N/A
+data_store:
+    enable: True
