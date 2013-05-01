@@ -808,8 +808,7 @@ class Display(Device):
             
             psychoMonitor=monitors.Monitor(psychopy_monitor_name,
                                        width=dwidth, distance=ddist, gamma=1.0)
-            # SS: I don't think this means the current screen resolution, so commenting out.
-            #psychoMonitor.setSizePix(self.getPixelResolution())                                   
+            psychoMonitor.setSizePix(self.getPixelResolution())                                   
             psychoMonitor.saveMon()
 
         self._psychopy_monitor=psychoMonitor

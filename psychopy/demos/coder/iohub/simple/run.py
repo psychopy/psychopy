@@ -3,9 +3,9 @@
 ioHub
 .. file: ioHub/examples/simple/run.py
 """
-from psychopy import core, visual, iohub
+from psychopy import core, visual
 
-from iohub import ioHubExperimentRuntime, EventConstants,FullScreenWindow, OrderedDict
+from psychopy.iohub import ioHubExperimentRuntime, EventConstants,FullScreenWindow, OrderedDict
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
