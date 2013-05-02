@@ -5,7 +5,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os, glob, copy
-import wx, Image
+import wx
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 from os.path import *
 
 def pilToBitmap(pil,scaleFactor=1.0):

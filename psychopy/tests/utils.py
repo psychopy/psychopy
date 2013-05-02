@@ -1,9 +1,13 @@
-import Image
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
 import numpy as np
 from psychopy import logging
+
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 try:
     import pytest

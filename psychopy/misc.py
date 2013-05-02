@@ -10,7 +10,12 @@ from psychopy import logging
 import monitors
 
 import os, shutil, glob
-import Image, cPickle
+import cPickle
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+
 #from random import shuffle #this is core python dist
 
 def toFile(filename, data):

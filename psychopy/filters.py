@@ -8,8 +8,11 @@ Various useful functions for creating filters and textures (e.g. for PatchStim)
 
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-import Image
 from psychopy import logging
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 def makeGrating(res,
             ori=0.0,    #in degrees
