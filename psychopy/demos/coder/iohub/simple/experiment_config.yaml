@@ -10,5 +10,5 @@ session_defaults:
 session_variable_order: [ name, code, comments ]
 ioHub:
     enable: True
-    config: ioHub_config.yaml
+    config: iohub_config.yaml
   
