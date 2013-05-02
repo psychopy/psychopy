@@ -211,6 +211,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # disable high priority in both processes
         Computer.disableHighPriority()
 
+        self.hub.quit()
 
     def plotResults(self):
         #### calculate stats on collected data and draw some plots ####
@@ -241,8 +242,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         plot(bins, y, 'r--', linewidth=1)
         xlabel('ioHub getEvents Delay')
         ylabel('Percentage')
-        title('ioHub Event Delay Histogram (msec.usec):\n'+r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'.format(
-                dmin, dmax, dmean, dstd))
+        title('ioHub Event Delay Histogram (msec.usec):\n'+r'$\ \min=%.3f,\ \max=%.3f,\ \mu=%.3f,\ \sigma=%.3f$'%(dmin, dmax, dmean, dstd))
         axis([0, dmax+1.0, 0, 25.0])
         grid(True)
 
