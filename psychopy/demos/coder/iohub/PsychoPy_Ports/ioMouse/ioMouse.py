@@ -35,7 +35,7 @@ from psychopy.iohub import quickStartHubServer, FullScreenWindow
 #
 
 io=quickStartHubServer(experiment_code="exp_code")
-				   
+                   
 # By default, keyboard, mouse, experiment, and display devices are created 
 # by the quickStartHubServer function. 
 #
@@ -103,7 +103,7 @@ display_index=display.getIndex()
 #
 # Get the Display's full screen window coordinate type (unit type). This is also specified when
 # the Display device is created . Coordinate systems match those specified by PsychoPy (excluding 'height').
-# The default is 'pix'. 	
+# The default is 'pix'.     
 #
 coord_type=display.getCoordinateType()
 #
@@ -116,110 +116,110 @@ pixels_per_degree_x=display.getPixelsPerDegree()[0]
 # device to each stim reasource created, as is done here.
 #
 fixSpot = visual.PatchStim(myWin,tex="none", mask="gauss",
-		pos=(0,0), size=(30,30),color='black', autoLog=False, units=coord_type)
-		
+                           pos=(0,0), size=(30,30),color='black', autoLog=False, units=coord_type)
+
 grating = visual.PatchStim(myWin,pos=(300,0),
-						   tex="sin",mask="gauss",
-						   color=[1.0,0.5,-1.0],
-						   size=(150.0,150.0), sf=(0.01,0.0),
-						   autoLog=False, units=coord_type)
-						   
+                           tex="sin",mask="gauss",
+                           color=[1.0,0.5,-1.0],
+                           size=(150.0,150.0), sf=(0.01,0.0),
+                           autoLog=False, units=coord_type)
+                           
 message = visual.TextStim(myWin,pos=(0.0,-250),alignHoriz='center',
-						  alignVert='center',height=40,
-						  text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
-						  autoLog=False,wrapWidth=screen_resolution[0]*.9,
-						  units=coord_type)
+                          alignVert='center',height=40,
+                          text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
+                          autoLog=False,wrapWidth=screen_resolution[0]*.9,
+                          units=coord_type)
 
 last_wheelPosY=0
 
 # Run the example until the 'q' or 'ESCAPE' key is pressed
 #
 while True: 
-	# Get the current mouse position.
-	#
-	# Note that this is 'not' the same as getting mouse motion events, 
-	# since you are getting the latest position information, and not information about how
-	# the mouse has moved since the last time mouse events were accessed.
-	# 
-	position, posDelta = myMouse.getPositionAndDelta()		
-	mouse_dX,mouse_dY=posDelta
+    # Get the current mouse position.
+    #
+    # Note that this is 'not' the same as getting mouse motion events, 
+    # since you are getting the latest position information, and not information about how
+    # the mouse has moved since the last time mouse events were accessed.
+    # 
+    position, posDelta = myMouse.getPositionAndDelta()        
+    mouse_dX,mouse_dY=posDelta
 
-	# Get the current state of each of the Mouse Buttons. True means the button is
-	# pressed, False means it is released.
-	#
-	left_button, middle_button, right_button = myMouse.getCurrentButtonStates()
-	
-	# If the left button is pressed, change the visual gratings spatial frequency 
-	# by the number of pixels the mouse moved in the x dimenstion divided by the 
-	# calculated number of pixels per visual degree for x.
-	#
-	if left_button:
-		grating.setSF(mouse_dX/pixels_per_degree_x/20.0, '+')
-	#
-	# If the right mouse button is pressed, move the grating to the position of the mouse.
-	#
-	elif right_button:
-		grating.setPos(position)
-	
-	# If no buttons are pressed on the Mouse, move the position of the mouse cursor.
-	#
-	if True not in (left_button, middle_button, right_button):
-		fixSpot.setPos(position)
-		
-	if sys.platform == 'darwin':
-		# On OS X, both x and y mouse wheel events can be detected, assuming the mouse being used
-		# supported 2D mouse wheel motion.
-		#
-		wheelPosX,wheelPosY = myMouse.getScroll()		
-	else:
-		# On Windows and Linux, only vertical (Y) wheel position is supported.
-		#
-		wheelPosY = myMouse.getScroll()
-	
-	# keep track of the wheel position 'delta' since the last frame.
-	#
-	wheel_dY=wheelPosY-last_wheelPosY
-	last_wheelPosY=wheelPosY
+    # Get the current state of each of the Mouse Buttons. True means the button is
+    # pressed, False means it is released.
+    #
+    left_button, middle_button, right_button = myMouse.getCurrentButtonStates()
+    
+    # If the left button is pressed, change the visual gratings spatial frequency 
+    # by the number of pixels the mouse moved in the x dimenstion divided by the 
+    # calculated number of pixels per visual degree for x.
+    #
+    if left_button:
+        grating.setSF(mouse_dX/pixels_per_degree_x/20.0, '+')
+    #
+    # If the right mouse button is pressed, move the grating to the position of the mouse.
+    #
+    elif right_button:
+        grating.setPos(position)
+    
+    # If no buttons are pressed on the Mouse, move the position of the mouse cursor.
+    #
+    if True not in (left_button, middle_button, right_button):
+        fixSpot.setPos(position)
+        
+    if sys.platform == 'darwin':
+        # On OS X, both x and y mouse wheel events can be detected, assuming the mouse being used
+        # supported 2D mouse wheel motion.
+        #
+        wheelPosX,wheelPosY = myMouse.getScroll()        
+    else:
+        # On Windows and Linux, only vertical (Y) wheel position is supported.
+        #
+        wheelPosY = myMouse.getScroll()
+    
+    # keep track of the wheel position 'delta' since the last frame.
+    #
+    wheel_dY=wheelPosY-last_wheelPosY
+    last_wheelPosY=wheelPosY
 
-	# Change the orientation of the visual grating based on any vertical mouse wheel movement.
-	#
-	grating.setOri(wheel_dY*5, '+')
-	
-	#
-	# Advance 0.05 cycles per frame.
-	grating.setPhase(0.05, '+')
-	
-	# Redraw the stim for this frame.
-	#
-	fixSpot.draw()
-	grating.draw()
-	message.draw()
-	myWin.flip()#redraw the buffer
+    # Change the orientation of the visual grating based on any vertical mouse wheel movement.
+    #
+    grating.setOri(wheel_dY*5, '+')
+    
+    #
+    # Advance 0.05 cycles per frame.
+    grating.setPhase(0.05, '+')
+    
+    # Redraw the stim for this frame.
+    #
+    fixSpot.draw()
+    grating.draw()
+    message.draw()
+    myWin.flip()#redraw the buffer
 
-	# Handle key presses each frame. Since no event type is being given
-	# to the getEvents() method, all KeyboardEvent types will be 
-	# returned (KeyboardPressEvent, KeyboardReleaseEvent, KeyboardCharEvent), 
-	# and used in this evaluation.
-	#
-	for event in myKeyboard.getEvents():
-		#
-		# If the keyboard event reports that the 'q' or 'ESCAPE' key was pressed
-		# then exit the example. 
-		# Note that specifying the lower case 'q' will only cause the experiment
-		# to exit if a lower case q is what was actually pressed (i.e. a 'SHIFT'
-		# key modifier was not being pressed and the 'CAPLOCKS' modifier was not 'on').
-		# If you want the experiment to exit regardless of whether an upper or lower
-		# case letter was pressed, either include both in the list of keys to match
-		# , i.e. ['ESCAPE', 'q', 'Q'], or use the string.upper() method, i.e.
-		# if event.key.upper() in ['ESCAPE','Q']
-		#
-		if event.key in ['ESCAPE','q']:
-			io.quit()
-			core.quit()
-			
-	# Clear out events that were not accessed this frame.
-	#
-	io.clearEvents('all')
+    # Handle key presses each frame. Since no event type is being given
+    # to the getEvents() method, all KeyboardEvent types will be 
+    # returned (KeyboardPressEvent, KeyboardReleaseEvent, KeyboardCharEvent), 
+    # and used in this evaluation.
+    #
+    for event in myKeyboard.getEvents():
+        #
+        # If the keyboard event reports that the 'q' or 'ESCAPE' key was pressed
+        # then exit the example. 
+        # Note that specifying the lower case 'q' will only cause the experiment
+        # to exit if a lower case q is what was actually pressed (i.e. a 'SHIFT'
+        # key modifier was not being pressed and the 'CAPLOCKS' modifier was not 'on').
+        # If you want the experiment to exit regardless of whether an upper or lower
+        # case letter was pressed, either include both in the list of keys to match
+        # , i.e. ['ESCAPE', 'q', 'Q'], or use the string.upper() method, i.e.
+        # if event.key.upper() in ['ESCAPE','Q']
+        #
+        if event.key in ['ESCAPE','q']:
+            io.quit()
+            core.quit()
+            
+    # Clear out events that were not accessed this frame.
+    #
+    io.clearEvents('all')
 
 #
 ## End of Example
