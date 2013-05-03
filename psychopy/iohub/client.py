@@ -1273,8 +1273,8 @@ class ioHubConnection(object):
                                 print 'ioHub Server Process Completed With Code: ',status
                                 return True
                             time.sleep(0.1)
-                    print "Warning: TimeoutExpired, Killing ioHub Server process."
-                    self._osxKillAndFreePort()
+                        print "Warning: TimeoutExpired, Killing ioHub Server process."
+                        self._osxKillAndFreePort()
             except TimeoutError:
                 print "Warning: TimeoutExpired, Killing ioHub Server process."
                 Computer.ioHubServerProcess.kill()
