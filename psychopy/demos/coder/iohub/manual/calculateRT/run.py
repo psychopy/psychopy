@@ -68,3 +68,6 @@ window.flip()
 while not keyboard.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
     io.wait(0.05)
     io.clearEvents()
+    
+io.quit()
+core.quit()

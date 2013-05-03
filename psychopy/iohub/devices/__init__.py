@@ -319,10 +319,9 @@ class Computer(object):
             None
         """
         if _psutil_available is False:
-            print2err("Computer.disableRealTimePriority is not supported on OS X")
             return False
 
-        Computer.disableHighPriority()
+        return Computer.disableHighPriority()
 
     @staticmethod
     def disableHighPriority():
@@ -342,7 +341,6 @@ class Computer(object):
         """
         
         if _psutil_available is False:
-            print2err("Computer.disableHighPriority is not supported on OS X")
             return False
         try:
             if Computer.inHighPriorityMode is True:
@@ -352,10 +350,12 @@ class Computer(object):
                     Computer.inHighPriorityMode=False
                 elif Computer.system=='linux2' and Computer._process_original_nice_value > 0:
                     Computer.currentProcess.set_nice(Computer._process_original_nice_value)
-                    Computer.inHighPriorityMode=False
+                    Computer.inHighPriorityMode=False       
+            return True
         except psutil.AccessDenied:
             print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.currentProcessID))
-
+        return False
+        
     @staticmethod
     def getProcessingUnitCount():
         """

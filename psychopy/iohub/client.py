@@ -16,6 +16,7 @@ import time
 import subprocess
 from collections import deque
 import json
+import signal
 
 try:
     from yaml import load
@@ -865,11 +866,15 @@ class ioHubConnection(object):
                         pass
                 else:
                     try:
-                        os.kill(iohub_pid) #code
-                    except Exception:
-                        pass
+                        os.kill(iohub_pid, signal.SIGKILL) #code
+                    except OSError:  # no such process
+                        pass  # not sure if this is *always* the right thing to do
             except:
                 printExceptionDetailsToStdErr()
+        
+        # maybe just "if sys.platform..." instead, always try it?
+        if sys.platform == 'darwin':
+            self._osxKillAndFreePort()
 
         # start subprocess, get pid, and get psutil process object for affinity and process priority setting
         self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
@@ -1256,8 +1261,20 @@ class ioHubConnection(object):
                 self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                 self.udp_client.close()
                 if Computer.ioHubServerProcess:
-                    r=Computer.ioHubServerProcess.wait(timeout=5)
-                    print 'ioHub Server Process Completed With Code: ',r
+                    if sys.platform != 'darwin': 
+                        r=Computer.ioHubServerProcess.wait(timeout=5)
+                        print 'ioHub Server Process Completed With Code: ',r
+                    else:
+                        t=Computer.getTime()
+                        while Computer.getTime()-t<5.0:
+                            Computer.ioHubServerProcess.poll()
+                            status=Computer.ioHubServerProcess.returncode
+                            if status != None:
+                                print 'ioHub Server Process Completed With Code: ',status
+                                return True
+                            time.sleep(0.1)
+                    print "Warning: TimeoutExpired, Killing ioHub Server process."
+                    self._osxKillAndFreePort()
             except TimeoutError:
                 print "Warning: TimeoutExpired, Killing ioHub Server process."
                 Computer.ioHubServerProcess.kill()
@@ -1286,6 +1303,16 @@ class ioHubConnection(object):
         else:
             raise ioHubConnectionException('Response from ioHub should always be iterable and have a length > 0')
 
+    def _osxKillAndFreePort(self):
+        p = subprocess.Popen(['lsof', '-i:9000', '-P'], stdout=subprocess.PIPE)
+        lines = p.communicate()[0]
+        for line in lines.splitlines():
+            if line.startswith('Python'):
+                PID, userID = line.split()[1:3]
+                # could verify same userID as current user, probably not needed
+                os.kill(int(PID), signal.SIGKILL)        
+                print 'Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID 
+            
     def __del__(self):
         try:
             self._shutDownServer()
@@ -2072,7 +2099,6 @@ class PathMapping(object):
                             if not hasattr(self,ft):
                                 setattr(self,ft,newPath)
                         setattr(root,subdir,newPath)
-
 
             buildOutPath(self.structure,pathSettings)
 
