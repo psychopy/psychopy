@@ -436,7 +436,7 @@ class ioServer(object):
         self._running=True
         
         # start UDP service
-        self.udpService=udpServer(self,':%d'%config.get('udpPort',9000))
+        self.udpService=udpServer(self,':%d'%config.get('udp_port',9000))
 
         from .. import iohub
         # read temp paths file

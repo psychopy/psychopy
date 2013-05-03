@@ -36,7 +36,7 @@ from . import IO_HUB_DIRECTORY,isIterable
 from .devices import Computer, DeviceEvent,import_device
 from .devices.experiment import MessageEvent,LogEvent
 from .constants import DeviceConstants,EventConstants
-from .util import MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
+from .util import updateDict, MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
 from .net import UDPClientConnection
 
 currentSec= Computer.currentSec
@@ -803,6 +803,9 @@ class ioHubConnection(object):
         session_info=None
         
         rootScriptPath = os.path.dirname(sys.argv[0])
+        
+        hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+
 
         if ioHubConfigAbsPath is None and ioHubConfig is None:
             ioHubConfig=dict(monitor_devices=[dict(Keyboard={}),dict(Display={}),dict(Mouse={})])
@@ -822,14 +825,14 @@ class ioHubConnection(object):
                     
         elif ioHubConfigAbsPath  is not None and ioHubConfig is None:
             ioHubConfig=load(file(ioHubConfigAbsPath,u'r'), Loader=Loader)
-            self.udp_client=UDPClientConnection(coder='msgpack')
         else:        
             print2err("ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided.")
             sys.exit(1)
+
+            if ioHubConfig:
+                updateDict(ioHubConfig,hub_defaults_config)
         
         if ioHubConfig and ioHubConfigAbsPath is None:
-                if self.udp_client is None:                
-                    self.udp_client=UDPClientConnection(coder='msgpack')
                 
                 if isinstance(ioHubConfig.get('monitor_devices'),dict):
                     #short hand device spec is being used. Convert dict of 
@@ -875,6 +878,8 @@ class ioHubConnection(object):
         # maybe just "if sys.platform..." instead, always try it?
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
+
+        self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
         # start subprocess, get pid, and get psutil process object for affinity and process priority setting
         self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
