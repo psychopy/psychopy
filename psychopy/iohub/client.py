@@ -271,19 +271,14 @@ class ioHubConnection(object):
         Device Name:  display
         Device Interface:
         	clearEvents
-        	displayCoord2Pixel
         	enableEventReporting
-        	getBounds
-        	getComputerDisplayCount
-        	getComputerDisplayRuntimeInfoList
+        	getDisplayCount
         	getConfiguration
-        	getConfigurationByIndex
         	getCoordBounds
         	getCoordinateType
         	getDefaultEyeDistance
         	getDeviceNumber
         	getDisplayIndexForNativePixelPosition
-        	getEnabledDisplayCount
         	getEvents
         	getIndex
         	getOrigin
@@ -293,9 +288,7 @@ class ioHubConnection(object):
         	getPsychopyMonitorName
         	getRetraceInterval
         	getRuntimeInfo
-        	getRuntimeInfoByIndex
         	isReportingEvents
-        	pixel2DisplayCoord
         --------------
         Device Name:  experiment
         Device Interface:

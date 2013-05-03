@@ -127,7 +127,7 @@ class Mouse(MouseDevice):
                 
             mx,my=event.Position                
             event.DisplayIndex=display_index                
-            p=self._display_device.pixel2DisplayCoord(mx,my,event.DisplayIndex)  
+            p=self._display_device._pixel2DisplayCoord(mx,my,event.DisplayIndex)  
         
             #print2err("Going to Update mousePosition: {0} => {1} on D {2}".format(
             #                    event.Position,p,event.DisplayIndex))

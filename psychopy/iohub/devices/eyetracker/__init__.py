@@ -384,13 +384,13 @@ class EyeTrackerDevice(Device):
         
         Default implementation is to call the Display device method:
             
-            self._display_device.pixel2DisplayCoord(gaze_x,gaze_y,self._display_device.getIndex())
+            self._display_device._pixel2DisplayCoord(gaze_x,gaze_y,self._display_device.getIndex())
             
         where gaze_x,gaze_y = eyetracker_point, which is assumed to be in screen pixel
         coordinates, with a top-left origin. If the eye tracker provides the eye position
         data in a coordinate space other than screen pixel position with top-left origin,
         the eye tracker position should first be converted to this coordinate space before
-        passing the position data px,py to the pixel2DisplayCoord method.
+        passing the position data px,py to the _pixel2DisplayCoord method.
         
         self._display_device.getIndex() provides the index of the display for multi display setups.
         0 is the default index, and valid values are 0 - N-1, where N is the number
@@ -408,10 +408,10 @@ class EyeTrackerDevice(Device):
         # If the eyetracker_point does not represent eye data as display 
         # pixel position using a top-left origin, convert the naive eye tracker
         # gaze coordinate space to a display pixel position using a top-left origin
-        # here before passing gaze_x,gaze_y to the pixel2DisplayCoord method.
+        # here before passing gaze_x,gaze_y to the _pixel2DisplayCoord method.
         # ....
         
-        return self._display_device.pixel2DisplayCoord(gaze_x,gaze_y,self._display_device.getIndex()) 
+        return self._display_device._pixel2DisplayCoord(gaze_x,gaze_y,self._display_device.getIndex()) 
    
     def _displayToEyeTrackerCoords(self,display_x,display_y):
         """

@@ -456,8 +456,8 @@ class ioServer(object):
             # initial dataStore setup
             if 'data_store' in config:
                 experiment_datastore_config=config.get('data_store')
-
-                default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'dataStore','default_datastore.yaml')
+                default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
+                #print2err('default_datastore_config_path: ',default_datastore_config_path)
                 _dslabel,default_datastore_config=load(file(default_datastore_config_path,'r'), Loader=Loader).popitem()
 
                 for default_key,default_value in default_datastore_config.iteritems():
